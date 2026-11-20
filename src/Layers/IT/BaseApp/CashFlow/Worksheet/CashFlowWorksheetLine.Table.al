@@ -1,8 +1,10 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CashFlow.Worksheet;
+
+using System.Environment.Configuration;
 
 using Microsoft.CashFlow.Account;
 using Microsoft.CashFlow.Forecast;
@@ -163,7 +165,8 @@ table 846 "Cash Flow Worksheet Line"
         field(34; "Source No."; Code[20])
         {
             Caption = 'Source No.';
-            TableRelation = if ("Source Type" = const("Liquid Funds")) "G/L Account"
+            TableRelation =
+            if ("Source Type" = const("Liquid Funds")) "G/L Account"
             else
             if ("Source Type" = const(Receivables)) "Cust. Ledger Entry"."Document No."
             else
@@ -268,6 +271,9 @@ table 846 "Cash Flow Worksheet Line"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DimMgt: Codeunit DimensionManagement;
 
     procedure EmptyLine(): Boolean
@@ -390,15 +396,22 @@ table 846 "Cash Flow Worksheet Line"
             if CashFlowForecast."Consider Pmt. Disc. Tol. Date" then
                 CFDiscountDate := CalcDate(GeneralLedgerSetup."Payment Discount Grace Period", CFDiscountDate);
 
-            if CFDiscountDate >= WorkDate() then begin
-                "Cash Flow Date" := CFDiscountDate;
+            IsHandled := false;
+#if CLEAN30
+            OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate, PaymentTerms, IsHandled);
+#else
+            OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentTermsDiscount(CFDiscountDate, PaymentTerms, IsHandled);
+#endif
+            if not IsHandled then
+                if CFDiscountDate >= WorkDate() then begin
+                    "Cash Flow Date" := CFDiscountDate;
 
-                "Payment Discount" := Round("Amount (LCY)" * PaymentTerms."Discount %" / 100);
-                "Amount (LCY)" := "Amount (LCY)" - "Payment Discount";
-            end else begin
-                "Cash Flow Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-                "Payment Discount" := 0;
-            end;
+                    "Payment Discount" := Round("Amount (LCY)" * PaymentTerms."Discount %" / 100);
+                    "Amount (LCY)" := "Amount (LCY)" - "Payment Discount";
+                end else begin
+                    "Cash Flow Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                    "Payment Discount" := 0;
+                end;
         end else
             "Cash Flow Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
     end;
@@ -439,10 +452,15 @@ table 846 "Cash Flow Worksheet Line"
         end;
     end;
 
+#if not CLEAN30
     procedure CalculateCFAmountAndCFDate(var MaxPmtTolerance: Decimal)
     var
         CashFlowForecast: Record "Cash Flow Forecast";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            CalculateCFAmountAndCFDate();
+            exit;
+        end;
         if "Document Date" = 0D then
             "Document Date" := WorkDate();
         if "Cash Flow Date" = 0D then
@@ -461,7 +479,9 @@ table 846 "Cash Flow Worksheet Line"
         else
             CalculateForPostedDocuments(CashFlowForecast);
     end;
+#endif
 
+#if not CLEAN30
     procedure InsertNewLinesForUnpostedDocuments(CashFlowForecast: Record "Cash Flow Forecast"; var MaxPmtTolerance: Decimal)
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -476,6 +496,8 @@ table 846 "Cash Flow Worksheet Line"
         AccumulatedAmount: Decimal;
         IsHandled: Boolean;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentTermsToApply := "Payment Terms Code";
         if not CheckForCrMemoCalculation(PaymentTermsToApply) then
             exit;
@@ -544,6 +566,7 @@ table 846 "Cash Flow Worksheet Line"
 
         MaxPmtTolerance := 0;
     end;
+#endif
 
     procedure CheckForCrMemoCalculation(PaymentTermsToApply: Code[10]): Boolean
     var
@@ -600,14 +623,28 @@ table 846 "Cash Flow Worksheet Line"
     end;
 
     [IntegrationEvent(true, false)]
+#if CLEAN30
+    local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate: Date; PaymentTerms: record "Payment Terms"; var IsHandled: boolean)
+#else
+    local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentTermsDiscount(CFDiscountDate: Date; PaymentTerms: record "Payment Terms"; var IsHandled: boolean)
+#endif
+    begin
+    end;
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.')]
+    [IntegrationEvent(true, false)]
     local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate: Date; PaymentLines: record "Payment Lines"; var IsHandled: boolean)
     begin
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertNewLinesForUnpostedDocumentsOnBeforeInsert(var CashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; PaymentLines: Record "Payment Lines")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnValidateCashFlowAccountNo(var CashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; var xCashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; var IsHandled: Boolean)

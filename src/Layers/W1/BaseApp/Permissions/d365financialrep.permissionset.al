@@ -24,6 +24,7 @@ using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Integration.Entity;
@@ -108,6 +109,10 @@ permissionset 7576 "D365 FINANCIAL REP."
                   tabledata "G/L Transaction" = Rimd,
                   tabledata "Gen. Journal Line" = RIMD,
                   tabledata "General Ledger Setup" = RM,
+                  tabledata "Sales Installment Plan" = Rimd,
+                  tabledata "Purchase Installment Plan" = Rimd,
+                  tabledata "Sales Installment Plan Line" = Rimd,
+                  tabledata "Purchase Installment Plan Line" = Rimd,
                   tabledata "Item Analysis View" = RIMD,
                   tabledata "Item Analysis View Budg. Entry" = Rimd,
                   tabledata "Item Analysis View Entry" = Rimd,

@@ -724,6 +724,13 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
+        }
 #if not CLEANSCHEMA26
         field(11200; "EU 3-Party Trade"; Boolean)
         {

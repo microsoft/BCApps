@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
@@ -245,15 +247,21 @@ table 25 "Vendor Ledger Entry"
 
             trigger OnValidate()
             var
+#if not CLEAN30
                 PostedPaymentLines: Record "Posted Payment Lines";
+#endif
             begin
                 TestField(Open, true);
 
-                if PostedPaymentLines.Get(PostedPaymentLines."Sales/Purchase"::Purchase, "Document Type", "Document No.",
-                                          "Document Occurrence" * 10000) then begin
-                    PostedPaymentLines."Due Date" := "Due Date";
-                    PostedPaymentLines.Modify();
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    if PostedPaymentLines.Get(PostedPaymentLines."Sales/Purchase"::Purchase, "Document Type", "Document No.",
+                                              "Document Occurrence" * 10000) then begin
+                        PostedPaymentLines."Due Date" := "Due Date";
+                        PostedPaymentLines.Modify();
+                    end;
                 end;
+#endif
             end;
         }
         field(38; "Pmt. Discount Date"; Date)
@@ -759,13 +767,54 @@ table 25 "Vendor Ledger Entry"
                     Validate("On Hold", NewOnHold);
             end;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment plan.';
+        }
+        field(8841; "Installment No."; Integer)
+        {
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
+        }
+        field(8842; "No. of Installments"; Integer)
+        {
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of payables in the installment plan.';
+        }
+        field(8843; "Invoice Entry No."; BigInteger)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group. Ordinary entries identify themselves.';
+        }
         field(12170; "Document Occurrence"; Integer)
         {
             Caption = 'Document Occurrence';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12171; "Applies-to Occurrence No."; Integer)
         {
             Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12174; "Vendor Bill No."; Code[20])
         {
@@ -828,20 +877,26 @@ table 25 "Vendor Ledger Entry"
         key(Key15; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
+#if not CLEAN30
         key(Key16; "Document No.", "Document Occurrence")
         {
         }
+#endif
         key(Key17; "Vendor No.", Open, Positive, "Applies-to ID")
         {
             Enabled = false;
         }
+#if not CLEAN30
         key(Key18; "Document Type", "Document No.", "Document Occurrence", "Vendor No.")
         {
             SumIndexFields = "Remaining Pmt. Disc. Possible";
         }
+#endif
+#if not CLEAN30
         key(Key19; "Document Type", "External Document No.", "Vendor No.", "Document Occurrence")
         {
         }
+#endif
         key(Key20; "Posting Date", "Transaction No.", "Entry No.")
         {
         }
@@ -866,6 +921,16 @@ table 25 "Vendor Ledger Entry"
         key(PmtReconCandidates; "Document Type", Open, "Posting Date")
         {
         }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
+        }
     }
 
     fieldgroups
@@ -879,6 +944,9 @@ table 25 "Vendor Ledger Entry"
     }
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #pragma warning disable AA0470
         MustHaveSameSignErr: Label 'must have the same sign as %1';
         MustNotBeLargerErr: Label 'must not be larger than %1';

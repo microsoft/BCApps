@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Posting;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
@@ -28,6 +30,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     Permissions = TableData "Invoice Posting Buffer" = rimd;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GLSetup: Record "General Ledger Setup";
         PurchSetup: Record "Purchases & Payables Setup";
         Currency: Record Currency;
@@ -724,6 +729,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     var
         PurchHeader: Record "Purchase Header";
         GenJnlLine: Record "Gen. Journal Line";
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin
         PurchHeader := PurchHeaderVar;
@@ -761,13 +767,18 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Spend Request Close" := PurchHeader."Spend Request Close";
 
         GenJnlLine.CopyFromPurchHeaderApplyTo(PurchHeader);
-        GenJnlLine."Applies-to Occurrence No." := PurchHeader."Applies-to Occurrence No.";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := PurchHeader."Applies-to Occurrence No.";
+        end;
+#endif
         GenJnlLine.CopyFromPurchHeaderPayment(PurchHeader);
 
         InitGenJnlLineAmountFieldsFromTotalLines(GenJnlLine, PurchHeader);
 
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
+        PurchaseInstallmentPosting.PrepareJournalLine(PurchHeader, GenJnlLine);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
@@ -893,7 +904,11 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Bal. Account No." := PurchHeader."Bal. Account No.";
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
-        GenJnlLine."Applies-to Occurrence No." := 0;
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := 0;
+        end;
+#endif
 
         PurchPostInvoiceEvents.RunOnAfterSetApplyToDocNo(GenJnlLine, PurchHeader);
     end;

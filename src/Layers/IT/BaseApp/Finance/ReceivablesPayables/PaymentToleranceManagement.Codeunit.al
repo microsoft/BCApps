@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.ReceivablesPayables;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -38,6 +40,9 @@ codeunit 426 "Payment Tolerance Management"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         CurrExchRate: Record "Currency Exchange Rate";
         GenJnlLineGlobal: Record "Gen. Journal Line";
         AccTypeOrBalAccTypeIsIncorrectErr: Label 'The value in either the Account Type field or the Bal. Account Type field is wrong.\\ The value must be %1.', Comment = '%1 = Customer or Vendor';
@@ -266,7 +271,11 @@ codeunit 426 "Payment Tolerance Management"
         NewCustLedgEntry.Amount := GenJnlLine.Amount;
         NewCustLedgEntry."Remaining Amount" := GenJnlLine.Amount;
         NewCustLedgEntry."Document Type" := GenJnlLine."Document Type";
-        NewCustLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            NewCustLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
+        end;
+#endif
         GenJnlLineGlobal := GenJnlLine;
         exit(
           PmtTolCustLedgEntry(NewCustLedgEntry, GenJnlLine."Account No.", GenJnlLine."Posting Date",
@@ -298,7 +307,11 @@ codeunit 426 "Payment Tolerance Management"
         NewVendLedgEntry.Amount += GenJnlLine.Amount;
         NewVendLedgEntry."Remaining Amount" += GenJnlLine.Amount;
         NewVendLedgEntry."Document Type" := GenJnlLine."Document Type";
-        NewVendLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            NewVendLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
+        end;
+#endif
         GenJnlLineGlobal := GenJnlLine;
         exit(
           PmtTolVendLedgEntry(
@@ -664,7 +677,11 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedCustLedgEntry.SetRange("Customer No.", CustledgEntry."Customer No.");
                 AppliedCustLedgEntry.SetRange(Open, true);
                 AppliedCustLedgEntry.SetRange("Document No.", CustledgEntry."Applies-to Doc. No.");
-                AppliedCustLedgEntry.SetRange("Document Occurrence", CustledgEntry."Applies-to Occurrence No.");
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    AppliedCustLedgEntry.SetRange("Document Occurrence", CustledgEntry."Applies-to Occurrence No.");
+                end;
+#endif
                 if AppliedCustLedgEntry.Find('-') then begin
                     GetApplicationRoundingPrecisionForAppliesToDoc(
                       AppliedCustLedgEntry."Currency Code", ApplnRoundingPrecision, AmountRoundingPrecision, ApplnCurrencyCode);
@@ -842,7 +859,11 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedVendLedgEntry.SetRange("Vendor No.", VendledgEntry."Vendor No.");
                 AppliedVendLedgEntry.SetRange(Open, true);
                 AppliedVendLedgEntry.SetRange("Document No.", VendledgEntry."Applies-to Doc. No.");
-                AppliedVendLedgEntry.SetRange("Document Occurrence", VendledgEntry."Applies-to Occurrence No.");
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    AppliedVendLedgEntry.SetRange("Document Occurrence", VendledgEntry."Applies-to Occurrence No.");
+                end;
+#endif
                 if AppliedVendLedgEntry.Find('-') then begin
                     GetApplicationRoundingPrecisionForAppliesToDoc(
                       AppliedVendLedgEntry."Currency Code", ApplnRoundingPrecision, AmountRoundingPrecision, ApplnCurrencyCode);

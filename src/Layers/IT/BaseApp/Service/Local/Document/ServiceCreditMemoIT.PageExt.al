@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 
 pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
@@ -69,14 +71,17 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
                 ToolTip = 'Specifies the ID of the service tariff that is associated with the service order or service invoice.';
             }
         }
+#if not CLEAN30
         addafter("Applies-to Doc. No.")
         {
             field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the occurrence that applies to the transaction.';
             }
         }
+#endif
         addafter("Applies-to ID")
         {
             field("Refers to Period"; Rec."Refers to Period")
@@ -130,10 +135,12 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
     }
     actions
     {
+#if not CLEAN30
         addbefore("Calculate Invoice Discount")
         {
             action("Pa&yments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 Caption = 'Pa&yments';
                 Image = Payment;
@@ -142,8 +149,12 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
                                 Type = field("Document Type"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Post &Batch")
         {
             action(GenerateSplitVATLines)
@@ -168,6 +179,13 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
         }
     }
 
+#if not CLEAN30
+    trigger OnOpenPage()
+    begin
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+    end;
+#endif
+
     local procedure OperationOccurredDateOnAfterValidate()
     begin
         CurrPage.Update();
@@ -178,4 +196,9 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
         CurrPage.Update();
     end;
 
+#if not CLEAN30
+    var
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 }

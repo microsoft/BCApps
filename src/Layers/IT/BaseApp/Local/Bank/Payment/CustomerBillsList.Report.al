@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
@@ -102,7 +104,11 @@ report 12117 "Customer Bills List"
                 column(CustLedgEntry1__Document_Date_; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence_; "Document Occurrence")
+#else
+                column(CustLedgEntry1__Document_Occurrence_; 0)
+#endif
                 {
                 }
                 column(CustLedgEntry1__Document_No__; "Document No.")
@@ -132,7 +138,11 @@ report 12117 "Customer Bills List"
                 column(CustLedgEntry1__Document_Date__Control1130039; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence__Control1130040; "Document Occurrence")
+#else
+                column(CustLedgEntry1__Document_Occurrence__Control1130040; 0)
+#endif
                 {
                 }
                 column(CustLedgEntry1__Document_No___Control1130041; "Document No.")
@@ -195,7 +205,11 @@ report 12117 "Customer Bills List"
                 column(CustLedgEntry1__Document_Date_Caption; CustLedgEntry1__Document_Date_CaptionLbl)
                 {
                 }
+#if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence_Caption; FieldCaption("Document Occurrence"))
+#else
+                column(CustLedgEntry1__Document_Occurrence_Caption; DocumentOccurrenceCaptionLbl)
+#endif
                 {
                 }
                 column(CustLedgEntry1__Document_No__Caption; FieldCaption("Document No."))
@@ -222,7 +236,11 @@ report 12117 "Customer Bills List"
                     column(CustLedgEntry2__Document_No__; "Document No.")
                     {
                     }
+#if not CLEAN30
                     column(CustLedgEntry2__Document_Occurrence_; "Document Occurrence")
+#else
+                    column(CustLedgEntry2__Document_Occurrence_; 0)
+#endif
                     {
                     }
                     column(CustLedgEntry2__Document_Date_; Format("Document Date"))
@@ -270,7 +288,11 @@ report 12117 "Customer Bills List"
                     trigger OnPreDataItem()
                     begin
                         CustLedgEntry1.CopyFilter("Posting Date", "Posting Date");
-                        SetRange("Document Occurrence to Close", CustLedgEntry1."Document Occurrence");
+#if not CLEAN30
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                            SetRange("Document Occurrence to Close", CustLedgEntry1."Document Occurrence");
+                        end;
+#endif
                     end;
                 }
                 dataitem("Detailed Cust. Ledg. Entry"; "Detailed Cust. Ledg. Entry")
@@ -289,7 +311,11 @@ report 12117 "Customer Bills List"
                     column(Detailed_Cust__Ledg__Entry__Posting_Date_; Format(CustLedgEntry3."Posting Date"))
                     {
                     }
+#if not CLEAN30
                     column(CustLedgEntry3__Document_Occurrence_; CustLedgEntry3."Document Occurrence")
+#else
+                    column(CustLedgEntry3__Document_Occurrence_; 0)
+#endif
                     {
                     }
                     column(CustLedgEntry3__Document_Date_; Format(CustLedgEntry3."Document Date"))
@@ -464,6 +490,9 @@ report 12117 "Customer Bills List"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         EmptyEndingDateErr: Label 'Specify the Ending Date.';
         SalesSetup: Record "Sales & Receivables Setup";
         CustLedgEntry3: Record "Cust. Ledger Entry";
@@ -482,6 +511,9 @@ report 12117 "Customer Bills List"
         TotalDtldCustLedgrEntries: Decimal;
         Page_No_CaptionLbl: Label 'Page No.';
         Customer_Bill_List___Date_CaptionLbl: Label 'Customer Bill List - Date:';
+#if CLEAN30
+        DocumentOccurrenceCaptionLbl: Label 'Document Occurrence';
+#endif
         ExposureDateCaptionLbl: Label 'Exposure Date';
         CustLedgEntry1__Due_Date_CaptionLbl: Label 'Due Date';
         CustLedgEntry1__Amount__LCY___Control1130036CaptionLbl: Label 'Entry Amount (LCY)';

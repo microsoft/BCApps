@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
@@ -13,6 +15,7 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 
 /// <summary>
@@ -327,6 +330,22 @@ page 143 "Posted Sales Invoices"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Suite;
@@ -764,6 +783,7 @@ page 143 "Posted Sales Invoices"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, HasPostedSalesInvoices, CRMIsCoupledToRecord, CRMIntegrationEnabled);
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -790,6 +810,7 @@ page 143 "Posted Sales Invoices"
         OfficeMgt: Codeunit "Office Management";
         HasFilters: Boolean;
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         HasFilters := Rec.GetFilters() <> '';
         Rec.SetSecurityFilterOnRespCenter();
         OnOpenPageOnAfterSetFilters(Rec);
@@ -813,12 +834,15 @@ page 143 "Posted Sales Invoices"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         DocExchStatusStyle: Text;
         CRMIntegrationEnabled: Boolean;
         CRMIsCoupledToRecord: Boolean;
         DocExchStatusVisible: Boolean;
         IsOfficeAddin: Boolean;
         HasPostedSalesInvoices: Boolean;
+        HasInstallmentPlan: Boolean;
 
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnAfterSetFilters(var SalesInvoiceHeader: Record "Sales Invoice Header")

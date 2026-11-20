@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Posting;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.Currency;
@@ -21,6 +23,9 @@ using Microsoft.Service.Setup;
 codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 {
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         SalesSetup: Record "Sales & Receivables Setup";
         InvoicePostingParameters: Record "Invoice Posting Parameters";
         TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary;
@@ -402,7 +407,11 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine.SetCurrencyFactor(ServiceHeader."Currency Code", ServiceHeader."Currency Factor");
 
         ServiceHeader.CopyToGenJournalLineApplyTo(GenJnlLine);
-        GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
+        end;
+#endif
         ServiceHeader.CopyToGenJournalLinePayment(GenJnlLine);
 
         GenJnlLine.Amount := -TotalServiceLine."Amount Including VAT";
@@ -493,7 +502,11 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine."Bal. Account No." := ServiceHeader."Bal. Account No.";
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
-        GenJnlLine."Applies-to Occurrence No." := 1;
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := 1;
+        end;
+#endif
     end;
 
     local procedure FindCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")

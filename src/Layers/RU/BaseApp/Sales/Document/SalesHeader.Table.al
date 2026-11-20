@@ -3644,6 +3644,13 @@ table 36 "Sales Header"
             Caption = 'Get Shipment Used';
             Editable = false;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            ToolTip = 'Specifies the document-owned global installment rule snapshot. Supported standalone sales invoices post one receivable per installment.';
+            TableRelation = "Sales Installment Plan";
+            Editable = false;
+        }
         field(9000; "Assigned User ID"; Code[50])
         {
             Caption = 'Assigned User ID';

@@ -64,7 +64,9 @@ codeunit 144069 "ERM Posting Routine"
         ServiceDocLastGenJourPrintingDateErr: Label 'Operation Occurred Date must not be prior to %1 in Service Header Document Type=''%2'',No.=''%3''.';
         PurchDocLastGenJourPrintingDateErr: Label 'Operation Occurred Date must not be prior to %1 in Purchase Header Document Type=''%2'',No.=''%3''.';
         DateOrderErr: Label 'Date Order must have a value in No. Series:';
+#if not CLEAN30
         InvalidAppliesToOccNoErr: Label 'Invalid Applies-to Occurence No.';
+#endif
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         CopyDocDateOrderConfirmMsg: Label 'The Posting Date of the copied document is different from the Posting Date of the original document. The original document already has a Posting No. based on a number series with date order. When you post the copied document, you may have the wrong date order in the posted documents.\Do you want to continue?';
         DocumentShouldNotBeCopiedErr: Label 'Document should not be copied';
@@ -345,6 +347,7 @@ codeunit 144069 "ERM Posting Routine"
         UpdateNoSeries(NoSeriesCode, true);  // Date Order - True.
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
@@ -370,7 +373,9 @@ codeunit 144069 "ERM Posting Routine"
         // VERIFY
         VerifySalesHeaderAppliesToOccurenceNo(SalesHeader, PostedInvoiceNo);
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
@@ -397,6 +402,7 @@ codeunit 144069 "ERM Posting Routine"
         // VERIFY
         VerifyPurchHeaderAppliesToOccurenceNo(PurchaseHeader, PostedInvoiceNo);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ConfirmCopyDocDateOrderHandlerVerify')]
@@ -1161,6 +1167,7 @@ codeunit 144069 "ERM Posting Routine"
         GeneralLedgerSetup.Modify();
     end;
 
+#if not CLEAN30
     local procedure VerifySalesHeaderAppliesToOccurenceNo(var SalesHeader: Record "Sales Header"; PostedInvoiceNo: Code[20])
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -1171,7 +1178,9 @@ codeunit 144069 "ERM Posting Routine"
         CustLedgerEntry.FindLast();
         Assert.AreEqual(CustLedgerEntry."Document Occurrence", SalesHeader."Applies-to Occurrence No.", InvalidAppliesToOccNoErr);
     end;
+#endif
 
+#if not CLEAN30
     local procedure VerifyPurchHeaderAppliesToOccurenceNo(var PurchaseHeader: Record "Purchase Header"; PostedInvoiceNo: Code[20])
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -1182,6 +1191,7 @@ codeunit 144069 "ERM Posting Routine"
         VendorLedgerEntry.FindLast();
         Assert.AreEqual(VendorLedgerEntry."Document Occurrence", PurchaseHeader."Applies-to Occurrence No.", InvalidAppliesToOccNoErr);
     end;
+#endif
 
     local procedure VerifyVATEntryOperationOccuredDateFilteredOnDocNo(PostedDocumentNo: Code[20]; ExpectedDate: Date)
     var

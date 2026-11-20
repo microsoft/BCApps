@@ -129,7 +129,9 @@ codeunit 144050 "ERM Auto Payment"
         DimensionCodeMissingErr: Label 'Select a Dimension Value Code for the Dimension Code %1 for Customer %2.', Comment = '%1 = Dimension Code, %2 = Customer no.';
         ContactNoSeriesErr: Label 'No. Series should be assigned from selected Series from Assist Edit.';
         AnalysisViewErr: Label 'Last Entry No. must be %1 in %2.', Comment = '%1= Field Value ,%2= Table Name.';
+#if not CLEAN30
         DocumentOccurrenceErr: Label 'The %1 field value is not equal to the expected value %2 in the %3 table.';
+#endif
         CustomerLedgerEntryErr: Label '%1 must be %2 in %3.', Comment = '%1=Field Caption,%2=Field Value,%3=Table Caption';
 
     [Test]
@@ -1177,6 +1179,7 @@ codeunit 144050 "ERM Auto Payment"
           VendorNo, DocumentDate, IssuedVendorBillHeader."Vendor Bill List No.", IssuedVendorBillHeader."Posting Date");
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('MessageHandler,ConfirmHandler')]
     [Scope('OnPrem')]
@@ -1223,7 +1226,9 @@ codeunit 144050 "ERM Auto Payment"
         FindAppliedCustLedgerEntry(DetailedCustLedgEntry, RecallEntryNo);
         DetailedCustLedgEntry.TestField("Cust. Ledger Entry No.", PaymentEntryNo);
     end;
+#endif
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('MessageHandler,ConfirmHandler')]
     [Scope('OnPrem')]
@@ -1287,6 +1292,7 @@ codeunit 144050 "ERM Auto Payment"
         FindAppliedCustLedgerEntry(DetailedCustLedgEntry, RecallEntryNo);
         DetailedCustLedgEntry.TestField("Cust. Ledger Entry No.", PaymentEntryNo);
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -1552,6 +1558,7 @@ codeunit 144050 "ERM Auto Payment"
                 AnalysisView.TableCaption()));
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('ManualVendorPaymentLinePageHandlerForInvoice,ConfirmHandler,MessageHandler')]
     [Scope('OnPrem')]
@@ -1601,6 +1608,7 @@ codeunit 144050 "ERM Auto Payment"
         // [THEN] Verify Document Occurrence for Vendor Ledger Entry
         VerifyDocumentOccurrenceVendorLedgerEntry(VendorNo, VendorBillHeader."Vendor Bill List No.");
     end;
+#endif
 
     [Test]
     procedure TheBankReceiptAndAllowIssueUpdatedPaymentMethodCodeInCustomerLedgerEntries()
@@ -2728,6 +2736,7 @@ codeunit 144050 "ERM Auto Payment"
         exit(Vendor."No.");
     end;
 
+#if not CLEAN30
     local procedure VerifyDocumentOccurrenceVendorLedgerEntry(VendorNo: Code[20]; DocumentNo: Code[20])
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -2745,6 +2754,7 @@ codeunit 144050 "ERM Auto Payment"
               StrSubstNo(DocumentOccurrenceErr, VendorLedgerEntry.FieldCaption("Document Occurrence"), Iteration, VendorLedgerEntry.TableCaption()));
         until VendorLedgerEntry.Next() = 0;
     end;
+#endif
 
     [ModalPageHandler]
     [Scope('OnPrem')]

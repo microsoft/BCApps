@@ -106,7 +106,7 @@ report 12107 "Calculate Interest on Arrears"
             dataitem("Cust. Ledger Entry"; "Cust. Ledger Entry")
             {
                 DataItemLink = "Customer No." = field("No.");
-                DataItemTableView = sorting("Document Type", "Document No.", "Document Occurrence", "Customer No.", Open) where("Document Type" = const(Invoice));
+                DataItemTableView = sorting("Entry No.") where("Document Type" = const(Invoice));
                 column(Cust__Ledger_Entry__Customer_No__; "Customer No.")
                 {
                 }
@@ -371,7 +371,15 @@ report 12107 "Calculate Interest on Arrears"
                 end;
 
                 trigger OnPreDataItem()
+#if not CLEAN30
+                var
+                    FeatureKeyManagement: Codeunit System.Environment.Configuration."Feature Key Management";
+#endif
                 begin
+#if not CLEAN30
+                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                        SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Customer No.", Open);
+#endif
                     if RateInterestDateTmp <> RateInterestDate then
                         RateInterestDate := RateInterestDateTmp;
                     "Cust. Ledger Entry".SetFilter("Due Date", '..%1', RateInterestDate);

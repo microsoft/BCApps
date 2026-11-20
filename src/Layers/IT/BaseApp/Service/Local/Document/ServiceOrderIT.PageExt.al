@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 
 pageextension 12451 "Service Order IT" extends "Service Order"
@@ -169,12 +171,14 @@ pageextension 12451 "Service Order IT" extends "Service Order"
             }
         }
     }
+#if not CLEAN30
     actions
     {
         addbefore("Create Customer")
         {
             action("Pa&yments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 Caption = 'Pa&yments';
                 Image = Payment;
@@ -183,17 +187,33 @@ pageextension 12451 "Service Order IT" extends "Service Order"
                                 Type = field("Document Type"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
         }
     }
+#endif
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         Rec.CheckCreditMaxBeforeInsert(false);
     end;
 
+#if not CLEAN30
+    trigger OnOpenPage()
+    begin
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+    end;
+#endif
+
     local procedure OperationOccurredDateOnAfterValidate()
     begin
         CurrPage.Update();
     end;
+#if not CLEAN30
+    var
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 }

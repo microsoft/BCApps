@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.Setup;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
@@ -18,6 +20,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using System.Automation;
 
 /// <summary>
@@ -770,6 +773,22 @@ page 132 "Posted Sales Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Suite;
@@ -1327,6 +1346,7 @@ page 132 "Posted Sales Invoice"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, CRMIsCoupledToRecord, CRMIntegrationEnabled);
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -1362,6 +1382,7 @@ page 132 "Posted Sales Invoice"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
         CRMIntegrationEnabled := CRMIntegrationManagement.IsCRMIntegrationEnabled();
 
@@ -1373,6 +1394,8 @@ page 132 "Posted Sales Invoice"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
@@ -1389,6 +1412,7 @@ page 132 "Posted Sales Invoice"
         IsSellToCountyVisible: Boolean;
         IsShipToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
+        HasInstallmentPlan: Boolean;
 
     protected var
         SalesInvHeader: Record "Sales Invoice Header";

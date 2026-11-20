@@ -43,6 +43,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
     var
         SalesHeader: Record "Sales Header";
         NoSeries: Codeunit "No. Series";
+        SalesPost: Codeunit "Sales-Post";
         IsHandled: Boolean;
     begin
         UnapplyCostApplication(Rec."No.");
@@ -61,7 +62,13 @@ codeunit 1303 "Correct Posted Sales Invoice"
         if not IsHandled then begin
             if not SuppressCommit then
                 Commit();
-            CODEUNIT.Run(CODEUNIT::"Sales-Post", SalesHeader);
+            if IsNullGuid(Rec."Installment Plan ID") then
+                CODEUNIT.Run(CODEUNIT::"Sales-Post", SalesHeader)
+            else begin
+                // Preserve caller suppression when date-ordered posting restores its commit state.
+                SalesPost.SetSuppressCommit(true);
+                SalesPost.Run(SalesHeader);
+            end;
             SetTrackInfoForCancellation(Rec);
             UpdateSalesOrderLinesFromCancelledInvoice(Rec."No.");
             ResetIncomingDocumentForCancelledInvoice(Rec."No.");
@@ -273,8 +280,11 @@ codeunit 1303 "Correct Posted Sales Invoice"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInstallmentHistory: Codeunit "Sales Installment History";
     begin
         SalesInvoiceHeader.Get(InvoiceNotification.GetData(SalesInvoiceHeader.FieldName("No.")));
+        if SalesInstallmentHistory.ShowAppliedEntries(SalesInvoiceHeader) then
+            exit;
         CustLedgerEntry.Get(SalesInvoiceHeader."Cust. Ledger Entry No.");
         PAGE.RunModal(PAGE::"Applied Customer Entries", CustLedgerEntry);
     end;

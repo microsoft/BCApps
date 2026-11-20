@@ -1749,8 +1749,10 @@ page 42 "Sales Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1759,7 +1761,11 @@ page 42 "Sales Order"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 group("Create Purchase Document")
                 {
                     Caption = 'Create Purchase Document';
@@ -2729,6 +2735,9 @@ page 42 "Sales Order"
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         Rec.SetRange("Date Filter", 0D, WorkDate());
@@ -2777,6 +2786,10 @@ page 42 "Sales Order"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         BillToContact: Record Contact;
         SellToContact: Record Contact;
         SalesSetup: Record "Sales & Receivables Setup";

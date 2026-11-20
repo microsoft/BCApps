@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -888,8 +890,10 @@ page 509 "Blanket Purchase Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -898,7 +902,11 @@ page 509 "Blanket Purchase Order"
                                   Type = const("Blanket Order"),
                                   Code = field("No.");
                     ToolTip = 'View the list of related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;
@@ -1233,6 +1241,9 @@ page 509 "Blanket Purchase Order"
 
     trigger OnOpenPage()
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         SetDocNoVisible();
@@ -1241,6 +1252,10 @@ page 509 "Blanket Purchase Order"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";

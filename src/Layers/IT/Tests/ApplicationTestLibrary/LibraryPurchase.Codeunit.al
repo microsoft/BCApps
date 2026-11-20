@@ -1037,8 +1037,10 @@ codeunit 130512 "Library - Purchase"
 
         if PurchaseHeader."Operation Type" = '' then
             PurchaseHeader.Validate("Operation Type", LibraryERM.GetDefaultOperationType(PurchaseHeader."Buy-from Vendor No.", DATABASE::Vendor));
+#if not CLEAN30
         if (PurchaseHeader."Applies-to Doc. No." <> '') and (PurchaseHeader."Applies-to Occurrence No." = 0) then
             PurchaseHeader.Validate("Applies-to Occurrence No.", 1);
+#endif
         if PurchaseHeader."Operation Occurred Date" = 0D then
             PurchaseHeader.Validate("Operation Occurred Date", PurchaseHeader."Posting Date");
         PurchaseHeader.Modify(true);

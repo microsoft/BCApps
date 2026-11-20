@@ -1,8 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
+
+using System.Environment.Configuration;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Purchases.History;
@@ -15,6 +18,9 @@ page 12172 "Posted Payments"
     Editable = false;
     PageType = List;
     SourceTable = "Posted Payment Lines";
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -94,7 +100,13 @@ page 12172 "Posted Payments"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckLegacyPaymentInstallmentsEnabled();
+    end;
+
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         Currency: Record Currency;
         PostedPaymentLines2: Record "Posted Payment Lines";
         DocumentAmount: Decimal;
@@ -109,6 +121,8 @@ page 12172 "Posted Payments"
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         OnBeforeUpdateAmount(Rec);
         ClearAll();
         if Rec.Find('-') then
@@ -198,4 +212,4 @@ page 12172 "Posted Payments"
     begin
     end;
 }
-
+#endif

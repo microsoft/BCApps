@@ -3,6 +3,7 @@ namespace System.Security.AccessControl;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Inventory.Journal;
@@ -18,8 +19,10 @@ using Microsoft.Pricing.Worksheet;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Pricing;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.Structure;
 using System.Security.User;
 
@@ -39,6 +42,10 @@ permissionset 552 "Payables Req Worksheet - Edit"
                   tabledata "Entry Summary" = RIMD,
                   tabledata "G/L Account" = R,
                   tabledata Item = R,
+                  tabledata "Sales Installment Plan" = R,
+                  tabledata "Purchase Installment Plan" = R,
+                  tabledata "Sales Installment Plan Line" = R,
+                  tabledata "Purchase Installment Plan Line" = R,
                   tabledata "Item Journal Line" = Rm,
                   tabledata "Item Ledger Entry" = Rm,
                   tabledata "Item Translation" = R,

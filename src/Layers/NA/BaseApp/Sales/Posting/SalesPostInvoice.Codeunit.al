@@ -606,6 +606,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
     var
         SalesHeader: Record "Sales Header";
         GenJnlLine: Record "Gen. Journal Line";
+        InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin
         SalesHeader := SalesHeaderVar;
@@ -639,6 +640,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
+        InstallmentPosting.PrepareJournalLine(SalesHeader, GenJnlLine);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
@@ -1005,35 +1007,5 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         end;
 
         SalesPostInvoiceEvents.RunOnAfterCreatePostedDeferralSchedule(SalesLine, PostedDeferralHeader);
-    end;
-
-    local procedure GetGenPostingSetup(var GenPostingSetup: Record "General Posting Setup"; SalesLine: Record "Sales Line")
-    begin
-        GLSetup.Get();
-        if GLSetup."VAT in Use" then
-            GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group")
-        else
-            if (SalesLine.Type.AsInteger() >= SalesLine.Type::"G/L Account".AsInteger()) and
-               ((SalesLine."Qty. to Invoice" <> 0) or (SalesLine."Qty. to Ship" <> 0))
-            then
-                if SalesLine.Type in [SalesLine.Type::"G/L Account", SalesLine.Type::"Fixed Asset"] then
-                    if (((SalesSetup."Discount Posting" = SalesSetup."Discount Posting"::"Invoice Discounts") and
-                         (SalesLine."Inv. Discount Amount" <> 0)) or
-                        ((SalesSetup."Discount Posting" = SalesSetup."Discount Posting"::"Line Discounts") and
-                         (SalesLine."Line Discount Amount" <> 0)) or
-                        ((SalesSetup."Discount Posting" = SalesSetup."Discount Posting"::"All Discounts") and
-                         ((SalesLine."Inv. Discount Amount" <> 0) or (SalesLine."Line Discount Amount" <> 0))))
-                    then begin
-                        if not GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group") then
-                            if SalesLine."Gen. Prod. Posting Group" = '' then
-                                Error(
-                                  GenProdPostingGrDiscErr,
-                                  SalesLine.FieldCaption("Gen. Prod. Posting Group"), SalesLine.FieldCaption("Line No."), SalesLine."Line No.")
-                            else
-                                GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
-                    end else
-                        Clear(GenPostingSetup)
-                else
-                    GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group");
     end;
 }

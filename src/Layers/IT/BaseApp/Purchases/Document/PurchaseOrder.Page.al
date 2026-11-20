@@ -1541,8 +1541,10 @@ page 50 "Purchase Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1551,7 +1553,11 @@ page 50 "Purchase Order"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;
@@ -2419,6 +2425,9 @@ page 50 "Purchase Order"
         BackedupFiltergroup: Integer;
 #endif
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
 #if not CLEAN28
         if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
             BackedupFiltergroup := Rec.FilterGroup;
@@ -2470,6 +2479,10 @@ page 50 "Purchase Order"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         PurchSetup: Record "Purchases & Payables Setup";

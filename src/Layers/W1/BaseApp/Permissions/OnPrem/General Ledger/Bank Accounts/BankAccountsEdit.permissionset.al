@@ -21,6 +21,7 @@ using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Comment;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Archive;
@@ -63,6 +64,10 @@ permissionset 7785 "Bank Accounts - Edit"
                   tabledata "Gen. Journal Batch" = rm,
                   tabledata "Gen. Journal Line" = r,
                   tabledata "Gen. Journal Template" = r,
+                  tabledata "Sales Installment Plan" = r,
+                  tabledata "Purchase Installment Plan" = r,
+                  tabledata "Sales Installment Plan Line" = r,
+                  tabledata "Purchase Installment Plan Line" = r,
                   tabledata "Interaction Log Entry" = R,
                   tabledata "Maintenance Ledger Entry" = r,
                   tabledata Opportunity = R,

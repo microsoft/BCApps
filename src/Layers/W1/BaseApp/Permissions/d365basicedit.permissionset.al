@@ -18,6 +18,7 @@ using Microsoft.CRM.Interaction;
 using Microsoft.CRM.Outlook;
 using Microsoft.CRM.RoleCenters;
 using Microsoft.EServices.EDocument;
+using Microsoft.Sales.Receivables;
 using Microsoft.eServices.OnlineMap;
 using Microsoft.Finance.AllocationAccount;
 using Microsoft.Finance.Analysis;
@@ -170,6 +171,10 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata Field = imd,
                   tabledata File = imd,
                   tabledata Integer = imd,
+                  tabledata "Sales Installment Plan" = rimd,
+                  tabledata "Purchase Installment Plan" = rimd,
+                  tabledata "Sales Installment Plan Line" = rimd,
+                  tabledata "Purchase Installment Plan Line" = rimd,
                   tabledata "Intelligent Cloud" = imd,
                   tabledata "Intelligent Cloud Status" = imd,
                   tabledata Key = imd,

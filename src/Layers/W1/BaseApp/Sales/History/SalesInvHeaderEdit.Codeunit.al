@@ -51,6 +51,8 @@ codeunit 1409 "Sales Inv. Header - Edit"
         CustEntryEdit: Codeunit "Cust. Entry-Edit";
         MarkedAsOnHoldLbl: label 'X', Locked = true;
     begin
+        if not IsNullGuid(SalesInvoiceHeader."Installment Plan ID") then
+            exit;
         if not GetCustLedgerEntry(CustLedgerEntry, SalesInvoiceHeader) then
             exit;
 

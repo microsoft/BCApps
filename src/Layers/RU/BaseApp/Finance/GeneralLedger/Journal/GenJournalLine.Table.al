@@ -4827,6 +4827,23 @@ table 81 "Gen. Journal Line"
                 UpdateVendorNo();
             end;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            Editable = false;
+        }
+        field(8841; "Sales Invoice Source SystemId"; Guid)
+        {
+            Caption = 'Sales Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
+        field(8842; "Purchase Invoice Source SystemId"; Guid)
+        {
+            Caption = 'Purchase Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
         field(17301; "Depr. Group Elimination"; Boolean)
         {
             Caption = 'Depr. Group Elimination';

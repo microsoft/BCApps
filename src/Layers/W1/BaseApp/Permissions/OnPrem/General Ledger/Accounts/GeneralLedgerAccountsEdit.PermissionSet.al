@@ -21,6 +21,7 @@ using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.ExtendedText;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
@@ -84,6 +85,10 @@ permissionset 9111 "General Ledger Accounts - Edit"
                   tabledata "IC Bank Account" = r,
                   tabledata "IC G/L Account" = Rm,
                   tabledata "IC Partner" = r,
+                  tabledata "Sales Installment Plan" = r,
+                  tabledata "Purchase Installment Plan" = r,
+                  tabledata "Sales Installment Plan Line" = r,
+                  tabledata "Purchase Installment Plan Line" = r,
                   tabledata "Inventory Posting Setup" = r,
                   tabledata "Job Journal Line" = r,
                   tabledata "Job Ledger Entry" = r,

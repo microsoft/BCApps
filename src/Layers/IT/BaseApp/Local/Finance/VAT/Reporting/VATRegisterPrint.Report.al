@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
@@ -457,7 +459,11 @@ report 12120 "VAT Register - Print"
                                 begin
                                     SetDetailsForVendor("VAT Book Entry");
                                     VendLedgEntry.Reset();
-                                    VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#if not CLEAN30
+                                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                                        VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+                                    end;
+#endif
                                     VendLedgEntry.SetRange("Document Type", "Document Type");
                                     VendLedgEntry.SetRange("External Document No.", "External Document No.");
                                     VendLedgEntry.SetRange("Vendor No.", "Sell-to/Buy-from No.");
@@ -475,7 +481,11 @@ report 12120 "VAT Register - Print"
                                     if VATBookEntry."Reverse VAT Entry" then begin
                                         SetDetailsForVendor("VAT Book Entry");
                                         VendLedgEntry.Reset();
-                                        VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#if not CLEAN30
+                                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                                            VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+                                        end;
+#endif
                                         VendLedgEntry.SetRange("Document Type", "Document Type");
                                         VendLedgEntry.SetRange("External Document No.", "External Document No.");
                                         VendLedgEntry.SetRange("Vendor No.", "Sell-to/Buy-from No.");
@@ -1234,6 +1244,9 @@ report 12120 "VAT Register - Print"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         Text1130008: Label 'Please select a %1.';
         NotPrintedEntriesErr: Label 'There are entries in the previous period that were not printed.\First entry found: Entry No.: %1, Posting Date: %2.';
         Text1130034: Label 'Start Date and End Date do not correspond to begin\end of period.';

@@ -116,6 +116,9 @@ codeunit 80 "Sales-Post"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #pragma warning disable AA0470
         PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
         PostingSalesAndVATMsg: Label 'Posting sales and VAT      #3######\', Comment = 'Counter';
@@ -262,7 +265,9 @@ codeunit 80 "Sales-Post"
         PreviewMode: Boolean;
         TotalInvoiceAmountNegativeErr: Label 'The total amount for the invoice must be 0 or greater.';
         Text1130003Err: Label 'Please enter at least one Payment Line for %1 %2.';
+#if not CLEAN30
         SpecifyInstallmentErr: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries.', Comment = '%1 = Applies-to Occurrence No.';
+#endif
         Text1130007Err: Label 'must not be prior to %1';
         Text1130008Err: Label 'It is not possible to post document with a customer with VAT exemption if an active VAT exemption doesn''t exist.';
         Text1130009Err: Label 'The error is in line no. %1.';
@@ -818,9 +823,12 @@ codeunit 80 "Sales-Post"
 
         InsertPostedHeaders(SalesHeader);
 
-        if SalesHeader.Invoice then
-            InsertPostedPayment(SalesHeader);
-
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if SalesHeader.Invoice then
+                InsertPostedPayment(SalesHeader);
+        end;
+#endif
         UpdateIncomingDocument(SalesHeader."Incoming Document Entry No.", SalesHeader."Posting Date", GenJnlLineDocNo);
 
         OnAfterCheckAndUpdate(SalesHeader, SuppressCommit, PreviewMode);
@@ -3174,7 +3182,9 @@ codeunit 80 "Sales-Post"
         SalesLine: Record "Sales Line";
         TempSalesLine: Record "Sales Line" temporary;
         WarehouseRequest: Record "Warehouse Request";
+#if not CLEAN30
         PaymentLines: Record "Payment Lines";
+#endif
         IsHandled: Boolean;
         SkipDelete: Boolean;
     begin
@@ -3215,12 +3225,15 @@ codeunit 80 "Sales-Post"
         SalesLine.DeleteAll();
         OnDeleteAfterPostingOnAfterSalesLineDeleteAll(SalesHeader, SalesInvHeader, SalesCrMemoHeader, SuppressCommit, EverythingInvoiced);
 
-        PaymentLines.Reset();
-        PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::Sales);
-        PaymentLines.SetRange(Type, SalesHeader."Document Type");
-        PaymentLines.SetRange(Code, SalesHeader."No.");
-        PaymentLines.DeleteAll();
-
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PaymentLines.Reset();
+            PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::Sales);
+            PaymentLines.SetRange(Type, SalesHeader."Document Type");
+            PaymentLines.SetRange(Code, SalesHeader."No.");
+            PaymentLines.DeleteAll();
+        end;
+#endif
         DeleteItemChargeAssgnt(SalesHeader);
         SalesCommentLine.DeleteComments(SalesHeader."Document Type".AsInteger(), SalesHeader."No.");
 
@@ -6241,7 +6254,11 @@ codeunit 80 "Sales-Post"
             GenJnlLine."Currency Factor" := SalesHeader."Currency Factor";
         GenJnlLine."Applies-to Doc. Type" := GenJnlLineDocType;
         GenJnlLine."Applies-to Doc. No." := GenJnlLineDocNo;
-        GenJnlLine."Applies-to Occurrence No." := 1;
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := 1;
+        end;
+#endif
         GenJnlLine."Source Type" := GenJnlLine."Source Type"::Customer;
         GenJnlLine."Source No." := SalesHeader."Bill-to Customer No.";
         GenJnlLine."Source Code" := SrcCode;
@@ -6256,6 +6273,7 @@ codeunit 80 "Sales-Post"
     local procedure UpdateSalesHeader(var CustLedgerEntry: Record "Cust. Ledger Entry"; var SalesHeader: Record "Sales Header")
     var
         GenJnlLine: Record "Gen. Journal Line";
+        InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -6266,7 +6284,10 @@ codeunit 80 "Sales-Post"
         case GenJnlLineDocType of
             GenJnlLine."Document Type"::Invoice:
                 begin
-                    FindCustLedgEntry(GenJnlLineDocType, GenJnlLineDocNo, CustLedgerEntry);
+                    if IsNullGuid(SalesInvHeader."Installment Plan ID") then
+                        FindCustLedgEntry(GenJnlLineDocType, GenJnlLineDocNo, CustLedgerEntry)
+                    else
+                        InstallmentPosting.GetFinalCustomerEntry(SalesInvHeader, CustLedgerEntry);
                     SalesInvHeader."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
                     SalesInvHeader.Modify();
                 end;
@@ -7167,9 +7188,13 @@ codeunit 80 "Sales-Post"
         if not SalesHeader.FindVATExemption(VATExemption, Check, true) then
             if Check then
                 Error(ErrorInfo.Create(Text1130008Err, true, SalesHeader));
-        if SalesHeader."Applies-to Doc. No." <> '' then
-            if SalesHeader."Applies-to Occurrence No." = 0 then
-                Error(ErrorInfo.Create(StrSubstNo(SpecifyInstallmentErr, SalesHeader.FieldCaption("Applies-to Occurrence No.")), true, SalesHeader));
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if SalesHeader."Applies-to Doc. No." <> '' then
+                if SalesHeader."Applies-to Occurrence No." = 0 then
+                    Error(ErrorInfo.Create(StrSubstNo(SpecifyInstallmentErr, SalesHeader.FieldCaption("Applies-to Occurrence No.")), true, SalesHeader));
+        end;
+#endif
     end;
 
     local procedure InsertPostedHeaders(var SalesHeader: Record "Sales Header")
@@ -7240,6 +7265,7 @@ codeunit 80 "Sales-Post"
         OnAfterInsertPostedHeaders(SalesHeader, SalesShptHeader, SalesInvHeader, SalesCrMemoHeader, ReturnRcptHeader, GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo);
     end;
 
+#if not CLEAN30
     local procedure InsertPostedPayment(SalesHeader: Record "Sales Header")
     var
         PaymentJournalLine: Record "Payment Lines";
@@ -7247,6 +7273,8 @@ codeunit 80 "Sales-Post"
         PostedPayments: Record "Posted Payment Lines";
         IsHandled: Boolean;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         IsHandled := false;
         OnBeforeInsertPostedPayment(SalesHeader, IsHandled, SalesInvHeader, SalesCrMemoHeader);
         if IsHandled then
@@ -7294,6 +7322,7 @@ codeunit 80 "Sales-Post"
             if SalesHeader."Payment Terms Code" <> '' then
                 Error(Text1130003Err, SalesHeader.FieldCaption("Payment Terms Code"), SalesHeader."Payment Terms Code");
     end;
+#endif
 
     local procedure InsertShipmentHeader(var SalesHeader: Record "Sales Header"; var SalesShptHeader: Record "Sales Shipment Header")
     var
@@ -13013,15 +13042,19 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedPaymentOnBeforeInsertPostedPayments(SalesHeader: Record "Sales Header"; PaymentTermsLine: Record "Payment Lines"; var PostedPayments: Record "Posted Payment Lines")
     begin
     end;
 
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedPaymentOnBeforeInsertPaymentJournalLine(SalesHeader: Record "Sales Header"; PaymentTermsLine: Record "Payment Lines"; var PaymentJournalLine: Record "Payment Lines")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnPostAssocItemJnlLineOnBeforePost(var ItemJournalLine: Record "Item Journal Line"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)

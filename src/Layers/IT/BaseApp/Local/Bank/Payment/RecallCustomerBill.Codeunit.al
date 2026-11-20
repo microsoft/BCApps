@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -68,7 +70,11 @@ codeunit 12170 "Recall Customer Bill"
             CustLedgEntry.SetRange("Document Type", CustLedgEntry2."Document Type"::Payment);
             CustLedgEntry.SetRange("Document Type to Close", CustLedgEntry2."Document Type");
             CustLedgEntry.SetRange("Document No. to Close", CustLedgEntry2."Document No.");
-            CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+            end;
+#endif
 
             if not CustLedgEntry.FindFirst() then
                 Error(Text1130015);
@@ -104,6 +110,9 @@ codeunit 12170 "Recall Customer Bill"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         PaymentMethod: Record "Payment Method";
         GenJnlLine: Record "Gen. Journal Line";
         CustomerBillLine: Record "Customer Bill Line";
@@ -160,7 +169,11 @@ codeunit 12170 "Recall Customer Bill"
         GenJnlLine."Bank Receipt" := CustLedgEntry."Bank Receipt";
         GenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";
         GenJnlLine."Applies-to Doc. No." := CustLedgEntry."Document No.";
-        GenJnlLine."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+        end;
+#endif
         GenJnlLine."Document Type to Close" := CustLedgEntry."Document Type to Close";
         GenJnlLine."Document No. to Close" := CustLedgEntry."Document No. to Close";
         GenJnlLine."Document Occurrence to Close" := CustLedgEntry."Document Occurrence to Close";
@@ -230,7 +243,11 @@ codeunit 12170 "Recall Customer Bill"
                 CustLedgEntry.SetRange("Document Type", CustLedgEntry2."Document Type"::Payment);
                 CustLedgEntry.SetRange("Document Type to Close", CustLedgEntry2."Document Type");
                 CustLedgEntry.SetFilter("Document No. to Close", CustLedgEntry2."Document No.");
-                CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+                end;
+#endif
                 CustLedgEntry.SetRange(Open, true);
                 if not CustLedgEntry.FindFirst() then begin
                     CustLedgEntry.SetRange(Open, false);
@@ -247,7 +264,11 @@ codeunit 12170 "Recall Customer Bill"
                 CustLedgEntry."Bank Receipt Temp. No." := CustLedgEntry."Document No.";
                 CustLedgEntry."Customer Bill No." := CustLedgEntry2."Customer Bill No.";
                 CustLedgEntry."Bank Receipts List No." := CustLedgEntry2."Bank Receipts List No.";
-                CustLedgEntry."Document Occurrence" := CustLedgEntry2."Document Occurrence";
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    CustLedgEntry."Document Occurrence" := CustLedgEntry2."Document Occurrence";
+                end;
+#endif
                 OnRecallIssuedBillOnBeforeCustLedgerEntryModify(CustLedgEntry, CustLedgEntry2);
                 CustLedgEntry.Modify();
 

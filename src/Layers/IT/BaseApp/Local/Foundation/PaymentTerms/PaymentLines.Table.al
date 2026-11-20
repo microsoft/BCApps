@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -12,9 +14,19 @@ using Microsoft.Sales.Document;
 table 12170 "Payment Lines"
 {
     Caption = 'Payment Lines';
+#if not CLEAN30
     DrillDownPageID = "Payment Terms Lines";
     LookupPageID = "Payment Terms Lines";
+#endif
     DataClassification = CustomerContent;
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
 
     fields
     {
@@ -26,7 +38,8 @@ table 12170 "Payment Lines"
         {
             Caption = 'Code';
             NotBlank = true;
-            TableRelation = if (Type = const("Payment Terms")) "Payment Terms";
+            TableRelation =
+            if (Type = const("Payment Terms")) "Payment Terms";
         }
         field(3; "Line No."; Integer)
         {
@@ -60,25 +73,33 @@ table 12170 "Payment Lines"
         {
             Caption = 'Due Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
+                if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    exit;
                 FindDocument();
 
                 if "Due Date" < DocumentDate then
                     Error(InvalidDueDateErr);
             end;
+#endif
         }
         field(9; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
+                if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    exit;
                 FindDocument();
 
                 if "Pmt. Discount Date" < DocumentDate then
                     Error(InvalidPmtDiscountDateErr);
             end;
+#endif
         }
         field(10; "Sales/Purchase"; Option)
         {
@@ -115,13 +136,17 @@ table 12170 "Payment Lines"
         {
             Caption = 'Prepmt. Due Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
+                if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    exit;
                 FindDocument();
 
                 if "Due Date" < DocumentDate then
                     Error(InvalidDueDateErr);
             end;
+#endif
         }
     }
 
@@ -138,6 +163,7 @@ table 12170 "Payment Lines"
     {
     }
 
+#if not CLEAN30
     trigger OnDelete()
     begin
         CheckPrepPaymentTermsLinked();
@@ -155,6 +181,9 @@ table 12170 "Payment Lines"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         InvalidDueDateErr: Label 'The Due Date must be greater than or equal to the Document Date';
         GenJnlLine: Record "Gen. Journal Line";
         SalesHeader: Record "Sales Header";
@@ -168,6 +197,8 @@ table 12170 "Payment Lines"
     [Scope('OnPrem')]
     procedure FindDocument()
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         OnBeforeFindDocument(Rec, DocumentDate);
         if DocumentDate <> 0D then
             exit;
@@ -201,6 +232,8 @@ table 12170 "Payment Lines"
         TempPaymentLines: Record "Payment Lines";
         TotalPaymentPerc: Decimal;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         TempPaymentLines.CopyFilters(Rec);
 
         if TempPaymentLines.GetFilter(Code) = '' then begin
@@ -224,6 +257,8 @@ table 12170 "Payment Lines"
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         if Type <> Type::"Payment Terms" then
             exit;
 
@@ -253,6 +288,8 @@ table 12170 "Payment Lines"
         Month: Integer;
         Year: Integer;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         if SalesHeader."No." = '' then
             exit;
 
@@ -363,6 +400,8 @@ table 12170 "Payment Lines"
         Month: Integer;
         Year: Integer;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         if PurchaseHeader."No." = '' then
             exit;
 
@@ -460,6 +499,8 @@ table 12170 "Payment Lines"
         DocumentNo: Code[20];
         IsBlanketOrder: Boolean;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         RecRef.GetTable(RecVar);
 
         case RecRef.Number of
@@ -544,4 +585,5 @@ table 12170 "Payment Lines"
     local procedure OnDeletePaymentLinesOnAfterGetDocument(RecRef: RecordRef; var SalesPurchaseType: Option ,Sales,Purchase,Service; var DocumentType: Option; var DocumentNo: Code[20]; IsBlanketOrder: Boolean)
     begin
     end;
+#endif
 }

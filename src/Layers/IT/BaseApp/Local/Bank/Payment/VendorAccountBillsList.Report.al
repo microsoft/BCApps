@@ -92,7 +92,11 @@ report 12116 "Vendor Account Bills List"
                 column(VendLedgEntry1__Document_Date_; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(VendLedgEntry1__Document_Occurrence_; "Document Occurrence")
+#else
+                column(VendLedgEntry1__Document_Occurrence_; 0)
+#endif
                 {
                 }
                 column(VendLedgEntry1__Document_No__; "Document No.")
@@ -131,7 +135,11 @@ report 12116 "Vendor Account Bills List"
                 column(VendLedgEntry1__Document_Date__Control1130020; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(VendLedgEntry1__Document_Occurrence__Control1130021; "Document Occurrence")
+#else
+                column(VendLedgEntry1__Document_Occurrence__Control1130021; 0)
+#endif
                 {
                 }
                 column(VendLedgEntry1__Document_No___Control1130022; "Document No.")
@@ -194,7 +202,11 @@ report 12116 "Vendor Account Bills List"
                 column(VendLedgEntry1__Document_Date_Caption; VendLedgEntry1__Document_Date_CaptionLbl)
                 {
                 }
+#if not CLEAN30
                 column(VendLedgEntry1__Document_Occurrence_Caption; FieldCaption("Document Occurrence"))
+#else
+                column(VendLedgEntry1__Document_Occurrence_Caption; DocumentOccurrenceCaptionLbl)
+#endif
                 {
                 }
                 column(VendLedgEntry1__Document_No__Caption; FieldCaption("Document No."))
@@ -230,7 +242,11 @@ report 12116 "Vendor Account Bills List"
                     column(VendLedgEntry2__Document_Date_; Format("Document Date"))
                     {
                     }
+#if not CLEAN30
                     column(VendLedgEntry2__Document_Occurrence_; "Document Occurrence")
+#else
+                    column(VendLedgEntry2__Document_Occurrence_; 0)
+#endif
                     {
                     }
                     column(VendLedgEntry2__Document_No__; "Document No.")
@@ -289,7 +305,11 @@ report 12116 "Vendor Account Bills List"
                     column(Detailed_Vendor_Ledg__Entry__Posting_Date_; Format(VendLedgEntry3."Posting Date"))
                     {
                     }
+#if not CLEAN30
                     column(VendLedgEntry3__Document_Occurrence_; VendLedgEntry3."Document Occurrence")
+#else
+                    column(VendLedgEntry3__Document_Occurrence_; 0)
+#endif
                     {
                     }
                     column(VendLedgEntry3__Document_Date_; Format(VendLedgEntry3."Document Date"))
@@ -480,6 +500,9 @@ report 12116 "Vendor Account Bills List"
         TotalDtldVendLedgrEntries: Decimal;
         CurrReport_PAGENOCaptionLbl: Label 'Page No.';
         Vendor_Account_Bill_List___Date_CaptionLbl: Label 'Vendor Account Bill List - Date:';
+#if CLEAN30
+        DocumentOccurrenceCaptionLbl: Label 'Document Occurrence';
+#endif
         VendLedgEntry1__Due_Date_CaptionLbl: Label 'Due Date';
         VendLedgEntry1__Amount__LCY___Control1130017CaptionLbl: Label 'Entry Amount (LCY)';
         RemainingAmountLCYCaptionLbl: Label 'Due Amount (LCY)';

@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.PaymentTerms;
 
 using Microsoft.Integration.Dataverse;
+using System.Environment.Configuration;
 
 page 4 "Payment Terms"
 {
@@ -46,6 +47,11 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("Has Installments"; Rec."Has Installments")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = PaymentInstallmentsEnabled;
+                }
                 field("Coupled to Dataverse"; CDSIsCoupledToRecord)
                 {
                     ApplicationArea = All;
@@ -75,6 +81,16 @@ page 4 "Payment Terms"
     {
         area(processing)
         {
+            action(InstallmentLines)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Installment Lines';
+                Image = Payment;
+                RunObject = Page "Payment Term Installments";
+                RunPageLink = "Payment Terms Code" = field(Code);
+                ToolTip = 'View or edit global installment rules. Supported standalone sales invoices post one receivable per installment.';
+                Visible = PaymentInstallmentsEnabled;
+            }
             action("T&ranslation")
             {
                 ApplicationArea = Basic, Suite;
@@ -195,6 +211,9 @@ page 4 "Payment Terms"
             {
                 Caption = 'Payment Terms';
 
+                actionref(InstallmentLines_Promoted; InstallmentLines)
+                {
+                }
                 actionref("T&ranslation_Promoted"; "T&ranslation")
                 {
                 }
@@ -243,11 +262,14 @@ page 4 "Payment Terms"
     trigger OnOpenPage()
     var
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         CDSIntegrationEnabled := CRMIntegrationManagement.IsCDSIntegrationEnabled();
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
     end;
 
     var
         CDSIntegrationEnabled: Boolean;
         CDSIsCoupledToRecord: Boolean;
+        PaymentInstallmentsEnabled: Boolean;
 }

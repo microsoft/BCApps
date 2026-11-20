@@ -1,8 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
+
+using System.Environment.Configuration;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -17,6 +20,9 @@ page 12171 "Payment Date Lines"
     DelayedInsert = true;
     PageType = List;
     SourceTable = "Payment Lines";
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -98,7 +104,13 @@ page 12171 "Payment Date Lines"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckLegacyPaymentInstallmentsEnabled();
+    end;
+
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         GenJnlLine: Record "Gen. Journal Line";
         Currency: Record Currency;
         SalesHeader: Record "Sales Header";
@@ -115,6 +127,8 @@ page 12171 "Payment Date Lines"
     var
         IsHandled: Boolean;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         IsHandled := false;
         OnBeforeUpdateAmount(Rec, IsHandled);
         if IsHandled then
@@ -203,4 +217,4 @@ page 12171 "Payment Date Lines"
     begin
     end;
 }
-
+#endif

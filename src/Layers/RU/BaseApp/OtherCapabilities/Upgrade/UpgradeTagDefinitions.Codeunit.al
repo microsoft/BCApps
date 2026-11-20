@@ -16,13 +16,21 @@ codeunit 9998 "Upgrade Tag Definitions"
     begin
     end;
 
+    internal procedure GetInstallmentInvoiceGroupUpgradeTag(): Code[250]
+    begin
+        exit('MS-GlobalInstallments-InvoiceGroup-20261116');
+    end;
+
+    internal procedure GetPurchaseInstallmentInvoiceGroupUpgradeTag(): Code[250]
+    begin
+        exit('MS-GlobalInstallments-PurchaseInvoiceGroup-20261120');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
-        // RU
-        PerCompanyUpgradeTags.Add(GetItemDocumentsUpgradeTag());
-
-        // W1
+        PerCompanyUpgradeTags.Add(GetInstallmentInvoiceGroupUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetPurchaseInstallmentInvoiceGroupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetTimeRegistrationUpgradeTag());
         PerCompanyUpgradeTags.Add(GetJobQueueEntryMergeErrorMessageFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetNotificationEntryMergeErrorMessageFieldsUpgradeTag());

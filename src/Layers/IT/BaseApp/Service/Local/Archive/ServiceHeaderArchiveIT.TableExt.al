@@ -90,6 +90,14 @@ tableextension 12140 "Service Header Archive IT" extends "Service Header Archive
         {
             Caption = 'Applies-to Occurrence No.';
             DataClassification = CustomerContent;
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12172; "Bank Account"; Code[20])
         {

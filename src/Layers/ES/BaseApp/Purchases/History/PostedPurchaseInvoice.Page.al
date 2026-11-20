@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
@@ -713,6 +715,22 @@ page 138 "Posted Purchase Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked vendor entries.';
+
+                    trigger OnAction()
+                    var
+                        PurchaseInstallmentHistory: Codeunit "Purchase Installment History";
+                    begin
+                        PurchaseInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1144,6 +1162,7 @@ page 138 "Posted Purchase Invoice"
         IncomingDocument: Record "Incoming Document";
     begin
         HasIncomingDocument := IncomingDocument.PostedDocExists(Rec."No.", Rec."Posting Date");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if GuiAllowed() then
             CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
     end;
@@ -1160,6 +1179,7 @@ page 138 "Posted Purchase Invoice"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
         if GuiAllowed() then
             IsOfficeAddin := OfficeMgt.IsAvailable();
@@ -1169,6 +1189,8 @@ page 138 "Posted Purchase Invoice"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         PurchInvHeader: Record "Purch. Inv. Header";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
@@ -1181,12 +1203,14 @@ page 138 "Posted Purchase Invoice"
         IsShipToCountyVisible: Boolean;
         IsRemitToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
+        HasInstallmentPlan: Boolean;
 
     local procedure ActivateFields()
     begin
         IsBuyFromCountyVisible := FormatAddress.UseCounty(Rec."Buy-from Country/Region Code");
         IsPayToCountyVisible := FormatAddress.UseCounty(Rec."Pay-to Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     local procedure FillRemitToFields()

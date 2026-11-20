@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -38,6 +40,9 @@ codeunit 12172 "Customer Bill - Post + Print"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         PostAndPrintQst: Label 'Do you want to post and print %1 %2?', Comment = '%1 = table caption, %2 = document no.';
         BillCode: Record Bill;
         InvalidListDateErr: Label 'The List Date must be greater than the Document Date of Customer Bill Line %1.';
@@ -49,7 +54,10 @@ codeunit 12172 "Customer Bill - Post + Print"
         Text1130014: Label 'Customer Bill No. #2##################\';
         Text1130015: Label 'Bank Receipt No.  #3##################\';
         BRNumber: Code[20];
+#if not CLEAN30
         InvalidRemainingAmountErr: Label 'The Remaining Amount has been modified for customer entry Document No.: %1, Document Occurrence: %2. The new amount is %3.', Comment = '%1 - document number, %2 - document occurence, 3 - amount.';
+#endif
+        InvalidRemainingAmountWithoutOccurrenceErr: Label 'The Remaining Amount has been modified for customer entry Document No.: %1. The new amount is %2.', Comment = '%1 - document number, %2 - amount.';
         ListNumber: Code[20];
         HidePrintDialog: Boolean;
         HTMLPath: Text[1024];
@@ -217,7 +225,11 @@ codeunit 12172 "Customer Bill - Post + Print"
             GenJnlLine."Bank Receipt" := true;
             GenJnlLine."Document Type to Close" := CustLedgEntry."Document Type";
             GenJnlLine."Document No. to Close" := CustLedgEntry."Document No.";
-            GenJnlLine."Document Occurrence to Close" := CustLedgEntry."Document Occurrence";
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                GenJnlLine."Document Occurrence to Close" := CustLedgEntry."Document Occurrence";
+            end;
+#endif
             GenJnlLine."Allow Issue" := CustLedgEntry."Allow Issue";
         end;
 
@@ -286,11 +298,16 @@ codeunit 12172 "Customer Bill - Post + Print"
         CustLedgEntry.Get(CustomerBillLine."Customer Entry No.");
         CustLedgEntry.CalcFields("Remaining Amount");
 
-        if CustLedgEntry."Remaining Amount" <> CustomerBillLine.Amount then
-            Error(InvalidRemainingAmountErr,
-              CustLedgEntry."Document No.",
-              CustLedgEntry."Document Occurrence",
-              CustLedgEntry."Remaining Amount");
+        if CustLedgEntry."Remaining Amount" <> CustomerBillLine.Amount then begin
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                Error(InvalidRemainingAmountErr,
+                  CustLedgEntry."Document No.",
+                  CustLedgEntry."Document Occurrence",
+                  CustLedgEntry."Remaining Amount");
+#endif
+            Error(InvalidRemainingAmountWithoutOccurrenceErr, CustLedgEntry."Document No.", CustLedgEntry."Remaining Amount");
+        end;
 
         if CustLedgEntry."Due Date" <> CustomerBillLine."Due Date" then begin
             DtldCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.");
@@ -298,13 +315,17 @@ codeunit 12172 "Customer Bill - Post + Print"
             DtldCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgEntry."Entry No.");
             DtldCustLedgEntry.ModifyAll("Initial Entry Due Date", CustLedgEntry."Due Date");
             RbCustLedgEntry.SetCurrentKey("Customer No.", "Document No.", "Document Type",
-              "Document Type to Close", "Document No. to Close", "Document Occurrence to Close");
+              "Document Type to Close", "Document No. to Close");
             RbCustLedgEntry.SetRange("Customer No.", CustLedgEntry."Customer No.");
             RbCustLedgEntry.SetRange("Document No.", CustLedgEntry."Bank Receipt Temp. No.");
             RbCustLedgEntry.SetRange("Document Type", RbCustLedgEntry."Document Type"::Payment);
             RbCustLedgEntry.SetRange("Document Type to Close", CustLedgEntry."Document Type");
             RbCustLedgEntry.SetRange("Document No. to Close", CustLedgEntry."Document No.");
-            RbCustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry."Document Occurrence");
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                RbCustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry."Document Occurrence");
+            end;
+#endif
             if RbCustLedgEntry.FindFirst() then begin
                 RbCustLedgEntry."Due Date" := CustomerBillLine."Due Date";
                 RbCustLedgEntry.Modify();

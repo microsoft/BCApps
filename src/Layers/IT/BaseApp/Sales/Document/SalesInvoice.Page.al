@@ -29,6 +29,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Pricing;
+using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
@@ -297,6 +298,16 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+                    Visible = not HasInstallmentPlan;
+                }
+                field(FirstInstallmentDueDate; Rec."Due Date")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'First Installment Due Date';
+                    ToolTip = 'Specifies the first scheduled due date as a summary. View the Installment Schedule for all due dates and payment discount conditions.';
+                    Importance = Promoted;
+                    Editable = false;
+                    Visible = HasInstallmentPlan;
                 }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
@@ -491,6 +502,14 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
+
+                    trigger OnValidate()
+                    begin
+                        if HasInstallmentPlan or not IsNullGuid(Rec."Installment Plan ID") then begin
+                            HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
+                            CurrPage.Update(false);
+                        end;
+                    end;
                 }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
@@ -568,11 +587,13 @@ page 43 "Sales Invoice"
                 field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = not HasInstallmentPlan;
                 }
                 field("Fattura Document Type"; Rec."Fattura Document Type")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the value to export in TipoDocument XML node of the Fattura document.';
+                    Importance = Additional;
+                    Editable = not HasInstallmentPlan;
                 }
                 field("Fattura Project Code"; Rec."Fattura Project Code")
                 {
@@ -1207,6 +1228,24 @@ page 43 "Sales Invoice"
                     RunObject = Page "Sales Statistics";
                     RunPageOnRec = true;
                 }
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    ToolTip = 'Preview installments using the document rule snapshot and current invoice totals. Posting recalculates amounts and creates one receivable per installment for supported standalone sales invoices.';
+                    Image = Payment;
+                    Enabled = HasInstallmentPlan;
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
+                    begin
+                        CurrPage.SaveRecord();
+                        SalesInstallmentMgt.ShowSchedule(Rec);
+                        CurrPage.Update(false);
+                    end;
+                }
                 action(CustomerStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1428,8 +1467,10 @@ page 43 "Sales Invoice"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1438,7 +1479,11 @@ page 43 "Sales Invoice"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CreatePurchaseInvoice)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1836,6 +1881,9 @@ page 43 "Sales Invoice"
             {
                 Caption = 'Prepare', Comment = 'Generated from the PromotedActionCategories property index 5.';
 
+                actionref(InstallmentSchedule_Promoted; InstallmentSchedule)
+                {
+                }
                 actionref(CopyDocument_Promoted; CopyDocument)
                 {
                 }
@@ -2024,6 +2072,10 @@ page 43 "Sales Invoice"
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not PaymentInstallmentsEnabled;
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         Rec.SetRange("Date Filter", 0D, WorkDate());
@@ -2043,6 +2095,7 @@ page 43 "Sales Invoice"
         CheckShowBackgrValidationNotification();
         RejectICSalesInvoiceEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -2060,6 +2113,11 @@ page 43 "Sales Invoice"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         SalesSetup: Record "Sales & Receivables Setup";
@@ -2079,6 +2137,7 @@ page 43 "Sales Invoice"
         WorkDescription: Text;
         StatusStyleTxt: Text;
         HasIncomingDocument: Boolean;
+        HasInstallmentPlan: Boolean;
         DocNoVisible: Boolean;
         ExternalDocNoMandatory: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;
@@ -2280,6 +2339,7 @@ page 43 "Sales Invoice"
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
     begin
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         HasIncomingDocument := Rec."Incoming Document Entry No." <> 0;
         ShowQuoteNo := Rec."Quote No." <> '';
         SetExtDocNoMandatoryCondition();

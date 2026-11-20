@@ -49,6 +49,7 @@ using Microsoft.Purchases.Remittance;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.Structure;
 using System.Security.User;
 
@@ -85,6 +86,10 @@ permissionset 7946 "Payables Documents - Edit"
                   tabledata "Gen. Product Posting Group" = R,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "General Posting Setup" = R,
+                  tabledata "Sales Installment Plan" = Rimd,
+                  tabledata "Purchase Installment Plan" = Rimd,
+                  tabledata "Sales Installment Plan Line" = Rimd,
+                  tabledata "Purchase Installment Plan Line" = Rimd,
                   tabledata "Inventory Posting Group" = R,
                   tabledata "Inventory Posting Setup" = R,
                   tabledata Item = R,
@@ -111,6 +116,7 @@ permissionset 7946 "Payables Documents - Edit"
                   tabledata "Order Address" = R,
                   tabledata "Package No. Information" = RIMD,
                   tabledata "Payment Method" = R,
+                  tabledata "Payment Term Installment" = R,
                   tabledata "Payment Terms" = R,
                   tabledata "Planning Component" = Rm,
                   tabledata "Posted Matched Order Line" = R,

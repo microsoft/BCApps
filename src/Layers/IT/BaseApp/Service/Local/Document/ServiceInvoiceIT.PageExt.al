@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 
 pageextension 12446 "Service Invoice IT" extends "Service Invoice"
@@ -176,10 +178,12 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
     }
     actions
     {
+#if not CLEAN30
         addbefore("Calculate Invoice Discount")
         {
             action("Pa&yments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 Caption = 'Pa&yments';
                 Image = Payment;
@@ -188,8 +192,12 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
                                 Type = field("Document Type"),
                                 Code = field("No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
         }
+#endif
         addafter("Post &Batch")
         {
             action(GenerateSplitVATLines)
@@ -213,4 +221,14 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
             }
         }
     }
+#if not CLEAN30
+    trigger OnOpenPage()
+    begin
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+    end;
+
+    var
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 }

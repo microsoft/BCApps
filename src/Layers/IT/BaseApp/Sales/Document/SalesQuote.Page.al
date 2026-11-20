@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.Setup;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
@@ -1515,8 +1517,10 @@ page 41 "Sales Quote"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yment")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yment';
                     Image = Payment;
@@ -1525,7 +1529,11 @@ page 41 "Sales Quote"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Cust. Invoice Disc." = R;
@@ -1843,6 +1851,9 @@ page 41 "Sales Quote"
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
         OnOpenPageOnAfterSetSecurityFilterOnRespCenter(Rec);
 
@@ -1860,6 +1871,10 @@ page 41 "Sales Quote"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         SalesHeaderArchive: Record "Sales Header Archive";
         SellToContact: Record Contact;
         BillToContact: Record Contact;

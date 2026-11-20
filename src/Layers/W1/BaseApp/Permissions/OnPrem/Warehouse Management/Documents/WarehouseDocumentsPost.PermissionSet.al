@@ -1,5 +1,6 @@
 namespace System.Security.AccessControl;
 
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -7,7 +8,9 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.Comment;
@@ -25,6 +28,10 @@ permissionset 9425 "Warehouse Documents - Post"
 
     Permissions = tabledata Bin = M,
                   tabledata Item = R,
+                  tabledata "Sales Installment Plan" = Rimd,
+                  tabledata "Purchase Installment Plan" = Rimd,
+                  tabledata "Sales Installment Plan Line" = Rimd,
+                  tabledata "Purchase Installment Plan Line" = Rimd,
                   tabledata "Item Ledger Entry" = RIMD,
                   tabledata "Item Tracking Code" = R,
                   tabledata "Item Tracking Comment" = RIMD,

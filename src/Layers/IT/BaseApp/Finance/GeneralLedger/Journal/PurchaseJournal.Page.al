@@ -903,8 +903,10 @@ page 254 "Purchase Journal"
         }
         area(processing)
         {
+#if not CLEAN30
             action("&Payments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Basic, Suite;
                 Caption = '&Payments';
                 Image = Payment;
@@ -915,7 +917,11 @@ page 254 "Purchase Journal"
                               "Journal Template Name" = field("Journal Template Name"),
                               "Journal Line No." = field("Line No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
+#endif
             group("F&unctions")
             {
                 Caption = 'F&unctions';
@@ -1504,9 +1510,14 @@ page 254 "Purchase Journal"
                 actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
+#if not CLEAN30
                 actionref("&Payments_Promoted"; "&Payments")
                 {
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
             }
             group(Category_Category7)
             {
@@ -1624,6 +1635,9 @@ page 254 "Purchase Journal"
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         LastGenJnlBatch: Code[10];
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         UseAllocationAccountNumber := AllocationAccountMgt.UseAllocationAccountNoField();
@@ -1653,6 +1667,10 @@ page 254 "Purchase Journal"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         GenJnlManagement: Codeunit GenJnlManagement;

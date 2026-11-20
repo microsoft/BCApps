@@ -46,6 +46,7 @@ permissionset 8785 "Recievables Journals - Edit"
                   tabledata "Gen. Product Posting Group" = R,
                   tabledata "General Ledger Setup" = RM,
                   tabledata "General Posting Setup" = R,
+                  tabledata "Payment Term Installment" = R,
                   tabledata "Payment Terms" = R,
                   tabledata "Reason Code" = R,
                   tabledata "Salesperson/Purchaser" = R,

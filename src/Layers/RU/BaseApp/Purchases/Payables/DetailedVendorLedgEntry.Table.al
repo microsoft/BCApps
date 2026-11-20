@@ -263,6 +263,12 @@ table 380 "Detailed Vendor Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(8843; "Invoice Entry No."; BigInteger)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the vendor entry that identifies the invoice balance group.';
+        }
         field(12401; Prepayment; Boolean)
         {
             Caption = 'Prepayment';
@@ -351,6 +357,10 @@ table 380 "Detailed Vendor Ledg. Entry"
         key(Key12; "Vendor No.", "Entry Type", "Posting Date")
         {
             IncludedFields = Amount, "Amount (LCY)", "Debit Amount", "Credit Amount", "Debit Amount (LCY)", "Credit Amount (LCY)";
+        }
+        key(Invoice; "Invoice Entry No.")
+        {
+            SumIndexFields = Amount, "Amount (LCY)";
         }
     }
 

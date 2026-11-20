@@ -725,6 +725,13 @@ table 122 "Purch. Inv. Header"
             Caption = 'Draft Invoice SystemId';
             DataClassification = SystemMetadata;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Purchase Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted purchase installment schedule for this invoice.';
+        }
         field(11620; ABN; Text[14])
         {
             Caption = 'ABN';

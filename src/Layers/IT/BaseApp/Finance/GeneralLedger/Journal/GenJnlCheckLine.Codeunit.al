@@ -1097,7 +1097,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
            VATPostingSetup."Adjust for Payment Discount"
         then begin
             GenJnlLine.TestField("Gen. Prod. Posting Group", ErrorInfo.Create());
+#if CLEAN30
+            if (GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D) then
+#else
             if HasPaymentDiscount(GenJnlLine) then
+#endif
                 CheckGenPostingSetupExists(
                         GenJnlLine."Gen. Bus. Posting Group",
                         GenJnlLine."Gen. Prod. Posting Group");
@@ -1123,7 +1127,11 @@ codeunit 11 "Gen. Jnl.-Check Line"
            VATPostingSetup."Adjust for Payment Discount"
         then begin
             GenJnlLine.TestField("Bal. Gen. Prod. Posting Group", ErrorInfo.Create());
+#if CLEAN30
+            if (GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D) then
+#else
             if HasPaymentDiscount(GenJnlLine) then
+#endif
                 CheckGenPostingSetupExists(
                         GenJnlLine."Bal. Gen. Bus. Posting Group",
                         GenJnlLine."Bal. Gen. Prod. Posting Group");
@@ -1391,10 +1399,14 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup);
     end;
 
+#if not CLEAN30
     local procedure HasPaymentDiscount(GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         PaymentLines: Record "Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit((GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D));
         PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::" ");
         PaymentLines.SetRange(Type, PaymentLines.Type::"General Journal");
         PaymentLines.SetRange(Code, GenJnlLine."Journal Batch Name");
@@ -1404,6 +1416,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
         PaymentLines.SetFilter("Pmt. Discount Date", '<>%1', 0D);
         exit(not PaymentLines.IsEmpty());
     end;
+#endif
 
     /// <summary>
     /// Integration event raised after completing account number validation for journal lines.

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
@@ -357,7 +359,9 @@ table 21 "Cust. Ledger Entry"
             var
                 ReminderEntry: Record "Reminder/Fin. Charge Entry";
                 ReminderIssue: Codeunit "Reminder-Issue";
+#if not CLEAN30
                 PostedPaymentLines: Record "Posted Payment Lines";
+#endif
             begin
                 TestField(Open, true);
                 if "Due Date" <> xRec."Due Date" then begin
@@ -369,15 +373,19 @@ table 21 "Cust. Ledger Entry"
                         ReminderIssue.ChangeDueDate(ReminderEntry, "Due Date", xRec."Due Date");
                 end;
 
-                if PostedPaymentLines.Get(
-                  PostedPaymentLines."Sales/Purchase"::Sales,
-                  "Document Type",
-                  "Document No.",
-                  "Document Occurrence" * 10000)
-                then begin
-                    PostedPaymentLines."Due Date" := "Due Date";
-                    PostedPaymentLines.Modify();
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    if PostedPaymentLines.Get(
+                      PostedPaymentLines."Sales/Purchase"::Sales,
+                      "Document Type",
+                      "Document No.",
+                      "Document Occurrence" * 10000)
+                    then begin
+                        PostedPaymentLines."Due Date" := "Due Date";
+                        PostedPaymentLines.Modify();
+                    end;
                 end;
+#endif
             end;
         }
         /// <summary>
@@ -1085,13 +1093,54 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Sales Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted global installment plan.';
+        }
+        field(8841; "Installment No."; Integer)
+        {
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
+        }
+        field(8842; "No. of Installments"; Integer)
+        {
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of receivables in the installment plan.';
+        }
+        field(8843; "Invoice Entry No."; BigInteger)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
+        }
         field(12170; "Document Occurrence"; Integer)
         {
             Caption = 'Document Occurrence';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12171; "Applies-to Occurrence No."; Integer)
         {
             Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12172; "Bank Receipt"; Boolean)
         {
@@ -1203,10 +1252,12 @@ table 21 "Cust. Ledger Entry"
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
+#if not CLEAN30
         key(Key18; "Document Type", "Document No.", "Document Occurrence")
         {
             SumIndexFields = "Remaining Pmt. Disc. Possible";
         }
+#endif
         key(Key19; "Customer No.", Open, Positive, "Applies-to ID")
         {
             Enabled = false;
@@ -1223,9 +1274,11 @@ table 21 "Cust. Ledger Entry"
         key(Key23; "Posting Date", "Transaction No.", "Entry No.")
         {
         }
+#if not CLEAN30
         key(Key24; "Document Type", "Document No.", "Document Occurrence", "Customer No.", Open)
         {
         }
+#endif
         key(Key25; "Customer No.", "Bank Receipt", "Document Type", "Due Date", "Currency Code", "Bank Receipt Issued", Open)
         {
         }
@@ -1269,6 +1322,16 @@ table 21 "Cust. Ledger Entry"
         {
             IncludedFields = "Accepted Payment Tolerance";
         }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
+        }
     }
 
     fieldgroups
@@ -1282,6 +1345,9 @@ table 21 "Cust. Ledger Entry"
     }
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'must have the same sign as %1';

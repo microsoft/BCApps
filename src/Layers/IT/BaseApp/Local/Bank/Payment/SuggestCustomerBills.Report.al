@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Foundation.Enums;
@@ -135,6 +137,9 @@ report 12176 "Suggest Customer Bills"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         CustomerBillLine: Record "Customer Bill Line";
         CustBankAcc: Record "Customer Bank Account";
         BankAcc: Record "Bank Account";
@@ -177,7 +182,11 @@ report 12176 "Suggest Customer Bills"
                 CustomerBillLine."Temporary Cust. Bill No." := CustLedgEntry."Bank Receipt Temp. No.";
                 CustomerBillLine."Document Type" := CustLedgEntry."Document Type";
                 CustomerBillLine."Document No." := CustLedgEntry."Document No.";
-                CustomerBillLine."Document Occurrence" := CustLedgEntry."Document Occurrence";
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    CustomerBillLine."Document Occurrence" := CustLedgEntry."Document Occurrence";
+                end;
+#endif
                 CustomerBillLine."Document Date" := CustLedgEntry."Document Date";
                 CustomerBillLine.Amount := CustLedgEntry."Remaining Amount";
                 CustomerBillLine."Due Date" := CustLedgEntry."Due Date";

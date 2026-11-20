@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
@@ -641,8 +643,10 @@ page 140 "Posted Purchase Credit Memo"
                         ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
                     end;
                 }
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -651,7 +655,11 @@ page 140 "Posted Purchase Credit Memo"
                                   Type = const("Credit Memo"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(DocAttach)
                 {
                     ApplicationArea = All;
@@ -928,6 +936,9 @@ page 140 "Posted Purchase Credit Memo"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
         IsOfficeAddin := OfficeMgt.IsAvailable();
 
@@ -936,6 +947,10 @@ page 140 "Posted Purchase Credit Memo"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;

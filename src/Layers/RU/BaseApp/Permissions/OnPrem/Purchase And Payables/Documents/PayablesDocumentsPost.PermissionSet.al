@@ -18,6 +18,7 @@ using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.BatchProcessing;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Employee;
@@ -45,6 +46,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Request;
 using System.Security.User;
@@ -96,6 +98,10 @@ permissionset 862 "Payables Documents - Post"
                   tabledata "IC Outbox Transaction" = RIMD,
                   tabledata "IC Partner" = R,
                   tabledata "IC Setup" = R,
+                  tabledata "Sales Installment Plan" = Rimd,
+                  tabledata "Purchase Installment Plan" = Rimd,
+                  tabledata "Sales Installment Plan Line" = Rimd,
+                  tabledata "Purchase Installment Plan Line" = Rimd,
                   tabledata "Inventory Posting Group" = r,
                   tabledata "Inventory Posting Setup" = r,
                   tabledata Item = Rm,

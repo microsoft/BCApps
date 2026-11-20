@@ -88,7 +88,11 @@ report 12174 "Issued Cust Bills Report"
                 column(DocDateFormat_IssuedCustBillLine; Format("Document Date"))
                 {
                 }
+#if not CLEAN30
                 column(DocOccurrence_IssuedCustBillLine; "Document Occurrence")
+#else
+                column(DocOccurrence_IssuedCustBillLine; 0)
+#endif
                 {
                 }
                 column(Amount_IssuedCustBillLine; Amount)

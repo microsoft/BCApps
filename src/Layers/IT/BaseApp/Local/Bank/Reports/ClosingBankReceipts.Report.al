@@ -7,6 +7,7 @@ namespace Microsoft.Bank.Reports;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 
 report 12171 "Closing Bank Receipts"
 {
@@ -25,8 +26,20 @@ report 12171 "Closing Bank Receipts"
             RequestFilterFields = "Customer No.", "Due Date";
             dataitem(CustEntry2; "Cust. Ledger Entry")
             {
-                DataItemLink = "Document Type" = field("Document Type to Close"), "Document No." = field("Document No. to Close"), "Document Occurrence" = field("Document Occurrence to Close"), "Customer No." = field("Customer No.");
-                DataItemTableView = sorting("Document Type", "Document No.", "Document Occurrence", "Customer No.") order(ascending) where(Open = const(true), "Bank Receipt Issued" = const(true), "Customer Bill No." = filter(<> ''));
+                DataItemLink = "Document Type" = field("Document Type to Close"), "Document No." = field("Document No. to Close"), "Customer No." = field("Customer No.");
+                DataItemTableView = sorting("Entry No.") order(ascending) where(Open = const(true), "Bank Receipt Issued" = const(true), "Customer Bill No." = filter(<> ''));
+
+#if not CLEAN30
+                trigger OnPreDataItem()
+                var
+                    FeatureKeyManagement: Codeunit "Feature Key Management";
+                begin
+                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                        SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Customer No.");
+                        SetRange("Document Occurrence", CustEntry1."Document Occurrence to Close");
+                    end;
+                end;
+#endif
 
                 trigger OnAfterGetRecord()
                 var

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Payables;
@@ -76,6 +78,9 @@ report 12195 "Datifattura Suggest Lines"
     }
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DeleteReportLinesQst: Label 'All existing report lines will be deleted. Do you want to continue?';
         CurrentLineNo: Integer;
 
@@ -202,7 +207,11 @@ report 12195 "Datifattura Suggest Lines"
     begin
         if VATEntry.Type <> VATEntry.Type::Purchase then
             exit(false);
-        VendorLedgerEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Vendor No.");
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            VendorLedgerEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Vendor No.");
+        end;
+#endif
         VendorLedgerEntry.SetRange("Document Type", VATEntry."Document Type");
         VendorLedgerEntry.SetRange("Document No.", VATEntry."Document No.");
         VendorLedgerEntry.SetRange("Vendor No.", VATEntry."Bill-to/Pay-to No.");

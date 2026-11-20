@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Assembly.History;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -102,7 +104,8 @@ table 111 "Sales Shipment Line"
             CaptionClass = GetCaptionClass(FieldNo("No."));
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
-            TableRelation = if (Type = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if (Type = const("G/L Account")) "G/L Account"
             else
             if (Type = const(Item)) Item
             else
@@ -128,7 +131,8 @@ table 111 "Sales Shipment Line"
         {
             Caption = 'Posting Group';
             Editable = false;
-            TableRelation = if (Type = const(Item)) "Inventory Posting Group"
+            TableRelation =
+            if (Type = const(Item)) "Inventory Posting Group"
             else
             if (Type = const("Fixed Asset")) "FA Posting Group";
         }
@@ -628,7 +632,8 @@ table 111 "Sales Shipment Line"
         {
             Caption = 'Variant Code';
             ToolTip = 'Specifies the variant of the item on the line.';
-            TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."));
         }
         /// <summary>
         /// Specifies the warehouse bin code where items were stored.
@@ -658,7 +663,8 @@ table 111 "Sales Shipment Line"
         {
             Caption = 'Unit of Measure Code';
             ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             "Unit of Measure";
         }
@@ -732,7 +738,8 @@ table 111 "Sales Shipment Line"
         field(5709; "Item Category Code"; Code[20])
         {
             Caption = 'Item Category Code';
-            TableRelation = if (Type = const(Item)) "Item Category";
+            TableRelation =
+            if (Type = const(Item)) "Item Category";
         }
         /// <summary>
         /// Indicates whether the item is a catalog item.
@@ -765,7 +772,8 @@ table 111 "Sales Shipment Line"
         field(5726; "Item Reference Unit of Measure"; Code[10])
         {
             Caption = 'Unit of Measure (Item Ref.)';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
         }
         /// <summary>
         /// Specifies the type of item reference such as customer or vendor.
@@ -981,12 +989,15 @@ table 111 "Sales Shipment Line"
     var
         SalesDocLineComments: Record "Sales Comment Line";
     begin
-        PostedPaymentLines.Reset();
-        PostedPaymentLines.SetRange(PostedPaymentLines."Sales/Purchase", PostedPaymentLines."Sales/Purchase"::Sales);
-        PostedPaymentLines.SetRange(PostedPaymentLines.Type, PostedPaymentLines.Type::Invoice);
-        PostedPaymentLines.SetRange(PostedPaymentLines.Code, "No.");
-        PostedPaymentLines.DeleteAll();
-
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PostedPaymentLines.Reset();
+            PostedPaymentLines.SetRange(PostedPaymentLines."Sales/Purchase", PostedPaymentLines."Sales/Purchase"::Sales);
+            PostedPaymentLines.SetRange(PostedPaymentLines.Type, PostedPaymentLines.Type::Invoice);
+            PostedPaymentLines.SetRange(PostedPaymentLines.Code, "No.");
+            PostedPaymentLines.DeleteAll();
+        end;
+#endif
         SalesDocLineComments.SetRange("Document Type", SalesDocLineComments."Document Type"::Shipment);
         SalesDocLineComments.SetRange("No.", "Document No.");
         SalesDocLineComments.SetRange("Document Line No.", "Line No.");
@@ -997,13 +1008,18 @@ table 111 "Sales Shipment Line"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         Currency: Record Currency;
         SalesShptHeader: Record "Sales Shipment Header";
         PostedATOLink: Record "Posted Assemble-to-Order Link";
         DimMgt: Codeunit DimensionManagement;
         UOMMgt: Codeunit "Unit of Measure Management";
         CurrencyRead: Boolean;
+#if not CLEAN30
         PostedPaymentLines: Record "Posted Payment Lines";
+#endif
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
