@@ -50,7 +50,11 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
 
         // [THEN] All five posting groups have extension accounts instead of legacy accounts.
         VerifyContosoPostingGroupAccounts(
-            CreateGLAccountFI.Changeindepreciationreserve4(), CreateGLAccountFI.Depreciationdifference3(), '', '');
+            CreateGLAccountFI.Changeindepreciationreserve4(), CreateGLAccountFI.Depreciationdifference3()
+#if not CLEAN30
+            , '', ''
+#endif
+        );
         NotificationLifecycleMgt.RecallAllNotifications();
     end;
 
@@ -148,8 +152,11 @@ codeunit 148172 "Depr. Diff. Demo Data FI Tests"
     end;
 
     local procedure VerifyContosoPostingGroupAccounts(
-        ExpectedDepreciationDifferenceAccount: Code[20]; ExpectedDepreciationDifferenceBalAccount: Code[20];
-        ExpectedLegacyDepreciationDifferenceAccount: Code[20]; ExpectedLegacyDepreciationDifferenceBalAccount: Code[20])
+        ExpectedDepreciationDifferenceAccount: Code[20]; ExpectedDepreciationDifferenceBalAccount: Code[20]
+#if not CLEAN30
+        ; ExpectedLegacyDepreciationDifferenceAccount: Code[20]; ExpectedLegacyDepreciationDifferenceBalAccount: Code[20]
+#endif
+    )
     var
         FAPostingGroup: Record "FA Posting Group";
         GLAccount: Record "G/L Account";
