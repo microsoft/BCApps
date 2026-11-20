@@ -40,7 +40,7 @@ codeunit 133516 "SLS Prompt Test"
         AITestContext.SetTestOutput(CallCompletionAnswerTxt); // Log the response
 
         if ExpectedSearchItemExists then
-            CheckSearchItemJSONContent(CallCompletionAnswerTxt, ExpectedItemProps);
+            CheckSearchItemJSONContent(CallCompletionAnswerTxt, ExpectedItemProps, AITestContext.GetQuery().ValueAsText());
 
         if ExpectedResultsExist then
             CheckDocumentLookupJSONContent(CallCompletionAnswerTxt, ExpectedDocProps);
@@ -56,7 +56,7 @@ codeunit 133516 "SLS Prompt Test"
         IsInitialized := true;
     end;
 
-    local procedure CheckSearchItemJSONContent(CompletionAnswerTxt: Text; ExpectedItemProps: Codeunit "Test Input Json")
+    local procedure CheckSearchItemJSONContent(CompletionAnswerTxt: Text; ExpectedItemProps: Codeunit "Test Input Json"; CustomerRequest: Text)
     var
         Utility: Codeunit "SLS Test Utility";
         Function: JsonToken;
@@ -64,8 +64,10 @@ codeunit 133516 "SLS Prompt Test"
         FunctionArgumentObject: JsonObject;
         ItemResults: JsonToken;
         ItemResultsArray: JsonArray;
-        JsonItem: JsonToken;
-        i: Integer;
+        Evaluation: JsonObject;
+        EvaluationToken: JsonToken;
+        EvaluationPassed: Boolean;
+        EvaluationReason: Text;
     begin
         Function := Utility.GetFunctionToken(CompletionAnswerTxt);
 
@@ -83,16 +85,115 @@ codeunit 133516 "SLS Prompt Test"
             exit;
         end;
 
-        for i := 0 to ExpectedItemProps.GetElementCount() - 1 do begin
-            ItemResultsArray.Get(i, JsonItem); // No need to check if the index is valid as the count is already checked
+        AssertSearchItemSchema(ItemResultsArray);
+        if ItemResultsArray.Count() = 0 then
+            exit;
 
-            ValidateJsonPropertyInArray(ExpectedItemProps, i, JsonItem, 'split_name_terms');
-            ValidateJsonPropertyInArray(ExpectedItemProps, i, JsonItem, 'origin_name');
-            ValidateJsonPropertyInArray(ExpectedItemProps, i, JsonItem, 'quantity');
-            ValidateJsonPropertyInArray(ExpectedItemProps, i, JsonItem, 'features');
-            ValidateJsonPropertyInArray(ExpectedItemProps, i, JsonItem, 'common_synonyms_of_name');
-            ValidateJsonPropertyInArray(ExpectedItemProps, i, JsonItem, 'unit_of_measure');
+        Evaluation := Utility.EvaluateItemExtraction(CustomerRequest, ExpectedItemProps.AsJsonToken().AsArray(), ItemResultsArray);
+        Utility.LogExtractionEvaluation(CustomerRequest, CompletionAnswerTxt, Evaluation);
+        Evaluation.Get('passed', EvaluationToken);
+        EvaluationPassed := EvaluationToken.AsValue().AsBoolean();
+        Evaluation.Get('reason', EvaluationToken);
+        EvaluationReason := EvaluationToken.AsValue().AsText();
+        Assert.IsTrue(EvaluationPassed, 'Extracted item meaning is incorrect: ' + EvaluationReason);
+        Evaluation.Get('item_mapping', EvaluationToken);
+        AssertSearchItemContracts(ExpectedItemProps.AsJsonToken().AsArray(), ItemResultsArray, EvaluationToken.AsArray());
+    end;
+
+    internal procedure AssertSearchItemContracts(ExpectedItems: JsonArray; ActualItems: JsonArray; ItemMapping: JsonArray)
+    var
+        ExpectedItemProps: Codeunit "Test Input Json";
+        ActualItem: JsonToken;
+        ExpectedItem: JsonToken;
+        MappingToken: JsonToken;
+        UsedIndices: List of [Integer];
+        ActualIndex: Integer;
+        i: Integer;
+    begin
+        Assert.AreEqual(ExpectedItems.Count(), ActualItems.Count(), '"search_items" count is not correct');
+        AssertSearchItemSchema(ActualItems);
+        Assert.AreEqual(ExpectedItems.Count(), ItemMapping.Count(), 'Semantic evaluator item mapping is incomplete.');
+        ExpectedItemProps.Initialize(ExpectedItems.AsToken());
+        for i := 0 to ExpectedItems.Count() - 1 do begin
+            ItemMapping.Get(i, MappingToken);
+            ActualIndex := MappingToken.AsValue().AsInteger();
+            Assert.IsTrue((ActualIndex >= 0) and (ActualIndex < ActualItems.Count()), 'Semantic evaluator item mapping is out of range.');
+            Assert.IsFalse(UsedIndices.Contains(ActualIndex), 'Semantic evaluator returned a duplicate item mapping.');
+            UsedIndices.Add(ActualIndex);
+            ActualItems.Get(ActualIndex, ActualItem);
+            ExpectedItems.Get(i, ExpectedItem);
+
+            ValidateJsonPropertyInArray(ExpectedItemProps, i, ActualItem, 'origin_name');
+            ValidateJsonPropertyInArray(ExpectedItemProps, i, ActualItem, 'quantity');
+            ValidateJsonPropertyInArray(ExpectedItemProps, i, ActualItem, 'unit_of_measure');
+            AssertItemIdentifier(ExpectedItem.AsObject(), ActualItem.AsObject());
         end;
+    end;
+
+    local procedure AssertSearchItemSchema(ActualItems: JsonArray)
+    var
+        Item: JsonToken;
+        Value: JsonToken;
+        Term: JsonToken;
+        PropertyName: Text;
+        ArrayProperties: List of [Text];
+        ValueText: Text;
+        ArrayPropertyErr: Label '%1 must be an array.', Comment = '%1 = Json property name';
+    begin
+        ArrayProperties.Add('split_name_terms');
+        ArrayProperties.Add('features');
+        ArrayProperties.Add('common_synonyms_of_name_terms');
+        foreach Item in ActualItems do begin
+            Assert.IsTrue(Item.AsObject().Get('name', Value), 'Search item name is missing.');
+            AssertJsonText(Value);
+            Assert.AreNotEqual('', Value.AsValue().AsText(), 'Search item name is empty.');
+            Assert.IsTrue(Item.AsObject().Get('quantity', Value), 'Search item quantity is missing.');
+            Value.WriteTo(ValueText);
+            Assert.IsTrue(Value.IsValue() and (ValueText[1] in ['-', '0' .. '9']), 'Search item quantity must be numeric.');
+            if Item.AsObject().Get('origin_name', Value) then
+                AssertJsonText(Value);
+            if Item.AsObject().Get('unit_of_measure', Value) then
+                AssertJsonText(Value);
+            Assert.IsTrue(Item.AsObject().Get('split_name_terms', Value), 'Search item name terms are missing.');
+            Assert.IsTrue(Value.IsArray(), 'Search item name terms must be an array.');
+            Assert.IsTrue(Value.AsArray().Count() > 0, 'Search item name terms are empty.');
+            foreach PropertyName in ArrayProperties do
+                if Item.AsObject().Get(PropertyName, Value) then begin
+                    Assert.IsTrue(Value.IsArray(), StrSubstNo(ArrayPropertyErr, PropertyName));
+                    foreach Term in Value.AsArray() do
+                        AssertJsonText(Term);
+                end;
+        end;
+    end;
+
+    local procedure AssertJsonText(Value: JsonToken)
+    var
+        ValueText: Text;
+    begin
+        Value.WriteTo(ValueText);
+        Assert.IsTrue(ValueText.StartsWith('"'), 'Search item text properties must contain strings.');
+    end;
+
+    local procedure AssertItemIdentifier(ExpectedItem: JsonObject; ActualItem: JsonObject)
+    var
+        NameTerms: JsonToken;
+        Identifier: JsonToken;
+        ActualName: JsonToken;
+        IdentifierText: Text;
+    begin
+        if not ExpectedItem.Get('split_name_terms', NameTerms) then
+            exit;
+        if NameTerms.AsArray().Count() <> 1 then
+            exit;
+        NameTerms.AsArray().Get(0, Identifier);
+        IdentifierText := Identifier.AsValue().AsText();
+        if (IdentifierText = '') or (DelChr(IdentifierText, '=', '0123456789') <> '') then
+            exit;
+
+        ActualItem.Get('split_name_terms', NameTerms);
+        Assert.AreEqual(1, NameTerms.AsArray().Count(), 'Item identifier must remain a single search term.');
+        NameTerms.AsArray().Get(0, ActualName);
+        Assert.AreEqual(IdentifierText, ActualName.AsValue().AsText(), 'Item identifier is incorrect.');
     end;
 
     local procedure CheckDocumentLookupJSONContent(CompletionAnswerTxt: Text; ExpectedDocProps: Codeunit "Test Input Json")
@@ -150,17 +251,6 @@ codeunit 133516 "SLS Prompt Test"
     begin
         IsPropertyFound := ActualJsonToken.AsObject().Get(PropertyName, ActualToken);
         case PropertyName of
-            'split_name_terms':
-                if IsPropertyFound then
-                    AssertJsonArraysContentAreSame(ExpectedElement.AsJsonToken().AsArray(), ActualToken.AsArray(), PropertyName)
-                else
-                    AssertMissingJsonArrayPropertyIsEmpty(ExpectedElement, PropertyName);
-            'features': // Not checking 'common_synonyms_of_name' as it is not consistent in the response
-                if IsPropertyFound then
-                    AssertExpectedArrayContainsActualArrayElements(ExpectedElement.AsJsonToken().AsArray(), ActualToken.AsArray(), PropertyName)
-                else
-                    AssertMissingJsonArrayPropertyIsEmpty(ExpectedElement, PropertyName);
-
             'origin_name', 'unit_of_measure', 'document_type', 'document_number':
                 if IsPropertyFound then
                     Assert.AreEqual(ExpectedElement.ValueAsText().ToLower(), ActualToken.AsValue().AsText().ToLower(), StrSubstNo(JsonPropValueErr, PropertyName))
@@ -181,76 +271,12 @@ codeunit 133516 "SLS Prompt Test"
         end;
     end;
 
-    local procedure AssertMissingJsonArrayPropertyIsEmpty(ExpectedElement: Codeunit "Test Input Json"; PropertyName: Text);
-    begin
-        Assert.AreEqual(0, ExpectedElement.AsJsonToken().AsArray().Count(), StrSubstNo(JsonPropIsMissingErr, PropertyName, '[' + ConvertJsonArrayToText(ExpectedElement.AsJsonToken().AsArray(), ',') + ']'));
-    end;
-
     local procedure AssertFunctionName(FunctionToken: JsonToken; ExpectedName: Text)
     var
         FunctionName: JsonToken;
     begin
         FunctionToken.AsObject().Get('name', FunctionName);
         Assert.AreEqual(ExpectedName, FunctionName.AsValue().AsText(), 'Function name is incorrect.');
-    end;
-
-    local procedure AssertJsonArraysContentAreSame(ExpectedArray: JsonArray; ActualArray: JsonArray; JsonArrayPropertyName: Text)
-    var
-        i: Integer;
-        TempToken: JsonToken;
-        ListOfJsonTokens: List of [Text];
-        JsonArrayLengthMismatchErr: Label 'Array length for "%1" is incorrect.\Expected Array: [%2] \Actual Array: [%3]', Comment = '%1 = Json array property name, %2 = Expected array values, %3 = Actual array values';
-        JsonTokenNotFoundErr: Label '"%1" not found in the json array property "%2": [%3]', Comment = '%1 = Json token, %2 = Json array property name, %3 = Actual json array';
-    begin
-        Assert.AreEqual(ExpectedArray.Count(), ActualArray.Count(), StrSubstNo(JsonArrayLengthMismatchErr, JsonArrayPropertyName, ConvertJsonArrayToText(ExpectedArray, ','), ConvertJsonArrayToText(ActualArray, ',')));
-
-        // Copy JsonArray tokens to a list
-        foreach TempToken in ActualArray do
-            ListOfJsonTokens.Add(TempToken.AsValue().AsText().ToLower());
-
-        // Check if all expected tokens are present in the actual array
-        for i := 0 to ExpectedArray.Count() - 1 do begin
-            ExpectedArray.Get(i, TempToken);
-            Assert.IsTrue(ListOfJsonTokens.Contains(TempToken.AsValue().AsText().ToLower()), StrSubstNo(JsonTokenNotFoundErr, TempToken.AsValue().AsText(), JsonArrayPropertyName, ConvertJsonArrayToText(ActualArray, ',')));
-        end;
-    end;
-
-    // Lenient check
-    local procedure AssertExpectedArrayContainsActualArrayElements(ExpectedJsonArray: JsonArray; ActualJsonArray: JsonArray; JsonArrayPropertyName: Text) // Lenient check
-    var
-        i: Integer;
-        TempToken: JsonToken;
-        ExpectedJsonArrayAsText: Text;
-        JsonTokenNotFoundErr: Label '"%1" not found in the json array property "%2": [%3]', Comment = '%1 = Json token, %2 = Json array property name, %3 = json array values';
-    begin
-        if ActualJsonArray.Count() = 0 then
-            exit;
-
-        // Copy JsonArray tokens to a list
-        ExpectedJsonArray.WriteTo(ExpectedJsonArrayAsText);
-
-        // Check if all the actual tokens are present in the expected array
-        for i := 0 to ActualJsonArray.Count() - 1 do begin
-            ActualJsonArray.Get(i, TempToken);
-            Assert.IsTrue(ExpectedJsonArrayAsText.ToLower().Contains(TempToken.AsValue().AsText().ToLower()), StrSubstNo(JsonTokenNotFoundErr, TempToken.AsValue().AsText(), JsonArrayPropertyName, ExpectedJsonArrayAsText));
-        end;
-    end;
-
-    local procedure ConvertJsonArrayToText(JsonArray: JsonArray; Delimiter: Char): Text
-    var
-        StringBuilder: TextBuilder;
-        JsonToken: JsonToken;
-        ValueText: Text;
-        Index: Integer;
-    begin
-        for Index := 0 to JsonArray.Count - 1 do begin
-            JsonArray.Get(Index, JsonToken);
-            ValueText := JsonToken.AsValue().AsText();
-            StringBuilder.Append(ValueText);
-            if Index < JsonArray.Count - 1 then
-                StringBuilder.Append(Delimiter);
-        end;
-        exit(StringBuilder.ToText());
     end;
 
     local procedure GetDateFromText(DateDescription: Text) Result: Text
@@ -272,6 +298,8 @@ codeunit 133516 "SLS Prompt Test"
                 else
                     Result := Format(System.Date2DMY(Today(), 3)) + '-02-01';
             'LAST_CHRISTMAS':
+                Result := Format(System.Date2DMY(Today(), 3) - 1) + '-12-25';
+            'BEFORE_LAST_CHRISTMAS':
                 Result := Format(System.Date2DMY(Today(), 3) - 1) + '-12-24'
             else
                 Result := DateDescription;

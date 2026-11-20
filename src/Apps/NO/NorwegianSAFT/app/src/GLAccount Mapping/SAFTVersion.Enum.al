@@ -10,4 +10,5 @@ enum 10674 "SAF-T Version"
 
     value(0; "1.20") { Caption = '1.20'; }
     value(1; "1.30") { Caption = '1.30'; }
+    value(2; "1.40") { Caption = '1.40'; }
 }

@@ -1313,7 +1313,7 @@ table 98 "General Ledger Setup"
         /// <summary>
         /// G/L account category used for classifying accounts receivable accounts in financial reporting.
         /// </summary>
-        field(190; "Acc. Receivables Category"; Integer)
+        field(190; "Acc. Receivables Category"; BigInteger)
         {
             TableRelation = "G/L Account Category";
             Caption = 'Account Receivables G/L Account Category';
@@ -1340,7 +1340,7 @@ table 98 "General Ledger Setup"
             Caption = 'Check Source Curr. Consistency';
             ToolTip = 'Specifies whether Business Central validates the total of general ledger entries source currency amount during posting.';
         }
-        field(194; "Acc. Payables Category"; Integer)
+        field(194; "Acc. Payables Category"; BigInteger)
         {
             TableRelation = "G/L Account Category";
             Caption = 'Account Payables G/L Account Category';
@@ -1447,13 +1447,8 @@ table 98 "General Ledger Setup"
         {
             Caption = 'Threshold applies';
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
         field(10501; "Threshold Amount"; Decimal)
         {
@@ -1461,13 +1456,8 @@ table 98 "General Ledger Setup"
             Caption = 'Threshold Amount';
             MinValue = 0;
             ObsoleteReason = 'Moved to Reverse Charge VAT GB app';
-#if CLEAN27
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '27.0';
-#endif
         }
 #endif
     }

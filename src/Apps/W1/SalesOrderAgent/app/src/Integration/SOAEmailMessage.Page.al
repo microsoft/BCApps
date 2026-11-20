@@ -244,6 +244,13 @@ page 4404 "SOA Email Message"
                     end;
                 }
             }
+            part(Attachments; "SOA Email Attachments")
+            {
+                ApplicationArea = All;
+                Caption = 'Attachments';
+                SubPageLink = "Task ID" = field("Task ID");
+                Editable = false;
+            }
             group(PreviousMessages)
             {
                 Caption = 'Previous Messages';
@@ -267,13 +274,6 @@ page 4404 "SOA Email Message"
                         CurrPage.Update(false);
                     end;
                 }
-            }
-            part(Attachments; "SOA Email Attachments")
-            {
-                ApplicationArea = All;
-                Caption = 'Attachments';
-                SubPageLink = "Task ID" = field("Task ID");
-                Editable = false;
             }
         }
     }
@@ -417,7 +417,7 @@ page 4404 "SOA Email Message"
         else
             SOAFiltersImpl.RecallMissingContactNotification();
 
-        if ContactCount >= 2 then
+        if (Rec.Type = Rec.Type::Input) and (ContactCount >= 2) then
             SOAFiltersImpl.ShowDuplicateContactNotification(EmailAddress, ContactCount, Rec."Task ID", GetInputTaskMessageID())
         else
             SOAFiltersImpl.RecallDuplicateContactNotification();

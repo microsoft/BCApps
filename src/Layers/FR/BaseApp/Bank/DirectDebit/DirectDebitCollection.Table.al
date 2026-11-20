@@ -7,6 +7,9 @@ namespace Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Enums;
+#if not CLEAN28
+using System.Environment.Configuration;
+#endif
 using System.Security.AccessControl;
 
 /// <summary>
@@ -111,10 +114,20 @@ table 1207 "Direct Debit Collection"
             Caption = 'Partner Type';
             Editable = false;
         }
+#if not CLEANSCHEMA33
         field(10800; "Source Table ID"; Integer)
         {
             Caption = 'Source Table ID';
+            ObsoleteReason = 'Use Source Table ID FR in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -197,6 +210,9 @@ table 1207 "Direct Debit Collection"
     procedure HasPaymentFileErrors() Result: Boolean
     var
         GenJnlLine: Record "Gen. Journal Line";
+#if not CLEAN28
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -204,7 +220,13 @@ table 1207 "Direct Debit Collection"
         if IsHandled then
             exit(Result);
 
-        SetErrorLink(GenJnlLine);
+        GenJnlLine."Document No." := CopyStr(Format("No."), 1, MaxStrLen(GenJnlLine."Document No."));
+#if not CLEAN28
+        if not FeatureManagementFacade.IsEnabled('Payment') then
+#pragma warning disable AL0432
+            SetErrorLink(GenJnlLine);
+#pragma warning restore AL0432
+#endif
         exit(GenJnlLine.HasPaymentFileErrorsInBatch());
     end;
 
@@ -220,9 +242,12 @@ table 1207 "Direct Debit Collection"
         Modify();
     end;
 
+#if not CLEAN30
+    [Obsolete('Use SetPaymentErrorLink in the Payment Management FR app.', '30.0')]
     [Scope('OnPrem')]
     procedure SetErrorLink(var GenJnlLine: Record "Gen. Journal Line")
     begin
+#pragma warning disable AL0432
         if "Source Table ID" <> 0 then begin
             GenJnlLine."Journal Template Name" := '';
             GenJnlLine."Journal Batch Name" := Format("Source Table ID");
@@ -231,7 +256,9 @@ table 1207 "Direct Debit Collection"
         end;
 
         GenJnlLine."Document No." := CopyStr(Format("No."), 1, MaxStrLen(GenJnlLine."Document No."));
+#pragma warning restore AL0432
     end;
+#endif
 
     /// <summary>
     /// Removes all payment file errors associated with entries in this collection.

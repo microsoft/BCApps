@@ -137,8 +137,10 @@ report 94 "Close Income Statement"
                                 GenJnlLine."Source Code" := SourceCodeSetup."Close Income Statement";
                                 GenJnlLine."Reason Code" := GenJnlBatch."Reason Code";
                                 GenJnlLine.Validate(Amount, -TempEntryNoAmountBuffer.Amount);
-                                if not AddSourceCurrencyFields() then
-                                    GenJnlLine."Source Currency Amount" := -TempEntryNoAmountBuffer.Amount2;
+                                if not AddSourceCurrencyFields() then begin
+                                    GenJnlLine."Source Currency Amount" := 0;
+                                    GenJnlLine."Source Curr. VAT Amount" := 0;
+                                end;
                                 GenJnlLine."Business Unit Code" := TempEntryNoAmountBuffer."Business Unit Code";
 
                                 TempDimBuf2.DeleteAll();
@@ -161,7 +163,7 @@ report 94 "Close Income Statement"
                                     GenJnlLine.UpdateLineBalance();
                                 end;
 
-                                HandleGenJnlLine();
+                                HandleGenJnlLine(-TempEntryNoAmountBuffer.Amount2);
                                 OnGLEntryOnPostDataItemOnAfterHandleGenJnlLine(GenJnlLine, TempEntryNoAmountBuffer);
                             end;
                         until TempEntryNoAmountBuffer.Next() = 0;
@@ -230,7 +232,7 @@ report 94 "Close Income Statement"
                     GenJnlLine."Additional-Currency Posting" :=
                       GenJnlLine."Additional-Currency Posting"::None;
                     GenJnlLine.Validate(Amount, TotalAmount);
-                    GenJnlLine."Source Currency Amount" := TotalAmountAddCurr;
+                    GenJnlLine."Source Currency Amount" := 0;
                     if GenJnlLine.Amount < 0 then
                         GenJnlLine."Account No." := NetProfitAccount."No."
                     else
@@ -238,7 +240,7 @@ report 94 "Close Income Statement"
                     if "G/L Entry"."Source Currency Code" <> '' then
                         GenJnlLine."Source Currency Code" := "G/L Entry"."Source Currency Code";
                     OnGLAccountOnOnPostDataItemOnAfterGenJnlLinePopulateFields(GenJnlLine, RetainedEarningsGLAcc);
-                    HandleGenJnlLine();
+                    HandleGenJnlLine(TotalAmountAddCurr);
                     Window.Update(1, GenJnlLine."Account No.");
                 end;
             end;
@@ -546,7 +548,7 @@ report 94 "Close Income Statement"
         ColumnDim: Text[250];
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         GroupEntryNos: Dictionary of [Text, Integer];
         EntryNoDimensionIds: Dictionary of [Text, Integer];
         ProcessedGLEntryGroups: Dictionary of [Text, Boolean];
@@ -575,7 +577,7 @@ report 94 "Close Income Statement"
         Text020: Label 'The following G/L Accounts have mandatory dimension codes that have not been selected:';
         Text021: Label '\\In order to post to these accounts you must also select these dimensions:';
 #pragma warning restore AA0074
-        MaxEntry: Integer;
+        MaxEntry: BigInteger;
         EntryCount: Integer;
         LastWindowUpdateDateTime: DateTime;
         Text1130004: Label 'Please enter Balancing Account No.';
@@ -652,9 +654,12 @@ report 94 "Close Income Statement"
     /// <remarks>
     /// This includes setting up additional currency fields and calling the posting routine.
     /// </remarks>
-    local procedure HandleGenJnlLine()
+    /// <param name="AmountACY">Closed amount in the additional reporting currency</param>
+    local procedure HandleGenJnlLine(AmountACY: Decimal)
     var
+        CloseIncStmtACYHandler: Codeunit "Close Inc. Stmt. ACY Handler";
         NoSeries: Codeunit "No. Series";
+        UseClosedACYAmount: Boolean;
     begin
         OnBeforeHandleGenJnlLine(GenJnlLine);
 
@@ -662,19 +667,29 @@ report 94 "Close Income Statement"
           GenJnlLine."Additional-Currency Posting"::None;
         GenJnlLine."Bal. Account No." := BalancingAccount."No.";
         if GLSetup."Additional Reporting Currency" <> '' then begin
-            if ZeroGenJnlAmount() then begin
+            if (GenJnlLine.Amount = 0) and (AmountACY <> 0) then begin
                 GenJnlLine."Additional-Currency Posting" :=
                   GenJnlLine."Additional-Currency Posting"::"Additional-Currency Amount Only";
-                GenJnlLine.Validate(Amount, GenJnlLine."Source Currency Amount");
+                GenJnlLine.Validate(Amount, AmountACY);
                 GenJnlLine."Source Currency Amount" := 0;
+                GenJnlLine."Source Curr. VAT Amount" := 0;
             end;
             if GenJnlLine.Amount <> 0 then begin
+                // The source currency of the closing line is not necessarily the additional reporting currency,
+                // so the closed ACY amount is passed explicitly instead of being recalculated at the closing date rate.
+                UseClosedACYAmount := GenJnlLine."Additional-Currency Posting" = GenJnlLine."Additional-Currency Posting"::None;
+                if UseClosedACYAmount then begin
+                    CloseIncStmtACYHandler.SetAmounts(GenJnlLine."Amount (LCY)", AmountACY);
+                    BindSubscription(CloseIncStmtACYHandler);
+                end;
                 GenJnlPostLine.Run(GenJnlLine);
+                if UseClosedACYAmount then
+                    UnbindSubscription(CloseIncStmtACYHandler);
                 if DocNo = NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq) then
                     NoSeries.GetNextNo(GenJnlBatch."No. Series", EndDateReq);
             end;
         end else
-            if not ZeroGenJnlAmount() then
+            if not ZeroGenJnlAmount(AmountACY) then
                 GenJnlLine.Insert();
     end;
 
@@ -725,7 +740,7 @@ report 94 "Close Income Statement"
     /// <param name="EntryNo">Entry number to retrieve dimensions for</param>
     /// <param name="DimBuf">Dimension buffer record to populate</param>
     /// <param name="DimensionSetID">Dimension set ID to filter by</param>
-    local procedure GetGLEntryDimensions(EntryNo: Integer; var DimBuf: Record "Dimension Buffer"; DimensionSetID: Integer)
+    local procedure GetGLEntryDimensions(EntryNo: BigInteger; var DimBuf: Record "Dimension Buffer"; DimensionSetID: Integer)
     var
         DimSetEntry: Record "Dimension Set Entry";
     begin
@@ -811,9 +826,9 @@ report 94 "Close Income Statement"
         ClosePerBusUnit := CloseByBU;
     end;
 
-    local procedure ZeroGenJnlAmount(): Boolean
+    local procedure ZeroGenJnlAmount(AmountACY: Decimal): Boolean
     begin
-        exit((GenJnlLine.Amount = 0) and (GenJnlLine."Source Currency Amount" <> 0))
+        exit((GenJnlLine.Amount = 0) and ((GenJnlLine."Source Currency Amount" <> 0) or (AmountACY <> 0)))
     end;
 
     local procedure GroupSum(): Boolean
@@ -838,7 +853,7 @@ report 94 "Close Income Statement"
     local procedure GetEntryNo(DimensionBufferID: Integer; BusinessUnitCode: Code[20]; SourceCurrencyCode: Code[10]): Integer
     var
         GroupKey: Text;
-        AssignedEntryNo: Integer;
+        AssignedEntryNo: BigInteger;
     begin
         // Closing entries are grouped per business unit, per selected dimension combination and per source
         // currency. The dimension buffer ID alone cannot carry the source currency, so when one dimension
@@ -859,7 +874,7 @@ report 94 "Close Income Statement"
         exit(AssignedEntryNo);
     end;
 
-    local procedure GetDimensionBufferID(BusinessUnitCode: Code[20]; BufferEntryNo: Integer): Integer
+    local procedure GetDimensionBufferID(BusinessUnitCode: Code[20]; BufferEntryNo: BigInteger): Integer
     var
         DimensionBufferID: Integer;
     begin

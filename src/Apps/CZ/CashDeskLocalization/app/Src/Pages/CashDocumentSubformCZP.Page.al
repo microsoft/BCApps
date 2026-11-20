@@ -311,6 +311,11 @@ page 31161 "Cash Document Subform CZP"
                     ToolTip = 'Specifies that the value of Yes will automatically be filled when the row meets the conditions for a recorded sale.';
                     Visible = false;
                 }
+                field("Amount Type"; Rec."Amount Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field("Depreciation Book Code"; Rec."Depreciation Book Code")
                 {
                     ApplicationArea = FixedAssets;
@@ -577,13 +582,6 @@ page 31161 "Cash Document Subform CZP"
         DimVisible7: Boolean;
         DimVisible8: Boolean;
         UseAllocationAccountNumber: Boolean;
-#if not CLEAN27
-    [Obsolete('The statistics action will be replaced with the CashDocumentStatistics action. The new action uses RunObject and does not run the action trigger. Use a page extension to modify the behaviour.', '27.0')]
-    procedure ShowStatistics()
-    begin
-        Rec.ExtStatistics();
-    end;
-#endif
 
     procedure UpdatePage(SetSaveRecord: Boolean)
     begin
@@ -601,7 +599,6 @@ page 31161 "Cash Document Subform CZP"
             TransferExtendedTextCZP.InsertCashDeskExtText(Rec);
         end;
         OnInsertExtendedTextOnAfterInsertCashDeskExtText(Rec);
-
         if TransferExtendedTextCZP.MakeUpdate() then
             CurrPage.Update(true);
     end;

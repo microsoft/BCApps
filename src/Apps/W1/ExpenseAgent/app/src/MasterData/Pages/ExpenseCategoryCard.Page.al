@@ -23,52 +23,56 @@ page 6945 "Expense Category Card"
                 Caption = 'General';
                 field("Code"; Rec."Code")
                 {
-                    ToolTip = 'Specifies the code for expense category.';
                 }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Agent Skill';
-                    ToolTip = 'Specifies the skill for the agent usage that identifies expense category and its purpose or usage.';
                 }
                 field("Posting Description"; Rec."Posting Description")
                 {
-                    ToolTip = 'Specifies the description used for posting to the general ledger.';
                 }
                 field("Posting Group"; Rec."Posting Group")
                 {
-                    ToolTip = 'Specifies the posting group on the expense category that is used for accounting. The posting group links expense transactions to general ledger accounts.';
                 }
                 field("Attachment Enforcement"; Rec."Attachment Enforcement")
                 {
-                    ToolTip = 'Specifies whether an attachment is required for expenses in this category.';
+                }
+                field(AttachmentEnforcementLimit; Rec."Amount Limit for No Receipt")
+                {
+                    Enabled = Rec."Attachment Enforcement" = Rec."Attachment Enforcement"::"Not needed under limit";
                 }
                 field("Default Payment Method"; Rec."Default Payment Method")
                 {
-                    ToolTip = 'Specifies the default payment method applied to expenses in this category.';
                 }
                 field("Expense Group"; Rec."Expense Group")
                 {
-                    ToolTip = 'Specifies the expense group for classification.';
                 }
                 field(Inactive; Rec.Inactive)
                 {
-                    ToolTip = 'Specifies whether the category is inactive. If inactive, the category can''t be used on new expenses.';
                 }
                 field("Prepayment - Cash Advance"; Rec."Prepayment-Cash Advance")
                 {
-                    ToolTip = 'Specifies whether expenses in this category require prepayment or cash advance.';
                 }
                 field(Refundable; Rec.Refundable)
                 {
-                    ToolTip = 'Specifies whether expenses in this category are refundable by default. This can be changed on the expense report.';
                 }
                 field("Reimbursement Type"; Rec."Reimbursement Type")
                 {
-                    ToolTip = 'Specifies how expenses in this category are reimbursed.';
                 }
                 field("Expense Detail Required"; Rec."Expense Detail Required")
                 {
-                    ToolTip = 'Specifies additional details required for expenses in the category, such as itemization, per-diem, or participants.';
+                }
+                field("VAT Prod. Posting Group"; Rec."VAT Prod. Posting Group")
+                {
+                    Visible = AllowVATReclaim;
+                }
+                field("Default VAT %"; Rec."Default VAT %")
+                {
+                    Visible = AllowVATReclaim;
+                }
+                field("Default VAT Reclaim %"; Rec."Default VAT Reclaim %")
+                {
+                    Visible = AllowVATReclaim;
                 }
             }
         }
@@ -108,6 +112,14 @@ page 6945 "Expense Category Card"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.Get();
+        AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+    end;
+
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
         if not IsDeletingCategory then
@@ -122,6 +134,7 @@ page 6945 "Expense Category Card"
 
     var
         IsDeletingCategory: Boolean;
+        AllowVATReclaim: Boolean;
         ContinueWithMissingSubcategoryQst: Label 'You have not added any subcategories for expense category %1 where %2 is %3.\\ It will be required to be added before you can use this expense category.\\ Do you want to continue without adding subcategories ?', Comment = '%1 - Expense Category Code, %2 - Field Name "Expense Detail Required", %3 - Expense Detail Required';
 
     local procedure CheckShowConfirmationForSubCategories(ExpenseCategory: Record "Expense Category")

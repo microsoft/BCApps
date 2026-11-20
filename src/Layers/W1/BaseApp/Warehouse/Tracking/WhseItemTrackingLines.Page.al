@@ -883,7 +883,7 @@ page 6550 "Whse. Item Tracking Lines"
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         SourceTrackingSpecification: Record "Tracking Specification";
         WhseItemTrackingLine2: Record "Whse. Item Tracking Line";
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
     begin
         LastEntryNo := 0;
         if TempInitialTrkgLine.Find('-') then

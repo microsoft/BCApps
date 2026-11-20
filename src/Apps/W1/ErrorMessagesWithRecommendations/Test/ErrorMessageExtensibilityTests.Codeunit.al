@@ -7,6 +7,7 @@ namespace Microsoft.Test.Shared.Error;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -361,6 +362,7 @@ codeunit 139621 ErrorMessageExtensibilityTests
 
         // [GIVEN] Disable local functionality in general ledger setup
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
 
         // [GIVEN] Create dimensions and currency exchange rates with GL account setup
         ErrMsgScenarioTestHelper.SetupForDimensionMustBeSameError(Customer, DimensionValue);
@@ -461,10 +463,13 @@ codeunit 139621 ErrorMessageExtensibilityTests
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         BankAccount: Record "Bank Account";
+        GLAccount: Record "G/L Account";
     begin
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
 
-        LibraryERM.CreateBankAccount(BankAccount);
+        // Bank account with its own posting group and G/L account, so posting does not depend on the first posting group in the demo data.
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateBankAccount(BankAccount, GLAccount);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
 
         GenJournalBatch.Validate("Bal. Account Type", GenJournalBatch."Bal. Account Type"::"Bank Account");
@@ -472,7 +477,7 @@ codeunit 139621 ErrorMessageExtensibilityTests
         GenJournalBatch.Modify(true);
 
         LibraryERM.CreateGeneralJnlLine(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer, CustomerNo, -100);
-        GenJournalLine.Validate("Posting Date", Today() + 5);
+        GenJournalLine.Validate("Posting Date", WorkDate() + 5);
         GenJournalLine.Modify();
     end;
 
@@ -521,7 +526,7 @@ codeunit 139621 ErrorMessageExtensibilityTests
         LibrarySales: Codeunit "Library - Sales";
     begin
         LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, CustomerNo);
-        SalesHeader.Validate("Posting Date", Today());
+        SalesHeader.Validate("Posting Date", WorkDate());
         SalesHeader.Modify();
         exit(LibrarySales.PostSalesDocument(SalesHeader, false, true));
     end;

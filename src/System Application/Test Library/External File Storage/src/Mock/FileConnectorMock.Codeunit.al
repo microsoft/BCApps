@@ -31,6 +31,7 @@ codeunit 135810 "File Connector Mock"
 
         TestFileStorageConnector.ResetLastDeletedPath();
         TestFileStorageConnector.ResetFileExistsCallCount();
+        TestFileStorageConnector.ResetDirectoryPaths();
         TestFileStorageConnector.SetFailOnGetFile(false);
         TestFileStorageConnector.SetStoreFileContent(false);
     end;
@@ -162,5 +163,27 @@ codeunit 135810 "File Connector Mock"
         TestFileStorageConnector: Codeunit "Test File Storage Connector";
     begin
         TestFileStorageConnector.SetStoreFileContent(StoreFileContent);
+    end;
+
+    /// <summary>
+    /// Gets the last path passed to directory creation.
+    /// </summary>
+    /// <returns>The directory path.</returns>
+    procedure GetLastCreatedDirectoryPath(): Text
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        exit(TestFileStorageConnector.GetLastCreatedDirectoryPath());
+    end;
+
+    /// <summary>
+    /// Gets the last path passed to a directory existence check.
+    /// </summary>
+    /// <returns>The directory path.</returns>
+    procedure GetLastDirectoryExistsPath(): Text
+    var
+        TestFileStorageConnector: Codeunit "Test File Storage Connector";
+    begin
+        exit(TestFileStorageConnector.GetLastDirectoryExistsPath());
     end;
 }

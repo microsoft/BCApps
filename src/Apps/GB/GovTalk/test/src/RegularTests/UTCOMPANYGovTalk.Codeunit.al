@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.GovTalk;
 
+using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Company;
 
 codeunit 144036 "UTCOMPANY GovTalk"
@@ -11,9 +12,6 @@ codeunit 144036 "UTCOMPANY GovTalk"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
-#if not CLEAN27
-    EventSubscriberInstance = Manual;
-#endif
 
     var
         LibraryRandom: Codeunit "Library - Random";
@@ -27,18 +25,12 @@ codeunit 144036 "UTCOMPANY GovTalk"
         CompanyInformationPage: TestPage "Company Information";
         BranchNumberValue: Text;
     begin
-#if not CLEAN27
-        BindSubscription(this);
-#endif
         BranchNumberValue := '009'; // This is a valid two-digit branch number for GB.
         CompanyInformationPage.OpenEdit();
         CompanyInformationPage."Branch Number GB".SetValue(BranchNumberValue);
         CompanyInformationPage.Close();
         CompanyInformation.Get();
         CompanyInformation.TestField("Branch Number GB", BranchNumberValue);
-#if not CLEAN27
-        UnbindSubscription(this);
-#endif
     end;
 
     [Test]
@@ -60,12 +52,46 @@ codeunit 144036 "UTCOMPANY GovTalk"
         CompanyInformation.Modify();
     end;
 
-#if not CLEAN27
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::GovTalk, OnAfterCheckFeatureEnabled, '', false, false)]
-    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsSkipsCalculatedLineStatus()
+    var
+        ECSLVATReportLine: Record "ECSL VAT Report Line";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
     begin
-        IsEnabled := true;
+        GovTalkHelperProcedures.TransferFields(
+            Database::"ECSL VAT Report Line", ECSLVATReportLine.FieldNo("Line Status GB"), ECSLVATReportLine.FieldNo("Line Status GB"));
     end;
-#endif
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure TransferFieldsCopiesGuidValuesIncludingEmptyGuid()
+    var
+        GovTalkSetup: Record "Gov Talk Setup";
+        GovTalkHelperProcedures: Codeunit "GovTalk Helper Procedures";
+        SourceGuid: Guid;
+    begin
+        GovTalkSetup.DeleteAll();
+        SourceGuid := CreateGuid();
+        GovTalkSetup.Init();
+        GovTalkSetup.Id := 'GUID';
+        GovTalkSetup.Password := SourceGuid;
+        GovTalkSetup.Insert();
+        GovTalkSetup.Init();
+        GovTalkSetup.Id := 'EMPTY';
+        GovTalkSetup."Vendor ID" := CreateGuid();
+        GovTalkSetup.Insert();
+
+        GovTalkHelperProcedures.TransferFields(
+            Database::"Gov Talk Setup", GovTalkSetup.FieldNo(Password), GovTalkSetup.FieldNo("Vendor ID"));
+
+        GovTalkSetup.Get('GUID');
+        GovTalkSetup.TestField("Vendor ID", SourceGuid);
+        GovTalkSetup.Get('EMPTY');
+        GovTalkSetup.TestField("Vendor ID", GovTalkSetup.Password);
+    end;
+
 }
 

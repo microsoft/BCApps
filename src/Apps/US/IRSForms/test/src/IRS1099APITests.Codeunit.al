@@ -10,7 +10,7 @@ codeunit 148018 "IRS 1099 API Tests"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
-    TestType = Uncategorized;
+    TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
@@ -409,7 +409,6 @@ codeunit 148018 "IRS 1099 API Tests"
     local procedure GetIRS1099DocumentAPIWithExpands(DocHeader: Record "IRS 1099 Form Doc. Header") Url: Text
     begin
         Url := LibraryGraphMgt.CreateTargetURL('', Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
-        Url := LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$filter=id eq ' + Format(DocHeader.SystemId, 0, 4));
         Url := LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099formreports');
         exit(Url);
     end;

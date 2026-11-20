@@ -2618,7 +2618,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Reference to incoming document entry for electronic invoice and document management integration.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this general journal line is created for.';
@@ -3566,7 +3566,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Fixed asset error entry number for tracking FA posting errors and corrections.
         /// </summary>
-        field(5615; "FA Error Entry No."; Integer)
+        field(5615; "FA Error Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';
@@ -3919,19 +3919,43 @@ table 81 "Gen. Journal Line"
             ObsoleteReason = 'Moved to W1 Base Application';
 #endif
         }
-#endif
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';
+            ObsoleteReason = 'Use Delayed Unreal. VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10863; "Realize VAT"; Boolean)
         {
             Caption = 'Realize VAT';
+            ObsoleteReason = 'Use Realize Delayed VAT in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(10864; "Created from No."; Code[20])
         {
             Caption = 'Created from No.';
+            ObsoleteReason = 'Use Created From Pmt. Slip No. in the Payment Management FR app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys
