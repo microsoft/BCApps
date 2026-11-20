@@ -9,13 +9,14 @@ namespace Microsoft.Agent.SalesOrderAgent;
 using System.AI;
 using System.Email;
 using System.Environment;
+using System.Privacy;
 using System.Security.AccessControl;
 using System.Telemetry;
 
 codeunit 4587 "SOA Impl"
 {
     Access = Internal;
-    Permissions = tabledata "Email Inbox" = rd, tabledata User = R;
+    Permissions = tabledata "Email Inbox" = rd, tabledata User = R, tabledata "Privacy Notice" = r;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -262,5 +263,26 @@ codeunit 4587 "SOA Impl"
             CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Sales Order Agent", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlTxt)
         else
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Sales Order Agent", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlTxt);
+    end;
+
+    internal procedure EnsureBusinessIQPrivacyNoticeApproval()
+    var
+        PrivacyNoticeStatus: Record "Privacy Notice";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        AIServiceName: Interface "AI Service Name";
+        EmptyGuid: Guid;
+        PrivacyApprovalRequiredErr: Label 'An administrator must approve Azure OpenAI for everyone in Privacy Notices Status before using Sales Order Agent with Business Skills.';
+    begin
+        AIServiceName := Enum::"Azure AI Service Type"::"Azure OpenAI";
+        PrivacyNoticeStatus.SetRange("User SID Filter", EmptyGuid);
+        PrivacyNoticeStatus.SetAutoCalcFields(Enabled);
+        if PrivacyNoticeStatus.Get(AIServiceName.GetServiceId()) then
+            if PrivacyNoticeStatus.Enabled then
+                exit;
+
+        if not PrivacyNotice.CanCurrentUserApproveForOrganization() then
+            Error(PrivacyApprovalRequiredErr);
+
+        PrivacyNotice.SetApprovalState(AIServiceName.GetServiceId(), Enum::"Privacy Notice Approval State"::Agreed);
     end;
 }
