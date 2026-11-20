@@ -1440,7 +1440,11 @@ table 6900 Expense
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
-            ResetAmountFromExpenseCategory();
+            // Card amounts come from the transaction; manual expenses keep their currency when the category is cleared.
+            if Rec.Source <> Rec.Source::CorporateCard then begin
+                Rec.Amount := 0;
+                Rec.UpdateAmount();
+            end;
             exit;
         end;
         if not ExpenseCategory.Get(Rec."Expense Category") then begin

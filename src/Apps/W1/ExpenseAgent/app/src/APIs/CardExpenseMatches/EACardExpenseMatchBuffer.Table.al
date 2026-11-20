@@ -16,32 +16,39 @@ table 7420 "EA Card Expense Match Buffer"
         field(1; Id; Guid)
         {
             Caption = 'Id';
+            ToolTip = 'Specifies the identifier of the match request.';
         }
         field(2; "Expense User SystemId"; Guid)
         {
             Caption = 'Expense User System Id';
+            ToolTip = 'Specifies the expense user whose card expenses are searched.';
         }
         field(10; "Expense Date"; Date)
         {
             Caption = 'Expense Date';
+            ToolTip = 'Specifies the date on the receipt.';
         }
         field(11; Amount; Decimal)
         {
             Caption = 'Amount';
+            ToolTip = 'Specifies the total amount on the receipt.';
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
         }
         field(12; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency on the receipt. Leave blank for the local currency.';
         }
         field(13; "Merchant Name"; Text[100])
         {
             Caption = 'Merchant Name';
+            ToolTip = 'Specifies the merchant name on the receipt.';
         }
         field(20; "Expense SystemId"; Guid)
         {
             Caption = 'Expense System Id';
+            ToolTip = 'Specifies the card expense that matches the receipt, or an empty GUID when there is no match.';
         }
     }
 
