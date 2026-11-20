@@ -106,9 +106,11 @@ report 12117 "Customer Bills List"
                 }
 #if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence_; "Document Occurrence")
+#else
+                column(CustLedgEntry1__Document_Occurrence_; 0)
+#endif
                 {
                 }
-#endif
                 column(CustLedgEntry1__Document_No__; "Document No.")
                 {
                 }
@@ -138,9 +140,11 @@ report 12117 "Customer Bills List"
                 }
 #if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence__Control1130040; "Document Occurrence")
+#else
+                column(CustLedgEntry1__Document_Occurrence__Control1130040; 0)
+#endif
                 {
                 }
-#endif
                 column(CustLedgEntry1__Document_No___Control1130041; "Document No.")
                 {
                 }
@@ -203,9 +207,11 @@ report 12117 "Customer Bills List"
                 }
 #if not CLEAN30
                 column(CustLedgEntry1__Document_Occurrence_Caption; FieldCaption("Document Occurrence"))
+#else
+                column(CustLedgEntry1__Document_Occurrence_Caption; DocumentOccurrenceCaptionLbl)
+#endif
                 {
                 }
-#endif
                 column(CustLedgEntry1__Document_No__Caption; FieldCaption("Document No."))
                 {
                 }
@@ -232,9 +238,11 @@ report 12117 "Customer Bills List"
                     }
 #if not CLEAN30
                     column(CustLedgEntry2__Document_Occurrence_; "Document Occurrence")
+#else
+                    column(CustLedgEntry2__Document_Occurrence_; 0)
+#endif
                     {
                     }
-#endif
                     column(CustLedgEntry2__Document_Date_; Format("Document Date"))
                     {
                     }
@@ -305,9 +313,11 @@ report 12117 "Customer Bills List"
                     }
 #if not CLEAN30
                     column(CustLedgEntry3__Document_Occurrence_; CustLedgEntry3."Document Occurrence")
+#else
+                    column(CustLedgEntry3__Document_Occurrence_; 0)
+#endif
                     {
                     }
-#endif
                     column(CustLedgEntry3__Document_Date_; Format(CustLedgEntry3."Document Date"))
                     {
                     }
@@ -501,6 +511,9 @@ report 12117 "Customer Bills List"
         TotalDtldCustLedgrEntries: Decimal;
         Page_No_CaptionLbl: Label 'Page No.';
         Customer_Bill_List___Date_CaptionLbl: Label 'Customer Bill List - Date:';
+#if CLEAN30
+        DocumentOccurrenceCaptionLbl: Label 'Document Occurrence';
+#endif
         ExposureDateCaptionLbl: Label 'Exposure Date';
         CustLedgEntry1__Due_Date_CaptionLbl: Label 'Due Date';
         CustLedgEntry1__Amount__LCY___Control1130036CaptionLbl: Label 'Entry Amount (LCY)';

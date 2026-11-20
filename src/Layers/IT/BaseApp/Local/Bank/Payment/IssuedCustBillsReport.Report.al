@@ -90,9 +90,11 @@ report 12174 "Issued Cust Bills Report"
                 }
 #if not CLEAN30
                 column(DocOccurrence_IssuedCustBillLine; "Document Occurrence")
+#else
+                column(DocOccurrence_IssuedCustBillLine; 0)
+#endif
                 {
                 }
-#endif
                 column(Amount_IssuedCustBillLine; Amount)
                 {
                     AutoFormatType = 1;

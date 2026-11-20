@@ -588,7 +588,6 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = not HasInstallmentPlan;
-                    ToolTip = 'Specifies the payment discount percentage granted if the customer pays on or before the date entered in the Pmt. Discount Date field.';
                 }
                 field("Fattura Document Type"; Rec."Fattura Document Type")
                 {
