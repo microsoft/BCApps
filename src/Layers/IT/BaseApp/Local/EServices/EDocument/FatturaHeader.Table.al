@@ -192,7 +192,6 @@ table 12203 "Fattura Header"
         end;
     end;
 
-    [Scope('OnPrem')]
     procedure GetTaxRepresentative(var TempVendor: Record Vendor temporary): Boolean
     var
         Contact: Record Contact;
