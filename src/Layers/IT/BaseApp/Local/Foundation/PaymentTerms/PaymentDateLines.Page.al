@@ -5,6 +5,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
@@ -102,7 +104,13 @@ page 12171 "Payment Date Lines"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckLegacyPaymentInstallmentsEnabled();
+    end;
+
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         GenJnlLine: Record "Gen. Journal Line";
         Currency: Record Currency;
         SalesHeader: Record "Sales Header";
@@ -119,6 +127,8 @@ page 12171 "Payment Date Lines"
     var
         IsHandled: Boolean;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         IsHandled := false;
         OnBeforeUpdateAmount(Rec, IsHandled);
         if IsHandled then

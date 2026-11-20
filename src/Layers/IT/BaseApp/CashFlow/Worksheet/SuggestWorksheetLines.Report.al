@@ -679,6 +679,9 @@ report 840 "Suggest Worksheet Lines"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         FASetup: Record "FA Setup";
         FADeprBook: Record "FA Depreciation Book";
         GLBudgEntry: Record "G/L Budget Entry";
@@ -791,11 +794,14 @@ report 840 "Suggest Worksheet Lines"
         IsHandled := false;
         OnInsertTempCFWorksheetLineOnBeforeCalculateCFAmountAndCFDate(TempCFWorksheetLine, IsHandled);
         if not IsHandled then
-#if CLEAN30
-            TempCFWorksheetLine.CalculateCFAmountAndCFDate();
-#else
-            TempCFWorksheetLine.CalculateCFAmountAndCFDate(MaxPmtTolerance);
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                TempCFWorksheetLine.CalculateCFAmountAndCFDate(MaxPmtTolerance);
+            end else
 #endif
+            begin
+                TempCFWorksheetLine.CalculateCFAmountAndCFDate();
+            end;
         SetCashFlowDate(TempCFWorksheetLine, TempCFWorksheetLine."Cash Flow Date");
 
         if Abs(TempCFWorksheetLine."Amount (LCY)") < Abs(MaxPmtTolerance) then

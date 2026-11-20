@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Posting;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.Currency;
@@ -21,6 +23,9 @@ using Microsoft.Service.Setup;
 codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 {
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         SalesSetup: Record "Sales & Receivables Setup";
         InvoicePostingParameters: Record "Invoice Posting Parameters";
         TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary;
@@ -403,7 +408,9 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 
         ServiceHeader.CopyToGenJournalLineApplyTo(GenJnlLine);
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
+        end;
 #endif
         ServiceHeader.CopyToGenJournalLinePayment(GenJnlLine);
 
@@ -496,7 +503,9 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := 1;
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := 1;
+        end;
 #endif
     end;
 

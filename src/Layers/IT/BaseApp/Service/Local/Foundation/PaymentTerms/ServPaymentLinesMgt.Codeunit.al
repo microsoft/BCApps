@@ -5,6 +5,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.Currency;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
@@ -16,6 +18,9 @@ codeunit 12192 "Serv. Payment Lines Mgt."
     ObsoleteTag = '30.0';
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         Currency: Record Currency;
 
     [EventSubscriber(ObjectType::Page, Page::"Payment Date Lines", 'OnUpdateAmount', '', false, false)]
@@ -24,6 +29,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case PaymentLines."Sales/Purchase" of
             PaymentLines."Sales/Purchase"::Service:
                 if ServiceHeader.Get(DocType, PaymentLines.Code) then begin
@@ -52,6 +59,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case PostedPaymentLines."Sales/Purchase" of
             PostedPaymentLines."Sales/Purchase"::Service:
                 if ServiceInvoiceHeader.Get(PostedPaymentLines.Code) then begin
@@ -81,6 +90,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
     var
         ServiceHeader: Record "Service Header";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case PaymentLines."Sales/Purchase" of
             PaymentLines."Sales/Purchase"::Service:
                 begin
@@ -103,6 +114,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
         Month: Integer;
         Year: Integer;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         if ServiceHeader."No." = '' then
             exit;
 

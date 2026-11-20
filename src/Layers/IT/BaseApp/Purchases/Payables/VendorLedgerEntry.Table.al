@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
@@ -252,10 +254,12 @@ table 25 "Vendor Ledger Entry"
                 TestField(Open, true);
 
 #if not CLEAN30
-                if PostedPaymentLines.Get(PostedPaymentLines."Sales/Purchase"::Purchase, "Document Type", "Document No.",
-                                          "Document Occurrence" * 10000) then begin
-                    PostedPaymentLines."Due Date" := "Due Date";
-                    PostedPaymentLines.Modify();
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    if PostedPaymentLines.Get(PostedPaymentLines."Sales/Purchase"::Purchase, "Document Type", "Document No.",
+                                              "Document Occurrence" * 10000) then begin
+                        PostedPaymentLines."Due Date" := "Due Date";
+                        PostedPaymentLines.Modify();
+                    end;
                 end;
 #endif
             end;
@@ -940,6 +944,9 @@ table 25 "Vendor Ledger Entry"
     }
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #pragma warning disable AA0470
         MustHaveSameSignErr: Label 'must have the same sign as %1';
         MustNotBeLargerErr: Label 'must not be larger than %1';

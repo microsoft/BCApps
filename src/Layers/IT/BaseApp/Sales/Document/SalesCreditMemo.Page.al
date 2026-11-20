@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
@@ -373,6 +375,7 @@ page 44 "Sales Credit Memo"
 #if not CLEAN30
                 field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the occurrence that applies to the transaction.';
                 }
@@ -1129,6 +1132,7 @@ page 44 "Sales Credit Memo"
 #if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1644,6 +1648,9 @@ page 44 "Sales Credit Memo"
         EnvironmentInfo: Codeunit "Environment Information";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         Rec.SetRange("Date Filter", 0D, WorkDate());
@@ -1675,6 +1682,10 @@ page 44 "Sales Credit Memo"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         SalesSetup: Record "Sales & Receivables Setup";

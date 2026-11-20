@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Posting;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
@@ -28,6 +30,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     Permissions = TableData "Invoice Posting Buffer" = rimd;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GLSetup: Record "General Ledger Setup";
         PurchSetup: Record "Purchases & Payables Setup";
         Currency: Record Currency;
@@ -763,7 +768,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         GenJnlLine.CopyFromPurchHeaderApplyTo(PurchHeader);
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := PurchHeader."Applies-to Occurrence No.";
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := PurchHeader."Applies-to Occurrence No.";
+        end;
 #endif
         GenJnlLine.CopyFromPurchHeaderPayment(PurchHeader);
 
@@ -898,7 +905,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := 0;
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := 0;
+        end;
 #endif
 
         PurchPostInvoiceEvents.RunOnAfterSetApplyToDocNo(GenJnlLine, PurchHeader);

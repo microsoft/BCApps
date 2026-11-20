@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -1063,6 +1065,7 @@ page 507 "Blanket Sales Order"
 #if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1385,6 +1388,9 @@ page 507 "Blanket Sales Order"
 
     trigger OnOpenPage()
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         SetDocNoVisible();
@@ -1393,6 +1399,10 @@ page 507 "Blanket Sales Order"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";

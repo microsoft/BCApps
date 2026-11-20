@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Assembly.History;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -988,11 +990,13 @@ table 111 "Sales Shipment Line"
         SalesDocLineComments: Record "Sales Comment Line";
     begin
 #if not CLEAN30
-        PostedPaymentLines.Reset();
-        PostedPaymentLines.SetRange(PostedPaymentLines."Sales/Purchase", PostedPaymentLines."Sales/Purchase"::Sales);
-        PostedPaymentLines.SetRange(PostedPaymentLines.Type, PostedPaymentLines.Type::Invoice);
-        PostedPaymentLines.SetRange(PostedPaymentLines.Code, "No.");
-        PostedPaymentLines.DeleteAll();
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PostedPaymentLines.Reset();
+            PostedPaymentLines.SetRange(PostedPaymentLines."Sales/Purchase", PostedPaymentLines."Sales/Purchase"::Sales);
+            PostedPaymentLines.SetRange(PostedPaymentLines.Type, PostedPaymentLines.Type::Invoice);
+            PostedPaymentLines.SetRange(PostedPaymentLines.Code, "No.");
+            PostedPaymentLines.DeleteAll();
+        end;
 #endif
         SalesDocLineComments.SetRange("Document Type", SalesDocLineComments."Document Type"::Shipment);
         SalesDocLineComments.SetRange("No.", "Document No.");
@@ -1004,6 +1008,9 @@ table 111 "Sales Shipment Line"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         Currency: Record Currency;
         SalesShptHeader: Record "Sales Shipment Header";
         PostedATOLink: Record "Posted Assemble-to-Order Link";

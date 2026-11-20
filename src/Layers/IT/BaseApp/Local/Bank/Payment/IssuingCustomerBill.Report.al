@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -69,7 +71,9 @@ report 12180 "Issuing Customer Bill"
                 GenJnlLine."Document Type to Close" := "Document Type";
                 GenJnlLine."Document No. to Close" := "Document No.";
 #if not CLEAN30
-                GenJnlLine."Document Occurrence to Close" := "Document Occurrence";
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    GenJnlLine."Document Occurrence to Close" := "Document Occurrence";
+                end;
 #endif
                 GenJnlLine."Allow Application" := true;
                 GenJnlLine."Bank Receipt" := true;
@@ -191,6 +195,9 @@ report 12180 "Issuing Customer Bill"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlLine: Record "Gen. Journal Line";
         PaymentMethod: Record "Payment Method";
         BillCode: Record Bill;

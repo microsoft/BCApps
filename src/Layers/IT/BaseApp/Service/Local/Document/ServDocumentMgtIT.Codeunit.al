@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
@@ -19,6 +21,9 @@ using Microsoft.Utilities;
 codeunit 12140 "Serv. Document Mgt. IT"
 {
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ShipmentMethod: Record "Shipment Method";
         Text1130013: Label 'You cannot change %1 because %2 is not blank';
         Text1130016: Label '%1 will be modified according to %2';
@@ -143,6 +148,8 @@ codeunit 12140 "Serv. Document Mgt. IT"
     var
         PaymentSales: Record "Payment Lines";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentSales.Reset();
         PaymentSales.SetRange(Type, ServiceHeader."Document Type");
         PaymentSales.SetRange(Code, ServiceHeader."No.");
@@ -191,6 +198,8 @@ codeunit 12140 "Serv. Document Mgt. IT"
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyAppliestoFieldsFromCustLedgerEntry', '', false, false)]
     local procedure OnAfterCopyAppliestoFieldsFromCustLedgerEntry(var ServiceHeader: Record "Service Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         ServiceHeader."Applies-to Occurrence No." := CustLedgerEntry."Document Occurrence";
     end;
 #endif
@@ -239,6 +248,8 @@ codeunit 12140 "Serv. Document Mgt. IT"
     var
         ServPaymentLinesMgt: Codeunit "Serv. Payment Lines Mgt.";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         ServPaymentLinesMgt.CreatePaymentLinesServices(ServiceHeader);
         ServiceHeader.CalcFields("Payment %");
         IsHandled := true;

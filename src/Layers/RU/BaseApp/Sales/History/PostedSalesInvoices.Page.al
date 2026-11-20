@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
@@ -340,6 +342,7 @@ page 143 "Posted Sales Invoices"
                 Image = Invoice;
                 action(InstallmentSchedule)
                 {
+                    Visible = PaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     Image = PaymentPeriod;
@@ -769,7 +772,7 @@ page 143 "Posted Sales Invoices"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, HasPostedSalesInvoices, CRMIsCoupledToRecord, CRMIntegrationEnabled);
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -796,6 +799,7 @@ page 143 "Posted Sales Invoices"
         OfficeMgt: Codeunit "Office Management";
         HasFilters: Boolean;
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         HasFilters := Rec.GetFilters() <> '';
         Rec.SetSecurityFilterOnRespCenter();
         OnOpenPageOnAfterSetFilters(Rec);
@@ -819,6 +823,8 @@ page 143 "Posted Sales Invoices"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         DocExchStatusStyle: Text;
         CRMIntegrationEnabled: Boolean;
         CRMIsCoupledToRecord: Boolean;

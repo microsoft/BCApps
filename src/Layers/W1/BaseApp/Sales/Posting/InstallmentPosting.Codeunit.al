@@ -15,6 +15,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 codeunit 8842 "Installment Posting"
 {
@@ -22,6 +23,7 @@ codeunit 8842 "Installment Posting"
                   tabledata "Sales Installment Plan Line" = RIMD;
 
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         UnsupportedProducerErr: Label 'Global installments currently support full standalone sales invoices only. Orders, shipment invoices, projects, subscription billing, service documents, and journals are not supported.';
         SourceErr: Label 'The installment posting source does not match the saved invoice and its owned draft plan.';
         ApplicationErr: Label 'Select individual installment entries using Applies-to ID. Applying an installment invoice by document number is not supported.';
@@ -41,6 +43,7 @@ codeunit 8842 "Installment Posting"
     begin
         if IsNullGuid(SalesHeader."Installment Plan ID") then
             exit;
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         if SalesHeader.IsTemporary() or (SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice) then
             Error(UnsupportedProducerErr);
         Plan.Get(SalesHeader."Installment Plan ID");
@@ -102,6 +105,8 @@ codeunit 8842 "Installment Posting"
         SalesInstallmentCorrection: Codeunit "Sales Installment Correction";
     begin
         CheckSalesPosting(SalesHeader);
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         GenJournalLine."Installment Plan ID" := SalesHeader."Installment Plan ID";
         Clear(GenJournalLine."Sales Invoice Source SystemId");
         if SalesHeader."Document Type" = SalesHeader."Document Type"::Invoice then
@@ -118,6 +123,11 @@ codeunit 8842 "Installment Posting"
         EmptyGuid: Guid;
         ApplyingCustomerNo: Code[20];
     begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not IsNullGuid(GenJournalLine."Installment Plan ID") then
+                FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
+            exit;
+        end;
         if GenJournalLine."Account Type" = GenJournalLine."Account Type"::Customer then
             ApplyingCustomerNo := GenJournalLine."Account No."
         else
@@ -208,6 +218,7 @@ codeunit 8842 "Installment Posting"
     begin
         if IsNullGuid(GenJournalLine."Installment Plan ID") then
             exit(false);
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         CheckTemporary(TempPlanLine);
         CheckJournalLine(GenJournalLine);
         if Balancing then

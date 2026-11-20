@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
+using System.Environment.Configuration;
+
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
 using Microsoft.CRM.Team;
@@ -56,6 +58,9 @@ codeunit 6620 "Copy Document Mgt."
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         Currency: Record Currency;
         TempAsmHeader: Record "Assembly Header" temporary;
         TempAsmLine: Record "Assembly Line" temporary;
@@ -7267,7 +7272,9 @@ codeunit 6620 "Copy Document Mgt."
                 ToSalesHeader."Applies-to Doc. No." := FromDocNo;
             end;
 #if not CLEAN30
-            ToSalesHeader."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                ToSalesHeader."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+            end;
 #endif
             CustLedgEntry.CalcFields("Remaining Amount");
             CustLedgEntry."Amount to Apply" := CustLedgEntry."Remaining Amount";
@@ -7304,7 +7311,9 @@ codeunit 6620 "Copy Document Mgt."
                     ToPurchHeader."Applies-to Doc. No." := FromDocNo;
                 end;
 #if not CLEAN30
-                ToPurchHeader."Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    ToPurchHeader."Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+                end;
 #endif
                 VendLedgEntry.CalcFields("Remaining Amount");
                 VendLedgEntry."Amount to Apply" := VendLedgEntry."Remaining Amount";

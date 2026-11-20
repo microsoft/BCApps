@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -891,6 +893,7 @@ page 509 "Blanket Purchase Order"
 #if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1238,6 +1241,9 @@ page 509 "Blanket Purchase Order"
 
     trigger OnOpenPage()
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         SetDocNoVisible();
@@ -1246,6 +1252,10 @@ page 509 "Blanket Purchase Order"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";

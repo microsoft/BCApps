@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.Setup;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
@@ -773,6 +775,7 @@ page 132 "Posted Sales Invoice"
                 Image = Invoice;
                 action(InstallmentSchedule)
                 {
+                    Visible = PaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     Image = PaymentPeriod;
@@ -1343,7 +1346,7 @@ page 132 "Posted Sales Invoice"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, CRMIsCoupledToRecord, CRMIntegrationEnabled);
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -1379,6 +1382,7 @@ page 132 "Posted Sales Invoice"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
         CRMIntegrationEnabled := CRMIntegrationManagement.IsCRMIntegrationEnabled();
 
@@ -1390,6 +1394,8 @@ page 132 "Posted Sales Invoice"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         CRMIntegrationManagement: Codeunit "CRM Integration Management";

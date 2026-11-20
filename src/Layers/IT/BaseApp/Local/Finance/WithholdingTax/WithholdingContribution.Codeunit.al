@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -19,6 +21,9 @@ codeunit 12101 "Withholding - Contribution"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         MustBePaymentOrRefundTxt: Label 'must be Payment or Refund', Comment = 'This text will be added after Document Type';
         WithholdCodeLinesNotSpecifiedErr: Label 'You have not specified any withhold code lines for withhold code %1.';
         ContributionCodeLinesNotSpecifiedErr: Label 'You have not specified any contribution code lines for code %1.';
@@ -386,7 +391,9 @@ codeunit 12101 "Withholding - Contribution"
                     GenJnlLine.Validate("Applies-to Doc. Type", VendorLedgerEntry."Document Type");
                     GenJnlLine.Validate("Applies-to Doc. No.", VendorLedgerEntry."Document No.");
 #if not CLEAN30
-                    GenJnlLine.Validate("Applies-to Occurrence No.", VendorLedgerEntry."Document Occurrence");
+                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                        GenJnlLine.Validate("Applies-to Occurrence No.", VendorLedgerEntry."Document Occurrence");
+                    end;
 #endif
                     GenJnlLine.Modify(true);
                 end;
@@ -418,7 +425,9 @@ codeunit 12101 "Withholding - Contribution"
                 if ComputedSocSec.FindFirst() then
                     TmpWithholdingSocSec."INAIL Code" := ComputedSocSec."INAIL Code";
 #if not CLEAN30
-                AppliesToOccurrenceNo := GenJnlLine."Applies-to Occurrence No.";
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    AppliesToOccurrenceNo := GenJnlLine."Applies-to Occurrence No.";
+                end;
 #endif
                 if ComputedWithholdingTax."Currency Code" = GenJnlLine."Currency Code" then begin
                     TmpWithholdingSocSec."Total Amount" := GetRemainingWithhTaxAmount(ComputedWithholdingTax, AppliesToOccurrenceNo);
@@ -565,8 +574,10 @@ codeunit 12101 "Withholding - Contribution"
         RemainingWithhTaxAmount: Decimal;
     begin
 #if not CLEAN30
-        if CheckForMultipleInstallment(ComputedWithholdingTax."Document No.") then
-            exit(GetInstallmentAmount(ComputedWithholdingTax, AppliestoOccurrenceNo));
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if CheckForMultipleInstallment(ComputedWithholdingTax."Document No.") then
+                exit(GetInstallmentAmount(ComputedWithholdingTax, AppliestoOccurrenceNo));
+        end;
 #endif
         // Get the Vendor Ledger Entry that generates the ComputedWithholdingTax line
         VendLedgEntry.Reset();

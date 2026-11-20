@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Posting;
 
 codeunit 134501 "ERM Installment Purchase"
 {
@@ -17,6 +19,33 @@ codeunit 134501 "ERM Installment Purchase"
         Assert: Codeunit Assert;
         LibraryInstallments: Codeunit "Library - ERM Installments";
         LibraryPurchase: Codeunit "Library - Purchase";
+
+    [Test]
+    procedure DisabledFeatureIgnoresGlobalRulesForPurchaseInvoiceAndJournal()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GenJournalLine: Record "Gen. Journal Line";
+        OrdinaryTerms: Record "Payment Terms";
+        LibraryERM: Codeunit "Library - ERM";
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
+        InstallmentTermsCode: Code[10];
+    begin
+        LibraryInstallments.CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, '');
+        InstallmentTermsCode := PurchaseHeader."Payment Terms Code";
+        LibraryERM.CreatePaymentTerms(OrdinaryTerms);
+        PurchaseHeader.Validate("Payment Terms Code", OrdinaryTerms.Code);
+        PurchaseHeader.Modify(true);
+        LibraryInstallments.SetFeatureEnabled(false);
+
+        PurchaseHeader.Validate("Payment Terms Code", InstallmentTermsCode);
+        PurchaseHeader.Modify(true);
+        Assert.IsTrue(IsNullGuid(PurchaseHeader."Installment Plan ID"), 'Disabled global rules must not create a purchase installment plan.');
+        GenJournalLine."Account Type" := GenJournalLine."Account Type"::Vendor;
+        GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice;
+        GenJournalLine."Payment Terms Code" := InstallmentTermsCode;
+        PurchaseInstallmentPosting.CheckJournalLine(GenJournalLine);
+    end;
 
     [Test]
     procedure PurchaseInvoicePostsOnePayablePerInstallment()

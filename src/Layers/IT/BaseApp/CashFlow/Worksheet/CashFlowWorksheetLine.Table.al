@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CashFlow.Worksheet;
 
+using System.Environment.Configuration;
+
 using Microsoft.CashFlow.Account;
 using Microsoft.CashFlow.Forecast;
 using Microsoft.CashFlow.Setup;
@@ -269,6 +271,9 @@ table 846 "Cash Flow Worksheet Line"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DimMgt: Codeunit DimensionManagement;
 
     procedure EmptyLine(): Boolean
@@ -391,9 +396,12 @@ table 846 "Cash Flow Worksheet Line"
             if CashFlowForecast."Consider Pmt. Disc. Tol. Date" then
                 CFDiscountDate := CalcDate(GeneralLedgerSetup."Payment Discount Grace Period", CFDiscountDate);
 
-#if CLEAN30
             IsHandled := false;
+#if CLEAN30
             OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate, PaymentTerms, IsHandled);
+#else
+            OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentTermsDiscount(CFDiscountDate, PaymentTerms, IsHandled);
+#endif
             if not IsHandled then
                 if CFDiscountDate >= WorkDate() then begin
                     "Cash Flow Date" := CFDiscountDate;
@@ -404,17 +412,6 @@ table 846 "Cash Flow Worksheet Line"
                     "Cash Flow Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
                     "Payment Discount" := 0;
                 end;
-#else
-            if CFDiscountDate >= WorkDate() then begin
-                "Cash Flow Date" := CFDiscountDate;
-
-                "Payment Discount" := Round("Amount (LCY)" * PaymentTerms."Discount %" / 100);
-                "Amount (LCY)" := "Amount (LCY)" - "Payment Discount";
-            end else begin
-                "Cash Flow Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-                "Payment Discount" := 0;
-            end;
-#endif
         end else
             "Cash Flow Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
     end;
@@ -460,6 +457,10 @@ table 846 "Cash Flow Worksheet Line"
     var
         CashFlowForecast: Record "Cash Flow Forecast";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            CalculateCFAmountAndCFDate();
+            exit;
+        end;
         if "Document Date" = 0D then
             "Document Date" := WorkDate();
         if "Cash Flow Date" = 0D then
@@ -495,6 +496,8 @@ table 846 "Cash Flow Worksheet Line"
         AccumulatedAmount: Decimal;
         IsHandled: Boolean;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentTermsToApply := "Payment Terms Code";
         if not CheckForCrMemoCalculation(PaymentTermsToApply) then
             exit;
@@ -619,12 +622,15 @@ table 846 "Cash Flow Worksheet Line"
     begin
     end;
 
-#if CLEAN30
     [IntegrationEvent(true, false)]
+#if CLEAN30
     local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate: Date; PaymentTerms: record "Payment Terms"; var IsHandled: boolean)
+#else
+    local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentTermsDiscount(CFDiscountDate: Date; PaymentTerms: record "Payment Terms"; var IsHandled: boolean)
+#endif
     begin
     end;
-#else
+#if not CLEAN30
     [Obsolete('Replaced by global Payment Installments feature.')]
     [IntegrationEvent(true, false)]
     local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate: Date; PaymentLines: record "Payment Lines"; var IsHandled: boolean)

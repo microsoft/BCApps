@@ -82,6 +82,35 @@ codeunit 144164 "ERM Payment Lines"
         VendorBalanceErr: Label 'Vendor Ledger Entries are not applied.';
         RemainingAmountErr: Label 'Remaining Amount must be %1.', Comment = 'Field Value.';
 
+#if not CLEAN30
+    [Test]
+    [Scope('OnPrem')]
+    procedure FeatureSwitchDisablesLegacyInstallmentPosting()
+    var
+        SalesHeader: Record "Sales Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        LibraryInstallments: Codeunit Microsoft.Foundation.PaymentTerms."Library - ERM Installments";
+        PaymentTermsCode: Code[10];
+        PostedInvoiceNo: Code[20];
+    begin
+        Initialize();
+        LibraryInstallments.SetFeatureEnabled(false);
+        PaymentTermsCode := CreatePaymentTerms();
+        CreateSalesDocument(SalesHeader, SalesHeader."Document Type"::Invoice, '', PaymentTermsCode);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Document No.", PostedInvoiceNo);
+        Assert.RecordCount(CustLedgerEntry, 2);
+
+        LibraryInstallments.SetFeatureEnabled(true);
+        CreateSalesDocument(SalesHeader, SalesHeader."Document Type"::Invoice, '', PaymentTermsCode);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        CustLedgerEntry.SetRange("Document No.", PostedInvoiceNo);
+        Assert.RecordCount(CustLedgerEntry, 1);
+        LibraryInstallments.SetFeatureEnabled(false);
+    end;
+#endif
+
     [Test]
     [Scope('OnPrem')]
     procedure RecalculatePmtAmtOnPurchJournalWithoutCurr()

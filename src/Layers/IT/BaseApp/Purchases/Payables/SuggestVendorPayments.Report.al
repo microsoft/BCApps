@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -510,6 +512,9 @@ report 393 "Suggest Vendor Payments"
         DocNoPerLine: Boolean;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         Vend2: Record Vendor;
         GenJnlTemplate: Record "Gen. Journal Template";
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -783,7 +788,9 @@ report 393 "Suggest Vendor Payments"
                     if HandledEntry then begin
                         TempVendorPaymentBuffer."Vendor No." := VendLedgEntry."Vendor No.";
 #if not CLEAN30
-                        TempVendorPaymentBuffer."Document Occurrence" := VendLedgEntry."Document Occurrence";
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                            TempVendorPaymentBuffer."Document Occurrence" := VendLedgEntry."Document Occurrence";
+                        end;
 #endif
                         TempVendorPaymentBuffer."Currency Code" := VendLedgEntry."Currency Code";
                         TempVendorPaymentBuffer."Payment Method Code" := VendLedgEntry."Payment Method Code";
@@ -929,7 +936,9 @@ report 393 "Suggest Vendor Payments"
         GenJnlLine."Applies-to Invoice Id" := TempVendorPaymentBuffer."Ledg. Entry System Id";
         GenJnlLine."Payment Method Code" := TempVendorPaymentBuffer."Payment Method Code";
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := TempVendorPaymentBuffer."Document Occurrence";
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := TempVendorPaymentBuffer."Document Occurrence";
+        end;
 #endif
         GenJnlLine."Remit-to Code" := TempVendorPaymentBuffer."Remit-to Code";
 

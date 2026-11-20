@@ -20,6 +20,24 @@ codeunit 134494 "ERM Installments UI"
         SalesInstallmentHistory: Codeunit "Sales Installment History";
 
     [Test]
+    procedure FeatureSwitchControlsGlobalPaymentTermsVisibility()
+    var
+        PaymentTerms: TestPage "Payment Terms";
+    begin
+        LibraryInstallments.SetFeatureEnabled(false);
+        PaymentTerms.OpenView();
+        Assert.IsFalse(PaymentTerms."Has Installments".Visible(), 'Global installment setup must be hidden when the feature is disabled.');
+        Assert.IsFalse(PaymentTerms.InstallmentLines.Visible(), 'Global installment rules must be hidden when the feature is disabled.');
+        PaymentTerms.Close();
+
+        LibraryInstallments.SetFeatureEnabled(true);
+        PaymentTerms.OpenView();
+        Assert.IsTrue(PaymentTerms."Has Installments".Visible(), 'Global installment setup must be visible when the feature is enabled.');
+        Assert.IsTrue(PaymentTerms.InstallmentLines.Visible(), 'Global installment rules must be visible when the feature is enabled.');
+        PaymentTerms.Close();
+    end;
+
+    [Test]
     procedure PostedScheduleShowsOriginalRulesAndCurrentEntryBalances()
     var
         SalesHeader: Record "Sales Header";

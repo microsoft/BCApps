@@ -5,6 +5,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.Currency;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
@@ -98,7 +100,13 @@ page 12172 "Posted Payments"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckLegacyPaymentInstallmentsEnabled();
+    end;
+
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         Currency: Record Currency;
         PostedPaymentLines2: Record "Posted Payment Lines";
         DocumentAmount: Decimal;
@@ -113,6 +121,8 @@ page 12172 "Posted Payments"
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         OnBeforeUpdateAmount(Rec);
         ClearAll();
         if Rec.Find('-') then

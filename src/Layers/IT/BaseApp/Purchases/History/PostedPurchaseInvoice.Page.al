@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
@@ -746,6 +748,7 @@ page 138 "Posted Purchase Invoice"
                 Image = Invoice;
                 action(InstallmentSchedule)
                 {
+                    Visible = PaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     Image = PaymentPeriod;
@@ -812,6 +815,7 @@ page 138 "Posted Purchase Invoice"
 #if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1179,7 +1183,7 @@ page 138 "Posted Purchase Invoice"
         IncomingDocument: Record "Incoming Document";
     begin
         HasIncomingDocument := IncomingDocument.PostedDocExists(Rec."No.", Rec."Posting Date");
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if GuiAllowed() then
             CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
     end;
@@ -1196,6 +1200,10 @@ page 138 "Posted Purchase Invoice"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not PaymentInstallmentsEnabled;
+#endif
         Rec.SetSecurityFilterOnRespCenter();
         if GuiAllowed() then
             IsOfficeAddin := OfficeMgt.IsAvailable();
@@ -1205,6 +1213,11 @@ page 138 "Posted Purchase Invoice"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         PurchInvHeader: Record "Purch. Inv. Header";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
@@ -1224,7 +1237,7 @@ page 138 "Posted Purchase Invoice"
         IsBuyFromCountyVisible := FormatAddress.UseCounty(Rec."Buy-from Country/Region Code");
         IsPayToCountyVisible := FormatAddress.UseCounty(Rec."Pay-to Country/Region Code");
         IsShipToCountyVisible := FormatAddress.UseCounty(Rec."Ship-to Country/Region Code");
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     local procedure FillRemitToFields()

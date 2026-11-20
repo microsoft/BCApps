@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using System.Environment.Configuration;
+
 page 8840 "Payment Term Installments"
 {
     Caption = 'Payment Term Installments';
@@ -75,6 +77,12 @@ page 8840 "Payment Term Installments"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
+    end;
+
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         RulesValidMsg: Label 'The installment rules are valid.';
 }

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
@@ -303,6 +305,7 @@ page 146 "Posted Purchase Invoices"
                 Image = Invoice;
                 action(InstallmentSchedule)
                 {
+                    Visible = PaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     Image = PaymentPeriod;
@@ -599,7 +602,7 @@ page 146 "Posted Purchase Invoices"
     trigger OnAfterGetCurrRecord()
     begin
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnOpenPage()
@@ -607,6 +610,7 @@ page 146 "Posted Purchase Invoices"
         OfficeMgt: Codeunit "Office Management";
         HasFilters: Boolean;
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         HasFilters := Rec.GetFilters() <> '';
         Rec.SetSecurityFilterOnRespCenter();
         if HasFilters and not Rec.Find() then
@@ -624,6 +628,8 @@ page 146 "Posted Purchase Invoices"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         IsOfficeAddin: Boolean;
         HasInstallmentPlan: Boolean;
 }

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Posting;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -48,6 +50,9 @@ codeunit 5980 "Service-Post"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ServiceShptLine: Record "Service Shipment Line";
         SourceCodeSetup: Record "Source Code Setup";
         SourceCode: Record "Source Code";
@@ -491,13 +496,15 @@ codeunit 5980 "Service-Post"
             PassedServiceHeader.TestField("Activity Code", ErrorInfo.Create());
 
 #if not CLEAN30
-        if PassedServiceHeader."Applies-to Doc. No." <> '' then
-            if PassedServiceHeader."Applies-to Occurrence No." = 0 then
-                Error(
-                    ErrorInfo.Create(
-                        StrSubstNo(Text1130004, PassedServiceHeader.FieldCaption(PassedServiceHeader."Applies-to Occurrence No.")),
-                        true,
-                        PassedServiceHeader));
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if PassedServiceHeader."Applies-to Doc. No." <> '' then
+                if PassedServiceHeader."Applies-to Occurrence No." = 0 then
+                    Error(
+                        ErrorInfo.Create(
+                            StrSubstNo(Text1130004, PassedServiceHeader.FieldCaption(PassedServiceHeader."Applies-to Occurrence No.")),
+                            true,
+                            PassedServiceHeader));
+        end;
 #endif
 
         PassedServiceHeader.TestMandatoryFields(PassedServiceLine);

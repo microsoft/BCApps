@@ -116,6 +116,9 @@ codeunit 80 "Sales-Post"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #pragma warning disable AA0470
         PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
         PostingSalesAndVATMsg: Label 'Posting sales and VAT      #3######\', Comment = 'Counter';
@@ -821,8 +824,10 @@ codeunit 80 "Sales-Post"
         InsertPostedHeaders(SalesHeader);
 
 #if not CLEAN30
-        if SalesHeader.Invoice then
-            InsertPostedPayment(SalesHeader);
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if SalesHeader.Invoice then
+                InsertPostedPayment(SalesHeader);
+        end;
 #endif
         UpdateIncomingDocument(SalesHeader."Incoming Document Entry No.", SalesHeader."Posting Date", GenJnlLineDocNo);
 
@@ -3221,11 +3226,13 @@ codeunit 80 "Sales-Post"
         OnDeleteAfterPostingOnAfterSalesLineDeleteAll(SalesHeader, SalesInvHeader, SalesCrMemoHeader, SuppressCommit, EverythingInvoiced);
 
 #if not CLEAN30
-        PaymentLines.Reset();
-        PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::Sales);
-        PaymentLines.SetRange(Type, SalesHeader."Document Type");
-        PaymentLines.SetRange(Code, SalesHeader."No.");
-        PaymentLines.DeleteAll();
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PaymentLines.Reset();
+            PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::Sales);
+            PaymentLines.SetRange(Type, SalesHeader."Document Type");
+            PaymentLines.SetRange(Code, SalesHeader."No.");
+            PaymentLines.DeleteAll();
+        end;
 #endif
         DeleteItemChargeAssgnt(SalesHeader);
         SalesCommentLine.DeleteComments(SalesHeader."Document Type".AsInteger(), SalesHeader."No.");
@@ -6248,7 +6255,9 @@ codeunit 80 "Sales-Post"
         GenJnlLine."Applies-to Doc. Type" := GenJnlLineDocType;
         GenJnlLine."Applies-to Doc. No." := GenJnlLineDocNo;
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := 1;
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := 1;
+        end;
 #endif
         GenJnlLine."Source Type" := GenJnlLine."Source Type"::Customer;
         GenJnlLine."Source No." := SalesHeader."Bill-to Customer No.";
@@ -7180,9 +7189,11 @@ codeunit 80 "Sales-Post"
             if Check then
                 Error(ErrorInfo.Create(Text1130008Err, true, SalesHeader));
 #if not CLEAN30
-        if SalesHeader."Applies-to Doc. No." <> '' then
-            if SalesHeader."Applies-to Occurrence No." = 0 then
-                Error(ErrorInfo.Create(StrSubstNo(SpecifyInstallmentErr, SalesHeader.FieldCaption("Applies-to Occurrence No.")), true, SalesHeader));
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if SalesHeader."Applies-to Doc. No." <> '' then
+                if SalesHeader."Applies-to Occurrence No." = 0 then
+                    Error(ErrorInfo.Create(StrSubstNo(SpecifyInstallmentErr, SalesHeader.FieldCaption("Applies-to Occurrence No.")), true, SalesHeader));
+        end;
 #endif
     end;
 
@@ -7262,6 +7273,8 @@ codeunit 80 "Sales-Post"
         PostedPayments: Record "Posted Payment Lines";
         IsHandled: Boolean;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         IsHandled := false;
         OnBeforeInsertPostedPayment(SalesHeader, IsHandled, SalesInvHeader, SalesCrMemoHeader);
         if IsHandled then

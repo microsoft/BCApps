@@ -29,6 +29,8 @@ codeunit 265 "Feature Key Management"
         ConcurrentResourcePostingLbl: Label 'ConcurrentResourcePosting', Locked = true;
         ConcurrentResourcePosting: Boolean;
         ConcurrentResourcePostingRead: Boolean;
+        PaymentInstallmentsLbl: Label 'PaymentInstallments', Locked = true, MaxLength = 50;
+        PaymentInstallmentsDisabledErr: Label 'The Payment Installments feature must be enabled to use global payment installments.';
 
 
     procedure IsAutomaticAccountCodesEnabled(): Boolean
@@ -82,8 +84,14 @@ codeunit 265 "Feature Key Management"
 
     procedure IsPaymentInstallmentsEnabled() FeatureEnabled: Boolean
     begin
-        FeatureEnabled := true;
+        FeatureEnabled := FeatureManagementFacade.IsEnabled(PaymentInstallmentsLbl, false);
         OnAfterIsPaymentInstallmentsEnabled(FeatureEnabled);
+    end;
+
+    procedure CheckPaymentInstallmentsEnabled()
+    begin
+        if not IsPaymentInstallmentsEnabled() then
+            Error(PaymentInstallmentsDisabledErr);
     end;
 
     local procedure GetAutomaticAccountCodesFeatureKey(): Text[50]

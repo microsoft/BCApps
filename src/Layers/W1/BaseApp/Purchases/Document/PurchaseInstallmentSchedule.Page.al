@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Purchases.Payables;
 
 page 8843 "Purchase Installment Schedule"
@@ -94,7 +96,13 @@ page 8843 "Purchase Installment Schedule"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
+    end;
+
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         SourceDocumentNo: Code[20];
         DocumentCurrencyCode: Code[10];
 

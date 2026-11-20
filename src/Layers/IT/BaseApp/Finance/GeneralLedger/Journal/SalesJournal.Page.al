@@ -892,6 +892,7 @@ page 253 "Sales Journal"
 #if not CLEAN30
             action("&Payments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Basic, Suite;
                 Caption = '&Payments';
                 Image = Payment;
@@ -1533,6 +1534,9 @@ page 253 "Sales Journal"
         LastGenJnlBatch: Code[10];
         IsHandled: Boolean;
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         UseAllocationAccountNumber := AllocationAccountMgt.UseAllocationAccountNoField();
@@ -1573,6 +1577,10 @@ page 253 "Sales Journal"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GeneralLedgerSetup: Record "General Ledger Setup";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
         GenJnlManagement: Codeunit GenJnlManagement;

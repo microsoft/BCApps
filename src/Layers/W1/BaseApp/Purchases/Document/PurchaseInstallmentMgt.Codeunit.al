@@ -18,6 +18,7 @@ codeunit 8846 "Purchase Installment Mgt."
                   tabledata "Purchase Installment Plan Line" = RIMD;
 
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         InvoiceOnlyErr: Label 'Global installments currently support standalone purchase invoices only.';
         TemporaryHeaderErr: Label 'An installment schedule requires a saved purchase invoice.';
         TemporaryResultErr: Label 'Installment preview requires a temporary plan line record.';
@@ -61,6 +62,7 @@ codeunit 8846 "Purchase Installment Mgt."
         VATAmountText: Text[30];
 
     begin
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         if not TempPlanLine.IsTemporary() then
             Error(TemporaryResultErr);
         if PurchaseHeader.IsTemporary() or not IsSaved(PurchaseHeader) then
@@ -96,6 +98,8 @@ codeunit 8846 "Purchase Installment Mgt."
         Plan: Record "Purchase Installment Plan";
         TempPlanLine: Record "Purchase Installment Plan Line" temporary;
     begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit(false);
         if PurchaseHeader.IsTemporary() then
             exit(false);
         if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Invoice then begin
@@ -364,7 +368,6 @@ codeunit 8846 "Purchase Installment Mgt."
     local procedure HasRules(PaymentTermsCode: Code[10]): Boolean
     var
         Rule: Record "Payment Term Installment";
-        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             exit(false);
@@ -402,6 +405,11 @@ codeunit 8846 "Purchase Installment Mgt."
     begin
         if Rec.IsTemporary() then
             exit;
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not IsNullGuid(Rec."Installment Plan ID") then
+                FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
+            exit;
+        end;
         SavedHeader.Get(Rec."Document Type", Rec."No.");
         if not IsNullGuid(SavedHeader."Installment Plan ID") then begin
             SavedPlanExists := Plan.Get(SavedHeader."Installment Plan ID");

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -29,6 +31,9 @@ codeunit 12173 "Vendor Bill List - Post"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         MustBeErr: Label '%1 must be %2.', Comment = '%1 = List Status, %2 = Status';
@@ -40,9 +45,8 @@ codeunit 12173 "Vendor Bill List - Post"
 
 #if not CLEAN30
         Text12100: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.';
-#else
-        Text12100: Label 'Meanwhile %1 has been modified for %2 %3. New amount is %4. Please recreate the bill list.';
 #endif
+        ModifiedRemainingAmountErr: Label 'Meanwhile %1 has been modified for %2 %3. New amount is %4. Please recreate the bill list.';
         Text1130000: Label 'Do you want to post the lines?';
         Text1130011: Label 'Posting Vendor Bill...\\';
         Text1130012: Label 'Post Line #1##########\';
@@ -90,22 +94,23 @@ codeunit 12173 "Vendor Bill List - Post"
                 if not VendorBillLine."Manual Line" then begin
                     VendLedgEntry.Get(VendorBillLine."Vendor Entry No.");
                     VendLedgEntry.CalcFields("Remaining Amount");
-                    if VendLedgEntry."Remaining Amount" + VendorBillLine."Remaining Amount" <> 0 then
+                    if VendLedgEntry."Remaining Amount" + VendorBillLine."Remaining Amount" <> 0 then begin
 #if not CLEAN30
-                        Error(Text12100,
-                          VendLedgEntry.FieldCaption("Remaining Amount"),
-                          VendLedgEntry.FieldCaption("Document No."),
-                          VendLedgEntry."Document No.",
-                          VendLedgEntry.FieldCaption("Document Occurrence"),
-                          VendLedgEntry."Document Occurrence",
-                          Abs(VendLedgEntry."Remaining Amount"));
-#else
-                        Error(Text12100,
-                          VendLedgEntry.FieldCaption("Remaining Amount"),
-                          VendLedgEntry.FieldCaption("Document No."),
-                          VendLedgEntry."Document No.",
-                          Abs(VendLedgEntry."Remaining Amount"));
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                            Error(Text12100,
+                              VendLedgEntry.FieldCaption("Remaining Amount"),
+                              VendLedgEntry.FieldCaption("Document No."),
+                              VendLedgEntry."Document No.",
+                              VendLedgEntry.FieldCaption("Document Occurrence"),
+                              VendLedgEntry."Document Occurrence",
+                              Abs(VendLedgEntry."Remaining Amount"));
 #endif
+                        Error(ModifiedRemainingAmountErr,
+                          VendLedgEntry.FieldCaption("Remaining Amount"),
+                          VendLedgEntry.FieldCaption("Document No."),
+                          VendLedgEntry."Document No.",
+                          Abs(VendLedgEntry."Remaining Amount"));
+                    end;
                 end;
                 if not VendorBillLine."Manual Line" then
                     PostVendorBillLine(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, BillCode, AmountLCY)
@@ -213,7 +218,9 @@ codeunit 12173 "Vendor Bill List - Post"
             ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, Tax::" ");
         end else begin
 #if not CLEAN30
-            GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+            end;
 #endif
         end;
         GenJnlLine.Description := Bill.Description;
@@ -369,7 +376,9 @@ codeunit 12173 "Vendor Bill List - Post"
             GenJnlLine."Applies-to Doc. No." := VendorBillLine."Document No.";
         end;
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+        end;
 #endif
         GenJnlLine."Allow Application" := true;
         if VendorBillLine."Amount to Pay" + VendorBillLine."Withholding Tax Amount" <> VendorBillLine."Remaining Amount" then begin
@@ -401,6 +410,8 @@ codeunit 12173 "Vendor Bill List - Post"
     var
         Iterations: Integer;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         if not VendorBillLine."Manual Line" then
             exit;
 

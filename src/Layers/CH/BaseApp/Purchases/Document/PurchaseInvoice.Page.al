@@ -468,7 +468,7 @@ page 51 "Purchase Invoice"
                     trigger OnValidate()
                     begin
                         if HasInstallmentPlan or not IsNullGuid(Rec."Installment Plan ID") then begin
-                            HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+                            HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
                             CurrPage.Update(false);
                         end;
                     end;
@@ -1142,6 +1142,7 @@ page 51 "Purchase Invoice"
                 }
                 action(InstallmentSchedule)
                 {
+                    Visible = PaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     ToolTip = 'Preview installments using the document rule snapshot and current invoice totals. Posting recalculates amounts and creates one payable per installment for supported standalone purchase invoices.';
@@ -1866,7 +1867,7 @@ page 51 "Purchase Invoice"
         ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId);
         StatusStyleTxt := Rec.GetStatusStyleText();
         Rec.GetContactDetails(BuyFromContact, PayToContact);
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnAfterGetRecord()
@@ -1921,6 +1922,7 @@ page 51 "Purchase Invoice"
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         DocAmountEnable := PurchSetup.ShouldDocumentTotalAmountsBeChecked(Rec);
         DocAmountsEditable := PurchSetup.CanDocumentTotalAmountsBeEdited(Rec);
         SetDocNoVisible();
@@ -1972,6 +1974,8 @@ page 51 "Purchase Invoice"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         PurchSetup: Record "Purchases & Payables Setup";
@@ -2038,7 +2042,7 @@ page 51 "Purchase Invoice"
         IsJournalTemplNameVisible := GLSetup."Journal Templ. Name Mandatory";
         IsPaymentMethodCodeVisible := not GLSetup."Hide Payment Method Code";
         IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     procedure LineModified()

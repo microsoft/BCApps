@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 
 pageextension 12451 "Service Order IT" extends "Service Order"
@@ -176,6 +178,7 @@ pageextension 12451 "Service Order IT" extends "Service Order"
         {
             action("Pa&yments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 Caption = 'Pa&yments';
                 Image = Payment;
@@ -197,8 +200,20 @@ pageextension 12451 "Service Order IT" extends "Service Order"
         Rec.CheckCreditMaxBeforeInsert(false);
     end;
 
+#if not CLEAN30
+    trigger OnOpenPage()
+    begin
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+    end;
+#endif
+
     local procedure OperationOccurredDateOnAfterValidate()
     begin
         CurrPage.Update();
     end;
+#if not CLEAN30
+    var
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 }

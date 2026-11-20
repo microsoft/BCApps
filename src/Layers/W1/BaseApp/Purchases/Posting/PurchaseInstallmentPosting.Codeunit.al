@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
@@ -22,6 +23,7 @@ codeunit 8847 "Purchase Installment Posting"
                   tabledata "Purchase Installment Plan Line" = RIMD;
 
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         UnsupportedProducerErr: Label 'Global installments currently support full standalone purchase invoices only. Orders, receipt invoices, projects, subscription billing, service documents, and journals are not supported.';
         SourceErr: Label 'The installment posting source does not match the saved invoice and its owned draft plan.';
         ApplicationErr: Label 'Select individual installment entries using Applies-to ID. Applying an installment invoice by document number is not supported.';
@@ -41,6 +43,7 @@ codeunit 8847 "Purchase Installment Posting"
     begin
         if IsNullGuid(PurchaseHeader."Installment Plan ID") then
             exit;
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         if PurchaseHeader.IsTemporary() or (PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Invoice) then
             Error(UnsupportedProducerErr);
         Plan.Get(PurchaseHeader."Installment Plan ID");
@@ -99,6 +102,8 @@ codeunit 8847 "Purchase Installment Posting"
         PurchInstallmentCorrection: Codeunit "Purch. Installment Correction";
     begin
         CheckPurchasePosting(PurchaseHeader);
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         GenJournalLine."Installment Plan ID" := PurchaseHeader."Installment Plan ID";
         Clear(GenJournalLine."Purchase Invoice Source SystemId");
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice then
@@ -115,6 +120,11 @@ codeunit 8847 "Purchase Installment Posting"
         EmptyGuid: Guid;
         ApplyingVendorNo: Code[20];
     begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not IsNullGuid(GenJournalLine."Installment Plan ID") then
+                FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
+            exit;
+        end;
         if GenJournalLine."Account Type" = GenJournalLine."Account Type"::Vendor then
             ApplyingVendorNo := GenJournalLine."Account No."
         else
@@ -202,6 +212,7 @@ codeunit 8847 "Purchase Installment Posting"
     begin
         if IsNullGuid(GenJournalLine."Installment Plan ID") then
             exit(false);
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         CheckTemporary(TempPlanLine);
         CheckJournalLine(GenJournalLine);
         if Balancing then

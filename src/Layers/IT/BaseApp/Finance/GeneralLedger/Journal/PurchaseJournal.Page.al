@@ -906,6 +906,7 @@ page 254 "Purchase Journal"
 #if not CLEAN30
             action("&Payments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Basic, Suite;
                 Caption = '&Payments';
                 Image = Payment;
@@ -1634,6 +1635,9 @@ page 254 "Purchase Journal"
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         LastGenJnlBatch: Code[10];
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         UseAllocationAccountNumber := AllocationAccountMgt.UseAllocationAccountNoField();
@@ -1663,6 +1667,10 @@ page 254 "Purchase Journal"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         GenJnlManagement: Codeunit GenJnlManagement;

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Receivables;
 
@@ -135,6 +137,7 @@ page 8842 "Posted Installment Schedule"
     var
         Plan: Record "Sales Installment Plan";
     begin
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         Rec.FilterGroup(2);
         Plan.Get(Rec.GetRangeMin("Plan ID"));
         Plan.TestField(Status, Plan.Status::Posted);
@@ -153,6 +156,7 @@ page 8842 "Posted Installment Schedule"
     end;
 
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         InvoiceNo: Code[20];
         CurrencyCode: Code[10];

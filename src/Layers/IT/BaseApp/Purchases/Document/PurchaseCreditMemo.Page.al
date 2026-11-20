@@ -887,6 +887,7 @@ page 52 "Purchase Credit Memo"
 #if not CLEAN30
                 field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the occurrence that applies to the transaction.';
                 }
@@ -1270,6 +1271,7 @@ page 52 "Purchase Credit Memo"
 #if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1810,6 +1812,9 @@ page 52 "Purchase Credit Memo"
         EnvironmentInfo: Codeunit "Environment Information";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         DocAmountEnable := PurchSetup.ShouldDocumentTotalAmountsBeChecked(Rec);
         DocAmountsEditable := PurchSetup.CanDocumentTotalAmountsBeEdited(Rec);
         SetDocNoVisible();
@@ -1840,6 +1845,10 @@ page 52 "Purchase Credit Memo"
     end;
 
     var
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         PurchSetup: Record "Purchases & Payables Setup";

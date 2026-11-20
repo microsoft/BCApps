@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
@@ -372,14 +374,16 @@ table 21 "Cust. Ledger Entry"
                 end;
 
 #if not CLEAN30
-                if PostedPaymentLines.Get(
-                  PostedPaymentLines."Sales/Purchase"::Sales,
-                  "Document Type",
-                  "Document No.",
-                  "Document Occurrence" * 10000)
-                then begin
-                    PostedPaymentLines."Due Date" := "Due Date";
-                    PostedPaymentLines.Modify();
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    if PostedPaymentLines.Get(
+                      PostedPaymentLines."Sales/Purchase"::Sales,
+                      "Document Type",
+                      "Document No.",
+                      "Document Occurrence" * 10000)
+                    then begin
+                        PostedPaymentLines."Due Date" := "Due Date";
+                        PostedPaymentLines.Modify();
+                    end;
                 end;
 #endif
             end;
@@ -1341,6 +1345,9 @@ table 21 "Cust. Ledger Entry"
     }
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'must have the same sign as %1';

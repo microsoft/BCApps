@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using System.Environment.Configuration;
+
 using Microsoft.EServices.EDocument;
 using Microsoft.Integration.Dataverse;
 using System.Globalization;
@@ -27,13 +29,11 @@ table 3 "Payment Terms"
         {
             Caption = 'Due Date Calculation';
             ToolTip = 'Specifies a formula that determines how to calculate the due date, for example, when you create an invoice.';
-            Enabled = false;
         }
         field(3; "Discount Date Calculation"; DateFormula)
         {
             Caption = 'Discount Date Calculation';
             ToolTip = 'Specifies the date formula if the payment terms include a possible payment discount.';
-            Enabled = false;
         }
         field(4; "Discount %"; Decimal)
         {
@@ -41,7 +41,6 @@ table 3 "Payment Terms"
             Caption = 'Discount %';
             ToolTip = 'Specifies the percentage of the invoice amount (amount including VAT is the default setting) that will constitute a possible payment discount.';
             DecimalPlaces = 0 : 5;
-            Enabled = false;
             MaxValue = 100;
             MinValue = 0;
         }
@@ -153,14 +152,19 @@ table 3 "Payment Terms"
     begin
         SetLastModifiedDateTime();
 #if not CLEAN30
-        FilterPaymentLines();
-        if PaymentTermsLine.Find('-') then
-            Error(Text000, Code);
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            FilterPaymentLines();
+            if PaymentTermsLine.Find('-') then
+                Error(Text000, Code);
+        end;
 #endif
         CRMSyncHelper.UpdateCDSOptionMapping(xRec.RecordId(), RecordId());
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
 #endif
@@ -203,50 +207,65 @@ table 3 "Payment Terms"
         exit(Description);
     end;
 
-#if CLEAN30
     procedure UsePaymentDiscount(): Boolean
     var
+#if not CLEAN30
+        PaymentLines: Record "Payment Lines";
+#endif
         PaymentTerms: Record "Payment Terms";
     begin
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PaymentLines.SetFilter("Discount %", '<>%1', 0);
+
+            exit(not PaymentLines.IsEmpty);
+        end;
+#endif
         PaymentTerms.SetFilter("Discount %", '<>%1', 0);
 
         exit(not PaymentTerms.IsEmpty);
     end;
-#else
-    procedure UsePaymentDiscount(): Boolean
-    var
-        PaymentLines: Record "Payment Lines";
-    begin
-        PaymentLines.SetFilter("Discount %", '<>%1', 0);
 
-        exit(not PaymentLines.IsEmpty);
-    end;
-#endif
-
-#if CLEAN30
     [Scope('OnPrem')]
     procedure GetDueDateCalculation(var DueDateCalculation: DateFormula)
+#if not CLEAN30
+    var
+        PaymentLines: Record "Payment Lines";
+#endif
     begin
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::" ");
+            PaymentLines.SetRange(Type, PaymentLines.Type::"Payment Terms");
+            PaymentLines.SetRange(Code, Code);
+            if PaymentLines.FindFirst() then
+                DueDateCalculation := PaymentLines."Due Date Calculation"
+            else
+                Evaluate(DueDateCalculation, '<0D>');
+            exit;
+        end;
+#endif
         DueDateCalculation := "Due Date Calculation";
     end;
-#else
-    [Scope('OnPrem')]
-    procedure GetDueDateCalculation(var DueDateCalculation: DateFormula)
-    var
-        PaymentLines: Record "Payment Lines";
-    begin
-        PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::" ");
-        PaymentLines.SetRange(Type, PaymentLines.Type::"Payment Terms");
-        PaymentLines.SetRange(Code, Code);
-        if PaymentLines.FindFirst() then
-            DueDateCalculation := PaymentLines."Due Date Calculation"
-        else
-            Evaluate(DueDateCalculation, '<0D>');
-    end;
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterTranslateDescription(var PaymentTerms: Record "Payment Terms"; Language: Code[10])
     begin
     end;
+
+#if not CLEAN30
+    internal procedure SetPrepaymentFilter()
+    begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            SetRange("Payment Nos.", 1);
+    end;
+
+    internal procedure CheckPrepaymentPaymentTerms()
+    begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            CalcFields("Payment Nos.");
+            TestField("Payment Nos.", 1);
+        end;
+    end;
+#endif
 }

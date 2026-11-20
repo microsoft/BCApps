@@ -5,6 +5,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using System.Environment.Configuration;
+
 page 12170 "Payment Terms Lines"
 {
     AutoSplitKey = true;
@@ -51,6 +53,13 @@ page 12170 "Payment Terms Lines"
     actions
     {
     }
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckLegacyPaymentInstallmentsEnabled();
+    end;
+
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
 }
 #endif
 

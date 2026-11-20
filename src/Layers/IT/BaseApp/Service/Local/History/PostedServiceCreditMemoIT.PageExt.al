@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 
 pageextension 12454 "Posted Service Credit Memo IT" extends "Posted Service Credit Memo"
@@ -107,6 +109,7 @@ pageextension 12454 "Posted Service Credit Memo IT" extends "Posted Service Cred
             }
             action("Pa&yments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 Caption = 'Pa&yments';
                 Image = Payment;
@@ -147,4 +150,14 @@ pageextension 12454 "Posted Service Credit Memo IT" extends "Posted Service Cred
             }
         }
     }
+#if not CLEAN30
+    trigger OnOpenPage()
+    begin
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+    end;
+
+    var
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 }

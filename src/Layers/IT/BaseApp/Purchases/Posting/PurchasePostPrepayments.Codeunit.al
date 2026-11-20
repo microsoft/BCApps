@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Posting;
 
+using System.Environment.Configuration;
+
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
@@ -53,6 +55,9 @@ codeunit 444 "Purchase-Post Prepayments"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GLSetup: Record "General Ledger Setup";
         PurchSetup: Record "Purchases & Payables Setup";
         VATPostingSetup: Record "VAT Posting Setup";
@@ -228,12 +233,14 @@ codeunit 444 "Purchase-Post Prepayments"
                 end;
         end;
 #if not CLEAN30
-        if DocumentType <> DocumentType::"Credit Memo" then
-            InsertPostedPaymentLines(PurchHeader, DocumentType, PurchInvHeader."No.")
-        else
-            InsertPostedPaymentLines(PurchHeader, DocumentType, PurchCrMemoHeader."No.");
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if DocumentType <> DocumentType::"Credit Memo" then
+                InsertPostedPaymentLines(PurchHeader, DocumentType, PurchInvHeader."No.")
+            else
+                InsertPostedPaymentLines(PurchHeader, DocumentType, PurchCrMemoHeader."No.");
 
-        InsertPaymentJnlLine(PurchHeader);
+            InsertPaymentJnlLine(PurchHeader);
+        end;
 #endif
         // Reverse old lines
         if DocumentType = DocumentType::Invoice then begin
@@ -426,9 +433,11 @@ codeunit 444 "Purchase-Post Prepayments"
         if PurchHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             PurchHeader.FieldError("Operation Occurred Date", Text1130008);
 #if not CLEAN30
-        if PurchHeader."Applies-to Doc. No." <> '' then
-            if PurchHeader."Applies-to Occurrence No." = 0 then
-                Error(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."));
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if PurchHeader."Applies-to Doc. No." <> '' then
+                if PurchHeader."Applies-to Occurrence No." = 0 then
+                    Error(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."));
+        end;
 #endif
 
         ErrorMessageMgt.PushContext(ErrorContextElement, PurchHeader.RecordId, 0, '');
@@ -1449,7 +1458,9 @@ codeunit 444 "Purchase-Post Prepayments"
         GenJnlLine."Applies-to Doc. Type" := DocType;
         GenJnlLine."Applies-to Doc. No." := DocNo;
 #if not CLEAN30
-        GenJnlLine."Applies-to Occurrence No." := 1;
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            GenJnlLine."Applies-to Occurrence No." := 1;
+        end;
 #endif
         GenJnlLine."Deductible %" := TotalPrepmtInvLineBuffer."Deductible %";
 
@@ -1875,6 +1886,8 @@ codeunit 444 "Purchase-Post Prepayments"
     var
         PostedPaymentLines: Record "Posted Payment Lines";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case DocumentType of
             DocumentType::Invoice:
                 PostedPaymentLines.Type := PostedPaymentLines.Type::Invoice;
@@ -1897,6 +1910,8 @@ codeunit 444 "Purchase-Post Prepayments"
     var
         PaymentLines: Record "Payment Lines";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentLines.Init();
         PaymentLines."Sales/Purchase" := 0;
         PaymentLines.Type := PaymentLines.Type::"General Journal";

@@ -335,6 +335,9 @@ codeunit 90 "Purch.-Post"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 #pragma warning disable AA0470
         PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
         PostingPurchasesAndVATMsg: Label 'Posting purchases and VAT  #3######\', Comment = 'Counter';
@@ -839,47 +842,49 @@ codeunit 90 "Purch.-Post"
         OnCheckAndUpdateOnBeforePaymentsInsert(PurchHeader, IsHandled);
         if not IsHandled then
 #if not CLEAN30
-            if PurchHeader.Invoice then begin
-                PaymentTermsLine.Reset();
-                PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
-                PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
-                PaymentTermsLine.SetRange(Code, PurchHeader."No.");
-                if PaymentTermsLine.Find('-') then
-                    repeat
-                        PostedPayments.Init();
-                        PostedPayments."Sales/Purchase" := PaymentTermsLine."Sales/Purchase";
-                        if PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::Invoice] then begin
-                            PostedPayments.Type := PostedPayments.Type::Invoice;
-                            PostedPayments.Code := PurchInvHeader."No.";
-                        end else begin
-                            PostedPayments.Type := PostedPayments.Type::"Credit Memo";
-                            PostedPayments.Code := PurchCrMemoHeader."No.";
-                        end;
-                        PostedPayments."Line No." := PaymentTermsLine."Line No.";
-                        PostedPayments."Payment %" := PaymentTermsLine."Payment %";
-                        PostedPayments."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
-                        PostedPayments."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
-                        PostedPayments."Discount %" := PaymentTermsLine."Discount %";
-                        PostedPayments."Due Date" := PaymentTermsLine."Due Date";
-                        PostedPayments."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
-                        OnCheckAndUpdateOnBeforeInsertPostedPayments(PurchHeader, PaymentTermsLine, PostedPayments);
-                        PostedPayments.Insert();
-                        PaymentJournalLine.Init();
-                        PaymentJournalLine."Sales/Purchase" := 0;
-                        PaymentJournalLine.Type := PaymentJournalLine.Type::"General Journal";
-                        PaymentJournalLine."Line No." := PaymentTermsLine."Line No.";
-                        PaymentJournalLine."Payment %" := PaymentTermsLine."Payment %";
-                        PaymentJournalLine."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
-                        PaymentJournalLine."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
-                        PaymentJournalLine."Discount %" := PaymentTermsLine."Discount %";
-                        PaymentJournalLine."Due Date" := PaymentTermsLine."Due Date";
-                        PaymentJournalLine."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
-                        OnCheckAndUpdateOnBeforeInsertPaymentJournalLine(PurchHeader, PaymentTermsLine, PaymentJournalLine);
-                        PaymentJournalLine.Insert();
-                    until PaymentTermsLine.Next() = 0
-                else
-                    if PurchHeader."Payment Terms Code" <> '' then
-                        Error(Text1130003, PurchHeader.FieldCaption("Payment Terms Code"), PurchHeader."Payment Terms Code");
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if PurchHeader.Invoice then begin
+                    PaymentTermsLine.Reset();
+                    PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
+                    PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
+                    PaymentTermsLine.SetRange(Code, PurchHeader."No.");
+                    if PaymentTermsLine.Find('-') then
+                        repeat
+                            PostedPayments.Init();
+                            PostedPayments."Sales/Purchase" := PaymentTermsLine."Sales/Purchase";
+                            if PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::Invoice] then begin
+                                PostedPayments.Type := PostedPayments.Type::Invoice;
+                                PostedPayments.Code := PurchInvHeader."No.";
+                            end else begin
+                                PostedPayments.Type := PostedPayments.Type::"Credit Memo";
+                                PostedPayments.Code := PurchCrMemoHeader."No.";
+                            end;
+                            PostedPayments."Line No." := PaymentTermsLine."Line No.";
+                            PostedPayments."Payment %" := PaymentTermsLine."Payment %";
+                            PostedPayments."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
+                            PostedPayments."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
+                            PostedPayments."Discount %" := PaymentTermsLine."Discount %";
+                            PostedPayments."Due Date" := PaymentTermsLine."Due Date";
+                            PostedPayments."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
+                            OnCheckAndUpdateOnBeforeInsertPostedPayments(PurchHeader, PaymentTermsLine, PostedPayments);
+                            PostedPayments.Insert();
+                            PaymentJournalLine.Init();
+                            PaymentJournalLine."Sales/Purchase" := 0;
+                            PaymentJournalLine.Type := PaymentJournalLine.Type::"General Journal";
+                            PaymentJournalLine."Line No." := PaymentTermsLine."Line No.";
+                            PaymentJournalLine."Payment %" := PaymentTermsLine."Payment %";
+                            PaymentJournalLine."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
+                            PaymentJournalLine."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
+                            PaymentJournalLine."Discount %" := PaymentTermsLine."Discount %";
+                            PaymentJournalLine."Due Date" := PaymentTermsLine."Due Date";
+                            PaymentJournalLine."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
+                            OnCheckAndUpdateOnBeforeInsertPaymentJournalLine(PurchHeader, PaymentTermsLine, PaymentJournalLine);
+                            PaymentJournalLine.Insert();
+                        until PaymentTermsLine.Next() = 0
+                    else
+                        if PurchHeader."Payment Terms Code" <> '' then
+                            Error(Text1130003, PurchHeader.FieldCaption("Payment Terms Code"), PurchHeader."Payment Terms Code");
+                end;
             end;
 #endif
 
@@ -941,9 +946,11 @@ codeunit 90 "Purch.-Post"
                 Error(Text12100);
 
 #if not CLEAN30
-        if PurchHeader."Applies-to Doc. No." <> '' then
-            if PurchHeader."Applies-to Occurrence No." = 0 then
-                Error(ErrorInfo.Create(StrSubstNo(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."))));
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if PurchHeader."Applies-to Doc. No." <> '' then
+                if PurchHeader."Applies-to Occurrence No." = 0 then
+                    Error(ErrorInfo.Create(StrSubstNo(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."))));
+        end;
 #endif
 
         CheckPostingDate(PurchHeader);
@@ -3354,11 +3361,13 @@ codeunit 90 "Purch.-Post"
         WithhSocSec.SetRange("No.", PurchHeader."No.");
         WithhSocSec.DeleteAll();
 #if not CLEAN30
-        PaymentTermsLine.Reset();
-        PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
-        PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
-        PaymentTermsLine.SetRange(Code, PurchHeader."No.");
-        PaymentTermsLine.DeleteAll();
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PaymentTermsLine.Reset();
+            PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
+            PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
+            PaymentTermsLine.SetRange(Code, PurchHeader."No.");
+            PaymentTermsLine.DeleteAll();
+        end;
 #endif
 
         PurchCommentLine.DeleteComments(PurchHeader."Document Type".AsInteger(), PurchHeader."No.");

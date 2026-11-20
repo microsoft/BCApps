@@ -19,6 +19,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 codeunit 134495 "Library - ERM Installments"
 {
@@ -33,6 +34,7 @@ codeunit 134495 "Library - ERM Installments"
         SalesSetup: Record "Sales & Receivables Setup";
         PurchSetup: Record "Purchases & Payables Setup";
     begin
+        SetFeatureEnabled(true);
         GLSetup.Get();
         GLSetup."Amount Rounding Precision" := 0.01;
         GLSetup."Additional Reporting Currency" := '';
@@ -49,6 +51,27 @@ codeunit 134495 "Library - ERM Installments"
         PurchSetup."Calc. Inv. Discount" := false;
         PurchSetup."Discount Posting" := PurchSetup."Discount Posting"::"No Discounts";
         PurchSetup.Modify();
+    end;
+
+    procedure SetFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        if not FeatureKey.Get('PaymentInstallments') then begin
+            FeatureKey.Init();
+            FeatureKey.ID := 'PaymentInstallments';
+            FeatureKey.Insert();
+        end;
+        if Enabled then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+        else
+            FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey."Data Update Required" := false;
+        FeatureKey.Modify();
+        FeatureDataUpdateStatus.SetRange("Feature Key", FeatureKey.ID);
+        FeatureDataUpdateStatus.SetRange("Company Name", CompanyName());
+        FeatureDataUpdateStatus.DeleteAll();
     end;
 
     procedure CreateInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CurrencyCode: Code[10])

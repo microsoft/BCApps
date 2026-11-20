@@ -1403,7 +1403,10 @@ codeunit 11 "Gen. Jnl.-Check Line"
     local procedure HasPaymentDiscount(GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         PaymentLines: Record "Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit((GenJnlLine."Payment Discount %" <> 0) and (GenJnlLine."Pmt. Discount Date" <> 0D));
         PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::" ");
         PaymentLines.SetRange(Type, PaymentLines.Type::"General Journal");
         PaymentLines.SetRange(Code, GenJnlLine."Journal Batch Name");

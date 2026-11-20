@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 
 pageextension 12456 "Posted Service Invoice IT" extends "Posted Service Invoice"
@@ -92,6 +94,7 @@ pageextension 12456 "Posted Service Invoice IT" extends "Posted Service Invoice"
             }
             action("Pa&yments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 Caption = 'Pa&yments';
                 Image = Payment;
@@ -106,5 +109,15 @@ pageextension 12456 "Posted Service Invoice IT" extends "Posted Service Invoice"
             }
         }
     }
+#endif
+#if not CLEAN30
+    trigger OnOpenPage()
+    begin
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+    end;
+
+    var
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
 }

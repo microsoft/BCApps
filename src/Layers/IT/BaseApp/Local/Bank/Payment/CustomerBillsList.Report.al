@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
@@ -279,7 +281,9 @@ report 12117 "Customer Bills List"
                     begin
                         CustLedgEntry1.CopyFilter("Posting Date", "Posting Date");
 #if not CLEAN30
-                        SetRange("Document Occurrence to Close", CustLedgEntry1."Document Occurrence");
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                            SetRange("Document Occurrence to Close", CustLedgEntry1."Document Occurrence");
+                        end;
 #endif
                     end;
                 }
@@ -476,6 +480,9 @@ report 12117 "Customer Bills List"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         EmptyEndingDateErr: Label 'Specify the Ending Date.';
         SalesSetup: Record "Sales & Receivables Setup";
         CustLedgEntry3: Record "Cust. Ledger Entry";

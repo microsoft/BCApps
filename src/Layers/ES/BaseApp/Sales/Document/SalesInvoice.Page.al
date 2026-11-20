@@ -511,7 +511,7 @@ page 43 "Sales Invoice"
                     trigger OnValidate()
                     begin
                         if HasInstallmentPlan or not IsNullGuid(Rec."Installment Plan ID") then begin
-                            HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+                            HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
                             CurrPage.Update(false);
                         end;
                     end;
@@ -1159,6 +1159,7 @@ page 43 "Sales Invoice"
                 }
                 action(InstallmentSchedule)
                 {
+                    Visible = PaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Installment Schedule';
                     ToolTip = 'Preview installments using the document rule snapshot and current invoice totals. Posting recalculates amounts and creates one receivable per installment for supported standalone sales invoices.';
@@ -1964,6 +1965,7 @@ page 43 "Sales Invoice"
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
 
         Rec.SetRange("Date Filter", 0D, WorkDate());
@@ -1985,7 +1987,7 @@ page 43 "Sales Invoice"
         CheckShowBackgrValidationNotification();
         RejectICSalesInvoiceEnabled := ICInboxOutboxMgt.IsSalesHeaderFromIncomingIC(Rec);
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -2003,6 +2005,8 @@ page 43 "Sales Invoice"
     end;
 
     var
+        PaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         SalesSetup: Record "Sales & Receivables Setup";
@@ -2210,7 +2214,7 @@ page 43 "Sales Invoice"
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
     begin
-        HasInstallmentPlan := not IsNullGuid(Rec."Installment Plan ID");
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         HasIncomingDocument := Rec."Incoming Document Entry No." <> 0;
         ShowQuoteNo := Rec."Quote No." <> '';
         SetExtDocNoMandatoryCondition();

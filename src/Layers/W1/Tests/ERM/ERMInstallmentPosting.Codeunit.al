@@ -40,6 +40,31 @@ codeunit 134493 "ERM Installment Posting"
         ForcedFailureErr: Label 'Forced installment posting failure.', Locked = true;
 
     [Test]
+    procedure DisabledFeatureIgnoresGlobalRulesForSalesInvoiceAndJournal()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        GenJournalLine: Record "Gen. Journal Line";
+        OrdinaryTerms: Record "Payment Terms";
+        InstallmentTermsCode: Code[10];
+    begin
+        LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
+        InstallmentTermsCode := SalesHeader."Payment Terms Code";
+        LibraryERM.CreatePaymentTerms(OrdinaryTerms);
+        SalesHeader.Validate("Payment Terms Code", OrdinaryTerms.Code);
+        SalesHeader.Modify(true);
+        LibraryInstallments.SetFeatureEnabled(false);
+
+        SalesHeader.Validate("Payment Terms Code", InstallmentTermsCode);
+        SalesHeader.Modify(true);
+        Assert.IsTrue(IsNullGuid(SalesHeader."Installment Plan ID"), 'Disabled global rules must not create a sales installment plan.');
+        GenJournalLine."Account Type" := GenJournalLine."Account Type"::Customer;
+        GenJournalLine."Document Type" := GenJournalLine."Document Type"::Invoice;
+        GenJournalLine."Payment Terms Code" := InstallmentTermsCode;
+        InstallmentPosting.CheckJournalLine(GenJournalLine);
+    end;
+
+    [Test]
     procedure PostingSplitsOnlyReceivablesAndPreservesDiscountedInvoiceTotals()
     var
         SalesHeader: Record "Sales Header";

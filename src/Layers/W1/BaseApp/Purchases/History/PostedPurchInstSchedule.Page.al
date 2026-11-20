@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
+using System.Environment.Configuration;
+
 using Microsoft.Purchases.Payables;
 
 page 8844 "Posted Purch. Inst. Schedule"
@@ -134,6 +136,7 @@ page 8844 "Posted Purch. Inst. Schedule"
     var
         Plan: Record "Purchase Installment Plan";
     begin
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
         Rec.FilterGroup(2);
         Plan.Get(Rec.GetRangeMin("Plan ID"));
         Plan.TestField(Status, Plan.Status::Posted);
@@ -152,6 +155,7 @@ page 8844 "Posted Purch. Inst. Schedule"
     end;
 
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         InvoiceNo: Code[20];
         CurrencyCode: Code[10];

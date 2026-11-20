@@ -30,6 +30,10 @@ codeunit 265 "Feature Key Management"
         ConcurrentResourcePosting: Boolean;
         ConcurrentResourcePostingRead: Boolean;
         PaymentInstallmentsLbl: Label 'PaymentInstallments', Locked = true, MaxLength = 50;
+        PaymentInstallmentsDisabledErr: Label 'The Payment Installments feature must be enabled to use global payment installments.';
+#if not CLEAN30
+        LegacyPaymentInstallmentsDisabledErr: Label 'Legacy Italian payment installments are unavailable while the Payment Installments feature is enabled.';
+#endif
 
 
     procedure IsAutomaticAccountCodesEnabled(): Boolean
@@ -87,10 +91,24 @@ codeunit 265 "Feature Key Management"
         OnAfterIsPaymentInstallmentsEnabled(FeatureEnabled);
     end;
 
+    procedure CheckPaymentInstallmentsEnabled()
+    begin
+        if not IsPaymentInstallmentsEnabled() then
+            Error(PaymentInstallmentsDisabledErr);
+    end;
+
     local procedure GetAutomaticAccountCodesFeatureKey(): Text[50]
     begin
         exit(AutomaticAccountCodesTxt);
     end;
+
+#if not CLEAN30
+    procedure CheckLegacyPaymentInstallmentsEnabled()
+    begin
+        if IsPaymentInstallmentsEnabled() then
+            Error(LegacyPaymentInstallmentsDisabledErr);
+    end;
+#endif
 
     local procedure GetSIEAuditFileExportFeatureKeyId(): Text[50]
     begin

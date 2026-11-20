@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 
 pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
@@ -74,6 +76,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
         {
             field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the occurrence that applies to the transaction.';
             }
@@ -137,6 +140,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
         {
             action("Pa&yments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Service;
                 Caption = 'Pa&yments';
                 Image = Payment;
@@ -175,6 +179,13 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
         }
     }
 
+#if not CLEAN30
+    trigger OnOpenPage()
+    begin
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+    end;
+#endif
+
     local procedure OperationOccurredDateOnAfterValidate()
     begin
         CurrPage.Update();
@@ -185,4 +196,9 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
         CurrPage.Update();
     end;
 
+#if not CLEAN30
+    var
+        LegacyPaymentInstallmentsEnabled: Boolean;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 }

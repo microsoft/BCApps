@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
+using System.Environment.Configuration;
+
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Dimension;
 using Microsoft.Purchases.Payables;
@@ -91,6 +93,9 @@ report 12177 "Suggest Vendor Bills"
     }
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         BankAccount: Record "Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
         VendorBillHeader: Record "Vendor Bill Header";
@@ -119,7 +124,9 @@ report 12177 "Suggest Vendor Bills"
             VendBillLine2.SetRange("Vendor No.", "Vendor Ledger Entry"."Vendor No.");
             VendBillLine2.SetRange("Document No.", "Vendor Ledger Entry"."Document No.");
 #if not CLEAN30
-            VendBillLine2.SetRange("Document Occurrence", "Vendor Ledger Entry"."Document Occurrence");
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                VendBillLine2.SetRange("Document Occurrence", "Vendor Ledger Entry"."Document Occurrence");
+            end;
 #endif
             VendBillLine2.SetRange("Document Date", "Vendor Ledger Entry"."Document Date");
             if not VendBillLine2.FindFirst() then begin
@@ -131,7 +138,9 @@ report 12177 "Suggest Vendor Bills"
                 VendorBillLine."Document Type" := "Vendor Ledger Entry"."Document Type";
                 VendorBillLine."Document No." := "Vendor Ledger Entry"."Document No.";
 #if not CLEAN30
-                VendorBillLine."Document Occurrence" := "Vendor Ledger Entry"."Document Occurrence";
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    VendorBillLine."Document Occurrence" := "Vendor Ledger Entry"."Document Occurrence";
+                end;
 #endif
                 VendorBillLine."Document Date" := "Vendor Ledger Entry"."Document Date";
                 VendorBillLine."External Document No." := "Vendor Ledger Entry"."External Document No.";

@@ -38,6 +38,34 @@ page 4 "Payment Terms"
                     Visible = not PaymentInstallmentsEnabled;
                 }
 #endif 
+                field("Due Date Calculation"; Rec."Due Date Calculation")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
+                }
+                field("Discount Date Calculation"; Rec."Discount Date Calculation")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
+                }
+                field("Discount %"; Rec."Discount %")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
+                }
+                field("Calc. Pmt. Disc. on Cr. Memos"; Rec."Calc. Pmt. Disc. on Cr. Memos")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
+                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;

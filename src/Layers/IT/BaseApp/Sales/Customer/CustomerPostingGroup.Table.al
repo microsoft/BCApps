@@ -666,9 +666,7 @@ table 92 "Customer Posting Group"
     begin
         GLSetup.Get();
         PmtToleranceVisible := GLSetup.GetPmtToleranceVisible();
-#if not CLEAN30
         PmtDiscountVisible := PaymentTerms.UsePaymentDiscount();
-#endif
         SalesSetup.Get();
         InvRoundingVisible := SalesSetup."Invoice Rounding";
         ApplnRoundingVisible := SalesSetup."Appln. between Currencies" <> SalesSetup."Appln. between Currencies"::None;

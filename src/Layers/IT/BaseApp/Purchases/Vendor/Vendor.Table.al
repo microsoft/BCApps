@@ -2044,10 +2044,27 @@ table 23 Vendor
         field(12186; "Prepmt. Payment Terms Code"; Code[10])
         {
             Caption = 'Prepmt. Payment Terms Code';
-#if not CLEAN30
-            TableRelation = "Payment Terms" where("Payment Nos." = const(1));
-#else
             TableRelation = "Payment Terms";
+
+#if not CLEAN30
+            trigger OnLookup()
+            var
+                PaymentTerms: Record "Payment Terms";
+            begin
+                PaymentTerms.SetPrepaymentFilter();
+                if Page.RunModal(Page::"Payment Terms", PaymentTerms) = Action::LookupOK then
+                    Validate("Prepmt. Payment Terms Code", PaymentTerms.Code);
+            end;
+
+            trigger OnValidate()
+            var
+                PaymentTerms: Record "Payment Terms";
+            begin
+                if "Prepmt. Payment Terms Code" <> '' then begin
+                    PaymentTerms.Get("Prepmt. Payment Terms Code");
+                    PaymentTerms.CheckPrepaymentPaymentTerms();
+                end;
+            end;
 #endif
         }
         field(12187; "Special Category"; Option)

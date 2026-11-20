@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
+using System.Environment.Configuration;
+
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Receivables;
 
@@ -95,7 +97,13 @@ page 8841 "Sales Installment Schedule"
         }
     }
 
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckPaymentInstallmentsEnabled();
+    end;
+
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         SourceDocumentNo: Code[20];
         DocumentCurrencyCode: Code[10];
 

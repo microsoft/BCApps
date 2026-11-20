@@ -22,6 +22,7 @@ codeunit 134492 "ERM Installment Draft"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
         SalesInstallmentMgt: Codeunit "Sales Installment Mgt.";
+        LibraryInstallments: Codeunit "Library - ERM Installments";
         ExpectedScheduleInvoiceNo: Code[20];
         ExpectedScheduleAmount: Decimal;
 
@@ -448,6 +449,7 @@ codeunit 134492 "ERM Installment Draft"
     var
         Rule: Record "Payment Term Installment";
     begin
+        LibraryInstallments.SetFeatureEnabled(true);
         Rule.Init();
         Rule."Payment Terms Code" := PaymentTermsCode;
         Rule."Line No." := 10000;
