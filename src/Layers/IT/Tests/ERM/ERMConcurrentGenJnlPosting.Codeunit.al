@@ -548,9 +548,11 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     var
         VATEntryPresenceErr: Label 'VAT entry %1 presence in the settlement report was unexpected.', Comment = '%1 = VAT entry number';
     begin
+        // The ES report uses EntryNo_VatEntry instead of EntryNo_VATEntry.
         Assert.AreEqual(
             ExpectedPresent,
-            LibraryReportDataset.SearchForElementByValue('EntryNo_VATEntry', VATEntryNo),
+            LibraryReportDataset.SearchForElementByValue('EntryNo_VATEntry', VATEntryNo) or
+            LibraryReportDataset.SearchForElementByValue('EntryNo_VatEntry', VATEntryNo),
             StrSubstNo(VATEntryPresenceErr, VATEntryNo));
     end;
 
