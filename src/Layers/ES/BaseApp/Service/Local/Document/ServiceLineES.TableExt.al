@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
-using Microsoft.EServices.EDocument;
-
 tableextension 10791 "Service Line ES" extends "Service Line"
 {
     fields
@@ -23,11 +21,6 @@ tableextension 10791 "Service Line ES" extends "Service Line"
             Caption = 'EC Difference';
             DataClassification = CustomerContent;
             Editable = false;
-        }
-        field(10709; "Special Scheme Code"; Enum "SII Sales Special Scheme Code")
-        {
-            Caption = 'Special Scheme Code';
-            DataClassification = CustomerContent;
         }
     }
 }

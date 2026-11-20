@@ -801,7 +801,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry."Transaction No." := NextTransactionNo;
         VATEntry."Sales Tax Connection No." := NextConnectionNo;
         VATEntry.SetVATDateFromGenJnlLine(GenJnlLine);
-        OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate);
+        OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate, VATPostingSetup);
         if GenJnlLine."VAT Difference" = 0 then
             VATDifferenceLCY := 0
         else
@@ -9990,7 +9990,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate")
+    local procedure OnInsertVATOnAfterAssignVATEntryFields(var GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate"; var VATPostingSetup: Record "VAT Posting Setup")
     begin
     end;
 

@@ -43,11 +43,6 @@ pageextension 7000003 "SII Purchase Return Order" extends "Purchase Return Order
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Invoice Type.';
                 }
-                field("Correction Type"; Rec."Correction Type")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the Correction Type.';
-                }
                 field("ID Type"; Rec."ID Type")
                 {
                     ApplicationArea = Basic, Suite;

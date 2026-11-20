@@ -3089,6 +3089,186 @@
     </ReportSection>
   </ReportSections>
   <ReportParameters>
+    <ReportParameter Name="InventoryAvailabilityLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventoryAvailabilityLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventoryAvailabilityLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvAvailabilityPrintLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvAvailabilityPrintLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvAvailabilityPrintLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InvAvailabilityAnalysisLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InvAvailabilityAnalysisLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InvAvailabilityAnalysisLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DataRetrievedLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DataRetrievedLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DataRetrievedLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="BOMLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>BOMLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>BOMLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="BaseUOMLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>BaseUOMLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>BaseUOMLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="GrossRequirementLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>GrossRequirementLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>GrossRequirementLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ScheduledReceiptLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ScheduledReceiptLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ScheduledReceiptLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="PlannedOrderReceiptLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>PlannedOrderReceiptLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>PlannedOrderReceiptLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="QuantityOnBackOrderLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>QuantityOnBackOrderLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>QuantityOnBackOrderLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ProjectedAvailableBalLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ProjectedAvailableBalLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ProjectedAvailableBalLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReorderLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReorderLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReorderLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="AboutTheReportLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>AboutTheReportLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>AboutTheReportLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="EnvironmentLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>EnvironmentLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>EnvironmentLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="CompanyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>CompanyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>CompanyLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="UserLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>UserLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>UserLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RunOnLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>RunOnLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>RunOnLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ReportNameLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ReportNameLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ReportNameLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="DocumentationLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentationLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentationLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="InventPostGroup_ItemCaption">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>InventPostGroup_ItemCaption</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>InventPostGroup_ItemCaption</Prompt>
+    </ReportParameter>
     <ReportParameter Name="ReorderPoint_ItemCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -3147,36 +3327,136 @@
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>6</NumberOfRows>
+      <NumberOfRows>26</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
-          <ParameterName>ReorderPoint_ItemCaption</ParameterName>
+          <ParameterName>InventoryAvailabilityLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>1</RowIndex>
-          <ParameterName>BaseUnitofMeasure_ItemCaption</ParameterName>
+          <ParameterName>InvAvailabilityPrintLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>2</RowIndex>
-          <ParameterName>Description_ItemCaption</ParameterName>
+          <ParameterName>InvAvailabilityAnalysisLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>3</RowIndex>
-          <ParameterName>No_ItemCaption</ParameterName>
+          <ParameterName>DataRetrievedLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>4</RowIndex>
-          <ParameterName>VariantCode_StockkeepUnitCaption</ParameterName>
+          <ParameterName>BOMLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>5</RowIndex>
+          <ParameterName>BaseUOMLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>6</RowIndex>
+          <ParameterName>GrossRequirementLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>7</RowIndex>
+          <ParameterName>ScheduledReceiptLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>8</RowIndex>
+          <ParameterName>PlannedOrderReceiptLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>9</RowIndex>
+          <ParameterName>QuantityOnBackOrderLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>10</RowIndex>
+          <ParameterName>ProjectedAvailableBalLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>11</RowIndex>
+          <ParameterName>ReorderLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>12</RowIndex>
+          <ParameterName>AboutTheReportLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>13</RowIndex>
+          <ParameterName>EnvironmentLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>14</RowIndex>
+          <ParameterName>CompanyLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>15</RowIndex>
+          <ParameterName>UserLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>16</RowIndex>
+          <ParameterName>RunOnLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>17</RowIndex>
+          <ParameterName>ReportNameLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>18</RowIndex>
+          <ParameterName>DocumentationLbl</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>19</RowIndex>
+          <ParameterName>InventPostGroup_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>20</RowIndex>
+          <ParameterName>ReorderPoint_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>21</RowIndex>
+          <ParameterName>BaseUnitofMeasure_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>22</RowIndex>
+          <ParameterName>Description_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>23</RowIndex>
+          <ParameterName>No_ItemCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>24</RowIndex>
+          <ParameterName>VariantCode_StockkeepUnitCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>25</RowIndex>
           <ParameterName>LocCode_StockkeepUnitCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -3224,18 +3504,6 @@ End Function
   <DataSets>
     <DataSet Name="DataSet_Result">
       <Fields>
-        <Field Name="CompanyName">
-          <DataField>CompanyName</DataField>
-        </Field>
-        <Field Name="TableItemFilter">
-          <DataField>TableItemFilter</DataField>
-        </Field>
-        <Field Name="ItemFilter">
-          <DataField>ItemFilter</DataField>
-        </Field>
-        <Field Name="GetCurrentKey">
-          <DataField>GetCurrentKey</DataField>
-        </Field>
         <Field Name="UseStockkeepingUnit">
           <DataField>UseStockkeepingUnit</DataField>
         </Field>
@@ -3292,6 +3560,18 @@ End Function
         </Field>
         <Field Name="No_Item">
           <DataField>No_Item</DataField>
+        </Field>
+        <Field Name="CompanyName">
+          <DataField>CompanyName</DataField>
+        </Field>
+        <Field Name="TableItemFilter">
+          <DataField>TableItemFilter</DataField>
+        </Field>
+        <Field Name="ItemFilter">
+          <DataField>ItemFilter</DataField>
+        </Field>
+        <Field Name="GetCurrentKey">
+          <DataField>GetCurrentKey</DataField>
         </Field>
         <Field Name="InventoryAvailabilityCaption">
           <DataField>InventoryAvailabilityCaption</DataField>

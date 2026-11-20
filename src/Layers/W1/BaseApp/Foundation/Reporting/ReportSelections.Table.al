@@ -297,6 +297,9 @@ table 77 "Report Selections"
         {
             Clustered = true;
         }
+        key(Key2; Usage, "Report ID")
+        {
+        }
     }
 
     fieldgroups
