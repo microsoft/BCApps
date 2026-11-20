@@ -1,0 +1,2 @@
+# cost: 29
+{"query":"{ orders(first:100, sortKey: CREATED_AT, reverse: true) { nodes { transactions(first:5) { gateway manualPaymentGateway paymentDetails { ... on CardPaymentDetails { company } } } } } }"}
