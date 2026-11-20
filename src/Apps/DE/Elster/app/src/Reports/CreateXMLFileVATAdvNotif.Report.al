@@ -189,16 +189,14 @@ report 11016 "Create XML-File VAT Adv.Notif."
     var
         XmlSubDocOutStream: OutStream;
     begin
-        with "Sales VAT Advance Notif." do begin
-            "XML Submission Document".CreateOutStream(XmlSubDocOutStream);
-            XmlSubDoc.WriteTo(XmlSubDocOutStream);
-            CalcFields("XML Submission Document");
-            if "XML Submission Document".HasValue() then begin
-                "XML-File Creation Date" := Today();
-                "Statement Template Name" := VATStmtName."Statement Template Name";
-                "Statement Name" := VATStmtName.Name;
-                Modify();
-            end;
+        "Sales VAT Advance Notif."."XML Submission Document".CreateOutStream(XmlSubDocOutStream);
+        XmlSubDoc.WriteTo(XmlSubDocOutStream);
+        "Sales VAT Advance Notif.".CalcFields("XML Submission Document");
+        if "Sales VAT Advance Notif."."XML Submission Document".HasValue() then begin
+            "Sales VAT Advance Notif."."XML-File Creation Date" := Today();
+            "Sales VAT Advance Notif."."Statement Template Name" := VATStmtName."Statement Template Name";
+            "Sales VAT Advance Notif."."Statement Name" := VATStmtName.Name;
+            "Sales VAT Advance Notif.".Modify();
         end;
     end;
 
@@ -544,4 +542,3 @@ report 11016 "Create XML-File VAT Adv.Notif."
     begin
     end;
 }
-
