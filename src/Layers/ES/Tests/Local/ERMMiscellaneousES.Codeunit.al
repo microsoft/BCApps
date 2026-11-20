@@ -1681,13 +1681,13 @@ codeunit 144072 "ERM Miscellaneous ES"
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVAT and Non-Deductible VAT% in Purch. Inv. Line are same.
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVAT', Format(PurchInvLine."Non-Deductible VAT %"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVAT', PurchInvLine."Non-Deductible VAT %");
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVATBase and Non-Deductible VAT Base in Purch. Inv. Line are same.
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVATBase', Format(PurchInvLine."Non-Deductible VAT Base"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVATBase', PurchInvLine."Non-Deductible VAT Base");
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVATAmt and Non-Deductible VAT Amount in Purch. Inv. Line are same.
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVATAmt', Format(PurchInvLine."Non-Deductible VAT Amount"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVATAmt', PurchInvLine."Non-Deductible VAT Amount");
     end;
 
 
@@ -1895,26 +1895,26 @@ codeunit 144072 "ERM Miscellaneous ES"
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVAT and Non-Deductible VAT% in Purch. Inv. Line [1] are same.
         LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVAT', Format(PurchInvLine."Non-Deductible VAT %"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVAT', PurchInvLine."Non-Deductible VAT %");
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVATBase and Non-Deductible VAT Base in Purch. Inv. Line [1] are same.
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVATBase', Format(PurchInvLine."Non-Deductible VAT Base"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVATBase', PurchInvLine."Non-Deductible VAT Base");
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVATAmt and Non-Deductible VAT Amount in Purch. Inv. Line [1] are same.
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVATAmt', Format(PurchInvLine."Non-Deductible VAT Amount"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVATAmt', PurchInvLine."Non-Deductible VAT Amount");
 
         // [WHEN] Find Purch. Inv. Line for Item No [2].
         PurchInvLine.SetRange("No.", ItemNo[2]);
         PurchInvLine.FindFirst();
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVAT and Non-Deductible VAT% in Purch. Inv. Line are same.
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVAT', Format(PurchInvLine."Non-Deductible VAT %"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVAT', PurchInvLine."Non-Deductible VAT %");
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVATBase and Non-Deductible VAT Base in Purch. Inv. Line are same.
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVATBase', Format(PurchInvLine."Non-Deductible VAT Base"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVATBase', PurchInvLine."Non-Deductible VAT Base");
 
         // [THEN] Element Tag VATEntry2_NonDeductibleVATAmt and Non-Deductible VAT Amount in Purch. Inv. Line are same.
-        LibraryReportDataset.AssertElementTagWithValueExists('VATEntry2_NonDeductibleVATAmt', Format(PurchInvLine."Non-Deductible VAT Amount"));
+        LibraryReportDataset.AssertElementWithValueExists('VATEntry2_NonDeductibleVATAmt', PurchInvLine."Non-Deductible VAT Amount");
     end;
 
     local procedure Initialize()
@@ -2971,4 +2971,3 @@ codeunit 144072 "ERM Miscellaneous ES"
     begin
     end;
 }
-

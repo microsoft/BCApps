@@ -674,9 +674,13 @@ table 6930 "Expense Agent Setup"
         field(105; "VAT Rates Applied"; Boolean)
         {
             Caption = 'Default VAT Rates applied';
-            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default VAT rates have been applied.';
             Editable = false;
+        }
+        field(106; "Allow No Receipt"; Boolean)
+        {
+            Caption = 'Allow No Receipt';
+            ToolTip = 'Specifies whether users can replace a missing original receipt with a system-generated no receipt declaration.';
         }
         field(120; "Enable Project Fields"; Boolean)
         {
@@ -735,6 +739,12 @@ table 6930 "Expense Agent Setup"
             DataClassification = SystemMetadata;
             TableRelation = "EA Corp Card Provider".Code;
             ToolTip = 'Specifies the default provider used for corporate card imports.';
+        }
+        field(128; "Require Corporate Card"; Boolean)
+        {
+            Caption = 'Require Corporate Card';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether a corporate card must be selected for credit-card expenses before release or posting. This also applies to existing unposted expenses and expense reports.';
         }
         field(150; "Use Canary Endpoint"; Boolean)
         {
@@ -1101,6 +1111,19 @@ table 6930 "Expense Agent Setup"
         Rec.Modify();
     end;
 
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense No. Series", 'X')]
+    internal procedure EnsureExpenseVendorNoSeries()
+    var
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        if Rec."Expense Vendor Nos." <> '' then
+            exit;
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        Rec.Validate("Expense Vendor Nos.", CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        Rec.Modify();
+    end;
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'I')]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense Agent Setup", 'X')]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense GL Account", 'X')]
@@ -1258,7 +1281,9 @@ table 6930 "Expense Agent Setup"
     internal procedure CreateAccountingDefaults()
     begin
         if not Rec."No. Series Applied" then
-            CreateNoSeriesDefaults();
+            CreateNoSeriesDefaults()
+        else
+            EnsureExpenseVendorNoSeries();
         if not Rec."Payment Methods Applied" then
             CreatePaymentMethodsDefaults();
         if not Rec."Posting Groups Applied" then

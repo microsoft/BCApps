@@ -1627,11 +1627,6 @@ codeunit 134658 "Edit Posted Documents"
         PostedSalesShipmentUpdate."Shipping Agent Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedSalesShipmentUpdate."Shipping Agent Service Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedSalesShipmentUpdate."Package Tracking No.".SetValue(LibraryVariableStorage.DequeueText());
-#if not CLEAN27
-        PostedSalesShipmentUpdate."Promised Delivery Date".SetValue(LibraryVariableStorage.DequeueDate());
-        PostedSalesShipmentUpdate."Outbound Whse. Handling Time".SetValue(LibraryVariableStorage.DequeueText());
-        PostedSalesShipmentUpdate."Shipping Time".SetValue(LibraryVariableStorage.DequeueText());
-#endif
         PostedSalesShipmentUpdate.OK().Invoke();
     end;
 
@@ -1650,11 +1645,6 @@ codeunit 134658 "Edit Posted Documents"
         PostedSalesShipmentUpdate."Shipping Agent Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedSalesShipmentUpdate."Shipping Agent Service Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedSalesShipmentUpdate."Package Tracking No.".SetValue(LibraryVariableStorage.DequeueText());
-#if not CLEAN27
-        PostedSalesShipmentUpdate."Promised Delivery Date".SetValue(LibraryVariableStorage.DequeueDate());
-        PostedSalesShipmentUpdate."Outbound Whse. Handling Time".SetValue(LibraryVariableStorage.DequeueText());
-        PostedSalesShipmentUpdate."Shipping Time".SetValue(LibraryVariableStorage.DequeueText());
-#endif
         PostedSalesShipmentUpdate.Cancel().Invoke();
     end;
 

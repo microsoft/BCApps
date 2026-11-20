@@ -58,6 +58,11 @@ table 6968 "Expense Agent Consumption"
             Caption = 'Consumption Source Operation';
             DataClassification = SystemMetadata;
         }
+        field(7; "Is Feature Trial"; Boolean)
+        {
+            Caption = 'Is Feature Trial';
+            DataClassification = SystemMetadata;
+        }
         field(101; "Consumption DateTime"; DateTime)
         {
             FieldClass = FlowField;

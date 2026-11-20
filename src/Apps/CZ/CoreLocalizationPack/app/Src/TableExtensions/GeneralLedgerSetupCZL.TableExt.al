@@ -49,7 +49,6 @@ tableextension 11713 "General Ledger Setup CZL" extends "General Ledger Setup"
                         InitVATDateCZL()
                     else
                         "VAT Reporting Date Usage" := xRec."VAT Reporting Date Usage";
-
                 if ("VAT Reporting Date Usage" = "VAT Reporting Date Usage"::Disabled) and
                    ("VAT Reporting Date Usage" <> xRec."VAT Reporting Date Usage")
                 then begin
@@ -119,6 +118,12 @@ tableextension 11713 "General Ledger Setup CZL" extends "General Ledger Setup"
         field(11786; "User Checks Allowed CZL"; Boolean)
         {
             Caption = 'User Checks Allowed';
+            DataClassification = CustomerContent;
+        }
+        field(11787; "Disable Incr. Exch. Post. CZL"; Boolean)
+        {
+            Caption = 'Disable Incremental Exchange Gain/Loss Posting';
+            ToolTip = 'Specifies whether to disable incremental posting of exchange gains and losses on receivables and payables. If selected, when a receivable or payable is closed, all previously posted unrealized gains and losses are reversed and a realized gain or loss is posted based on the difference between the original and final exchange rates. Otherwise, each realized or unrealized gain or loss is posted as the difference from the previous exchange rate.';
             DataClassification = CustomerContent;
         }
         field(31085; "Shared Account Schedule CZL"; Code[10])

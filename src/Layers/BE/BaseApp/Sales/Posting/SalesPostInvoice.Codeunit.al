@@ -13,7 +13,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Projects.Project.Posting;
-using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
@@ -463,7 +462,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         SalesHeader: Record "Sales Header";
         GenJnlLine: Record "Gen. Journal Line";
         JobSalesLine: Record "Sales Line";
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         LineCount: Integer;
     begin
         SalesHeader := DocumentHeaderVar;
@@ -508,7 +507,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
     local procedure PrepareGenJnlLine(var SalesHeader: Record "Sales Header"; var InvoicePostingBuffer: Record "Invoice Posting Buffer"; var GenJnlLine: Record "Gen. Journal Line")
     var
-        BillToCust: Record Customer;
         IsHandled: Boolean;
     begin
         InitGenJnlLine(GenJnlLine, SalesHeader, InvoicePostingBuffer);
@@ -521,10 +519,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         IsHandled := false;
         SalesPostInvoiceEventsBE.RunOnPrepareGenJnlLineOnBeforeUpdateCountryRegionCode(SalesHeader, GenJnlLine, InvoicePostingBuffer, IsHandled);
-        if not IsHandled then begin
-            BillToCust.Get(GenJnlLine."Bill-to/Pay-to No.");
-            GenJnlLine."Country/Region Code" := BillToCust."Country/Region Code";
-        end;
+        if not IsHandled then
+            GenJnlLine."Country/Region Code" := SalesHeader."VAT Country/Region Code";
 
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
         if GLSetup."Journal Templ. Name Mandatory" then
@@ -780,7 +776,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         CustLedgEntry.FindLast();
     end;
 
-    local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): Integer
+    local procedure RunGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): BigInteger
     begin
         SalesPostInvoiceEvents.RunOnBeforeRunGenJnlPostLine(GenJnlLine, GenJnlPostLine);
         exit(GenJnlPostLine.RunWithCheck(GenJnlLine));

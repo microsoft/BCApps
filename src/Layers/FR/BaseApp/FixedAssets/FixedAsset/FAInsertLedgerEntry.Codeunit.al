@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -51,12 +51,12 @@ codeunit 5600 "FA Insert Ledger Entry"
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         DeprBookCode: Code[10];
-        ErrorEntryNo: Integer;
-        NextEntryNo: Integer;
-        NextMaintenanceEntryNo: Integer;
+        ErrorEntryNo: BigInteger;
+        NextEntryNo: BigInteger;
+        NextMaintenanceEntryNo: BigInteger;
         RegisterInserted: Boolean;
-        LastEntryNo: Integer;
-        GLRegisterNo: Integer;
+        LastEntryNo: BigInteger;
+        GLRegisterNo: BigInteger;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -141,6 +141,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry);
 #endif
         DerogatoryPostingMgt.ValidateDerogatoryLink(FALedgEntry);
+        FALedgEntry."G/L Register No." := GLRegisterNo;
         FALedgEntry.Insert(true);
         FeatureTelemetry.LogUsage('0000H4F', 'Fixed Asset', 'Insert FA Ledger Entry');
         OnInsertFAOnAfterInsertFALedgEntry(FALedgEntry, FALedgEntry3);
@@ -230,6 +231,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         if MaintenanceLedgEntry."G/L Entry No." > 0 then
             FAInsertGLAcc.InsertMaintenanceAccNo(MaintenanceLedgEntry);
         DerogatoryPostingMgt.ValidateDerogatoryLink(MaintenanceLedgEntry);
+        MaintenanceLedgEntry."G/L Register No." := GLRegisterNo;
         MaintenanceLedgEntry.Insert(true);
         SetMaintenanceLastDate(MaintenanceLedgEntry);
         InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
@@ -402,7 +404,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         RecordLinkMgt.CopyLinks(GenJnlLine, FALedgEntry);
     end;
 
-    local procedure InitRegister(CalledFrom: Enum "FA Register Called From"; GLEntryNo: Integer; SourceCode: Code[10]; BatchName: Code[10])
+    local procedure InitRegister(CalledFrom: Enum "FA Register Called From"; GLEntryNo: BigInteger; SourceCode: Code[10]; BatchName: Code[10])
     begin
         if (CalledFrom = "FA Register Called From"::"Fixed Asset") and (NextMaintenanceEntryNo <> 0) then
             exit;
@@ -423,7 +425,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FAReg.Insert(true);
     end;
 
-    procedure InsertRegister(CalledFrom: Enum "FA Register Called From"; NextEntryNo: Integer)
+    procedure InsertRegister(CalledFrom: Enum "FA Register Called From"; NextEntryNo: BigInteger)
     begin
         case CalledFrom of
             "FA Register Called From"::"Fixed Asset":
@@ -488,7 +490,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         FAInsertGLAcc.CorrectEntries();
     end;
 
-    procedure InsertReverseEntry(NewGLEntryNo: Integer; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: Integer; var NewFAEntryNo: Integer; TransactionNo: Integer)
+    procedure InsertReverseEntry(NewGLEntryNo: BigInteger; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: BigInteger; var NewFAEntryNo: BigInteger; TransactionNo: Integer)
     var
         OriginalFALedgerEntry: Record "FA Ledger Entry";
         OriginalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
@@ -608,6 +610,7 @@ codeunit 5600 "FA Insert Ledger Entry"
                 FALedgEntry3."FA No./Budgeted FA No." := '';
                 FALedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
                 OnInsertReverseEntryOnBeforeInsertFALedgEntry(FALedgEntry3);
+                FALedgEntry3."G/L Register No." := GLRegisterNo;
                 FALedgEntry3.Insert(true);
                 OnInsertReverseEntryOnBeforeFACheckConsistency(FALedgEntry3);
                 CODEUNIT.Run(CODEUNIT::"FA Check Consistency", FALedgEntry3);
@@ -668,6 +671,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             MaintenanceLedgEntry3."FA No./Budgeted FA No." := '';
             MaintenanceLedgEntry3."Derogatory Source Entry No." := DerogatorySourceEntryNo;
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntry(MaintenanceLedgEntry3);
+            MaintenanceLedgEntry3."G/L Register No." := GLRegisterNo;
             MaintenanceLedgEntry3.Insert();
             InsertRegister("FA Register Called From"::Maintenance, NextMaintenanceEntryNo);
             InsertMaintRevEntryForDerog(FAEntryType, MaintenanceLedgEntry3);
@@ -802,7 +806,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         end;
     end;
 
-    local procedure SetFAReversalMark(var FALedgEntry: Record "FA Ledger Entry"; NextEntryNo: Integer)
+    local procedure SetFAReversalMark(var FALedgEntry: Record "FA Ledger Entry"; NextEntryNo: BigInteger)
     var
         FALedgEntry2: Record "FA Ledger Entry";
         GenJnlPostReverse: Codeunit "Gen. Jnl.-Post Reverse";
@@ -830,7 +834,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         GenJnlPostReverse.SetReversalDescription(FALedgEntry, FALedgEntry.Description);
     end;
 
-    local procedure SetMaintReversalMark(var MaintenanceLedgEntry: Record "Maintenance Ledger Entry"; NextEntryNo: Integer)
+    local procedure SetMaintReversalMark(var MaintenanceLedgEntry: Record "Maintenance Ledger Entry"; NextEntryNo: BigInteger)
     var
         MaintenanceLedgEntry2: Record "Maintenance Ledger Entry";
         GenJnlPostReverse: Codeunit "Gen. Jnl.-Post Reverse";
@@ -1175,7 +1179,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         exit((FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::Derogatory) and not DeprBook.IsDerogatoryBook());
     end;
 
-    procedure SetGLRegisterNo(NewGLRegisterNo: Integer)
+    procedure SetGLRegisterNo(NewGLRegisterNo: BigInteger)
     begin
         GLRegisterNo := NewGLRegisterNo;
     end;
@@ -1204,7 +1208,7 @@ codeunit 5600 "FA Insert Ledger Entry"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeInsertRegister(var FALedgerEntry: Record "FA Ledger Entry"; var FALedgerEntry2: Record "FA Ledger Entry"; var NextEntryNo: Integer)
+    local procedure OnBeforeInsertRegister(var FALedgerEntry: Record "FA Ledger Entry"; var FALedgerEntry2: Record "FA Ledger Entry"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -1234,7 +1238,7 @@ codeunit 5600 "FA Insert Ledger Entry"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnInsertFAOnAfterSetFALedgEntryFANo(FALedgEntry3: Record "FA Ledger Entry"; FALedgEntry2: Record "FA Ledger Entry"; FALedgEntry: Record "FA Ledger Entry"; var NextEntryNo: Integer)
+    local procedure OnInsertFAOnAfterSetFALedgEntryFANo(FALedgEntry3: Record "FA Ledger Entry"; FALedgEntry2: Record "FA Ledger Entry"; FALedgEntry: Record "FA Ledger Entry"; var NextEntryNo: BigInteger)
     begin
     end;
 
