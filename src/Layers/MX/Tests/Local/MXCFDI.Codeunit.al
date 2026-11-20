@@ -4041,7 +4041,8 @@
 
         // [GIVEN] Sales Invoice has Location with City and Post Code with Time Zone offset = 2h
         DocumentNo := CreateAndPostDoc(TableNo, CreatePaymentMethodForSAT());
-        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset);
+        SalesInvoiceHeader.Get(DocumentNo);
+        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset, CreateDateTime(SalesInvoiceHeader."Document Date", Time));
         UpdateDocumentWithTimeZone(
           TableNo, SalesInvoiceHeader.FieldNo("No."), DocumentNo,
           SalesInvoiceHeader.FieldNo("Location Code"), TimeZoneID);
@@ -4049,7 +4050,7 @@
         // [WHEN] Request stamp for the Sales Invoice
         RequestStamp(TableNo, DocumentNo, ResponseOption::Success, ActionOption::"Request Stamp");
 
-        // [THEN] Sales Invoice has 'Date/Time First Req. Sent' with offset 2h from current time
+        // [THEN] Sales Invoice has 'Date/Time First Req. Sent' with the location time zone offset applied to the document date and time
         SalesInvoiceHeader.Get(DocumentNo);
         VerifyIsNearlyEqualDateTime(
           ConvertTxtToDateTime(SalesInvoiceHeader."Date/Time First Req. Sent"),
@@ -4074,7 +4075,8 @@
 
         // [GIVEN] Sales Credit memo has Location with City and Post Code with Time Zone offset = 2h
         DocumentNo := CreateAndPostDoc(TableNo, CreatePaymentMethodForSAT());
-        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset);
+        SalesCrMemoHeader.Get(DocumentNo);
+        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset, CreateDateTime(SalesCrMemoHeader."Document Date", Time));
         UpdateDocumentWithTimeZone(
           TableNo, SalesCrMemoHeader.FieldNo("No."), DocumentNo,
           SalesCrMemoHeader.FieldNo("Location Code"), TimeZoneID);
@@ -4082,7 +4084,7 @@
         // [WHEN] Request stamp for the Sales Credit Memo
         RequestStamp(TableNo, DocumentNo, ResponseOption::Success, ActionOption::"Request Stamp");
 
-        // [THEN] Sales Credit Memo has 'Date/Time First Req. Sent' with offset 2h from current time
+        // [THEN] Sales Credit Memo has 'Date/Time First Req. Sent' with the location time zone offset applied to the document date and time
         SalesCrMemoHeader.Get(DocumentNo);
         VerifyIsNearlyEqualDateTime(
           ConvertTxtToDateTime(SalesCrMemoHeader."Date/Time First Req. Sent"),
@@ -4107,7 +4109,8 @@
 
         // [GIVEN] Service Invoice has Location with City and Post Code with Time Zone offset = 2h
         DocumentNo := CreateAndPostDoc(TableNo, CreatePaymentMethodForSAT());
-        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset);
+        ServiceInvoiceHeader.Get(DocumentNo);
+        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset, CreateDateTime(ServiceInvoiceHeader."Document Date", Time));
         UpdateDocumentWithTimeZone(
           TableNo, ServiceInvoiceHeader.FieldNo("No."), DocumentNo,
           ServiceInvoiceHeader.FieldNo("Location Code"), TimeZoneID);
@@ -4115,7 +4118,7 @@
         // [WHEN] Request stamp for the Service Invoice
         RequestStamp(TableNo, DocumentNo, ResponseOption::Success, ActionOption::"Request Stamp");
 
-        // [THEN] Service Invoice has 'Date/Time First Req. Sent' with offset 2h from current time
+        // [THEN] Service Invoice has 'Date/Time First Req. Sent' with the location time zone offset applied to the document date and time
         ServiceInvoiceHeader.Get(DocumentNo);
         VerifyIsNearlyEqualDateTime(
           ConvertTxtToDateTime(ServiceInvoiceHeader."Date/Time First Req. Sent"),
@@ -4140,7 +4143,8 @@
 
         // [GIVEN] Service Credit Memo  has Location with City and Post Code with Time Zone offset = 2h
         DocumentNo := CreateAndPostDoc(TableNo, CreatePaymentMethodForSAT());
-        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset);
+        ServiceCrMemoHeader.Get(DocumentNo);
+        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset, CreateDateTime(ServiceCrMemoHeader."Document Date", Time));
         UpdateDocumentWithTimeZone(
           TableNo, ServiceCrMemoHeader.FieldNo("No."), DocumentNo,
           ServiceCrMemoHeader.FieldNo("Location Code"), TimeZoneID);
@@ -4148,7 +4152,7 @@
         // [WHEN] Request stamp for the Service Credit Memo
         RequestStamp(TableNo, DocumentNo, ResponseOption::Success, ActionOption::"Request Stamp");
 
-        // [THEN] Service Credit Memo has 'Date/Time First Req. Sent' with offset 2h from current time
+        // [THEN] Service Credit Memo has 'Date/Time First Req. Sent' with the location time zone offset applied to the document date and time
         ServiceCrMemoHeader.Get(DocumentNo);
         VerifyIsNearlyEqualDateTime(
           ConvertTxtToDateTime(ServiceCrMemoHeader."Date/Time First Req. Sent"),
@@ -4179,14 +4183,15 @@
         PaymentNo :=
           CreatePostPayment(
             SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."No.", -SalesInvoiceHeader."Amount Including VAT", '');
-        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Payment, PaymentNo);
+        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset, CreateDateTime(CustLedgerEntry."Document Date", Time));
         CreatePostCode(PostCode, TimeZoneID);
         UpdateCustomerPostCode(SalesInvoiceHeader."Sell-to Customer No.", PostCode.City, PostCode.Code);
 
         // [WHEN] Request Stamp for the payment
         RequestStamp(DATABASE::"Cust. Ledger Entry", PaymentNo, ResponseOption::Success, ActionOption::"Request Stamp");
 
-        // [THEN] Customer Ledger Entry has 'Date/Time First Req. Sent' with offset 2h from current time
+        // [THEN] Customer Ledger Entry has 'Date/Time First Req. Sent' with the location time zone offset applied to the document date and time
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Payment, PaymentNo);
         VerifyIsNearlyEqualDateTime(
           ConvertTxtToDateTime(CustLedgerEntry."Date/Time First Req. Sent"),
@@ -9060,15 +9065,23 @@
 
     local procedure FindTimeZone(var TimeZoneID: Text[180]; var TimeZoneOffset: Duration; var UserOffset: Duration)
     var
-        TimeZone: Record "Time Zone";
         TypeHelper: Codeunit "Type Helper";
     begin
-        TypeHelper.GetUserClientTypeOffset(UserOffset);
+        FindTimeZone(TimeZoneID, TimeZoneOffset, UserOffset, TypeHelper.GetCurrUTCDateTime());
+    end;
+
+    local procedure FindTimeZone(var TimeZoneID: Text[180]; var TimeZoneOffset: Duration; var UserOffset: Duration; ReferenceDateTime: DateTime)
+    var
+        TimeZone: Record "Time Zone";
+        TimeZoneCU: Codeunit "Time Zone";
+        TypeHelper: Codeunit "Type Helper";
+    begin
+        TypeHelper.GetUserClientTypeOffset(UserOffset, ReferenceDateTime);
         TimeZone.SetFilter("Display Name", '*:00*');
         TimeZone.FindSet();
         TimeZone.Next(LibraryRandom.RandInt(TimeZone.Count));
         TimeZoneID := TimeZone.ID;
-        TypeHelper.GetTimezoneOffset(TimeZoneOffset, TimeZone.ID);
+        TimeZoneOffset := TimeZoneCU.GetTimezoneOffset(ReferenceDateTime, TimeZone.ID);
     end;
 
     local procedure FormatDecimal(InAmount: Decimal; DecimalPlaces: Integer): Text
