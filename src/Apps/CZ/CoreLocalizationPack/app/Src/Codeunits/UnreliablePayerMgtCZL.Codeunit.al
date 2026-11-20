@@ -7,6 +7,7 @@ namespace Microsoft.Purchases.Vendor;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
+using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Utilities;
 
@@ -212,7 +213,6 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         OnBeforeGetLongVATRegNo(VatRegNo, IsHandled);
         if IsHandled then
             exit(VatRegNo);
-
         if VatRegNo = '' then
             exit;
         TempCode := CopyStr(VatRegNo, 1, 1);
@@ -263,7 +263,6 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         end;
         if ReturnValue then
             exit;
-
         if IBAN <> '' then begin
             UnreliablePayerEntryCZL.SetRange("Full Bank Account No.", IBAN);
             ReturnValue := not UnreliablePayerEntryCZL.IsEmpty();
@@ -299,7 +298,6 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
             UnrelPayerServiceSetupCZL.Init();
             UnrelPayerServiceSetupCZL.Insert();
         end;
-
         if UnrelPayerServiceSetupCZL.Enabled then
             ServiceConnection.Status := ServiceConnection.Status::Enabled
         else
@@ -327,7 +325,6 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         PurchPost.GetPurchLines(PurchaseHeader, TempPurchaseLine, 0);
         Clear(PurchPost);
         PurchPost.SumPurchLinesTemp(PurchaseHeader, TempPurchaseLine, 0, TotalPurchaseLine, TotalLCYPurchaseLine, VATAmount, VATAmountText);
-
         if PurchaseHeader.IsUnreliablePayerCheckPossibleCZL() then begin
             case PurchaseHeader.GetUnreliablePayerStatusCZL() of
                 UnreliablePayerEntryCZL."Unreliable Payer"::YES:
@@ -335,20 +332,17 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
                 UnreliablePayerEntryCZL."Unreliable Payer"::NOTFOUND:
                     ConfirmProcess(StrSubstNo(VendUnrVATPayerStatusNotCheckedQst, PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No."));
             end;
-
             if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::"Credit Memo", PurchaseHeader."Document Type"::"Return Order"]) then begin
                 if PurchaseHeader."Bank Account Code CZL" = '' then begin
                     if PublicBankAccountCheckPossible(PurchaseHeader."Posting Date", TotalLCYPurchaseLine."Amount Including VAT") then
                         ConfirmProcess(BankAccCodeNotExistQst);
                     exit;
                 end;
-
                 if PublicBankAccountCheckPossible(PurchaseHeader."Posting Date", TotalLCYPurchaseLine."Amount Including VAT") and
                    not ForeignBankAccountCheckPossible(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Bank Account Code CZL") and
                    not IsPublicBankAccount(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No.", PurchaseHeader."Bank Account No. CZL", PurchaseHeader."IBAN CZL")
                 then
                     ConfirmProcess(StrSubstNo(BankAccNotPublicQst, PurchaseHeader."Bank Account No. CZL", PurchaseHeader."Pay-to Vendor No."));
-
                 if ForeignBankAccountCheckPossible(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Bank Account Code CZL") then
                     ConfirmProcess(StrSubstNo(BankAccIsForeignQst, PurchaseHeader."Bank Account Code CZL", PurchaseHeader."Pay-to Vendor No."));
             end;
@@ -396,6 +390,42 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
     begin
         DefaultUnrelPayerServiceSetupCZL."Unreliable Payer Web Service" := UnreliablePayerServiceURLTok;
         OnAfterSetDefaultUnreliablePayerServiceURL(DefaultUnrelPayerServiceSetupCZL);
+    end;
+
+    procedure UpdateUnreliablePayerEntriesOnDelete(Vendor: Record Vendor)
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+    begin
+        if Vendor."No." = '' then
+            exit;
+
+        UnreliablePayerEntryCZL.SetRange("Vendor No.", Vendor."No.");
+        if UnreliablePayerEntryCZL.FindSet(true) then
+            repeat
+                if UnreliablePayerEntryCZL."Customer No." <> '' then begin
+                    UnreliablePayerEntryCZL."Vendor No." := '';
+                    UnreliablePayerEntryCZL.Modify(true);
+                end else
+                    UnreliablePayerEntryCZL.Delete(true);
+            until UnreliablePayerEntryCZL.Next() = 0;
+    end;
+
+    procedure UpdateUnreliablePayerEntriesOnDelete(Customer: Record Customer)
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+    begin
+        if Customer."No." = '' then
+            exit;
+
+        UnreliablePayerEntryCZL.SetRange("Customer No.", Customer."No.");
+        if UnreliablePayerEntryCZL.FindSet(true) then
+            repeat
+                if UnreliablePayerEntryCZL."Vendor No." <> '' then begin
+                    UnreliablePayerEntryCZL."Customer No." := '';
+                    UnreliablePayerEntryCZL.Modify(true);
+                end else
+                    UnreliablePayerEntryCZL.Delete(true);
+            until UnreliablePayerEntryCZL.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]
