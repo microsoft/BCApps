@@ -62,6 +62,40 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         OrderNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Order-2', Locked = true;
 
     [Test]
+    procedure NativeXmlReaderPreservesPathsAndIndices()
+    var
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        CreateNativeXmlReaderFixture(TempBlob, 'Invoice', InvoiceNamespaceTxt);
+
+        InitXPathXMLReaderForInvoice(TempBlob);
+
+        VerifyNativeXmlReaderFixture('Invoice');
+    end;
+
+    [Test]
+    procedure NativeXmlReaderReinitializesDocumentNamespaces()
+    var
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        CreateNativeXmlReaderFixture(TempBlob, 'Invoice', InvoiceNamespaceTxt);
+        InitXPathXMLReaderForInvoice(TempBlob);
+        VerifyNativeXmlReaderFixture('Invoice');
+
+        CreateNativeXmlReaderFixture(TempBlob, 'CreditNote', CreditNoteNamespaceTxt);
+        InitXPathXMLReaderForCreditNote(TempBlob);
+        VerifyNativeXmlReaderFixture('CreditNote');
+
+        CreateNativeXmlReaderFixture(TempBlob, 'Order', OrderNamespaceTxt);
+        InitXPathXMLReaderForOrder(TempBlob);
+        VerifyNativeXmlReaderFixture('Order');
+
+        CreateNativeXmlReaderFixture(TempBlob, 'Invoice', InvoiceNamespaceTxt);
+        InitXPathXMLReaderForInvoice(TempBlob);
+        VerifyNativeXmlReaderFixture('Invoice');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ExportXml_PEPPOL_BIS3_SalesInvoiceVAT()
     var
@@ -91,11 +125,11 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <OrderReference> is "INV01"
         InitXPathXMLReaderForInvoice(TempBlob);
         VerifyPEPPOLBISIdentifiers('Invoice');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cbc:CompanyID', Customer."VAT Registration No.");
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:OrderReference/cbc:ID', SalesInvoiceHeader."External Document No.");
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:DueDate', Format(SalesInvoiceHeader."Due Date", 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingCustomerParty//cbc:CompanyID', Customer."VAT Registration No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:OrderReference/cbc:ID', SalesInvoiceHeader."External Document No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:DueDate', Format(SalesInvoiceHeader."Due Date", 0, 9));
         // [THEN] One node 'InvoiceLine' created
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('cac:InvoiceLine', 1);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('/*/cac:InvoiceLine', 1);
         // [THEN] <EndpointID> exported as 'BE1234567890' with VAT schema ID (TFS 340767)
         VerifyCustomerEndpoint(Customer."VAT Registration No.", GetVATSchemaID(Customer."Country/Region Code"));
         // [THEN] <TaxCurrencyCode> is not exported, one <TaxTotal> node in XML (TFS 389982)
@@ -129,9 +163,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <AccountingCustomerParty> has <ID> = '1234567890123' with <SchemeID> = '0088'
         // [THEN] <OrderReference> is not exported
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cac:PartyLegalEntity/cbc:CompanyID', Customer.GLN);
-        LibraryXPathXMLReader.VerifyAttributeValue('cac:AccountingCustomerParty//cac:PartyLegalEntity/cbc:CompanyID', 'schemeID', GetGLNSchemeID());
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:OrderReference');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingCustomerParty//cac:PartyLegalEntity/cbc:CompanyID', Customer.GLN);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:AccountingCustomerParty//cac:PartyLegalEntity/cbc:CompanyID', 'schemeID', GetGLNSchemeID());
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:OrderReference');
         // [THEN] <EndpointID> exported as '1234567890123' with GLN schema ID (TFS 340767)
         VerifyCustomerEndpoint(Customer.GLN, GetGLNSchemeID());
     end;
@@ -164,9 +198,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <PartyTaxScheme> has <CompanyID> = 'NO1234567890'
         CompanyInformation.Get();
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
-          'cac:AccountingSupplierParty//cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
+          '/*/cac:AccountingSupplierParty//cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
         // [THEN] <EndpointID> exported as 'NO1234567890' with VAT schema ID (TFS 340767)
         VerifySupplierEndpoint(
@@ -202,9 +236,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <PartyTaxScheme> has <CompanyID> = 'NO1234567890'
         CompanyInformation.Get();
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:PartyLegalEntity/cbc:CompanyID', CompanyInformation.GLN);
-        LibraryXPathXMLReader.VerifyAttributeValue('//cac:PartyLegalEntity/cbc:CompanyID', 'schemeID', GetGLNSchemeID());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:PartyLegalEntity/cbc:CompanyID', CompanyInformation.GLN);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('//cac:PartyLegalEntity/cbc:CompanyID', 'schemeID', GetGLNSchemeID());
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
         // [THEN] <EndpointID> exported as '1234567890123' with GLN schema ID (TFS 340767)
         VerifySupplierEndpoint(CompanyInformation.GLN, GetGLNSchemeID());
@@ -238,12 +272,12 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <TaxCategory> has <ID> 'S', <Percent> = 10
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryS());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesInvoice(SalesInvoiceHeader)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryS());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesInvoice(SalesInvoiceHeader)));
 
         // [THEN] 'schemeID' attriute is not exported for TaxCategory (TFS 388773)
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxCategory[@schemeID]', 0);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:ClassifiedTaxCategory[@schemeID]', 0);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//cac:TaxCategory[@schemeID]', 0);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//cac:ClassifiedTaxCategory[@schemeID]', 0);
     end;
 
     [Test]
@@ -269,9 +303,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'E', <Percent> = 0
         // [THEN] <TaxCategory> has <TaxExemptionReason>
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesInvoice(SalesInvoiceHeader));
     end;
 
@@ -300,11 +334,11 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <AccountingSupplierParty> does not contain <PartyTaxScheme>
         // [THEN] <ClassifiedTaxCategory> does not contain <Percent>
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryO());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryO());
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesInvoice(SalesInvoiceHeader));
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cbc:PartyTaxScheme');
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:ClassifiedTaxCategory/cbc:Percent');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cbc:PartyTaxScheme');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:ClassifiedTaxCategory/cbc:Percent');
     end;
 
     [Test]
@@ -330,9 +364,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'Z', <Percent> = 0
         // [THEN] <TaxExemptionReason> is not exported
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryZ());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cbc:TaxExemptionReason');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryZ());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cbc:TaxExemptionReason');
     end;
 
     [Test]
@@ -359,9 +393,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'AE', <Percent> = 0
         // [THEN] <TaxCategory> has <TaxExemptionReason>
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryAE());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryAE());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesInvoice(SalesInvoiceHeader));
     end;
 
@@ -389,9 +423,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'G', <Percent> = 0
         // [THEN] <TaxCategory> has <TaxExemptionReason>
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryG());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryG());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesInvoice(SalesInvoiceHeader));
     end;
 
@@ -418,8 +452,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <TaxCategory> has <ID> 'L', <Percent> = 7
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryL());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesInvoice(SalesInvoiceHeader)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryL());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesInvoice(SalesInvoiceHeader)));
     end;
 
     [Test]
@@ -445,8 +479,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <TaxCategory> has <ID> 'M', <Percent> = 4
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryM());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesInvoice(SalesInvoiceHeader)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryM());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesInvoice(SalesInvoiceHeader)));
     end;
 
     [Test]
@@ -474,8 +508,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <AccountingSupplierParty> does not contain <PartyTaxScheme>
         // [THEN] <ClassifiedTaxCategory> does not contain <Percent>
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryK());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryK());
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesInvoice(SalesInvoiceHeader));
     end;
 
@@ -510,10 +544,10 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <OrderReference> is "INV01"
         InitXPathXMLReaderForCreditNote(TempBlob);
         VerifyPEPPOLBISIdentifiers('CreditNote');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cbc:CompanyID', Customer."VAT Registration No.");
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:OrderReference/cbc:ID', SalesCrMemoHeader."External Document No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingCustomerParty//cbc:CompanyID', Customer."VAT Registration No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:OrderReference/cbc:ID', SalesCrMemoHeader."External Document No.");
         // [THEN] One node 'CreditNoteLine' created
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('cac:CreditNoteLine', 1);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('/*/cac:CreditNoteLine', 1);
         // [THEN] <EndpointID> exported as 'BE1234567890' with VAT schema ID (TFS 340767)
         VerifyCustomerEndpoint(Customer."VAT Registration No.", GetVATSchemaID(Customer."Country/Region Code"));
         // [THEN] <TaxCurrencyCode> is not exported, one <TaxTotal> node in XML (TFS 389982)
@@ -548,9 +582,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <AccountingCustomerParty> has <ID> = '1234567890123' with <SchemeID> = '0088'
         // [THEN] <OrderReference> is not exported
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cbc:ID', Customer.GLN);
-        LibraryXPathXMLReader.VerifyAttributeValue('cac:AccountingCustomerParty//cbc:ID', 'schemeID', GetGLNSchemeID());
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:OrderReference');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingCustomerParty//cbc:ID', Customer.GLN);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:AccountingCustomerParty//cbc:ID', 'schemeID', GetGLNSchemeID());
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:OrderReference');
         // [THEN] <EndpointID> exported as '1234567890123' with GLN schema ID (TFS 340767)
         VerifyCustomerEndpoint(Customer.GLN, GetGLNSchemeID());
     end;
@@ -584,9 +618,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <PartyTaxScheme> has <CompanyID> = 'NO1234567890'
         CompanyInformation.Get();
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
-          'cac:AccountingSupplierParty//cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
+          '/*/cac:AccountingSupplierParty//cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
         // [THEN] <EndpointID> exported as 'NO1234567890' with VAT schema ID (TFS 340767)
         VerifySupplierEndpoint(
@@ -623,9 +657,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <PartyTaxScheme> has <CompanyID> = 'NO1234567890'
         CompanyInformation.Get();
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:PartyLegalEntity/cbc:CompanyID', CompanyInformation.GLN);
-        LibraryXPathXMLReader.VerifyAttributeValue('//cac:PartyLegalEntity/cbc:CompanyID', 'schemeID', GetGLNSchemeID());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:PartyLegalEntity/cbc:CompanyID', CompanyInformation.GLN);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('//cac:PartyLegalEntity/cbc:CompanyID', 'schemeID', GetGLNSchemeID());
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
         // [THEN] <EndpointID> exported as '1234567890123' with GLN schema ID (TFS 340767)
         VerifySupplierEndpoint(CompanyInformation.GLN, GetGLNSchemeID());
@@ -655,12 +689,12 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <TaxCategory> has <ID> 'S', <Percent> = 10
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryS());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesCrMemo(SalesCrMemoHeader)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryS());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesCrMemo(SalesCrMemoHeader)));
 
         // [THEN] 'schemeID' attirbute is not exported for TaxCategory (TFS 388773)
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxTotal//cac:TaxCategory[@schemeID]', 0);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:CreditNoteLine//cac:ClassifiedTaxCategory[@schemeID]', 0);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//cac:TaxTotal//cac:TaxCategory[@schemeID]', 0);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//cac:CreditNoteLine//cac:ClassifiedTaxCategory[@schemeID]', 0);
     end;
 
     [Test]
@@ -687,9 +721,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'E', <Percent> = 0
         // [THEN] <TaxCategory> has <TaxExemptionReason>
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesCrMemo(SalesCrMemoHeader));
     end;
 
@@ -719,11 +753,11 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <AccountingSupplierParty> does not contain <PartyTaxScheme>
         // [THEN] <ClassifiedTaxCategory> does not contain <Percent>
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryO());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryO());
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesCrMemo(SalesCrMemoHeader));
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cbc:PartyTaxScheme');
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:ClassifiedTaxCategory/cbc:Percent');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cbc:PartyTaxScheme');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:ClassifiedTaxCategory/cbc:Percent');
     end;
 
     [Test]
@@ -750,9 +784,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'Z', <Percent> = 0
         // [THEN] <TaxExemptionReason> is not exported
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryZ());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cbc:TaxExemptionReason');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryZ());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cbc:TaxExemptionReason');
     end;
 
     [Test]
@@ -781,9 +815,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'AE', <Percent> = 0
         // [THEN] <TaxCategory> has <TaxExemptionReason>
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryAE());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryAE());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesCrMemo(SalesCrMemoHeader));
     end;
 
@@ -812,9 +846,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <TaxCategory> has <ID> 'G', <Percent> = 0
         // [THEN] <TaxCategory> has <TaxExemptionReason>
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryG());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(0));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryG());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(0));
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesCrMemo(SalesCrMemoHeader));
     end;
 
@@ -843,8 +877,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <TaxCategory> has <ID> 'L', <Percent> = 10
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryL());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesCrMemo(SalesCrMemoHeader)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryL());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesCrMemo(SalesCrMemoHeader)));
     end;
 
     [Test]
@@ -871,8 +905,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <TaxCategory> has <ID> 'M', <Percent> = 10
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryM());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesCrMemo(SalesCrMemoHeader)));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryM());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:Percent', Format(GetVATPctPostedSalesCrMemo(SalesCrMemoHeader)));
     end;
 
     [Test]
@@ -902,8 +936,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <AccountingSupplierParty> does not contain <PartyTaxScheme>
         // [THEN] <ClassifiedTaxCategory> does not contain <Percent>
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryK());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryK());
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:TaxCategory/cbc:TaxExemptionReason', GetExemptReasonPostedSalesCrMemo(SalesCrMemoHeader));
     end;
 
@@ -931,10 +965,10 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <OrderReference> is not exported
         InitXPathXMLReaderForInvoice(TempBlob);
         VerifyPEPPOLBISIdentifiers('Invoice');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cbc:ID', Customer.GLN);
-        LibraryXPathXMLReader.VerifyAttributeValue('cac:AccountingCustomerParty//cbc:ID', 'schemeID', GetGLNSchemeID());
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:OrderReference');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:DueDate', Format(ServiceInvoiceHeader."Due Date", 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingCustomerParty//cbc:ID', Customer.GLN);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:AccountingCustomerParty//cbc:ID', 'schemeID', GetGLNSchemeID());
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:OrderReference');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:DueDate', Format(ServiceInvoiceHeader."Due Date", 0, 9));
         // [THEN] <EndpointID> exported as '1234567890123' with GLN schema ID (TFS 340767)
         VerifyCustomerEndpoint(Customer.GLN, GetGLNSchemeID());
     end;
@@ -965,9 +999,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <OrderReference> is not exported
         InitXPathXMLReaderForCreditNote(TempBlob);
         VerifyPEPPOLBISIdentifiers('CreditNote');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cbc:ID', Customer.GLN);
-        LibraryXPathXMLReader.VerifyAttributeValue('cac:AccountingCustomerParty//cbc:ID', 'schemeID', GetGLNSchemeID());
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:OrderReference');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingCustomerParty//cbc:ID', Customer.GLN);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:AccountingCustomerParty//cbc:ID', 'schemeID', GetGLNSchemeID());
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:OrderReference');
         // [THEN] <EndpointID> exported as '1234567890123' with GLN schema ID (TFS 340767)
         VerifyCustomerEndpoint(Customer.GLN, GetGLNSchemeID());
     end;
@@ -998,8 +1032,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] 'Contact' node is not exported for 'AccountingSupplierParty'
         // [THEN] 'PaymentTerms' node is not generated
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:AccountingSupplierParty/cac:Contact');
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:PaymentTerms');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:AccountingSupplierParty/cac:Contact');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:PaymentTerms');
     end;
 
     [Test]
@@ -1029,8 +1063,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] 'Contact' node is not exported for 'AccountingSupplierParty'
         // [THEN] 'PaymentTerms' node is not generated
         InitXPathXMLReaderForCreditNote(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:AccountingSupplierParty/cac:Contact');
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:PaymentTerms');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:AccountingSupplierParty/cac:Contact');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:PaymentTerms');
     end;
 
     [Test]
@@ -1520,8 +1554,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN]
         InitXPathXMLReaderForInvoice(TempBlobXML);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AdditionalDocumentReference/cbc:ID', SalesInvoiceHeader."No.");
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:Attachment/cbc:EmbeddedDocumentBinaryObject', Base64Convert.ToBase64('Test'));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:AdditionalDocumentReference/cbc:ID', SalesInvoiceHeader."No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:Attachment/cbc:EmbeddedDocumentBinaryObject', Base64Convert.ToBase64('Test'));
     end;
 
     [Test]
@@ -1580,10 +1614,10 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] <PartyTaxScheme> with Seller VAT Identifier <CompanyID> is exported even though the invoice total is zero
         CompanyInformation.Get();
         InitXPathXMLReaderForInvoice(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
         // [THEN] <TaxCategory> has <ID> 'E'
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:TaxCategory/cbc:ID', GetTaxCategoryE());
     end;
 
     [Test]
@@ -1615,26 +1649,26 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] The PEPPOL Ordering 3.0 identifiers, order id, issue date, sales order id and buyer reference are exported
         InitXPathXMLReaderForOrder(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:CustomizationID', 'urn:fdc:peppol.eu:poacc:trns:order:3');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:ProfileID', 'urn:fdc:peppol.eu:poacc:bis:ordering:3');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:ID', PurchaseHeader."No.");
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:IssueDate', Format(PurchaseHeader."Document Date", 0, 9));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:SalesOrderID', PurchaseHeader."Vendor Order No.");
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:CustomerReference', PurchaseHeader."Your Reference");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:CustomizationID', 'urn:fdc:peppol.eu:poacc:trns:order:3');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:ProfileID', 'urn:fdc:peppol.eu:poacc:bis:ordering:3');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:ID', PurchaseHeader."No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:IssueDate', Format(PurchaseHeader."Document Date", 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:SalesOrderID', PurchaseHeader."Vendor Order No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:CustomerReference', PurchaseHeader."Your Reference");
 
         // [THEN] <SellerSupplierParty> has <EndpointID> = vendor's GLN with GLN schemeID
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:SellerSupplierParty//cbc:EndpointID', Vendor.GLN);
-        LibraryXPathXMLReader.VerifyAttributeValue('cac:SellerSupplierParty//cbc:EndpointID', 'schemeID', GetGLNSchemeID());
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:SellerSupplierParty//cac:PartyIdentification/cbc:ID', Vendor."No.");
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:SellerSupplierParty//cbc:EndpointID', Vendor.GLN);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:SellerSupplierParty//cbc:EndpointID', 'schemeID', GetGLNSchemeID());
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:SellerSupplierParty//cac:PartyIdentification/cbc:ID', Vendor."No.");
 
         // [THEN] Exactly one <OrderLine> is created for the single purchase line, with quantity and price
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('cac:OrderLine', 1);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:OrderLine/cac:LineItem/cbc:Quantity', Format(Quantity, 0, 9));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:OrderLine/cac:LineItem/cac:Price/cbc:PriceAmount', Format(UnitCost, 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('/*/cac:OrderLine', 1);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:OrderLine/cac:LineItem/cbc:Quantity', Format(Quantity, 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:OrderLine/cac:LineItem/cac:Price/cbc:PriceAmount', Format(UnitCost, 0, 9));
 
         // [THEN] <AnticipatedMonetaryTotal>/<PayableAmount> equals the purchase line's own Amount Including VAT
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:AnticipatedMonetaryTotal/cbc:PayableAmount', Format(PurchaseLine."Amount Including VAT", 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:AnticipatedMonetaryTotal/cbc:PayableAmount', Format(PurchaseLine."Amount Including VAT", 0, 9));
     end;
 
     [Test]
@@ -1666,10 +1700,10 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <BuyerCustomerParty> has no <PartyTaxScheme> at all
         InitXPathXMLReaderForOrder(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:BuyerCustomerParty/cac:Party/cac:PartyTaxScheme');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:BuyerCustomerParty/cac:Party/cac:PartyTaxScheme');
 
         // [THEN] The buyer is still identified by the company GLN in <PartyLegalEntity><CompanyID>
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:BuyerCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', CompanyInformation.GLN);
     end;
 
@@ -1699,9 +1733,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] <PartyTaxScheme> has the company VAT Registration No. as <CompanyID> and <TaxScheme><ID> = 'VAT'
         InitXPathXMLReaderForOrder(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:BuyerCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', GetCompanyVATRegNo(CompanyInformation));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+        LibraryXPathXMLReader.VerifyXmlNodeValue(
           '//cac:BuyerCustomerParty/cac:Party/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID', 'VAT');
     end;
 
@@ -1745,23 +1779,23 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] The header-level <Delivery><RequestedDeliveryPeriod> uses the header's own Requested Receipt Date
         InitXPathXMLReaderForOrder(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(HeaderRequestedReceiptDate, 0, 9));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(HeaderRequestedReceiptDate, 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(HeaderRequestedReceiptDate, 0, 9));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(HeaderRequestedReceiptDate, 0, 9));
 
         // [THEN] Line 1's <Delivery><RequestedDeliveryPeriod> uses its own Requested Receipt Date, not the header's
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex(
-          'cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(Line1RequestedReceiptDate, 0, 9), 0);
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex(
-          'cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(Line1RequestedReceiptDate, 0, 9), 0);
+        LibraryXPathXMLReader.VerifyXmlNodeValueByIndex(
+          '/*/cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(Line1RequestedReceiptDate, 0, 9), 0);
+        LibraryXPathXMLReader.VerifyXmlNodeValueByIndex(
+          '/*/cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(Line1RequestedReceiptDate, 0, 9), 0);
 
         // [THEN] Line 2 exports the header's Requested Receipt Date, which it inherited and never overrode
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex(
-          'cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(HeaderRequestedReceiptDate, 0, 9), 1);
-        LibraryXPathXMLReader.VerifyNodeValueByXPathWithIndex(
-          'cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(HeaderRequestedReceiptDate, 0, 9), 1);
+        LibraryXPathXMLReader.VerifyXmlNodeValueByIndex(
+          '/*/cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:StartDate', Format(HeaderRequestedReceiptDate, 0, 9), 1);
+        LibraryXPathXMLReader.VerifyXmlNodeValueByIndex(
+          '/*/cac:OrderLine/cac:LineItem/cac:Delivery/cac:RequestedDeliveryPeriod/cbc:EndDate', Format(HeaderRequestedReceiptDate, 0, 9), 1);
 
         // [THEN] Both lines get a <Delivery> block
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('cac:OrderLine/cac:LineItem/cac:Delivery', 2);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('/*/cac:OrderLine/cac:LineItem/cac:Delivery', 2);
     end;
 
     [Test]
@@ -1788,7 +1822,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
         // [THEN] No <RequestedDeliveryPeriod> element is exported, at header or line level
         InitXPathXMLReaderForOrder(TempBlob);
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cac:RequestedDeliveryPeriod');
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cac:RequestedDeliveryPeriod');
     end;
 
     local procedure Initialize()
@@ -2353,50 +2387,50 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     begin
         // Parameter RootNode kept for future use when migrating remaining tests
         if RootNode = '' then;
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:CustomizationID', 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0');
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cbc:ProfileID', 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:CustomizationID', 'urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:3.0');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cbc:ProfileID', 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0');
     end;
 
     local procedure VerifySupplierEndpoint(EndpointID: Text; schemeID: Text)
     begin
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingSupplierParty//cbc:EndpointID', EndpointID);
-        LibraryXPathXMLReader.VerifyAttributeValue('cac:AccountingSupplierParty//cbc:EndpointID', 'schemeID', schemeID);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingSupplierParty//cbc:EndpointID', EndpointID);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:AccountingSupplierParty//cbc:EndpointID', 'schemeID', schemeID);
     end;
 
     local procedure VerifyCustomerEndpoint(EndpointID: Text; schemeID: Text)
     begin
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cbc:EndpointID', EndpointID);
-        LibraryXPathXMLReader.VerifyAttributeValue('cac:AccountingCustomerParty//cbc:EndpointID', 'schemeID', schemeID);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:AccountingCustomerParty//cbc:EndpointID', EndpointID);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:AccountingCustomerParty//cbc:EndpointID', 'schemeID', schemeID);
     end;
 
     local procedure VerifyTaxTotalNode(DocumentType: Text; SubTotalQty: Integer)
     begin
         // Parameter DocumentType kept for future use when migrating remaining tests
         if DocumentType = '' then;
-        LibraryXPathXMLReader.VerifyNodeAbsence('//cbc:TaxCurrencyCode');
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxTotal', 1);
-        LibraryXPathXMLReader.VerifyNodeCountByXPath('//cac:TaxSubtotal', SubTotalQty);
+        LibraryXPathXMLReader.VerifyXmlNodeAbsence('//cbc:TaxCurrencyCode');
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//cac:TaxTotal', 1);
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//cac:TaxSubtotal', SubTotalQty);
     end;
 
     local procedure VerifyTaxTotalAmounts(TaxableAmount: Decimal; VATPct: Decimal; IdxAmount: Integer; IdxPct: Integer)
     begin
-        Assert.AreEqual(Format(TaxableAmount), LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//cbc:TaxableAmount', IdxAmount), '');
-        Assert.AreEqual(Format(VATPct), LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//cbc:Percent', IdxPct), '');
+        Assert.AreEqual(Format(TaxableAmount), LibraryXPathXMLReader.GetXmlNodeInnerTextByXPathWithIndex('//cbc:TaxableAmount', IdxAmount), '');
+        Assert.AreEqual(Format(VATPct), LibraryXPathXMLReader.GetXmlNodeInnerTextByXPathWithIndex('//cbc:Percent', IdxPct), '');
     end;
 
     local procedure VerifyInvoiceLineAmounts(LineExtensionAmount: Decimal; VATPct: Decimal; IdxAmount: Integer; IdxPct: Integer)
     begin
-        Assert.AreEqual(Format(LineExtensionAmount), LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//cbc:LineExtensionAmount', IdxAmount), '');
-        Assert.AreEqual(Format(VATPct), LibraryXPathXMLReader.GetNodeInnerTextByXPathWithIndex('//cbc:Percent', IdxPct), '');
+        Assert.AreEqual(Format(LineExtensionAmount), LibraryXPathXMLReader.GetXmlNodeInnerTextByXPathWithIndex('//cbc:LineExtensionAmount', IdxAmount), '');
+        Assert.AreEqual(Format(VATPct), LibraryXPathXMLReader.GetXmlNodeInnerTextByXPathWithIndex('//cbc:Percent', IdxPct), '');
     end;
 
     local procedure VerifyLegalMonetaryTotalAmounts(LineExtensionAmount: Decimal; TaxExclusiveAmount: Decimal; TaxInclusiveAmount: Decimal; PayableRoundingAmount: Decimal; PayableAmount: Decimal)
     begin
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:LineExtensionAmount', Format(LineExtensionAmount));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', Format(TaxExclusiveAmount));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', Format(TaxInclusiveAmount));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:PayableRoundingAmount', Format(PayableRoundingAmount));
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//cac:LegalMonetaryTotal/cbc:PayableAmount', Format(PayableAmount));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:LegalMonetaryTotal/cbc:LineExtensionAmount', Format(LineExtensionAmount));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', Format(TaxExclusiveAmount));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', Format(TaxInclusiveAmount));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:LegalMonetaryTotal/cbc:PayableRoundingAmount', Format(PayableRoundingAmount));
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//cac:LegalMonetaryTotal/cbc:PayableAmount', Format(PayableAmount));
     end;
 
     local procedure GetCountryPrefix(CountryCode: Code[10]): Text
@@ -2431,6 +2465,31 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         SalesLine.Modify(true);
     end;
 
+    local procedure CreateNativeXmlReaderFixture(var TempBlob: Codeunit "Temp Blob"; RootNode: Text; NamespaceTxt: Text)
+    var
+        OutStrm: OutStream;
+        FixtureXmlTxt: Label '<%1 xmlns="%2" xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2" xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"><cbc:ID>%1</cbc:ID><cac:TaxTotal><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">10</cbc:TaxableAmount><cac:TaxCategory><cbc:Percent>7</cbc:Percent></cac:TaxCategory></cac:TaxSubtotal><cac:TaxSubtotal><cbc:TaxableAmount currencyID="EUR">20</cbc:TaxableAmount><cac:TaxCategory><cbc:Percent>19</cbc:Percent></cac:TaxCategory></cac:TaxSubtotal></cac:TaxTotal></%1>', Locked = true, Comment = '%1 - document root node, %2 - document namespace';
+    begin
+        Clear(TempBlob);
+        TempBlob.CreateOutStream(OutStrm, TextEncoding::UTF8);
+        OutStrm.WriteText(StrSubstNo(FixtureXmlTxt, RootNode, NamespaceTxt));
+    end;
+
+    local procedure VerifyNativeXmlReaderFixture(RootNode: Text)
+    var
+        RootIDXPathTxt: Label '/ns:%1/cbc:ID', Locked = true, Comment = '%1 - document root node';
+    begin
+        LibraryXPathXMLReader.VerifyXmlNodeValue(StrSubstNo(RootIDXPathTxt, RootNode), RootNode);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('/*/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', '10');
+        LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('/*/cac:TaxTotal/cac:TaxSubtotal', 2);
+        LibraryXPathXMLReader.VerifyXmlNodeValueByIndex('/*/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', '10', 0);
+        LibraryXPathXMLReader.VerifyXmlNodeValueByIndex('/*/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', '20', 1);
+        LibraryXPathXMLReader.VerifyXmlAttributeValue('/*/cac:TaxTotal/cac:TaxSubtotal/cbc:TaxableAmount', 'currencyID', 'EUR');
+        VerifyTaxTotalNode(RootNode, 2);
+        VerifyTaxTotalAmounts(10, 7, 0, 0);
+        VerifyTaxTotalAmounts(20, 19, 1, 1);
+    end;
+
     local procedure InitXPathXMLReaderForInvoice(TempBlob: Codeunit "Temp Blob")
     begin
         InitXPathXMLReader(TempBlob, InvoiceNamespaceTxt);
@@ -2448,10 +2507,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
 
     local procedure InitXPathXMLReader(TempBlob: Codeunit "Temp Blob"; NamespaceTxt: Text)
     begin
-        LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
-        LibraryXPathXMLReader.SetDefaultNamespaceUsage(false);
-        LibraryXPathXMLReader.AddAdditionalNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
-        LibraryXPathXMLReader.AddAdditionalNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        LibraryXPathXMLReader.InitializeXml(TempBlob, NamespaceTxt);
+        LibraryXPathXMLReader.AddAdditionalXmlNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        LibraryXPathXMLReader.AddAdditionalXmlNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
     end;
 
     local procedure SetShipToAddressOnCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
