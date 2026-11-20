@@ -9,8 +9,10 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
+using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
@@ -31,6 +33,8 @@ codeunit 149909 "Subc. Whse Data Integrity"
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -65,6 +69,133 @@ codeunit 149909 "Subc. Whse Data Integrity"
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Whse Data Integrity");
+    end;
+
+    local procedure InitializeSummary()
+    begin
+        Initialize();
+        SubcontractingMgmtLibrary.Initialize();
+        SubcontractingMgmtLibrary.UpdateSubMgmtSetup_ComponentAtLocation("Components at Location"::Purchase);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcLibraryMfgManagement.Initialize();
+    end;
+
+    [Test]
+    procedure SummarySignedOpenLinePredicate()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseLine: Record "Purchase Line";
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Calculation-only signed quantities use inequality, not a positive remaining threshold.
+        InitializeSummary();
+
+        // [GIVEN] Deliberate persisted reader fixtures, not a negative posting workflow.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.InsertSummaryReceipt(ProductionOrder."No.", -0.25);
+        SubcWarehouseLibrary.InsertSummaryInvoice(ProductionOrder."No.", -0.25);
+        SubcWarehouseLibrary.InsertSummaryPurchase(ProductionOrder."No.", PurchaseLine."Document Type"::Order, -0.25, -0.25, PurchaseLine);
+        Assert.IsTrue(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Equal signed line and history must qualify.');
+
+        // [WHEN] The signed invoiced quantity differs, with editable Qty. to Invoice zero.
+        PurchaseLine."Quantity Invoiced" := -0.20;
+        PurchaseLine."Qty. to Invoice" := 0;
+        PurchaseLine.Modify();
+
+        // [THEN] Signed inequality is open even though Quantity is less than Quantity Invoiced.
+        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Signed inequality must block Yes.');
+    end;
+
+    [Test]
+    procedure SummaryComparesExactStoredTotals()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        InvoiceLine: Record "Purch. Inv. Line";
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Calculation-only exact stored totals are compared before five-place display formatting.
+        InitializeSummary();
+
+        // [GIVEN] Stored reader decimals differ below display precision; no native six-place posting is claimed.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.InsertSummaryReceipt(ProductionOrder."No.", 0.100001);
+        SubcWarehouseLibrary.InsertSummaryInvoice(ProductionOrder."No.", 0.100002);
+        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Display-equal stored totals are not equal.');
+
+        // [WHEN] The stored invoice total becomes exactly equal.
+#pragma warning disable AA0210 // Bounded invoice fixture.
+        InvoiceLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning restore AA0210
+        InvoiceLine.FindFirst();
+        InvoiceLine.Quantity := 0.100001;
+        InvoiceLine.Modify();
+
+        // [THEN] Exact equality qualifies.
+        Assert.IsTrue(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Exact stored equality must qualify.');
+    end;
+
+    [Test]
+    procedure SummaryBlankIdentityDoesNotReadOrOpenDetails()
+    var
+        BlankOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+        HasOpenLine: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] A blank identity cannot read unrelated blank-linked purchasing rows or open detail pages.
+        InitializeSummary();
+
+        // [GIVEN] An ordinary purchase line has quantity but no production order identity.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 99);
+
+        // [WHEN] Summary reads and detail requests receive a blank production order identity.
+        // [THEN] No quantity, positive indicator or page invocation escapes the guard; no page handlers are registered.
+        Assert.AreEqual(0, SummaryMgmt.GetPurchaseQuantity(BlankOrder, HasOpenLine), 'Blank identity must not read blank-linked rows.');
+        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(BlankOrder), 'Blank identity must not display a positive indicator.');
+        SummaryMgmt.ShowPurchase(BlankOrder);
+        SummaryMgmt.ShowReceipts(BlankOrder);
+        SummaryMgmt.ShowInvoices(BlankOrder);
+        SummaryMgmt.ShowRouting(BlankOrder);
+        SummaryMgmt.ShowWIP(BlankOrder, false);
+        SummaryMgmt.ShowTransfers(BlankOrder, false);
+    end;
+
+    [Test]
+    procedure SummaryDisabledApplicationAreaDoesNotRead()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+        HasOpenLine: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] The supported application-area gate prevents reads when subcontracting is unavailable.
+        InitializeSummary();
+
+        // [GIVEN] An eligible order has a linked ten-unit purchase line.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+
+        // [WHEN] The Essential experience disables the subcontracting application area.
+        LibraryApplicationArea.EnableEssentialSetup();
+
+        // [THEN] The summary cannot read the existing linked quantity or report a positive indicator.
+        Assert.IsFalse(SummaryMgmt.CanRead(ProductionOrder), 'Disabled application area must prevent summary reads.');
+        Assert.AreEqual(0, SummaryMgmt.GetPurchaseQuantity(ProductionOrder, HasOpenLine), 'Disabled application area must not expose linked quantities.');
+        Assert.IsFalse(SummaryMgmt.IsFullyInvoiced(ProductionOrder), 'Disabled application area must not expose an invoicing indicator.');
+        LibraryApplicationArea.EnablePremiumSetup();
     end;
 
     [Test]

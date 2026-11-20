@@ -9,7 +9,7 @@ codeunit 20500 "Subc. Session State"
     SingleInstance = true;
 
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -20,7 +20,7 @@ codeunit 20500 "Subc. Session State"
 
     procedure ClearAllDictionariesForKey(StoredKey: Text)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -38,7 +38,7 @@ codeunit 20500 "Subc. Session State"
 
     procedure SetCode(KeyToStore: Text; CodeToStore: Code[1024])
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -52,7 +52,7 @@ codeunit 20500 "Subc. Session State"
 
     procedure SetDate(KeyToStore: Text; DateToStore: Date)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -66,7 +66,7 @@ codeunit 20500 "Subc. Session State"
 
     procedure SetRecordID(KeyToStore: Text; RecordIDToStore: RecordId)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -80,7 +80,7 @@ codeunit 20500 "Subc. Session State"
 
     procedure GetCode(StoredKey: Text): Code[1024]
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -92,7 +92,7 @@ codeunit 20500 "Subc. Session State"
 
     procedure GetDate(StoredKey: Text): Date
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -104,7 +104,7 @@ codeunit 20500 "Subc. Session State"
 
     procedure GetRecordID(StoredKey: Text; var ReturnRecordID: RecordId)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

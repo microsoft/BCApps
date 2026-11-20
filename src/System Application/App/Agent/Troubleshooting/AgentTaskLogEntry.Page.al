@@ -265,7 +265,6 @@ page 4312 "Agent Task Log Entry"
         AgentTaskLogEntryRecord: Record "Agent Task Log Entry";
         AgentTaskLogEntry: Codeunit "Agent Task Log Entry";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
-        ContentInStream: InStream;
     begin
         LogEntryDetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskLogEntry(Rec);
         SetIsAgentAction();
@@ -276,9 +275,7 @@ page 4312 "Agent Task Log Entry"
             exit;
         end;
 
-        MemoryEntry.CalcFields(Details);
-        MemoryEntry.Details.CreateInStream(ContentInStream, AgentTaskLogEntry.GetDefaultEncoding());
-        ContentInStream.Read(MemoryEntryDetailsTxt);
+        MemoryEntryDetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskMemoryEntry(MemoryEntry);
 
         AgentName := AgentTaskLogEntry.GetAgentName(Rec);
         ParseDetails();

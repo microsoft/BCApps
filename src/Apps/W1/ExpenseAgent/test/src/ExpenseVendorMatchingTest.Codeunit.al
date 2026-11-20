@@ -6,7 +6,10 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Vendor;
+using System.TestLibraries.Upgrade;
+using System.Upgrade;
 
 codeunit 148337 "Expense Vendor Matching Test"
 {
@@ -50,6 +53,61 @@ codeunit 148337 "Expense Vendor Matching Test"
 
         // [THEN] No Expense Vendor was created and the expense remains unlinked.
         Assert.AreEqual('', Expense."Expense Vendor No.", StrSubstNo(ExpenseVendorNoShouldBeEmptyErr, Expense."Expense Vendor No."));
+    end;
+
+    [Test]
+    procedure UpgradeInitializesExpenseVendorNosForMerchantCreation()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseVendor: Record "Expense Vendor";
+        NoSeriesManagement: Codeunit "No. Series";
+        UpgradeExpenseAgentSetup: Codeunit "Upgrade Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
+        ExpectedNextNo: Code[20];
+        ExistingExpenseNos: Code[20];
+    begin
+        // [FEATURE] [Expense Agent] [Upgrade] [Expense Vendor]
+        // [SCENARIO 658051] An upgraded company with previously applied defaults can create merchant expenses.
+        Initialize();
+
+        // [GIVEN] Legacy setup has no expense vendor series despite having applied number series defaults.
+        ExpenseAgentSetup.Get();
+        ExistingExpenseNos := ExpenseAgentSetup."Expense Nos.";
+        ExpenseAgentSetup.Validate("Expense Vendor Nos.", '');
+        ExpenseAgentSetup."No. Series Applied" := true;
+        ExpenseAgentSetup.Modify(true);
+        if UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetExpenseVendorNoSeriesUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(
+                UpgradeExpenseAgentSetup.GetExpenseVendorNoSeriesUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+
+        // [WHEN] The expense vendor numbering upgrade runs and an expense with merchant information is inserted.
+        UpgradeExpenseAgentSetup.UpgradeExpenseVendorNoSeries();
+        Expense.Init();
+        Expense."Merchant Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."Merchant Name"));
+        Expense.Insert(true);
+
+        // [THEN] Merchant matching creates an expense vendor using the initialized numbering.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Expense Nos.", ExistingExpenseNos);
+        ExpenseAgentSetup.TestField("No. Series Applied", true);
+        Expense.TestField("Expense Vendor No.");
+        ExpenseVendor.Get(Expense."Expense Vendor No.");
+        ExpenseVendor.TestField(Name, Expense."Merchant Name");
+        ExpenseVendor.TestField("No. Series", ExpenseAgentSetup."Expense Vendor Nos.");
+        Assert.IsTrue(
+            UpgradeTag.HasUpgradeTag(UpgradeExpenseAgentSetup.GetExpenseVendorNoSeriesUpgradeTag()),
+            'The upgrade must be marked complete after initializing vendor numbering.');
+
+        // [WHEN] The upgrade is requested again after allocating a vendor number.
+        ExpectedNextNo := NoSeriesManagement.PeekNextNo(ExpenseAgentSetup."Expense Vendor Nos.", WorkDate());
+        UpgradeExpenseAgentSetup.UpgradeExpenseVendorNoSeries();
+
+        // [THEN] The vendor number series is not reset or advanced.
+        Assert.AreEqual(
+            ExpectedNextNo, NoSeriesManagement.PeekNextNo(ExpenseAgentSetup."Expense Vendor Nos.", WorkDate()),
+            'Repeating the upgrade must preserve the next expense vendor number.');
     end;
 
     [Test]

@@ -62,9 +62,10 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
             Page::"APIV2 - Sales Invoices",
             InvoiceServiceNameTxt,
             InvoiceServiceLinesNameTxt);
-        asserterror LibraryGraphMgt.GetFromWebService(ResponseText, TargetURL);
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
 
-        // [THEN] the response text should be empty
+        // [THEN] the URL is rejected as not found because the lines can only be reached through a parent document, and the response text is empty
+        Assert.ExpectedError('Response code is 404 (NotFound)');
         Assert.AreEqual('', ResponseText, 'Response JSON should be blank');
     end;
 
@@ -1083,6 +1084,8 @@ codeunit 139834 "APIV2 - Sales Inv. Lines E2E"
 
         Assert.AreNotEqual('', InvoiceLineID, 'ID should not be empty');
         LibraryInventory.CreateItem(Item);
+        LibraryGraphDocumentTools.EnsureVATPostingSetupExists(
+            SalesLine."VAT Bus. Posting Group", Item."VAT Prod. Posting Group");
 
         InvoiceLineJSON := StrSubstNo('{"itemId":"%1"}', LibraryGraphMgt.StripBrackets(Item.SystemId));
         Commit();

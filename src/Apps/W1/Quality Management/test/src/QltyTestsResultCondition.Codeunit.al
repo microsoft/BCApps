@@ -193,6 +193,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
 
         // [THEN] The test result condition is updated with the new condition
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
+        LibraryAssert.AreEqual(NewResult2PassConditionNumberTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have the new number condition.');
 
         QltyInspectionResult.Validate("Default Number Condition", DefaultResult2PassConditionNumberTok);
         QltyInspectionResult.Modify();
@@ -242,6 +243,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
     procedure PromptUpdateTestsFromResult_UpdateTextCondition_ShouldUpdate()
     var
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        OriginalTextCondition: Text[500];
         TestCode: Text;
     begin
         // [SCENARIO] Update test result conditions when result default text condition changes and user confirms the update
@@ -250,6 +252,12 @@ codeunit 139956 "Qlty. Tests - Result Condition"
 
         // [GIVEN] Quality Management setup is initialized
         QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] The default text condition is independent of demo data
+        QltyInspectionResult.Get(DefaultResult2PassCodeTok);
+        OriginalTextCondition := QltyInspectionResult."Default Text Condition";
+        QltyInspectionResult."Default Text Condition" := DefaultResult2PassConditionTextTok;
+        QltyInspectionResult.Modify();
 
         // [GIVEN] A quality test with text type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -270,8 +278,9 @@ codeunit 139956 "Qlty. Tests - Result Condition"
 
         // [THEN] The test result condition is updated with the new text condition
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
+        LibraryAssert.AreEqual(NewResult2PassConditionTextTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have the new text condition.');
 
-        QltyInspectionResult.Validate("Default Text Condition", DefaultResult2PassConditionTextTok);
+        QltyInspectionResult."Default Text Condition" := OriginalTextCondition;
         QltyInspectionResult.Modify();
     end;
 
@@ -280,6 +289,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
     procedure PromptUpdateTestsFromResult_UpdateTextCondition_ShouldNotUpdate()
     var
         ToLoadQltyIResultConditConf: Record "Qlty. I. Result Condit. Conf.";
+        OriginalTextCondition: Text[500];
         TestCode: Text;
     begin
         // [SCENARIO] Do not update test result conditions when result default text condition changes and user declines the update
@@ -288,6 +298,12 @@ codeunit 139956 "Qlty. Tests - Result Condition"
 
         // [GIVEN] Quality Management setup is initialized
         QltyInspectionUtility.EnsureSetupExists();
+
+        // [GIVEN] The default text condition is independent of demo data
+        QltyInspectionResult.Get(DefaultResult2PassCodeTok);
+        OriginalTextCondition := QltyInspectionResult."Default Text Condition";
+        QltyInspectionResult."Default Text Condition" := DefaultResult2PassConditionTextTok;
+        QltyInspectionResult.Modify();
 
         // [GIVEN] A quality test with text type is created and result conditions are copied from default
         Clear(QltyTest);
@@ -310,7 +326,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
         LibraryAssert.AreEqual(DefaultResult2PassConditionTextTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have default text condition.');
 
-        QltyInspectionResult.Validate("Default Text Condition", DefaultResult2PassConditionTextTok);
+        QltyInspectionResult."Default Text Condition" := OriginalTextCondition;
         QltyInspectionResult.Modify();
     end;
 
@@ -347,6 +363,7 @@ codeunit 139956 "Qlty. Tests - Result Condition"
 
         // [THEN] The test result condition is updated with the new boolean condition
         ToLoadQltyIResultConditConf.Get(ToLoadQltyIResultConditConf."Condition Type"::Test, QltyTest.Code, 0, 0, QltyTest.Code, DefaultResult2PassCodeTok);
+        LibraryAssert.AreEqual(NewResult2PassConditionBooleanTok, ToLoadQltyIResultConditConf.Condition, 'Result condition config should have the new boolean condition.');
 
         QltyInspectionResult.Validate("Default Boolean Condition", DefaultResult2PassConditionBooleanTok);
         QltyInspectionResult.Modify();

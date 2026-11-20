@@ -10,6 +10,7 @@ permissionset 10800 "FR-PMS"
     Assignable = true;
     Caption = 'FR Payment Management System';
 
+#if not CLEAN30
     Permissions =
 #if not CLEAN28
                   tabledata "Bank Account Buffer" = RIMD,
@@ -24,5 +25,8 @@ permissionset 10800 "FR-PMS"
                   tabledata "Payment Step" = RIMD,
                   tabledata "Payment Step Ledger" = RIMD,
 #endif
+#pragma warning disable AL0432
                   tabledata "Unreal. CV Ledg. Entry Buffer" = RIMD;
+#pragma warning restore AL0432
+#endif
 }

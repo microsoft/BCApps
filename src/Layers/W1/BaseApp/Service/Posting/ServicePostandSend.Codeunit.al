@@ -27,22 +27,34 @@ codeunit 5979 "Service-Post and Send"
     var
         TempDocumentSendingProfile: Record "Document Sending Profile" temporary;
         ServicePost: Codeunit "Service-Post";
+        ConfirmPostAndSendIsHandled: Boolean;
+        PostIsHandled: Boolean;
+        SkipPost: Boolean;
+        InvoiceCreated: Boolean;
     begin
         OnBeforeCode(ServiceHeader);
 
-        case ServiceHeader."Document Type" of
-            ServiceHeader."Document Type"::Invoice,
-              ServiceHeader."Document Type"::"Credit Memo":
-                if not ConfirmPostAndSend(ServiceHeader, TempDocumentSendingProfile) then
-                    exit;
-            else
-                Error(NotSupportedDocumentTypeErr, ServiceHeader."Document Type");
-        end;
+        ConfirmPostAndSendIsHandled := ServiceHeader."Document Type" in [ServiceHeader."Document Type"::Invoice, ServiceHeader."Document Type"::"Credit Memo"];
+        OnCodeOnBeforeConfirmPostAndSend(ServiceHeader, ConfirmPostAndSendIsHandled);
+        if ConfirmPostAndSendIsHandled then begin
+            if not ConfirmPostAndSend(ServiceHeader, TempDocumentSendingProfile) then
+                exit;
+        end else
+            Error(NotSupportedDocumentTypeErr, ServiceHeader."Document Type");
 
         TempDocumentSendingProfile.CheckElectronicSendingEnabled();
         ValidateElectronicFormats(TempDocumentSendingProfile);
 
-        CODEUNIT.Run(CODEUNIT::"Service-Post", ServiceHeader);
+        PostIsHandled := false;
+        SkipPost := false;
+        InvoiceCreated := false;
+        OnCodeOnBeforePost(ServiceHeader, PostIsHandled, SkipPost, InvoiceCreated);
+        if PostIsHandled then begin
+            if SkipPost then
+                exit;
+            ServicePost.SetPostingOptions(false, false, InvoiceCreated);
+        end else
+            CODEUNIT.Run(CODEUNIT::"Service-Post", ServiceHeader);
 
         OnAfterPostAndBeforeSend(ServiceHeader);
         Commit();
@@ -111,6 +123,16 @@ codeunit 5979 "Service-Post and Send"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnCodeOnBeforeConfirmPostAndSend(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCodeOnBeforePost(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean; var SkipPost: Boolean; var InvoiceCreated: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnAfterCode(var ServiceHeader: Record "Service Header")
     begin
     end;
@@ -120,4 +142,3 @@ codeunit 5979 "Service-Post and Send"
     begin
     end;
 }
-

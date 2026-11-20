@@ -195,9 +195,9 @@ report 4404 "EXR Vendor Top List"
         exit(VendorFilter.TrimEnd('|'));
     end;
 
-    local procedure EscapeVendorNoFilter(VendorNo: Code[20]): Text
+    local procedure EscapeVendorNoFilter(VendorNo: Text): Text
     begin
-        exit('''' + VendorNo + '''');
+        exit('''' + VendorNo.Replace('''', '''''') + '''');
     end;
 
     local procedure ChangeShowType(NewShowType: Option)
@@ -216,7 +216,7 @@ report 4404 "EXR Vendor Top List"
         EXTTopVendorPurchase.Open();
         if EXTTopVendorPurchase.Read() then
             repeat
-                TopVendorData.SetFilter(TopVendorData."Vendor No.", EscapeVendorNoFilter(EXTTopVendorPurchase.Vendor_No));
+                TopVendorData.SetRange(TopVendorData."Vendor No.", EXTTopVendorPurchase.Vendor_No);
                 if TopVendorData.FindFirst() then begin
                     TopVendorData."Amount 2 (LCY)" := EXTTopVendorPurchase.Sum_Purch_LCY;
                     if Vendor.Get(TopVendorData."Vendor No.") then
@@ -236,7 +236,7 @@ report 4404 "EXR Vendor Top List"
         EXTTopVendorBalance.Open();
         if EXTTopVendorBalance.Read() then
             repeat
-                TopVendorData.SetFilter(TopVendorData."Vendor No.", EscapeVendorNoFilter(EXTTopVendorBalance.Vendor_No)); //Neelesh
+                TopVendorData.SetRange(TopVendorData."Vendor No.", EXTTopVendorBalance.Vendor_No);
                 if TopVendorData.FindFirst() then begin
                     TopVendorData."Amount 2 (LCY)" := EXTTopVendorBalance.Balance_LCY;
                     if Vendor.Get(TopVendorData."Vendor No.") then
