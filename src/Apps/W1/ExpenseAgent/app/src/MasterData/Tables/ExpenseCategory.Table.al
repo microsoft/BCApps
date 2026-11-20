@@ -124,6 +124,7 @@ table 6921 "Expense Category"
         }
         field(18; "Amount Limit for No Receipt"; Decimal)
         {
+            Access = Internal;
             Caption = 'Amount Limit for No Receipt';
             ToolTip = 'Specifies the amount limit for when receipts are required for this category of expenses.';
             AutoFormatType = 1;
