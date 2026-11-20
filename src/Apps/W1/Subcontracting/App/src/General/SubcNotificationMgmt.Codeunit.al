@@ -22,6 +22,24 @@ codeunit 20506 "Subc. Notification Mgmt."
         MissingSubcontractingLocationMsg: Label 'Vendor %1 has no subcontracting location. This location is used to track components and work-in-process (WIP) items at the subcontractor. Choose a Subcontracting Location Code on the vendor before using this work center for subcontracting.', Comment = '%1 = Vendor No.';
         OpenVendorCardLbl: Label 'Open Vendor Card';
         VendorNoTok: Label 'VendorNo', Locked = true;
+        ComponentSynchronizationMsg: Label 'Purchase order %1 was not fully synchronized: %2 vendor-supplied components have no unique purchase-line match, and %3 component purchase lines have no matching production component. Review the component purchase lines.', Comment = '%1 = purchase order number, %2 = skipped component count, %3 = orphaned purchase line count';
+
+    internal procedure ShowComponentSynchronizationNotification(PurchaseDocumentNo: Code[20]; MissingComponentCount: Integer; OrphanedLineCount: Integer)
+    var
+        ComponentSynchronizationNotification: Notification;
+    begin
+        if (MissingComponentCount = 0) and (OrphanedLineCount = 0) then
+            exit;
+
+        ComponentSynchronizationNotification.Id := '{D7794971-B762-44F0-9915-8C30C9760125}';
+        ComponentSynchronizationNotification.Scope := NotificationScope::LocalScope;
+        ComponentSynchronizationNotification.Message :=
+            StrSubstNo(ComponentSynchronizationMsg, PurchaseDocumentNo, MissingComponentCount, OrphanedLineCount);
+        ComponentSynchronizationNotification.SetData('PurchaseDocumentNo', PurchaseDocumentNo);
+        ComponentSynchronizationNotification.SetData('MissingComponentCount', Format(MissingComponentCount, 0, 9));
+        ComponentSynchronizationNotification.SetData('OrphanedLineCount', Format(OrphanedLineCount, 0, 9));
+        ComponentSynchronizationNotification.Send();
+    end;
 
     internal procedure ShowMissingSubcontractingLocationNotification(VendorNo: Code[20])
     var
