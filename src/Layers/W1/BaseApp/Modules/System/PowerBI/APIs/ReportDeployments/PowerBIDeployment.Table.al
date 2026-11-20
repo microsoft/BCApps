@@ -257,6 +257,32 @@ table 6316 "Power BI Deployment"
         PBIDeploymentEvents.OnAfterDeleteAllDeploymentRecords(InCompany);
     end;
 
+    internal procedure DeleteRecords(ReportId: Enum "Power BI Deployable Report")
+    var
+        PowerBIDeployment: Record "Power BI Deployment";
+        PowerBIDeploymentState: Record "Power BI Deployment State";
+        PBIDeploymentEvents: Codeunit "PBI Deployment Events";
+        DeployableReport: Interface "Power BI Deployable Report";
+        DeploymentInProgressErr: Label 'You cannot clear the deployment records of the %1 report because it is being deployed. Wait until the deployment finishes, and then try again.', Comment = '%1 = the name of the Power BI report';
+        HasDeploymentRecord: Boolean;
+    begin
+        HasDeploymentRecord := PowerBIDeployment.Get(ReportId);
+        if HasDeploymentRecord then
+            if PowerBIDeployment.GetDeploymentOutcome(PowerBIDeployment.GetDeploymentStatus()) = Enum::"Power BI Deployment Outcome"::"In Progress" then begin
+                DeployableReport := ReportId;
+                Error(DeploymentInProgressErr, DeployableReport.GetReportName());
+            end;
+
+        PowerBIDeploymentState.SetRange("Report Id", ReportId);
+        PowerBIDeploymentState.DeleteAll();
+
+        if not HasDeploymentRecord then
+            exit;
+        PowerBIDeployment.Delete();
+
+        PBIDeploymentEvents.OnAfterDeleteDeploymentRecord(PowerBIDeployment);
+    end;
+
     /// <summary>
     /// Creates a new state record for the given status.
     /// </summary>

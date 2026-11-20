@@ -1,0 +1,71 @@
+{
+  "id": "47f31a2d-b5f8-4b35-956a-59e8edebd13b",
+  "name": "Business Skills",
+  "publisher": "Microsoft",
+  "brief": "Provides tenant-wide business skills.",
+  "description": "Provides business skill authoring, lifecycle management, text history, portable import and export, discovery and semantic search.",
+  "version": "30.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
+      "name": "BLOB Storage",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
+      "name": "DotNet Aliases",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "a3964a53-9345-458a-af20-d13f7eab7bd7",
+      "name": "Cryptography Management",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "daa5d70e-eaf5-4256-bf80-53545ef7629a",
+      "name": "Privacy Notice",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "d3433b68-4901-445f-9547-fdfeca57575a",
+      "name": "AI SDK",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "b7e3a1d0-4f8c-4e2a-9c6b-1d3e5f7a9b0c",
+      "name": "Business IQ",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "8e362160-8fc5-4b6f-b694-324bceeb2450",
+      "name": "Business Skills Test",
+      "publisher": "Microsoft"
+    }
+  ],
+  "screenshots": [],
+  "platform": "30.0.0.0",
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 4160,
+      "to": 4179
+    }
+  ],
+  "features": [
+    "TranslationFile",
+    "NoImplicitWith"
+  ],
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+}
