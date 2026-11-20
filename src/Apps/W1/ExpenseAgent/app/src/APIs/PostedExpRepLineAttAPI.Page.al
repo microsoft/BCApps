@@ -122,7 +122,7 @@ page 6926 "Posted Exp. Rep. Line Att. API"
             PostedExpenseReportLineIdFilter := Rec.GetFilter("Document Id");
             AttachmentIdFilter := Rec.GetFilter(Id);
 
-            ExpAttachmentBufferHandler.LoadAttachments(Rec, Database::"Posted Expense Report Line", PostedExpenseReportLineIdFilter, AttachmentIdFilter);
+            ExpAttachmentBufferHandler.LoadAttachments(Rec, Database::"Posted Expense Report Line", PostedExpenseReportLineIdFilter, AttachmentIdFilter, ExpAttachmentBufferHandler.IsFilteredByParentLink(Rec));
 
             Rec.SetView(FilterView);
             AttachmentsFound := Rec.FindFirst();

@@ -20,6 +20,18 @@ codeunit 6952 "Exp. Attach. Buffer Handler"
         DocumentAttachmentCannotDeletedForExpenseFromReportLineErr: Label 'You cannot delete attachment from Expense Report Line when it is attached to Expense.';
 
     procedure LoadAttachments(var AttachmentEntityBuffer: Record "Attachment Entity Buffer"; TableID: Integer; SystemIdFilter: Text; AttachmentIdFilter: Text)
+    begin
+        LoadAttachments(AttachmentEntityBuffer, TableID, SystemIdFilter, AttachmentIdFilter, false);
+    end;
+
+    /// <summary>
+    /// Loads the attachments of the parent record identified by SystemIdFilter into the buffer.
+    /// </summary>
+    /// <param name="SkipMissingParent">
+    /// If true, a parent that no longer exists results in an empty buffer instead of an error.
+    /// Use it only when the parent filter comes from the parent page's SubPageLink.
+    /// </param>
+    internal procedure LoadAttachments(var AttachmentEntityBuffer: Record "Attachment Entity Buffer"; TableID: Integer; SystemIdFilter: Text; AttachmentIdFilter: Text; SkipMissingParent: Boolean)
     var
         DocumentAttachment: Record "Document Attachment";
         Expense: Record Expense;
@@ -40,8 +52,11 @@ codeunit 6952 "Exp. Attach. Buffer Handler"
             case TableID of
                 Database::Expense:
                     begin
-                        if not Expense.GetBySystemId(SystemId) then
+                        if not Expense.GetBySystemId(SystemId) then begin
+                            if SkipMissingParent then
+                                exit;
                             Error(ExpenseNotFoundErr, SystemId);
+                        end;
 
                         DocumentAttachment.SetRange("Document Type", DocumentAttachment."Document Type"::Expense);
                         DocumentAttachment.SetRange("Table ID", TableID);
@@ -49,8 +64,11 @@ codeunit 6952 "Exp. Attach. Buffer Handler"
                     end;
                 Database::"Expense Report Line":
                     begin
-                        if not ExpenseReportLine.GetBySystemId(SystemId) then
+                        if not ExpenseReportLine.GetBySystemId(SystemId) then begin
+                            if SkipMissingParent then
+                                exit;
                             Error(ExpenseReportLineNotFoundErr, SystemId);
+                        end;
 
                         DocumentAttachment.SetRange("Document Type", DocumentAttachment."Document Type"::Expense);
                         DocumentAttachment.SetRange("Table ID", Database::"Expense Report Line");
@@ -59,8 +77,11 @@ codeunit 6952 "Exp. Attach. Buffer Handler"
                     end;
                 Database::"Posted Expense Report Line":
                     begin
-                        if not PostedExpenseReportLine.GetBySystemId(SystemId) then
+                        if not PostedExpenseReportLine.GetBySystemId(SystemId) then begin
+                            if SkipMissingParent then
+                                exit;
                             Error(PostedExpenseReportLineNotFoundErr, SystemId);
+                        end;
 
                         DocumentAttachment.SetRange("Document Type", DocumentAttachment."Document Type"::Expense);
                         DocumentAttachment.SetRange("Table ID", Database::"Posted Expense Report Line");
@@ -77,6 +98,23 @@ codeunit 6952 "Exp. Attach. Buffer Handler"
             repeat
                 TransferToAttachmentBuffer(DocumentAttachment, AttachmentEntityBuffer, LoadContent, TableID);
             until DocumentAttachment.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Returns true if the "Document Id" filter comes from the parent page's SubPageLink, that is the request expands
+    /// the attachments of a parent or navigates to them from a parent. For navigation the platform finds the parent
+    /// before it opens the part, so a missing parent means it was deleted after that, for example while a list was expanded.
+    /// </summary>
+    internal procedure IsFilteredByParentLink(var AttachmentEntityBuffer: Record "Attachment Entity Buffer"): Boolean
+    var
+        CurrentFilterGroup: Integer;
+        LinkFilter: Text;
+    begin
+        CurrentFilterGroup := AttachmentEntityBuffer.FilterGroup();
+        AttachmentEntityBuffer.FilterGroup(4);
+        LinkFilter := AttachmentEntityBuffer.GetFilter("Document Id");
+        AttachmentEntityBuffer.FilterGroup(CurrentFilterGroup);
+        exit(LinkFilter <> '');
     end;
 
     procedure PropagateInsertAttachment(var AttachmentEntityBuffer: Record "Attachment Entity Buffer"; var TempFieldBuffer: Record "Field Buffer" temporary; TableId: Integer)

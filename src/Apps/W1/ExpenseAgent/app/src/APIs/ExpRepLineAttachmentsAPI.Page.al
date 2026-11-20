@@ -134,7 +134,7 @@ page 6908 "Exp. Rep. Line Attachments API"
             ExpenseReportLineIdFilter := Rec.GetFilter("Document Id");
             AttachmentIdFilter := Rec.GetFilter(Id);
 
-            ExpAttachmentBufferHandler.LoadAttachments(Rec, Database::"Expense Report Line", ExpenseReportLineIdFilter, AttachmentIdFilter);
+            ExpAttachmentBufferHandler.LoadAttachments(Rec, Database::"Expense Report Line", ExpenseReportLineIdFilter, AttachmentIdFilter, ExpAttachmentBufferHandler.IsFilteredByParentLink(Rec));
 
             Rec.SetView(FilterView);
             AttachmentsFound := Rec.FindFirst();
