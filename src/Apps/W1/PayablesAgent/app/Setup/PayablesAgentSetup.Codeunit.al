@@ -12,7 +12,6 @@ using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocumentConnector.Microsoft365;
-using Microsoft.Purchases.History;
 using System.Agents;
 using System.AI;
 using System.Azure.Identity;
@@ -611,14 +610,19 @@ codeunit 3307 "Payables Agent Setup"
     /// <returns>true if the user has created a purchase invoice in the past 30 days, false otherwise.</returns>
     internal procedure HasUserCreatedPostedPurchInvoice(): Boolean
     var
-        PurchaseInvHeader: Record "Purch. Inv. Header";
+        PARecentPurchInvCreators: Query "PA Recent Purch. Inv. Creators";
+        CurrentUserSecurityId: Guid;
         Days30Ago: Date;
     begin
         Days30Ago := CalcDate('<-30D>', Today());
+        CurrentUserSecurityId := UserSecurityId();
 
-        PurchaseInvHeader.SetRange(SystemCreatedAt, CreateDateTime(Days30Ago, 0T), CurrentDateTime());
-        PurchaseInvHeader.SetRange(SystemCreatedBy, UserSecurityId());
-        exit(not PurchaseInvHeader.IsEmpty());
+        PARecentPurchInvCreators.SetFilter(PostingDate, '>=%1', Days30Ago);
+        PARecentPurchInvCreators.Open();
+        while PARecentPurchInvCreators.Read() do
+            if PARecentPurchInvCreators.SystemCreatedBy = CurrentUserSecurityId then
+                exit(true);
+        exit(false);
     end;
 
     /// <summary>
