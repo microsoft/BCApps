@@ -55,6 +55,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         XmlNamespaceUDT: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
         DocumentLanguageCode: Code[10];
+        AmbiguousVATCategoryErr: Label 'The rate-only XML export cannot represent VAT categories %1 and %2 at rate %3. Use CreateXML or the category-and-rate overload.', Comment = '%1, %2 = VAT category codes, %3 = VAT percentage';
 
     trigger OnRun()
     var
@@ -287,9 +288,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         LineAmounts: Dictionary of [Text, Decimal];
-        LineVATAmount: Dictionary of [Decimal, Decimal];
-        LineAmount: Dictionary of [Decimal, Decimal];
-        LineDiscAmount: Dictionary of [Decimal, Decimal];
+        LineVATAmount: Dictionary of [Text, Decimal];
+        LineAmount: Dictionary of [Text, Decimal];
+        LineDiscAmount: Dictionary of [Text, Decimal];
     begin
         Clear(ItemGTINCache);
         GetSetups();
@@ -326,9 +327,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         LineAmounts: Dictionary of [Text, Decimal];
-        LineVATAmount: Dictionary of [Decimal, Decimal];
-        LineAmount: Dictionary of [Decimal, Decimal];
-        LineDiscAmount: Dictionary of [Decimal, Decimal];
+        LineVATAmount: Dictionary of [Text, Decimal];
+        LineAmount: Dictionary of [Text, Decimal];
+        LineDiscAmount: Dictionary of [Text, Decimal];
     begin
         Clear(ItemGTINCache);
         GetSetups();
@@ -367,9 +368,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         LineAmounts: Dictionary of [Text, Decimal];
-        LineVATAmount: Dictionary of [Decimal, Decimal];
-        LineAmount: Dictionary of [Decimal, Decimal];
-        LineDiscAmount: Dictionary of [Decimal, Decimal];
+        LineVATAmount: Dictionary of [Text, Decimal];
+        LineAmount: Dictionary of [Text, Decimal];
+        LineDiscAmount: Dictionary of [Text, Decimal];
     begin
         Clear(ItemGTINCache);
         GetSetups();
@@ -416,9 +417,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         XMLDoc: XmlDocument;
         XMLDocText: Text;
         LineAmounts: Dictionary of [Text, Decimal];
-        LineVATAmount: Dictionary of [Decimal, Decimal];
-        LineAmount: Dictionary of [Decimal, Decimal];
-        LineDiscAmount: Dictionary of [Decimal, Decimal];
+        LineVATAmount: Dictionary of [Text, Decimal];
+        LineAmount: Dictionary of [Text, Decimal];
+        LineDiscAmount: Dictionary of [Text, Decimal];
     begin
         Clear(ItemGTINCache);
         GetSetups();
@@ -826,7 +827,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             ShipToPartyElement.Add(XmlElement.Create('GlobalID', XmlNamespaceRAM, XmlAttribute.Create('schemeID', GLNSchemeIDTok), DeliveryGLN));
     end;
 
-    local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesInvHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
+    local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesInvHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Text, Decimal]; var LineVATAmount: Dictionary of [Text, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Text, Decimal])
     var
         SettlementElement, MonetarySummationElement : XmlElement;
         ItemChargeTotalAmount: Decimal;
@@ -860,7 +861,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootXMLNode.Add(SettlementElement);
     end;
 
-    local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
+    local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Text, Decimal]; var LineVATAmount: Dictionary of [Text, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Text, Decimal])
     var
         SettlementElement, MonetarySummationElement : XmlElement;
         ItemChargeTotalAmount: Decimal;
@@ -914,20 +915,22 @@ codeunit 13917 "Export ZUGFeRD Document"
         BuyerTradePartyElement.Add(ContactElement);
     end;
 
-    local procedure InsertTradeTax(var SettlementElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal])
+    local procedure InsertTradeTax(var SettlementElement: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineAmount: Dictionary of [Text, Decimal]; var LineVATAmount: Dictionary of [Text, Decimal])
     var
+        VATKey: Text;
         VATEXCode: Text;
         VATClauseDescription: Text;
     begin
         if SalesInvLine.FindSet() then
             repeat
-                if LineVATAmount.ContainsKey(SalesInvLine."VAT %") and LineAmount.ContainsKey(SalesInvLine."VAT %") then begin
+                VATKey := GetVATBreakdownKey(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group", SalesInvLine."VAT %");
+                if LineVATAmount.ContainsKey(VATKey) and LineAmount.ContainsKey(VATKey) then begin
                     PeppolVATHelper.GetVATClauseInfo(SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group", DocumentLanguageCode, VATEXCode, VATClauseDescription);
-                    InsertTaxElement(SettlementElement, FormatDecimal(LineVATAmount.Get(SalesInvLine."VAT %")), FormatDecimal(LineAmount.Get(SalesInvLine."VAT %")),
+                    InsertTaxElement(SettlementElement, FormatDecimal(LineVATAmount.Get(VATKey)), FormatDecimal(LineAmount.Get(VATKey)),
                         GetTaxCategoryID(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group"), FormatFiveDecimal(SalesInvLine."VAT %"),
                         VATEXCode, VATClauseDescription);
-                    LineAmount.Remove(SalesInvLine."VAT %");
-                    LineVATAmount.Remove(SalesInvLine."VAT %");
+                    LineAmount.Remove(VATKey);
+                    LineVATAmount.Remove(VATKey);
                 end;
             until SalesInvLine.Next() = 0;
 
@@ -935,21 +938,23 @@ codeunit 13917 "Export ZUGFeRD Document"
         SalesInvLine.SetRange("VAT Calculation Type");
     end;
 
-    local procedure InsertTradeTax(var SettlementElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal])
+    local procedure InsertTradeTax(var SettlementElement: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var LineAmount: Dictionary of [Text, Decimal]; var LineVATAmount: Dictionary of [Text, Decimal])
     var
+        VATKey: Text;
         VATEXCode: Text;
         VATClauseDescription: Text;
     begin
         if SalesCrMemoLine.FindSet() then
             repeat
-                if LineVATAmount.ContainsKey(SalesCrMemoLine."VAT %") and LineAmount.ContainsKey(SalesCrMemoLine."VAT %") then begin
+                VATKey := GetVATBreakdownKey(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group", SalesCrMemoLine."VAT %");
+                if LineVATAmount.ContainsKey(VATKey) and LineAmount.ContainsKey(VATKey) then begin
                     PeppolVATHelper.GetVATClauseInfo(SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group", DocumentLanguageCode, VATEXCode, VATClauseDescription);
-                    InsertTaxElement(SettlementElement, FormatDecimal(LineVATAmount.Get(SalesCrMemoLine."VAT %")), FormatDecimal(LineAmount.Get(SalesCrMemoLine."VAT %")),
+                    InsertTaxElement(SettlementElement, FormatDecimal(LineVATAmount.Get(VATKey)), FormatDecimal(LineAmount.Get(VATKey)),
                         GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group"), FormatFiveDecimal(SalesCrMemoLine."VAT %"),
                         VATEXCode, VATClauseDescription);
 
-                    LineAmount.Remove(SalesCrMemoLine."VAT %");
-                    LineVATAmount.Remove(SalesCrMemoLine."VAT %");
+                    LineAmount.Remove(VATKey);
+                    LineVATAmount.Remove(VATKey);
                 end;
             until SalesCrMemoLine.Next() = 0;
 
@@ -985,7 +990,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         RootElement.Add(TaxElement);
     end;
 
-    procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
+    /// <summary>Builds the CII transaction using VAT totals keyed by resolved category and rate.</summary>
+    /// <remarks>VAT dictionary keys are Category + '|' + Format(VATPercent, 0, 9), for example E|0 or S|19.</remarks>
+    procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Text, Decimal]; var LineVATAmount: Dictionary of [Text, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Text, Decimal])
     var
         SupplyChainTradeTransactionElement: XmlElement;
     begin
@@ -1116,7 +1123,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         end;
     end;
 
-    procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
+    /// <summary>Builds the CII transaction using VAT totals keyed by resolved category and rate.</summary>
+    /// <remarks>VAT dictionary keys are Category + '|' + Format(VATPercent, 0, 9), for example E|0 or S|19.</remarks>
+    procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Text, Decimal]; var LineVATAmount: Dictionary of [Text, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Text, Decimal])
     var
         SupplyChainTradeTransactionElement: XmlElement;
     begin
@@ -1343,8 +1352,9 @@ codeunit 13917 "Export ZUGFeRD Document"
         PaymentMethodElement.Add(PaymentMethodBICElement);
     end;
 
-    local procedure InsertInvDiscountAllowanceCharge(var RootXMLNode: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineDiscAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal])
+    local procedure InsertInvDiscountAllowanceCharge(var RootXMLNode: XmlElement; var SalesInvLine: Record "Sales Invoice Line"; var LineDiscAmount: Dictionary of [Text, Decimal]; var LineAmounts: Dictionary of [Text, Decimal])
     var
+        VATKey: Text;
         InvDiscountAmount: Decimal;
     begin
         InvDiscountAmount := LineAmounts.Get(SalesInvLine.FieldName("Inv. Discount Amount"));
@@ -1352,18 +1362,21 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
         if SalesInvLine.FindSet() then
             repeat
-                if LineDiscAmount.ContainsKey(SalesInvLine."VAT %") then begin
-                    InsertAllowanceCharge(
-                               RootXMLNode, 'Document discount',
-                               GetTaxCategoryID(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group"),
-                               LineDiscAmount.Get(SalesInvLine."VAT %"), SalesInvLine."VAT %", true);
-                    LineDiscAmount.Remove(SalesInvLine."VAT %");
+                VATKey := GetVATBreakdownKey(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group", SalesInvLine."VAT %");
+                if LineDiscAmount.ContainsKey(VATKey) then begin
+                    if LineDiscAmount.Get(VATKey) <> 0 then
+                        InsertAllowanceCharge(
+                                   RootXMLNode, 'Document discount',
+                                   GetTaxCategoryID(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group"),
+                                   LineDiscAmount.Get(VATKey), SalesInvLine."VAT %", true);
+                    LineDiscAmount.Remove(VATKey);
                 end;
             until SalesInvLine.Next() = 0;
     end;
 
-    local procedure InsertInvDiscountAllowanceCharge(var RootXMLNode: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var LineDiscAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal])
+    local procedure InsertInvDiscountAllowanceCharge(var RootXMLNode: XmlElement; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var LineDiscAmount: Dictionary of [Text, Decimal]; var LineAmounts: Dictionary of [Text, Decimal])
     var
+        VATKey: Text;
         InvDiscountAmount: Decimal;
     begin
         InvDiscountAmount := LineAmounts.Get(SalesCrMemoLine.FieldName("Inv. Discount Amount"));
@@ -1371,12 +1384,14 @@ codeunit 13917 "Export ZUGFeRD Document"
             exit;
         if SalesCrMemoLine.FindSet() then
             repeat
-                if LineDiscAmount.ContainsKey(SalesCrMemoLine."VAT %") then begin
-                    InsertAllowanceCharge(
-                               RootXMLNode, 'Document discount',
-                               GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group"),
-                               LineDiscAmount.Get(SalesCrMemoLine."VAT %"), SalesCrMemoLine."VAT %", true);
-                    LineDiscAmount.Remove(SalesCrMemoLine."VAT %");
+                VATKey := GetVATBreakdownKey(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group", SalesCrMemoLine."VAT %");
+                if LineDiscAmount.ContainsKey(VATKey) then begin
+                    if LineDiscAmount.Get(VATKey) <> 0 then
+                        InsertAllowanceCharge(
+                                   RootXMLNode, 'Document discount',
+                                   GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group"),
+                                   LineDiscAmount.Get(VATKey), SalesCrMemoLine."VAT %", true);
+                    LineDiscAmount.Remove(VATKey);
                 end;
             until SalesCrMemoLine.Next() = 0;
     end;
@@ -1450,36 +1465,48 @@ codeunit 13917 "Export ZUGFeRD Document"
         SalesCrMemoLine."Inv. Discount Amount" := Round(SalesCrMemoLine."Inv. Discount Amount" / (1 + SalesCrMemoLine."VAT %" / 100), RoundingPrecision);
     end;
 
-    local procedure InsertVATAmounts(var SalesInvLine: Record "Sales Invoice Line"; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal]; PricesIncVAT: Boolean; Currency: Record Currency)
+    local procedure InsertVATAmounts(var SalesInvLine: Record "Sales Invoice Line"; var LineVATAmount: Dictionary of [Text, Decimal]; var LineAmount: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Text, Decimal]; PricesIncVAT: Boolean; Currency: Record Currency)
+    var
+        VATKey: Text;
     begin
         if SalesInvLine.FindSet() then
             repeat
-                AddAmountForVAT(SalesInvLine."VAT %", SalesInvLine."Amount Including VAT" - SalesInvLine.Amount, LineVATAmount);
-                AddAmountForVAT(SalesInvLine."VAT %", SalesInvLine.Amount, LineAmount);
+                VATKey := GetVATBreakdownKey(SalesInvLine."Tax Category", SalesInvLine."VAT Bus. Posting Group", SalesInvLine."VAT Prod. Posting Group", SalesInvLine."VAT %");
+                AddAmountForVAT(VATKey, SalesInvLine."Amount Including VAT" - SalesInvLine.Amount, LineVATAmount);
+                AddAmountForVAT(VATKey, SalesInvLine.Amount, LineAmount);
                 if PricesIncVAT then
                     ExcludeVAT(SalesInvLine, Currency."Amount Rounding Precision");
-                AddAmountForVAT(SalesInvLine."VAT %", SalesInvLine."Inv. Discount Amount", LineDiscAmount);
+                AddAmountForVAT(VATKey, SalesInvLine."Inv. Discount Amount", LineDiscAmount);
             until SalesInvLine.Next() = 0;
     end;
 
-    local procedure InsertVATAmounts(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal]; PricesIncVAT: Boolean; Currency: Record Currency)
+    local procedure InsertVATAmounts(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var LineVATAmount: Dictionary of [Text, Decimal]; var LineAmount: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Text, Decimal]; PricesIncVAT: Boolean; Currency: Record Currency)
+    var
+        VATKey: Text;
     begin
         if SalesCrMemoLine.FindSet() then
             repeat
-                AddAmountForVAT(SalesCrMemoLine."VAT %", SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount, LineVATAmount);
-                AddAmountForVAT(SalesCrMemoLine."VAT %", SalesCrMemoLine.Amount, LineAmount);
+                VATKey := GetVATBreakdownKey(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group", SalesCrMemoLine."VAT %");
+                AddAmountForVAT(VATKey, SalesCrMemoLine."Amount Including VAT" - SalesCrMemoLine.Amount, LineVATAmount);
+                AddAmountForVAT(VATKey, SalesCrMemoLine.Amount, LineAmount);
                 if PricesIncVAT then
                     ExcludeVAT(SalesCrMemoLine, Currency."Amount Rounding Precision");
-                AddAmountForVAT(SalesCrMemoLine."VAT %", SalesCrMemoLine."Inv. Discount Amount", LineDiscAmount);
+                AddAmountForVAT(VATKey, SalesCrMemoLine."Inv. Discount Amount", LineDiscAmount);
             until SalesCrMemoLine.Next() = 0;
     end;
 
-    local procedure AddAmountForVAT(VATPercent: Decimal; NewAmount: Decimal; var TotalAmounts: Dictionary of [Decimal, Decimal])
+    local procedure GetVATBreakdownKey(TaxCategory: Code[10]; VATBusPostingGroup: Code[20]; VATProductPostingGroup: Code[20]; VATPercent: Decimal): Text
     begin
-        if not TotalAmounts.ContainsKey(VATPercent) then
-            TotalAmounts.Add(VATPercent, NewAmount)
+        // A rate alone cannot distinguish, for example, exempt and zero-rated supplies.
+        exit(GetTaxCategoryID(TaxCategory, VATBusPostingGroup, VATProductPostingGroup) + '|' + Format(VATPercent, 0, 9));
+    end;
+
+    local procedure AddAmountForVAT(VATKey: Text; NewAmount: Decimal; var TotalAmounts: Dictionary of [Text, Decimal])
+    begin
+        if not TotalAmounts.ContainsKey(VATKey) then
+            TotalAmounts.Add(VATKey, NewAmount)
         else
-            TotalAmounts.Set(VATPercent, TotalAmounts.Get(VATPercent) + NewAmount);
+            TotalAmounts.Set(VATKey, TotalAmounts.Get(VATKey) + NewAmount);
     end;
 
     local procedure GetBuyerReference(RecordVariant: Variant): Text
@@ -1603,6 +1630,13 @@ codeunit 13917 "Export ZUGFeRD Document"
             // A line level allowance/charge needs an invoice line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesInvLine, TargetSalesInvLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
+            // Line allowances/charges inherit the target line's VAT category in the XML.
+            // Preserve a different resolved category by reporting the charge at document level.
+            if Structure = Structure::"Line Allowance/Charge" then
+                if GetTaxCategoryID(ChargeSalesInvLine."Tax Category", ChargeSalesInvLine."VAT Bus. Posting Group", ChargeSalesInvLine."VAT Prod. Posting Group") <>
+                   GetTaxCategoryID(TargetSalesInvLine."Tax Category", TargetSalesInvLine."VAT Bus. Posting Group", TargetSalesInvLine."VAT Prod. Posting Group")
+                then
+                    Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesInvLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesInvLine."Line No.", ChargeSalesInvLine."Line No.", ChargeSalesInvLine.Amount);
@@ -1635,6 +1669,13 @@ codeunit 13917 "Export ZUGFeRD Document"
             // A line level allowance/charge needs a credit memo line to live in. Without one it degrades to document level, so that the charge is never lost.
             if (Structure = Structure::"Line Allowance/Charge") and not IsExportedLine(SalesCrMemoLine, TargetSalesCrMemoLine."Line No.") then
                 Structure := Structure::"Document Allowance/Charge";
+            // Line allowances/charges inherit the target line's VAT category in the XML.
+            // Preserve a different resolved category by reporting the charge at document level.
+            if Structure = Structure::"Line Allowance/Charge" then
+                if GetTaxCategoryID(ChargeSalesCrMemoLine."Tax Category", ChargeSalesCrMemoLine."VAT Bus. Posting Group", ChargeSalesCrMemoLine."VAT Prod. Posting Group") <>
+                   GetTaxCategoryID(TargetSalesCrMemoLine."Tax Category", TargetSalesCrMemoLine."VAT Bus. Posting Group", TargetSalesCrMemoLine."VAT Prod. Posting Group")
+                then
+                    Structure := Structure::"Document Allowance/Charge";
             ItemChargeStructures.Add(ChargeSalesCrMemoLine."Line No.", Structure.AsInteger());
             if Structure = Structure::"Line Allowance/Charge" then
                 AddLineLevelItemCharge(TargetSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine."Line No.", ChargeSalesCrMemoLine.Amount);
@@ -2267,4 +2308,78 @@ codeunit 13917 "Export ZUGFeRD Document"
         TransferRecordFields(FromRecord, ToRecord);
         ToSalesCrMemoLine := ToRecord;
     end;
+
+    #region Legacy rate-keyed API
+
+    procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
+    var
+        CategoriesByRate: Dictionary of [Decimal, Text];
+        CategoryLineAmount: Dictionary of [Text, Decimal];
+        CategoryVATAmount: Dictionary of [Text, Decimal];
+        CategoryDiscAmount: Dictionary of [Text, Decimal];
+    begin
+        // Preserve callers' supplied totals when the old key is unambiguous. It cannot encode mixed E/Z.
+        if SalesInvoiceLine.FindSet() then
+            repeat
+                RegisterLegacyVATCategory(CategoriesByRate, SalesInvoiceLine."VAT %", GetTaxCategoryID(SalesInvoiceLine."Tax Category", SalesInvoiceLine."VAT Bus. Posting Group", SalesInvoiceLine."VAT Prod. Posting Group"));
+            until SalesInvoiceLine.Next() = 0;
+        ConvertLegacyVATAmounts(CategoriesByRate, LineAmount, CategoryLineAmount);
+        ConvertLegacyVATAmounts(CategoriesByRate, LineVATAmount, CategoryVATAmount);
+        ConvertLegacyVATAmounts(CategoriesByRate, LineDiscAmount, CategoryDiscAmount);
+        InsertSupplyChainTradeTransaction(RootXMLNode, SalesInvoiceHeader, SalesInvoiceLine, CurrencyCode, Currency, CategoryLineAmount, CategoryVATAmount, LineAmounts, CategoryDiscAmount);
+        RemoveConsumedLegacyVATAmounts(CategoriesByRate, CategoryLineAmount, LineAmount);
+        RemoveConsumedLegacyVATAmounts(CategoriesByRate, CategoryVATAmount, LineVATAmount);
+        RemoveConsumedLegacyVATAmounts(CategoriesByRate, CategoryDiscAmount, LineDiscAmount);
+    end;
+
+    procedure InsertSupplyChainTradeTransaction(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10]; Currency: Record Currency; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
+    var
+        CategoriesByRate: Dictionary of [Decimal, Text];
+        CategoryLineAmount: Dictionary of [Text, Decimal];
+        CategoryVATAmount: Dictionary of [Text, Decimal];
+        CategoryDiscAmount: Dictionary of [Text, Decimal];
+    begin
+        // Preserve callers' supplied totals when the old key is unambiguous. It cannot encode mixed E/Z.
+        if SalesCrMemoLine.FindSet() then
+            repeat
+                RegisterLegacyVATCategory(CategoriesByRate, SalesCrMemoLine."VAT %", GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group", SalesCrMemoLine."VAT Prod. Posting Group"));
+            until SalesCrMemoLine.Next() = 0;
+        ConvertLegacyVATAmounts(CategoriesByRate, LineAmount, CategoryLineAmount);
+        ConvertLegacyVATAmounts(CategoriesByRate, LineVATAmount, CategoryVATAmount);
+        ConvertLegacyVATAmounts(CategoriesByRate, LineDiscAmount, CategoryDiscAmount);
+        InsertSupplyChainTradeTransaction(RootXMLNode, SalesCrMemoHeader, SalesCrMemoLine, CurrencyCode, Currency, CategoryLineAmount, CategoryVATAmount, LineAmounts, CategoryDiscAmount);
+        RemoveConsumedLegacyVATAmounts(CategoriesByRate, CategoryLineAmount, LineAmount);
+        RemoveConsumedLegacyVATAmounts(CategoriesByRate, CategoryVATAmount, LineVATAmount);
+        RemoveConsumedLegacyVATAmounts(CategoriesByRate, CategoryDiscAmount, LineDiscAmount);
+    end;
+
+    local procedure RegisterLegacyVATCategory(var CategoriesByRate: Dictionary of [Decimal, Text]; VATPercent: Decimal; Category: Text)
+    var
+        ExistingCategory: Text;
+    begin
+        if CategoriesByRate.Get(VATPercent, ExistingCategory) then begin
+            if ExistingCategory <> Category then
+                Error(AmbiguousVATCategoryErr, ExistingCategory, Category, VATPercent);
+        end else
+            CategoriesByRate.Add(VATPercent, Category);
+    end;
+
+    local procedure ConvertLegacyVATAmounts(CategoriesByRate: Dictionary of [Decimal, Text]; LegacyAmounts: Dictionary of [Decimal, Decimal]; var CategoryAmounts: Dictionary of [Text, Decimal])
+    var
+        VATPercent, Amount: Decimal;
+    begin
+        foreach VATPercent in CategoriesByRate.Keys() do
+            if LegacyAmounts.Get(VATPercent, Amount) then
+                CategoryAmounts.Add(CategoriesByRate.Get(VATPercent) + '|' + Format(VATPercent, 0, 9), Amount);
+    end;
+
+    local procedure RemoveConsumedLegacyVATAmounts(CategoriesByRate: Dictionary of [Decimal, Text]; CategoryAmounts: Dictionary of [Text, Decimal]; var LegacyAmounts: Dictionary of [Decimal, Decimal])
+    var
+        VATPercent: Decimal;
+    begin
+        foreach VATPercent in CategoriesByRate.Keys() do
+            if LegacyAmounts.ContainsKey(VATPercent) and not CategoryAmounts.ContainsKey(CategoriesByRate.Get(VATPercent) + '|' + Format(VATPercent, 0, 9)) then
+                LegacyAmounts.Remove(VATPercent);
+    end;
+    #endregion
 }
