@@ -292,5 +292,6 @@ permissionset 6904 "Expense Management - Objects"
         report "Expense Report Summary Page" = X,
         report "Expense Report Details" = X,
         report "No Receipt Declaration" = X,
-        report "Delegate Expense Approval Req" = X;
+        report "Delegate Expense Approval Req" = X,
+        report "Delegate Travel Approval Req" = X;
 }
