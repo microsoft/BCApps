@@ -583,7 +583,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         Address2: Text[100];
         PostCode: Text[20];
         City: Text[50];
-        CountryCode: Code[10];
+        BillToCountryCode: Code[10];
+        VATCountryCode: Code[10];
         VATRegistrationNo: Text[20];
         CustomerRegistrationNo: Text[50];
         YourReference: Text[35];
@@ -614,7 +615,8 @@ codeunit 13917 "Export ZUGFeRD Document"
                     Address2 := SalesInvoiceHeader."Bill-to Address 2";
                     PostCode := SalesInvoiceHeader."Bill-to Post Code";
                     City := SalesInvoiceHeader."Bill-to City";
-                    CountryCode := SalesInvoiceHeader."VAT Country/Region Code";
+                    BillToCountryCode := SalesInvoiceHeader."Bill-to Country/Region Code";
+                    VATCountryCode := SalesInvoiceHeader."VAT Country/Region Code";
                     VATRegistrationNo := SalesInvoiceHeader."VAT Registration No.";
                     YourReference := SalesInvoiceHeader."Your Reference";
                     Contact := SalesInvoiceHeader."Sell-to Contact";
@@ -635,7 +637,8 @@ codeunit 13917 "Export ZUGFeRD Document"
                     Address2 := SalesCrMemoHeader."Bill-to Address 2";
                     PostCode := SalesCrMemoHeader."Bill-to Post Code";
                     City := SalesCrMemoHeader."Bill-to City";
-                    CountryCode := SalesCrMemoHeader."VAT Country/Region Code";
+                    BillToCountryCode := SalesCrMemoHeader."Bill-to Country/Region Code";
+                    VATCountryCode := SalesCrMemoHeader."VAT Country/Region Code";
                     VATRegistrationNo := SalesCrMemoHeader."VAT Registration No.";
                     YourReference := SalesCrMemoHeader."Your Reference";
                     Contact := SalesCrMemoHeader."Sell-to Contact";
@@ -649,6 +652,8 @@ codeunit 13917 "Export ZUGFeRD Document"
                 end;
         end;
 
+        if VATCountryCode = '' then
+            VATCountryCode := BillToCountryCode;
         GetSellerPostalAddr(RespCentrCode, SellerStreetName, SellerAdditionalStreetName, SellerCityName, SellerPostalZone, SellerCountryCode);
         Customer.SetLoadFields("Use GLN in Electronic Document", GLN, "Registration Number", "Use Reg. No. in E-Document", "VAT Registration No.");
         if Customer.Get(CustomerNo) then begin
@@ -736,7 +741,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         if Address2 <> '' then
             PostalTradeAddressElement.Add(XmlElement.Create('LineTwo', XmlNamespaceRAM, Address2));
         PostalTradeAddressElement.Add(XmlElement.Create('CityName', XmlNamespaceRAM, City));
-        PostalTradeAddressElement.Add(XmlElement.Create('CountryID', XmlNamespaceRAM, GetCountryISOCode(GetCountryRegionCode(CountryCode))));
+        PostalTradeAddressElement.Add(XmlElement.Create('CountryID', XmlNamespaceRAM, GetCountryISOCode(GetCountryRegionCode(BillToCountryCode))));
         BuyerTradePartyElement.Add(PostalTradeAddressElement);
 
         // Buyer E-Mail
@@ -746,7 +751,7 @@ codeunit 13917 "Export ZUGFeRD Document"
 
         if VATRegistrationNo <> '' then begin
             BuyerIDAttr := XmlAttribute.Create('schemeID', 'VA');
-            IDElement := XmlElement.Create('ID', XmlNamespaceRAM, BuyerIDAttr, GetVATRegistrationNo(VATRegistrationNo, CountryCode));
+            IDElement := XmlElement.Create('ID', XmlNamespaceRAM, BuyerIDAttr, Customer.FormatVATRegistrationNo(VATRegistrationNo, GetCountryRegionCode(VATCountryCode)));
             SpecifiedTaxRegistrationElement := XmlElement.Create('SpecifiedTaxRegistration', XmlNamespaceRAM);
             SpecifiedTaxRegistrationElement.Add(IDElement);
             BuyerTradePartyElement.Add(SpecifiedTaxRegistrationElement);
