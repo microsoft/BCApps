@@ -830,6 +830,9 @@ table 6900 Expense
         key(CorporateCard; "Corporate Card Id")
         {
         }
+        key(ExpenseUserStatus; "Expense User No.", Status)
+        {
+        }
     }
     fieldgroups
     {
@@ -1499,8 +1502,11 @@ table 6900 Expense
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
-            Rec.Amount := 0;
-            Rec.UpdateAmount();
+            // Card amounts come from the transaction; manual expenses keep their currency when the category is cleared.
+            if Rec.Source <> Rec.Source::CorporateCard then begin
+                Rec.Amount := 0;
+                Rec.UpdateAmount();
+            end;
             exit;
         end;
         if not ExpenseCategory.Get(Rec."Expense Category") then begin
@@ -1517,15 +1523,27 @@ table 6900 Expense
 
         Rec.Validate(Refundable, ExpenseCategory.Refundable);
         Rec.Validate(Description, ExpenseCategory."Posting Description");
-        Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
-        if ExpenseCategory."Default Payment Method" <> '' then
-            Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
+        // Card expenses are always paid by the corporate card, regardless of the category defaults.
+        if Rec.Source <> Rec.Source::CorporateCard then begin
+            Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
+            if ExpenseCategory."Default Payment Method" <> '' then
+                Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
+        end;
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
             ExpenseAgentSetup.TestField("Default Mileage UOM");
             Rec.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
+
+        ResetAmountFromExpenseCategory();
+    end;
+
+    local procedure ResetAmountFromExpenseCategory()
+    begin
+        // Amount and currency come from the card transaction and must survive a category change.
+        if Rec.Source = Rec.Source::CorporateCard then
+            exit;
 
         Rec.Validate("Currency Code", '');
         Rec.Amount := 0;
