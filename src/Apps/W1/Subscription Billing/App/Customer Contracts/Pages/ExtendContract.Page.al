@@ -212,6 +212,7 @@ page 8002 "Extend Contract"
                     ToolTip = 'Specifies the quantity for the Subscription Item to be created.';
                     AutoFormatType = 0;
                     DecimalPlaces = 0 : 5;
+                    MinValue = 0;
 
                     trigger OnValidate()
                     begin
