@@ -1719,6 +1719,38 @@ codeunit 136302 "Job Consumption Purchase"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ReducePurchaseCostWithHighJobExchangeRate()
+    begin
+        // [SCENARIO 656769] A large cost reduction after partial receipt does not overflow when the project currency differs from LCY.
+        VerifyPurchaseCostReductionWithJobCurrency(924.78, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReducePurchaseCostWithOrdinaryJobExchangeRate()
+    begin
+        // [SCENARIO 656769] Cost reduction preserves project prices with an ordinary foreign exchange rate.
+        VerifyPurchaseCostReductionWithJobCurrency(1.25, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReducePurchaseCostWithSamePurchaseAndJobCurrency()
+    begin
+        // [SCENARIO 656769] Cost reduction preserves amounts when purchase and project use the same foreign currency.
+        VerifyPurchaseCostReductionWithJobCurrency(1.25, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReducePurchaseCostWithJobInLCY()
+    begin
+        // [SCENARIO 656769] Cost reduction preserves amounts when purchase and project both use LCY.
+        VerifyPurchaseCostReductionWithJobCurrency(0, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure UpdateJobCurrencyAfterReceivingPurchaseOrder()
     var
         GeneralPostingSetup: Record "General Posting Setup";
@@ -5266,6 +5298,113 @@ codeunit 136302 "Job Consumption Purchase"
         Assert.AreEqual(1, TotalGLAmount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), 1));
         Assert.AreEqual(
             TotalGLAmount, TotalJobCost, StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), TotalGLAmount));
+    end;
+
+    local procedure VerifyPurchaseCostReductionWithJobCurrency(RelationalExchangeRate: Decimal; SameCurrency: Boolean)
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        FirstPurchaseLine: Record "Purchase Line";
+        ExpectedUnitCostLCY: Decimal;
+    begin
+        Initialize();
+        GeneralLedgerSetup.Get();
+        if RelationalExchangeRate <> 0 then begin
+            Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+            Currency.Validate("Amount Rounding Precision", 0.01);
+            Currency.Validate("Unit-Amount Rounding Precision", 0.001);
+            Currency.Modify(true);
+            LibraryERM.CreateExchRate(CurrencyExchangeRate, Currency.Code, WorkDate());
+            CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+            CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
+            CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", RelationalExchangeRate);
+            CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", RelationalExchangeRate);
+            CurrencyExchangeRate.Validate("Fix Exchange Rate Amount", CurrencyExchangeRate."Fix Exchange Rate Amount"::Currency);
+            CurrencyExchangeRate.Modify(true);
+        end;
+
+        CreateJobWithJobTask(JobTask);
+        Job.Get(JobTask."Job No.");
+        Job.Validate("Currency Code", Currency.Code);
+        Job.Validate("Exch. Calculation (Cost)", Job."Exch. Calculation (Cost)"::"Fixed LCY");
+        Job.Validate("Exch. Calculation (Price)", Job."Exch. Calculation (Price)"::"Fixed LCY");
+        Job.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::FIFO);
+        Item.Validate("Unit Cost", 1);
+        Item.Modify(true);
+
+        // [GIVEN] Two project-linked lines, with one unit received on each line.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        if SameCurrency then begin
+            PurchaseHeader.Validate("Currency Code", Currency.Code);
+            PurchaseHeader.Modify(true);
+        end;
+        LibraryPurchase.CreatePurchaseLine(FirstPurchaseLine, PurchaseHeader, FirstPurchaseLine.Type::Item, Item."No.", 2);
+        FirstPurchaseLine.Validate("Direct Unit Cost", 1);
+        FirstPurchaseLine.Validate("Job No.", JobTask."Job No.");
+        FirstPurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+        FirstPurchaseLine.Validate("Qty. to Receive", 1);
+        FirstPurchaseLine.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 7760000);
+        PurchaseLine.Validate("Direct Unit Cost", 1);
+        PurchaseLine.Validate("Job No.", JobTask."Job No.");
+        PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+        PurchaseLine.Validate("Qty. to Receive", 1);
+        PurchaseLine.Modify(true);
+        GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        UpdateAdjustmentAccounts(
+          PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group", LibraryERM.CreateGLAccountNo());
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+
+        PurchaseLine.Find();
+        PurchaseLine.Validate("Job Unit Price", 2);
+        PurchaseLine.Validate("Job Line Discount %", 10);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+
+        // [GIVEN] The direct unit cost is increased and saved before another release/reopen.
+        PurchaseLine.Find();
+        PurchaseLine.Validate("Direct Unit Cost", 7760000);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+
+        // [WHEN] The direct unit cost is reduced back to one.
+        PurchaseLine.Find();
+        PurchaseLine.Validate("Direct Unit Cost", 1);
+        PurchaseLine.Modify(true);
+        PurchaseLine.Find();
+
+        // [THEN] Purchase amounts are recalculated and the project price and discount are preserved.
+        ExpectedUnitCostLCY := 1;
+        if SameCurrency then
+            ExpectedUnitCostLCY := Round(RelationalExchangeRate, GeneralLedgerSetup."Unit-Amount Rounding Precision");
+        PurchaseLine.TestField("Direct Unit Cost", 1);
+        PurchaseLine.TestField("Unit Cost", 1);
+        PurchaseLine.TestField("Unit Cost (LCY)", ExpectedUnitCostLCY);
+        PurchaseLine.TestField("Line Amount", 7760000);
+        PurchaseLine.TestField("Quantity Received", 1);
+        PurchaseLine.TestField("Job Unit Price", 2);
+        PurchaseLine.TestField("Job Line Discount %", 10);
+        PurchaseLine.TestField("Job Line Amount", 13968000);
+        PurchaseLine.TestField(
+          "Job Unit Price (LCY)",
+          Round(
+            CurrencyExchangeRate.ExchangeAmtFCYToLCY(
+              PurchaseHeader."Posting Date", Job."Currency Code", 2, PurchaseLine."Job Currency Factor"),
+            GeneralLedgerSetup."Unit-Amount Rounding Precision"));
+        UpdateAdjustmentAccounts(
+          PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group", GeneralPostingSetup."Inventory Adjmt. Account");
     end;
 
     local procedure Initialize()
