@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 using System.AI;
+using System.Security.Encryption;
 
 codeunit 6969 "Expense Consumption Handler"
 {
@@ -20,11 +21,15 @@ codeunit 6969 "Expense Consumption Handler"
 
     internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
     var
+        CopilotQuota: Codeunit "Copilot Quota";
         V1Json: JsonObject;
         TempToken: JsonToken;
         Usage: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
     begin
+        if CopilotQuota.IsNewMonetizationEnabled() then
+            exit(ValidateMeasuredConsumption(AiConsumptionRequestJson));
+
         if not AiConsumptionRequestJson.Get('model', TempToken) or not TempToken.IsObject() then
             exit(false);
         if not AiConsumptionRequestJson.Get('v1', TempToken) or not TempToken.IsObject() then
@@ -59,9 +64,15 @@ codeunit 6969 "Expense Consumption Handler"
         ExpenseUserNo: Code[20]): Guid
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        CopilotQuota: Codeunit "Copilot Quota";
         UniqueId: Text[1024];
         IsTrial: Boolean;
+        MeasuredUsageRequiredErr: Label 'New monetization requires measured AI usage and conversation context. Use the measured consumption endpoint.';
+        MeasuredOperationErr: Label 'This operation was already recorded using new monetization and cannot be recorded again using legacy monetization.';
     begin
+        if CopilotQuota.IsNewMonetizationEnabled() then
+            Error(MeasuredUsageRequiredErr);
+
         UniqueId := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
         IsTrial := TrialQuotaAvailable();
 
@@ -79,8 +90,11 @@ codeunit 6969 "Expense Consumption Handler"
             ExpenseAgentEnvConsumption."Consumption Source Operation" := Operation;
             ExpenseAgentEnvConsumption."Is Feature Trial" := IsTrial;
             ExpenseAgentEnvConsumption.Insert();
-        end else
+        end else begin
+            if ExpenseAgentEnvConsumption."New Monetization" then
+                Error(MeasuredOperationErr);
             IsTrial := ExpenseAgentEnvConsumption."Is Feature Trial";
+        end;
 
         // Increment the trial count if this is a trial consumption.
         // Notice platform allows over-reporting trials, so the tenant can use a little
@@ -91,6 +105,131 @@ codeunit 6969 "Expense Consumption Handler"
             QuotaProvider.LogPaidConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, UniqueId);
 
         exit(ExpenseAgentEnvConsumption.SystemId);
+    end;
+
+    internal procedure LogAIConsumption(AiConsumptionRequestJson: JsonObject; SessionId: Guid; InteractionId: Guid; PrincipalId: Guid; ActionsSummary: Text; ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]; ExpenseUserNo: Code[20]): Guid
+    var
+        Consumption: Record "Expense Agent Env. Consumption";
+        CopilotQuota: Codeunit "Copilot Quota";
+        Payload: JsonObject;
+        DimensionToken: JsonToken;
+        DimensionNames: List of [Text];
+        DimensionName: Text;
+        CorrelationId: Guid;
+        PayloadText: Text;
+        DescriptionStream: OutStream;
+        LegacyOperationErr: Label 'This operation was already recorded using legacy monetization and cannot be recorded again using new monetization.';
+    begin
+        if not CopilotQuota.IsNewMonetizationEnabled() then
+            exit(LogAIConsumption(AiConsumptionRequestJson, ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo));
+
+        Consumption.ReadIsolation := IsolationLevel::UpdLock;
+        if not Consumption.Get(MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation)) then begin
+            Consumption.Init();
+            Consumption."Consumption Unique ID" := MakeUniqueId(ConsumptionSourceType, ConsumptionSourceSystemId, Operation);
+            Consumption."Expense User No." := ExpenseUserNo;
+            Consumption."Consumption Source Type" := ConsumptionSourceType;
+            Consumption."Consumption Source System ID" := ConsumptionSourceSystemId;
+            Consumption."Consumption Source Operation" := Operation;
+            Consumption."Is Feature Trial" := TrialQuotaAvailable();
+            Consumption."New Monetization" := true;
+            Consumption."AI Source Company" := CopyStr(CompanyName(), 1, MaxStrLen(Consumption."AI Source Company"));
+            Consumption."AI Consumption ID" := GetMeasuredConsumptionId(Consumption."Consumption Unique ID");
+            Consumption."AI Description".CreateOutStream(DescriptionStream, TextEncoding::UTF8);
+            DescriptionStream.WriteText(ActionsSummary);
+            Consumption.Insert();
+        end;
+        if not Consumption."New Monetization" then
+            Error(LegacyOperationErr);
+
+        Evaluate(CorrelationId, AiConsumptionRequestJson.GetText('correlationId'));
+        DimensionNames.Add('model');
+        DimensionNames.Add('tools');
+        DimensionNames.Add('rai');
+        DimensionNames.Add('infra');
+        DimensionNames.Add('orchestrator');
+        foreach DimensionName in DimensionNames do
+            if AiConsumptionRequestJson.Get(DimensionName, DimensionToken) then
+                Payload.Add(DimensionName, DimensionToken);
+        Payload.WriteTo(PayloadText);
+        CopilotQuota.RecordAIConsumption(Consumption."AI Consumption ID", SessionId, InteractionId, CorrelationId, 'Expense Agent',
+            PayloadText, PrincipalId, CopyStr(AiConsumptionRequestJson.GetText('principalDisplayName'), 1, 256), 0, '', ActionsSummary, Consumption."Is Feature Trial");
+
+        if Consumption."Is Feature Trial" then
+            IncrementTrial(Consumption."AI Consumption ID", Operation);
+
+        exit(Consumption.SystemId);
+    end;
+
+    internal procedure GetMeasuredConsumptionId(UniqueId: Text[1024]) ConsumptionId: Guid
+    var
+        CryptographyManagement: Codeunit "Cryptography Management";
+        HashAlgorithm: Option MD5,SHA1,SHA256,SHA384,SHA512;
+        Hash: Text;
+    begin
+        // The separate platform transaction can survive rollback of the companion insert.
+        // Derive identity from the business operation, not a new companion SystemId on each retry.
+        Hash := CryptographyManagement.GenerateHash('ExpenseAgent:AIConsumption:V2:' + UniqueId, HashAlgorithm::SHA256);
+        Evaluate(ConsumptionId, StrSubstNo('%1-%2-%3-%4-%5', CopyStr(Hash, 1, 8), CopyStr(Hash, 9, 4), CopyStr(Hash, 13, 4), CopyStr(Hash, 17, 4), CopyStr(Hash, 21, 12)));
+    end;
+
+    local procedure ValidateMeasuredConsumption(Request: JsonObject): Boolean
+    var
+        Model: JsonObject;
+        Token: JsonToken;
+        CorrelationId: Guid;
+        Quantity: Decimal;
+        FieldName: Text;
+        TokenFields: List of [Text];
+    begin
+        if not Request.Get('model', Token) then
+            exit(false);
+        if not Token.IsObject() then
+            exit(false);
+        Model := Token.AsObject();
+        if not Model.Get('modelResolvedName', Token) then
+            exit(false);
+        if not Token.IsValue() then
+            exit(false);
+        if Token.AsValue().IsNull() then
+            exit(false);
+        if Token.AsValue().AsText().Trim() = '' then
+            exit(false);
+
+        TokenFields.Add('inputTokenCount');
+        TokenFields.Add('outputTokenCount');
+        TokenFields.Add('promptCacheReadTokenCount');
+        TokenFields.Add('promptCacheCreationTokenCount');
+        foreach FieldName in TokenFields do begin
+            if not Model.Get(FieldName, Token) then
+                exit(false);
+            if not Token.IsValue() then
+                exit(false);
+            if Token.AsValue().IsNull() then
+                exit(false);
+            if not Evaluate(Quantity, Token.AsValue().AsText(), 9) then
+                exit(false);
+            if Quantity < 0 then
+                exit(false);
+        end;
+
+        if not Request.Get('correlationId', Token) then
+            exit(false);
+        if not Token.IsValue() then
+            exit(false);
+        if Token.AsValue().IsNull() then
+            exit(false);
+        if not Evaluate(CorrelationId, Token.AsValue().AsText()) then
+            exit(false);
+        if IsNullGuid(CorrelationId) then
+            exit(false);
+        if not Request.Get('principalDisplayName', Token) then
+            exit(false);
+        if not Token.IsValue() then
+            exit(false);
+        if Token.AsValue().IsNull() then
+            exit(false);
+        exit(Token.AsValue().AsText().Trim() <> '');
     end;
 
     internal procedure LogAIConsumption(
@@ -149,6 +288,7 @@ codeunit 6969 "Expense Consumption Handler"
             exit;
         end;
 
+        InitializeQuotaProvider();
         QuotaProvider.ReportTrialConsumption(ConsumptionId, TrialQuota());
     end;
 

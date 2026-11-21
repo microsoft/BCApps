@@ -161,6 +161,12 @@ codeunit 3311 "PA Billing"
         // Is tasks excluded from billing
         ExcludeFromBilling := AgentTask."Billing Context" = Enum::"Agent Task Billing Context"::Excluded;
 
+        if CopilotQuota.IsNewMonetizationEnabled() then begin
+            // V2 measurements and exclusion policy belong to the service; retain business telemetry only.
+            DraftBasedTelemetry.LogBillingOperationCreated(Format(Operation, 0, 9), ExcludeFromBilling);
+            exit;
+        end;
+
         UniqueID := GetUniqueID(AgentTaskID, Operation, RecordSystemID, RecordTable);
         if CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueID) and not ExcludeFromBilling then begin
             DraftBasedTelemetry.LogBillingDuplicateOperation();

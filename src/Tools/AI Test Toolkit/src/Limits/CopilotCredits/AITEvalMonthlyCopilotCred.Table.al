@@ -5,6 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 using System.Environment;
+using System.AI;
 using System.Telemetry;
 
 table 149040 "AIT Eval Monthly Copilot Cred."
@@ -38,6 +39,19 @@ table 149040 "AIT Eval Monthly Copilot Cred."
             Caption = 'Enforcement Enabled';
             ToolTip = 'Specifies whether the credit limit enforcement is enabled for this scope.';
             InitValue = true;
+        }
+        field(4; "Monthly AI Credit Limit"; Decimal)
+        {
+            Caption = 'Monthly AI Credit Limit';
+            ToolTip = 'Specifies the separate V2 AI credit limit. Legacy Copilot credit limits are not converted.';
+            AutoFormatType = 0;
+            MinValue = 0;
+        }
+        field(5; "AI Enforcement Enabled"; Boolean)
+        {
+            Caption = 'AI Credit Enforcement Enabled';
+            ToolTip = 'Specifies whether the separate AI credit limit is enforced against completed V2 consumption.';
+            InitValue = false;
         }
     }
 
@@ -122,6 +136,37 @@ table 149040 "AIT Eval Monthly Copilot Cred."
         exit(CalcDate('<CM>', Today()));
     end;
 
+    procedure GetCreditLimit(): Decimal
+    var
+        Quota: Codeunit "Copilot Quota";
+    begin
+        if Quota.IsNewMonetizationEnabled() then
+            exit("Monthly AI Credit Limit");
+        exit("Monthly Credit Limit");
+    end;
+
+    procedure IsEnforcementEnabled(): Boolean
+    var
+        Quota: Codeunit "Copilot Quota";
+    begin
+        if Quota.IsNewMonetizationEnabled() then
+            exit("AI Enforcement Enabled");
+        exit("Enforcement Enabled");
+    end;
+
+    procedure SetCreditLimitSetup(CreditLimit: Decimal; Enabled: Boolean)
+    var
+        Quota: Codeunit "Copilot Quota";
+    begin
+        if Quota.IsNewMonetizationEnabled() then begin
+            "Monthly AI Credit Limit" := CreditLimit;
+            "AI Enforcement Enabled" := Enabled;
+        end else begin
+            "Monthly Credit Limit" := CreditLimit;
+            "Enforcement Enabled" := Enabled;
+        end;
+    end;
+
     local procedure InsertEnvironmentDefaultRecord()
     var
         EnvironmentInformation: Codeunit "Environment Information";
@@ -153,13 +198,17 @@ table 149040 "AIT Eval Monthly Copilot Cred."
     end;
 
     local procedure LogAuditMessage(Operation: Text)
+    var
+        Quota: Codeunit "Copilot Quota";
     begin
+        if Quota.IsNewMonetizationEnabled() then
+            Operation += ' (AI credits)';
         if (Rec."Company Name" = GetAllCompaniesTok()) then begin
-            LogAuditMessageCore(StrSubstNo(EnvironmentCreditLimitUpdatedLbl, Operation, UserSecurityId(), Rec."Enforcement Enabled", Rec."Monthly Credit Limit"), 0 /* AdministeredEnvironment */);
+            LogAuditMessageCore(StrSubstNo(EnvironmentCreditLimitUpdatedLbl, Operation, UserSecurityId(), IsEnforcementEnabled(), GetCreditLimit()), 0 /* AdministeredEnvironment */);
             exit;
         end;
 
-        LogAuditMessageCore(StrSubstNo(CompanyCreditLimitUpdatedLbl, Operation, Rec."Company Name", UserSecurityId(), Rec."Enforcement Enabled", Rec."Monthly Credit Limit"), 3 /* AdministeredCompany */);
+        LogAuditMessageCore(StrSubstNo(CompanyCreditLimitUpdatedLbl, Operation, Rec."Company Name", UserSecurityId(), IsEnforcementEnabled(), GetCreditLimit()), 3 /* AdministeredCompany */);
     end;
 
     local procedure LogAuditMessageCore(SecurityAuditDescription: Text; AuditMessageOperation: Integer)

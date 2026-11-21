@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.AI;
+
 codeunit 149036 "AIT Run History"
 {
     Access = Internal;
@@ -13,7 +15,9 @@ codeunit 149036 "AIT Run History"
     var
         AITRunHistory: Record "AIT Run History";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        Quota: Codeunit "Copilot Quota";
         SeenTags: List of [Text[20]];
+        TaskIDs: Text;
     begin
         TempAITRunHistory.DeleteAll();
         AITRunHistory.SetRange("Test Suite Code", Code);
@@ -22,8 +26,15 @@ codeunit 149036 "AIT Run History"
             if AITRunHistory.FindSet() then
                 repeat
                     TempAITRunHistory.TransferFields(AITRunHistory);
-                    TempAITRunHistory."Copilot Credits" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", AITRunHistory.Version, '', LineNo);
-                    TempAITRunHistory."Agent Task IDs" := CopyStr(AgentTestContextImpl.GetAgentTaskIDs(AITRunHistory."Test Suite Code", AITRunHistory.Version, '', LineNo), 1, MaxStrLen(TempAITRunHistory."Agent Task IDs"));
+                    TaskIDs := AgentTestContextImpl.GetAgentTaskIDs(AITRunHistory."Test Suite Code", AITRunHistory.Version, '', LineNo);
+                    TempAITRunHistory."Agent Task IDs" := CopyStr(TaskIDs, 1, MaxStrLen(TempAITRunHistory."Agent Task IDs"));
+                    if Quota.IsNewMonetizationEnabled() then begin
+                        if TaskIDs <> '' then begin
+                            TempAITRunHistory."AI Credits" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", AITRunHistory.Version, '', LineNo);
+                            TempAITRunHistory."AI Pricing Pending" := AgentTestContextImpl.IsPricingPendingForTasks(TaskIDs);
+                        end;
+                    end else
+                        TempAITRunHistory."Copilot Credits" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", AITRunHistory.Version, '', LineNo);
                     TempAITRunHistory.Insert();
                 until AITRunHistory.Next() = 0;
 
@@ -32,8 +43,15 @@ codeunit 149036 "AIT Run History"
                 repeat
                     if not SeenTags.Contains(AITRunHistory.Tag) then begin
                         TempAITRunHistory.TransferFields(AITRunHistory);
-                        TempAITRunHistory."Copilot Credits - By Tag" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", '', AITRunHistory.Tag, LineNo);
-                        TempAITRunHistory."Agent Task IDs - By Tag" := CopyStr(AgentTestContextImpl.GetAgentTaskIDs(AITRunHistory."Test Suite Code", '', AITRunHistory.Tag, LineNo), 1, MaxStrLen(TempAITRunHistory."Agent Task IDs - By Tag"));
+                        TaskIDs := AgentTestContextImpl.GetAgentTaskIDs(AITRunHistory."Test Suite Code", '', AITRunHistory.Tag, LineNo);
+                        TempAITRunHistory."Agent Task IDs - By Tag" := CopyStr(TaskIDs, 1, MaxStrLen(TempAITRunHistory."Agent Task IDs - By Tag"));
+                        if Quota.IsNewMonetizationEnabled() then begin
+                            if TaskIDs <> '' then begin
+                                TempAITRunHistory."AI Credits - By Tag" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", '', AITRunHistory.Tag, LineNo);
+                                TempAITRunHistory."AI Pricing Pending - By Tag" := AgentTestContextImpl.IsPricingPendingForTasks(TaskIDs);
+                            end;
+                        end else
+                            TempAITRunHistory."Copilot Credits - By Tag" := AgentTestContextImpl.GetCopilotCredits(AITRunHistory."Test Suite Code", '', AITRunHistory.Tag, LineNo);
                         TempAITRunHistory.Insert();
                     end;
                     SeenTags.Add(AITRunHistory.Tag);

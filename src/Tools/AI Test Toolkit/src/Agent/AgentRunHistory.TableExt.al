@@ -9,6 +9,28 @@ tableextension 149030 "Agent Run History" extends "AIT Run History"
 {
     fields
     {
+        field(5000; "AI Credits"; Decimal)
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Completed AI credits';
+            AutoFormatType = 0;
+        }
+        field(5001; "AI Pricing Pending"; Boolean)
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'AI pricing pending';
+        }
+        field(5002; "AI Credits - By Tag"; Decimal)
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Completed AI credits';
+            AutoFormatType = 0;
+        }
+        field(5003; "AI Pricing Pending - By Tag"; Boolean)
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'AI pricing pending';
+        }
         field(15; "Copilot Credits"; Decimal)
         {
             DataClassification = SystemMetadata;

@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Agents;
+using System.AI;
 
 page 149048 "AIT Eval Monthly Copilot Cred."
 {
@@ -23,6 +24,21 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     {
         area(Content)
         {
+            label(AICreditExplanation)
+            {
+                Visible = NewMonetization;
+                Caption = 'AI credits use separate limits, disabled by default. Pending pricing is not included in completed totals and can increase usage later. Late pricing is attributed to the month the task was first linked to an eval.';
+            }
+            group(PendingPricing)
+            {
+                Visible = NewMonetization;
+                field(EnvironmentPendingTasks; EnvironmentPendingTasks)
+                {
+                    Caption = 'Environment tasks awaiting pricing';
+                    ToolTip = 'Specifies how many tasks have missing or incomplete consumption pricing this month.';
+                    Editable = false;
+                }
+            }
             label(EnforcementExplanation)
             {
                 Caption = 'Credit limits control whether new AI evaluations can be started. Once the limit is reached, no new evaluations can begin, but evaluations already in progress are allowed to complete.';
@@ -52,9 +68,10 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                     }
                     field(EnvironmentMonthlyCreditLimit; EnvironmentMonthlyCreditLimit)
                     {
+                        CaptionClass = '3,' + StrSubstNo(MonthlyLimitCaptionLbl, Quota.GetCreditCaption());
                         AutoFormatType = 0;
                         Caption = 'Monthly Copilot Credit Limit';
-                        ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by all agent test suites across all companies in this environment during the current month.';
+                        ToolTip = 'Specifies the monthly credit threshold for agent evals across all companies, using the selected monetization generation. Pending pricing can increase usage later.';
                         DecimalPlaces = 2 : 5;
                         Editable = EnvironmentEnforcementEnabled and CurrentUserIsAgentAdminForAllCompanies;
 
@@ -84,9 +101,10 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                     }
                     field(CompanyMonthlyCreditLimitField; CompanyMonthlyCreditLimit)
                     {
+                        CaptionClass = '3,' + StrSubstNo(MonthlyLimitCaptionLbl, Quota.GetCreditCaption());
                         AutoFormatType = 0;
                         Caption = 'Monthly Copilot Credit Limit';
-                        ToolTip = 'Specifies the maximum number of Copilot credits that can be consumed by agent test suites in the current company during the current month.';
+                        ToolTip = 'Specifies the monthly credit threshold for agent evals in the current company, using the selected monetization generation. Pending pricing can increase usage later.';
                         DecimalPlaces = 2 : 5;
                         Editable = CompanyEnforcementEnabled and CurrentUserIsAgentAdminForCurrentCompany;
 
@@ -120,17 +138,19 @@ page 149048 "AIT Eval Monthly Copilot Cred."
                 }
                 field(SuiteEnvCreditsConsumed; Rec."Environment Consumed")
                 {
+                    CaptionClass = '3,' + StrSubstNo(EnvironmentConsumedCaptionLbl, Quota.GetCreditCaption());
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed (Environment)';
-                    ToolTip = 'Specifies the number of Copilot credits consumed by this test suite across all companies in the environment during the current month.';
+                    ToolTip = 'Specifies completed credits attributed to this eval suite across all companies in the current month, using the selected monetization generation.';
                     Editable = false;
                     DecimalPlaces = 2 : 5;
                 }
                 field(SuiteCompanyCreditsConsumed; Rec."Company Consumed")
                 {
+                    CaptionClass = '3,' + StrSubstNo(CompanyConsumedCaptionLbl, Quota.GetCreditCaption());
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits Consumed (Company)';
-                    ToolTip = 'Specifies the number of Copilot credits consumed by this test suite in the current company during the current month.';
+                    ToolTip = 'Specifies completed credits attributed to this eval suite in the current company and month, using the selected monetization generation.';
                     Editable = false;
                     DecimalPlaces = 2 : 5;
                 }
@@ -146,34 +166,38 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
                     field(EnvCreditsConsumed; EnvironmentCopilotCreditsConsumed)
                     {
+                        CaptionClass = '3,' + Quota.GetCreditCaption();
                         AutoFormatType = 0;
                         Caption = 'Copilot Credits Consumed';
-                        ToolTip = 'Specifies the total number of Copilot credits consumed by all agent test suites across all companies in this environment during the current month.';
+                        ToolTip = 'Specifies completed credits attributed to all agent evals across all companies this month, using the selected monetization generation.';
                         Editable = false;
                         DecimalPlaces = 2 : 5;
                     }
                     field(EnvDeletedSuiteCredits; EnvironmentDeletedSuiteCreditsConsumed)
                     {
+                        CaptionClass = '3,' + StrSubstNo(DeletedSuitesCaptionLbl, Quota.GetCreditCaption());
                         AutoFormatType = 0;
                         Caption = 'Copilot Credits from Deleted Suites';
-                        ToolTip = 'Specifies Copilot credits consumed this month by suites that have since been deleted. These credits are included in the environment total but are not shown in the list above.';
+                        ToolTip = 'Specifies credits attributed this month to deleted suites, using the selected monetization generation. These credits remain included in the environment total.';
                         Editable = false;
                         DecimalPlaces = 2 : 5;
                         Visible = EnvironmentDeletedSuiteCreditsConsumed > 0;
                     }
                     field(EnvCreditsAvailable; EnvironmentCopilotCreditsAvailable)
                     {
+                        CaptionClass = '3,' + StrSubstNo(AvailableCaptionLbl, Quota.GetCreditCaption());
                         AutoFormatType = 0;
                         Caption = 'Copilot Credits Available';
-                        ToolTip = 'Specifies the number of Copilot credits remaining for the environment during the current month.';
+                        ToolTip = 'Specifies the environment monthly limit minus completed usage, using the selected monetization generation. Pending pricing is not reserved.';
                         Editable = false;
                         DecimalPlaces = 2 : 5;
                         StyleExpr = EnvironmentCreditsAvailableStyle;
                     }
                     field(EnvCreditsUsagePercentage; EnvironmentCreditsUsagePercentage)
                     {
+                        CaptionClass = '3,' + StrSubstNo(UsageCaptionLbl, Quota.GetCreditCaption());
                         Caption = 'Copilot Credits Usage %';
-                        ToolTip = 'Specifies the percentage of the environment monthly Copilot credit limit that has been consumed.';
+                        ToolTip = 'Specifies the percentage of the selected generation environment monthly credit limit consumed by completed usage.';
                         Editable = false;
                         StyleExpr = EnvironmentCreditsAvailableStyle;
                     }
@@ -184,34 +208,38 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
                     field(CompanyCreditsConsumed; CompanyCopilotCreditsConsumed)
                     {
+                        CaptionClass = '3,' + Quota.GetCreditCaption();
                         AutoFormatType = 0;
                         Caption = 'Copilot Credits Consumed';
-                        ToolTip = 'Specifies the total number of Copilot credits consumed by agent test suites in the current company during the current month.';
+                        ToolTip = 'Specifies completed credits attributed to agent evals in the current company and month, using the selected monetization generation.';
                         Editable = false;
                         DecimalPlaces = 2 : 5;
                     }
                     field(CompanyDeletedSuiteCredits; CompanyDeletedSuiteCreditsConsumed)
                     {
+                        CaptionClass = '3,' + StrSubstNo(DeletedSuitesCaptionLbl, Quota.GetCreditCaption());
                         AutoFormatType = 0;
                         Caption = 'Copilot Credits from Deleted Suites';
-                        ToolTip = 'Specifies Copilot credits consumed this month by suites that have since been deleted. These credits are included in the environment total but are not shown in the list above.';
+                        ToolTip = 'Specifies credits attributed this month to deleted suites, using the selected monetization generation. These credits remain included in the company total.';
                         Editable = false;
                         DecimalPlaces = 2 : 5;
                         Visible = CompanyDeletedSuiteCreditsConsumed > 0;
                     }
                     field(CompanyCreditsAvailable; CompanyCopilotCreditsAvailable)
                     {
+                        CaptionClass = '3,' + StrSubstNo(AvailableCaptionLbl, Quota.GetCreditCaption());
                         AutoFormatType = 0;
                         Caption = 'Copilot Credits Available';
-                        ToolTip = 'Specifies the number of Copilot credits remaining for the current company during the current month.';
+                        ToolTip = 'Specifies the company monthly limit minus completed usage, using the selected monetization generation. Pending pricing is not reserved.';
                         Editable = false;
                         DecimalPlaces = 2 : 5;
                         StyleExpr = CompanyCreditsAvailableStyle;
                     }
                     field(CompanyCreditsUsagePercentage; CompanyCreditsUsagePercentage)
                     {
+                        CaptionClass = '3,' + StrSubstNo(UsageCaptionLbl, Quota.GetCreditCaption());
                         Caption = 'Copilot Credits Usage %';
-                        ToolTip = 'Specifies the percentage of the company monthly Copilot credit limit that has been consumed.';
+                        ToolTip = 'Specifies the percentage of the selected generation company monthly credit limit consumed by completed usage.';
                         Editable = false;
                         StyleExpr = CompanyCreditsAvailableStyle;
                     }
@@ -258,7 +286,17 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         EnvironmentCreditsUsagePercentage, CompanyCreditsUsagePercentage : Text;
         EnvironmentCreditsAvailableStyle, CompanyCreditsAvailableStyle : Text;
         PageCaptionSourceLbl: Label 'AI Eval Monthly Copilot Credit Limits - %1 - %2', Comment = '%1 = Period Start, %2 = Period End';
+        AIPageCaptionSourceLbl: Label 'AI Eval Monthly AI Credit Limits - %1 - %2', Comment = '%1 = Period Start, %2 = Period End';
         NegativeCreditLimitErr: Label 'Monthly credit limit cannot be negative.';
+        NewMonetization: Boolean;
+        EnvironmentPendingTasks: Integer;
+        Quota: Codeunit "Copilot Quota";
+        MonthlyLimitCaptionLbl: Label 'Monthly %1 limit', Comment = '%1 = AI credits or Copilot credits';
+        EnvironmentConsumedCaptionLbl: Label '%1 consumed (environment)', Comment = '%1 = AI credits or Copilot credits';
+        CompanyConsumedCaptionLbl: Label '%1 consumed (company)', Comment = '%1 = AI credits or Copilot credits';
+        DeletedSuitesCaptionLbl: Label '%1 from deleted suites', Comment = '%1 = AI credits or Copilot credits';
+        AvailableCaptionLbl: Label '%1 available', Comment = '%1 = AI credits or Copilot credits';
+        UsageCaptionLbl: Label '%1 usage %', Comment = '%1 = AI credits or Copilot credits';
 
     trigger OnOpenPage()
     begin
@@ -266,7 +304,12 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     end;
 
     local procedure RefreshPage()
+    var
+        CopilotQuota: Codeunit "Copilot Quota";
+        AgentTestConsumption: Codeunit "Agent Test Consumption";
     begin
+        NewMonetization := CopilotQuota.IsNewMonetizationEnabled();
+        AgentTestConsumption.ReconcileAIConsumption();
         LoadCurrentUserIsAgentAdmin();
         LoadCreditLimitSetup();
         LoadBufferData();
@@ -277,6 +320,10 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
     local procedure UpdatePageCaption()
     begin
+        if NewMonetization then begin
+            CurrPage.Caption := StrSubstNo(AIPageCaptionSourceLbl, Format(EnvironmentLimitRecord.GetPeriodStartDate()), Format(EnvironmentLimitRecord.GetPeriodEndDate()));
+            exit;
+        end;
         CurrPage.Caption := StrSubstNo(PageCaptionSourceLbl, Format(EnvironmentLimitRecord.GetPeriodStartDate()), Format(EnvironmentLimitRecord.GetPeriodEndDate()));
     end;
 
@@ -291,12 +338,12 @@ page 149048 "AIT Eval Monthly Copilot Cred."
     local procedure LoadCreditLimitSetup()
     begin
         EnvironmentLimitRecord.GetOrCreateEnvironmentLimits();
-        EnvironmentMonthlyCreditLimit := EnvironmentLimitRecord."Monthly Credit Limit";
-        EnvironmentEnforcementEnabled := EnvironmentLimitRecord."Enforcement Enabled";
+        EnvironmentMonthlyCreditLimit := EnvironmentLimitRecord.GetCreditLimit();
+        EnvironmentEnforcementEnabled := EnvironmentLimitRecord.IsEnforcementEnabled();
 
         CompanyLimitRecord.GetOrCreateCompanyLimits();
-        CompanyMonthlyCreditLimit := CompanyLimitRecord."Monthly Credit Limit";
-        CompanyEnforcementEnabled := CompanyLimitRecord."Enforcement Enabled";
+        CompanyMonthlyCreditLimit := CompanyLimitRecord.GetCreditLimit();
+        CompanyEnforcementEnabled := CompanyLimitRecord.IsEnforcementEnabled();
     end;
 
     local procedure SaveEnvironmentCreditLimitSetup()
@@ -304,8 +351,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         ValidateMonthlyCreditLimit(EnvironmentMonthlyCreditLimit);
 
         EnvironmentLimitRecord.GetOrCreateEnvironmentLimits();
-        EnvironmentLimitRecord."Monthly Credit Limit" := EnvironmentMonthlyCreditLimit;
-        EnvironmentLimitRecord."Enforcement Enabled" := EnvironmentEnforcementEnabled;
+        EnvironmentLimitRecord.SetCreditLimitSetup(EnvironmentMonthlyCreditLimit, EnvironmentEnforcementEnabled);
         EnvironmentLimitRecord.Modify();
     end;
 
@@ -314,8 +360,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         ValidateMonthlyCreditLimit(CompanyMonthlyCreditLimit);
 
         CompanyLimitRecord.GetOrCreateCompanyLimits();
-        CompanyLimitRecord."Monthly Credit Limit" := CompanyMonthlyCreditLimit;
-        CompanyLimitRecord."Enforcement Enabled" := CompanyEnforcementEnabled;
+        CompanyLimitRecord.SetCreditLimitSetup(CompanyMonthlyCreditLimit, CompanyEnforcementEnabled);
         CompanyLimitRecord.Modify();
     end;
 
@@ -340,6 +385,8 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         EnvironmentLoadedDataCopilotCreditsConsumed := 0;
         CompanyLoadedDataCopilotCreditsConsumed := 0;
         PeriodStartDate := EnvironmentLimitRecord.GetPeriodStartDate();
+        if NewMonetization then
+            EnvironmentPendingTasks := AgentTestConsumption.GetPendingAITaskCount(PeriodStartDate, false);
 
         // Load all agent test suites and their credit consumption for the current period into the buffer.
         AITTestSuite.SetRange("Test Type", AITTestSuite."Test Type"::Agent);
@@ -380,11 +427,14 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
     local procedure UpdateComputedFields()
     var
+        AgentTestConsumption: Codeunit "Agent Test Consumption";
         EnvUsagePercent, CompanyUsagePercent : Decimal;
         EnvLimitReached, CompanyLimitReached : Boolean;
     begin
         // Environment usage (across all companies)
         EnvLimitReached := AITEvalMonthlyCopilotCreditLimit.IsEnvironmentLimitReached(EnvironmentCopilotCreditsConsumed, EnvironmentMonthlyCreditLimit);
+        if NewMonetization then
+            EnvironmentCopilotCreditsConsumed := AgentTestConsumption.GetCopilotCreditsForEnvironment(EnvironmentLimitRecord.GetPeriodStartDate());
 
         EnvironmentDeletedSuiteCreditsConsumed := EnvironmentCopilotCreditsConsumed - EnvironmentLoadedDataCopilotCreditsConsumed;
         if EnvironmentDeletedSuiteCreditsConsumed < 0 then
@@ -412,6 +462,8 @@ page 149048 "AIT Eval Monthly Copilot Cred."
 
         // Company usage (current company only)
         CompanyLimitReached := AITEvalMonthlyCopilotCreditLimit.IsCompanyLimitReached(CompanyCopilotCreditsConsumed, CompanyMonthlyCreditLimit);
+        if NewMonetization then
+            CompanyCopilotCreditsConsumed := AgentTestConsumption.GetCopilotCreditsForCurrentCompany(CompanyLimitRecord.GetPeriodStartDate());
 
         CompanyDeletedSuiteCreditsConsumed := CompanyCopilotCreditsConsumed - CompanyLoadedDataCopilotCreditsConsumed;
         if CompanyDeletedSuiteCreditsConsumed < 0 then

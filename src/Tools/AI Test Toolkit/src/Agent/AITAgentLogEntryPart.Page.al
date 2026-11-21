@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Agents;
+using System.AI;
 
 page 149050 "AIT Agent Log Entry Part"
 {
@@ -47,12 +48,19 @@ page 149050 "AIT Agent Log Entry Part"
                     ApplicationArea = All;
                     AutoFormatType = 0;
                     Caption = 'Copilot Credits';
+                    CaptionClass = '3,' + Quota.GetCreditCaption();
                     ToolTip = 'Specifies the Copilot Credits consumed by this Agent Task.';
 
                     trigger OnDrillDown()
                     begin
                         AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(Rec."Agent Task ID");
                     end;
+                }
+                field(PricingPending; PricingPending)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Pricing pending';
+                    ToolTip = 'Specifies that AI pricing for this task is incomplete.';
                 }
             }
         }
@@ -64,10 +72,24 @@ page 149050 "AIT Agent Log Entry Part"
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         CopilotCredits: Decimal;
         NumberOfStepsDone: Integer;
+        AgentTestConsumption: Codeunit "Agent Test Consumption";
+        Quota: Codeunit "Copilot Quota";
+        PricingPending: Boolean;
 
     trigger OnAfterGetRecord()
     begin
-        CopilotCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec."Agent Task ID");
+        PricingPending := false;
+        if Rec."New Monetization" then
+            AgentTestConsumption.GetTaskAIConsumption(Rec."Agent Task ID", CopyStr(CompanyName(), 1, 30), CopilotCredits, PricingPending)
+        else
+            CopilotCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec."Agent Task ID");
         NumberOfStepsDone := AgentTask.GetStepsDoneCount(Rec."Agent Task ID");
+    end;
+
+    trigger OnOpenPage()
+    begin
+        Rec.FilterGroup(2);
+        Rec.SetRange("New Monetization", Quota.IsNewMonetizationEnabled());
+        Rec.FilterGroup(0);
     end;
 }

@@ -6,6 +6,7 @@
 namespace System.Agents.Designer;
 
 using System.Agents;
+using System.AI;
 using System.Agents.TaskPane;
 using System.Agents.Troubleshooting;
 using System.Security.AccessControl;
@@ -115,6 +116,7 @@ page 4362 "Agent Task Log Entry Instr"
             }
             field(Credits; ConsumedCredits)
             {
+                CaptionClass = '3,' + CreditCaption;
                 Caption = 'Copilot credits used';
                 ToolTip = 'Specifies the number of Copilot credits consumed by the agent task.';
                 AutoFormatType = 0;
@@ -126,6 +128,11 @@ page 4362 "Agent Task Log Entry Instr"
                 begin
                     AgentConsumptionOverview.OpenAgentTaskConsumptionOverview(GlobalAgentTask.ID);
                 end;
+            }
+            field(ConsumptionPricingPending; PricingPending)
+            {
+                Caption = 'Pricing pending';
+                ToolTip = 'Specifies that AI pricing is missing or incomplete and the completed total can increase later.';
             }
         }
     }
@@ -352,8 +359,10 @@ page 4362 "Agent Task Log Entry Instr"
     local procedure CalculateTaskConsumedCredits()
     var
         AgentConsumptionOverview: Codeunit "Agent Consumption Overview";
+        Quota: Codeunit "Copilot Quota";
     begin
-        ConsumedCredits := AgentConsumptionOverview.GetCopilotCreditsConsumed(Rec."Task ID");
+        CreditCaption := Quota.GetCreditCaption();
+        AgentConsumptionOverview.GetTaskConsumption(Rec."Task ID", ConsumedCredits, PricingPending);
     end;
 
     local procedure GetAgentTaskTitle(AgentTask: Record "Agent Task"): Text
@@ -371,6 +380,8 @@ page 4362 "Agent Task Log Entry Instr"
         TypeStyle: Text;
         UserName: Text;
         ConsumedCredits: Decimal;
+        CreditCaption: Text;
+        PricingPending: Boolean;
         GlobalUserSecurityId: Guid;
         CurrentTaskTitleTxt: Text;
         TaskLbl: Label 'Task %1', Comment = '%1 Number and the name of the task, e.g. #0012 - Sample Task Title';
