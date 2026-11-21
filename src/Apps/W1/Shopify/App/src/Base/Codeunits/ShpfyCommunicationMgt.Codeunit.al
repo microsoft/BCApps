@@ -112,6 +112,27 @@ codeunit 30103 "Shpfy Communication Mgt."
         exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest, GraphQLQueries.GetGraphQLTypeName(GraphQLType)));
     end;
 
+    internal procedure CheckGraphQLAccess(GraphQLType: Enum "Shpfy GraphQL Type"; FieldName: Text): Boolean
+    var
+        ResponseHeaders: HttpHeaders;
+        ExpectedCost: Integer;
+        GraphQLQuery: Text;
+        JResponse: JsonToken;
+        JField: JsonToken;
+        InvalidAccessCheckResponseErr: Label 'The response from Shopify did not contain the expected %1 data.', Comment = '%1 = GraphQL field name';
+    begin
+        GraphQLQuery := GraphQLQueries.GetQueryWithCost(GraphQLType, ExpectedCost);
+        JResponse := ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, true, GraphQLQueries.GetGraphQLTypeName(GraphQLType), FieldName);
+        if JResponse.AsObject().Contains('errors') then
+            exit(false);
+
+        if not JResponse.SelectToken('data.' + FieldName, JField) then
+            Error(InvalidAccessCheckResponseErr, FieldName);
+        if not JField.IsObject() then
+            Error(InvalidAccessCheckResponseErr, FieldName);
+        exit(true);
+    end;
+
     /// <summary> 
     /// Execute GraphQL.
     /// </summary>
@@ -147,7 +168,12 @@ codeunit 30103 "Shpfy Communication Mgt."
         exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest, ''));
     end;
 
-    local procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal; CheckOutgoingRequest: Boolean; GraphQLTypeName: Text) JResponse: JsonToken
+    local procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal; CheckOutgoingRequest: Boolean; GraphQLTypeName: Text): JsonToken
+    begin
+        exit(ExecuteGraphQL(GraphQLQuery, ResponseHeaders, ExpectedCost, CheckOutgoingRequest, GraphQLTypeName, ''));
+    end;
+
+    local procedure ExecuteGraphQL(GraphQLQuery: Text; var ResponseHeaders: HttpHeaders; ExpectedCost: Decimal; CheckOutgoingRequest: Boolean; GraphQLTypeName: Text; AccessCheckField: Text) JResponse: JsonToken
     var
         ShpfyGraphQLRateLimit: Codeunit "Shpfy GraphQL Rate Limit";
         ShpfyJsonHelper: Codeunit "Shpfy Json Helper";
@@ -167,9 +193,41 @@ codeunit 30103 "Shpfy Communication Mgt."
                     ShpfyGraphQLRateLimit.SetQueryCost(ShpfyJsonHelper.GetJsonToken(JResponse, 'extensions.cost.throttleStatus'));
             end;
             if JResponse.AsObject().Contains('errors') then
-                Error(ErrorOnShopifyErr, Format(ShpfyJsonHelper.GetJsonToken(JResponse, 'errors')));
+                if not IsAccessDeniedForField(JResponse, AccessCheckField) then
+                    Error(ErrorOnShopifyErr, Format(ShpfyJsonHelper.GetJsonToken(JResponse, 'errors')));
         end else
             Error(NoJsonErr, GraphQLQuery, ReceivedData);
+    end;
+
+    local procedure IsAccessDeniedForField(JResponse: JsonToken; FieldName: Text): Boolean
+    var
+        JsonHelper: Codeunit "Shpfy Json Helper";
+        JErrors: JsonArray;
+        JPath: JsonArray;
+        JError: JsonToken;
+        JField: JsonToken;
+    begin
+        if FieldName = '' then
+            exit(false);
+        if not JsonHelper.GetJsonArray(JResponse, JErrors, 'errors') then
+            exit(false);
+        if JErrors.Count() = 0 then
+            exit(false);
+
+        foreach JError in JErrors do begin
+            if not JError.IsObject() then
+                exit(false);
+            if JsonHelper.GetValueAsText(JError, 'extensions.code') <> 'ACCESS_DENIED' then
+                exit(false);
+            if not JsonHelper.GetJsonArray(JError, JPath, 'path') then
+                exit(false);
+            if JPath.Count() <> 1 then
+                exit(false);
+            JPath.Get(0, JField);
+            if JsonHelper.GetValueAsText(JField, '') <> FieldName then
+                exit(false);
+        end;
+        exit(true);
     end;
 
     /// <summary> 

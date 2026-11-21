@@ -843,7 +843,7 @@ page 30101 "Shpfy Shop Card"
                 RunObject = Page "Shpfy Staff Mapping";
                 RunPageLink = "Shop Code" = field(Code);
                 ToolTip = 'View a list of Shopify Staff Members for the shop.';
-                Visible = Rec."Advanced Shopify Plan";
+                Visible = Rec."Can Access Staff Members";
             }
             action(PaymentTransactions)
             {

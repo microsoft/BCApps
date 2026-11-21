@@ -971,6 +971,12 @@ table 30102 "Shpfy Shop"
             DataClassification = SystemMetadata;
             InitValue = true;
         }
+        field(210; "Can Access Staff Members"; Boolean)
+        {
+            Caption = 'Can Access Staff Members';
+            ToolTip = 'Specifies whether the connected Shopify store permits access to staff-member data.';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -1160,6 +1166,9 @@ table 30102 "Shpfy Shop"
             if JItem.IsObject then
                 Rec.Validate("Advanced Shopify Plan", JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
                                                 (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development', 'Advanced']));
+        Rec."Can Access Staff Members" := false;
+        if Rec."Advanced Shopify Plan" then
+            Rec."Can Access Staff Members" := CommunicationMgt.CheckGraphQLAccess("Shpfy GraphQL Type"::Base_CheckStaffMemberAccess, 'staffMembers');
         Rec."Weight Unit" := ConvertToWeightUnit(JsonHelper.GetValueAsText(JResponse, 'data.shop.weightUnit'));
     end;
 
