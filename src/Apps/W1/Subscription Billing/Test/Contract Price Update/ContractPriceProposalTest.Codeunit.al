@@ -4,6 +4,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Inventory.Item;
 using Microsoft.Pricing.Asset;
+using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
 using Microsoft.Pricing.Source;
 using Microsoft.Purchases.Document;
@@ -772,6 +773,8 @@ codeunit 139690 "Contract Price Proposal Test"
     begin
         // [SCENARIO 622207] Verify that a price update proposal line is created for a vendor contract with a G/L Account service commitment using Recent Item Prices.
         Initialize();
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
 
         // [GIVEN] Create a vendor in LCY with a G/L Account service commitment in a vendor contract
         SetupVendorGLAccountContractForPriceUpdate(VendorContract);
@@ -805,6 +808,8 @@ codeunit 139690 "Contract Price Proposal Test"
     begin
         // [SCENARIO 648553] The price update proposal must use the price of the Subscription unit of measure instead of the lowest price of all units of measure.
         Initialize();
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
 
         // [GIVEN] A customer contract with a Subscription that uses a unit of measure other than the base unit of measure
         ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, '', false);
