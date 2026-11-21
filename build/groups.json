@@ -1890,6 +1890,22 @@
     ]
   },
   {
+    "name": "Depreciation Differences FI",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Tests",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
     "name": "DK Core",
     "groups": [
       {
@@ -4808,6 +4824,52 @@
     ]
   },
   {
+    "name": "Depreciation Differences FI Demo Data",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Demo Data Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Contoso Coffee Demo Dataset (FR)",
     "groups": [
       {
@@ -7397,13 +7459,16 @@
     "name": "Create Product Information With Copilot",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
         "name": "OnPrem",
@@ -8860,7 +8925,7 @@
     ]
   },
   {
-    "name": "Expense Agent (Preview)",
+    "name": "Expense Agent",
     "groups": [
       {
         "name": "AllExtensions"
