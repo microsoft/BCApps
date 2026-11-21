@@ -11,6 +11,7 @@ report 5633 "Maintenance Register"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Maintenance Register';
+    ToolTip = 'Run the Maintenance Register report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
