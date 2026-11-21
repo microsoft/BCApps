@@ -5,6 +5,7 @@ codeunit 135096 "OCR Web Service Tests with WF"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
 
     trigger OnRun()
     begin
@@ -26,6 +27,7 @@ codeunit 135096 "OCR Web Service Tests with WF"
         DocSentMsg: Label 'The document was successfully sent to the OCR service.';
         DocumentHasBeenScheduledTxt: Label 'The document has been scheduled for sending to the OCR service.';
         DocumentCreatedMsg: Label 'A document was created.';
+        OCRMockServiceUrlTxt: Label 'https://localhost:8080/OCR/', Locked = true;
 
     local procedure Initialize()
     var
@@ -270,7 +272,7 @@ codeunit 135096 "OCR Web Service Tests with WF"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestWorkflowAssignment()
     var
@@ -340,7 +342,7 @@ codeunit 135096 "OCR Web Service Tests with WF"
     end;
 
     [Test]
-    [HandlerFunctions('CountingMessageHandler')]
+    [HandlerFunctions('CountingMessageHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestCheckMessagesWhenSendingToJobQueue()
     var
@@ -371,7 +373,7 @@ codeunit 135096 "OCR Web Service Tests with WF"
     end;
 
     [Test]
-    [HandlerFunctions('CountingMessageHandler')]
+    [HandlerFunctions('CountingMessageHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestCheckMessagesWhenSendingToOCRService()
     var
@@ -548,6 +550,13 @@ codeunit 135096 "OCR Web Service Tests with WF"
         LibraryWorkflow.InsertMessageArgument(NewWorkflowStep.ID, DocumentCreatedMsg);
 
         LibraryWorkflow.EnableWorkflow(Workflow);
+    end;
+
+    [HttpClientHandler]
+    procedure OCRMockServiceHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        // Only requests to the local OCR mock service may leave the test; any other outbound request stays blocked.
+        exit(Request.Path.StartsWith(OCRMockServiceUrlTxt));
     end;
 }
 
