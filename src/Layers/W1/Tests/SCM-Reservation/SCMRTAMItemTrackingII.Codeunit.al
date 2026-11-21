@@ -46,7 +46,7 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         CreateNewLotNo: Boolean;
         PartialTracking: Boolean;
         ItemTrackingSummaryCancel: Boolean;
-        AssignTracking: Option "None",SerialNo,LotNo,SelectTrackingEntries,GivenLotNo,GetQty;
+        AssignTracking: Option "None",SerialNo,LotNo,SelectTrackingEntries,GivenLotNo,GetQty,GivenLotNoAndQtyToHandle;
         ItemTrackingAction: Option "None",AvailabilitySerialNo,AvailabilityLotNo;
         TrackingQuantity: Decimal;
         MessageCounter: Integer;
@@ -2758,6 +2758,67 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
     end;
 
     [Test]
+    [HandlerFunctions('ItemTrackingLotPageHandler')]
+    [Scope('OnPrem')]
+    procedure MakeOrderFromBlanketSalesOrderSkipsLotWithZeroQtyToHandle()
+    var
+        Item: Record Item;
+        BlanketSalesHeader: Record "Sales Header";
+        BlanketSalesLine: Record "Sales Line";
+        SalesLine: Record "Sales Line";
+        ReservationEntry: Record "Reservation Entry";
+        SalesOrderNo: Code[20];
+        LotNo: array[2] of Code[50];
+        LotQty: Decimal;
+    begin
+        // [FEATURE] [Sales] [Blanket Order] [Order] [Reservation]
+        // [SCENARIO] Make Order from a blanket sales order completes when a prospect lot entry with "Qty. to Handle" = 0 is processed before the lot to ship. GitHub issue #8934.
+        Initialize();
+        LotNo[1] := LibraryUtility.GenerateGUID();
+        LotNo[2] := LibraryUtility.GenerateGUID();
+        LotQty := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] Lot-tracked item with inventory for lots "L1" and "L2".
+        LibraryItemTracking.CreateLotItem(Item);
+        CreateAndPostItemJnlLineWithLot(Item."No.", LotNo[1], LotQty);
+        CreateAndPostItemJnlLineWithLot(Item."No.", LotNo[2], LotQty);
+
+        // [GIVEN] Blanket sales order line for 2 * X pcs with "Qty. to Ship" = X.
+        LibrarySales.CreateSalesDocumentWithItem(
+          BlanketSalesHeader, BlanketSalesLine, BlanketSalesHeader."Document Type"::"Blanket Order", '',
+          Item."No.", 2 * LotQty, '', WorkDate());
+        UpdateQtyToShipOnSalesLine(BlanketSalesLine, LotQty);
+
+        // [GIVEN] Lot "L1" for X pcs with "Qty. to Handle" = 0 is assigned first, so its prospect reservation entry is processed first.
+        AssignLotWithQtyToHandleToSalesLine(BlanketSalesLine, LotNo[1], LotQty, 0);
+
+        // [GIVEN] Lot "L2" for X pcs with "Qty. to Handle" = X.
+        AssignLotWithQtyToHandleToSalesLine(BlanketSalesLine, LotNo[2], LotQty, LotQty);
+
+        // [WHEN] Make sales order from the blanket order.
+        SalesOrderNo := LibrarySales.BlanketSalesOrderMakeOrder(BlanketSalesHeader);
+
+        // [THEN] Sales order line for X pcs is created.
+        SelectSalesLine(SalesLine, SalesOrderNo);
+        SalesLine.TestField(Quantity, LotQty);
+
+        // [THEN] Only lot "L2" is transferred to the sales order line. Its reservation entry has status Surplus and quantity X.
+        FindSingleReservationEntryForSalesLine(ReservationEntry, SalesLine);
+        ReservationEntry.TestField("Lot No.", LotNo[2]);
+        ReservationEntry.TestField("Reservation Status", ReservationEntry."Reservation Status"::Surplus);
+        ReservationEntry.TestField("Quantity (Base)", -LotQty);
+        ReservationEntry.TestField("Qty. to Handle (Base)", -LotQty);
+
+        // [THEN] Lot "L1" stays on the blanket order line. Its reservation entry has status Prospect and quantity X.
+        FindSingleReservationEntryForSalesLine(ReservationEntry, BlanketSalesLine);
+        ReservationEntry.TestField("Lot No.", LotNo[1]);
+        ReservationEntry.TestField("Reservation Status", ReservationEntry."Reservation Status"::Prospect);
+        ReservationEntry.TestField("Quantity (Base)", -LotQty);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('WhseItemTrackingLinesModalPageHandler,ItemTrackingLotPageHandler')]
     [Scope('OnPrem')]
     procedure PartialPickWithItemTrackingDefinedInBothSourceDocAndPick()
@@ -4980,6 +5041,23 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
         TransferLine.OpenItemTrackingLines("Transfer Direction"::Outbound);
     end;
 
+    local procedure AssignLotWithQtyToHandleToSalesLine(var SalesLine: Record "Sales Line"; LotNo: Code[50]; Qty: Decimal; QtyToHandle: Decimal)
+    begin
+        LibraryVariableStorage.Enqueue(AssignTracking::GivenLotNoAndQtyToHandle);
+        LibraryVariableStorage.Enqueue(LotNo);
+        LibraryVariableStorage.Enqueue(Qty);
+        LibraryVariableStorage.Enqueue(QtyToHandle);
+        SalesLine.OpenItemTrackingLines();
+    end;
+
+    local procedure FindSingleReservationEntryForSalesLine(var ReservationEntry: Record "Reservation Entry"; SalesLine: Record "Sales Line")
+    begin
+        ReservationEntry.Reset();
+        SalesLine.SetReservationFilters(ReservationEntry);
+        Assert.RecordCount(ReservationEntry, 1);
+        ReservationEntry.FindFirst();
+    end;
+
     local procedure SelectSalesLine(var SalesLine: Record "Sales Line"; DocumentNo: Code[20])
     begin
         SalesLine.SetRange("Document No.", DocumentNo);
@@ -6526,6 +6604,14 @@ codeunit 137059 "SCM RTAM Item Tracking-II"
                     Qty := LibraryVariableStorage.DequeueDecimal();
                     ItemTrackingLines."Quantity (Base)".SetValue(Qty);
                     ItemTrackingLines."Qty. to Handle (Base)".SetValue(Qty);
+                end;
+            AssignTracking::GivenLotNoAndQtyToHandle:
+                begin
+                    ItemTrackingLines.Last();
+                    ItemTrackingLines.Next();
+                    ItemTrackingLines."Lot No.".SetValue(LibraryVariableStorage.DequeueText());
+                    ItemTrackingLines."Quantity (Base)".SetValue(LibraryVariableStorage.DequeueDecimal());
+                    ItemTrackingLines."Qty. to Handle (Base)".SetValue(LibraryVariableStorage.DequeueDecimal());
                 end;
             AssignTracking::GetQty:
                 begin
