@@ -38,8 +38,6 @@ codeunit 147520 SIIDocumentTests
         XILbl: Label 'XI';
         VatRegistrationNoLbl: Label 'B80833593';
         SIICodigoPaisLbl: Label 'sii:CodigoPais';
-        DotNetVariableNotInstantiatedErr: Label 'A DotNet variable has not been instantiated. Attempting to call System.Xml.XmlNode.InnerText in CodeUnit Library - SII: ValidateElementByNameAt';
-        ErrorTextMustMatchErr: label 'Error text must match.';
 
     [Test]
     [Scope('OnPrem')]
@@ -47,7 +45,7 @@ codeunit 147520 SIIDocumentTests
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         Initialize();
         // [GIVEN] Creation of a Sales Invoice for a local customer
@@ -75,7 +73,7 @@ codeunit 147520 SIIDocumentTests
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SellToCustomer: Record Customer;
         BillToCustomer: Record Customer;
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 221468] XML has customer related fields from "Bill-to Customer No." in sales order
         Initialize();
@@ -105,7 +103,7 @@ codeunit 147520 SIIDocumentTests
         GenJournalLine: Record "Gen. Journal Line";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         Library340347Declaration: Codeunit "Library - 340 347 Declaration";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
     begin
@@ -153,7 +151,7 @@ codeunit 147520 SIIDocumentTests
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         Initialize();
 
@@ -175,7 +173,7 @@ codeunit 147520 SIIDocumentTests
     var
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 255493] FechaRegContable node of XML file has value of "Requested Date" of SII History for Purchase Invoice
@@ -211,7 +209,7 @@ codeunit 147520 SIIDocumentTests
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         PayToVendor: Record Vendor;
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 221468] XML has vendor related fields from "Pay-to Vendor No." in purchase order
@@ -245,7 +243,7 @@ codeunit 147520 SIIDocumentTests
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         PayToVendor: Record Vendor;
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 233980] XML has vendor related fields from "Pay-to Vendor No." in purchase Credit Memo
@@ -279,7 +277,7 @@ codeunit 147520 SIIDocumentTests
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         PayToVendor: Record Vendor;
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 233980] XML has vendor related fields from "Pay-to Vendor No." in purchase Credit Memo (Replacement)
@@ -315,7 +313,7 @@ codeunit 147520 SIIDocumentTests
         Vendor: Record Vendor;
         GenJournalLine: Record "Gen. Journal Line";
         Library340347Declaration: Codeunit "Library - 340 347 Declaration";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
         ExtDocumentNo: Code[20];
@@ -367,7 +365,7 @@ codeunit 147520 SIIDocumentTests
         OriginalCustLedgerEntry: Record "Cust. Ledger Entry";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO] Generate sii XML file for Sales Credit Memo with "Correction Type" = Difference
@@ -425,7 +423,7 @@ codeunit 147520 SIIDocumentTests
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         InvCustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO] Generate sii XML file for Sales Credit Memo with "Correction Type" = Replacement
@@ -476,7 +474,7 @@ codeunit 147520 SIIDocumentTests
     var
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO] Generate sii XML file for Sales Credit Memo with "Correction Type" = Removal
@@ -505,7 +503,7 @@ codeunit 147520 SIIDocumentTests
         OriginalVendorLedgerEntry: Record "Vendor Ledger Entry";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO] Generate sii XML file for Purchase Credit Memo with "Correction Type" = Difference
@@ -564,7 +562,7 @@ codeunit 147520 SIIDocumentTests
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         InvVendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO] Generate sii XML file for Purchase Credit Memo with "Correction Type" = Replacement
@@ -614,7 +612,7 @@ codeunit 147520 SIIDocumentTests
     var
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO] Generate sii XML file for Purchase Credit Memo with "Correction Type" = Removal
@@ -642,7 +640,7 @@ codeunit 147520 SIIDocumentTests
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         Initialize();
 
@@ -664,7 +662,7 @@ codeunit 147520 SIIDocumentTests
     var
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         Initialize();
 
@@ -686,7 +684,7 @@ codeunit 147520 SIIDocumentTests
     procedure SalesCreditMemoWithoutInvoiceReportedWithTypeI()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 221490] Sales credit memo without corrective invoice No must be reported with Tipo Rectificativa "I"
@@ -709,7 +707,7 @@ codeunit 147520 SIIDocumentTests
     procedure PurchaseCreditMemoWithoutInvoiceReportedWithTypeI()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 228997] Purchase credit memo without corrective invoice No must be reported with Tipo Rectificativa "I" and negative amounts
@@ -779,7 +777,7 @@ codeunit 147520 SIIDocumentTests
     procedure SalesInvWithMultipleLinesDiffVATRate()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 221594] XML file has nodes with correct VAT Base and Amount according to each VAT Entry posted from Sales Invoice with multiple lines with different VAT rate
@@ -804,7 +802,7 @@ codeunit 147520 SIIDocumentTests
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 221594] XML file has nodes with correct VAT Base and Amount according to each VAT Entry posted from Purchase Invoice with multiple lines with different VAT rate
@@ -830,7 +828,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         VATRateReverseCharge: Decimal;
         Amount: Decimal;
@@ -869,7 +867,7 @@ codeunit 147520 SIIDocumentTests
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         VATRateReverseCharge: Decimal;
         Amount: Decimal;
@@ -912,7 +910,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -943,7 +941,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -972,7 +970,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 220556] It must be possible to get SII XML files for customers from the Netherlands
@@ -999,7 +997,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 220556] It must be possible to get SII XML files for local customers having "VAT Registration No." starting with "N"
@@ -1027,7 +1025,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesHeaderForShip1: Record "Sales Header";
         SalesHeaderForShip2: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         SalesInvoiceHeaderNo: Code[20];
         ShipmentDate: Date;
@@ -1078,7 +1076,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesHeaderForShip1: Record "Sales Header";
         SalesHeaderForShip2: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         SalesInvoiceHeaderNo: Code[20];
         OldWorkDate: Date;
@@ -1126,7 +1124,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchaseHeaderForRcpt1: Record "Purchase Header";
         PurchaseHeaderForRcpt2: Record "Purchase Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendorNo: Code[20];
         PurchInvoiceHeaderNo: Code[20];
         RcptDate: Date;
@@ -1171,7 +1169,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesHeaderForShip1: Record "Sales Header";
         SalesHeaderForShip2: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         SalesInvoiceHeaderNo: Code[20];
         ShipmentDate: Date;
@@ -1214,7 +1212,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
         CrMemoDate: Date;
     begin
@@ -1248,7 +1246,7 @@ codeunit 147520 SIIDocumentTests
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
         CrMemoDate: Date;
     begin
@@ -1280,7 +1278,7 @@ codeunit 147520 SIIDocumentTests
     procedure SalesInvWithMultipleLinesDiffVATGroupSameRate()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 221594] XML file has nodes with correct VAT Base and Amount according to each VAT Entry posted from Sales Invoice with multiple lines with different VAT group but same VAT %
@@ -1304,7 +1302,7 @@ codeunit 147520 SIIDocumentTests
     procedure PurchInvWithMultipleLinesDiffVATGroupSameRate()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 221594] XML file has nodes with correct VAT Base and Amount according to each VAT Entry posted from Purchase Invoice with multiple lines with different VAT group but same VAT %
@@ -1330,7 +1328,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 227852] "Special Scheme Code" of Sales Credit Memo uses for "ClaveRegimenEspecialOTrascendencia" node when export to SII xml file
@@ -1362,7 +1360,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 227852] "Special Scheme Code" of Purchase Credit Memo uses for "ClaveRegimenEspecialOTrascendencia" node when export to SII xml file
@@ -1394,7 +1392,7 @@ codeunit 147520 SIIDocumentTests
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ShipmentDate: Date;
     begin
         // [FEATURE] [Sales] [Shipment]
@@ -1430,7 +1428,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 227852] "Document No." uses for "NumSerieFacturaEmisor" xml node for Purchase Credit Memo with "Correction Type" = Removal when "External Document No." is not specified
@@ -1479,7 +1477,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         TotalVATAmount: Decimal;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
@@ -1518,7 +1516,7 @@ codeunit 147520 SIIDocumentTests
         ServiceHeader: Record "Service Header";
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 228335] DescripcionOperacion node exists in XML file of Service Credit Memo
 
@@ -1546,7 +1544,7 @@ codeunit 147520 SIIDocumentTests
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         SalesInvoiceHeaderNo: Code[20];
         ShipmentDate: Date;
@@ -1578,7 +1576,7 @@ codeunit 147520 SIIDocumentTests
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
         PurchaseHeaderForRcpt: Record "Purchase Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendorNo: Code[20];
         PurchInvoiceHeaderNo: Code[20];
         RcptDate: Date;
@@ -1612,7 +1610,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         UnitPrice: Decimal;
     begin
         // [FEATURE] [Sales] [Invoice]
@@ -1646,7 +1644,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         UnitCost: Decimal;
     begin
         // [FEATURE] [Purchase] [Invoice]
@@ -1719,7 +1717,7 @@ codeunit 147520 SIIDocumentTests
     procedure TipoDesglose_DomesticCustomer_VATRegNoB_NoEU()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseFactura/Sujeta" node in case of sales invoice for
@@ -1744,7 +1742,7 @@ codeunit 147520 SIIDocumentTests
     var
         VATPostingSetup: Record "VAT Posting Setup";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [EU Service]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseFactura/Sujeta" node in case of sales invoice for
@@ -1771,7 +1769,7 @@ codeunit 147520 SIIDocumentTests
     procedure TipoDesglose_DomesticCustomer_VATRegNoN_NoEU()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseTipoOperacion/Entrega" node in case of sales invoice for
@@ -1796,7 +1794,7 @@ codeunit 147520 SIIDocumentTests
     var
         VATPostingSetup: Record "VAT Posting Setup";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [EU Service]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseTipoOperacion/PrestacionServicios" node in case of sales invoice for
@@ -1823,7 +1821,7 @@ codeunit 147520 SIIDocumentTests
     procedure TipoDesglose_DomesticCustomerES_VATRegNoB_NoEU()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseFactura/Sujeta" node in case of sales invoice for
@@ -1848,7 +1846,7 @@ codeunit 147520 SIIDocumentTests
     var
         VATPostingSetup: Record "VAT Posting Setup";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [EU Service]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseFactura/Sujeta" node in case of sales invoice for
@@ -1875,7 +1873,7 @@ codeunit 147520 SIIDocumentTests
     procedure TipoDesglose_DomesticCustomerES_VATRegNoN_NoEU()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseTipoOperacion/Entrega" node in case of sales invoice for
@@ -1900,7 +1898,7 @@ codeunit 147520 SIIDocumentTests
     var
         VATPostingSetup: Record "VAT Posting Setup";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [EU Service]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseTipoOperacion/PrestacionServicios" node in case of sales invoice for
@@ -1927,7 +1925,7 @@ codeunit 147520 SIIDocumentTests
     procedure TipoDesglose_ForeignCustomer_NoEU()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseTipoOperacion/Entrega" node in case of sales invoice for
@@ -1952,7 +1950,7 @@ codeunit 147520 SIIDocumentTests
     var
         VATPostingSetup: Record "VAT Posting Setup";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [EU Service]
         // [SCENARIO 277358] XML "TipoDesglose/DesgloseTipoOperacion/PrestacionServicios" node in case of sales invoice for
@@ -1979,7 +1977,7 @@ codeunit 147520 SIIDocumentTests
     procedure ImporteTotal_WhenPostSalesInvAndCrMemoWithSameNo()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         StartingNo: Code[20];
     begin
         // [FEATURE] [Sales] [Credit Memo] [Invoice] [No Series]
@@ -2011,7 +2009,7 @@ codeunit 147520 SIIDocumentTests
     procedure ImporteTotal_WhenPostPurchInvAndCrMemoWithSameNo()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         StartingNo: Code[20];
     begin
         // [FEATURE] [Purchase] [Credit Memo] [Invoice] [No Series]
@@ -2044,7 +2042,7 @@ codeunit 147520 SIIDocumentTests
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         StartingNo: Code[20];
     begin
         // [FEATURE] [Service] [Credit Memo] [Invoice] [No Series]
@@ -2085,7 +2083,7 @@ codeunit 147520 SIIDocumentTests
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         SalesInvoiceHeaderNo: Code[20];
     begin
@@ -2122,7 +2120,7 @@ codeunit 147520 SIIDocumentTests
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         SalesInvoiceHeaderNo: Code[20];
         ShipmentDate: Date;
@@ -2164,7 +2162,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Shipment]
         // [SCENARIO 386538] If "Shipment Date" has different year than "Posting Date" of the Sales Invoice, then FechaOperacion tag is not present in the xml file
@@ -2196,7 +2194,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchaseHeaderForRcpt: Record "Purchase Header";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendorNo: Code[20];
         PurchInvoiceHeaderNo: Code[20];
         RcptDate: Date;
@@ -2233,7 +2231,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesHeaderForShip: Record "Sales Header";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         SalesInvoiceHeaderNo: Code[20];
         OldWorkDate: Date;
@@ -2279,7 +2277,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -2315,7 +2313,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -2351,7 +2349,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -2388,7 +2386,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VATRate: Decimal;
         Amount: Decimal;
     begin
@@ -2425,7 +2423,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Shipment]
         // [SCENARIO 391434] FechaOperacion xml node has value after the posting date
@@ -2462,7 +2460,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeaderForReceipt: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         OldWorkDate: Date;
     begin
@@ -2509,7 +2507,7 @@ codeunit 147520 SIIDocumentTests
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Prepayment]
         // [SCENARIO 220565] A FechaOperacion xml node does not generate for the sales prepayment invoice
@@ -2536,7 +2534,7 @@ codeunit 147520 SIIDocumentTests
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Prepayment]
         // [SCENARIO 220565] A FechaOperacion xml node does not generate for the sales prepayment credit memo
@@ -2568,7 +2566,7 @@ codeunit 147520 SIIDocumentTests
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Prepayment]
         // [SCENARIO 220565] A FechaOperacion xml node does not generate for the purchase prepayment invoice
@@ -2595,7 +2593,7 @@ codeunit 147520 SIIDocumentTests
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Prepayment]
         // [SCENARIO 220565] A FechaOperacion xml node does not generate for the sales purchase credit memo
@@ -2627,7 +2625,7 @@ codeunit 147520 SIIDocumentTests
         SIISetup: Record "SII Setup";
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Journal] [Sales] [Invoice]
         // [SCENARIO 43303] No FechaOperacion xml node generates when the posting date equals the document date in the sales journal and the "Document Date" option enables for the "Operation Date"
@@ -2659,7 +2657,7 @@ codeunit 147520 SIIDocumentTests
         SIISetup: Record "SII Setup";
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Journal] [Purchase] [Invoice]
         // [SCENARIO 43303] No FechaOperacion xml node generates when the posting date equals the document date in the purchase journal and the "Document Date" option enables for the "Operation Date"
@@ -2691,7 +2689,7 @@ codeunit 147520 SIIDocumentTests
         SIISetup: Record "SII Setup";
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Journal] [Sales] [Invoice]
         // [SCENARIO 43303] FechaOperacion xml node generates when the posting date is not equal the document date in the sales journal and the "Document Date" option enables for the "Operation Date"
@@ -2725,7 +2723,7 @@ codeunit 147520 SIIDocumentTests
         SIISetup: Record "SII Setup";
         GenJournalLine: Record "Gen. Journal Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Journal] [Sales] [Invoice]
         // [SCENARIO 448682] FechaOperacion xml node generates when the posting date is not equal the VAT date in the sales journal and the "Document Date" option enables for the "Operation Date"
@@ -2759,7 +2757,7 @@ codeunit 147520 SIIDocumentTests
         SIISetup: Record "SII Setup";
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Journal] [Purchase] [Invoice]
         // [SCENARIO 43303] FechaOperacion xml node generates when the posting date is not equal the document date in the purchase journal and the "Document Date" option enables for the "Operation Date"
@@ -2794,7 +2792,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 43303] FechaOperacion xml node generates when the posting date is not equal the document date in the sales invoice and the "Document Date" option enables for the "Operation Date"
@@ -2828,7 +2826,7 @@ codeunit 147520 SIIDocumentTests
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 43303] FechaOperacion xml node generates when the posting date is not equal the document date in the sales cr. memo and the "Document Date" option enables for the "Operation Date"
@@ -2862,7 +2860,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 43303] FechaOperacion xml node generates when the posting date is not equal the document date in the purchase invoice and the "Document Date" option enables for the "Operation Date"
@@ -2897,7 +2895,7 @@ codeunit 147520 SIIDocumentTests
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 43303] No FechaOperacion xml node generates when the posting date is not equal the document date in the purchase credit memo and the "Document Date" option enables for the "Operation Date"
@@ -2932,7 +2930,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Sales]
@@ -2961,7 +2959,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Sales]
@@ -2990,7 +2988,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Sales]
@@ -3021,7 +3019,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Sales]
@@ -3052,7 +3050,7 @@ codeunit 147520 SIIDocumentTests
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Purchase]
@@ -3081,7 +3079,7 @@ codeunit 147520 SIIDocumentTests
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Purchase]
@@ -3110,7 +3108,7 @@ codeunit 147520 SIIDocumentTests
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Purchase]
@@ -3141,7 +3139,7 @@ codeunit 147520 SIIDocumentTests
         Vendor: Record Vendor;
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         InvNo: Code[20];
     begin
         // [FEATURE] [Purchase]
@@ -3175,7 +3173,7 @@ codeunit 147520 SIIDocumentTests
         PurchInvHeader: Record "Purch. Inv. Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         CountryRegion: Record "Country/Region";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 494864] Posted Purchase Invoice XML file is exported without CodigoPais element for XI Country Region Vendor having blank ISO Code.
         Initialize();
@@ -3208,11 +3206,8 @@ codeunit 147520 SIIDocumentTests
                 false),
             IncorrectXMLDocErr);
 
-        // [WHEN] Validate CodigoPais element for XI Country Region Code.
-        asserterror LibrarySII.ValidateElementByNameAt(XMLDoc, SIICodigoPaisLbl, XILbl, 0);
-
         // [VERIFY] Verify XML file is without CodigoPais element.
-        Assert.AreEqual(DotNetVariableNotInstantiatedErr, GetLastErrorText(), ErrorTextMustMatchErr);
+        LibrarySII.ValidateNoElementsByName(XMLDoc, SIICodigoPaisLbl);
     end;
 
     [Test]
@@ -3225,7 +3220,7 @@ codeunit 147520 SIIDocumentTests
         SalesInvHeader: Record "Sales Invoice Header";
         CustomerLedgerEntry: Record "Cust. Ledger Entry";
         CountryRegion: Record "Country/Region";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 494864] Posted Sales Invoice XML file is exported without CodigoPais element for XI Country Region Vendor having blank ISO Code.
         Initialize();
@@ -3259,11 +3254,8 @@ codeunit 147520 SIIDocumentTests
                 false),
             IncorrectXMLDocErr);
 
-        // [WHEN] Validate CodigoPais element for XI Country Region Code.
-        asserterror LibrarySII.ValidateElementByNameAt(XMLDoc, SIICodigoPaisLbl, XILbl, 0);
-
         // [VERIFY] Verify XML file is without CodigoPais element.
-        Assert.AreEqual(DotNetVariableNotInstantiatedErr, GetLastErrorText(), ErrorTextMustMatchErr);
+        LibrarySII.ValidateNoElementsByName(XMLDoc, SIICodigoPaisLbl);
     end;
 
     [Test]
@@ -3275,7 +3267,7 @@ codeunit 147520 SIIDocumentTests
         Customer: Record Customer;
         VATPostingSetup: Record "VAT Posting Setup";
         PostedSalesInvoiceNo: Code[20];
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO: 536255] The Special Scheme Code used in the Request XML submitted via SII History is wrong in case you use Unrealized VAT without VAT Cash in the Spanish version.
         Initialize();
@@ -3308,7 +3300,7 @@ codeunit 147520 SIIDocumentTests
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         PostedSalesInvoiceNo: Code[20];
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 536602] "Si la ClaveRegimenEspecialOTrascendencia o alguna ClaveRegimenEspecialOTrascendenciaAdicional tienen un valor
         // 03, 05 o 09 el campo ImporteTotal debe estar informado" error if we submit so SII a document with Special Scheme Code 09
@@ -4096,19 +4088,20 @@ codeunit 147520 SIIDocumentTests
           VATRate, Amount, PurchaseHeader, VATBusinessPostingGroup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
     end;
 
-    local procedure VerifyXMLStructureCorrDoc(var XMLDoc: DotNet XmlDocument)
+    local procedure VerifyXMLStructureCorrDoc(var XMLDoc: XmlDocument)
     var
-        XMLNodeList: DotNet XmlNodeList;
-        XMLNode: DotNet XmlNode;
+        XMLNodeList: XmlNodeList;
+        XMLNode: XmlNode;
     begin
-        XMLNodeList := XMLDoc.GetElementsByTagName('sii:TipoDesglose');
-        XMLNode := XMLNodeList.Item(0).ChildNodes.Item(0);
-        Assert.AreEqual('sii:DesgloseFactura', XMLNode.Name, 'sii:DesgloseFactura not found');
-        XMLNode := XMLNode.ChildNodes.Item(0);
-        Assert.AreEqual('sii:Sujeta', XMLNode.Name, 'sii:Sujeta not found');
+        XMLNodeList := LibrarySII.GetElementsByTagName(XMLDoc, 'sii:TipoDesglose');
+        XMLNodeList.Get(1, XMLNode);
+        XMLNode.AsXmlElement().GetChildNodes().Get(1, XMLNode);
+        Assert.AreEqual('sii:DesgloseFactura', XMLNode.AsXmlElement().Name, 'sii:DesgloseFactura not found');
+        XMLNode.AsXmlElement().GetChildNodes().Get(1, XMLNode);
+        Assert.AreEqual('sii:Sujeta', XMLNode.AsXmlElement().Name, 'sii:Sujeta not found');
     end;
 
-    local procedure VerifyFacturasRectificadasNode(XMLDoc: DotNet XmlDocument; BasePath: Text; DocNo: Code[35]; PostingDate: Date)
+    local procedure VerifyFacturasRectificadasNode(XMLDoc: XmlDocument; BasePath: Text; DocNo: Code[35]; PostingDate: Date)
     begin
         LibrarySII.VerifyOneNodeWithValueByXPath(
           XMLDoc, BasePath, 'sii:FacturasRectificadas/sii:IDFacturaRectificada/sii:NumSerieFacturaEmisor', DocNo);
@@ -4117,7 +4110,7 @@ codeunit 147520 SIIDocumentTests
           SIIXMLCreator.FormatDate(PostingDate));
     end;
 
-    local procedure VerifyFechaRegContableIsRequestDateOfSIIHistory(VendorLedgerEntry: Record "Vendor Ledger Entry"; XMLDoc: DotNet XmlDocument)
+    local procedure VerifyFechaRegContableIsRequestDateOfSIIHistory(VendorLedgerEntry: Record "Vendor Ledger Entry"; XMLDoc: XmlDocument)
     var
         SIIDocUploadState: Record "SII Doc. Upload State";
         SIIHistory: Record "SII History";
