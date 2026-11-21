@@ -175,7 +175,9 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         CompanyInfo.TestField("Bank Branch No.");
         CompanyInfo.TestField("SWIFT Code");
 
-        // DE deviation #3: additional Sell-to E-Mail check.
-        SalesHeader.TestField("Sell-to E-Mail");
+        // DE deviation #3: additional Sell-to E-Mail check. Skipped when the EDocumentDE format
+        // (XRechnung, ZUGFeRD) resolves the buyer e-mail and buyer electronic address (BT-49) itself.
+        if not (DEContext.HasContext() and DEContext.GetSkipSellToEMailCheck()) then
+            SalesHeader.TestField("Sell-to E-Mail");
     end;
 }
