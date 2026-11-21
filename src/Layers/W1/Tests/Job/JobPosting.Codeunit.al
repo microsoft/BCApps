@@ -30,6 +30,7 @@ codeunit 136309 "Job Posting"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
         LibraryNoSeries: Codeunit "Library - No. Series";
+        LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         Any: Codeunit Any;
         TargetJobNo: Code[20];
         JournalTemplateName: Code[10];
@@ -2545,6 +2546,211 @@ codeunit 136309 "Job Posting"
             JobTask."Job No.", ExpectedACYTotalCost, ExpectedACYTotalPrice, ExpectedACYLineAmount);
     end;
 
+    [Test]
+    procedure PostJobGLJournalLineACYTotalCostExcludesDeductibleVAT()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        JobTask: Record "Job Task";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ACYCode: Code[10];
+        ExpectedACYTotalPrice: Decimal;
+        ExpectedACYLineAmount: Decimal;
+    begin
+        // [FEATURE] [Job] [Additional Reporting Currency] [Source Currency] [VAT]
+        // [SCENARIO 643950] ACY project cost from an overridden source currency amount excludes deductible VAT.
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency set up with a 1:1 exchange rate.
+        ACYCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(ACYCode);
+
+        // [GIVEN] Normal VAT posting setup with 25% VAT.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 25);
+
+        // [GIVEN] Project G/L Journal purchase line of 125 LCY including 25 VAT, with an overridden ACY amount of 250.
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine.Validate("Job Quantity", 2);
+        GenJournalLine.Validate(Amount, 125);
+        GenJournalLine.Validate("Job Unit Price (LCY)", 40);
+        GenJournalLine.Validate("Bill-to/Pay-to No.", LibraryPurchase.CreateVendorNo());
+        GenJournalLine."Source Currency Code" := ACYCode;
+        GenJournalLine."Source Currency Amount" := 250;
+        GenJournalLine.Modify(true);
+        ExpectedACYTotalPrice := GenJournalLine."Job Total Price (LCY)";
+        ExpectedACYLineAmount := GenJournalLine."Job Line Amount (LCY)";
+
+        // [WHEN] Post the Gen. Journal Line.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Project Ledger Entry "Total Cost (LCY)" = 100 and "Additional-Currency Total Cost" = 200 (250 less 50 VAT).
+        VerifyJobLedgerEntryACYAmounts(JobTask."Job No.", 200, ExpectedACYTotalPrice, ExpectedACYLineAmount);
+        JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+        JobLedgerEntry.FindFirst();
+        JobLedgerEntry.TestField("Total Cost (LCY)", 100);
+
+        // [THEN] The expense G/L Entry "Additional-Currency Amount" = 200.
+        GLEntry.SetRange("Job No.", JobTask."Job No.");
+        GLEntry.SetRange("G/L Account No.", GenJournalLine."Account No.");
+        GLEntry.FindFirst();
+        GLEntry.TestField("Additional-Currency Amount", 200);
+    end;
+
+    [Test]
+    procedure PostJobGLJournalLineACYTotalCostIncludesNonDeductibleVAT()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        JobTask: Record "Job Task";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ACYCode: Code[10];
+        ExpectedACYTotalPrice: Decimal;
+        ExpectedACYLineAmount: Decimal;
+    begin
+        // [FEATURE] [Job] [Additional Reporting Currency] [Source Currency] [Non-Deductible VAT]
+        // [SCENARIO 643950] ACY project cost from an overridden source currency amount includes non-deductible VAT that is used for project cost.
+        Initialize();
+
+        // [GIVEN] Additional Reporting Currency set up with a 1:1 exchange rate, and amounts rounded to 0.01.
+        LibraryERM.SetAmountRoundingPrecision(0.01);
+        ACYCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(ACYCode);
+
+        // [GIVEN] Non-deductible VAT is enabled and used for project cost.
+        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
+        LibraryNonDeductibleVAT.SetUseForJobCost();
+
+        // [GIVEN] Normal VAT posting setup with 25% VAT that is 100% non-deductible.
+        LibraryNonDeductibleVAT.CreateVATPostingSetupWithNonDeductibleDetail(VATPostingSetup, 25, 100);
+
+        // [GIVEN] Project G/L Journal purchase line of 125.03 LCY including 25.01 VAT, with an overridden ACY amount of 250.06.
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine.Validate("Job Quantity", 2);
+        GenJournalLine.Validate(Amount, 125.03);
+        GenJournalLine.Validate("Job Unit Price (LCY)", 40);
+        GenJournalLine.Validate("Bill-to/Pay-to No.", LibraryPurchase.CreateVendorNo());
+        GenJournalLine."Source Currency Code" := ACYCode;
+        GenJournalLine."Source Currency Amount" := 250.06;
+        GenJournalLine.Modify(true);
+        ExpectedACYTotalPrice := GenJournalLine."Job Total Price (LCY)";
+        ExpectedACYLineAmount := GenJournalLine."Job Line Amount (LCY)";
+
+        // [WHEN] Post the Gen. Journal Line.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Project Ledger Entry "Total Cost (LCY)" = 125.03 and "Additional-Currency Total Cost" = 250.06:
+        // [THEN] 200.05 net plus 50.01 non-deductible VAT, rounded in ACY as VAT posting does, not 25.01 LCY converted to 50.02.
+        VerifyJobLedgerEntryACYAmounts(JobTask."Job No.", 250.06, ExpectedACYTotalPrice, ExpectedACYLineAmount);
+        JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+        JobLedgerEntry.FindFirst();
+        JobLedgerEntry.TestField("Total Cost (LCY)", 125.03);
+    end;
+
+    [Test]
+    procedure PostJobGLJournalLineACYCostIncludesReverseChargeNonDeductibleVAT()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        JobTask: Record "Job Task";
+        VATPostingSetup: Record "VAT Posting Setup";
+        AdditionalCurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0] [Job] [Additional Reporting Currency] [Reverse Charge VAT] [Non-Deductible VAT]
+        // [SCENARIO] Project ACY cost includes partially non-deductible reverse-charge VAT as posted, without converting rounded LCY VAT.
+        Initialize();
+
+        // [GIVEN] ACY "A" has a 1:1 exchange rate and amounts are rounded to 0.01.
+        LibraryERM.SetAmountRoundingPrecision(0.01);
+        AdditionalCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(AdditionalCurrencyCode);
+
+        // [GIVEN] Reverse-charge VAT is 17%, 33% non-deductible, and included in project cost.
+        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
+        LibraryNonDeductibleVAT.SetUseForJobCost();
+        LibraryNonDeductibleVAT.CreateNonDeductibleReverseChargeVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("VAT %", 17);
+        VATPostingSetup.Validate("Non-Deductible VAT %", 33);
+        VATPostingSetup.Validate("Non-Ded. Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Project "P" has a purchase journal line of 101 LCY net, overridden to 203 ACY.
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine.Validate("Job Quantity", 1);
+        GenJournalLine.Validate(Amount, 101);
+        GenJournalLine.Validate("Bill-to/Pay-to No.", LibraryPurchase.CreateVendorNo());
+        GenJournalLine."Source Currency Code" := AdditionalCurrencyCode;
+        GenJournalLine."Source Currency Amount" := 203;
+        GenJournalLine.Modify(true);
+
+        // [WHEN] The purchase journal line is posted.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Project cost is 106.67 LCY / 214.39 ACY and matches the posted expense plus non-deductible VAT.
+        VerifyJobReverseChargeVATCost(GenJournalLine, VATPostingSetup, 101, 203, 5.67, 11.39);
+    end;
+
+    [Test]
+    procedure PostJobGLJournalLineACYReverseChargeVATWithoutSourceOverride()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        JobTask: Record "Job Task";
+        VATPostingSetup: Record "VAT Posting Setup";
+        AdditionalCurrencyCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0] [Job] [Additional Reporting Currency] [Reverse Charge VAT] [Non-Deductible VAT] [FCY]
+        // [SCENARIO] A standard FCY purchase journal includes non-deductible reverse-charge VAT in project ACY cost without source currency overrides.
+        Initialize();
+
+        // [GIVEN] ACY "A" has a 1:1 exchange rate and is also used as the journal currency.
+        LibraryERM.SetAmountRoundingPrecision(0.01);
+        AdditionalCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        LibraryERM.SetAddReportingCurrency(AdditionalCurrencyCode);
+
+        // [GIVEN] Reverse-charge VAT is 25%, fully non-deductible, and included in project cost.
+        LibraryNonDeductibleVAT.EnableNonDeductibleVAT();
+        LibraryNonDeductibleVAT.SetUseForJobCost();
+        LibraryNonDeductibleVAT.CreateNonDeductibleReverseChargeVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("VAT %", 25);
+        VATPostingSetup.Validate("Non-Deductible VAT %", 100);
+        VATPostingSetup.Validate("Non-Ded. Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Project "P" has a purchase journal line in "A" with a net amount of 100.
+        CreateJobWithJobTask(JobTask);
+        LibraryJob.CreateJobGLJournalLine(GenJournalLine."Job Line Type"::Billable, JobTask, GenJournalLine);
+        GenJournalLine.Validate("Currency Code", AdditionalCurrencyCode);
+        GenJournalLine.Validate("Gen. Posting Type", GenJournalLine."Gen. Posting Type"::Purchase);
+        GenJournalLine.Validate("Job Quantity", 1);
+        GenJournalLine.Validate(Amount, 100);
+        GenJournalLine.Validate("Bill-to/Pay-to No.", LibraryPurchase.CreateVendorNo());
+
+        // [WHEN] The reverse-charge VAT posting groups are validated normally.
+        GenJournalLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        GenJournalLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        GenJournalLine.Modify(true);
+
+        // [THEN] The automatic journal line has zero VAT %, while the posting setup contains 25%.
+        VerifyStandardReverseChargeJournalVATFields(GenJournalLine, VATPostingSetup);
+
+        // [WHEN] The purchase journal line is posted without assigning source currency fields.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Project cost is 125 in both currencies and reconciles with the expense of 100 plus posted non-deductible VAT of 25.
+        VerifyJobReverseChargeVATCost(GenJournalLine, VATPostingSetup, 100, 100, 25, 25);
+    end;
+
     local procedure Initialize()
     var
         NoSeries: Record "No. Series";
@@ -2576,10 +2782,80 @@ codeunit 136309 "Job Posting"
 
         LibrarySetupStorage.Save(DATABASE::"Inventory Setup");
         LibrarySetupStorage.Save(DATABASE::"Purchases & Payables Setup");
+        LibrarySetupStorage.Save(DATABASE::"VAT Setup");
         LibrarySetupStorage.SaveGeneralLedgerSetup();
 
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Job Posting");
+    end;
+
+    local procedure VerifyStandardReverseChargeJournalVATFields(GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup")
+    begin
+        Assert.AreEqual(25, VATPostingSetup."VAT %", 'The reverse-charge VAT rate must come from the posting setup.');
+        Assert.AreEqual(
+            GenJournalLine."VAT Calculation Type"::"Reverse Charge VAT", GenJournalLine."VAT Calculation Type",
+            'The standard journal line must use reverse-charge VAT.');
+        Assert.AreEqual(0, GenJournalLine."VAT %", 'Standard reverse-charge validation leaves the journal VAT % at zero.');
+        Assert.AreEqual(
+            GenJournalLine."VAT Posting"::"Automatic VAT Entry", GenJournalLine."VAT Posting",
+            'The standard journal line must use automatic VAT posting.');
+        Assert.IsFalse(GenJournalLine."System-Created Entry", 'The journal line must not be a system-created document entry.');
+    end;
+
+    local procedure VerifyJobReverseChargeVATCost(GenJournalLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; ExpectedExpenseLCY: Decimal; ExpectedExpenseACY: Decimal; ExpectedNonDeductibleVATLCY: Decimal; ExpectedNonDeductibleVATACY: Decimal)
+    var
+        ExpenseGLEntry: Record "G/L Entry";
+        NonDeductibleVATGLEntry: Record "G/L Entry";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        VATEntry: Record "VAT Entry";
+    begin
+        ExpenseGLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        ExpenseGLEntry.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
+        ExpenseGLEntry.SetRange("G/L Account No.", GenJournalLine."Account No.");
+        Assert.RecordCount(ExpenseGLEntry, 1);
+        ExpenseGLEntry.FindFirst();
+        Assert.AreEqual(ExpectedExpenseLCY, ExpenseGLEntry.Amount, 'Reverse-charge expense must retain its net LCY amount.');
+        Assert.AreEqual(ExpectedExpenseACY, ExpenseGLEntry."Additional-Currency Amount", 'Reverse-charge expense must retain its net ACY amount.');
+
+        NonDeductibleVATGLEntry.CopyFilters(ExpenseGLEntry);
+        NonDeductibleVATGLEntry.SetRange("G/L Account No.", VATPostingSetup."Non-Ded. Purchase VAT Account");
+        Assert.RecordCount(NonDeductibleVATGLEntry, 1);
+        NonDeductibleVATGLEntry.FindFirst();
+        Assert.AreEqual(ExpectedNonDeductibleVATLCY, NonDeductibleVATGLEntry.Amount, 'Posted non-deductible reverse-charge VAT in LCY must match the expected amount.');
+        Assert.AreEqual(
+            ExpectedNonDeductibleVATACY, NonDeductibleVATGLEntry."Additional-Currency Amount",
+            'Posted non-deductible reverse-charge VAT in ACY must match the expected amount.');
+
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.SetRange(Type, VATEntry.Type::Purchase);
+        VATEntry.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Assert.RecordCount(VATEntry, 1);
+        VATEntry.FindFirst();
+        Assert.AreEqual(
+            NonDeductibleVATGLEntry.Amount, VATEntry."Non-Deductible VAT Amount",
+            'VAT and G/L entries must agree on non-deductible reverse-charge VAT in LCY.');
+        Assert.AreEqual(
+            NonDeductibleVATGLEntry."Additional-Currency Amount", VATEntry."Non-Deductible VAT Amount ACY",
+            'VAT and G/L entries must agree on non-deductible reverse-charge VAT in ACY.');
+
+        JobLedgerEntry.SetRange("Job No.", GenJournalLine."Job No.");
+        JobLedgerEntry.SetRange("Job Task No.", GenJournalLine."Job Task No.");
+        Assert.RecordCount(JobLedgerEntry, 1);
+        JobLedgerEntry.FindFirst();
+        Assert.AreEqual(
+            ExpectedExpenseLCY + ExpectedNonDeductibleVATLCY, JobLedgerEntry."Total Cost (LCY)",
+            'Project cost must include only the net expense and non-deductible VAT in LCY.');
+        Assert.AreEqual(
+            ExpectedExpenseACY + ExpectedNonDeductibleVATACY, JobLedgerEntry."Additional-Currency Total Cost",
+            'Project ACY cost must include the directly rounded non-deductible VAT.');
+        Assert.AreEqual(
+            ExpenseGLEntry.Amount + NonDeductibleVATGLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            'Project LCY cost must reconcile with the actual expense and non-deductible VAT postings.');
+        Assert.AreEqual(
+            ExpenseGLEntry."Additional-Currency Amount" + NonDeductibleVATGLEntry."Additional-Currency Amount",
+            JobLedgerEntry."Additional-Currency Total Cost",
+            'Project ACY cost must reconcile with the actual expense and non-deductible VAT postings.');
     end;
 
     local procedure VerifyGLPostingPreviewLine(GLPostingPreview: TestPage "G/L Posting Preview"; TableName: Text; ExpectedEntryCount: Integer)
