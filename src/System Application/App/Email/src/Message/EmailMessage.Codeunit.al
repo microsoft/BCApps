@@ -146,8 +146,8 @@ codeunit 8904 "Email Message"
     end;
 
     /// <summary>
-    /// Deletes messages that does not have a reference from either the email outbox nor sent email.
-    /// This functionality is only needed if email messages have been created without any email outbox or sent email referencing it, otherwise they will be cleaned up automatically.
+    /// Deletes messages that are not referenced by the email outbox, sent email or email inbox.
+    /// This functionality is only needed if email messages have been created without any email outbox, sent email or email inbox entry referencing them, otherwise they will be cleaned up automatically.
     /// </summary>
     /// <param name="StartMessageId">The email message id to start from. Using empty guid will start from the beginning.</param>
     /// <param name="MessagesToIterate">Number of email messages to loop over.</param>

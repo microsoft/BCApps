@@ -16,7 +16,8 @@ codeunit 134689 "Email Message Unit Test"
     Subtype = Test;
     Permissions = tabledata "Email Outbox" = ri,
                   tabledata "Email Message" = rm,
-                  tabledata "Email Recipient" = ri;
+                  tabledata "Email Recipient" = ri,
+                  tabledata "Email Inbox" = ri;
 
     var
         Assert: Codeunit "Library Assert";
@@ -1488,6 +1489,34 @@ codeunit 134689 "Email Message Unit Test"
         Assert.AreEqual(0 + OriginalCount, EmailRecipient.Count(), 'Orphaned email recipient for message id 2 was not deleted');
     end;
 
+    [Test]
+    procedure TestDeleteOrphanedMessagesKeepsRetrievedMessages()
+    var
+        EmailMessage: Codeunit "Email Message";
+        RetrievedMessageId: Guid;
+        OrphanedMessageId: Guid;
+        NextMessageId: Guid;
+        EmptyGuid: Guid;
+    begin
+        // [SCENARIO] Deleting orphaned messages keeps a message that was retrieved into the email inbox
+        // [GIVEN] A message that only an email inbox entry references
+        EmailMessage.Create('recipient@test.com', 'Retrieved subject', 'Retrieved body');
+        RetrievedMessageId := EmailMessage.GetId();
+        CreateEmailInboxEntry(RetrievedMessageId);
+
+        // [GIVEN] A message that nothing references
+        EmailMessage.Create('recipient@test.com', 'Orphaned subject', 'Orphaned body');
+        OrphanedMessageId := EmailMessage.GetId();
+
+        // [WHEN] All email messages are checked for orphans
+        NextMessageId := EmailMessage.DeleteOrphanedMessages(EmptyGuid, 999999);
+
+        // [THEN] Every message was checked, the orphaned message is deleted and the retrieved message is kept
+        Assert.IsTrue(IsNullGuid(NextMessageId), 'All email messages should have been checked');
+        Assert.IsFalse(EmailMessage.Get(OrphanedMessageId), 'The orphaned email message should have been deleted');
+        Assert.IsTrue(EmailMessage.Get(RetrievedMessageId), 'The email message referenced by the email inbox should not have been deleted');
+    end;
+
     [StrMenuHandler]
     [Scope('OnPrem')]
     procedure CloseEmailEditorHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
@@ -1517,5 +1546,14 @@ codeunit 134689 "Email Message Unit Test"
             EmailRecipient."Email Address" := 'test' + Format(Index) + '@test.com';
             EmailRecipient.Insert();
         end;
+    end;
+
+    local procedure CreateEmailInboxEntry(MessageId: Guid)
+    var
+        EmailInbox: Record "Email Inbox";
+    begin
+        EmailInbox.Init();
+        EmailInbox."Message Id" := MessageId;
+        EmailInbox.Insert();
     end;
 }
