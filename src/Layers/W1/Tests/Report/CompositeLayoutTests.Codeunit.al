@@ -930,11 +930,13 @@ codeunit 134619 "Composite Layout Tests"
         Initialize();
         EnableDocumentReportExperience();
 
-        // [WHEN] Creating a Word layout without touching the subtype.
+        // [WHEN] Creating a layout from a selected Word layout without touching the format or subtype.
         LibraryVariableStorage.Enqueue('SubtypeLeftAsOffered');
-        LibraryVariableStorage.Enqueue('Word');
+        LibraryVariableStorage.Enqueue('');
         LibraryVariableStorage.Enqueue('');
         ReportLayoutsPage.OpenView();
+        FindLayout(BodyReportID, 'WordLayout', ReportLayoutList);
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
         ReportLayoutsPage.NewLayout.Invoke();
         ReportLayoutsPage.Close();
 
@@ -979,26 +981,60 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [Test]
-    [HandlerFunctions('NewLayoutBodyOnNonWordHandler')]
+    [HandlerFunctions('NewLayoutFormatOptionsHandler')]
     [Scope('OnPrem')]
-    procedure BodySubtypeIsRefusedForANonWordFormat()
+    procedure NewLayoutShowsOnlyOptionsForTheSelectedFormat()
     begin
-        // [SCENARIO] Only a Word document can carry a merged theme and header/footer, so Body is refused for any other
-        // format, naming Word.
         Initialize();
         EnableDocumentReportExperience();
 
-        // [WHEN] Choosing Body for an RDLC layout.
         ReportLayoutsNewLayout();
 
-        // [THEN] The choice is refused and explains that it applies to Word only.
-        Assert.ExpectedMessage('Only a Word layout can be a body layout', LibraryVariableStorage.DequeueText());
         LibraryVariableStorage.AssertEmpty();
-
-        // [THEN] Nothing was created.
-        Assert.IsFalse(TenantLayoutExists(BodyReportID, 'SubtypeGuard'), 'A refused subtype should not leave a layout behind.');
-
         RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutWordOptionsDisabledHandler')]
+    [Scope('OnPrem')]
+    procedure NewWordLayoutHidesSubtypeWhenDocumentReportExperienceIsDisabled()
+    var
+        FeatureKey: Record "Feature Key";
+    begin
+        Initialize();
+        EnableDocumentReportExperience();
+        FeatureKey.Get(DocumentReportExperienceTok);
+        FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey.Modify();
+
+        ReportLayoutsNewLayout();
+
+        LibraryVariableStorage.AssertEmpty();
+        RestoreDocumentReportExperience();
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutSwitchFromWordHandler')]
+    [Scope('OnPrem')]
+    procedure SwitchingFromWordToRDLCStoresTheDefaultSubtype()
+    begin
+        CreateNonWordLayoutFromWord('RDLC');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutSwitchFromWordHandler')]
+    [Scope('OnPrem')]
+    procedure SwitchingFromWordToExcelStoresTheDefaultSubtype()
+    begin
+        CreateNonWordLayoutFromWord('Excel');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutSwitchFromWordHandler')]
+    [Scope('OnPrem')]
+    procedure SwitchingFromWordToExternalStoresTheDefaultSubtype()
+    begin
+        CreateNonWordLayoutFromWord('External');
     end;
 
     [Test]
@@ -1290,6 +1326,37 @@ codeunit 134619 "Composite Layout Tests"
         ReportLayoutsPage.Close();
     end;
 
+    local procedure CreateNonWordLayoutFromWord(LayoutFormat: Text)
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        Initialize();
+        EnableDocumentReportExperience();
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.SetLayoutContents('{}');
+
+        LibraryVariableStorage.Enqueue(LayoutFormat);
+        ReportLayoutsPage.OpenView();
+        FindLayout(BodyReportID, 'WordLayout', ReportLayoutList);
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+        UnbindSubscription(ReportLayoutsTest);
+
+        FindLayout(BodyReportID, 'SubtypeSwitchedFromWord', ReportLayoutList);
+        if LayoutFormat = 'External' then
+            Assert.AreEqual(ReportLayoutList."Layout Format"::Custom, ReportLayoutList."Layout Format", 'The layout should use the selected external format.')
+        else
+            Assert.AreEqual(LayoutFormat, Format(ReportLayoutList."Layout Format"), 'The layout should use the selected format.');
+        Assert.AreEqual(
+            ReportLayoutList."Layout Subtype"::Default, ReportLayoutList."Layout Subtype",
+            'A non-Word layout must not retain the hidden Body subtype.');
+        LibraryVariableStorage.AssertEmpty();
+        RestoreDocumentReportExperience();
+    end;
+
     [ModalPageHandler]
     procedure PickBodyLayoutHandler(var ReportLayouts: TestPage "Report Layouts")
     var
@@ -1304,13 +1371,19 @@ codeunit 134619 "Composite Layout Tests"
     procedure NewLayoutSubtypeDialogHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
     var
         LayoutName: Text;
+        LayoutFormat: Text;
         SubtypeChoice: Text;
     begin
         LayoutName := LibraryVariableStorage.DequeueText();
         ReportLayoutNewDialog.ReportID.SetValue(BodyReportID);
         ReportLayoutNewDialog.LayoutName.SetValue(LayoutName);
         ReportLayoutNewDialog.Description.SetValue(LayoutName);
-        ReportLayoutNewDialog."Format Options".SetValue(LibraryVariableStorage.DequeueText());
+        LayoutFormat := LibraryVariableStorage.DequeueText();
+        if LayoutFormat <> '' then
+            ReportLayoutNewDialog."Format Options".SetValue(LayoutFormat);
+        ReportLayoutNewDialog."Format Options".AssertEquals('Word');
+        Assert.IsTrue(ReportLayoutNewDialog.BodySubtype.Visible(), 'The subtype should be visible for Word layouts.');
+        ReportLayoutNewDialog.BodySubtype.AssertEquals('Body');
         ReportLayoutNewDialog.CreateEmptyLayout.SetValue(true);
 
         SubtypeChoice := LibraryVariableStorage.DequeueText();
@@ -1321,17 +1394,57 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     [ModalPageHandler]
-    procedure NewLayoutBodyOnNonWordHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
+    procedure NewLayoutFormatOptionsHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
     begin
-        ReportLayoutNewDialog.ReportID.SetValue(BodyReportID);
-        ReportLayoutNewDialog.LayoutName.SetValue('SubtypeGuard');
-        ReportLayoutNewDialog.Description.SetValue('SubtypeGuard');
-        ReportLayoutNewDialog."Format Options".SetValue('RDLC');
+        ReportLayoutNewDialog."Format Options".SetValue('Word');
+        Assert.IsTrue(ReportLayoutNewDialog.BodySubtype.Visible(), 'Word should show the subtype.');
+        Assert.IsFalse(ReportLayoutNewDialog.ExcelMultipleDataSheets.Visible(), 'Word should hide the Excel options.');
+        ReportLayoutNewDialog.BodySubtype.AssertEquals('Body');
+        ReportLayoutNewDialog.BodySubtype.SetValue('Default');
 
-        asserterror ReportLayoutNewDialog.BodySubtype.SetValue('Body');
-        LibraryVariableStorage.Enqueue(GetLastErrorText());
+        ReportLayoutNewDialog."Format Options".SetValue('Excel');
+        Assert.IsFalse(ReportLayoutNewDialog.BodySubtype.Visible(), 'Excel should hide the Word subtype.');
+        Assert.IsTrue(ReportLayoutNewDialog.ExcelMultipleDataSheets.Visible(), 'Excel should show its sheet options.');
+
+        ReportLayoutNewDialog."Format Options".SetValue('RDLC');
+        Assert.IsFalse(ReportLayoutNewDialog.BodySubtype.Visible(), 'RDLC should hide the Word subtype.');
+        Assert.IsFalse(ReportLayoutNewDialog.ExcelMultipleDataSheets.Visible(), 'RDLC should hide the Excel options.');
+
+        ReportLayoutNewDialog."Format Options".SetValue('External');
+        Assert.IsFalse(ReportLayoutNewDialog.BodySubtype.Visible(), 'External should hide the Word subtype.');
+        Assert.IsFalse(ReportLayoutNewDialog.ExcelMultipleDataSheets.Visible(), 'External should hide the Excel options.');
+
+        ReportLayoutNewDialog."Format Options".SetValue('Word');
+        Assert.IsTrue(ReportLayoutNewDialog.BodySubtype.Visible(), 'Switching back to Word should show the subtype again.');
+        ReportLayoutNewDialog.BodySubtype.AssertEquals('Body');
 
         ReportLayoutNewDialog.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure NewLayoutWordOptionsDisabledHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
+    begin
+        ReportLayoutNewDialog."Format Options".SetValue('Word');
+        Assert.IsFalse(ReportLayoutNewDialog.BodySubtype.Visible(), 'The Word subtype should be hidden when the feature is disabled.');
+
+        ReportLayoutNewDialog."Format Options".SetValue('Excel');
+        Assert.IsTrue(ReportLayoutNewDialog.ExcelMultipleDataSheets.Visible(), 'The feature should not hide the Excel options.');
+        ReportLayoutNewDialog.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure NewLayoutSwitchFromWordHandler(var ReportLayoutNewDialog: TestPage "Report Layout New Dialog")
+    begin
+        ReportLayoutNewDialog."Format Options".AssertEquals('Word');
+        Assert.IsTrue(ReportLayoutNewDialog.BodySubtype.Visible(), 'The selected Word layout should show the subtype.');
+        ReportLayoutNewDialog.BodySubtype.AssertEquals('Body');
+        ReportLayoutNewDialog.BodySubtype.SetValue('Body');
+
+        ReportLayoutNewDialog."Format Options".SetValue(LibraryVariableStorage.DequeueText());
+        Assert.IsFalse(ReportLayoutNewDialog.BodySubtype.Visible(), 'Switching away from Word should hide the subtype.');
+        ReportLayoutNewDialog.LayoutName.SetValue('SubtypeSwitchedFromWord');
+        ReportLayoutNewDialog.CreateEmptyLayout.SetValue(true);
+        ReportLayoutNewDialog.OK().Invoke();
     end;
 
     local procedure SeedOverriddenLayout() BodyKey: Text
