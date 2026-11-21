@@ -276,10 +276,27 @@ table 7430 "EA Corp Card Settlement"
     trigger OnDelete()
     var
         CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
+        StoredSettlement: Record "EA Corp Card Settlement";
     begin
-        EnsureOpen();
+        StoredSettlement.ReadIsolation := IsolationLevel::UpdLock;
+        StoredSettlement.Get("Settlement Entry No.");
+        StoredSettlement.EnsureOpen();
+        LockStatements();
         CorpCardSettlementLine.SetRange("Settlement Entry No.", "Settlement Entry No.");
         CorpCardSettlementLine.DeleteAll(true);
+    end;
+
+    internal procedure LockStatements()
+    var
+        CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
+    begin
+        CorpCardSettlementLine.ReadIsolation := IsolationLevel::ReadCommitted;
+        CorpCardSettlementLine.SetCurrentKey("Statement Entry No.");
+        CorpCardSettlementLine.SetRange("Settlement Entry No.", "Settlement Entry No.");
+        if CorpCardSettlementLine.FindSet() then
+            repeat
+                CorpCardSettlementLine.LockStatements(0);
+            until CorpCardSettlementLine.Next() = 0;
     end;
 
     internal procedure EnsureOpen()

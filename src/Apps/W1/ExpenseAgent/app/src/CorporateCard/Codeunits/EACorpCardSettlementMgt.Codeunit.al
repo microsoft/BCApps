@@ -22,6 +22,8 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
 
     internal procedure SetReadyToPost(var CorpCardSettlement: Record "EA Corp Card Settlement")
     begin
+        CorpCardSettlement.LockTable();
+        CorpCardSettlement.Get(CorpCardSettlement."Settlement Entry No.");
         CorpCardSettlement.EnsureOpen();
         ValidateSettlement(CorpCardSettlement);
 
@@ -72,6 +74,8 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
 
     internal procedure Reopen(var CorpCardSettlement: Record "EA Corp Card Settlement")
     begin
+        CorpCardSettlement.LockTable();
+        CorpCardSettlement.Get(CorpCardSettlement."Settlement Entry No.");
         if CorpCardSettlement.Status = CorpCardSettlement.Status::Open then
             exit;
         if CorpCardSettlement.Status <> CorpCardSettlement.Status::ReadyToPost then
@@ -121,6 +125,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
         if CorpCardSettlement.Status <> CorpCardSettlement.Status::Posted then
             Error(OnlyPostedSettlementCanReverseErr, CorpCardSettlement."Settlement Entry No.", CorpCardSettlement.Status);
         CorpCardSettlement.TestField("Reversal Reason");
+        CorpCardSettlement.LockStatements();
         ValidatePostedSettlement(CorpCardSettlement);
 
         ReversalEntry.SetHideDialog(true);
@@ -194,13 +199,17 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
         if not DuplicateSettlement.IsEmpty() then
             Error(DuplicateSettlementErr, CorpCardSettlement."Settlement No.", CorpCardSettlement."Provider Code");
 
+        CorpCardSettlementLine.ReadIsolation := IsolationLevel::ReadCommitted;
+        CorpCardSettlementLine.SetCurrentKey("Statement Entry No.");
         CorpCardSettlementLine.SetRange("Settlement Entry No.", CorpCardSettlement."Settlement Entry No.");
         CorpCardSettlementLine.SetRange(Inactive, false);
         if not CorpCardSettlementLine.FindSet() then
             Error(NoStatementsErr, CorpCardSettlement."Settlement No.");
 
         repeat
+            CorpCardSettlementLine.LockStatements(0);
             CorpCardStatement.Get(CorpCardSettlementLine."Statement Entry No.");
+            CorpCardSettlementLine.CheckStatementOwnership(CorpCardStatement);
             if not (CorpCardStatement.Status in [CorpCardStatement.Status::Validated, CorpCardStatement.Status::ReconciliationRequired]) then
                 Error(StatementStatusNotEligibleErr, CorpCardStatement."Statement No.", CorpCardStatement.Status);
             if CorpCardStatement."Provider Code" <> CorpCardSettlement."Provider Code" then
@@ -290,6 +299,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
             CopyStr(
                 StrSubstNo(SettlementReversedReasonTxt, CorpCardSettlement."Settlement No.", CorpCardSettlement."Reversal Reason"),
                 1, MaxStrLen(InvalidationReason));
+        CorpCardSettlementLine.SetCurrentKey("Statement Entry No.");
         CorpCardSettlementLine.SetRange("Settlement Entry No.", CorpCardSettlement."Settlement Entry No.");
         CorpCardSettlementLine.SetRange(Inactive, false);
         if not CorpCardSettlementLine.FindSet(true) then
