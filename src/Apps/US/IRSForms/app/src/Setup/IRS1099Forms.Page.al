@@ -60,6 +60,14 @@ page 10033 "IRS 1099 Forms"
                 RunObject = Page "IRS 1099 Form Statement";
                 RunPageLink = "Period No." = field("Period No."), "Form No." = field("No.");
             }
+            action(SupplementalBoxes)
+            {
+                Caption = 'Supplemental Boxes';
+                Image = SetupList;
+                ToolTip = 'View or edit supplemental boxes for cash tips, occupation codes, and qualified overtime, and select their parent form boxes.';
+                RunObject = Page "IRS 1099 Suppl. Boxes";
+                RunPageLink = "Period No." = field("Period No."), "Form No." = field("No.");
+            }
             action(EditInstructions)
             {
                 Caption = 'Edit Instructions';

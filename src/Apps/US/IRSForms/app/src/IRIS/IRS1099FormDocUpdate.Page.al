@@ -21,7 +21,7 @@ page 10067 "IRS 1099 Form Doc. Update"
         {
             label(UpdateInstruction)
             {
-                Caption = 'Select the Process Line check box for the 1099 forms for which you want to recalculate the Amount and Calculated Amount from the current vendor ledger entries OR to create new 1099 form documents based on the current vendor ledger entries.';
+                Caption = 'Compare the current and new amounts, minimum reportable amounts, and Include in 1099 values. Include in 1099 can change even when the amount stays the same. Select Process Line for each change you want to apply. Lines that are not selected stay unchanged.';
                 Style = StandardAccent;
             }
             repeater(General)
@@ -30,7 +30,7 @@ page 10067 "IRS 1099 Form Doc. Update"
                 field("Process Line"; Rec."Process Line")
                 {
                     Caption = 'Process Line';
-                    ToolTip = 'Select this check box to update the Amount and Calculated Amount of the existing 1099 form document line or to create a new 1099 form document based on the current vendor ledger entries.';
+                    ToolTip = 'Select this check box to apply the recalculated amount, minimum reportable amount, and Include in 1099 value, or to create a document from current vendor ledger entries. Leave it cleared to keep the existing line unchanged.';
                     Visible = true;
                 }
 #pragma warning restore AA0219
@@ -54,6 +54,12 @@ page 10067 "IRS 1099 Form Doc. Update"
                     ToolTip = 'Specifies the form box number of the 1099 form document line.';
                     Editable = false;
                 }
+                field(CurrentLineExists; CurrLineExists)
+                {
+                    Caption = 'Current Line Exists';
+                    ToolTip = 'Specifies whether the document line already exists. If Line Action is Create, there is no existing line to compare.';
+                    Editable = false;
+                }
                 field(CurrentAmount; CurrAmount)
                 {
                     AutoFormatType = 1;
@@ -68,6 +74,34 @@ page 10067 "IRS 1099 Form Doc. Update"
                     AutoFormatExpression = '';
                     Caption = 'New Amount';
                     ToolTip = 'Specifies the amount that is calculated from the current vendor ledger entries.';
+                }
+                field(CurrentMinimumReportableAmount; CurrMinimumReportableAmount)
+                {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'Current Minimum Reportable Amount';
+                    ToolTip = 'Specifies the minimum reportable amount on the existing document line. Compare it with the new minimum to check whether the line is still included in 1099 reporting.';
+                    Editable = false;
+                }
+                field(NewMinimumReportableAmount; Rec."Minimum Reportable Amount")
+                {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    Caption = 'New Minimum Reportable Amount';
+                    ToolTip = 'Specifies the recalculated minimum reportable amount. It is applied only when Process Line is selected.';
+                    Editable = false;
+                }
+                field(CurrentIncludeIn1099; CurrIncludeIn1099)
+                {
+                    Caption = 'Current Include in 1099';
+                    ToolTip = 'Specifies whether the existing document line is included in 1099 reporting. If Current Line Exists is cleared, there is no existing line to compare.';
+                    Editable = false;
+                }
+                field(NewIncludeIn1099; Rec."Include In 1099")
+                {
+                    Caption = 'New Include in 1099';
+                    ToolTip = 'Specifies whether the recalculated line is included in 1099 reporting, based on the minimum reportable amount and withholding. Check this value even when the income amount stays the same.';
+                    Editable = false;
                 }
                 field("Adjustment Amount"; Rec."Adjustment Amount")
                 {
@@ -84,12 +118,26 @@ page 10067 "IRS 1099 Form Doc. Update"
     var
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
     begin
-        if IRS1099FormDocLine.Get(Rec."Period No.", Rec."Vendor No.", Rec."Form No.", Rec."Document ID", Rec."Line No.") then
+        Clear(CurrAmount);
+        Clear(CurrMinimumReportableAmount);
+        Clear(CurrIncludeIn1099);
+        CurrLineExists := false;
+        if Rec."Line Action" = Rec."Line Action"::Create then
+            exit;
+
+        if IRS1099FormDocLine.Get(Rec."Period No.", Rec."Vendor No.", Rec."Form No.", Rec."Document ID", Rec."Line No.") then begin
+            CurrLineExists := true;
             CurrAmount := IRS1099FormDocLine.Amount;
+            CurrMinimumReportableAmount := IRS1099FormDocLine."Minimum Reportable Amount";
+            CurrIncludeIn1099 := IRS1099FormDocLine."Include In 1099";
+        end;
     end;
 
     var
         CurrAmount: Decimal;
+        CurrMinimumReportableAmount: Decimal;
+        CurrIncludeIn1099: Boolean;
+        CurrLineExists: Boolean;
 
     internal procedure SetLines(var TempIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line" temporary)
     begin

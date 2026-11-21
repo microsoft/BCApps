@@ -36,6 +36,18 @@ page 10030 "IRS Forms Setup"
                     group(IRISInnerGroup)
                     {
                         ShowCaption = false;
+                        field(IRISDestination; IRISDestinationText)
+                        {
+                            Caption = 'IRIS Destination';
+                            Editable = false;
+                            ToolTip = 'Specifies whether submissions are sent to the IRS Test (ATS) or Production environment.';
+                        }
+                        field(SubmissionEndpointURL; SubmissionEndpointURL)
+                        {
+                            Caption = 'Submission Endpoint URL';
+                            Editable = false;
+                            ToolTip = 'Specifies the current API endpoint URL used to submit data to the IRS.';
+                        }
                         field("Business Name Control"; Rec."Business Name Control")
                         {
                             ToolTip = 'Specifies the business name control that must match the one in the IRS''s National Account Profile (NAP) database. Generally, it can be up to the first four alphanumeric characters of the business''s legal name.';
@@ -103,9 +115,18 @@ page 10030 "IRS Forms Setup"
     trigger OnOpenPage()
     var
         IRSReportingPeriod: Codeunit "IRS Reporting Period";
+        KeyVaultClientIRIS: Codeunit "Key Vault Client IRIS";
+        HelperIRIS: Codeunit "Helper IRIS";
     begin
         Rec.InitSetup();
         Rec.InitIRISAPIClientID();
+        IRISDestinationText := HelperIRIS.GetDestinationName(KeyVaultClientIRIS.TestMode());
+        if not KeyVaultClientIRIS.TryGetSubmitEndpointURL(SubmissionEndpointURL) then
+            Clear(SubmissionEndpointURL);
         IRSReportingPeriod.ShowIRSFormsGuideNotificationIfRequired();
     end;
+
+    var
+        IRISDestinationText: Text;
+        SubmissionEndpointURL: Text;
 }
