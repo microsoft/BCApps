@@ -2,21 +2,21 @@ namespace System.Integration;
 
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Environment.Configuration;
-using System.Reflection;
 
 codeunit 1802 "Data Migration Notifier"
 {
+    Permissions = tabledata "G/L Entry" = r;
 
     trigger OnRun()
     begin
     end;
 
     var
-        DataTypeManagement: Codeunit "Data Type Management";
         DataMigrationMgt: Codeunit "Data Migration Mgt.";
 
         ListEmptyMsg: Label 'There isn''t data here yet. Want to import %1?', Comment = '%1 - Type of records to import. Either Customers, Vendors or Items';
@@ -32,7 +32,7 @@ codeunit 1802 "Data Migration Notifier"
     var
         CustomerListPage: Page "Customer List";
     begin
-        ShowListEmptyNotification(Rec, CustomerListPage.Caption());
+        ShowListEmptyNotification(Database::Customer, CustomerListPage.Caption());
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Vendor List", 'OnOpenPageEvent', '', false, false)]
@@ -40,7 +40,7 @@ codeunit 1802 "Data Migration Notifier"
     var
         VendorListPage: Page "Vendor List";
     begin
-        ShowListEmptyNotification(Rec, VendorListPage.Caption());
+        ShowListEmptyNotification(Database::Vendor, VendorListPage.Caption());
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Item List", 'OnOpenPageEvent', '', false, false)]
@@ -48,30 +48,25 @@ codeunit 1802 "Data Migration Notifier"
     var
         ItemListPage: Page "Item List";
     begin
-        ShowListEmptyNotification(Rec, ItemListPage.Caption());
+        ShowListEmptyNotification(Database::Item, ItemListPage.Caption());
     end;
 
-    local procedure ShowListEmptyNotification(RecordVariant: Variant; PageCaption: Text)
+    local procedure ShowListEmptyNotification(TableId: Integer; PageCaption: Text)
     var
         MyNotifications: Record "My Notifications";
-        RecRef: RecordRef;
         NotificationId: Guid;
         NotificationMsg: Text;
         NotificationRemoveFunction: Text;
         SkipNotification: Boolean;
     begin
-        DataTypeManagement.GetRecordRef(RecordVariant, RecRef);
-
-        RecRef.Reset();
-
-        if not RecRef.IsEmpty() then
+        if not IsTableEmpty(TableId) then
             exit;
 
-        SkipListEmptyNotification(RecRef.Number(), SkipNotification);
+        SkipListEmptyNotification(TableId, SkipNotification);
         if SkipNotification then
             exit;
 
-        case RecRef.Number() of
+        case TableId of
             DATABASE::Customer:
                 begin
                     NotificationId := DataMigrationMgt.GetCustomerListEmptyNotificationId();
@@ -94,8 +89,21 @@ codeunit 1802 "Data Migration Notifier"
         if not MyNotifications.IsEnabled(NotificationId) then
             exit;
 
+        // A company with posted G/L entries is in use, so do not suggest importing data.
+        if not IsTableEmpty(Database::"G/L Entry") then
+            exit;
+
         NotificationMsg := StrSubstNo(ListEmptyMsg, PageCaption);
         CreateNotification(NotificationId, NotificationMsg, NOTIFICATIONSCOPE::LocalScope, OpenDataMigrationTxt, 'OpenDataMigrationWizard', NotificationRemoveFunction);
+    end;
+
+    local procedure IsTableEmpty(TableId: Integer): Boolean
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.Open(TableId);
+        RecRef.SecurityFiltering(SecurityFilter::Ignored);
+        exit(RecRef.IsEmpty());
     end;
 
     procedure RemoveCustomerEmptyListNotification(ListEmptyNotification: Notification)
