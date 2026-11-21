@@ -2,10 +2,7 @@ Describe "AppObjectValidation" {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\AppObjectValidation.psm1" -Force
 
-        $script:AllowedRanges = @(
-            [PSCustomObject]@{ From = 1;        To = 49999 },
-            [PSCustomObject]@{ From = 99000750; To = 99001048 }
-        )
+        $script:AllowedRanges = (Get-ObjectIdRangePolicy).AllowedRanges
 
         function New-TestAlFile {
             param(
@@ -60,7 +57,36 @@ Describe "AppObjectValidation" {
             )
 
             $testFolders = Get-ALGoTestFolders -ProjectsPath $Layout.Projects -ProjectsJsonPath $Layout.ProjectsJson -RepositoryRoot $Layout.Root
-            Test-ObjectIDsInAddedALFilesAreInAllowedRange -FilePaths $FilePaths -SourceCodePaths $Layout.ValidationRoots -TestFolderPaths $testFolders -AllowedRanges $script:AllowedRanges
+            Test-ObjectIDsInALFilesAreInAllowedRange -FilePaths $FilePaths -SourceCodePaths $Layout.ValidationRoots -TestFolderPaths $testFolders -AllowedRanges $script:AllowedRanges
+        }
+
+        function New-TestManifest {
+            param(
+                [string] $Folder,
+                [object[]] $Ranges = @(),
+                [string] $Name = 'Example'
+            )
+
+            New-Item -ItemType Directory -Path $Folder -Force | Out-Null
+            $path = Join-Path $Folder 'app.json'
+            @{
+                id       = [System.Guid]::NewGuid().ToString()
+                name     = $Name
+                idRanges = @($Ranges)
+            } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $path -Encoding UTF8
+            return $path
+        }
+
+        function Invoke-ManifestRangeValidation {
+            param(
+                [object] $Layout,
+                [object[]] $AllowedRanges = $script:AllowedRanges,
+                [object[]] $ManifestRangeExceptions = @(),
+                [object[]] $LegacyObjectIdRanges = @()
+            )
+
+            $testFolders = @(Get-ALGoTestFolders -ProjectsPath $Layout.Projects -ProjectsJsonPath $Layout.ProjectsJson -RepositoryRoot $Layout.Root)
+            Test-ApplicationObjectIdRanges -SourceCodePath $Layout.Source -TestFolderPaths $testFolders -AllowedRanges $AllowedRanges -ManifestRangeExceptions $ManifestRangeExceptions -LegacyObjectIdRanges $LegacyObjectIdRanges
         }
     }
 
@@ -154,7 +180,7 @@ Describe "AppObjectValidation" {
         }
     }
 
-    Context "Test-ObjectIDsInAddedALFilesAreInAllowedRange" {
+    Context "Test-ObjectIDsInALFilesAreInAllowedRange" {
         It "accepts objects in newly added W1 and country files when their IDs are allowed" {
             $layout = New-ValidationLayout
             $w1File = New-TestAlFile -Path (Join-Path $layout.Production 'W1.al') -Declaration 'table 49999 "W1"'
@@ -279,6 +305,183 @@ Describe "AppObjectValidation" {
 
             $errorRecord | Should -Not -BeNullOrEmpty
             $errorRecord.Exception.Message | Should -Match '2 object\(s\)'
+        }
+    }
+
+    Context "Test-ApplicationObjectIdRanges" {
+        It "validates the boundaries of every range in the production policy" {
+            $layout = New-ValidationLayout
+            $policy = Get-ObjectIdRangePolicy
+            $boundaries = @(
+                foreach ($range in $policy.AllowedRanges) {
+                    @{ from = $range.From; to = $range.From }
+                    @{ from = $range.To; to = $range.To }
+                }
+            )
+            New-TestManifest -Folder $layout.Production -Ranges $boundaries | Out-Null
+
+            { Invoke-ManifestRangeValidation -Layout $layout -AllowedRanges $policy.AllowedRanges } | Should -Not -Throw
+        }
+
+        It "checks existing manifests across all src folders and aggregates failures" {
+            $layout = New-ValidationLayout
+            foreach ($folder in @($layout.CountryProduction, $layout.CountryBaseApp, (Join-Path $layout.Source 'Tools\Example'))) {
+                New-TestManifest -Folder $folder -Ranges @(@{ from = 50000; to = 50001 }) | Out-Null
+            }
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Throw '*3 violation(s)*'
+        }
+
+        It "revalidates existing manifests when only the allowed policy changes" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @(@{ from = 100; to = 200 }) | Out-Null
+
+            { Invoke-ManifestRangeValidation -Layout $layout -AllowedRanges @(@{ From = 1; To = 200 }) } | Should -Not -Throw
+            { Invoke-ManifestRangeValidation -Layout $layout -AllowedRanges @(@{ From = 1; To = 199 }) } | Should -Throw '*100..200*'
+        }
+
+        It "rejects a range whose endpoints are allowed but which spans a forbidden gap" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @(@{ from = 50; to = 250 }) | Out-Null
+            $allowed = @(@{ From = 1; To = 100 }, @{ From = 200; To = 300 })
+
+            { Invoke-ManifestRangeValidation -Layout $layout -AllowedRanges $allowed } | Should -Throw '*50..250*'
+        }
+
+        It "accepts a range covered by adjacent or overlapping allowed intervals" -TestCases @(
+            @{ SecondFrom = 101 }
+            @{ SecondFrom = 90 }
+        ) {
+            param($SecondFrom)
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @(@{ from = 50; to = 150 }) | Out-Null
+            $allowed = @(@{ From = $SecondFrom; To = 200 }, @{ From = 1; To = 100 })
+
+            { Invoke-ManifestRangeValidation -Layout $layout -AllowedRanges $allowed } | Should -Not -Throw
+        }
+
+        It "rejects malformed or invalid declared ranges" -TestCases @(
+            @{ Range = @{ from = 0; to = 10 } }
+            @{ Range = @{ from = 20; to = 10 } }
+            @{ Range = @{ from = 1 } }
+            @{ Range = @{ from = 'invalid'; to = 10 } }
+            @{ Range = @{ from = 1.5; to = 10 } }
+            @{ Range = @{ from = 1; to = 2147483648 } }
+        ) {
+            param($Range)
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @($Range) | Out-Null
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Throw '*Invalid object ID range*app.json*'
+        }
+
+        It "accepts an exact legacy declaration only in its configured manifest" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @(@{ from = 50000; to = 50010 }) | Out-Null
+            $exceptions = @(@{
+                Path   = 'Apps/W1/Example/App/app.json'
+                Ranges = @(@{ From = 50000; To = 50010 })
+            })
+
+            { Invoke-ManifestRangeValidation -Layout $layout -ManifestRangeExceptions $exceptions } | Should -Not -Throw
+            New-TestManifest -Folder $layout.CountryProduction -Ranges @(@{ from = 50000; to = 50010 }) | Out-Null
+            { Invoke-ManifestRangeValidation -Layout $layout -ManifestRangeExceptions $exceptions } | Should -Throw '*Apps/GB/Example/App/app.json*'
+        }
+
+        It "does not allow a legacy manifest exception to be widened" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @(@{ from = 50000; to = 50011 }) | Out-Null
+            $exceptions = @(@{
+                Path   = 'Apps/W1/Example/App/app.json'
+                Ranges = @(@{ From = 50000; To = 50010 })
+            })
+
+            { Invoke-ManifestRangeValidation -Layout $layout -ManifestRangeExceptions $exceptions } | Should -Throw '*50000..50011*'
+        }
+
+        It "excludes test manifests using build metadata even without test in the app name" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.TestApp -Ranges @(@{ from = 139000; to = 139100 }) | Out-Null
+            $utility = Join-Path $layout.Source 'Apps\W1\LibraryNoTransactions\app'
+            New-TestManifest -Folder $utility -Ranges @(@{ from = 130000; to = 130100 }) -Name 'No Transactions' | Out-Null
+            @{
+                projects = @{
+                    'Library-NoTransactions' = @{
+                        projectPath = '$env:INETROOT\App\Apps\W1\LibraryNoTransactions\app'
+                        isTest      = $true
+                    }
+                }
+            } | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $layout.ProjectsJson -Encoding UTF8
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Not -Throw
+        }
+
+        It "excludes an unconfigured test app identified by its manifest name" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @(@{ from = 139000; to = 139100 }) -Name 'Example Test Library' | Out-Null
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Not -Throw
+        }
+
+        It "checks objects when the manifest has missing or empty idRanges" -TestCases @(
+            @{ Manifest = '{"name":"Example"}' }
+            @{ Manifest = '{"name":"Example","idRanges":[]}' }
+        ) {
+            param($Manifest)
+            $layout = New-ValidationLayout
+            $Manifest | Set-Content -LiteralPath (Join-Path $layout.Production 'app.json') -Encoding UTF8
+            New-TestAlFile -Path (Join-Path $layout.Production 'Invalid.al') -Declaration 'tableextension 50000 "Invalid" extends "Customer"' | Out-Null
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Throw '*50000*'
+        }
+
+        It "validates the legacy singular idRange property" {
+            $layout = New-ValidationLayout
+            '{"name":"Example","idRange":{"from":50000,"to":50010}}' |
+                Set-Content -LiteralPath (Join-Path $layout.Production 'app.json') -Encoding UTF8
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Throw '*50000..50010*'
+        }
+
+        It "does not scan AL files when their manifest declares valid ranges" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production -Ranges @(@{ from = 1; to = 10 }) | Out-Null
+            Mock GetALObjectInformation -ModuleName AppObjectValidation { throw 'Unexpected AL scan' }
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Not -Throw
+        }
+
+        It "does not attribute nested test-app objects to a parent app without ranges" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production | Out-Null
+            $nested = Join-Path $layout.Production 'Nested'
+            New-TestManifest -Folder $nested -Name 'Nested Tests' -Ranges @(@{ from = 139000; to = 139100 }) | Out-Null
+            New-TestAlFile -Path (Join-Path $nested 'TestTable.al') -Declaration 'table 139000 "Test Table"' | Out-Null
+            New-TestAlFile -Path (Join-Path $layout.Production 'Valid.al') -Declaration 'table 100 "Valid"' | Out-Null
+
+            { Invoke-ManifestRangeValidation -Layout $layout } | Should -Not -Throw
+        }
+
+        It "scopes fallback legacy object ranges to their owning app" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production | Out-Null
+            New-TestAlFile -Path (Join-Path $layout.Production 'Legacy.al') -Declaration 'codeunit 148111 "Legacy"' | Out-Null
+            $exceptions = @(@{
+                Path   = 'Apps/W1/Example/App/app.json'
+                Ranges = @(@{ From = 148111; To = 148111 })
+            })
+
+            { Invoke-ManifestRangeValidation -Layout $layout -LegacyObjectIdRanges $exceptions } | Should -Not -Throw
+            New-TestManifest -Folder $layout.CountryProduction | Out-Null
+            New-TestAlFile -Path (Join-Path $layout.CountryProduction 'Invalid.al') -Declaration 'codeunit 148111 "Not Legacy"' | Out-Null
+            { Invoke-ManifestRangeValidation -Layout $layout -LegacyObjectIdRanges $exceptions } | Should -Throw '*148111*'
+        }
+
+        It "accepts an app without ID-bearing objects or configured test folders" {
+            $layout = New-ValidationLayout
+            New-TestManifest -Folder $layout.Production | Out-Null
+
+            { Test-ApplicationObjectIdRanges -SourceCodePath $layout.Source -AllowedRanges $script:AllowedRanges -TestFolderPaths @() } | Should -Not -Throw
         }
     }
 }
