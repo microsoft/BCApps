@@ -1033,10 +1033,16 @@ table 6010 "Service Header Archive"
         DimensionManagement.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', "Document Type", "No."));
     end;
 
-    internal procedure SetSecurityFilterOnRespCenter()
+    procedure SetSecurityFilterOnRespCenter()
     var
         UserSetupManagement: Codeunit "User Setup Management";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
+        if IsHandled then
+            exit;
+
         if UserSetupManagement.GetServiceFilter() <> '' then begin
             FilterGroup(2);
             SetRange("Responsibility Center", UserSetupManagement.GetServiceFilter());
@@ -1052,5 +1058,10 @@ table 6010 "Service Header Archive"
         CalcFields("Work Description");
         "Work Description".CreateInStream(InStream, TEXTENCODING::UTF8);
         exit(TypeHelper.TryReadAsTextWithSepAndFieldErrMsg(InStream, TypeHelper.LFSeparator(), FieldName("Work Description")));
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeSetSecurityFilterOnRespCenter(var ServiceHeaderArchive: Record "Service Header Archive"; var IsHandled: Boolean)
+    begin
     end;
 }
