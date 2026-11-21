@@ -386,13 +386,15 @@ table 5409 "Prod. Order Routing Line"
                 LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
             begin
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode := Rec;
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRecFilter();
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Operation No.");
-                ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Routing Link Code", "Routing Link Code");
-                if not ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.IsEmpty() then
-                    if not Confirm(DuplicateRoutingLinkCodeLbl, false, FieldCaption("Routing Link Code"), "Routing Link Code") then
-                        Error(CancelledUpdateLbl);
+                if "Routing Link Code" <> '' then begin
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode := Rec;
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRecFilter();
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Operation No.");
+                    ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.SetRange("Routing Link Code", "Routing Link Code");
+                    if not ProdOrderRoutingLineToCheckDuplicateRoutingLinkCode.IsEmpty() then
+                        if not Confirm(DuplicateRoutingLinkCodeLbl, false, FieldCaption("Routing Link Code"), "Routing Link Code") then
+                            Error(CancelledUpdateLbl);
+                end;
 
 #if not CLEAN28
                 if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
