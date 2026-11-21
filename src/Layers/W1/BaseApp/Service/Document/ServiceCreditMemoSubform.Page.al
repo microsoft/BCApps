@@ -573,7 +573,7 @@ page 5936 "Service Credit Memo Subform"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec.Type := xRec.Type;
+        Rec.InitType();
         Clear(ShortcutDimCode);
     end;
 
