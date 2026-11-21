@@ -134,6 +134,7 @@ codeunit 20505 "Subcontracting Management"
         StockkeepingUnit: Record "Stockkeeping Unit";
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
+        IsHandled: Boolean;
     begin
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -150,6 +151,11 @@ codeunit 20505 "Subcontracting Management"
             if ShowMsg then
                 if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(RoutingLinkUpdConfQst, ProdOrderRoutingLine."Routing Link Code"), true) then
                     Error(UpdateIsCancelledErr);
+
+            IsHandled := false;
+            OnDelLocationLinkedComponentsOnBeforeUpdateComponentLocations(ProdOrderRoutingLine, ProdOrderComponent, IsHandled);
+            if IsHandled then
+                exit;
 
             ProdOrderLine.SetLoadFields("Item No.", "Variant Code", "Location Code");
             ProdOrderLine.Get(ProdOrderRoutingLine.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
@@ -499,6 +505,11 @@ codeunit 20505 "Subcontracting Management"
         WorkCenter.SetLoadFields("Subcontractor No.");
         if WorkCenter.Get(WorkCenterNo) then
             exit(WorkCenter."Subcontractor No." <> '')
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnDelLocationLinkedComponentsOnBeforeUpdateComponentLocations(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderComponent: Record "Prod. Order Component"; var IsHandled: Boolean)
+    begin
     end;
 
     [InternalEvent(false, false)]
