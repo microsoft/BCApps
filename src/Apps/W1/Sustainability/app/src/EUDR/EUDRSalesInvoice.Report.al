@@ -1374,7 +1374,7 @@ report 6222 "EUDR Sales Invoice"
         if Header.GetFilters = '' then
             Error(NoFilterSetErr);
 
-        CompanyLogoPosition := SalesSetup."Logo Position on Documents";
+        CompanyLogoPosition := SalesSetup."Logo Position on Documents".AsInteger();
     end;
 
     var
