@@ -378,7 +378,8 @@ codeunit 134703 "Email Retry Test"
 
         // [When] Sending the email fails
         ConnectorMock.FailOnSend(true);
-        ScheduledDateTime := CurrentDateTime();
+        // Round down to the second: Date Queued can be set in the same millisecond and SQL datetime rounding can store it slightly earlier
+        ScheduledDateTime := RoundDateTime(CurrentDateTime(), 1000, '<');
         Assert.IsFalse(Email.Send(EmailMessage, AccountId, Connector::"Test Email Connector"), 'Sending an email should have failed');
 
         // [Then] The error is as expected
@@ -388,7 +389,7 @@ codeunit 134703 "Email Retry Test"
         Assert.AreEqual(Connector::"Test Email Connector".AsInteger(), EmailOutbox.Connector.AsInteger(), 'Wrong connector');
         Assert.AreEqual(EmailStatus::Failed.AsInteger(), EmailOutbox.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('Failed to send email', EmailOutbox."Error Message", 'Wrong error message');
-        Assert.IsTrue(EmailOutbox."Date Queued" > ScheduledDateTime, 'The Date Queued should be later than now');
+        Assert.IsTrue(EmailOutbox."Date Queued" >= ScheduledDateTime, 'The Date Queued should not be earlier than the time the email was sent');
 
         // [Then] There is no entry in the Email Retry table
         EmailRetry.SetRange("Account Id", AccountId);
@@ -437,7 +438,8 @@ codeunit 134703 "Email Retry Test"
 
         // [When] Sending the email fails
         ConnectorMock.FailOnSend(true);
-        ScheduledDateTime := CurrentDateTime();
+        // Round down to the second: Date Queued can be set in the same millisecond and SQL datetime rounding can store it slightly earlier
+        ScheduledDateTime := RoundDateTime(CurrentDateTime(), 1000, '<');
         Assert.IsFalse(Email.Send(EmailMessage, AccountId, Connector::"Test Email Connector"), 'Sending an email should have failed');
 
         // [Then] The error is as expected
@@ -447,7 +449,7 @@ codeunit 134703 "Email Retry Test"
         Assert.AreEqual(Connector::"Test Email Connector".AsInteger(), EmailOutbox.Connector.AsInteger(), 'Wrong connector');
         Assert.AreEqual(EmailStatus::Failed.AsInteger(), EmailOutbox.Status.AsInteger(), 'Wrong status');
         Assert.AreEqual('Failed to send email', EmailOutbox."Error Message", 'Wrong error message');
-        Assert.IsTrue(EmailOutbox."Date Queued" > ScheduledDateTime, 'The Date Queued should be later than now');
+        Assert.IsTrue(EmailOutbox."Date Queued" >= ScheduledDateTime, 'The Date Queued should not be earlier than the time the email was sent');
 
         // [Then] There is no entry in the Email Retry table
         EmailRetry.SetRange("Account Id", AccountId);
