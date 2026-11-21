@@ -9,10 +9,8 @@ using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
-using System;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 report 11315 "VAT-VIES Declaration Disk BE"
 {
@@ -347,7 +345,6 @@ report 11315 "VAT-VIES Declaration Disk BE"
         CheckVatNo: Codeunit VATLogicalTests;
         FileManagement: Codeunit "File Management";
         INTERVATHelper: Codeunit "INTERVAT Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         Vfile: File;
         OutS: OutStream;
         No: Integer;
@@ -430,29 +427,21 @@ report 11315 "VAT-VIES Declaration Disk BE"
 
     local procedure CreateIntervatXML(): Boolean
     var
-        XMLDocOut: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLFirstNode: DotNet XmlNode;
+        XMLDocOut: XmlDocument;
+        RootElement: XmlElement;
     begin
         RefreshSequenceNumber := true;
         Country.Get(CompanyInformation."Country/Region Code");
 
-        XMLDOMMgt.LoadXMLDocumentFromText('<IntraConsignment/>', XMLDocOut);
-        XMLCurrNode := XMLDocOut.DocumentElement;
-        XMLFirstNode := XMLCurrNode;
+        CreateDocument(XMLDocOut);
+        XMLDocOut.GetRoot(RootElement);
 
-        INTERVATHelper.AddProcessingInstruction(XMLDocOut, XMLFirstNode);
+        if AddRepresentative then
+            Representative.AddRepresentativeElement(RootElement, DocNameSpace, GetSequenceNumber());
 
-        AddHeader(XMLCurrNode);
+        AddIntraListing(RootElement);
 
-        if AddRepresentative then begin
-            Representative.AddRepresentativeElement(XMLCurrNode, DocNameSpace, GetSequenceNumber());
-            XMLCurrNode := XMLCurrNode.ParentNode;
-        end;
-
-        AddIntraListing(XMLCurrNode);
-
-        XMLDocOut.Save(OutS);
+        INTERVATHelper.WriteDocument(XMLDocOut, OutS);
 
         exit(true);
     end;
@@ -495,68 +484,68 @@ report 11315 "VAT-VIES Declaration Disk BE"
         exit(CompanyInformation."XML Seq. No. EU Sales List");
     end;
 
-    local procedure AddHeader(XMLCurrNode: DotNet XmlNode)
+    local procedure AddChildElement(ParentElement: XmlElement; LocalName: Text; Value: Text) ChildElement: XmlElement
     begin
-        DocNameSpace := 'http://www.minfin.fgov.be/IntraConsignment';
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'IntraListingsNbr', '1');
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns', DocNameSpace);
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns:common', 'http://www.minfin.fgov.be/InputCommon');
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-
-        XMLDOMMgt.AddNameSpacePrefixedAttribute(
-          XMLCurrNode.OwnerDocument, XMLCurrNode,
-          'http://www.w3.org/2001/XMLSchema-instance',
-          'schemaLocation',
-          DocNameSpace + ' NewICO-in_v0_7.xsd');
+        ChildElement := XmlElement.Create(LocalName, DocNameSpace);
+        if Value <> '' then
+            ChildElement.Add(XmlText.Create(Value));
+        ParentElement.Add(ChildElement);
     end;
 
-    local procedure AddIntraListing(XMLCurrNode: DotNet XmlNode)
+    local procedure CreateDocument(var XMLDocOut: XmlDocument)
     var
-        XMLNewChild: DotNet XmlNode;
+        DocumentTxt: Label '<?xml version="1.0" encoding="UTF-8"?><IntraConsignment IntraListingsNbr="1" xmlns="%1" xmlns:common="http://www.minfin.fgov.be/InputCommon" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="%1 NewICO-in_v0_7.xsd" />', Locked = true;
+    begin
+        DocNameSpace := 'http://www.minfin.fgov.be/IntraConsignment';
+        XmlDocument.ReadFrom(StrSubstNo(DocumentTxt, DocNameSpace), XMLDocOut);
+    end;
+
+    local procedure AddIntraListing(RootElement: XmlElement)
+    var
+        IntraListingElement: XmlElement;
+        ClientParentElement: XmlElement;
+        IntraClientElement: XmlElement;
         CustSequenceNum: Integer;
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'IntraListing', '', DocNameSpace, XMLNewChild);
-        XMLCurrNode := XMLNewChild;
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'SequenceNumber', '1');
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'ClientsNbr', Format(Buffer.Count));
-        INTERVATHelper.AddElementDeclarant(XMLCurrNode, GetSequenceNumber());
-        XMLCurrNode := XMLCurrNode.ParentNode;
+        IntraListingElement := AddChildElement(RootElement, 'IntraListing', '');
+        IntraListingElement.SetAttribute('SequenceNumber', '1');
+        IntraListingElement.SetAttribute('ClientsNbr', Format(Buffer.Count));
+        INTERVATHelper.AddElementDeclarant(IntraListingElement, GetSequenceNumber());
 
         Buffer.CalcSums(Amount);
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'AmountSum', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Amount));
+        IntraListingElement.SetAttribute('AmountSum', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Amount));
 
-        INTERVATHelper.AddElementPeriod(XMLCurrNode, Choice, Vquarter, Vyear, '');
-        XMLCurrNode := XMLCurrNode.ParentNode;
+        INTERVATHelper.AddElementPeriod(IntraListingElement, Choice, Vquarter, Vyear, '');
 
+        // A client with a correcting period becomes the parent of the clients that follow it; this keeps the file identical to earlier versions.
+        ClientParentElement := IntraListingElement;
         if Buffer.FindSet(true, false) then
             repeat
                 CustSequenceNum := CustSequenceNum + 1;
-                AddCustomersList(XMLCurrNode, CustSequenceNum);
-                XMLCurrNode := XMLCurrNode.ParentNode;
+                IntraClientElement := AddCustomersList(ClientParentElement, CustSequenceNum);
+                if Buffer.Year <> '' then
+                    ClientParentElement := IntraClientElement;
             until Buffer.Next() = 0;
     end;
 
-    local procedure AddCustomersList(XMLCurrNode: DotNet XmlNode; CustSequenceNum: Integer)
+    local procedure AddCustomersList(ParentElement: XmlElement; CustSequenceNum: Integer) IntraClientElement: XmlElement
     var
-        XMLNewChild: DotNet XmlNode;
+        CompanyVATNumberElement: XmlElement;
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'IntraClient', '', DocNameSpace, XMLNewChild);
-        XMLCurrNode := XMLNewChild;
+        IntraClientElement := AddChildElement(ParentElement, 'IntraClient', '');
 
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'SequenceNumber', Format(CustSequenceNum));
+        IntraClientElement.SetAttribute('SequenceNumber', Format(CustSequenceNum));
 
-        XMLDOMMgt.AddElement(XMLCurrNode, 'CompanyVATNumber', Buffer."VAT Registration No.", DocNameSpace, XMLNewChild);
-        XMLDOMMgt.AddAttribute(XMLNewChild, 'issuedBy', Buffer."Country/Region Code");
+        CompanyVATNumberElement := AddChildElement(IntraClientElement, 'CompanyVATNumber', Buffer."VAT Registration No.");
+        CompanyVATNumberElement.SetAttribute('issuedBy', Buffer."Country/Region Code");
 
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Code', GetLetterForCodeElement(Buffer), DocNameSpace, XMLNewChild);
+        AddChildElement(IntraClientElement, 'Code', GetLetterForCodeElement(Buffer));
 
-        XMLDOMMgt.AddElement(
-          XMLCurrNode, 'Amount', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Amount), DocNameSpace, XMLNewChild);
+        AddChildElement(IntraClientElement, 'Amount', INTERVATHelper.GetXMLAmountRepresentation(Buffer.Amount));
 
         if Buffer.Year <> '' then
-            INTERVATHelper.AddElementPeriod(XMLCurrNode, Choice, Vquarter, Vyear, 'CorrectingPeriod');
+            INTERVATHelper.AddElementPeriod(IntraClientElement, Choice, Vquarter, Vyear, 'CorrectingPeriod');
     end;
-
     local procedure GetLetterForCodeElement(TempVATEntryBuffer: Record "VAT Entry" temporary): Text[1]
     begin
         case true of
