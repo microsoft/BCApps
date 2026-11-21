@@ -37,26 +37,33 @@ jobs:
       - name: Build branch filter
         id: filter
         shell: pwsh
+        env:
+          BRANCH_FILTER: ${{ inputs.branch }}
         run: |
           # Convert the comma-separated branch filter into the JSON array that GetGitBranches expects.
-          $patterns = '${{ inputs.branch }}'.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $patterns = $env:BRANCH_FILTER.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
           $json = ConvertTo-Json @($patterns) -Compress
           Write-Host "Branch filter: $json"
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "includeJson=$json"
 
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: ./.github/actions/GetGitBranches
         with:
           include: ${{ steps.filter.outputs.includeJson }}
 
       - name: Ensure JSON array
         id: ensureArray
         shell: pwsh
+        env:
+          BRANCHES_JSON: ${{ steps.getOfficialBranches.outputs.branchesJson }}
         run: |
           # PowerShell's ConvertTo-Json emits a bare string for single-element arrays.
           # Wrap it in an array if needed so the matrix strategy always receives a JSON array.
-          $raw = '${{ steps.getOfficialBranches.outputs.branchesJson }}'
+          $raw = $env:BRANCHES_JSON
           $parsed = $raw | ConvertFrom-Json
           if ($parsed -is [string]) { $parsed = @($parsed) }
           $json = ConvertTo-Json @($parsed) -Compress
@@ -73,8 +80,11 @@ jobs:
         branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
       fail-fast: false
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Add unstable tests from run
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTests@main
+        uses: ./.github/actions/UpdateUnstableTests
         with:
           branch: ${{ matrix.branch }}
           run-id: ${{ inputs.runId }}

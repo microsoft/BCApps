@@ -58,9 +58,12 @@ jobs:
     outputs:
       updateBranches: ${{ steps.ensureArray.outputs.branchesJson }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: ./.github/actions/GetGitBranches
         with:
           include: "['main', 'releases/*']"
 
@@ -101,7 +104,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Update unstable tests
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTestsCombined@main
+        uses: ./.github/actions/UpdateUnstableTestsCombined
         with:
           branch: ${{ matrix.branch }}
           run-limit: ${{ inputs.runLimit || 3 }}
