@@ -500,6 +500,7 @@ codeunit 148199 "Integration Tests"
         ApiKey: Text;
     begin
         MockImport201();
+        LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
         if IsInitialized then
             exit;
 

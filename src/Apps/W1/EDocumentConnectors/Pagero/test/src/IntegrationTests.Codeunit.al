@@ -689,6 +689,7 @@ codeunit 148192 "Integration Tests"
         KeyGuid: Guid;
     begin
         LibraryPermission.SetOutsideO365Scope();
+        LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
         // Restore the work date in case a previous test failed before restoring it
         if OriginalWorkDate = 0D then
             OriginalWorkDate := WorkDate()
