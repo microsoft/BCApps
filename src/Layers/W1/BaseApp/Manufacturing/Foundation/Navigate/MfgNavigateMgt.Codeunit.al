@@ -30,10 +30,10 @@ codeunit 99000994 "Mfg. Navigate Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnBeforeShowRecords', '', true, false)]
-    local procedure OnBeforeShowRecords(var TempDocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text; var IsHandled: Boolean; ContactNo: Code[250])
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterShowRecords', '', true, false)]
+    local procedure OnAfterShowRecords(var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean; ContactType: Enum "Navigate Contact Type"; ContactNo: Code[250]; ExtDocNo: Code[250])
     begin
-        case TempDocumentEntry."Table ID" of
+        case DocumentEntry."Table ID" of
             Database::"Production Order":
                 begin
                     SetProdOrderFilters(DocNoFilter);
