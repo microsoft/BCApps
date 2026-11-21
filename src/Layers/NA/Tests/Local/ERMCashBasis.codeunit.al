@@ -1462,11 +1462,11 @@
         InvoiceCustLedgerEntry.TestField("Remaining Amount", 0);
         InvoiceVATEntry.SetRange("Transaction No.", InvoiceCustLedgerEntry."Transaction No.");
         InvoiceVATEntry.SetRange("Document No.", InvoiceNo);
-        InvoiceVATEntry.SetRange("Document Type", InvoiceVATEntry."Document Type"::Invoice);
-        InvoiceVATEntry.SetRange("Unrealized VAT Entry No.", 0);
         Assert.RecordCount(InvoiceVATEntry, 3);
         InvoiceVATEntry.FindSet();
         repeat
+            InvoiceVATEntry.TestField("Document Type", InvoiceVATEntry."Document Type"::Invoice);
+            InvoiceVATEntry.TestField("Unrealized VAT Entry No.", 0);
             InvoiceVATEntry.TestField("Remaining Unrealized Amount", 0);
             InvoiceVATEntry.TestField("Remaining Unrealized Base", 0);
         until InvoiceVATEntry.Next() = 0;
