@@ -15,12 +15,10 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
-using System;
 using System.Environment;
 using System.IO;
 using System.Telemetry;
 using System.Utilities;
-using System.Xml;
 
 report 2000005 "File SEPA Payments"
 {
@@ -223,7 +221,7 @@ report 2000005 "File SEPA Payments"
     begin
         FinishGroupHeader();
         TempBlob.CreateOutStream(OutStream);
-        XMLDomDoc.Save(OutStream);
+        XMLDomDoc.WriteTo(OutStream);
         OnBeforeDownloadXmlFile(TempBlob, IsHandled);
         if not IsHandled then begin
             FileMgt.BLOBExportToServerFile(TempBlob, ServerFileName);
@@ -242,12 +240,11 @@ report 2000005 "File SEPA Payments"
 
     trigger OnPreReport()
     var
-        XMLDOMManagement: Codeunit "XML DOM Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SEPACTExportFile: Codeunit "SEPA CT-Export File";
-        XMLRootElement: DotNet XmlElement;
-        XMLNodeCurr: DotNet XmlNode;
-        XMLNewChild: DotNet XmlNode;
+        XMLRootElement: XmlElement;
+        XMLNodeCurr: XmlElement;
+        XMLNewChild: XmlElement;
     begin
         FeatureTelemetry.LogUptake('0000N2H', SEPACTExportFile.FeatureName(), Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000N2I', SEPACTExportFile.FeatureName(), 'Report (BE) File SEPA Payments');
@@ -257,12 +254,12 @@ report 2000005 "File SEPA Payments"
 
         OnBeforePreReport("Payment Journal Line", GenJnlLine, AutomaticPosting, IncludeDimText, ExecutionDate, FileName);
 
-        XMLDOMManagement.LoadXMLDocumentFromText('<?xml version="1.0" encoding="UTF-8"?><Document></Document>', XMLDomDoc);
-        XMLRootElement := XMLDomDoc.DocumentElement;
-        XMLRootElement.SetAttribute('xmlns', 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03');
-        XMLRootElement.SetAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-        XMLNodeCurr := XMLDomDoc.SelectSingleNode('Document');
-        AddElement(XMLNodeCurr, 'CstmrCdtTrfInitn', '', '', XMLNewChild);
+        XMLNameSpace := 'urn:iso:std:iso:20022:tech:xsd:pain.001.001.03';
+        XmlDocument.ReadFrom(
+          '<?xml version="1.0" encoding="UTF-8"?><Document xmlns="' + XMLNameSpace + '" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"></Document>', XMLDomDoc);
+        XMLDomDoc.GetRoot(XMLRootElement);
+        XMLNodeCurr := XMLRootElement;
+        AddElement(XMLNodeCurr, 'CstmrCdtTrfInitn', '', XMLNewChild);
         CstmrCdtTrfInitnNode := XMLNewChild;
         MessageId := GetMessageID(GetExportProtocolCode("Payment Journal Line"));
         StartGroupHeader(XMLNewChild);
@@ -287,9 +284,11 @@ report 2000005 "File SEPA Payments"
         ExportProtocol: Record "Export Protocol";
         RBMgt: Codeunit "File Management";
         ClientTypeManagement: Codeunit "Client Type Management";
-        XMLDomDoc: DotNet XmlDocument;
-        CstmrCdtTrfInitnNode: DotNet XmlNode;
-        PmtInfNode: DotNet XmlNode;
+        XMLDomDoc: XmlDocument;
+        CstmrCdtTrfInitnNode: XmlElement;
+        GroupHeaderNode: XmlElement;
+        PmtInfNode: XmlElement;
+        XMLNameSpace: Text;
         ConsolidatedPmtMessage: Text[140];
         Text002: Label 'Journal %1 is not a general journal.';
         ServerFileName: Text;
@@ -342,118 +341,117 @@ report 2000005 "File SEPA Payments"
         PaymentJournalPost.RunModal();
     end;
 
-    local procedure StartGroupHeader(XMLNodeCurr: DotNet XmlNode)
+    local procedure StartGroupHeader(var XMLNodeCurr: XmlElement)
     var
-        XMLNewChild: DotNet XmlNode;
+        XMLNewChild: XmlElement;
     begin
-        AddElement(XMLNodeCurr, 'GrpHdr', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'GrpHdr', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
+        GroupHeaderNode := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'MsgId', MessageId, '', XMLNewChild);
-        AddElement(XMLNodeCurr, 'CreDtTm', Format(CurrentDateTime, 19, 9), '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'MsgId', MessageId, XMLNewChild);
+        AddElement(XMLNodeCurr, 'CreDtTm', Format(CurrentDateTime, 19, 9), XMLNewChild);
     end;
 
     local procedure FinishGroupHeader()
     var
-        XMLNodeCurr: DotNet XmlNode;
-        XMLNewChild: DotNet XmlNode;
+        XMLNodeCurr: XmlElement;
+        XMLNewChild: XmlElement;
     begin
         // Insert Number of Transactions and ControlSum in the Group Header
-        XMLNodeCurr := XMLDomDoc.SelectSingleNode('Document');
-        XMLNodeCurr := XMLNodeCurr.FirstChild;
-        XMLNodeCurr := XMLNodeCurr.FirstChild;
+        XMLNodeCurr := GroupHeaderNode;
 
-        AddElement(XMLNodeCurr, 'NbOfTxs', Format(NumberOfTransactions, 0, 9), '', XMLNewChild);
-        AddElement(XMLNodeCurr, 'CtrlSum', Format(ControlSum, 0, 9), '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'NbOfTxs', Format(NumberOfTransactions, 0, 9), XMLNewChild);
+        AddElement(XMLNodeCurr, 'CtrlSum', Format(ControlSum, 0, 9), XMLNewChild);
 
-        AddElement(XMLNodeCurr, 'InitgPty', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'InitgPty', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, XMLNewChild);
         AddEnterpriseNo(XMLNodeCurr, CompanyInfo."Enterprise No.");
     end;
 
-    local procedure ExportPaymentInformation(XMLNodeCurr: DotNet XmlNode; PmtJnlLine: Record "Payment Journal Line")
+    local procedure ExportPaymentInformation(var XMLNodeCurr: XmlElement; PmtJnlLine: Record "Payment Journal Line")
     var
-        XMLNewChild: DotNet XmlNode;
+        XMLNewChild: XmlElement;
         AddressLine1: Text[110];
     begin
         PaymentInformationCounter := PaymentInformationCounter + 1;
-        AddElement(XMLNodeCurr, 'PmtInf', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'PmtInf', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
         PmtInfNode := XMLNodeCurr;
 
-        AddElement(XMLNodeCurr, 'PmtInfId', MessageId + '-' + Format(PaymentInformationCounter), '', XMLNewChild);
-        AddElement(XMLNodeCurr, 'PmtMtd', 'TRF', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'PmtInfId', MessageId + '-' + Format(PaymentInformationCounter), XMLNewChild);
+        AddElement(XMLNodeCurr, 'PmtMtd', 'TRF', XMLNewChild);
         if ExportProtocol."Grouped Payment" then
-            AddElement(XMLNodeCurr, 'BtchBookg', 'true', '', XMLNewChild)
+            AddElement(XMLNodeCurr, 'BtchBookg', 'true', XMLNewChild)
         else
-            AddElement(XMLNodeCurr, 'BtchBookg', 'false', '', XMLNewChild);
-        AddElement(XMLNodeCurr, 'PmtTpInf', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'BtchBookg', 'false', XMLNewChild);
+        AddElement(XMLNodeCurr, 'PmtTpInf', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'SvcLvl', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'SvcLvl', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'Cd', 'SEPA', '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        AddElement(XMLNodeCurr, 'Cd', 'SEPA', XMLNewChild);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'ReqdExctnDt', Format(PmtJnlLine."Posting Date", 0, 9), '', XMLNewChild);
-        AddElement(XMLNodeCurr, 'Dbtr', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'ReqdExctnDt', Format(PmtJnlLine."Posting Date", 0, 9), XMLNewChild);
+        AddElement(XMLNodeCurr, 'Dbtr', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, XMLNewChild);
 
-        AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
         AddressLine1 := DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>');
         if DelChr(AddressLine1) <> '' then
-            AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), XMLNewChild);
 
         if DelChr(CompanyInfo."Post Code", '<>') <> '' then
-            AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, 16), '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, 16), XMLNewChild);
 
         if DelChr(CompanyInfo.City, '<>') <> '' then
-            AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CompanyInfo.City, '<>'), 1, 35), '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CompanyInfo.City, '<>'), 1, 35), XMLNewChild);
 
         GetCountry(CompanyInfo."Country/Region Code");
 
         if Country."ISO Code" <> '' then
-            AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), XMLNewChild);
 
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
         AddEnterpriseNo(XMLNodeCurr, CompanyInfo."Enterprise No.");
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'DbtrAcct', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'DbtrAcct', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'Id', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'Id', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
         GetBankAccount(PmtJnlLine."Bank Account");
-        AddElement(XMLNodeCurr, 'IBAN', CopyStr(DelChr(BankAcc.IBAN), 1, 34), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        AddElement(XMLNodeCurr, 'IBAN', CopyStr(DelChr(BankAcc.IBAN), 1, 34), XMLNewChild);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'Ccy', 'EUR', '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        AddElement(XMLNodeCurr, 'Ccy', 'EUR', XMLNewChild);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'DbtrAgt', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'DbtrAgt', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'FinInstnId', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'FinInstnId', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
         if AddBICTag(BankAcc."SWIFT Code") then
-            AddElement(XMLNodeCurr, 'BIC', CopyStr(DelChr(BankAcc."SWIFT Code"), 1, 11), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+            AddElement(XMLNodeCurr, 'BIC', CopyStr(DelChr(BankAcc."SWIFT Code"), 1, 11), XMLNewChild);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'ChrgBr', 'SLEV', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'ChrgBr', 'SLEV', XMLNewChild);
 
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
     end;
 
     local procedure AddBICTag(SwiftCode: Code[20]) AddTag: Boolean
@@ -462,10 +460,10 @@ report 2000005 "File SEPA Payments"
         OnAddBICTag(SwiftCode, AddTag);
     end;
 
-    local procedure ExportTransactionInformation(XMLNodeCurr: DotNet XmlNode; PmtJnlLine: Record "Payment Journal Line"; PaymentMessage: Text[140])
+    local procedure ExportTransactionInformation(var XMLNodeCurr: XmlElement; PmtJnlLine: Record "Payment Journal Line"; PaymentMessage: Text[140])
     var
-        XMLNewChild: DotNet XmlNode;
-        RootNode: DotNet XmlNode;
+        XMLNewChild: XmlElement;
+        RootNode: XmlElement;
         AddressLine1: Text[110];
     begin
         OnBeforeExportTransactionInformation(PmtJnlLine, PaymentMessage);
@@ -475,166 +473,166 @@ report 2000005 "File SEPA Payments"
         NumberOfTransactions += 1;
         ControlSum += PmtJnlLine.Amount;
 
-        AddElement(XMLNodeCurr, 'CdtTrfTxInf', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'CdtTrfTxInf', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'PmtId', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'PmtId', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'EndToEndId', CutText(PaymentMessage, 35), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        AddElement(XMLNodeCurr, 'EndToEndId', CutText(PaymentMessage, 35), XMLNewChild);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'Amt', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'Amt', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'InstdAmt', Format(PmtJnlLine.Amount, 0, '<Precision,2:2><Standard Format,9>'), '', XMLNewChild);
-        AddAttribute(XMLDomDoc, XMLNewChild, 'Ccy', 'EUR');
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        AddElement(XMLNodeCurr, 'CdtrAgt', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'InstdAmt', Format(PmtJnlLine.Amount, 0, '<Precision,2:2><Standard Format,9>'), XMLNewChild);
+        AddAttribute(XMLNewChild, 'Ccy', 'EUR');
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        AddElement(XMLNodeCurr, 'CdtrAgt', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'FinInstnId', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'FinInstnId', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
         if AddBICTag(PmtJnlLine."SWIFT Code") then
-            AddElement(XMLNodeCurr, 'BIC', CopyStr(DelChr(PmtJnlLine."SWIFT Code"), 1, 11), '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'BIC', CopyStr(DelChr(PmtJnlLine."SWIFT Code"), 1, 11), XMLNewChild);
         case PmtJnlLine."Account Type" of
             PmtJnlLine."Account Type"::Vendor:
                 begin
                     GetVendorBankAccount(PmtJnlLine."Account No.", PmtJnlLine."Beneficiary Bank Account");
                     if DelChr(VendorBankAcc.Name) <> '' then
-                        AddElement(XMLNodeCurr, 'Nm', VendorBankAcc.Name, '', XMLNewChild);
-                    AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'Nm', VendorBankAcc.Name, XMLNewChild);
+                    AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
                     AddressLine1 := DelChr(VendorBankAcc.Address, '<>') + ' ' + DelChr(VendorBankAcc."Address 2", '<>');
                     if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), XMLNewChild);
 
                     if DelChr(VendorBankAcc."Post Code", '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(VendorBankAcc."Post Code", '<>'), 1, 16), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(VendorBankAcc."Post Code", '<>'), 1, 16), XMLNewChild);
 
                     if DelChr(VendorBankAcc.City, '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(VendorBankAcc.City, '<>'), 1, 35), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(VendorBankAcc.City, '<>'), 1, 35), XMLNewChild);
 
                     GetCountry(VendorBankAcc."Country/Region Code");
                     if Country."ISO Code" <> '' then
-                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
+                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), XMLNewChild);
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
 
-                    AddElement(XMLNodeCurr, 'Cdtr', '', '', XMLNewChild);
+                    AddElement(XMLNodeCurr, 'Cdtr', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
-                    AddElement(XMLNodeCurr, 'Nm', CopyStr(Vendor.Name, 1, 70), '', XMLNewChild);
-                    AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
+                    AddElement(XMLNodeCurr, 'Nm', CopyStr(Vendor.Name, 1, 70), XMLNewChild);
+                    AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
                     AddressLine1 := DelChr(Vendor.Address, '<>') + ' ' + DelChr(Vendor."Address 2", '<>');
                     if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), XMLNewChild);
 
                     if DelChr(Vendor."Post Code", '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(Vendor."Post Code", '<>'), 1, 16), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(Vendor."Post Code", '<>'), 1, 16), XMLNewChild);
 
                     if DelChr(Vendor.City, '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(Vendor.City, '<>'), 1, 35), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(Vendor.City, '<>'), 1, 35), XMLNewChild);
 
                     GetCountry(Vendor."Country/Region Code");
                     if Country."ISO Code" <> '' then
-                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), XMLNewChild);
 
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
                     AddEnterpriseNo(XMLNodeCurr, Vendor."Enterprise No.");
                 end;
             PmtJnlLine."Account Type"::Customer:
                 begin
                     GetCustomerBankAccount(PmtJnlLine."Account No.", PmtJnlLine."Beneficiary Bank Account");
                     if DelChr(CustomerBankAcc.Name) <> '' then
-                        AddElement(XMLNodeCurr, 'Nm', CustomerBankAcc.Name, '', XMLNewChild);
-                    AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'Nm', CustomerBankAcc.Name, XMLNewChild);
+                    AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
                     AddressLine1 := DelChr(CustomerBankAcc.Address, '<>') + ' ' + DelChr(CustomerBankAcc."Address 2", '<>');
                     if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), XMLNewChild);
 
                     if DelChr(CustomerBankAcc."Post Code", '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CustomerBankAcc."Post Code", '<>'), 1, 16), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(CustomerBankAcc."Post Code", '<>'), 1, 16), XMLNewChild);
 
                     if DelChr(CustomerBankAcc.City, '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CustomerBankAcc.City, '<>'), 1, 35), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(CustomerBankAcc.City, '<>'), 1, 35), XMLNewChild);
 
                     GetCountry(CustomerBankAcc."Country/Region Code");
                     if Country."ISO Code" <> '' then
-                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
+                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), XMLNewChild);
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
 
-                    AddElement(XMLNodeCurr, 'Cdtr', '', '', XMLNewChild);
+                    AddElement(XMLNodeCurr, 'Cdtr', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
-                    AddElement(XMLNodeCurr, 'Nm', CopyStr(Customer.Name, 1, 70), '', XMLNewChild);
-                    AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
+                    AddElement(XMLNodeCurr, 'Nm', CopyStr(Customer.Name, 1, 70), XMLNewChild);
+                    AddElement(XMLNodeCurr, 'PstlAdr', '', XMLNewChild);
                     XMLNodeCurr := XMLNewChild;
 
                     AddressLine1 := DelChr(Customer.Address, '<>') + ' ' + DelChr(Customer."Address 2", '<>');
                     if DelChr(AddressLine1) <> '' then
-                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'StrtNm', CopyStr(AddressLine1, 1, 70), XMLNewChild);
 
                     if DelChr(Customer."Post Code", '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(Customer."Post Code", '<>'), 1, 16), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'PstCd', CopyStr(DelChr(Customer."Post Code", '<>'), 1, 16), XMLNewChild);
 
                     if DelChr(Customer.City, '<>') <> '' then
-                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(Customer.City, '<>'), 1, 35), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'TwnNm', CopyStr(DelChr(Customer.City, '<>'), 1, 35), XMLNewChild);
 
                     GetCountry(Customer."Country/Region Code");
                     if Country."ISO Code" <> '' then
-                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), '', XMLNewChild);
+                        AddElement(XMLNodeCurr, 'Ctry', CopyStr(Country."ISO Code", 1, 2), XMLNewChild);
 
-                    XMLNodeCurr := XMLNodeCurr.ParentNode;
+                    XMLNodeCurr.GetParent(XMLNodeCurr);
                     AddEnterpriseNo(XMLNodeCurr, Customer."Enterprise No.");
                 end;
         end;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'CdtrAcct', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'CdtrAcct', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'Id', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'Id', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'IBAN', CopyStr(DelChr(PmtJnlLine."Beneficiary IBAN"), 1, 34), '', XMLNewChild);
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
-        XMLNodeCurr := XMLNodeCurr.ParentNode;
+        AddElement(XMLNodeCurr, 'IBAN', CopyStr(DelChr(PmtJnlLine."Beneficiary IBAN"), 1, 34), XMLNewChild);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
+        XMLNodeCurr.GetParent(XMLNodeCurr);
 
-        AddElement(XMLNodeCurr, 'RmtInf', '', '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'RmtInf', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
         if not CheckValidStandardFormatMessage(PmtJnlLine."Payment Message") then
-            AddElement(XMLNodeCurr, 'Ustrd', PaymentMessage, '', XMLNewChild)
+            AddElement(XMLNodeCurr, 'Ustrd', PaymentMessage, XMLNewChild)
         else begin
-            AddElement(XMLNodeCurr, 'Strd', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'Strd', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            AddElement(XMLNodeCurr, 'CdtrRefInf', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'CdtrRefInf', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            AddElement(XMLNodeCurr, 'Tp', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'Tp', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            AddElement(XMLNodeCurr, 'CdOrPrtry', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'CdOrPrtry', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            AddElement(XMLNodeCurr, 'Cd', 'SCOR', '', XMLNewChild);
-            XMLNodeCurr := XMLNodeCurr.ParentNode;
+            AddElement(XMLNodeCurr, 'Cd', 'SCOR', XMLNewChild);
+            XMLNodeCurr.GetParent(XMLNodeCurr);
 
-            AddElement(XMLNodeCurr, 'Issr', GetIssuer(PmtJnlLine."Payment Message"), '', XMLNewChild);
-            XMLNodeCurr := XMLNodeCurr.ParentNode;
+            AddElement(XMLNodeCurr, 'Issr', GetIssuer(PmtJnlLine."Payment Message"), XMLNewChild);
+            XMLNodeCurr.GetParent(XMLNodeCurr);
 
-            AddElement(XMLNodeCurr, 'Ref', PmtJnlLine."Payment Message", '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'Ref', PmtJnlLine."Payment Message", XMLNewChild);
         end;
 
         XMLNodeCurr := RootNode;
@@ -810,58 +808,46 @@ report 2000005 "File SEPA Payments"
             Text := CopyStr(Text, 1, MaxLength - StrLen(CutMarker)) + CutMarker;
     end;
 
-    local procedure AddEnterpriseNo(XMLNodeCurr: DotNet XmlNode; EnterpriseNo: Text[50])
+    local procedure AddEnterpriseNo(var XMLNodeCurr: XmlElement; EnterpriseNo: Text[50])
     var
-        XMLNewChild: DotNet XmlNode;
+        XMLNewChild: XmlElement;
     begin
         OnBeforeAddEnterpriseNo(EnterpriseNo);
         if DelChr(EnterpriseNo, '<>') <> '' then begin
-            AddElement(XMLNodeCurr, 'Id', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'Id', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            AddElement(XMLNodeCurr, 'OrgId', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'OrgId', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            AddElement(XMLNodeCurr, 'Othr', '', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'Othr', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            AddElement(XMLNodeCurr, 'Id', EnterpriseNo, '', XMLNewChild);
-            AddElement(XMLNodeCurr, 'Issr', 'KBO-BCE', '', XMLNewChild);
+            AddElement(XMLNodeCurr, 'Id', EnterpriseNo, XMLNewChild);
+            AddElement(XMLNodeCurr, 'Issr', 'KBO-BCE', XMLNewChild);
 
-            XMLNodeCurr := XMLNodeCurr.ParentNode;
-            XMLNodeCurr := XMLNodeCurr.ParentNode;
-            XMLNodeCurr := XMLNodeCurr.ParentNode;
+            XMLNodeCurr.GetParent(XMLNodeCurr);
+            XMLNodeCurr.GetParent(XMLNodeCurr);
+            XMLNodeCurr.GetParent(XMLNodeCurr);
         end;
     end;
 
-    local procedure AddElement(var XMLNode: DotNet XmlNode; NodeName: Text[250]; NodeText: Text[250]; NameSpace: Text[250]; var CreatedXMLNode: DotNet XmlNode): Boolean
+    local procedure AddElement(var XMLNode: XmlElement; NodeName: Text[250]; NodeText: Text[250]; var CreatedXMLNode: XmlElement): Boolean
     var
-        NewChildNode: DotNet XmlNode;
+        NewChildNode: XmlElement;
     begin
-        NewChildNode := XMLNode.OwnerDocument.CreateNode('element', NodeName, NameSpace);
-
-        if IsNull(NewChildNode) then
-            exit(false);
-
         if NodeText <> '' then
-            NewChildNode.InnerText := NodeText;
-        XMLNode.AppendChild(NewChildNode);
+            NewChildNode := XmlElement.Create(NodeName, XMLNameSpace, NodeText)
+        else
+            NewChildNode := XmlElement.Create(NodeName, XMLNameSpace);
+        XMLNode.Add(NewChildNode);
         CreatedXMLNode := NewChildNode;
         exit(true);
     end;
 
-    local procedure AddAttribute(var XMLDomDocParam: DotNet XmlDocument; var XMLDomNode: DotNet XmlNode; AttribName: Text[250]; AttribValue: Text[250]): Boolean
-    var
-        XMLDomAttribute: DotNet XmlAttribute;
+    local procedure AddAttribute(var XMLDomNode: XmlElement; AttribName: Text[250]; AttribValue: Text[250]): Boolean
     begin
-        XMLDomAttribute := XMLDomDocParam.CreateAttribute(AttribName);
-        if IsNull(XMLDomAttribute) then
-            exit(false);
-
-        if AttribValue <> '' then
-            XMLDomAttribute.Value := AttribValue;
-        XMLDomNode.Attributes.SetNamedItem(XMLDomAttribute);
-        Clear(XMLDomAttribute);
+        XMLDomNode.SetAttribute(AttribName, AttribValue);
         exit(true);
     end;
 
