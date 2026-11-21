@@ -257,24 +257,34 @@ codeunit 8066 "Purchase Documents"
     [EventSubscriber(ObjectType::Table, Database::"Purch. Inv. Line", OnAfterInitFromPurchLine, '', false, false)]
     local procedure PurchInvLineCopyContractNoOnAfterInitFromPurchLine(PurchInvHeader: Record "Purch. Inv. Header"; PurchLine: Record "Purchase Line"; var PurchInvLine: Record "Purch. Inv. Line")
     var
-        BillingLine: Record "Billing Line";
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
     begin
-        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchLine."Document Type"), PurchLine."Document No.", PurchLine."Line No.");
-        if not BillingLine.FindFirst() then
+        // InitFromPurchLine transfers the fields by number and the purchase line carries them on the same numbers, so the value
+        // is already here. Only documents created before the contract was stored on the line need the Billing Line.
+        if PurchLine."Subscription Contract No." <> '' then
             exit;
-        PurchInvLine."Subscription Contract No." := BillingLine."Subscription Contract No.";
-        PurchInvLine."Subscription Contract Line No." := BillingLine."Subscription Contract Line No.";
+
+        if not PurchLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        PurchInvLine."Subscription Contract No." := ContractNo;
+        PurchInvLine."Subscription Contract Line No." := ContractLineNo;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purch. Cr. Memo Line", OnAfterInitFromPurchLine, '', false, false)]
     local procedure PurchCrMemoLineCopyContractNoOnAfterInitFromPurchLine(PurchLine: Record "Purchase Line"; var PurchCrMemoLine: Record "Purch. Cr. Memo Line")
     var
-        BillingLine: Record "Billing Line";
+        ContractNo: Code[20];
+        ContractLineNo: Integer;
     begin
-        BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromPurchaseDocumentType(PurchLine."Document Type"), PurchLine."Document No.", PurchLine."Line No.");
-        if not BillingLine.FindFirst() then
+        // InitFromPurchLine transfers the fields by number and the purchase line carries them on the same numbers, so the value
+        // is already here. Only documents created before the contract was stored on the line need the Billing Line.
+        if PurchLine."Subscription Contract No." <> '' then
             exit;
-        PurchCrMemoLine."Subscription Contract No." := BillingLine."Subscription Contract No.";
-        PurchCrMemoLine."Subscription Contract Line No." := BillingLine."Subscription Contract Line No.";
+
+        if not PurchLine.GetSubscriptionContractFromLineOrBillingLine(ContractNo, ContractLineNo) then
+            exit;
+        PurchCrMemoLine."Subscription Contract No." := ContractNo;
+        PurchCrMemoLine."Subscription Contract Line No." := ContractLineNo;
     end;
 }
