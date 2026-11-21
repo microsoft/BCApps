@@ -164,6 +164,10 @@ table 12203 "Fattura Header"
             Caption = 'Fattura Vendor No.';
             TableRelation = Vendor;
         }
+        field(77; "Company Bank Account Code"; Code[20])
+        {
+            Caption = 'Company Bank Account Code';
+        }
     }
 
     keys

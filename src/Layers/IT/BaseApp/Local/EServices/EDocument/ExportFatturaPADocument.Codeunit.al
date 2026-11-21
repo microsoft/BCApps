@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocument;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
@@ -549,6 +550,7 @@ codeunit 12179 "Export FatturaPA Document"
 
     local procedure PopulatePaymentData(var TempFatturaLine: Record "Fattura Line" temporary; TempFatturaHeader: Record "Fattura Header" temporary)
     var
+        IBAN: Code[50];
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -556,6 +558,7 @@ codeunit 12179 "Export FatturaPA Document"
         if IsHandled then
             exit;
         // 2.4. DatiPagamento - Payment Data
+        IBAN := GetPaymentIBAN(TempFatturaHeader);
         TempFatturaLine.Reset();
         TempFatturaLine.SetRange("Line Type", TempFatturaLine."Line Type"::Payment);
         if TempFatturaLine.FindSet() then begin
@@ -567,10 +570,21 @@ codeunit 12179 "Export FatturaPA Document"
                 TempXMLBuffer.AddNonEmptyElement(
                   'DataScadenzaPagamento', FormatDate(TempFatturaLine."Due Date"));
                 TempXMLBuffer.AddNonEmptyElement('ImportoPagamento', FormatAmount(TempFatturaLine.Amount));
-                TempXMLBuffer.AddNonEmptyLastElement('IBAN', CompanyInformation.IBAN);
+                TempXMLBuffer.AddNonEmptyLastElement('IBAN', IBAN);
             until TempFatturaLine.Next() = 0;
             TempXMLBuffer.GetParent();
         end;
+    end;
+
+    local procedure GetPaymentIBAN(TempFatturaHeader: Record "Fattura Header" temporary): Code[50]
+    var
+        BankAccount: Record "Bank Account";
+    begin
+        if TempFatturaHeader."Company Bank Account Code" <> '' then
+            if BankAccount.Get(TempFatturaHeader."Company Bank Account Code") then
+                exit(BankAccount.IBAN);
+
+        exit(CompanyInformation.IBAN);
     end;
 
     local procedure PopulateShipmentData(var TempFatturaLine: Record "Fattura Line" temporary)
