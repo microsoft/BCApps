@@ -3,7 +3,6 @@ namespace Microsoft.Utility.ImageAnalysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Attribute;
 using System.AI;
-using System.Text;
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved. 
 // Licensed under the MIT License. See License.txt in the project root for license information. 
@@ -27,7 +26,7 @@ codeunit 139592 "Item Attr Populate Test"
         ImageAnalysisTagBlacklist: Record "MS - Img. Analyzer Blacklist";
         ImageAnalysisResult: Codeunit "Image Analysis Result";
         ItemAttrPopulate: Codeunit "Item Attr Populate";
-        JsonManagement: Codeunit "JSON Management";
+        ResultJson: JsonObject;
         ConfidencePercent: Decimal;
         UpdatedDescription: Text[100];
     begin
@@ -36,11 +35,11 @@ codeunit 139592 "Item Attr Populate Test"
         Initialize();
         CreateTestItem(Item);
 
-        JsonManagement.InitializeObject('{"tags":[{"name":"furniture","confidence":0.998513400554657},{"name":"seat","confidence":0.99785393476486206},' +
+        ResultJson.ReadFrom('{"tags":[{"name":"furniture","confidence":0.998513400554657},{"name":"seat","confidence":0.99785393476486206},' +
       '{"name":"chair","confidence":0.978925347328186},{"name":"blue","confidence":0.90790148973464966}],"requestId":"2c15a4c1-9271-4584-a30e-342d7fdf206b"' +
       ',"metadata":{"width":500,"height":600,"format":"Jpeg"},"faces":[],"color":{"dominantColorForeground":"White","dominantColorBackground":"White",' +
       '"dominantColors":["White","Blue"],"accentColor":"0D48BE","isBWImg":false}}');
-        ImageAnalysisResult.SetResult(JsonManagement, Enum::"Image Analysis Type"::Tags);
+        ImageAnalysisResult.SetResult(ResultJson, Enum::"Image Analysis Type"::Tags);
 
         // [When] We try to populate the tags table
         ItemAttrPopulate.BuildTagListPrepopulateCategoryAndAttributes(Item, ImageAnalysisResult, ImageAnalysisTags, ConfidencePercent);
@@ -124,7 +123,7 @@ codeunit 139592 "Item Attr Populate Test"
         Item: Record Item;
         ImageAnalysisResult: Codeunit "Image Analysis Result";
         ItemAttrPopulate: Codeunit "Item Attr Populate";
-        JsonManagement: Codeunit "JSON Management";
+        ResultJson: JsonObject;
         ConfidencePercent: Decimal;
     begin
         // [Scenario] Check the item is not populated correctly in a success case
@@ -132,10 +131,10 @@ codeunit 139592 "Item Attr Populate Test"
         Initialize();
         CreateTestItem(Item);
 
-        JsonManagement.InitializeObject('{"tags":[{"name":"furniture","confidence":0.098513400554657},{"name":"seat","confidence":0.09785393476486206},' +
+        ResultJson.ReadFrom('{"tags":[{"name":"furniture","confidence":0.098513400554657},{"name":"seat","confidence":0.09785393476486206},' +
       '{"name":"chair","confidence":0.078925347328186},{"name":"blue","confidence":0.00790148973464966}],"requestId":"2c15a4c1-9271-4584-a30e-342d7fdf206b"' +
       ',"metadata":{"width":500,"height":600,"format":"Jpeg"}}');
-        ImageAnalysisResult.SetResult(JsonManagement, Enum::"Image Analysis Type"::Tags);
+        ImageAnalysisResult.SetResult(ResultJson, Enum::"Image Analysis Type"::Tags);
 
         // [When] We try to populate the item
         ItemAttrPopulate.BuildTagListPrepopulateCategoryAndAttributes(Item, ImageAnalysisResult, ImageAnalysisTags, ConfidencePercent);
