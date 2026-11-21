@@ -391,7 +391,7 @@ codeunit 148355 EAReceiptMatchTests
     begin
         CorpCard.Get(CardId);
         SecondCorpCard := CorpCard;
-        SecondCorpCard."Card Id" := CopyStr(CardId + '-2', 1, MaxStrLen(SecondCorpCard."Card Id"));
+        SecondCorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(SecondCorpCard."Card Id"));
         SecondCorpCard."External Card Ref" := '';
         SecondCorpCard."Masked Card No." := MaskedCardNo;
         SecondCorpCard.Insert(true);
