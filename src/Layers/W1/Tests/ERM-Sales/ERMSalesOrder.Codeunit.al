@@ -1,4 +1,4 @@
-﻿codeunit 134378 "ERM Sales Order"
+codeunit 134378 "ERM Sales Order"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -5755,6 +5755,155 @@
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes,PostedSalesDocumentLinesHandler')]
+    procedure ReversedSalesCrMemoLineKeepsBaseQtyRoundingPrecisionLikeNativeLine()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        SalesLineOrder: Record "Sales Line";
+        SalesHeaderCrMemo: Record "Sales Header";
+        SalesLineCrMemo: Record "Sales Line";
+        SalesHeaderNative: Record "Sales Header";
+        SalesLineNative: Record "Sales Line";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure] [Rounding]
+        // [SCENARIO 659446] A sales credit memo line copied with "Get Posted Document Lines to Reverse" keeps the base quantity rounding precision of the item, like a native line.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+        LibrarySales.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS, in stock.
+        CreateItemInStockWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        CustomerNo := LibrarySales.CreateCustomerNo();
+
+        // [GIVEN] Sales order for 1 BOX, shipped and invoiced 0.6 BOX = 2 PCS.
+        CreateAndPostPartialSalesOrderInUOM(SalesLineOrder, CustomerNo, Item."No.", BoxItemUnitOfMeasure.Code, 1, 0.6, 6);
+        SalesLineOrder.TestField("Qty. Shipped (Base)", 2);
+
+        // [GIVEN] Credit memo created with "Get Posted Document Lines to Reverse" from the posted invoice.
+        CreateSalesCrMemoByReversingPostedInvoice(SalesHeaderCrMemo, SalesLineCrMemo, CustomerNo);
+
+        // [GIVEN] The copied credit memo quantity is changed to 0.3 BOX.
+        SalesLineCrMemo.Validate(Quantity, 0.3);
+        SalesLineCrMemo.Modify(true);
+
+        // [WHEN] Post the copied credit memo.
+        PostSalesCreditMemoFromPage(SalesHeaderCrMemo);
+
+        // [THEN] The copied line had base rounding precision 1 and 0.3 BOX was rounded to 1 PCS.
+        SalesLineCrMemo.TestField("Qty. Rounding Precision (Base)", 1);
+        SalesLineCrMemo.TestField("Quantity (Base)", 1);
+
+        // [THEN] A natively created credit memo line for 0.3 BOX has the same base quantity and precision.
+        LibrarySales.CreateSalesHeader(SalesHeaderNative, SalesHeaderNative."Document Type"::"Credit Memo", CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLineNative, SalesHeaderNative, SalesLineNative.Type::Item, Item."No.", 0);
+        SalesLineNative.Validate("Unit of Measure Code", BoxItemUnitOfMeasure.Code);
+        SalesLineNative.Validate(Quantity, 0.3);
+        SalesLineNative.TestField("Qty. Rounding Precision (Base)", SalesLineCrMemo."Qty. Rounding Precision (Base)");
+        SalesLineNative.TestField("Quantity (Base)", SalesLineCrMemo."Quantity (Base)");
+        SalesHeaderNative.Delete(true);
+
+        // [THEN] A whole 1 PCS is returned and the order is restored to 0.3 BOX = 1 PCS shipped and invoiced.
+        VerifySalesItemReturnedQty(Item."No.", 1);
+        VerifySalesOrderLineRestoredQty(SalesLineOrder, 0.3, 1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes,PostedSalesDocumentLinesHandler')]
+    procedure SalesOrderQtyIsConvertedToOrderUOMWhenCrMemoUsesBaseUOM()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        SalesLineOrder: Record "Sales Line";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure]
+        // [SCENARIO 659447] Returning 1 PCS from a sales invoice posted in BOX restores 1/3 BOX on the sales order, not 1 BOX.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+        LibrarySales.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS, in stock.
+        CreateItemInStockWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        CustomerNo := LibrarySales.CreateCustomerNo();
+
+        // [GIVEN] Sales order for 2 BOX at 6.00 per BOX, shipped and invoiced 1 BOX = 3 PCS.
+        CreateAndPostPartialSalesOrderInUOM(SalesLineOrder, CustomerNo, Item."No.", BoxItemUnitOfMeasure.Code, 2, 1, 6);
+
+        // [WHEN] Reverse the invoice line, change it to 1 PCS at 2.00 and post the credit memo.
+        CreateAndPostSalesReversalCrMemoInUOM(CustomerNo, Item."Base Unit of Measure", 1, 2);
+
+        // [THEN] 1 PCS is returned.
+        VerifySalesItemReturnedQty(Item."No.", 1);
+
+        // [THEN] The order keeps 0.66667 BOX = 2 PCS shipped and invoiced, with 1.33333 BOX = 4 PCS outstanding.
+        VerifySalesOrderLineRestoredQty(SalesLineOrder, 0.66667, 2);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes,PostedSalesDocumentLinesHandler')]
+    procedure RepeatedBaseUOMSalesReversalsFullyRestoreOrderWithoutRoundingResidue()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        SalesLineOrder: Record "Sales Line";
+        CustomerNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure] [Rounding]
+        // [SCENARIO 659447] Returning a 1 BOX sales invoice as three 1 PCS credit memos fully restores the order without a residual BOX quantity.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+        LibrarySales.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS, in stock.
+        CreateItemInStockWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        CustomerNo := LibrarySales.CreateCustomerNo();
+
+        // [GIVEN] Sales order for 2 BOX, shipped and invoiced 1 BOX = 3 PCS.
+        CreateAndPostPartialSalesOrderInUOM(SalesLineOrder, CustomerNo, Item."No.", BoxItemUnitOfMeasure.Code, 2, 1, 6);
+
+        // [WHEN] Reverse the invoice as three separate credit memos for 1 PCS each.
+        for i := 1 to 3 do
+            CreateAndPostSalesReversalCrMemoInUOM(CustomerNo, Item."Base Unit of Measure", 1, 2);
+
+        // [THEN] 3 PCS are returned and nothing remains shipped or invoiced on the order.
+        VerifySalesItemReturnedQty(Item."No.", 3);
+        VerifySalesOrderLineRestoredQty(SalesLineOrder, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes,PostedSalesDocumentLinesHandler')]
+    procedure SalesOrderQtyNotRestoredFromBaseUOMCrMemoWhenRestoreQtyDisabled()
+    var
+        Item: Record Item;
+        BoxItemUnitOfMeasure: Record "Item Unit of Measure";
+        SalesLineOrder: Record "Sales Line";
+        CustomerNo: Code[20];
+    begin
+        // [FEATURE] [Get Posted Document Lines to Reverse] [Credit Memo] [Unit of Measure]
+        // [SCENARIO 659447] Returning 1 PCS from a sales invoice posted in BOX leaves the order unchanged when "Restore Order Qty. on Return" is disabled.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(false);
+        LibrarySales.SetExactCostReversingMandatory(false);
+
+        // [GIVEN] Item with base UOM "PCS" (rounding precision 1) and UOM "BOX" = 3 PCS, in stock.
+        CreateItemInStockWithBaseRoundingAndBoxUOM(Item, BoxItemUnitOfMeasure);
+        CustomerNo := LibrarySales.CreateCustomerNo();
+
+        // [GIVEN] Sales order for 2 BOX, shipped and invoiced 1 BOX = 3 PCS.
+        CreateAndPostPartialSalesOrderInUOM(SalesLineOrder, CustomerNo, Item."No.", BoxItemUnitOfMeasure.Code, 2, 1, 6);
+
+        // [WHEN] Reverse the invoice line, change it to 1 PCS and post the credit memo.
+        CreateAndPostSalesReversalCrMemoInUOM(CustomerNo, Item."Base Unit of Measure", 1, 2);
+
+        // [THEN] 1 PCS is returned, while the order keeps 1 BOX = 3 PCS shipped and invoiced.
+        VerifySalesItemReturnedQty(Item."No.", 1);
+        VerifySalesOrderLineRestoredQty(SalesLineOrder, 1, 3);
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandlerMessage')]
     procedure MessageAddedUndoShipmentCreatesNegativeLineSalesShipmentWhenUndoneCancelledSalesInvoiceWhenRestoreQtyEnabled()
     var
@@ -6054,6 +6203,93 @@
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup.Validate("Restore Order Qty. on Return", RestoreOrderQtyOnReturn);
         SalesReceivablesSetup.Modify(true);
+    end;
+
+    local procedure CreateItemInStockWithBaseRoundingAndBoxUOM(var Item: Record Item; var BoxItemUnitOfMeasure: Record "Item Unit of Measure")
+    var
+        BaseItemUnitOfMeasure: Record "Item Unit of Measure";
+    begin
+        LibraryInventory.CreateItem(Item);
+        BaseItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        BaseItemUnitOfMeasure.Validate("Qty. Rounding Precision", 1);
+        BaseItemUnitOfMeasure.Modify(true);
+        LibraryInventory.CreateItemUnitOfMeasureCode(BoxItemUnitOfMeasure, Item."No.", 3);
+        LibraryInventory.PostPositiveAdjustment(Item, '', '', '', 100, WorkDate(), 1);
+    end;
+
+    local procedure CreateAndPostPartialSalesOrderInUOM(var SalesLine: Record "Sales Line"; CustomerNo: Code[20]; ItemNo: Code[20]; UnitOfMeasureCode: Code[10]; Quantity: Decimal; QtyToHandle: Decimal; UnitPrice: Decimal)
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 0);
+        SalesLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        SalesLine.Validate(Quantity, Quantity);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Validate("Qty. to Ship", QtyToHandle);
+        SalesLine.Validate("Qty. to Invoice", QtyToHandle);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesLine.Find();
+    end;
+
+    local procedure CreateSalesCrMemoByReversingPostedInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CustomerNo: Code[20])
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        GetPostedDocumentLines(SalesHeader."No.", OptionString::PostedInvoices);
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.", SalesLine.Type::Item);
+    end;
+
+    local procedure CreateAndPostSalesReversalCrMemoInUOM(CustomerNo: Code[20]; UnitOfMeasureCode: Code[10]; Quantity: Decimal; UnitPrice: Decimal)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ApplFromItemEntryNo: Integer;
+    begin
+        CreateSalesCrMemoByReversingPostedInvoice(SalesHeader, SalesLine, CustomerNo);
+        // A copied remaining quantity such as 0.66667 BOX cannot be kept in a whole-unit UOM, so clear it before switching UOM and re-apply afterwards.
+        ApplFromItemEntryNo := SalesLine."Appl.-from Item Entry";
+        SalesLine.Validate(Quantity, 0);
+        SalesLine.Validate("Unit of Measure Code", UnitOfMeasureCode);
+        SalesLine.Validate(Quantity, Quantity);
+        SalesLine.Validate("Appl.-from Item Entry", ApplFromItemEntryNo);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+        PostSalesCreditMemoFromPage(SalesHeader);
+    end;
+
+    local procedure PostSalesCreditMemoFromPage(SalesHeader: Record "Sales Header")
+    var
+        SalesCreditMemo: TestPage "Sales Credit Memo";
+    begin
+        SalesCreditMemo.OpenView();
+        SalesCreditMemo.GotoRecord(SalesHeader);
+        SalesCreditMemo.Post.Invoke();
+    end;
+
+    local procedure VerifySalesItemReturnedQty(ItemNo: Code[20]; ExpectedQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        ItemLedgerEntry.SetFilter(Quantity, '>0');
+        ItemLedgerEntry.CalcSums(Quantity);
+        ItemLedgerEntry.TestField(Quantity, ExpectedQty);
+    end;
+
+    local procedure VerifySalesOrderLineRestoredQty(var SalesLine: Record "Sales Line"; ExpectedQtyHandled: Decimal; ExpectedQtyHandledBase: Decimal)
+    begin
+        SalesLine.Find();
+        SalesLine.TestField("Quantity Shipped", ExpectedQtyHandled);
+        SalesLine.TestField("Qty. Shipped (Base)", ExpectedQtyHandledBase);
+        SalesLine.TestField("Quantity Invoiced", ExpectedQtyHandled);
+        SalesLine.TestField("Qty. Invoiced (Base)", ExpectedQtyHandledBase);
+        SalesLine.TestField("Outstanding Quantity", SalesLine.Quantity - ExpectedQtyHandled);
+        SalesLine.TestField("Outstanding Qty. (Base)", SalesLine."Quantity (Base)" - ExpectedQtyHandledBase);
+        Assert.AreNearlyEqual(
+            SalesLine."Amount Including VAT" * SalesLine."Outstanding Quantity" / SalesLine.Quantity,
+            SalesLine."Outstanding Amount", LibraryERM.GetAmountRoundingPrecision(), SalesLine.FieldCaption("Outstanding Amount"));
     end;
 
     local procedure InitNotInvoicedData(var SalesHeader: Record "Sales Header"; var SalesLineTest: Record "Sales Line"; Value: Decimal; Quantity: Decimal; VAT: Decimal)

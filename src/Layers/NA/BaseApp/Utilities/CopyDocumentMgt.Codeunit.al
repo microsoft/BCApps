@@ -1635,6 +1635,7 @@ codeunit 6620 "Copy Document Mgt."
             OnAfterInitToSalesLine(ToSalesLine);
         end else begin
             ToSalesLine := FromSalesLine;
+            InitSalesLineQtyRoundingPrecision(ToSalesLine);
             ToSalesLine."Returns Deferral Start Date" := 0D;
             OnCopySalesLineOnAfterTransferFieldsToSalesLine(ToSalesLine, FromSalesLine);
             if ToSalesHeader."Document Type" in [ToSalesHeader."Document Type"::Quote, ToSalesHeader."Document Type"::"Blanket Order"] then
@@ -2063,6 +2064,7 @@ codeunit 6620 "Copy Document Mgt."
             OnAfterInitToPurchLine(ToPurchLine);
         end else begin
             ToPurchLine := FromPurchLine;
+            InitPurchLineQtyRoundingPrecision(ToPurchLine);
             ToPurchLine."Returns Deferral Start Date" := 0D;
             if ToPurchHeader."Document Type" in [ToPurchHeader."Document Type"::Quote, ToPurchHeader."Document Type"::"Blanket Order"] then
                 ToPurchLine."Deferral Code" := '';
@@ -2128,6 +2130,51 @@ codeunit 6620 "Copy Document Mgt."
             LinesNotCopied := LinesNotCopied + 1;
 
         exit(CopyThisLine);
+    end;
+
+    local procedure InitSalesLineQtyRoundingPrecision(var ToSalesLine: Record "Sales Line")
+    begin
+        // Posted sales lines do not store rounding precision, so restore it from the item setup as a native line would.
+        if (ToSalesLine.Type <> ToSalesLine.Type::Item) or (ToSalesLine."No." = '') then
+            exit;
+        if (ToSalesLine."Qty. Rounding Precision" <> 0) or (ToSalesLine."Qty. Rounding Precision (Base)" <> 0) then
+            exit;
+
+        GetItemQtyRoundingPrecision(
+            ToSalesLine."No.", ToSalesLine."Unit of Measure Code", ToSalesLine."Qty. Rounding Precision", ToSalesLine."Qty. Rounding Precision (Base)");
+    end;
+
+    local procedure InitPurchLineQtyRoundingPrecision(var ToPurchLine: Record "Purchase Line")
+    begin
+        // Posted purchase lines do not store rounding precision, so restore it from the item setup as a native line would.
+        if (ToPurchLine.Type <> ToPurchLine.Type::Item) or (ToPurchLine."No." = '') then
+            exit;
+        if (ToPurchLine."Qty. Rounding Precision" <> 0) or (ToPurchLine."Qty. Rounding Precision (Base)" <> 0) then
+            exit;
+
+        GetItemQtyRoundingPrecision(
+            ToPurchLine."No.", ToPurchLine."Unit of Measure Code", ToPurchLine."Qty. Rounding Precision", ToPurchLine."Qty. Rounding Precision (Base)");
+    end;
+
+    local procedure GetItemQtyRoundingPrecision(ItemNo: Code[20]; UnitOfMeasureCode: Code[10]; var QtyRoundingPrecision: Decimal; var QtyRoundingPrecisionBase: Decimal)
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+    begin
+        // A copied line keeps its original values if the item or unit of measure no longer exists, so reversing a posted document is not blocked.
+        Item.SetLoadFields("Base Unit of Measure");
+        if not Item.Get(ItemNo) then
+            exit;
+
+        ItemUnitOfMeasure.SetLoadFields("Qty. Rounding Precision");
+        if ItemUnitOfMeasure.Get(ItemNo, Item."Base Unit of Measure") then
+            QtyRoundingPrecisionBase := ItemUnitOfMeasure."Qty. Rounding Precision";
+
+        if UnitOfMeasureCode = Item."Base Unit of Measure" then
+            QtyRoundingPrecision := QtyRoundingPrecisionBase
+        else
+            if ItemUnitOfMeasure.Get(ItemNo, UnitOfMeasureCode) then
+                QtyRoundingPrecision := ItemUnitOfMeasure."Qty. Rounding Precision";
     end;
 
     local procedure RecalculateAndApplyPurchLine(var ToPurchHeader: Record "Purchase Header"; var ToPurchLine: Record "Purchase Line"; var FromPurchLine: Record "Purchase Line"; RecalculateAmount: Boolean)
