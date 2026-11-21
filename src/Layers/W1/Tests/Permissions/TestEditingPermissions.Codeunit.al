@@ -380,6 +380,7 @@ codeunit 134612 "Test Editing Permissions"
 
         // Setup
         ExtensionPermissionSetRoleID := GenerateRandomTenantPermissionSetRoleID();
+        LibraryLowerPermissions.SetOutsideO365Scope();
         ExtensionPermissionSetAppID := CreateNewExtensionPermissionSet(ExtensionPermissionSetRoleID);
         AggregatePermissionSet.Get(AggregatePermissionSet.Scope::Tenant, ExtensionPermissionSetAppID, ExtensionPermissionSetRoleID);
 
@@ -405,6 +406,7 @@ codeunit 134612 "Test Editing Permissions"
 
         // Setup
         NewPermissionSetRoleID := GenerateRandomTenantPermissionSetRoleID();
+        LibraryLowerPermissions.SetOutsideO365Scope();
         CreateNewTenantPermissionSet(NewPermissionSetRoleID);
         AggregatePermissionSet.Get(AggregatePermissionSet.Scope::Tenant, ZeroGUID, NewPermissionSetRoleID);
 

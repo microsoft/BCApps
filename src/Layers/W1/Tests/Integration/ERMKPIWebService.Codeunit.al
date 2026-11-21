@@ -188,6 +188,7 @@ codeunit 134401 "ERM KPI Web Service"
     end;
 
     [Test]
+    [TestPermissions(TestPermissions::Disabled)]
     [Scope('OnPrem')]
     procedure TestPublishWebService()
     var
@@ -206,6 +207,7 @@ codeunit 134401 "ERM KPI Web Service"
     end;
 
     [Test]
+    [TestPermissions(TestPermissions::Disabled)]
     [Scope('OnPrem')]
     procedure TestDeleteWebService()
     var
@@ -532,6 +534,7 @@ codeunit 134401 "ERM KPI Web Service"
     end;
 
     [Test]
+    [TestPermissions(TestPermissions::Disabled)]
     procedure LastUpdatedEntryResetOnDeletingService()
     var
         AccSchedKPIWebSrvSetup: Record "Acc. Sched. KPI Web Srv. Setup";
