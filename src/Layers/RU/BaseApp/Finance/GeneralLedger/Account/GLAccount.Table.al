@@ -430,7 +430,7 @@ table 15 "G/L Account"
                                                         "Source Type" = field("Source Type Filter"),
                                                         "Source No." = field("Source No. Filter")));
             Caption = 'Balance at Date';
-            ToolTip = 'Specifies the G/L account balance on the last date included in the Date Filter field.';
+            ToolTip = 'Specifies the G/L account balance on the last date included in the Date Filter field. A negative balance indicates a credit balance.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -517,7 +517,7 @@ table 15 "G/L Account"
                                                         "Source Type" = field("Source Type Filter"),
                                                         "Source No." = field("Source No. Filter")));
             Caption = 'Balance';
-            ToolTip = 'Specifies the balance on this account.';
+            ToolTip = 'Specifies the balance on this account. A negative balance indicates a credit balance.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -863,7 +863,7 @@ table 15 "G/L Account"
                                                                               "Source Type" = field("Source Type Filter"),
                                                                               "Source No." = field("Source No. Filter")));
             Caption = 'Add.-Currency Balance at Date';
-            ToolTip = 'Specifies the G/L account balance, in the additional reporting currency, on the last date included in the Date Filter field.';
+            ToolTip = 'Specifies the G/L account balance, in the additional reporting currency, on the last date included in the Date Filter field. A negative balance indicates a credit balance.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -882,7 +882,7 @@ table 15 "G/L Account"
                                                                               "Source Type" = field("Source Type Filter"),
                                                                               "Source No." = field("Source No. Filter")));
             Caption = 'Additional-Currency Balance';
-            ToolTip = 'Specifies the balance on this account, in the additional reporting currency.';
+            ToolTip = 'Specifies the balance on this account, in the additional reporting currency. A negative balance indicates a credit balance.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -985,7 +985,7 @@ table 15 "G/L Account"
                                                                           "VAT Reporting Date" = field(upperlimit("VAT Reporting Date Filter")),
                                                                           "Posting Date" = field(upperlimit("Date Filter"))));
             Caption = 'Source Curr. Balance at Date';
-            ToolTip = 'Specifies the G/L account foreign currency balance on the last date included in the Date Filter field.';
+            ToolTip = 'Specifies the G/L account foreign currency balance on the last date included in the Date Filter field. A negative balance indicates a credit balance.';
             Editable = false;
             FieldClass = FlowField;
         }
@@ -1002,7 +1002,7 @@ table 15 "G/L Account"
                                                                           "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                                           "Global Dimension 2 Code" = field("Global Dimension 2 Filter")));
             Caption = 'Source Currency Balance';
-            ToolTip = 'Specifies the foreign currency balance on the G/L account.';
+            ToolTip = 'Specifies the foreign currency balance on the G/L account. A negative balance indicates a credit balance.';
             Editable = false;
             FieldClass = FlowField;
         }
