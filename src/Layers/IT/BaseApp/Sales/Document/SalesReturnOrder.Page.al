@@ -316,7 +316,19 @@ page 6630 "Sales Return Order"
                     ApplicationArea = SalesReturnOrder;
                     ToolTip = 'Specifies the operation type that is assigned to the sales order.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = SalesReturnOrder;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = SalesReturnOrder;
                     ShowMandatory = IsActivityCodeMandatory;
@@ -1838,7 +1850,10 @@ page 6630 "Sales Return Order"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+    #if not CLEAN30
         IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+    #endif
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";
     end;
 
     /// <summary>

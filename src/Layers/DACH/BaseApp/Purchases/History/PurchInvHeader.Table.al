@@ -615,6 +615,13 @@ table 122 "Purch. Inv. Header"
             ToolTip = 'Specifies the telephone number of the company''s shipping address.';
             ExtendedDatatype = PhoneNo;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = "Business Activity".Code;
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';

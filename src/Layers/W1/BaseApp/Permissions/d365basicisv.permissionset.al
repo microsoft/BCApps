@@ -303,6 +303,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Booking Sync" = RIMD,
                   tabledata "Budget Buffer" = RIMD,
                   tabledata "Bus. Unit In Cons. Process" = RIMD,
+                  tabledata "Business Activity" = RIMD,
                   tabledata "Business Chart Buffer" = RIMD,
                   tabledata "Business Chart Map" = RIMD,
                   tabledata "Business Chart User Setup" = RIMD,

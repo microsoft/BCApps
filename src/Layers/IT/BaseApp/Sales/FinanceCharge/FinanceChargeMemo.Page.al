@@ -132,7 +132,19 @@ page 446 "Finance Charge Memo"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ShowMandatory = true;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;

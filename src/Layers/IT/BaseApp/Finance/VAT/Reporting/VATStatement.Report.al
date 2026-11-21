@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
 // using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
 
@@ -204,6 +205,7 @@ report 12 "VAT Statement"
                             end;
                         end;
                     }
+#if not CLEAN30
                     field(ActivityCode; ActivityCode)
                     {
                         ApplicationArea = Basic, Suite;
@@ -211,6 +213,18 @@ report 12 "VAT Statement"
                         Importance = Additional;
                         TableRelation = "Activity Code";
                         ToolTip = 'Specifies the activity code that is assigned to the VAT settlement transaction.';
+                        ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '30.0';
+                    }
+#endif
+                    field("Business Activity Code"; ActivityCode)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Business Activity Code';
+                        Importance = Additional;
+                        TableRelation = "Business Activity";
+                        ToolTip = 'Specifies the business activity code that is assigned to the VAT settlement transaction.';
                     }
                     field("Country/Region Filter"; CountryRegionFilter)
                     {
@@ -316,7 +330,7 @@ report 12 "VAT Statement"
         Selection: Enum "VAT Statement Report Selection";
         TotalAmount: Decimal;
         UseAmtsInAddCurr: Boolean;
-        ActivityCode: Code[6];
+        ActivityCode: Code[10];
         CountryRegionFilter: Text;
 
     /// <summary>
@@ -378,8 +392,12 @@ report 12 "VAT Statement"
                         VATEntry.SetRange("Use Tax", VATStmtLine2."Use Tax");
                     end;
                     VATEntry.SetRange(Type, VATStmtLine2."Gen. Posting Type");
-                    if GLSetup."Use Activity Code" then
+                    if GLSetup."Use Business Activity Code" then
+                        VATEntry.SetFilter("Business Activity Code", "VAT Statement Line".GetFilter("Business Activity Code Filter"));
+#if not CLEAN30
+                    if GLSetup."Use Activity Code" and not GLSetup."Use Business Activity Code" then
                         VATEntry.SetFilter("Activity Code", "VAT Statement Line".GetFilter("Activity Code Filter"));
+#endif
                     if (EndDateReq = 0D) and (StartDate = 0D) then
                         VATEntry.SetRange("Operation Occurred Date")
                     else

@@ -168,10 +168,21 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the VAT registration numbers for domestic customers, vendors, and contacts must be validated against the Italian regulations.';
                 }
+#if not CLEAN30
                 field("Use Activity Code"; Rec."Use Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Use activity code in purchase/sales headers';
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Use Business Activity Code"; Rec."Use Business Activity Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether to use business activity codes in purchase and sales headers.';
                 }
                 field("Mark Cr. Memos as Corrections"; Rec."Mark Cr. Memos as Corrections")
                 {

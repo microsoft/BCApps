@@ -318,7 +318,19 @@ page 49 "Purchase Quote"
                     Importance = Promoted;
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
@@ -1639,7 +1651,10 @@ page 49 "Purchase Quote"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+    #if not CLEAN30
         IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+    #endif
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";
     end;
 
     local procedure ApproveCalcInvDisc()

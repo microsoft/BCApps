@@ -10,6 +10,7 @@ using Microsoft.EServices.OnlineMap;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Enums;
 using Microsoft.Inventory.Item;
@@ -473,6 +474,12 @@ table 79 "Company Information"
                 SetBrandColorValue();
             end;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         field(5700; "Responsibility Center"; Code[10])
         {
             Caption = 'Responsibility Center';
@@ -629,11 +636,23 @@ table 79 "Company Information"
             Caption = 'Finance Manager No.';
             TableRelation = "Company Officials";
         }
+#if not CLEANSCHEMA33
         field(12124; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(12125; "Office Code"; Code[3])
         {
             Caption = 'Office Code';

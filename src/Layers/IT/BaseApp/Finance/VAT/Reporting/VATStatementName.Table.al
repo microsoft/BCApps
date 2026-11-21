@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Utilities;
 
 /// <summary>
@@ -52,11 +53,28 @@ table 257 "VAT Statement Name"
             Caption = 'Date Filter';
             FieldClass = FlowFilter;
         }
+        field(395; "Business Activity Code Filter"; Code[10])
+        {
+            FieldClass = FlowFilter;
+            TableRelation = "Business Activity".Code;
+        }
+#if not CLEANSCHEMA33
         field(12125; "Activity Code Filter"; Code[6])
         {
             FieldClass = FlowFilter;
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code Filter field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
     }
 
     keys

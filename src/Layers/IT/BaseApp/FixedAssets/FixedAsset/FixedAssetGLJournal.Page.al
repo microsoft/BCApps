@@ -418,7 +418,18 @@ page 5628 "Fixed Asset G/L Journal"
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the number of a posted FA ledger entry to mark as an error entry.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
