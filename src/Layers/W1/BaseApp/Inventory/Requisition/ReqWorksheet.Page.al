@@ -702,6 +702,30 @@ page 291 "Req. Worksheet"
                         Rec.ShowReservation();
                     end;
                 }
+                action(AcceptAllActionMessages)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Accept all action messages';
+                    Image = Approve;
+                    ToolTip = 'Select Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
+
+                    trigger OnAction()
+                    begin
+                        SetAcceptActionMessages(true);
+                    end;
+                }
+                action(ClearAllAcceptances)
+                {
+                    ApplicationArea = Planning;
+                    Caption = 'Clear all acceptances';
+                    Image = ClearFilter;
+                    ToolTip = 'Clear Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
+
+                    trigger OnAction()
+                    begin
+                        SetAcceptActionMessages(false);
+                    end;
+                }
                 action(CarryOutActionMessage)
                 {
                     ApplicationArea = Planning;
@@ -955,6 +979,12 @@ page 291 "Req. Worksheet"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
+                actionref(AcceptAllActionMessages_Promoted; AcceptAllActionMessages)
+                {
+                }
+                actionref(ClearAllAcceptances_Promoted; ClearAllAcceptances)
+                {
+                }
                 actionref(CarryOutActionMessage_Promoted; CarryOutActionMessage)
                 {
                 }
@@ -1214,6 +1244,20 @@ page 291 "Req. Worksheet"
         ReqJnlManagement.SetName(CurrentJnlBatchName, Rec);
         SetControlAppearanceFromWkshBatch();
         CurrPage.Update(false);
+    end;
+
+    local procedure SetAcceptActionMessages(Accept: Boolean)
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CurrPage.SaveRecord();
+        CurrPage.SetSelectionFilter(RequisitionLine);
+        if RequisitionLine.Count() <= 1 then
+            RequisitionLine.Copy(Rec);
+        if ReqJnlManagement.SetAcceptActionMessages(RequisitionLine, Accept) then begin
+            ApprovalMgmt.CleanRequisitionWkshApprovalStatus(Rec, RequisitionWkshBatchApprovalStatus);
+            CurrPage.Update(false);
+        end;
     end;
 
     local procedure CarryOutActionMsg()

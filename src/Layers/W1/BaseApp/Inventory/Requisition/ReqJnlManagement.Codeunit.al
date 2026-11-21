@@ -104,6 +104,23 @@ codeunit 330 ReqJnlManagement
         ReqLine.FilterGroup := 0;
     end;
 
+    internal procedure SetAcceptActionMessages(var ReqLine: Record "Requisition Line"; Accept: Boolean): Boolean
+    begin
+        ReqLine.SetLoadFields();
+        ReqLine.FilterGroup(10);
+        ReqLine.SetRange("Accept Action Message", not Accept);
+        ReqLine.FilterGroup(0);
+
+        if not ReqLine.FindSet(true) then
+            exit(false);
+        repeat
+            ReqLine.Validate("Accept Action Message", Accept);
+            ReqLine.Modify(true);
+        until ReqLine.Next() = 0;
+
+        exit(true);
+    end;
+
     procedure OpenJnlBatch(var ReqWkshName: Record "Requisition Wksh. Name")
     var
         ReqWkshTmpl: Record "Req. Wksh. Template";
