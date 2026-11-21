@@ -89,6 +89,11 @@ page 149042 "AIT CommandLine Card"
                     ToolTip = 'Specifies the number of eval suite lines in the eval suite that are yet to be run.';
                     Editable = false;
                 }
+                field("Rerun Log Entry ID"; RerunLogEntryID)
+                {
+                    Caption = 'Rerun Log Entry ID';
+                    ToolTip = 'Specifies the result ID of the individual eval scenario to run again.';
+                }
             }
             group(DatasetGroup)
             {
@@ -284,6 +289,32 @@ page 149042 "AIT CommandLine Card"
                     LoadNextAITRunDataFile();
                 end;
             }
+            action(RerunTest)
+            {
+                Caption = 'Rerun Eval';
+                Image = Start;
+                ToolTip = 'Runs only the input and procedure identified by the specified result ID, preserving previous results.';
+
+                trigger OnAction()
+                var
+                    AITLogEntry: Record "AIT Log Entry";
+                    AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                    LogEntryNotFoundErr: Label 'The eval result %1 could not be found.', Comment = '%1 = eval result ID';
+                begin
+                    VerifyTestSuiteCode();
+                    if not AITLogEntry.GetBySystemId(RerunLogEntryID) then
+                        Error(LogEntryNotFoundErr, RerunLogEntryID);
+                    AITLogEntry.TestField("Test Suite Code", AITCode);
+                    if LineNoFilter <> 0 then
+                        AITLogEntry.TestField("Test Method Line No.", LineNoFilter);
+                    AITLogEntry.TestField("Procedure Name");
+                    AITLogEntry.TestField("Test Input Group Code");
+                    AITLogEntry.TestField("Test Input Code");
+                    AITTestSuiteMgt.RerunTest(AITLogEntry);
+                    ResetAITRunDataExport();
+                    UpdateAITestMethodLines();
+                end;
+            }
 
         }
         area(Navigation)
@@ -341,6 +372,7 @@ page 149042 "AIT CommandLine Card"
         AITRunDataExport: Codeunit "AIT Run Data Export";
         CannotFindAITSuiteErr: Label 'The specified Eval Suite with code %1 cannot be found.', Comment = '%1 = Eval Suite id.';
         AITCode: Code[100];
+        RerunLogEntryID: Guid;
         LineNoFilter: Integer;
         LanguageTagFilter: Text[80];
         NoOfPendingTests: Integer;

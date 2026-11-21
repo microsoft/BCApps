@@ -124,7 +124,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestMethodLineForLogEntry."Codeunit ID" <> AITLogEntry."Codeunit ID" then
             Error(TestSuiteChangedErr);
 
-        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+        AITTestRunInputHandler.SetInput(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code", AITLogEntry."Procedure Name");
 
         if BindSubscription(AITTestRunInputHandler) then;
         RunAITestLine(AITTestMethodLineForLogEntry, false);

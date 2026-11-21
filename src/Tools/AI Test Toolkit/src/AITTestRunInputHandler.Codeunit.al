@@ -17,11 +17,18 @@ codeunit 149045 "AIT Test Run Input Handler"
     var
         TestInputGroupCode: Code[100];
         TestInputCode: Code[100];
+        TestProcedureName: Text[128];
 
     internal procedure SetInput(InputGroupCode: Code[100]; InputCode: Code[100])
     begin
+        SetInput(InputGroupCode, InputCode, '');
+    end;
+
+    internal procedure SetInput(InputGroupCode: Code[100]; InputCode: Code[100]; ProcedureName: Text[128])
+    begin
         TestInputGroupCode := InputGroupCode;
         TestInputCode := InputCode;
+        TestProcedureName := ProcedureName;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"AIT Test Run Iteration", 'OnBeforeRunIteration', '', false, false)]
@@ -39,6 +46,8 @@ codeunit 149045 "AIT Test Run Input Handler"
         TestMethodLine.SetRange("Data Input Group Code", TestInputGroupCode);
         TestMethodLine.SetRange("Data Input", TestInputCode);
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Function);
+        if TestProcedureName <> '' then
+            TestMethodLine.SetRange("Function", TestProcedureName);
 
         // Load the test input now, while still running under full permissions. The data-driven test framework
         // otherwise reads it from inside the test method's TestPermissions scope, which fails for any test that
