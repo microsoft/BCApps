@@ -517,6 +517,8 @@ codeunit 1004 "Job Transfer Line"
 
         JobJnlLine."Line Discount %" := GenJnlLine."Job Line Discount %";
 
+        JobJnlLine."Source Currency Code" := GenJnlLine."Source Currency Code";
+
         OnAfterFromGenJnlLineToJnlLine(JobJnlLine, GenJnlLine);
     end;
 
