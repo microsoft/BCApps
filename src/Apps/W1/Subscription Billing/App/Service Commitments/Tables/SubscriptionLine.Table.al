@@ -1879,6 +1879,7 @@ table 8059 "Subscription Line"
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
         UsageDataBilling.SetFilter("Usage Base Pricing", '>=%1', Enum::"Usage Based Pricing"::"Usage Quantity");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+        UsageDataBilling.ExcludeProcessingStatusError();
         UsageDataBilling.SetFilter("Charge Start Date", '>=%1', BillingFromDate);
         UsageDataBilling.SetFilter("Charge End Date", '<=%1', CalcDate('<1D>', BillingToDate));
         OnAfterSetUsageDataBillingFilters(UsageDataBilling, Rec, BillingFromDate, BillingToDate);
@@ -1900,6 +1901,7 @@ table 8059 "Subscription Line"
         UsageDataBilling.SetRange("Subscription Line Entry No.", Rec."Entry No.");
         UsageDataBilling.SetRange("Usage Base Pricing", Enum::"Usage Based Pricing"::"Usage Quantity", Enum::"Usage Based Pricing"::"Unit Cost Surcharge");
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+        UsageDataBilling.ExcludeProcessingStatusError();
         UsageDataBilling.SetRange("Charge Start Date", BillingFromDate, BillingToDate);
         UsageDataBilling.SetFilter("Charge End Date", '>%1', BillingToDate);
         if UsageDataBilling.FindLast() then
@@ -2007,6 +2009,39 @@ table 8059 "Subscription Line"
         UnitPrice := PeriodPrice * Periods + DayPrice * FollowUpDays;
         UnitCost := PeriodUnitCost * Periods + DayUnitCost * FollowUpDays;
         UnitCostLCY := PeriodUnitCostLCY * Periods + DayUnitCostLCY * FollowUpDays;
+    end;
+
+    /// <summary>
+    /// Calculates what a unit amount that is stated per Billing Base Period, such as a supplier Unit Cost, amounts to for a charge period.
+    /// The amount is calculated like the Price in UnitPriceAndCostForPeriod: in steps of the shorter of Billing Base Period and
+    /// Billing Rhythm, with the remaining days as a share of the following step.
+    /// </summary>
+    /// <param name="UnitAmountPerBillingBasePeriod">The unit amount for one Billing Base Period of the Subscription Line.</param>
+    /// <param name="ChargePeriodStart">The first day of the charge period.</param>
+    /// <param name="ChargePeriodEnd">The last day of the charge period.</param>
+    /// <returns>The unit amount for the charge period. It is not rounded.</returns>
+    internal procedure UnitAmountForChargePeriod(UnitAmountPerBillingBasePeriod: Decimal; ChargePeriodStart: Date; ChargePeriodEnd: Date) ChargePeriodAmount: Decimal
+    var
+        SubscriptionLine: Record "Subscription Line";
+        UnitCost: Decimal;
+        UnitCostLCY: Decimal;
+        BillingReferenceDateChanged: Boolean;
+    begin
+        // The unit amount takes the place of the Price on a copy of the Subscription Line, so that the same code calculates both.
+        SubscriptionLine := Rec;
+        SubscriptionLine.Price := UnitAmountPerBillingBasePeriod;
+        SubscriptionLine.UnitPriceAndCostForPeriod(SubscriptionLine."Billing Rhythm", ChargePeriodStart, ChargePeriodEnd, ChargePeriodAmount, UnitCost, UnitCostLCY, BillingReferenceDateChanged);
+    end;
+
+    /// <summary>
+    /// Calculates how many Billing Base Periods of the Subscription Line a charge period covers.
+    /// </summary>
+    /// <param name="ChargePeriodStart">The first day of the charge period.</param>
+    /// <param name="ChargePeriodEnd">The last day of the charge period.</param>
+    /// <returns>The number of Billing Base Periods, for example 0.25 for a quarter of a yearly Billing Base Period.</returns>
+    internal procedure ChargePeriodShareOfBillingBasePeriod(ChargePeriodStart: Date; ChargePeriodEnd: Date): Decimal
+    begin
+        exit(UnitAmountForChargePeriod(1, ChargePeriodStart, ChargePeriodEnd));
     end;
 
     internal procedure CalculatePeriodCountAndDaysCount(PeriodFormula: DateFormula; StartDate: Date; EndDate: Date; var Periods: Integer; var FollowUpDays: Integer; var FollowUpPeriodDays: Integer)

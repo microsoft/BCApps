@@ -55,6 +55,7 @@ codeunit 8023 "Create Usage Data Billing"
         UsageDataBilling: Record "Usage Data Billing";
         UsageDataSupplier: Record "Usage Data Supplier";
         CurrencyCode: Code[10];
+        CostAmountBeforeEvent: Decimal;
     begin
         UsageDataSupplier.Get(SupplierNo);
         CurrencyCode := UsageDataGenericImportGlobal.GetCurrencyCode();
@@ -84,7 +85,11 @@ codeunit 8023 "Create Usage Data Billing"
         UsageDataBilling.UpdateRebilling();
         UsageDataBilling."Entry No." := 0;
 
+        CostAmountBeforeEvent := UsageDataBilling."Cost Amount";
         OnBeforInsertUsageDataBilling(UsageDataBilling, UsageDataGenericImportGlobal);
+        // A Cost Amount set by a subscriber is used as it is.
+        if UsageDataBilling."Cost Amount" <> CostAmountBeforeEvent then
+            UsageDataBilling."Cost Amount from Unit Cost" := false;
 
         UsageDataBilling.Insert(true);
         UsageDataBilling.InsertMetadata();
