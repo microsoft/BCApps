@@ -10,7 +10,9 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -37,9 +39,10 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         LibraryInventory: Codeunit "Library - Inventory";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryReportDataset: Codeunit "Library - Report Dataset";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
         CaptureNextVATEntryNo: Boolean;
@@ -47,6 +50,8 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         EventNextVATEntryNo: Integer;
         ReserveSummarizedVATGLEntryNo: Boolean;
         ReservedSummarizedVATGLEntryNo: Integer;
+        ReserveSettlementVATEntryNo: Boolean;
+        ReservedSettlementVATEntryNo: Integer;
 
     [Test]
     [Scope('OnPrem')]
@@ -386,6 +391,168 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     end;
 
     [Test]
+    [HandlerFunctions('VATSettlementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure VATSettlementSkipsReservedVATEntryNo()
+    begin
+        // [SCENARIO] Concurrent VAT settlement links input entries to posted entries despite intervening sequence allocations.
+        RunVATSettlementWithConcurrentPosting(Enum::"Tax Calculation Type"::"Normal VAT", true);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATSettlementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ReverseChargeVATSettlementSkipsReservedVATEntryNo()
+    begin
+        // [SCENARIO] Concurrent reverse-charge VAT settlement links input entries to the last actual settlement entry.
+        RunVATSettlementWithConcurrentPosting(Enum::"Tax Calculation Type"::"Reverse Charge VAT", true);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATSettlementRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure VATSettlementPreviewDoesNotReserveVATEntryNo()
+    begin
+        // [SCENARIO] Concurrent VAT settlement preview displays simulated entry numbers without consuming the VAT sequence.
+        // [GIVEN] An open normal VAT entry with concurrent posting enabled and an intervening VAT sequence reservation.
+        // [WHEN] VAT settlement is calculated without posting.
+        // [THEN] The input remains open, no settlement entries or sequence allocations are created, and the report displays a simulated number.
+        RunVATSettlementWithConcurrentPosting(Enum::"Tax Calculation Type"::"Normal VAT", false);
+    end;
+
+    local procedure RunVATSettlementWithConcurrentPosting(VATCalculationType: Enum "Tax Calculation Type"; PostSettlement: Boolean)
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ExcludedVATPostingSetup: Record "VAT Posting Setup";
+        VATEntry: Record "VAT Entry";
+        ExcludedVATEntry: Record "VAT Entry";
+        SettlementVATEntry: Record "VAT Entry";
+        CalcandPostVATSettlement: Report "Calc. and Post VAT Settlement";
+        ERMConcurrentGenJnlPosting: Codeunit "ERM Concurrent Gen.Jnl.Posting";
+        GenPostingType: Enum "General Posting Type";
+        SettlementDocNo: Code[20];
+        LastVATEntryNo: Integer;
+        ReservedVATEntryNo: Integer;
+    begin
+        Initialize();
+        EnableConcurrentPosting(true);
+
+        // [GIVEN] An open VAT entry with its own VAT posting setup.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATCalculationType, 20);
+        GenPostingType := GenPostingType::Sale;
+        if VATCalculationType = VATCalculationType::"Reverse Charge VAT" then begin
+            VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+            VATPostingSetup.Modify(true);
+            GenPostingType := GenPostingType::Purchase;
+        end;
+        CreateGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GenPostingType),
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNoWithDirectPosting(), 1000);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        VATEntry.SetRange("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        VATEntry.SetRange("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        VATEntry.SetRange(Type, GenPostingType);
+        VATEntry.SetRange(Closed, false);
+        VATEntry.FindFirst();
+
+        // [GIVEN] An open VAT entry from a different posting setup is deliberately excluded by the report filter.
+        LibraryERM.CreateVATPostingSetupWithAccounts(ExcludedVATPostingSetup, VATCalculationType, 20);
+        if VATCalculationType = VATCalculationType::"Reverse Charge VAT" then begin
+            ExcludedVATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNoWithDirectPosting());
+            ExcludedVATPostingSetup.Modify(true);
+        end;
+        CreateGenJnlBatch(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine2WithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account",
+            LibraryERM.CreateGLAccountWithVATPostingSetup(ExcludedVATPostingSetup, GenPostingType),
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNoWithDirectPosting(), 500);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        ExcludedVATEntry.SetRange("VAT Bus. Posting Group", ExcludedVATPostingSetup."VAT Bus. Posting Group");
+        ExcludedVATEntry.SetRange("VAT Prod. Posting Group", ExcludedVATPostingSetup."VAT Prod. Posting Group");
+        ExcludedVATEntry.SetRange(Type, GenPostingType);
+        ExcludedVATEntry.SetRange(Closed, false);
+        ExcludedVATEntry.FindFirst();
+
+        // [GIVEN] Intervening VAT sequence reservations do not correspond to posted entries.
+        LastVATEntryNo := SettlementVATEntry.GetLastEntryNo();
+        ReservedVATEntryNo := SettlementVATEntry.GetNextEntryNo();
+        ERMConcurrentGenJnlPosting.StartReservingSettlementVATEntryNo();
+        BindSubscription(ERMConcurrentGenJnlPosting);
+
+        // [WHEN] VAT settlement is calculated, with or without posting.
+        SettlementDocNo := LibraryUtility.GenerateGUID();
+        CalcandPostVATSettlement.InitializeRequest(
+            WorkDate(), WorkDate(), WorkDate(), SettlementDocNo,
+            LibraryERM.CreateGLAccountNoWithDirectPosting(), true, PostSettlement);
+        VATPostingSetup.SetRecFilter();
+        CalcandPostVATSettlement.SetTableView(VATPostingSetup);
+        Commit();
+        CalcandPostVATSettlement.Run();
+        UnbindSubscription(ERMConcurrentGenJnlPosting);
+        LibraryReportDataset.LoadDataSetFile();
+        VATEntry.Get(VATEntry."Entry No.");
+        ExcludedVATEntry.Get(ExcludedVATEntry."Entry No.");
+        AssertVATEntryPresenceInReport(VATEntry."Entry No.", true);
+        AssertVATEntryPresenceInReport(ExcludedVATEntry."Entry No.", false);
+        SettlementVATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
+
+        if PostSettlement then begin
+            // [THEN] The input entry and report refer to an actual settlement entry, not a reserved number.
+            ERMConcurrentGenJnlPosting.VerifyReservedSettlementVATEntryNoNotUsed();
+            VATEntry.TestField(Closed, true);
+            ExcludedVATEntry.TestField(Closed, false);
+            ExcludedVATEntry.TestField("Closed by Entry No.", 0);
+            SettlementVATEntry.SetRange("Document No.", SettlementDocNo);
+            SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
+            SettlementVATEntry.FindLast();
+            VATEntry.TestField("Closed by Entry No.", SettlementVATEntry."Entry No.");
+            SettlementVATEntry.TestField("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+            SettlementVATEntry.TestField("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            AssertSettlementVATEntryNoInReport(SettlementVATEntry."Entry No.");
+        end else begin
+            // [THEN] Preview leaves the input open and the sequence unchanged, and displays a simulated number.
+            VATEntry.TestField(Closed, false);
+            VATEntry.TestField("Closed by Entry No.", 0);
+            ExcludedVATEntry.TestField(Closed, false);
+            ExcludedVATEntry.TestField("Closed by Entry No.", 0);
+            Assert.AreEqual(ReservedVATEntryNo + 1, SettlementVATEntry.GetNextEntryNo(), 'Preview must not allocate VAT entry numbers');
+            SettlementVATEntry.SetRange("Document No.", SettlementDocNo);
+            SettlementVATEntry.SetRange(Type, SettlementVATEntry.Type::Settlement);
+            Assert.RecordIsEmpty(SettlementVATEntry);
+            AssertSettlementVATEntryNoInReport(LastVATEntryNo + 1);
+        end;
+    end;
+
+    local procedure AssertVATEntryPresenceInReport(VATEntryNo: Integer; ExpectedPresent: Boolean)
+    var
+        VATEntryPresenceErr: Label 'VAT entry %1 presence in the settlement report was unexpected.', Comment = '%1 = VAT entry number';
+    begin
+        // The ES report uses EntryNo_VatEntry instead of EntryNo_VATEntry.
+        Assert.AreEqual(
+            ExpectedPresent,
+            LibraryReportDataset.SearchForElementByValue('EntryNo_VATEntry', VATEntryNo) or
+            LibraryReportDataset.SearchForElementByValue('EntryNo_VatEntry', VATEntryNo),
+            StrSubstNo(VATEntryPresenceErr, VATEntryNo));
+    end;
+
+    local procedure AssertSettlementVATEntryNoInReport(ExpectedVATEntryNo: Integer)
+    var
+        SettlementVATEntryNoErr: Label 'The report must show settlement VAT entry number %1.', Comment = '%1 = Expected VAT entry number';
+    begin
+        // The ES report uses NextVatEntryNo instead of NextVATEntryNo.
+        Assert.IsTrue(
+            LibraryReportDataset.SearchForElementByValue('NextVATEntryNo', ExpectedVATEntryNo) or
+            LibraryReportDataset.SearchForElementByValue('NextVatEntryNo', ExpectedVATEntryNo),
+            StrSubstNo(SettlementVATEntryNoErr, ExpectedVATEntryNo));
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure SummarizedUnrealizedVATSkipsReservedGLEntryNo()
     begin
@@ -580,7 +747,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
     [Test]
     [Scope('OnPrem')]
-    procedure GLEntriesAreStampedWithTheirOwnRegisterWithConcurrentPosting()
+    procedure TwoPostingsKeepGLEntryRegisterFiltersIsolatedWithConcurrentPosting()
     var
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
@@ -590,7 +757,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         SecondRegisterNo: Integer;
     begin
         // [FEATURE] [Gen. Journal] [Concurrent Posting] [G/L Register]
-        // [SCENARIO] Each posting stamps its G/L Entries with its own G/L Register No., so register filters do not mix entries.
+        // [SCENARIO] Posting twice keeps the two G/L Register filters isolated from each other.
         Initialize();
 
         // [GIVEN] "Use Concurrent Posting" is enabled
@@ -598,18 +765,21 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         if GLRegister.FindLast() then
             LastGLRegisterNo := GLRegister."No.";
 
-        // [WHEN] Two journal lines are posted separately
+        // [GIVEN] A first journal line was posted into its own register
         CreateSimpleGLJournalLine(GenJournalLine);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
+        GLRegister.FindLast();
+        FirstRegisterNo := GLRegister."No.";
+
+        // [WHEN] A second journal line is posted separately
         CreateSimpleGLJournalLine(GenJournalLine);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
-        // [THEN] Two registers are created and each has its own non-empty set of G/L Entries within its entry range
+        // [THEN] Two registers exist and their G/L Entry filters remain isolated
         GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
         Assert.AreEqual(2, GLRegister.Count(), 'Two G/L Registers should have been created');
-        GLRegister.FindSet();
-        FirstRegisterNo := GLRegister."No.";
-        GLRegister.Next();
+        GLRegister.FindLast();
         SecondRegisterNo := GLRegister."No.";
 
         GLEntry.SetRange("G/L Register No.", FirstRegisterNo);
@@ -648,7 +818,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         // [GIVEN] A sales invoice with an inventory item
         LibraryInventory.CreateItem(Item);
         LibrarySales.CreateSalesDocumentWithItem(
-          SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", LibraryRandom.RandInt(10), '', WorkDate());
+          SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, '', Item."No.", 1, '', WorkDate());
 
         // [WHEN] The invoice is posted
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
@@ -714,6 +884,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Concurrent Gen.Jnl.Posting");
         LibrarySetupStorage.Restore();
+        LibraryERMCountryData.UpdateLocalData();
         if IsInitialized then
             exit;
 
@@ -801,6 +972,33 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
     internal procedure StartReservingSummarizedVATGLEntryNo()
     begin
         ReserveSummarizedVATGLEntryNo := true;
+    end;
+
+    internal procedure StartReservingSettlementVATEntryNo()
+    begin
+        ReserveSettlementVATEntryNo := true;
+    end;
+
+    internal procedure VerifyReservedSettlementVATEntryNoNotUsed()
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        Assert.IsTrue(ReservedSettlementVATEntryNo > 0, 'An intervening VAT sequence allocation must have occurred');
+        Assert.IsFalse(VATEntry.Get(ReservedSettlementVATEntryNo), 'Settlement must not use an unrelated VAT sequence reservation');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterInsertVATEntry, '', false, false)]
+    local procedure ReserveVATEntryNoAfterSettlementVATEntry(GenJnlLine: Record "Gen. Journal Line"; VATEntry: Record "VAT Entry"; GLEntryNo: Integer; var NextEntryNo: Integer; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
+    begin
+        if ReserveSettlementVATEntryNo and (VATEntry.Type = VATEntry.Type::Settlement) then
+            ReservedSettlementVATEntryNo := VATEntry.GetNextEntryNo();
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure VATSettlementRequestPageHandler(var CalcandPostVATSettlement: TestRequestPage "Calc. and Post VAT Settlement")
+    begin
+        CalcandPostVATSettlement.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
     internal procedure VerifyReservedSummarizedVATGLEntryNoNotUsed()

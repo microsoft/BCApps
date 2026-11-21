@@ -211,7 +211,7 @@ codeunit 134982 "ERM Financial Reports"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,RHDetailTrialBalance')]
+    [HandlerFunctions('MessageHandler,RHDetailTrialBalance,CloseIncomeStatementWithProfitLossAccountsHandler')]
     [Scope('OnPrem')]
     procedure DetailTrialBalanceCloseEntry()
     var
@@ -226,7 +226,8 @@ codeunit 134982 "ERM Financial Reports"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // Run Close Income Statement Batch Report.
-        RunCloseIncomeStatementReport(GenJournalLine, NormalDate(Date."Period End"), false);
+        RunCloseIncomeStatementWithBalAccount(
+            GenJournalLine, NormalDate(Date."Period End"), LibraryUtility.GenerateGUID(), GenJournalLine."Bal. Account No.");
         GenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
         GenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
         GenJournalLine.FindFirst();
@@ -1491,6 +1492,7 @@ codeunit 134982 "ERM Financial Reports"
             GenJournalLine."Account Type"::"G/L Account",
             GLAccount."No.",
             LibraryRandom.RandDec(100, 2));
+        GenJournalLine."Bal. Account No." := LibraryERM.CreateGLAccountNoWithDirectPosting();
         GenJournalLine.Validate("Posting Date", WorkDate());
         GenJournalLine.Modify(true);
 
@@ -3059,6 +3061,24 @@ codeunit 134982 "ERM Financial Reports"
     procedure CloseIncomeStatementBalAccountHandler(var CloseIncomeStatement: TestRequestPage "Close Income Statement")
     begin
         CloseIncomeStatement.BalancingAccountNo.SetValue(LibraryVariableStorage.DequeueText()); // Balancing Account No.
+        CloseIncomeStatement.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure CloseIncomeStatementWithProfitLossAccountsHandler(var CloseIncomeStatement: TestRequestPage "Close Income Statement")
+    var
+        BalancingAccountNo: Code[20];
+    begin
+        CloseIncomeStatement.FiscalYearEndingDate.SetValue(LibraryVariableStorage.DequeueDate());
+        CloseIncomeStatement.GenJournalTemplate.SetValue(LibraryVariableStorage.DequeueText());
+        CloseIncomeStatement.GenJournalBatch.SetValue(LibraryVariableStorage.DequeueText());
+        CloseIncomeStatement.DocumentNo.SetValue(LibraryVariableStorage.DequeueText());
+        BalancingAccountNo := LibraryVariableStorage.DequeueText();
+        CloseIncomeStatement.BalancingAccountNo.SetValue(BalancingAccountNo);
+        CloseIncomeStatement.NetProfitAccountNo.SetValue(BalancingAccountNo);
+        CloseIncomeStatement.NetLossAccountNo.SetValue(BalancingAccountNo);
+        CloseIncomeStatement.PostToRetainedEarningsAccount.SetValue(0);
+        CloseIncomeStatement.ClosePerBusUnit.SetValue(true);
         CloseIncomeStatement.OK().Invoke();
     end;
 

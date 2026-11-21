@@ -416,18 +416,30 @@ codeunit 144066 "ERM Batch POSTROUT"
     [Scope('OnPrem')]
     procedure BatchPostServiceCreditMemosWithSamePostingDate()
     var
+        GeneralLedgerSetup: Record "General Ledger Setup";
         ServiceHeader: Record "Service Header";
         BillToCustomerNo: Code[20];
+        OldLastGenJourPrintingDate: Date;
     begin
         // [GIVEN] Create Service Credit Memo.
         Initialize();
         BillToCustomerNo := CreateServiceDocument(ServiceHeader."Document Type"::"Credit Memo");
+
+        // [GIVEN] The document date precedes the last printed general journal date.
+        GeneralLedgerSetup.Get();
+        OldLastGenJourPrintingDate := GeneralLedgerSetup."Last Gen. Jour. Printing Date";
+        GeneralLedgerSetup."Last Gen. Jour. Printing Date" := CalcDate('<1D>', WorkDate());
+        GeneralLedgerSetup.Modify();
 
         // [WHEN] Run Report Batch Post Service Credit Memos for Posting Date same as Service Cr.Memo Posting Date.
         RunReportBatchPostServiceCreditMemos(BillToCustomerNo, WorkDate());
 
         // [THEN] Verify Service Credit Memo not posted successfully.
         VerifyServiceCrMemoHeaderNotExist(BillToCustomerNo);
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Last Gen. Jour. Printing Date" := OldLastGenJourPrintingDate;
+        GeneralLedgerSetup.Modify();
     end;
 
     [Test]
@@ -456,18 +468,30 @@ codeunit 144066 "ERM Batch POSTROUT"
     [Scope('OnPrem')]
     procedure BatchPostServiceInvoiceWithSamePostingDate()
     var
+        GeneralLedgerSetup: Record "General Ledger Setup";
         ServiceHeader: Record "Service Header";
         BillToCustomerNo: Code[20];
+        OldLastGenJourPrintingDate: Date;
     begin
         // [GIVEN] Create Service Invoice.
         Initialize();
         BillToCustomerNo := CreateServiceDocument(ServiceHeader."Document Type"::Invoice);
+
+        // [GIVEN] The operation occurred date precedes the last printed general journal date.
+        GeneralLedgerSetup.Get();
+        OldLastGenJourPrintingDate := GeneralLedgerSetup."Last Gen. Jour. Printing Date";
+        GeneralLedgerSetup."Last Gen. Jour. Printing Date" := CalcDate('<1D>', WorkDate());
+        GeneralLedgerSetup.Modify();
 
         // [WHEN] Run Report Batch Post Service Invoices for Posting Date same as Service Invoice Posting Date.
         RunReportBatchPostServiceInvoices(BillToCustomerNo, WorkDate());
 
         // [THEN] Verify Service Invoice not posted successfully.
         VerifyServiceInvoiceHeaderNotExist(BillToCustomerNo);
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Last Gen. Jour. Printing Date" := OldLastGenJourPrintingDate;
+        GeneralLedgerSetup.Modify();
     end;
 
     [Test]

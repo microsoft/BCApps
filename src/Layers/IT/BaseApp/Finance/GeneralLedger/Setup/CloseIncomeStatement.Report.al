@@ -821,6 +821,7 @@ report 94 "Close Income Statement"
     begin
         EndDateReq := EndDate;
         GenJnlLine := GenJournalLine;
+        BalancingAccount."No." := GenJournalLine."Bal. Account No.";
         ValidateJnl();
         RetainedEarningsGLAcc := GLAccount;
         ClosePerBusUnit := CloseByBU;

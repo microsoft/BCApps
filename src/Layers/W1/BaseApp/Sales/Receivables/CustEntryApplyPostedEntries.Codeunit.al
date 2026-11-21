@@ -379,7 +379,8 @@ codeunit 226 "CustEntry-Apply Posted Entries"
             exit;
 
         MaxPostingDate := 0D;
-        GLEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            GLEntry.LockTable();
         DtldCustLedgEntry.LockTable();
         CustLedgEntry.LockTable();
         CustLedgEntry.Get(DtldCustLedgEntry2."Cust. Ledger Entry No.");

@@ -6,6 +6,7 @@ namespace Microsoft.Finance.SalesTax;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 
 codeunit 10102 "Manage Sales Tax Journal"
@@ -80,7 +81,16 @@ codeunit 10102 "Manage Sales Tax Journal"
     end;
 
     local procedure GetLastNosForVAT()
+    var
+        GLSetup: Record "General Ledger Setup";
+        GLTransaction: Record "G/L Transaction";
     begin
+        if GLSetup.UseConcurrentPosting() then begin
+            NextTransactionNo := GLTransaction.GetNextTransactionNo();
+            NextVATEntryNo := VATEntry.GetNextEntryNo();
+            exit;
+        end;
+
         GLEntry.LockTable();
         if GLEntry.FindLast() then
             NextTransactionNo := GLEntry."Transaction No." + 1

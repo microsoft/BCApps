@@ -2547,7 +2547,8 @@ codeunit 142063 SalesDocTotalsSalesEntryUI
         VATEntry.DeleteAll();
 
         LibrarySetupStorage.Restore();
-        LibraryApplicationArea.ClearApplicationAreaCache();
+        // Use setup-driven invoice discounts, not Foundation's automatic discounts.
+        LibraryApplicationArea.DisableApplicationAreaSetup();
         if isInitialized then
             exit;
 
