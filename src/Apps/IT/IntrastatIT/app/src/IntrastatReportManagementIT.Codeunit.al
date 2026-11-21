@@ -1277,9 +1277,11 @@ codeunit 148121 "Intrastat Report Management IT"
         IntrastatReportHeader: Record "Intrastat Report Header";
         IntrastatReportSetup: Record "Intrastat Report Setup";
         IntrastatReportMgt: Codeunit IntrastatReportManagement;
+#pragma warning disable AL0424 // Deprecated multilanguage syntax; migration to Label deferred, see PR #10517
         DefPrivatePersonVATNoLbl: TextConst ENU = 'QN999999999999';
         Def3DPartyTradeVATNoLbl: TextConst ENU = 'QV999999999999';
         DefUnknowVATNoLbl: TextConst ENU = 'QV999999999999';
+#pragma warning restore AL0424
         FileNameLbl: Label 'scambi.cee', Locked = true;
         TotalInvoicedQty, TotalAmt : Decimal;
         TotalRoundedAmount, LineCount : Integer;

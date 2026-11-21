@@ -347,9 +347,11 @@ codeunit 10851 IntrastatReportManagementFR
         IntrastatReportLine: Record "Intrastat Report Line";
         CompanyInformation: Record "Company Information";
         ObligationLevel: Enum "Obligation Level";
+#pragma warning disable AL0424 // Deprecated multilanguage syntax; migration to Label deferred, see PR #10517
         DefPrivatePersonVATNoLbl: TextConst ENU = 'QN999999999999';
         Def3DPartyTradeVATNoLbl: TextConst ENU = 'QV999999999999';
         DefUnknowVATNoLbl: TextConst ENU = 'QV999999999999';
+#pragma warning restore AL0424
         FileNameLbl: Label 'Intrastat-%1.xml', Comment = '%1 - Statistics Period';
         ReceptFileNameLbl: Label 'Receipt-%1.xml', Comment = '%1 - Statistics Period';
         ShipmentFileNameLbl: Label 'Shipment-%1.xml', Comment = '%1 - Statistics Period';

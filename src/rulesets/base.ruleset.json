@@ -66,11 +66,6 @@
       "justification": "Needed for allowing co-existence of apps using Integer and BigInteger."
     },
     {
-      "id": "AL0424",
-      "action": "Warning",
-      "justification": "Bug 472148. The multilanguage syntax is being deprecated. Please update to the new syntax."
-    },
-    {
       "id": "AL0432",
       "action": "None",
       "justification": "Use pragma to remove obsolete warning."

@@ -11,7 +11,7 @@ table 136605 OptionAndEnumRS
         field(5; OptionField; Option)
         {
             OptionMembers = Zero,One,Two;
-            OptionCaptionML = ENU = 'Zero,One,Two', DAN = 'Null,En,To';
+            OptionCaption = 'Zero,One,Two';
         }
         field(10; EnumField; Enum EnumRs)
         {
