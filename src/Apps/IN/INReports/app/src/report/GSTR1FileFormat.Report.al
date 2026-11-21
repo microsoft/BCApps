@@ -29,9 +29,14 @@ report 18049 "GSTR-1 File Format"
 
             trigger OnAfterGetRecord()
             begin
+                if ExportAllFormats then begin
+                    ExportAllFileFormats();
+                    exit;
+                end;
+
                 case NatureofSupply of
                     NatureofSupply::" ":
-                        ERRor(FileFormatErr);
+                        Error(FileFormatErr);
                     NatureofSupply::B2B:
                         begin
                             MakeExcelBodyB2B();
@@ -120,11 +125,29 @@ report 18049 "GSTR-1 File Format"
                             EndDate := CalcDate('<+CM>', ReturnDate);
                         end;
                     }
+
+                    field(ExportAllFormatsChoice; ExportAllFormats)
+                    {
+                        Caption = 'Export All Formats';
+                        ToolTip = 'Specifies whether all GSTR-1 file formats are exported in one run. File Format and Nature of Supply cannot be changed while selected, but the B2C Limit can still be changed.';
+                        ApplicationArea = Basic, Suite;
+
+                        trigger OnValidate()
+                        begin
+                            if ExportAllFormats then begin
+                                NatureofSupply := NatureofSupply::" ";
+                                HSNNatureOfSupplyOption := HSNNatureOfSupplyOption::" ";
+                                Clear(HSNNatureOfSupplyFilter);
+                                B2CLimitValue := 250000;
+                            end;
+                        end;
+                    }
                     field(FileFormat; NatureofSupply)
                     {
                         Caption = 'File Format';
                         ToolTip = 'Specifies the nature of GST transaction. For example, B2B/B2C.';
                         ApplicationArea = Basic, Suite;
+                        Editable = not ExportAllFormats;
 
                         trigger OnValidate()
                         begin
@@ -149,7 +172,7 @@ report 18049 "GSTR-1 File Format"
                         OptionCaption = ' ,B2B,B2C';
                         ToolTip = 'Specifies whether the HSN summary is generated for B2B or B2C supplies.';
                         ApplicationArea = Basic, Suite;
-                        Editable = NatureofSupply = NatureofSupply::HSN;
+                        Editable = (NatureofSupply = NatureofSupply::HSN) and (not ExportAllFormats);
 
                         trigger OnValidate()
                         begin
@@ -201,6 +224,7 @@ report 18049 "GSTR-1 File Format"
         EndDate: Date;
         Counter: Integer;
         Progress: Dialog;
+        GSTR1AllFormatsTxt: Label 'GSTR-1';
         ProgressMsg: Label 'Processing......#1######################\', Comment = '%1 = progress counter';
         B2BTxt: Label 'b2b';
         B2CTxt: Label 'b2c';
@@ -288,6 +312,9 @@ report 18049 "GSTR-1 File Format"
         EXempNonGSTIntraRegAmt: Decimal;
         ExempNonGSTInterUnRegAmt: Decimal;
         ExempNonGSTIntraUnRegAmt: Decimal;
+
+        ExportAllFormats: Boolean;
+
         HSNNatureOfSupplyFilter: Enum "GST Nature of Supply";
         HSNNatureOfSupplyOption: Option " ",B2B,B2C;
         NatureofSupply: Enum "Nature of Supply";
@@ -672,7 +699,7 @@ report 18049 "GSTR-1 File Format"
     var
         GSTR1HSNQuery: Query GSTR1HSNQuery;
     begin
-        if NatureofSupply <> NatureofSupply::HSN then
+        if (NatureofSupply <> NatureofSupply::HSN) and (not ExportAllFormats) then
             exit;
 
         MakeExcelHeaderHSN();
@@ -1704,4 +1731,74 @@ report 18049 "GSTR-1 File Format"
         TempExcelBuffer.AddColumn(Value, false, '', false, false, false, '0.00', TempExcelBuffer."Cell Type"::Number);
     end;
 
+    local procedure ExportAllFileFormats()
+    begin
+        TempExcelBuffer.CreateNewBook(B2BTxt);
+
+        WriteFormatSheet(NatureofSupply::B2B, B2BTxt);
+        WriteFormatSheet(NatureofSupply::B2CL, B2CLTxt);
+        WriteFormatSheet(NatureofSupply::B2CS, B2CSTxt);
+        WriteFormatSheet(NatureofSupply::AT, ATTxt);
+        WriteFormatSheet(NatureofSupply::ATADJ, ATADJTxt);
+        WriteFormatSheet(NatureofSupply::CDNR, CDNRTxt);
+        WriteFormatSheet(NatureofSupply::CDNUR, CDNURTxt);
+        WriteFormatSheet(NatureofSupply::EXP, EXPTxt);
+        WriteHSNSheet(HSNNatureOfSupplyFilter::B2B);
+        WriteHSNSheet(HSNNatureOfSupplyFilter::B2C);
+        WriteFormatSheet(NatureofSupply::EXEMP, EXEMPTxt);
+
+        TempExcelBuffer.CloseBook();
+        TempExcelBuffer.SetFriendlyFilename(GSTR1AllFormatsTxt);
+        TempExcelBuffer.OpenExcel();
+    end;
+
+    local procedure WriteFormatSheet(SheetFormat: Enum "Nature of Supply"; SheetName: Text[250])
+    var
+        SavedB2CLimitValue: Decimal;
+    begin
+        TempExcelBuffer.DeleteAll();
+        TempExcelBuffer.ClearNewRow();
+
+        case SheetFormat of
+            NatureofSupply::B2B:
+                MakeExcelBodyB2B();
+            NatureofSupply::B2CL:
+                MakeExcelBodyB2CL();
+            NatureofSupply::B2CS:
+                MakeExcelBodyB2CS();
+            NatureofSupply::AT:
+                MakeExcelBodyAT();
+            NatureofSupply::ATADJ:
+                MakeExcelBodyATADJ();
+            NatureofSupply::CDNR:
+                MakeExcelBodyCDNR();
+            NatureofSupply::CDNUR:
+                begin
+                    SavedB2CLimitValue := B2CLimitValue;
+                    B2CLimitValue := 0;
+                    MakeExcelBodyCDNUR();
+                    B2CLimitValue := SavedB2CLimitValue;
+                end;
+            NatureofSupply::EXP:
+                MakeExcelBodyEXP();
+            NatureofSupply::HSN:
+                MakeExcelBodyHSN();
+            NatureofSupply::EXEMP:
+                MakeExcelBodyEXEMP();
+        end;
+
+        TempExcelBuffer.SelectOrAddSheet(SheetName);
+        TempExcelBuffer.WriteSheet(SheetName, CompanyName(), UserId());
+    end;
+
+    local procedure WriteHSNSheet(HSNFilter: Enum "GST Nature of Supply")
+    begin
+        HSNNatureOfSupplyFilter := HSNFilter;
+        if HSNFilter = HSNFilter::B2B then
+            HSNNatureOfSupplyOption := HSNNatureOfSupplyOption::B2B
+        else
+            HSNNatureOfSupplyOption := HSNNatureOfSupplyOption::B2C;
+
+        WriteFormatSheet(NatureofSupply::HSN, GetHSNFileFormatTxt());
+    end;
 }
