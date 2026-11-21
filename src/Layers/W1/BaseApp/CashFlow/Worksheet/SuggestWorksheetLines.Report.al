@@ -76,6 +76,7 @@ report 840 "Suggest Worksheet Lines"
                         CurrReport.Break();
                 end;
             }
+
             dataitem("Cust. Ledger Entry"; "Cust. Ledger Entry")
             {
                 DataItemTableView = sorting(Open, "Due Date") order(ascending) where(Open = const(true), "Remaining Amount" = filter(<> 0));
@@ -326,6 +327,8 @@ report 840 "Suggest Worksheet Lines"
                 DataItemTableView = sorting("Job No.", "Planning Date", "Document No.");
 
                 trigger OnAfterGetRecord()
+                var
+                    SkipInsertCFLineForJobPlanningLine: Boolean;
                 begin
                     Window.Update(2, JobsMsg);
                     Window.Update(3, "Job No.");
@@ -334,7 +337,10 @@ report 840 "Suggest Worksheet Lines"
                         exit;
 
                     OnJobPlanningLineOnAfterGetRecordOnBeforeInsertCFLineForJobPlanningLine("Job Planning Line");
-                    InsertCFLineForJobPlanningLine();
+                    SkipInsertCFLineForJobPlanningLine := false;
+                    OnBeforeInsertCFLineForJobPlanningLine("Job Planning Line", SkipInsertCFLineForJobPlanningLine);
+                    if not SkipInsertCFLineForJobPlanningLine then
+                        InsertCFLineForJobPlanningLine();
                 end;
 
                 trigger OnPreDataItem()
@@ -1786,6 +1792,11 @@ report 840 "Suggest Worksheet Lines"
 
     [IntegrationEvent(false, false)]
     local procedure OnJobPlanningLineOnAfterGetRecordOnBeforeInsertCFLineForJobPlanningLine(JobPlanningLine: Record "Job Planning Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertCFLineForJobPlanningLine(JobPlanningLine: Record "Job Planning Line"; var SkipInsertCFLineForJobPlanningLine: Boolean)
     begin
     end;
 
