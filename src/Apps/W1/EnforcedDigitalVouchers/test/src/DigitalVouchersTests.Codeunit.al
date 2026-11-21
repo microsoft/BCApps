@@ -21,7 +21,6 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.Document;
@@ -1959,20 +1958,9 @@ codeunit 139515 "Digital Vouchers Tests"
 
     local procedure CreateCustomReportSelectionForCustomer(CustomerNo: Code[20]; ReportSelectionUsage: Enum "Report Selection Usage"; ReportID: Integer)
     var
-        CustomReportSelection: Record "Custom Report Selection";
-        CustomReportLayout: Record "Custom Report Layout";
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        CustomReportSelection.Init();
-        CustomReportSelection.Validate("Source Type", Database::Customer);
-        CustomReportSelection.Validate("Source No.", CustomerNo);
-        CustomReportSelection.Validate(Usage, ReportSelectionUsage);
-        CustomReportSelection.Validate(Sequence, 1);
-        CustomReportSelection.Validate("Report ID", ReportID);
-        CustomReportSelection.Validate("Use for Email Body", true);
-        CustomReportSelection.Validate("Use for Email Attachment", false);
-        CustomReportSelection.Validate(
-            "Email Body Layout Code", CustomReportLayout.InitBuiltInLayout(CustomReportSelection."Report ID", CustomReportLayout.Type::Word.AsInteger()));
-        CustomReportSelection.Insert(true);
+        LibraryReportSelection.CreateCustomerEmailBodyLayout(CustomerNo, ReportSelectionUsage, ReportID, false);
     end;
 
     local procedure BindActiveDirectoryMockEvents()

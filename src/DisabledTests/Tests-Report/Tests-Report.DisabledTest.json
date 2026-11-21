@@ -352,16 +352,6 @@
   {
     "codeunitId": 134422,
     "codeunitName": "Rep. Selections - Std. Stmt.",
-    "method": "PrintCustomerStatementWhenCustomerInFilterAndHasCustomDocLayout"
-  },
-  {
-    "codeunitId": 134422,
-    "codeunitName": "Rep. Selections - Std. Stmt.",
-    "method": "PrintCustomerStatementWhenCustomerNotInFilterAndHasCustomDocLayout"
-  },
-  {
-    "codeunitId": 134422,
-    "codeunitName": "Rep. Selections - Std. Stmt.",
     "method": "SendEmailForCustomerUsingLayoutOnCustomReportSelection"
   },
   {
@@ -387,26 +377,6 @@
   {
     "codeunitId": 134600,
     "codeunitName": "Report Layout Test",
-    "method": "PrintSalesOrderProperFiltering"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
-    "method": "SalesOrder_Print_OrderConfirmation"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
-    "method": "SalesOrder_Print_PickInstruction"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
-    "method": "SalesOrder_Print_WorkOrder"
-  },
-  {
-    "codeunitId": 134600,
-    "codeunitName": "Report Layout Test",
     "method": "TestValidateCustomRrdlcOk"
   },
   {
@@ -418,11 +388,6 @@
     "codeunitId": 134761,
     "codeunitName": "Test Custom Reports",
     "method": "AgingBandTotalsOnStandaredStatementWhenDueDateIsEqualToEnDate"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "DefaultLayoutReportWebClient"
   },
   {
     "codeunitId": 134761,
@@ -488,21 +453,6 @@
     "codeunitId": 134761,
     "codeunitName": "Test Custom Reports",
     "method": "HasTypeToFillMandatoryFieldsSalesLine"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "PrintStandardStatementReport"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "PrintStatementReport"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "PrintStatementReportWithDifferentIterator"
   },
   {
     "codeunitId": 134761,
@@ -593,26 +543,6 @@
     "codeunitId": 134761,
     "codeunitName": "Test Custom Reports",
     "method": "TestCustomerStatementAgingTotalsByDueDateNextMonth"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "TestPrintCreditMemos"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "TestPrintInvoices"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "TestPrintOrders"
-  },
-  {
-    "codeunitId": 134761,
-    "codeunitName": "Test Custom Reports",
-    "method": "TestPrintQuotes"
   },
   {
     "codeunitId": 134761,

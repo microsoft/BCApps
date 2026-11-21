@@ -26,6 +26,7 @@ codeunit 148006 "Sales FR Report Layouts Test"
         EmptyGuid: Guid;
         BaseApplicationAppIdTok: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
         SalesFRAppIdTok: Label '8df591a3-d767-4475-8bff-44b8b5527477', Locked = true;
+        LegacyCustomLayoutCodeTok: Label 'MS-1306-LEGACY', Locked = true;
 
     [Test]
     procedure SelectsFRWordDefaultsWhenNoSelectionExists()
@@ -147,13 +148,13 @@ codeunit 148006 "Sales FR Report Layouts Test"
     [Test]
     procedure PreservesLegacyCustomLayoutSelection()
     var
-        CustomReportLayout: Record "Custom Report Layout";
         ReportLayoutSelection: Record "Report Layout Selection";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
         CustomLayoutCode: Code[20];
     begin
         Initialize();
-        CustomLayoutCode := CustomReportLayout.InitBuiltInLayout(Report::"Standard Sales - Invoice", CustomReportLayout.Type::Word.AsInteger());
+        // The "Custom Report Layout" table is removed in this build, so a legacy selection only carries its layout code
+        CustomLayoutCode := LegacyCustomLayoutCodeTok;
         ReportLayoutSelection."Report ID" := Report::"Standard Sales - Invoice";
         ReportLayoutSelection."Company Name" := GetCompanyName();
         ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Custom Layout";
@@ -171,13 +172,13 @@ codeunit 148006 "Sales FR Report Layouts Test"
     [Test]
     procedure PreservesBuiltInSelectionWithStaleCustomLayoutCode()
     var
-        CustomReportLayout: Record "Custom Report Layout";
         ReportLayoutSelection: Record "Report Layout Selection";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
         CustomLayoutCode: Code[20];
     begin
         Initialize();
-        CustomLayoutCode := CustomReportLayout.InitBuiltInLayout(Report::"Standard Sales - Invoice", CustomReportLayout.Type::Word.AsInteger());
+        // The "Custom Report Layout" table is removed in this build, so a legacy selection only carries its layout code
+        CustomLayoutCode := LegacyCustomLayoutCodeTok;
         ReportLayoutSelection."Report ID" := Report::"Standard Sales - Invoice";
         ReportLayoutSelection."Company Name" := GetCompanyName();
         ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Word (built-in)";

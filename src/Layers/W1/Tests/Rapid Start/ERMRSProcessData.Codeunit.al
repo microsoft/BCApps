@@ -1522,6 +1522,7 @@ codeunit 136612 "ERM RS Process Data"
         Assert.AreEqual(1, Customer.Count, 'There is not one Customer in the Customer table. Deletion failed.');
     end;
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure RunPostActionOnCustomReportLayout()
@@ -1530,7 +1531,9 @@ codeunit 136612 "ERM RS Process Data"
         ConfigPackageTable: Record "Config. Package Table";
         ConfigPackageFilter: Record "Config. Package Filter";
         ConfigTableProcessingRule: Record "Config. Table Processing Rule";
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         ReportLayoutSelection: Record "Report Layout Selection";
         RecRef: RecordRef;
         CustomLayoutCode: Code[20];
@@ -1542,7 +1545,9 @@ codeunit 136612 "ERM RS Process Data"
 
         // [GIVEN] A Rule "Post" for Table 9650
         LibraryRapidStart.CreatePackage(ConfigPackage);
+#pragma warning disable AL0432, AS0105
         LibraryRapidStart.CreatePackageTable(ConfigPackageTable, ConfigPackage.Code, DATABASE::"Custom Report Layout");
+#pragma warning restore AL0432, AS0105
         LibraryRapidStart.CreatePackageTableRule(
           ConfigTableProcessingRule, ConfigPackageTable, ConfigTableProcessingRule.Action::Post, 0);
 
@@ -1568,13 +1573,18 @@ codeunit 136612 "ERM RS Process Data"
         Assert.IsTrue(
           ReportLayoutSelection."Custom Report Layout Code" = CustomLayoutCode, StrSubstNo('Expected report layout %1.', CustomLayoutCode));
     end;
+#endif
 
     local procedure Initialize()
     var
         ConfigPackageTable: Record "Config. Package Table";
         ConfigPackageFilter: Record "Config. Package Filter";
         ConfigTableProcessingRule: Record "Config. Table Processing Rule";
+#if not CLEAN30
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
+#endif
         ReportLayoutSelection: Record "Report Layout Selection";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM RS Process Data");
@@ -1583,7 +1593,9 @@ codeunit 136612 "ERM RS Process Data"
         ConfigPackageTable.DeleteAll(true);
         ConfigPackageFilter.DeleteAll(true);
         ConfigTableProcessingRule.DeleteAll(true);
+#if not CLEAN30
         CustomReportLayout.DeleteAll();
+#endif
         ReportLayoutSelection.DeleteAll(true);
     end;
 
@@ -2087,9 +2099,12 @@ codeunit 136612 "ERM RS Process Data"
         Assert.IsFalse(ConfigTableProcessingRules.FilterInfo.Editable(), 'Filter info should not be editable');
     end;
 
+#if not CLEAN30
     local procedure CreateCustomReportLayouts(ReportQty: Integer; ReportID: Integer)
     var
+#pragma warning disable AL0432, AS0105
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432, AS0105
         i: Integer;
     begin
         for i := 1 to ReportQty do begin
@@ -2097,6 +2112,7 @@ codeunit 136612 "ERM RS Process Data"
             CustomReportLayout.Description := StrSubstNo('Layout %1', i);
         end;
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Config. Table Processing Rule", 'OnDoesTableHaveCustomRuleInRapidStart', '', false, false)]
     local procedure OnDoesTableHaveCustomHandler(TableID: Integer; var Result: Boolean)

@@ -148,7 +148,7 @@ codeunit 136314 "Job Quote Report Tests"
     begin
         // [GIVEN] A newly setup company, with a new job created
         Initialize();
-        SetReportLayoutForCustomWord();
+        SetReportLayoutForJobQuote();
         SetupForJobQuote(JobPlanningLine);
 
         // [WHEN] Job list is opened with the newly-created job
@@ -176,7 +176,7 @@ codeunit 136314 "Job Quote Report Tests"
         // [FEATURE] [UT] [UI]
         // [SCENARIO 416894] The Job List use Report selection for runs report "Preview Job Queue"
         Initialize();
-        SetReportLayoutForCustomWord();
+        SetReportLayoutForJobQuote();
         CreateJobQueueReportSelection();
         SetupForJobQuote(JobPlanningLine);
 
@@ -418,19 +418,16 @@ codeunit 136314 "Job Quote Report Tests"
         SetReportLayout(ReportLayoutSelection.Type::"RDLC (built-in)", '');
     end;
 
-    local procedure SetReportLayoutForCustomWord()
+    // The Job List scenarios run report "Job Quote" with a user-defined layout selected as the company's default layout.
+    // It is an RDLC layout because the scenarios save the report as Excel.
+    local procedure SetReportLayoutForJobQuote()
     var
-        CustomReportLayout: Record "Custom Report Layout";
-        CustomReportLayoutCode: Code[20];
+        JobQuoteLayout: Record "Report Layout List";
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
-        Clear(CustomReportLayout);
-        CustomReportLayout.SetRange("Report ID", REPORT::"Job Quote");
-        CustomReportLayout.SetRange("Company Name", CompanyName);
-        CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
-        if CustomReportLayout.FindFirst() then
-            CustomReportLayoutCode := CustomReportLayout.Code;
-
-        SetReportLayout(ReportLayoutSelection.Type::"Custom Layout", CustomReportLayoutCode);
+        LibraryReportSelection.CreateLayout(REPORT::"Job Quote", JobQuoteLayout."Layout Format"::RDLC, JobQuoteLayout);
+        LibraryReportSelection.SetCompanyDefaultLayout(JobQuoteLayout);
+        SetReportLayout(ReportLayoutSelection.Type::"RDLC (built-in)", '');
     end;
 
     local procedure SetReportLayout(LayoutSelection: Integer; CustomReportLayoutCode: Code[20])
@@ -479,11 +476,14 @@ codeunit 136314 "Job Quote Report Tests"
     end;
 
     local procedure RemoveReportLayout()
+    var
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
         Clear(ReportLayoutSelection);
         ReportLayoutSelection.SetRange("Report ID", REPORT::"Job Quote");
         ReportLayoutSelection.SetRange("Company Name", CompanyName);
         ReportLayoutSelection.DeleteAll();
+        LibraryReportSelection.RemoveCompanyDefaultLayout(REPORT::"Job Quote");
     end;
 
     local procedure VerifyJobQuoteReportHeading(Job: Record Job)
