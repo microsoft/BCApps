@@ -12,6 +12,7 @@ tableextension 7440 "EA Bank Acc. Rec. Line" extends "Bank Acc. Reconciliation L
     {
         field(7420; "EA Corp Card Trans Entry No."; Integer)
         {
+            Access = Internal;
             Caption = 'Corp Card Transaction Entry No.';
             DataClassification = SystemMetadata;
             Editable = false;
@@ -19,6 +20,7 @@ tableextension 7440 "EA Bank Acc. Rec. Line" extends "Bank Acc. Reconciliation L
         }
         field(7421; "EA Posted Exp. Report No."; Code[20])
         {
+            Access = Internal;
             Caption = 'Posted Expense Report No.';
             DataClassification = AccountData;
             Editable = false;

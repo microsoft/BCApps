@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies when a justification is required for an expense: never, always, or when rule conditions are not met.
+/// </summary>
 enum 6908 "Expense Justification"
 {
-    Access = Internal;
     Caption = 'Justification Mandatory';
 
     value(0; " ")

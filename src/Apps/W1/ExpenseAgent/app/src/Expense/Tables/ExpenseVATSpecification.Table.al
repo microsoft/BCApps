@@ -15,7 +15,6 @@ using Microsoft.Finance.VAT.Setup;
 /// </summary>
 table 6918 "Expense VAT Specification"
 {
-    Access = Internal;
     Caption = 'Expense VAT Specification';
     DataClassification = CustomerContent;
     LookupPageId = "Expense VAT Specification";
@@ -224,6 +223,7 @@ table 6918 "Expense VAT Specification"
         }
         field(40; Source; Enum "Expense VAT Spec Source")
         {
+            Access = Internal;
             Caption = 'Source';
             Editable = false;
             DataClassification = SystemMetadata;
@@ -231,6 +231,7 @@ table 6918 "Expense VAT Specification"
         }
         field(41; Confidence; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Confidence';
             DecimalPlaces = 0 : 5;
@@ -240,6 +241,7 @@ table 6918 "Expense VAT Specification"
         }
         field(42; Reasoning; Blob)
         {
+            Access = Internal;
             Caption = 'Reasoning';
             ToolTip = 'Specifies the AI reasoning text that explains how the VAT specification values were determined from the receipt or invoice.';
         }
@@ -334,12 +336,19 @@ table 6918 "Expense VAT Specification"
             end;
     end;
 
+    /// <summary>
+    /// Gets the currency code of the expense that the VAT specification belongs to.
+    /// </summary>
+    /// <returns>The currency code of the expense.</returns>
     protected procedure GetCurrencyCode(): Code[20]
     begin
         GetExpense();
         exit(Expense."Currency Code");
     end;
 
+    /// <summary>
+    /// Retrieves the expense that the VAT specification belongs to, if it is not already retrieved.
+    /// </summary>
     protected procedure GetExpense()
     begin
         if "Expense No." <> Expense."No." then
@@ -363,7 +372,7 @@ table 6918 "Expense VAT Specification"
     /// <summary>
     /// Stores a UTF-8 reasoning string into the Reasoning blob.
     /// </summary>
-    procedure SetReasoning(NewReasoning: Text)
+    internal procedure SetReasoning(NewReasoning: Text)
     var
         OutStream: OutStream;
     begin
@@ -375,7 +384,7 @@ table 6918 "Expense VAT Specification"
     /// <summary>
     /// Reads the Reasoning blob as a UTF-8 string.
     /// </summary>
-    procedure GetReasoning() Result: Text
+    internal procedure GetReasoning() Result: Text
     var
         InStream: InStream;
     begin

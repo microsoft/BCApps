@@ -36,7 +36,6 @@ codeunit 133514 "Item Entity Search"
         ActualItem: Codeunit "Test Output Json";
         ElementExists: Boolean;
         SearchStyle: Enum "Search Style";
-        ExpectedConfidence: Enum "Search Confidence";
         i: Integer;
         ExpectedItems: List of [Text];
         ItemNoMismatchErr: Label 'Item No. does not match. Expected: %1, Actual: %2', Comment = '%1 = Expected Item No., %2 = Actual Item No.';
@@ -94,7 +93,6 @@ codeunit 133514 "Item Entity Search"
         Assert.AreEqual(AITestContext.GetExpectedData().GetElementCount(), TempSalesLineAISuggestion.Count(), 'Number of expected results does not match the number of actual results');
 
         // [THEN] Search API returns expected results
-        // Example -> "Expected": [{"Item No.": "1928-W", "Confidence": "High"},{"Item No.": "1964-W", "Confidence": "High"}]
         i := 0;
         if TempSalesLineAISuggestion.FindSet() then
             repeat
@@ -105,24 +103,48 @@ codeunit 133514 "Item Entity Search"
                     Assert.IsTrue(ExpectedItems.Contains(TempSalesLineAISuggestion."No."), StrSubstNo(ItemNoMismatchErr, Element.ValueAsText(), TempSalesLineAISuggestion."No."));
                 end;
 
-                // [THEN] Confidence is as expected
-                Element := AITestContext.GetExpectedData().ElementAt(i).ElementExists('Confidence', ElementExists);
-                if ElementExists then begin
-                    case AITestContext.GetExpectedData().ElementAt(i).Element('Confidence').ValueAsText() of
-                        'High':
-                            ExpectedConfidence := ExpectedConfidence::High;
-                        'Medium':
-                            ExpectedConfidence := ExpectedConfidence::Medium;
-                        'Low':
-                            ExpectedConfidence := ExpectedConfidence::Low;
-                        'None':
-                            ExpectedConfidence := ExpectedConfidence::None;
-                        else
-                            Error('Invalid Confidence');
-                    end;
-                    Assert.AreEqual(ExpectedConfidence, TempSalesLineAISuggestion.Confidence, 'Confidence does not match');
-                end;
                 i += 1;
             until TempSalesLineAISuggestion.Next() = 0;
+
+        // Check every item before confidence so an earlier confidence failure cannot hide a wrong item.
+        i := 0;
+        if TempSalesLineAISuggestion.FindSet() then
+            repeat
+                AssertConfidence(AITestContext.GetExpectedData().ElementAt(i).AsJsonToken().AsObject(), TempSalesLineAISuggestion.Confidence);
+                i += 1;
+            until TempSalesLineAISuggestion.Next() = 0;
+    end;
+
+    internal procedure AssertConfidence(ExpectedItem: JsonObject; ActualConfidence: Enum "Search Confidence")
+    var
+        ConfidenceToken: JsonToken;
+        ExpectedConfidence: Enum "Search Confidence";
+        MinimumConfidenceErr: Label 'Confidence is below the minimum. Expected at least: %1, Actual: %2', Comment = '%1 = Minimum expected confidence, %2 = Actual confidence';
+    begin
+        if ExpectedItem.Get('Confidence', ConfidenceToken) then begin
+            ExpectedConfidence := GetExpectedConfidence(ConfidenceToken.AsValue().AsText());
+            Assert.AreEqual(ExpectedConfidence, ActualConfidence, 'Confidence does not match');
+        end;
+
+        if ExpectedItem.Get('Minimum Confidence', ConfidenceToken) then begin
+            ExpectedConfidence := GetExpectedConfidence(ConfidenceToken.AsValue().AsText());
+            Assert.IsTrue(ActualConfidence.AsInteger() >= ExpectedConfidence.AsInteger(), StrSubstNo(MinimumConfidenceErr, ExpectedConfidence, ActualConfidence));
+        end;
+    end;
+
+    local procedure GetExpectedConfidence(ConfidenceText: Text): Enum "Search Confidence"
+    begin
+        case ConfidenceText of
+            'High':
+                exit("Search Confidence"::High);
+            'Medium':
+                exit("Search Confidence"::Medium);
+            'Low':
+                exit("Search Confidence"::Low);
+            'None':
+                exit("Search Confidence"::None);
+            else
+                Error('Invalid Confidence');
+        end;
     end;
 }

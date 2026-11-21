@@ -260,7 +260,7 @@ table 7200 "CDS Connection Setup"
         field(242; "Dataverse Cloud"; Enum "Dataverse Cloud")
         {
             Caption = 'Dataverse Cloud';
-            Description = 'Identifies the cloud whose OAuth authority and Dataverse Global Discovery endpoints are used when connecting to Dataverse. Set to a sovereign cloud (for example GCC High) through SetDataverseCloud to override the worldwide defaults.';
+            Description = 'Identifies the cloud whose OAuth authority and Dataverse Global Discovery endpoints are used when connecting to Dataverse. On-premises, select a sovereign cloud through SetDataverseCloud. Business Central online always uses the worldwide defaults.';
             DataClassification = SystemMetadata;
         }
     }
@@ -651,7 +651,8 @@ table 7200 "CDS Connection Setup"
     /// Sets the cloud whose OAuth authority and Dataverse Global Discovery endpoints are used when
     /// connecting to Dataverse, and persists the change. Call this from a per-tenant extension to
     /// connect against a sovereign cloud (for example GCC High) by passing a value added to the
-    /// "Dataverse Cloud" enum.
+    /// "Dataverse Cloud" enum. The selection only applies on-premises; Business Central online
+    /// always uses the worldwide (commercial) endpoints.
     /// </summary>
     /// <param name="NewDataverseCloud">The cloud to use for OAuth authority and Global Discovery endpoints.</param>
     procedure SetDataverseCloud(NewDataverseCloud: Enum "Dataverse Cloud")
@@ -664,11 +665,17 @@ table 7200 "CDS Connection Setup"
 
     /// <summary>
     /// Gets the OAuth authority and Dataverse Global Discovery endpoints for the configured
-    /// <see cref="Dataverse Cloud"/>.
+    /// <see cref="Dataverse Cloud"/>. Business Central online always gets the worldwide
+    /// (commercial) endpoints.
     /// </summary>
     /// <returns>The endpoints implementation for the configured cloud.</returns>
     procedure GetDataverseCloudEndpoints(): Interface "Dataverse Cloud Endpoints"
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        // Business Central online only supports the commercial cloud.
+        if EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(Enum::"Dataverse Cloud"::Commercial);
         exit("Dataverse Cloud");
     end;
 

@@ -85,7 +85,7 @@ table 7154 "Item Analysis View Entry"
             Caption = 'Posting Date';
             ToolTip = 'Specifies the date when the item ledger entry in an analysis view entry was posted.';
         }
-        field(13; "Entry No."; Integer)
+        field(13; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

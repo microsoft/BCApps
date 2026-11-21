@@ -125,7 +125,6 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
         ReqLine.SetRange("Journal Batch Name", ReqLine."Journal Batch Name");
         ReqLine.LockTable();
-
         if ReqLine.FindLast() then
             ReqLine.Init();
 
@@ -190,7 +189,6 @@ report 20505 "Subc. Calculate Subcontracts"
         OnBeforeInsertReqWkshLine(ProdOrderRoutingLine, WorkCenter, ReqLine, IsHandled, ProdOrderLine);
         if IsHandled then
             exit;
-
         if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then
             SubcontractingManagement.CheckSubcontractingWorkCenter(ProdOrderRoutingLine."No.");
 
@@ -205,6 +203,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Line No." := ReqLine."Line No." + 10000;
         ReqLine.Validate(Type, ReqLine.Type::Item);
         ReqLine.Validate("No.", ProdOrderLine."Item No.");
+        ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         ReqLine.Validate("Variant Code", ProdOrderLine."Variant Code");
         ReqLine.Validate("Unit of Measure Code", ProdOrderLine."Unit of Measure Code");
         ReqLine.Validate(Quantity, QtyToPurch);
@@ -271,15 +270,13 @@ report 20505 "Subc. Calculate Subcontracts"
             ReqLine."Accept Action Message" := true;
         end else begin
             ReqLine."Replenishment System" := ReqLine."Replenishment System"::"Prod. Order";
-            ReqLine."Ref. Order No." := ProdOrderLine."Prod. Order No.";
-            ReqLine."Ref. Order Type" := ReqLine."Ref. Order Type"::"Prod. Order";
-            ReqLine."Ref. Order Status" := ProdOrderLine.Status;
-            ReqLine."Ref. Line No." := ProdOrderLine."Line No.";
+            ReqLine."Ref. Order Type" := ReqLine."Ref. Order Type"::Purchase;
             ReqLine."Action Message" := ReqLine."Action Message"::New;
             ReqLine."Accept Action Message" := true;
         end;
-
-        if ReqLine."Ref. Order No." <> '' then
+        if ReqLine."Action Message" = ReqLine."Action Message"::New then
+            ReqLine.GetDimFromProdOrderLine(ProdOrderLine, true)
+        else
             ReqLine.GetDimFromRefOrderLine(true);
 
         OnBeforeReqWkshLineInsert(ReqLine, ProdOrderLine);
@@ -312,7 +309,6 @@ report 20505 "Subc. Calculate Subcontracts"
     begin
         if ReqLine."No." = '' then
             exit;
-
         if Item."No." <> ReqLine."No." then begin
             Item.SetLoadFields("No.");
             Item.Get(ReqLine."No.");
@@ -329,7 +325,6 @@ report 20505 "Subc. Calculate Subcontracts"
     local procedure CalculateSubContractRequirements()
     begin
         OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(TempProdOrderRoutingLine);
-
         if TempProdOrderRoutingLine.IsEmpty() then
             exit;
 

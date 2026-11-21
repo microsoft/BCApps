@@ -183,7 +183,7 @@ report 1143 "Import Cost Budget from Excel"
         ServerFileName: Text;
         SheetName: Text[250];
         ToCostBudgetName: Code[10];
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         LastEntryNoBeforeImport: Integer;
         TotalRecNo: Integer;
         RecNo: Integer;
