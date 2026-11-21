@@ -104,6 +104,8 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         TableIds.WriteTo(TableIdsText);
 
         // [GIVEN] the session has only the permission set the source admin assigns to the registered app (no Item read)
+        // Don't call PermissionsMock.Stop(): the test runner toggles the mock around every test, and stopping it here
+        // would leave it inverted for the rest of the session.
         PermissionsMock.Set('MDM Cross-Env Read');
         Assert.IsFalse(Item.ReadPermission(), 'Precondition: the cross-environment permission set should not grant Item read');
 
@@ -117,7 +119,6 @@ codeunit 139931 "MDM Cross-Env Source Tests"
 
         // [WHEN] change detection probes the unreadable table together with a readable one
         Response.ReadFrom(SourceApi.LastModifiedAtPerTable(TableIdsText));
-        PermissionsMock.Stop();
 
         // [THEN] only the unreadable table is flagged; the readable one is still answered
         GetTableEntry(Response, 0, ItemEntry);
