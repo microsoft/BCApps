@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEAN30
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -8,6 +9,9 @@ using Microsoft.Finance.GeneralLedger.Account;
 
 report 10811 "FR Account Schedule"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
     ApplicationArea = Basic, Suite;
     DefaultLayout = RDLC;
     RDLCLayout = './Local/FinancialMgt/FinancialReports/FRAccountSchedule.rdlc';
@@ -288,7 +292,6 @@ report 10811 "FR Account Schedule"
         exit(true);
     end;
 
-    [Scope('OnPrem')]
     procedure CalcSchedLineDebitCredit(var GLAcc3: Record "G/L Account"; AccSchedLine2: Record "FR Acc. Schedule Line"; var TotalAmount: Decimal)
     begin
         if AccSchedLine2."Totaling Debtor" <> '' then begin
@@ -309,3 +312,4 @@ report 10811 "FR Account Schedule"
     end;
 }
 
+#endif

@@ -145,12 +145,17 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Analysis View List";
                     Tooltip = 'Open the Analysis by Dimensions page.';
                 }
+#if not CLEAN30
                 action("Balance Sheet & Income Stateme")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                     ApplicationArea = Basic, Suite;
                     Caption = 'Balance Sheet & Income Statement';
                     RunObject = page "FR Account Schedule Names";
                 }
+#endif
                 action("Fiscal Year Closing Steps")
                 {
                     ApplicationArea = Basic, Suite;
@@ -479,12 +484,17 @@ page 8901 "Finance Manager Role Center"
                             Caption = 'Financial Report';
                             RunObject = report "Account Schedule";
                         }
+#if not CLEAN30
                         action("FR Account Schedule")
                         {
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '30.0';
+                            ObsoleteReason = 'Moved to the French financial reporting capability in the Reports FR app.';
                             ApplicationArea = Basic, Suite;
                             Caption = 'FR Account Schedule';
                             RunObject = report "FR Account Schedule";
                         }
+#endif
 #if not CLEAN28
                         action("Trial Balance")
                         {
@@ -637,70 +647,104 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the Change Log Setup List report.';
                         }
                     }
+#if not CLEAN28
                     group("Group63")
                     {
                         Caption = 'France';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Moved to Reports FR app';
+                        ObsoleteTag = '30.0';
+
                         action("Journals1")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Journals';
                             RunObject = report "Journals";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("G/L Journal")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Journal';
                             RunObject = report "G/L Journal";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("G/L Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Trial Balance';
                             RunObject = report "G/L Trial Balance";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("G/L Detail Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Detail Trial Balance';
                             RunObject = report "G/L Detail Trial Balance";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("Customer Detail Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer Detail Trial Balance';
                             RunObject = report "Customer Detail Trial Balance";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("Bank Account Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Bank Account Trial Balance';
                             RunObject = report "Bank Account Trial Balance";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("Bank Acc. Detail Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Bank Acc. Detail Trial Balance';
                             RunObject = report "Bank Acc. Detail Trial Balance";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("Customer Journal")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Customer Journal';
                             RunObject = report "Customer Journal";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("Vendor Journal")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Vendor Journal';
                             RunObject = report "Vendor Journal";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
                         action("Bank Account Journal")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Bank Account Journal';
                             RunObject = report "Bank Account Journal";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'Moved to Reports FR app';
+                            ObsoleteTag = '30.0';
                         }
-#if not CLEAN28
                         action("GL/Cust. Ledger Reconciliation")
                         {
                             ApplicationArea = Basic, Suite;
@@ -719,14 +763,19 @@ page 8901 "Finance Manager Role Center"
                             ObsoleteReason = 'Moved to the Payment Management FR first-party app';
                             ObsoleteTag = '28.0';
                         }
-#endif
+#if not CLEAN30
                         action("G/L Account Statement")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Account Statement';
                             RunObject = report "G/L Account Statement";
+                            ObsoleteState = Pending;
+                            ObsoleteReason = 'This action is obsolete and should not be used.';
+                            ObsoleteTag = '30.0';
                         }
+#endif
                     }
+#endif
                 }
                 group("Group12")
                 {
@@ -1451,12 +1500,17 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Customer - Balance to Date';
                         RunObject = report "Customer - Balance to Date";
                     }
+#if not CLEAN28
                     action("Customer Trial Balance")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Trial Balance';
                         RunObject = report "Customer Trial Balance FR";
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Moved to Reports FR app';
+                        ObsoleteTag = '30.0';
                     }
+#endif
                     action("Customer - Detail Trial Bal.")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1811,11 +1865,15 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Vendor - Balance to Date';
                         RunObject = report "Vendor - Balance to Date";
                     }
+#if not CLEAN28
                     action("Vendor Trial Balance")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor Trial Balance';
                         RunObject = report "Vendor Trial Balance FR";
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Moved to Reports FR app';
+                        ObsoleteTag = '30.0';
                     }
                     action("Vendor - Detail Trial Balance")
                     {
@@ -1823,7 +1881,11 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Vendor Detail Trial Balance';
                         RunObject = report "Vendor Detail Trial Balance FR";
                         Tooltip = 'Run the Vendor - Detail Trial Balance report.';
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'Moved to Reports FR app';
+                        ObsoleteTag = '30.0';
                     }
+#endif
                     action("Vendor - Labels")
                     {
                         ApplicationArea = Suite;

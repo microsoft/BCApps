@@ -595,7 +595,7 @@ report 1401 Check
                             CheckLedgEntry."Entry Status" := CheckLedgEntry."Entry Status"::"Test Print";
                             CheckLedgEntry."Check Date" := GenJnlLine."Posting Date";
                             CheckLedgEntry."Check No." := UseCheckNo;
-                            CheckManagement.InsertCheck(CheckLedgEntry, RecordId);
+                            CheckManagement.InsertCheck(CheckLedgEntry, GenJnlLine.RecordId);
 
                             CheckAmountText := Text024;
                             DescriptionLine[1] := Text025;
@@ -1170,7 +1170,14 @@ report 1401 Check
 #if CLEAN27
         DecimalPosition: Decimal;
 #endif
+        IsHandled: Boolean;
     begin
+        OnBeforeFormatNoText(NoText, No, CurrencyCode, IsHandled);
+        if IsHandled then begin
+            OnAfterFormatNoText(NoText, No, CurrencyCode);
+            exit;
+        end;
+
         Clear(NoText);
         NoTextIndex := 1;
         NoText[1] := '****';
@@ -1627,6 +1634,23 @@ report 1401 Check
 #endif
 
     /// <summary>
+    /// Integration event raised before formatting numeric amount to text for check printing.
+    /// Enables localizations to replace the standard amount wording.
+    /// </summary>
+    /// <param name="NoText">Array receiving the formatted text representation of the amount</param>
+    /// <param name="No">Numeric amount to format</param>
+    /// <param name="CurrencyCode">Currency code for the amount</param>
+    /// <param name="IsHandled">Set to true to skip the standard formatting</param>
+    /// <remarks>
+    /// Raised from FormatNoText procedure before converting numeric amount to written text format.
+    /// OnAfterFormatNoText is still raised when the event is handled.
+    /// </remarks>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFormatNoText(var NoText: array[2] of Text[80]; No: Decimal; CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
     /// Integration event raised after formatting numeric amount to text for check printing.
     /// Enables custom formatting or modification of the text representation of check amounts.
     /// </summary>
@@ -1698,4 +1722,3 @@ report 1401 Check
     begin
     end;
 }
-
