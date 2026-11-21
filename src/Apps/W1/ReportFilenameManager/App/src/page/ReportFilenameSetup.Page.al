@@ -71,7 +71,7 @@ page 8134 "Report Filename Setup"
 
     trigger OnOpenPage()
     begin
-        // The setup row is created only here, never while a report is being named.
+        // Repair a missing setup row, but never create it while a report is being named.
         Rec.Reset();
         if not Rec.Get() then begin
             Rec.Init();
