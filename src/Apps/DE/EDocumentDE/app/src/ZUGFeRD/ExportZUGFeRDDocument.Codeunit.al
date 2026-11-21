@@ -572,6 +572,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         ReportSelections: Record "Report Selections";
         DataTypeManagement: Codeunit "Data Type Management";
         HeaderRecordRef: RecordRef;
+        SourceRecordRef: RecordRef;
         HeaderTradeAgreementElement, SellerTradePartyElement, BuyerTradePartyElement, SpecifiedTaxRegistrationElement, IDElement : XmlElement;
         SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement : XmlElement;
         PostalTradeAddressElement, ContactElement, BuyerLegalOrganizationElement : XmlElement;
@@ -657,6 +658,12 @@ codeunit 13917 "Export ZUGFeRD Document"
             if Customer."Use Reg. No. in E-Document" and (Customer.GLN = '') and (Customer."VAT Registration No." = '') and (Customer."Registration Number" <> '') then
                 CustomerRegistrationNo := Customer."Registration Number";
         end;
+
+        if GetSourceDocumentRecordRef(RecordVariant, SourceRecordRef) then
+            OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement(
+                SourceRecordRef, CustomerGLN, CustomerRegistrationNo, CustomerName, Address, Address2, PostCode, City, CountryCode,
+                VATRegistrationNo, Contact, PhoneNumber, CustomerEmail, OrderNo, ExternalDocumentNo);
+
         HeaderTradeAgreementElement := XmlElement.Create('ApplicableHeaderTradeAgreement', XmlNamespaceRAM);
         HeaderTradeAgreementElement.Add(XmlElement.Create('BuyerReference', XmlNamespaceRAM, GetBuyerReference(RecordVariant)));
 
@@ -782,7 +789,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryAddress."Country/Region Code" := SalesInvoiceHeader."Ship-to Country/Region Code";
 
         InsertApplicableHeaderTradeDelivery(
-            RootXMLNode, SalesInvoiceHeader."Shipment Date", SalesInvoiceHeader."Ship-to Name", DeliveryAddress,
+            RootXMLNode, SalesInvoiceHeader, SalesInvoiceHeader."Shipment Date", SalesInvoiceHeader."Ship-to Name", DeliveryAddress,
             GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code"));
     end;
 
@@ -798,28 +805,36 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryAddress."Country/Region Code" := SalesCrMemoHeader."Ship-to Country/Region Code";
 
         InsertApplicableHeaderTradeDelivery(
-            RootXMLNode, SalesCrMemoHeader."Shipment Date", SalesCrMemoHeader."Ship-to Name", DeliveryAddress,
+            RootXMLNode, SalesCrMemoHeader, SalesCrMemoHeader."Shipment Date", SalesCrMemoHeader."Ship-to Name", DeliveryAddress,
             GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code"));
     end;
 
-    local procedure InsertApplicableHeaderTradeDelivery(var RootXMLNode: XmlElement; ShipmentDate: Date; ShipToName: Text[100]; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13])
+    local procedure InsertApplicableHeaderTradeDelivery(var RootXMLNode: XmlElement; RecordVariant: Variant; ActualDeliveryDate: Date; ShipToName: Text[100]; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13])
     var
+        SourceRecordRef: RecordRef;
         DeliveryElement, ActualDeliveryDateElement, OccurrenceDateTimeElement : XmlElement;
+        HasSourceRecordRef: Boolean;
     begin
+        HasSourceRecordRef := GetSourceDocumentRecordRef(RecordVariant, SourceRecordRef);
+        if HasSourceRecordRef then
+            OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement(SourceRecordRef, ShipToName, DeliveryAddress, DeliveryGLN, ActualDeliveryDate);
+
         // CII requires ApplicableHeaderTradeDelivery, but the delivery information (BG-13) in it is optional.
         DeliveryElement := XmlElement.Create('ApplicableHeaderTradeDelivery', XmlNamespaceRAM);
 
         if (ShipToName <> '') or (DeliveryGLN <> '') or HasDeliveryAddress(DeliveryAddress) then
             InsertShipToTradeParty(DeliveryElement, ShipToName, DeliveryAddress, DeliveryGLN);
 
-        if ShipmentDate <> 0D then begin
+        if ActualDeliveryDate <> 0D then begin
             ActualDeliveryDateElement := XmlElement.Create('ActualDeliverySupplyChainEvent', XmlNamespaceRAM);
             OccurrenceDateTimeElement := XmlElement.Create('OccurrenceDateTime', XmlNamespaceRAM);
-            OccurrenceDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(ShipmentDate)));
+            OccurrenceDateTimeElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(ActualDeliveryDate)));
             ActualDeliveryDateElement.Add(OccurrenceDateTimeElement);
             DeliveryElement.Add(ActualDeliveryDateElement);
         end;
 
+        if HasSourceRecordRef then
+            OnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot(DeliveryElement, SourceRecordRef);
         RootXMLNode.Add(DeliveryElement);
     end;
 
@@ -878,6 +893,21 @@ codeunit 13917 "Export ZUGFeRD Document"
             if ShipToAddress.GLN <> '' then
                 exit(ShipToAddress.GLN);
         exit(Customer.GLN);
+    end;
+
+    /// <summary>
+    /// Returns the original source document, so that a subscriber sees the service header and not the sales header it was transferred to.
+    /// The passed header is only used when InsertSupplyChainTradeTransaction is called directly, without CreateXML.
+    /// </summary>
+    local procedure GetSourceDocumentRecordRef(RecordVariant: Variant; var SourceRecordRef: RecordRef): Boolean
+    var
+        DataTypeManagement: Codeunit "Data Type Management";
+    begin
+        if SourceDocumentRecordRef.Number() <> 0 then begin
+            SourceRecordRef := SourceDocumentRecordRef;
+            exit(true);
+        end;
+        exit(DataTypeManagement.GetRecordRef(RecordVariant, SourceRecordRef));
     end;
 
     local procedure InsertApplicableHeaderTradeSettlement(var RootXMLNode: XmlElement; var SalesInvHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; CurrencyCode: Code[10]; var LineAmount: Dictionary of [Decimal, Decimal]; var LineVATAmount: Dictionary of [Decimal, Decimal]; var LineAmounts: Dictionary of [Text, Decimal]; var LineDiscAmount: Dictionary of [Decimal, Decimal])
@@ -2292,6 +2322,55 @@ codeunit 13917 "Export ZUGFeRD Document"
     /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires after the buyer and agreement values are collected and before ram:ApplicableHeaderTradeAgreement is created.
+    /// Subscribe to change the values the export writes, using HeaderRecordRef to access any field of the source document.
+    /// </summary>
+    /// <param name="HeaderRecordRef">The source document: Sales Invoice, Sales Cr.Memo, Service Invoice or Service Cr.Memo Header.</param>
+    /// <param name="CustomerGLN">The buyer GLN (BT-46) written to ram:GlobalID. Blank omits the element.</param>
+    /// <param name="CustomerRegistrationNo">The buyer legal registration identifier (BT-47) written to ram:SpecifiedLegalOrganization. Blank omits the element.</param>
+    /// <param name="CustomerName">The buyer name (BT-44).</param>
+    /// <param name="Address">The buyer address line 1 (BT-50).</param>
+    /// <param name="Address2">The buyer address line 2 (BT-51). Blank omits the element.</param>
+    /// <param name="PostCode">The buyer post code (BT-53).</param>
+    /// <param name="City">The buyer city (BT-52).</param>
+    /// <param name="CountryCode">The country/region code of the buyer address (BT-55) and of the buyer VAT registration number.</param>
+    /// <param name="VATRegistrationNo">The buyer VAT identifier (BT-48). Blank omits the element.</param>
+    /// <param name="Contact">The buyer contact point (BT-56). Blank omits the element.</param>
+    /// <param name="PhoneNumber">The buyer contact telephone number (BT-57). Blank omits the element.</param>
+    /// <param name="CustomerEmail">The buyer contact and electronic address (BT-58, BT-49).</param>
+    /// <param name="OrderNo">The sales order reference (BT-14). Blank omits the element.</param>
+    /// <param name="ExternalDocumentNo">The purchase order reference (BT-13). Blank omits the element.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertApplicableHeaderTradeAgreementOnBeforeCreateElement(HeaderRecordRef: RecordRef; var CustomerGLN: Code[13]; var CustomerRegistrationNo: Text[50]; var CustomerName: Text[100]; var Address: Text[100]; var Address2: Text[100]; var PostCode: Text[20]; var City: Text[50]; var CountryCode: Code[10]; var VATRegistrationNo: Text[20]; var Contact: Text[100]; var PhoneNumber: Text[30]; var CustomerEmail: Text[250]; var OrderNo: Code[20]; var ExternalDocumentNo: Code[35])
+    begin
+    end;
+
+    /// <summary>
+    /// Fires after the delivery values are collected and before ram:ApplicableHeaderTradeDelivery is created.
+    /// Subscribe to change the values the export writes, using HeaderRecordRef to access any field of the source document.
+    /// </summary>
+    /// <param name="HeaderRecordRef">The source document: Sales Invoice, Sales Cr.Memo, Service Invoice or Service Cr.Memo Header.</param>
+    /// <param name="ShipToName">The deliver-to party name (BT-70). Blank omits the element.</param>
+    /// <param name="ShipToAddress">The deliver-to address (BG-15). Address, Address 2, City, Post Code, County and Country/Region Code are written; blank fields omit their elements.</param>
+    /// <param name="DeliveryGLN">The deliver-to location identifier (BT-71). Blank omits the element.</param>
+    /// <param name="ActualDeliveryDate">The actual delivery date (BT-72). A blank date omits the element.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertApplicableHeaderTradeDeliveryOnBeforeCreateElement(HeaderRecordRef: RecordRef; var ShipToName: Text[100]; var ShipToAddress: Record "Standard Address"; var DeliveryGLN: Code[13]; var ActualDeliveryDate: Date)
+    begin
+    end;
+
+    /// <summary>
+    /// Fires immediately before ram:ApplicableHeaderTradeDelivery is added to the trade transaction.
+    /// Subscribe to extend the element, for example with ram:DespatchAdviceReferencedDocument (BT-16), which follows ram:ActualDeliverySupplyChainEvent.
+    /// </summary>
+    /// <param name="DeliveryElement">The ram:ApplicableHeaderTradeDelivery element.</param>
+    /// <param name="HeaderRecordRef">The source document: Sales Invoice, Sales Cr.Memo, Service Invoice or Service Cr.Memo Header.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertApplicableHeaderTradeDeliveryOnBeforeAddToRoot(var DeliveryElement: XmlElement; HeaderRecordRef: RecordRef)
     begin
     end;
 
