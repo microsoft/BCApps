@@ -21,6 +21,8 @@ codeunit 40030 "Table and Field Move Mappings"
         SubBillingAppIdLbl: Label '3099ffc7-4cf7-4df6-9b96-7e4bc2bb587c', Locked = true;
         SubBillingOldTok: Label 'Subscription & Recurring Billing', Locked = true;
         SubBillingNewTok: Label 'Subscription Billing', Locked = true;
+        DepreciationDifferencesFIAppIdLbl: Label 'ecb1100e-3081-4c6a-9554-de33c687bf5f', Locked = true;
+        DepreciationDifferencesFITok: Label 'Depreciation Differences FI', Locked = true;
         SQLInvalidCharsLbl: Label '.""\/''%][', Locked = true;
 
     local procedure AddMappings()
@@ -28,6 +30,7 @@ codeunit 40030 "Table and Field Move Mappings"
         AddNoSeriesMappings();
         AddAuditCodesMappings();
         AddSubBillingMappings();
+        AddDepreciationDifferencesFIMappings();
     end;
 
     local procedure AddNoSeriesMappings()
@@ -200,6 +203,39 @@ codeunit 40030 "Table and Field Move Mappings"
         FieldNos.AddRange(6, 7, 21, 22, 23);
         AddTableFieldMappingListSubBilling(8016, FieldNos, AppliesFromVersion, true);
         Clear(FieldNos);
+    end;
+
+    local procedure AddDepreciationDifferencesFIMappings()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        CurrModuleInfo: ModuleInfo;
+        AppliesFromVersion: Version;
+    begin
+        if EnvironmentInformation.GetApplicationFamily() <> 'FI' then
+            exit;
+        if not IsAppInstalled(DepreciationDifferencesFIAppIdLbl) then
+            exit;
+
+        NavApp.GetCurrentModuleInfo(CurrModuleInfo);
+        AppliesFromVersion := Version.Create(30, 0);
+        // Historical names must remain available after the legacy schema is removed.
+        AddTableMapping(BaseAppAppIdLbl, BaseApplicationTok, 13401, 'Depr. Diff. Posting Buffer', false, '', DepreciationDifferencesFIAppIdLbl, DepreciationDifferencesFITok, 13477, 'Depr. Diff. Posting Buffer FI', false, '', AppliesFromVersion, CurrModuleInfo.Id, true);
+
+        AddTableFieldMappingFromBaseAppToDepreciationDifferencesFI('FA Posting Group', 'Depr. Difference Acc.', 'Deprec. Difference Account', false);
+        AddTableFieldMappingFromBaseAppToDepreciationDifferencesFI('FA Posting Group', 'Depr. Difference Bal. Acc.', 'Deprec. Difference Bal Acct', false);
+        AddTableFieldMappingFromBaseAppToDepreciationDifferencesFI('FA Ledger Entry', 'Depr. Difference Posted', 'Depreciation Difference Posted', false);
+        AddTableFieldMappingFromBaseAppToDepreciationDifferencesFI('Source Code Setup', 'Depr. Difference', 'Depreciation Difference Code', true);
+    end;
+
+    local procedure AddTableFieldMappingFromBaseAppToDepreciationDifferencesFI(TableName: Text[150]; FromFieldName: Text[150]; ToFieldName: Text[150]; FromIsExtensionTable: Boolean)
+    var
+        CurrModuleInfo: ModuleInfo;
+        FromBaseTableName: Text[150];
+    begin
+        NavApp.GetCurrentModuleInfo(CurrModuleInfo);
+        if FromIsExtensionTable then
+            FromBaseTableName := TableName;
+        AddTableFieldMapping(BaseAppAppIdLbl, BaseApplicationTok, TableName, FromFieldName, FromIsExtensionTable, FromBaseTableName, DepreciationDifferencesFIAppIdLbl, DepreciationDifferencesFITok, TableName, true, TableName, ToFieldName, Version.Create(30, 0), CurrModuleInfo.Id, true);
     end;
 
     local procedure AddTableMappingListFromBaseappToBusinessFoundation(TableNos: List of [Integer]; AppliesFromVersion: Version; PerCompany: Boolean)
