@@ -3460,6 +3460,11 @@ table 1003 "Job Planning Line"
         CalledFromHeader := Suspend;
     end;
 
+    procedure SuspendDeletionCheck(): Boolean
+    begin
+        exit(CalledFromHeader);
+    end;
+
     procedure SetPurchLineFilters(var PurchaseLine: Record "Purchase Line")
     begin
         PurchaseLine.SetCurrentKey("Document Type", "Job No.", "Job Task No.", "Job Planning Line No.");
