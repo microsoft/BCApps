@@ -620,6 +620,15 @@ table 8059 "Subscription Line"
         key(Key4; "Supplier Reference Entry No.", "Subscription Line Start Date")
         {
         }
+        key(EndDate; "Subscription Line End Date")
+        {
+        }
+        key(CancellationPossibleUntil; "Cancellation Possible Until")
+        {
+        }
+        key(TermUntil; "Term Until")
+        {
+        }
     }
 
     trigger OnInsert()

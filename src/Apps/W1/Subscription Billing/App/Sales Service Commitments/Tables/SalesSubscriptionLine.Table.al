@@ -398,6 +398,12 @@ table 8068 "Sales Subscription Line"
         key(SK1; "Document Type", "Document No.", "Document Line No.", "Subscription Package Code")
         {
         }
+        key(SubscriptionLine; "Subscription Line Entry No.")
+        {
+        }
+        key(LinkedTo; "Linked to No.", "Linked to Line No.")
+        {
+        }
     }
 
     trigger OnModify()

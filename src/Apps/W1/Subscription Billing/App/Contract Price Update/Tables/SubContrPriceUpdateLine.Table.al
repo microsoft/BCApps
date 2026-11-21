@@ -176,6 +176,9 @@ table 8004 "Sub. Contr. Price Update Line"
         key(SK1; Partner, "Subscription Contract No.")
         {
         }
+        key(SubscriptionLine; "Subscription Line Entry No.")
+        {
+        }
     }
 
     var

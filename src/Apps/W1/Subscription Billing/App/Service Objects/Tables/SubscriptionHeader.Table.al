@@ -1044,6 +1044,9 @@ table 8057 "Subscription Header"
         key(SK1; "Item Ledger Entry No.")
         {
         }
+        key(SerialNo; "Serial No.")
+        {
+        }
     }
 
     trigger OnInsert()
