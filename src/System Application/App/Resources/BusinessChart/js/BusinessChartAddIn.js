@@ -381,6 +381,7 @@ function createChart(chartData) {
             },
           },
           stickyTracking: false,
+          turboThreshold: 0,
         },
       },
       series: getSeries(chartData, xAxisType),
