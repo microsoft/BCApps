@@ -45,6 +45,11 @@ table 7420 "EA Card Expense Match Buffer"
             Caption = 'Merchant Name';
             ToolTip = 'Specifies the merchant name on the receipt.';
         }
+        field(14; "Card Last 4"; Text[30])
+        {
+            Caption = 'Card Last 4';
+            ToolTip = 'Specifies the last four digits of the card on the receipt. When set, only expenses paid with the expense user''s cards ending in these digits match. Values that are not exactly four digits are ignored.';
+        }
         field(20; "Expense SystemId"; Guid)
         {
             Caption = 'Expense System Id';

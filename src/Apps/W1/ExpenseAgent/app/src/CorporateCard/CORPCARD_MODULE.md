@@ -558,10 +558,10 @@ When a receipt has been extracted, the client asks Business Central which pendin
 
 ```http
 POST .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/cardExpenseMatches
-{ "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR", "merchantName": "Contoso Coffee" }
+{ "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR", "merchantName": "Contoso Coffee", "cardLast4": "1234" }
 ```
 
-Candidates are the user's pending card expenses with the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
+Candidates are the user's pending card expenses with the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. When the optional `cardLast4` is exactly four digits, candidates must also be paid with one of the user's cards whose **Masked Card No.** ends in those digits; other values are ignored. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
 
 Recommended client flow for a matched expense:
 
@@ -579,7 +579,7 @@ POST .../expenseUsers({expenseUserId})/cardExpenseMatches
 { "expenseId": "{expenseId}", "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR" }
 ```
 
-Only that expense is checked, with the same rules as above (merchant name is not required). The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
+Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent (merchant name is not required). The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
 
 ### Upgrade Behavior
 
