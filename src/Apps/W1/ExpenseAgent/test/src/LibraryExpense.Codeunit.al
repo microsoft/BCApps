@@ -33,6 +33,7 @@ codeunit 148300 "Library - Expense"
         AttachmentRetrievalFailureEnabled: Boolean;
         CorpCardDraftFailureEnabled: Boolean;
         CorpCardDraftFailedErr: Label 'Corporate card draft creation failed after inserting the expense.', Locked = true;
+        OnePixelPngBase64Lbl: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     internal procedure SetCorpCardDraftFailureEnabled(Enabled: Boolean)
     begin
@@ -873,5 +874,16 @@ codeunit 148300 "Library - Expense"
         LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
         ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    internal procedure CreateTempBLOBWithImageOfType(var TempBlob: Codeunit "Temp Blob"; ImageFormat: Enum "Image Format")
+    var
+        Image: Codeunit Image;
+        OutStream: OutStream;
+    begin
+        Image.FromBase64(OnePixelPngBase64Lbl);
+        Image.SetFormat(ImageFormat);
+        TempBlob.CreateOutStream(OutStream);
+        Image.Save(OutStream);
     end;
 }
