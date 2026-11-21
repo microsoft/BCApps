@@ -1,0 +1,26 @@
+{
+  "id": "47eb17b8-4717-4434-a214-47eb76ba49d2",
+  "name": "Location Address Prototype",
+  "publisher": "Microsoft",
+  "url": "https://github.com/microsoft/BCApps",
+  "version": "30.0.0.0",
+  "brief": "Country-aware address preview and editing prototype.",
+  "description": "Opt-in address previews for Location Card, Sales Invoice, and Posted Sales Invoice, with temporary-record editing on unposted pages.",
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 17700,
+      "to": 17702
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith"
+  ]
+}
