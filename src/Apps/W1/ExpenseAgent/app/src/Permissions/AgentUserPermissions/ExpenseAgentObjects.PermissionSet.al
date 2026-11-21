@@ -19,6 +19,7 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Approver View API" = X,
                   page "Expense Capabilities API" = X,
                   page "Expense Activity Log API" = X,
+                  page "Exp. Report Change Log API" = X,
                   page "Expense Agent Access Ctrl API" = X,
                   page "Expense Agent Setup API" = X,
                   page "Exp. Alternate Approvers API" = X,
@@ -93,6 +94,7 @@ permissionset 6952 "Expense Agent - Objects"
                   table "Expense Alternate Approver" = X,
                   table "Expense Capabilities Buffer" = X,
                   table "Expense Activity Log Entry" = X,
+                  table "Exp. Report Change Log Entry" = X,
                   table "Expense Project Buf" = X,
                   table "Exp. Policy To Eval Buffer" = X,
 #if not CLEAN29
@@ -152,6 +154,7 @@ permissionset 6952 "Expense Agent - Objects"
                   codeunit "Expense Auto Population" = X,
                   codeunit "Expense Capabilities Provider" = X,
                   codeunit "Expense Activity Log Mgt." = X,
+                  codeunit "Exp. Report Change Log Mgt." = X,
                   codeunit "Exp. Policies To Eval Builder" = X,
                   codeunit "Expense Consumption Handler" = X,
                   codeunit "Expense Agent Quota Impl." = X,
