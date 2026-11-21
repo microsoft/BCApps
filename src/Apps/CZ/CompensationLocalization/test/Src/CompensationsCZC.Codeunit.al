@@ -1,3 +1,15 @@
+namespace Microsoft.Finance.Compensations;
+
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Setup;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Setup;
+using System.TestLibraries.Utilities;
+
 codeunit 148090 "Compensations CZC"
 {
     Subtype = Test;
@@ -17,18 +29,34 @@ codeunit 148090 "Compensations CZC"
         LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         CompensationSourceTypeCZC: Enum "Compensation Source Type CZC";
         isInitialized: Boolean;
 
     local procedure Initialize()
     var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Compensations CZC");
         LibraryRandom.Init();
+        LibraryVariableStorage.Clear();
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Compensations CZC");
+
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        SalesReceivablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        SalesReceivablesSetup.Modify(true);
+        LibrarySales.SetPostedNoSeriesInSetup();
+
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
+        PurchasesPayablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
+        PurchasesPayablesSetup.Modify(true);
+        LibraryPurchase.SetPostedNoSeriesInSetup();
 
         CompensationsSetupCZC.Get();
         CompensationsSetupCZC."Compensation Nos." := LibraryERM.CreateNoSeriesCode();
@@ -74,19 +102,19 @@ codeunit 148090 "Compensations CZC"
         case CompensationSourceTypeCZC of
             CompensationLineCZC1."Source Type"::Customer:
                 begin
-                    FindCustomerLedgerEntryForInvoice(CustLedgerEntry);
+                    CreateCustomerLedgerEntry(CustLedgerEntry, CompensationHeaderCZC."Company No.", "Sales Document Type"::Invoice);
                     CreateCompensationLine(
                       CompensationLineCZC1, CompensationHeaderCZC, CompensationSourceTypeCZC, CustLedgerEntry."Entry No.");
-                    FindCustomerLedgerEntryForCrMemo(CustLedgerEntry);
+                    CreateCustomerLedgerEntry(CustLedgerEntry, CompensationHeaderCZC."Company No.", "Sales Document Type"::"Credit Memo");
                     CreateCompensationLine(
                       CompensationLineCZC2, CompensationHeaderCZC, CompensationSourceTypeCZC, CustLedgerEntry."Entry No.");
                 end;
             CompensationLineCZC1."Source Type"::Vendor:
                 begin
-                    FindVendorLedgerEntryForInvoice(VendorLedgerEntry);
+                    CreateVendorLedgerEntry(VendorLedgerEntry, CompensationHeaderCZC."Company No.", "Purchase Document Type"::Invoice);
                     CreateCompensationLine(
                       CompensationLineCZC1, CompensationHeaderCZC, CompensationSourceTypeCZC, VendorLedgerEntry."Entry No.");
-                    FindVendorLedgerEntryForCrMemo(VendorLedgerEntry);
+                    CreateVendorLedgerEntry(VendorLedgerEntry, CompensationHeaderCZC."Company No.", "Purchase Document Type"::"Credit Memo");
                     CreateCompensationLine(
                       CompensationLineCZC2, CompensationHeaderCZC, CompensationSourceTypeCZC, VendorLedgerEntry."Entry No.");
                 end;
@@ -143,19 +171,19 @@ codeunit 148090 "Compensations CZC"
         case CompensationSourceTypeCZC of
             CompensationLineCZC1."Source Type"::Customer:
                 begin
-                    FindCustomerLedgerEntryForInvoice(CustLedgerEntry);
+                    CreateCustomerLedgerEntry(CustLedgerEntry, CompensationHeaderCZC."Company No.", "Sales Document Type"::Invoice);
                     CreateCompensationLine(
                       CompensationLineCZC1, CompensationHeaderCZC, CompensationSourceTypeCZC, CustLedgerEntry."Entry No.");
-                    FindCustomerLedgerEntryForCrMemo(CustLedgerEntry);
+                    CreateCustomerLedgerEntry(CustLedgerEntry, CompensationHeaderCZC."Company No.", "Sales Document Type"::"Credit Memo");
                     CreateCompensationLine(
                       CompensationLineCZC2, CompensationHeaderCZC, CompensationSourceTypeCZC, CustLedgerEntry."Entry No.");
                 end;
             CompensationLineCZC1."Source Type"::Vendor:
                 begin
-                    FindVendorLedgerEntryForInvoice(VendorLedgerEntry);
+                    CreateVendorLedgerEntry(VendorLedgerEntry, CompensationHeaderCZC."Company No.", "Purchase Document Type"::Invoice);
                     CreateCompensationLine(
                       CompensationLineCZC1, CompensationHeaderCZC, CompensationSourceTypeCZC, VendorLedgerEntry."Entry No.");
-                    FindVendorLedgerEntryForCrMemo(VendorLedgerEntry);
+                    CreateVendorLedgerEntry(VendorLedgerEntry, CompensationHeaderCZC."Company No.", "Purchase Document Type"::"Credit Memo");
                     CreateCompensationLine(
                       CompensationLineCZC2, CompensationHeaderCZC, CompensationSourceTypeCZC, VendorLedgerEntry."Entry No.");
                 end;
@@ -270,6 +298,123 @@ codeunit 148090 "Compensations CZC"
         Assert.AreEqual(0, CompensationLineCZC2.Count(), 'No compensation line was expected for this compensation.');
     end;
 
+    [Test]
+    [HandlerFunctions('CustomerSourceEntryLookupHandler')]
+    procedure CustomerSourceEntryLookupRespectsEventFilters()
+    begin
+        SourceEntryLookupRespectsEventFilters(CompensationSourceTypeCZC::Customer);
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorSourceEntryLookupHandler')]
+    procedure VendorSourceEntryLookupRespectsEventFilters()
+    begin
+        SourceEntryLookupRespectsEventFilters(CompensationSourceTypeCZC::Vendor);
+    end;
+
+    local procedure SourceEntryLookupRespectsEventFilters(SourceType: Enum "Compensation Source Type CZC")
+    var
+        CompensationHeaderCZC: Record "Compensation Header CZC";
+        CompensationLineCZC: Record "Compensation Line CZC";
+        CompLookupSubscribersCZC: Codeunit "Comp. Lookup Subscribers CZC";
+        CompensationCardCZC: TestPage "Compensation Card CZC";
+        InitialSourceEntryNo: Integer;
+        SourceEntryNo: Integer;
+    begin
+        // [SCENARIO] Source entry lookup respects filters changed by the event for the selected source type.
+        Initialize();
+
+        // [GIVEN] Three invoices are posted, with one already used on a compensation line.
+        CreateCompensationHeader(CompensationHeaderCZC, SourceType);
+        SourceEntryNo := CreateSourceEntryLookupInvoices(CompensationHeaderCZC, SourceType, InitialSourceEntryNo);
+        CreateCompensationLine(CompensationLineCZC, CompensationHeaderCZC, SourceType, InitialSourceEntryNo);
+        CompensationsSetupCZC.Get();
+        CompensationsSetupCZC."Including Entries with On Hold" := false;
+        CompensationsSetupCZC.Modify();
+
+        // [GIVEN] A manually bound subscriber restricts the two eligible invoices to the last invoice.
+        Assert.IsTrue(BindSubscription(CompLookupSubscribersCZC), 'The lookup subscribers must be bound.');
+        LibraryVariableStorage.Enqueue(SourceEntryNo);
+        CompensationCardCZC.OpenEdit();
+        CompensationCardCZC.GoToRecord(CompensationHeaderCZC);
+        CompensationCardCZC.CompensationLinesCZC.GoToRecord(CompensationLineCZC);
+
+        // [WHEN] The source entry lookup is opened and its only entry is selected.
+        CompensationCardCZC.CompensationLinesCZC."Source Entry No.".Lookup();
+        CompensationCardCZC.Close();
+        Assert.IsTrue(UnbindSubscription(CompLookupSubscribersCZC), 'The lookup subscribers must be unbound.');
+
+        // [THEN] The selected entry was saved on the compensation line.
+        CompensationLineCZC.Get(CompensationLineCZC."Compensation No.", CompensationLineCZC."Line No.");
+        CompensationLineCZC.TestField("Source Entry No.", SourceEntryNo);
+        CompensationLineCZC.TestField("Source No.", CompensationHeaderCZC."Company No.");
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure CreateSourceEntryLookupInvoices(CompensationHeaderCZC: Record "Compensation Header CZC"; SourceType: Enum "Compensation Source Type CZC"; var InitialSourceEntryNo: Integer): Integer
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DocumentNo: Code[20];
+        InvoiceIndex: Integer;
+    begin
+        for InvoiceIndex := 1 to 3 do
+            case SourceType of
+                SourceType::Customer:
+                    begin
+                        CreateSalesInvoice(SalesHeader, SalesLine, CompensationHeaderCZC."Company No.");
+                        DocumentNo := PostSalesDocument(SalesHeader);
+                    end;
+                SourceType::Vendor:
+                    begin
+                        CreatePurchaseDocument(
+                          PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Invoice, CompensationHeaderCZC."Company No.");
+                        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+                    end;
+            end;
+
+        case SourceType of
+            SourceType::Customer:
+                begin
+                    CustLedgerEntry.SetRange("Customer No.", CompensationHeaderCZC."Company No.");
+                    CustLedgerEntry.SetRange(Open, true);
+                    CustLedgerEntry.SetRange(Prepayment, false);
+                    CustLedgerEntry.SetRange("Compensation Amount (LCY) CZC", 0);
+                    CustLedgerEntry.SetRange("On Hold", '');
+                    Assert.AreEqual(3, CustLedgerEntry.Count(), 'Three eligible customer ledger entries must exist.');
+                    CustLedgerEntry.SetFilter("Document No.", '<>%1', DocumentNo);
+                    CustLedgerEntry.FindFirst();
+                    InitialSourceEntryNo := CustLedgerEntry."Entry No.";
+                    CustLedgerEntry.SetRange("Document No.", DocumentNo);
+                    CustLedgerEntry.FindFirst();
+                    CustLedgerEntry.Validate(Description, 'Lookup event filter CZC');
+                    CustLedgerEntry.Modify(true);
+                    exit(CustLedgerEntry."Entry No.");
+                end;
+            SourceType::Vendor:
+                begin
+                    VendorLedgerEntry.SetRange("Vendor No.", CompensationHeaderCZC."Company No.");
+                    VendorLedgerEntry.SetRange(Open, true);
+                    VendorLedgerEntry.SetRange(Prepayment, false);
+                    VendorLedgerEntry.SetRange("Compensation Amount (LCY) CZC", 0);
+                    VendorLedgerEntry.SetRange("On Hold", '');
+                    Assert.AreEqual(3, VendorLedgerEntry.Count(), 'Three eligible vendor ledger entries must exist.');
+                    VendorLedgerEntry.SetFilter("Document No.", '<>%1', DocumentNo);
+                    VendorLedgerEntry.FindFirst();
+                    InitialSourceEntryNo := VendorLedgerEntry."Entry No.";
+                    VendorLedgerEntry.SetRange("Document No.", DocumentNo);
+                    VendorLedgerEntry.FindFirst();
+                    VendorLedgerEntry.Validate(Description, 'Lookup event filter CZC');
+                    VendorLedgerEntry.Modify(true);
+                    exit(VendorLedgerEntry."Entry No.");
+                end;
+        end;
+    end;
+
     local procedure CreateCompensationHeader(var CompensationHeaderCZC: Record "Compensation Header CZC"; CompensationSourceTypeCZC: Enum "Compensation Source Type CZC")
     begin
         case CompensationSourceTypeCZC of
@@ -320,6 +465,16 @@ codeunit 148090 "Compensations CZC"
         CreateSalesDocument(SalesHeader, SalesLine, SalesHeader."Document Type"::Invoice, CustomerNo);
     end;
 
+    local procedure CreatePurchaseDocument(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line";
+                                           DocumentType: Enum "Purchase Document Type"; VendorNo: Code[20])
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GetNewGLAccountNo(true), 1);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(10000, 2));
+        PurchaseLine.Modify(true);
+    end;
+
     local procedure GetNewGLAccountNo(WithVATPostingSetup: Boolean): Code[20]
     var
         GLAccount: Record "G/L Account";
@@ -328,24 +483,48 @@ codeunit 148090 "Compensations CZC"
         exit(GLAccount."No.");
     end;
 
-    local procedure FindCustomerLedgerEntryForInvoice(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    local procedure CreateCustomerLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Sales Document Type")
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PostedDocumentNo: Code[20];
     begin
-        LibraryCompensationCZC.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice);
+        CreateSalesDocument(SalesHeader, SalesLine, DocumentType, CustomerNo);
+        PostedDocumentNo := PostSalesDocument(SalesHeader);
+
+        CustLedgerEntry.Reset();
+        CustLedgerEntry.SetRange("Customer No.", CustomerNo);
+        CustLedgerEntry.SetRange("Document No.", PostedDocumentNo);
+        case DocumentType of
+            DocumentType::Invoice:
+                CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+            DocumentType::"Credit Memo":
+                CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::"Credit Memo");
+        end;
+        CustLedgerEntry.SetRange(Open, true);
+        CustLedgerEntry.FindFirst();
     end;
 
-    local procedure FindCustomerLedgerEntryForCrMemo(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    local procedure CreateVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Purchase Document Type")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PostedDocumentNo: Code[20];
     begin
-        LibraryCompensationCZC.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::"Credit Memo");
-    end;
+        CreatePurchaseDocument(PurchaseHeader, PurchaseLine, DocumentType, VendorNo);
+        PostedDocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
-    local procedure FindVendorLedgerEntryForInvoice(var VendorLedgerEntry: Record "Vendor Ledger Entry")
-    begin
-        LibraryCompensationCZC.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice);
-    end;
-
-    local procedure FindVendorLedgerEntryForCrMemo(var VendorLedgerEntry: Record "Vendor Ledger Entry")
-    begin
-        LibraryCompensationCZC.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::"Credit Memo");
+        VendorLedgerEntry.Reset();
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document No.", PostedDocumentNo);
+        case DocumentType of
+            DocumentType::Invoice:
+                VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Invoice);
+            DocumentType::"Credit Memo":
+                VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::"Credit Memo");
+        end;
+        VendorLedgerEntry.SetRange(Open, true);
+        VendorLedgerEntry.FindFirst();
     end;
 
     local procedure PostCompensation(var CompensationHeaderCZC: Record "Compensation Header CZC")
@@ -366,6 +545,26 @@ codeunit 148090 "Compensations CZC"
     local procedure Reopen(var CompensationHeaderCZC: Record "Compensation Header CZC")
     begin
         LibraryCompensationCZC.RunReopenCompensation(CompensationHeaderCZC);
+    end;
+
+    [ModalPageHandler]
+    procedure CustomerSourceEntryLookupHandler(var CustomerLedgerEntries: TestPage "Customer Ledger Entries")
+    begin
+        Assert.IsTrue(CustomerLedgerEntries.First(), 'The filtered customer entry must be shown.');
+        CustomerLedgerEntries."Entry No.".AssertEquals(LibraryVariableStorage.DequeueInteger());
+        Assert.IsFalse(CustomerLedgerEntries.Next(), 'No other customer entry may be shown.');
+        CustomerLedgerEntries.First();
+        CustomerLedgerEntries.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure VendorSourceEntryLookupHandler(var VendorLedgerEntries: TestPage "Vendor Ledger Entries")
+    begin
+        Assert.IsTrue(VendorLedgerEntries.First(), 'The filtered vendor entry must be shown.');
+        VendorLedgerEntries."Entry No.".AssertEquals(LibraryVariableStorage.DequeueInteger());
+        Assert.IsFalse(VendorLedgerEntries.Next(), 'No other vendor entry may be shown.');
+        VendorLedgerEntries.First();
+        VendorLedgerEntries.OK().Invoke();
     end;
 
     [ModalPageHandler]
