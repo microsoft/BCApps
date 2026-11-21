@@ -1285,7 +1285,8 @@ page 6510 "Item Tracking Lines"
             Clear(ContinuousTracking);
             ContinuousTracking.InitContinuousItemTracking(Rec, SourceQuantityArray[1], ItemTrackingEntryType, not BarcodeScannerIsNotContinuousScanningMode);
             ContinuousTracking.RunModal();
-            if (ContinuousTracking.GetInput() = '') then break;
+            if (ContinuousTracking.GetInput() = '') then
+                break;
 
             if CheckItemTrackingLineIsInBoundForBarcodeScanning() then
                 case ItemTrackingEntryType of
@@ -3712,8 +3713,12 @@ page 6510 "Item Tracking Lines"
             WarehouseEntry.SetFilter(
               "Reference Document", '%1|%2',
               WarehouseEntry."Reference Document"::"Put-away", WarehouseEntry."Reference Document"::Pick);
-            if not WarehouseEntry.IsEmpty() then
+            if not WarehouseEntry.IsEmpty() then begin
+                repeat
+                    ItemTrackingMgt.SynchronizeWhseTrackingAfterShippedPick(WarehouseShipmentLine);
+                until WarehouseShipmentLine.Next() = 0;
                 exit;
+            end;
         end;
         repeat
             WarehouseShipmentLine.DeleteWhseItemTrackingLines();
