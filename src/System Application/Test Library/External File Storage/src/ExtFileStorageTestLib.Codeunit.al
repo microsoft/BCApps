@@ -22,4 +22,11 @@ codeunit 135813 "Ext. File Storage Test Lib."
         ExternalFileStorageConnector := FileScenarios.Connector;
         exit(true);
     end;
+
+    procedure DeleteFileOrDirectory(var TempFileAccountContent: Record "File Account Content" temporary)
+    var
+        FileAccountBrowserMgt: Codeunit "File Account Browser Mgt.";
+    begin
+        FileAccountBrowserMgt.DeleteFileOrDirectory(TempFileAccountContent);
+    end;
 }
