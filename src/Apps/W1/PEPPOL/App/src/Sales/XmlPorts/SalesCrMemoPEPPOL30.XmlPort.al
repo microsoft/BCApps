@@ -12,6 +12,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Service.History;
 using System.Utilities;
 
 xmlport 37200 "Sales Cr.Memo - PEPPOL30"
@@ -197,13 +198,24 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
 
                 trigger OnBeforePassVariable()
                 var
+                    PEPPOL30: Codeunit "PEPPOL30";
                     PEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
+                    ProcessedDocType: Option Sale,Service;
                 begin
-                    PEPPOLDocumentInfoProvider := GetFormat();
-                    PEPPOLDocumentInfoProvider.GetCrMemoBillingReferenceInfo(
-                    SalesCrMemoHeader,
-                      InvoiceDocRefID,
-                      InvoiceDocRefIssueDate);
+                    Clear(InvoiceDocRefID);
+                    Clear(InvoiceDocRefIssueDate);
+                    Clear(SalesCrMemoHeader);
+                    if PostedSourceRecRef.Number = Database::"Sales Cr.Memo Header" then begin
+                        PostedSourceRecRef.SetTable(SalesCrMemoHeader);
+                        PEPPOLDocumentInfoProvider := GetFormat();
+                        PEPPOLDocumentInfoProvider.GetCrMemoBillingReferenceInfo(
+                          SalesCrMemoHeader, InvoiceDocRefID, InvoiceDocRefIssueDate);
+                    end else
+                        if PostedSourceRecRef.Number = Database::"Service Cr.Memo Header" then begin
+                            SalesCrMemoHeader.TransferFields(SalesHeader);
+                            PEPPOL30.GetCrMemoBillingReferenceInfo(
+                              SalesCrMemoHeader, InvoiceDocRefID, InvoiceDocRefIssueDate, ProcessedDocType::Service);
+                        end;
 
                     if InvoiceDocRefID = '' then
                         currXMLport.Skip();
