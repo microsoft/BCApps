@@ -29,8 +29,10 @@ codeunit 1297 "Http Web Request Mgt."
         WebRequestHelper: Codeunit "Web Request Helper";
         HttpWebResponse: DotNet HttpWebResponse;
     begin
+#pragma warning disable AL0432
         exit(WebRequestHelper.GetWebResponse(HttpWebRequest, HttpWebResponse, ResponseInStream, HttpStatusCode,
             ResponseHeaders, GlobalProgressDialogEnabled));
+#pragma warning restore AL0432
     end;
 
     [Scope('OnPrem')]
@@ -41,8 +43,10 @@ codeunit 1297 "Http Web Request Mgt."
         HttpStatusCode: DotNet HttpStatusCode;
         ResponseHeaders: DotNet NameValueCollection;
     begin
+#pragma warning disable AL0432
         exit(WebRequestHelper.GetWebResponse(HttpWebRequest, HttpWebResponse, ResponseInStream, HttpStatusCode,
             ResponseHeaders, GlobalProgressDialogEnabled));
+#pragma warning restore AL0432
     end;
 
     [TryFunction]
@@ -76,7 +80,9 @@ codeunit 1297 "Http Web Request Mgt."
         ErrorText: Text;
         ServiceURL: Text;
     begin
+#pragma warning disable AL0432
         ErrorText := WebRequestHelper.GetWebResponseError(WebException, ServiceURL);
+#pragma warning restore AL0432
 
         WebExceptionResponse := WebException.Response();
         if not IsNull(WebExceptionResponse) then begin
@@ -114,7 +120,9 @@ codeunit 1297 "Http Web Request Mgt."
         HttpError: Text;
     begin
         ResponseJson := '';
+#pragma warning disable AL0432
         HttpError := WebRequestHelper.GetWebResponseError(WebException, ServiceURL);
+#pragma warning restore AL0432
         ParseWebResponseError(ResponseJson, WebException);
 
         if ResponseJson = '' then
@@ -487,7 +495,9 @@ codeunit 1297 "Http Web Request Mgt."
 
         ErrorMessage := GetLastErrorText;
 
+#pragma warning disable AL0432
         WebRequestHelper.GetWebResponseError(WebException, ServiceUrl);
+#pragma warning restore AL0432
         WebExceptionResponse := WebException.Response;
         if SYSTEM.IsNull(WebExceptionResponse) then
             exit(false);
