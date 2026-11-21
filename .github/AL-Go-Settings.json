@@ -17,6 +17,7 @@
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 4,
   "enableCleanTestCodeunitExecution": true,
+  "enableChurnBasedTesting": true,
   "maxTestAppReruns": 2,
   "failOn": "newWarning",
   "workspaceCompilation": {
@@ -164,6 +165,7 @@
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
+    ".github/*",
     "build/*",
     "src/rulesets/*",
     "src/Layers/*",
