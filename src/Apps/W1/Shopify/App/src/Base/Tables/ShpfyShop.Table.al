@@ -886,6 +886,13 @@ table 30102 "Shpfy Shop"
             ValuesAllowed = "Credit Memo", "Return Order";
             InitValue = "Credit Memo";
         }
+        field(138; "Move Negative Lines To"; Enum "Shpfy Move Negative Lines To")
+        {
+            Caption = 'Move Negative Lines To';
+            ToolTip = 'Specifies whether negative lines on sales return orders created from Shopify returns and refunds are automatically moved to a sales order or sales invoice.';
+            DataClassification = CustomerContent;
+            InitValue = "Do Not Move";
+        }
         field(200; "Shop Id"; Integer)
         {
             DataClassification = SystemMetadata;
