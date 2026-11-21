@@ -21,9 +21,13 @@ codeunit 10057 "Key Vault Client IRIS" implements "IRS 1099 IRIS Configuration"
         TransmitterTCCKeyTok: Label 'IRS1099IRIS-TransmitterTCC', Locked = true;
         SoftwareDevTCCKeyTok: Label 'IRS1099IRIS-SoftwareDevTCC', Locked = true;
         SoftwareIDKeyTok: Label 'IRS1099IRIS-SoftwareID', Locked = true;
+        SoftwareIDYearKeyTok: Label 'IRS1099IRIS-SoftwareID-%1', Locked = true, Comment = '%1 - requested tax year';
+        XmlSchemaVersionTestKeyTok: Label 'IRS1099IRIS-XmlSchemaVersionTest', Locked = true;
+        XmlSchemaVersionLiveKeyTok: Label 'IRS1099IRIS-XmlSchemaVersionLive', Locked = true;
         APIClientIDKeyTok: Label 'IRS1099IRIS-ClientID', Locked = true;
         JSONWebKeyIDKeyTok: Label 'IRS1099IRIS-JSONWebKeyID', Locked = true;
-        AuthURLKeyTok: Label 'IRS1099IRIS-AuthURL', Locked = true;
+        AuthURLLiveKeyTok: Label 'IRS1099IRIS-AuthURLLive', Locked = true;
+        AuthURLTestKeyTok: Label 'IRS1099IRIS-AuthURLTest', Locked = true;
         ConsentAppURLKeyTok: Label 'IRS1099IRIS-ConsentAppURL', Locked = true;
         CertificateNameKeyTok: Label 'IRS1099IRIS-CertificateName', Locked = true;
         SubmitEndpointLiveKeyTok: Label 'IRS1099IRIS-SubmitEndpointLive', Locked = true;
@@ -110,6 +114,32 @@ codeunit 10057 "Key Vault Client IRIS" implements "IRS 1099 IRIS Configuration"
     #endregion Interface Methods
 
     #region Internal Methods
+    procedure GetSoftwareId(TaxYear: Text) SoftwareID: Text
+    var
+        SoftwareIDKey: Text;
+    begin
+        SoftwareIDKey := StrSubstNo(SoftwareIDYearKeyTok, TaxYear);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(SoftwareIDKey, SoftwareID) then
+            LogKeyVaultError('0000P7Q', 'Software ID', SoftwareIDKey);
+        if SoftwareID = '' then
+            LogEmptyValueError('0000P7Q', 'Software ID', SoftwareIDKey);
+    end;
+
+    procedure GetXmlSchemaVersion() XmlSchemaVersion: Text
+    var
+        XmlSchemaVersionKey: Text;
+    begin
+        if TestMode() then
+            XmlSchemaVersionKey := XmlSchemaVersionTestKeyTok
+        else
+            XmlSchemaVersionKey := XmlSchemaVersionLiveKeyTok;
+
+        if not AzureKeyVault.GetAzureKeyVaultSecret(XmlSchemaVersionKey, XmlSchemaVersion) then
+            LogKeyVaultError('0000WSN', 'IRIS XML Schema Version', XmlSchemaVersionKey);
+        if XmlSchemaVersion = '' then
+            LogEmptyValueError('0000WSN', 'IRIS XML Schema Version', XmlSchemaVersionKey);
+    end;
+
     procedure GetSubmitEndpointURL() EndpointURL: Text
     var
         EndpointKey: Text;
@@ -123,6 +153,12 @@ codeunit 10057 "Key Vault Client IRIS" implements "IRS 1099 IRIS Configuration"
             LogKeyVaultError('0000PA7', 'Submit Endpoint URL', EndpointKey);
         if EndpointURL = '' then
             LogEmptyValueError('0000PA7', 'Submit Endpoint URL', EndpointKey);
+    end;
+
+    [TryFunction]
+    procedure TryGetSubmitEndpointURL(var EndpointURL: Text)
+    begin
+        EndpointURL := GetSubmitEndpointURL();
     end;
 
     procedure GetStatusEndpointURL() EndpointURL: Text
@@ -160,11 +196,18 @@ codeunit 10057 "Key Vault Client IRIS" implements "IRS 1099 IRIS Configuration"
     end;
 
     procedure GetAuthURL() AuthURL: Text
+    var
+        AuthURLKey: Text;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(AuthURLKeyTok, AuthURL) then
-            LogKeyVaultError('0000P7T', 'Auth URL', AuthURLKeyTok);
+        if TestMode() then
+            AuthURLKey := AuthURLTestKeyTok
+        else
+            AuthURLKey := AuthURLLiveKeyTok;
+
+        if not AzureKeyVault.GetAzureKeyVaultSecret(AuthURLKey, AuthURL) then
+            LogKeyVaultError('0000P7T', 'Auth URL', AuthURLKey);
         if AuthURL = '' then
-            LogEmptyValueError('0000P7T', 'Auth URL', AuthURLKeyTok);
+            LogEmptyValueError('0000P7T', 'Auth URL', AuthURLKey);
     end;
 
     procedure GetCertificate() Certificate: Text

@@ -87,6 +87,13 @@ page 10037 "IRS 1099 Form Document"
                 Enabled = IsLinesEditable;
                 UpdatePropagation = Both;
             }
+            part(SupplementalLines; "IRS 1099 Doc. Suppl. Lines")
+            {
+                SubPageLink = "Document ID" = field(ID);
+                Editable = Rec.Status = Rec.Status::Open;
+                Visible = SupplLinesVisible;
+                UpdatePropagation = Both;
+            }
         }
         area(factboxes)
         {
@@ -173,6 +180,23 @@ page 10037 "IRS 1099 Form Document"
                     IRS1099FormDocument.AllowCorrection(Rec);
                 end;
             }
+            action(ShowSupplementalLines)
+            {
+                ApplicationArea = BasicCA, BasicUS;
+                Caption = 'Show Supplemental Lines';
+                Enabled = IsLinesEditable and (Rec.Status = Rec.Status::Open);
+                Image = ViewDetails;
+                ToolTip = 'Show supplemental lines to enter cash tips, occupation codes, or qualified overtime for this document.';
+                Visible = not SupplLinesVisible;
+
+                trigger OnAction()
+                begin
+                    CurrPage.SaveRecord();
+                    SupplLinesDocID := Rec.ID;
+                    SupplLinesVisible := true;
+                    CurrPage.Update(false);
+                end;
+            }
             action(Print)
             {
                 ApplicationArea = BasicCA, BasicUS;
@@ -254,6 +278,8 @@ page 10037 "IRS 1099 Form Document"
         IsLinesEditable: Boolean;
         EmailErrorVisible: Boolean;
         IsPeriodNoActive: Boolean;
+        SupplLinesVisible: Boolean;
+        SupplLinesDocID: Integer;
 
     trigger OnOpenPage()
     begin
@@ -270,6 +296,7 @@ page 10037 "IRS 1099 Form Document"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateLinesAvailable();
+        UpdateSupplementalLinesVisibility();
         IsPeriodNoActive := (Rec."Period No." = '');
     end;
 
@@ -277,6 +304,8 @@ page 10037 "IRS 1099 Form Document"
     var
         PeriodNo: Code[20];
     begin
+        SupplLinesVisible := false;
+        SupplLinesDocID := 0;
         PeriodNo := GetPeriodNoFilter();
         if PeriodNo <> '' then
             Rec.Validate("Period No.", PeriodNo);
@@ -291,5 +320,17 @@ page 10037 "IRS 1099 Form Document"
     local procedure UpdateLinesAvailable()
     begin
         IsLinesEditable := (Rec."Period No." <> '') and (Rec."Vendor No." <> '') and (Rec."Form No." <> '');
+    end;
+
+    local procedure UpdateSupplementalLinesVisibility()
+    var
+        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+    begin
+        if SupplLinesDocID <> Rec.ID then begin
+            SupplLinesVisible := false;
+            SupplLinesDocID := Rec.ID;
+        end;
+        SupplLine.SetRange("Document ID", Rec.ID);
+        SupplLinesVisible := (Rec.ID <> 0) and (SupplLinesVisible or not SupplLine.IsEmpty());
     end;
 }

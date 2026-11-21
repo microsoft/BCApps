@@ -27,12 +27,23 @@ page 10051 "IRS 1099 Form Statement"
                 {
                     ToolTip = 'Specifies a description of the line.';
                 }
+                field("Value Source"; Rec."Value Source")
+                {
+                    ToolTip = 'Specifies whether the statement row uses document lines selected by the filter expression or the selected supplemental box.';
+                }
+                field("Supplemental Box No."; Rec."Supplemental Box No.")
+                {
+                    Enabled = Rec."Value Source" = Rec."Value Source"::"Supplemental Line";
+                    ToolTip = 'Specifies the supplemental box for this period and form. Its definition determines whether an amount or text occupation codes are printed.';
+                }
                 field("Print Value Type"; Rec."Print Value Type")
                 {
+                    Enabled = Rec."Value Source" = Rec."Value Source"::"Document Line";
                     Tooltip = 'Specifies the print value type of the statement. If the Amount is selected then the amount calculated by the filter expression is printed. If the Yes/No option is selected, then either Yes or No is printed based on the Yes/No condition.';
                 }
                 field("Filter Expression"; Rec."Filter Expression")
                 {
+                    Enabled = Rec."Value Source" = Rec."Value Source"::"Document Line";
                     ToolTip = 'Specifies the filter expression of the statement.';
                 }
                 field("Row Totaling"; Rec."Row Totaling")
@@ -61,4 +72,3 @@ page 10051 "IRS 1099 Form Statement"
     }
 
 }
-

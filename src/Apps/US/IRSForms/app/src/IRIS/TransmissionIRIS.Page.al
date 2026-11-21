@@ -25,17 +25,26 @@ page 10058 "Transmission IRIS"
             {
                 ShowCaption = false;
 
-                field(TestModeIndicator; TestModeText)
+                field(TestModeIndicator; DestinationText)
                 {
-                    ShowCaption = false;
+                    Caption = 'Destination';
                     Editable = false;
-                    Visible = TestModeVisible;
-                    StyleExpr = 'Unfavorable';
+                    ToolTip = 'Specifies whether submissions are sent to the IRS Test (ATS) or Production environment.';
 
                     trigger OnDrillDown()
                     begin
-                        Message(TestModeMsg);
+                        if KeyVaultClientIRIS.TestMode() then
+                            Message(TestModeMsg)
+                        else
+                            Message(ProductionModeMsg);
                     end;
+                }
+                field(SubmissionEndpointURL; SubmissionEndpointURL)
+                {
+                    Caption = 'Submission Endpoint URL';
+                    Editable = false;
+                    Visible = false;
+                    ToolTip = 'Specifies the current API endpoint URL used to submit data to the IRS.';
                 }
                 field("Period No."; Rec."Period No.")
                 {
@@ -108,7 +117,7 @@ page 10058 "Transmission IRIS"
                     CustomerConsentMgt: Codeunit "Customer Consent Mgt.";
                     ProcessDialog: Dialog;
                 begin
-                    if not ConfirmMgt.GetResponseOrDefault(SendTransmissionQst, false) then
+                    if not ConfirmSendTransmission("Transmission Type IRIS"::O) then
                         exit;
 
                     UserParams.GetRecord();
@@ -137,7 +146,7 @@ page 10058 "Transmission IRIS"
                 var
                     ProcessDialog: Dialog;
                 begin
-                    if not ConfirmMgt.GetResponseOrDefault(SendReplacementTransmissionQst, false) then
+                    if not ConfirmSendTransmission("Transmission Type IRIS"::R) then
                         exit;
 
                     ProcessDialog.Open(SendingReplacementMsg);
@@ -156,7 +165,7 @@ page 10058 "Transmission IRIS"
                 var
                     ProcessDialog: Dialog;
                 begin
-                    if not ConfirmMgt.GetResponseOrDefault(SendCorrectionTransmissionQst, false) then
+                    if not ConfirmSendTransmission("Transmission Type IRIS"::C) then
                         exit;
 
                     ProcessDialog.Open(SendingCorrectionMsg);
@@ -175,7 +184,7 @@ page 10058 "Transmission IRIS"
                 var
                     ProcessDialog: Dialog;
                 begin
-                    if not ConfirmMgt.GetResponseOrDefault(SendCorrectionTransmissionQst, false) then
+                    if not ConfirmSendTransmission("Transmission Type IRIS"::C) then
                         exit;
 
                     ProcessDialog.Open(SendingCorrectionMsg);
@@ -199,7 +208,7 @@ page 10058 "Transmission IRIS"
                         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
                         ProcessDialog: Dialog;
                     begin
-                        if not ConfirmMgt.GetResponseOrDefault(SendCorrectionTransmissionQst, false) then
+                        if not ConfirmSendTransmission("Transmission Type IRIS"::C) then
                             exit;
 
                         ProcessDialog.Open(SendingCorrectionMsg);
@@ -226,7 +235,7 @@ page 10058 "Transmission IRIS"
                     var
                         ProcessDialog: Dialog;
                     begin
-                        if not ConfirmMgt.GetResponseOrDefault(SendTransmissionQst, false) then
+                        if not ConfirmSendTransmission("Transmission Type IRIS"::O) then
                             exit;
 
                         ProcessDialog.Open(SendingTransmissionMsg);
@@ -398,7 +407,7 @@ page 10058 "Transmission IRIS"
 
     trigger OnOpenPage()
     begin
-        SetTestModeFields();
+        SetDestinationFields();
     end;
 
     trigger OnAfterGetRecord()
@@ -414,18 +423,19 @@ page 10058 "Transmission IRIS"
         ConfirmMgt: Codeunit "Confirm Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Helper: Codeunit "Helper IRIS";
+        KeyVaultClientIRIS: Codeunit "Key Vault Client IRIS";
         StatusStyle: Text;
         ErrorInfoCaption: Text;
-        TestModeText: Text;
-        TestModeVisible: Boolean;
+        DestinationText: Text;
+        SubmissionEndpointURL: Text;
         ErrorInfoVisible: Boolean;
         SendOriginalActionVisible: Boolean;
         SendReplacementActionVisible: Boolean;
         SendCorrectionActionVisible: Boolean;
         ForceCorrectionActionsVisible: Boolean;
-        SendTransmissionQst: Label 'Do you want to send the transmission to the IRS?';
-        SendReplacementTransmissionQst: Label 'Do you want to send the replacement transmission to the IRS?';
-        SendCorrectionTransmissionQst: Label 'Do you want to send the correction transmission to the IRS?';
+        SendTransmissionQst: Label 'Send the transmission for tax year %1 to IRS %2?\\%3', Comment = '%1 - tax year, %2 - destination (Test or Production), %3 - destination explanation';
+        SendReplacementTransmissionQst: Label 'Send the replacement transmission for tax year %1 to IRS %2?\\%3', Comment = '%1 - tax year, %2 - destination (Test or Production), %3 - destination explanation';
+        SendCorrectionTransmissionQst: Label 'Send the correction transmission for tax year %1 to IRS %2?\\%3', Comment = '%1 - tax year, %2 - destination (Test or Production), %3 - destination explanation';
         SendingTransmissionMsg: Label 'Sending transmission to the IRS...';
         SendingReplacementMsg: Label 'Sending replacement transmission to the IRS...';
         SendingCorrectionMsg: Label 'Sending correction transmission to the IRS...';
@@ -440,15 +450,39 @@ page 10058 "Transmission IRIS"
         SendOrigTransmConsentTxt: Label 'By choosing this action, you consent to use third party systems. These systems may have their own terms of use, license, pricing and privacy, and they may not meet the same compliance and security standards as Microsoft Dynamics 365 Business Central. Your privacy is important to us.';
         ReceiptIDNotAssignedErr: Label 'The Receipt ID is not assigned to the transmission.\\ Possible reasons:\- Pre-receipt validation error (e.g., XML Schema Validation Error) - use Request Status by UTID action.\- Receipt ID was lost or not received - contact IRIS help desk, provide them Unique Transmission ID from Transmission History, then use Assign Receipt ID action to set it and Request Status action to update the status.';
         UTIDNotFoundErr: Label 'Unable to get Unique Transmission Id from the transmission history, because it does not have any records for the current transmission.';
-        TestModeMsg: Label 'This transmission is in test mode. No data will be reported to the IRS. All data will be transmitted to the IRIS Assurance Testing System (IRIS ATS) for testing purposes.';
+        TestModeMsg: Label 'Data is sent to the IRIS Assurance Testing System (ATS) for testing, not as a production filing.';
+        ProductionModeMsg: Label 'Data is sent to IRS Production as a live submission.';
         ErrorInfoCaptionTxt: Label 'Show %1 error(s)', Comment = '%1 - number of errors';
 
-    local procedure SetTestModeFields()
-    var
-        IRSFormsFacade: Codeunit "IRS Forms Facade";
+    local procedure SetDestinationFields()
     begin
-        TestModeText := 'Test Mode';
-        TestModeVisible := IRSFormsFacade.TestMode();
+        DestinationText := Helper.GetDestinationName(KeyVaultClientIRIS.TestMode());
+        if not KeyVaultClientIRIS.TryGetSubmitEndpointURL(SubmissionEndpointURL) then
+            Clear(SubmissionEndpointURL);
+    end;
+
+    local procedure ConfirmSendTransmission(TransmissionType: Enum "Transmission Type IRIS"): Boolean
+    var
+        IsTestDestination: Boolean;
+        DestinationName: Text;
+        Explanation: Text;
+        Question: Text;
+    begin
+        IsTestDestination := KeyVaultClientIRIS.TestMode();
+        DestinationName := Helper.GetDestinationName(IsTestDestination);
+        if IsTestDestination then
+            Explanation := TestModeMsg
+        else
+            Explanation := ProductionModeMsg;
+        case TransmissionType of
+            TransmissionType::O:
+                Question := StrSubstNo(SendTransmissionQst, Rec."Period No.", DestinationName, Explanation);
+            TransmissionType::R:
+                Question := StrSubstNo(SendReplacementTransmissionQst, Rec."Period No.", DestinationName, Explanation);
+            TransmissionType::C:
+                Question := StrSubstNo(SendCorrectionTransmissionQst, Rec."Period No.", DestinationName, Explanation);
+        end;
+        exit(ConfirmMgt.GetResponseOrDefault(Question, false));
     end;
 
     local procedure SetActionsVisibility()

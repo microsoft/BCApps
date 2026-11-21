@@ -34,9 +34,13 @@ codeunit 10031 "IRS 1099 Form Document"
     end;
 
     procedure Release(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        Supplemental: Codeunit "IRS 1099 Supplemental";
     begin
         if IRS1099FormDocHeader.Status <> IRS1099FormDocHeader.Status::Open then
             IRS1099FormDocHeader.FieldError(Status);
+        Supplemental.RecalculateIncludeIn1099(IRS1099FormDocHeader.ID);
+        Supplemental.ValidateSupplementalLines(IRS1099FormDocHeader.ID);
         if IRS1099FormDocHeader."IRIS Submission Status" <> Enum::"Transmission Status IRIS"::None then
             IRS1099FormDocHeader."IRIS Updated Not Sent" := true;
         IRS1099FormDocHeader.Validate(Status, IRS1099FormDocHeader.Status::Released);

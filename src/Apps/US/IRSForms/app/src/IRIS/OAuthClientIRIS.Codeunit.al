@@ -135,14 +135,13 @@ codeunit 10046 "OAuth Client IRIS"
     end;
 
     [NonDebuggable]
-    local procedure CreateJWT(Subject: Text): Text
+    local procedure CreateJWT(Subject: Text; Audience: Text): Text
     var
         Base64Header: Text;
         Base64Payload: Text;
         Signature: Text;
         KeyID: Text;
         Issuer: Text;
-        Audience: Text;
         IssuedAtTime: DateTime;
         ExpirationTime: DateTime;
         JWTID: Text;
@@ -151,7 +150,6 @@ codeunit 10046 "OAuth Client IRIS"
         Base64Header := CreateJWTHeader(KeyID, JWTSignAlgorithmTxt);
 
         Issuer := KeyVaultClient.GetAPIClientIDFromKV();
-        Audience := KeyVaultClient.GetAuthURL();
         IssuedAtTime := CurrentDateTime();
         ExpirationTime := IssuedAtTime + 15 * 60 * 1000; // 15 minutes
         JWTID := StrSubstNo('%1 %2', Helper.CreateUUID(), Format(CurrentDateTime(), 0, 9));
@@ -172,6 +170,7 @@ codeunit 10046 "OAuth Client IRIS"
         UserJWT: Text;
         RequestBody: Text;
         ResponseText: SecretText;
+        AuthURL: Text;
     begin
         FeatureTelemetry.LogUsage('0000P81', Helper.GetIRISFeatureName(), GetTokensEventTxt);
 
@@ -181,16 +180,17 @@ codeunit 10046 "OAuth Client IRIS"
             FeatureTelemetry.LogError('0000PAG', Helper.GetIRISFeatureName(), '', UserIDMustBeSetErr, GetLastErrorCallStack());
             Error(UserIDMustBeSetErr, UserIDGetInstructionsMsg);
         end;
-        UserJWT := CreateJWT(UserID.Unwrap());
+        AuthURL := KeyVaultClient.GetAuthURL();
+        UserJWT := CreateJWT(UserID.Unwrap(), AuthURL);
 
         ClientID := KeyVaultClient.GetAPIClientIDFromKV();
         if ClientID = '' then
             Error(GetClientIDErr);
-        ClientJWT := CreateJWT(ClientID);
+        ClientJWT := CreateJWT(ClientID, AuthURL);
 
         RequestBody := StrSubstNo(JWTAccessTokenRequestBodyTxt, GrantTypeTxt, UserJWT, ClientAssertionTypeTxt, ClientJWT);
 
-        if not SendPOSTHttpRequestUrlEncoded(RequestBody, KeyVaultClient.GetAuthURL(), HttpResponseMessage) then begin
+        if not SendPOSTHttpRequestUrlEncoded(RequestBody, AuthURL, HttpResponseMessage) then begin
             ShowRequestSendError(HttpResponseMessage.IsBlockedByEnvironment());
             LogSecurityAuditEvent(SecurityAuditTokenRequestFailedTxt, SecurityOperationResult::Failure, AuditCategory::Authentication);
             exit;
@@ -360,14 +360,16 @@ codeunit 10046 "OAuth Client IRIS"
         ResponseSecretText: SecretText;
         ClientID: Text;
         ClientJWT: Text;
+        AuthURL: Text;
     begin
         ClientID := KeyVaultClient.GetAPIClientIDFromKV();
         if ClientID = '' then
             Error(GetClientIDErr);
-        ClientJWT := CreateJWT(ClientID);
+        AuthURL := KeyVaultClient.GetAuthURL();
+        ClientJWT := CreateJWT(ClientID, AuthURL);
         RequestBody := StrSubstNo(RefreshAccessTokenReqBodyTxt, RefreshToken.Unwrap(), ClientAssertionTypeTxt, ClientJWT);
 
-        if not SendPOSTHttpRequestUrlEncoded(RequestBody, KeyVaultClient.GetAuthURL(), HttpResponseMessage) then
+        if not SendPOSTHttpRequestUrlEncoded(RequestBody, AuthURL, HttpResponseMessage) then
             ShowRequestSendError(HttpResponseMessage.IsBlockedByEnvironment());
         if not HttpResponseMessage.IsSuccessStatusCode() then
             exit;       // no need to show error here as both access and refresh tokens will be requested again

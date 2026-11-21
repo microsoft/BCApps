@@ -30,6 +30,23 @@ table 10041 "IRS 1099 Form Statement Line"
         field(7; "Print Value Type"; Enum "IRS 1099 Print Value Type")
         {
         }
+        field(8; "Value Source"; Enum "IRS 1099 Statement Source")
+        {
+            Caption = 'Value Source';
+        }
+        field(9; "Supplemental Box No."; Code[20])
+        {
+            Caption = 'Supplemental Box No.';
+            TableRelation = "IRS 1099 Suppl. Box"."No." where("Period No." = field("Period No."), "Form No." = field("Form No."));
+
+            trigger OnValidate()
+            begin
+                if "Supplemental Box No." <> '' then begin
+                    TestField("Value Source", "Value Source"::"Supplemental Line");
+                    ValidateSupplBox(CurrentCompany());
+                end;
+            end;
+        }
         field(10; "Filter Expression"; Text[1024])
         {
             trigger OnValidate()
@@ -72,10 +89,38 @@ table 10041 "IRS 1099 Form Statement Line"
         }
     }
 
+    trigger OnInsert()
+    begin
+        ValidateSupplBox(CurrentCompany());
+    end;
+
+    trigger OnModify()
+    begin
+        ValidateSupplBox(CurrentCompany());
+    end;
+
+    trigger OnRename()
+    begin
+        ValidateSupplBox(CurrentCompany());
+    end;
+
     var
         FilterStringParseErr: Label 'Could not parse the filter expression. Use the lookup action, or type a string in the following format: "Type: Shipment, Quantity: <>0".';
         FilterTxt: Label '%1=FILTER(%2)', Locked = true;
         WhereTxt: Label '%1 WHERE(%2)', Locked = true;
+
+    internal procedure ValidateSupplBox(TargetCompany: Text)
+    var
+        SupplBox: Record "IRS 1099 Suppl. Box";
+        Supplemental: Codeunit "IRS 1099 Supplemental";
+    begin
+        if "Value Source" <> "Value Source"::"Supplemental Line" then
+            exit;
+        TestField("Supplemental Box No.");
+        SupplBox.ChangeCompany(TargetCompany);
+        SupplBox.Get("Period No.", "Form No.", "Supplemental Box No.");
+        Supplemental.ValidateSupplBoxSetup(SupplBox, TargetCompany);
+    end;
 
     procedure SetFormBoxFilter(FormBoxNo: Code[20])
     var
