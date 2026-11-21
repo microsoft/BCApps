@@ -10,7 +10,7 @@ using Microsoft.WithholdingTax;
 report 6787 "WHT Monthly Remittance Return"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Purchase\Report\WHTMonthlyRemittanceReturn.rdlc';
+    RDLCLayout = 'src/Purchase/Report/WHTMonthlyRemittanceReturn.rdlc';
     Caption = 'Monthly Remittance Return WHT';
 
     dataset

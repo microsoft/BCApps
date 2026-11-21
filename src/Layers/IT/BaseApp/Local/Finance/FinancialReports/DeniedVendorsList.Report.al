@@ -76,7 +76,7 @@ report 12111 "Denied Vendors List"
         layout(WordLayout)
         {
             Type = Word;
-            LayoutFile = '.\Local\Finance\FinancialReports\DeniedVendorsList.Docx';
+            LayoutFile = './Local/Finance/FinancialReports/DeniedVendorsList.Docx';
         }
     }
 

@@ -18,7 +18,7 @@ report 11749 "VAT Coeff. Correction CZL"
 {
     Caption = 'VAT Coefficient Correction';
     DefaultLayout = RDLC;
-    RDLCLayout = '.\Src\Reports\VATCoeffCorrection.rdl';
+    RDLCLayout = './Src/Reports/VATCoeffCorrection.rdl';
     AdditionalSearchTerms = 'VAT value added tax coefficient report,VAT value added tax coefficient correct';
     ApplicationArea = Basic, Suite;
     UsageCategory = ReportsAndAnalysis;

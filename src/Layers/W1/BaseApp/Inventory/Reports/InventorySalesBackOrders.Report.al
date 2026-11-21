@@ -155,7 +155,7 @@ report 718 "Inventory - Sales Back Orders"
         layout(Excel)
         {
             Caption = 'Inventory - Sales Back Orders Excel';
-            LayoutFile = '.\Inventory\Reports\InventorySalesBackOrders.xlsx';
+            LayoutFile = './Inventory/Reports/InventorySalesBackOrders.xlsx';
             Type = Excel;
             Summary = 'Built in layout for the Inventory - Sales Back Orders report.';
         }
@@ -163,7 +163,7 @@ report 718 "Inventory - Sales Back Orders"
         layout(Word)
         {
             Caption = 'Inventory - Sales Back Orders Word';
-            LayoutFile = '.\Inventory\Reports\InventorySalesBackOrders.docx';
+            LayoutFile = './Inventory/Reports/InventorySalesBackOrders.docx';
             Type = Word;
             Summary = 'Built in layout for the Inventory - Sales Back Orders word report.';
             ObsoleteState = Pending;

@@ -12,7 +12,7 @@ using System.Utilities;
 report 6785 "WHT Annual Information Return"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Purchase\Report\WHTAnnualInformationReturn.rdlc';
+    RDLCLayout = 'src/Purchase/Report/WHTAnnualInformationReturn.rdlc';
     Caption = 'Annual Information Return Withholding Tax';
 
     dataset
