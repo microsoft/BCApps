@@ -131,7 +131,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         WhseEntry."Bin Type Code" := Bin."Bin Type Code";
         WhseEntry."Item No." := WhseJnlLine."Item No.";
         WhseEntry.Description := GetItemDescription(WhseJnlLine."Item No.", WhseJnlLine.Description);
-        if Location."Directed Put-away and Pick" then begin
+        if Location."Directed Put-away and Pick" or KeepNonBaseUOMForDecrease(WhseJnlLine, BinCode, Sign) then begin
             WhseEntry.Quantity := WhseJnlLine."Qty. (Absolute)" * Sign;
             WhseEntry."Unit of Measure Code" := WhseJnlLine."Unit of Measure Code";
             WhseEntry."Qty. per Unit of Measure" := WhseJnlLine."Qty. per Unit of Measure";
@@ -173,7 +173,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
             if Sign > 0 then begin
                 if BinCode <> Location."Adjustment Bin Code" then begin
                     if not ToBinContent.Get(
-                            WhseJnlLine."Location Code", BinCode, WhseJnlLine."Item No.", WhseJnlLine."Variant Code", WhseJnlLine."Unit of Measure Code")
+                            WhseEntry."Location Code", WhseEntry."Bin Code", WhseEntry."Item No.", WhseEntry."Variant Code", WhseEntry."Unit of Measure Code")
                     then
                         InsertToBinContent(WhseEntry)
                     else
@@ -189,6 +189,16 @@ codeunit 7301 "Whse. Jnl.-Register Line"
                 if ShouldDeleteFromBinContent then
                     DeleteFromBinContent(WhseEntry);
             end;
+    end;
+
+    local procedure KeepNonBaseUOMForDecrease(WarehouseJournalLine: Record "Warehouse Journal Line"; BinCode: Code[20]; Sign: Integer): Boolean
+    begin
+        if Sign >= 0 then
+            exit(false);
+        exit(
+            WMSMgt.UseNonBaseUOMBinContent(
+                WarehouseJournalLine."Location Code", BinCode, WarehouseJournalLine."Item No.", WarehouseJournalLine."Variant Code",
+                WarehouseJournalLine."Unit of Measure Code", WarehouseJournalLine."Qty. (Absolute, Base)"));
     end;
 
     local procedure DeleteFromBinContent(var WhseEntry: Record "Warehouse Entry")

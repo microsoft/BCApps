@@ -1899,6 +1899,284 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
         WarehouseJournalLine.TestField("Qty. (Base)", (Qty - QtyCalculated) * ItemUnitOfMeasure."Qty. per Unit of Measure");
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure NegativeAdjmtInNonBaseUOMClearsBinContentAfterDirectedPutAwayAndPickDisabled()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Bin: array[2] of Record Bin;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        QtyPerUOM: Decimal;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Directed Put-away and Pick] [Bin Content]
+        // [SCENARIO 9678] Bin content in a non-base unit of measure that remains after "Directed Put-away and Pick" was turned off can be cleared with an item journal.
+        Initialize();
+        QtyPerUOM := LibraryRandom.RandIntInRange(2, 5);
+        Qty := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] Location with "Directed Put-away and Pick", item with base unit of measure "EA" and unit of measure "PACK".
+        // [GIVEN] Bin content of "Qty" "PACK" in bin "B".
+        // [GIVEN] "Directed Put-away and Pick" is turned off on the location.
+        CreateNonBaseUOMBinContentWithoutDirectedPutAwayAndPick(Location, Item, ItemUnitOfMeasure, Bin, QtyPerUOM, Qty);
+
+        // [WHEN] Post an item journal with a positive adjustment of "Qty" * "QtyPerUOM" "EA" and a negative adjustment of "Qty" "PACK" in bin "B".
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Location.Code, Bin[1].Code,
+          Item."Base Unit of Measure", Qty * QtyPerUOM);
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::"Negative Adjmt.", Item."No.", Location.Code, Bin[1].Code,
+          ItemUnitOfMeasure.Code, Qty);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] Bin content in "PACK" is cleared and deleted.
+        VerifyBinContentDoesNotExist(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code);
+        VerifyWhseEntryQtyInBin(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, 0);
+
+        // [THEN] The warehouse entry for the negative adjustment is registered as -"Qty" "PACK".
+        VerifyNegativeWhseEntryInUOM(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, -Qty, QtyPerUOM);
+
+        // [THEN] Bin content in "EA" holds "Qty" * "QtyPerUOM".
+        VerifyBinContentQtyBase(Location.Code, Bin[1].Code, Item."No.", Item."Base Unit of Measure", Qty * QtyPerUOM);
+
+        // [THEN] Total inventory is unchanged: "Qty" * "QtyPerUOM" in each of the two bins.
+        VerifyInvtQty(Item."No.", 2 * Qty * QtyPerUOM);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReclassFromNonBaseUOMBinContentCreatesBaseUOMBinContentAfterDirectedPutAwayAndPickDisabled()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Bin: array[2] of Record Bin;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        QtyPerUOM: Decimal;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Directed Put-away and Pick] [Bin Content] [Reclassification]
+        // [SCENARIO 9678] Reclassification from non-base unit of measure bin content creates base unit of measure bin content in the target bin, also when the target bin holds the non-base unit of measure.
+        Initialize();
+        QtyPerUOM := LibraryRandom.RandIntInRange(2, 5);
+        Qty := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] Location with "Directed Put-away and Pick", item with base unit of measure "EA" and unit of measure "PACK".
+        // [GIVEN] Bin content of "Qty" "PACK" in bins "B1" and "B2".
+        // [GIVEN] "Directed Put-away and Pick" is turned off on the location.
+        CreateNonBaseUOMBinContentWithoutDirectedPutAwayAndPick(Location, Item, ItemUnitOfMeasure, Bin, QtyPerUOM, Qty);
+
+        // [WHEN] Reclassify "Qty" "PACK" from bin "B1" to bin "B2".
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Transfer);
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Transfer, Item."No.", Location.Code, Bin[1].Code,
+          ItemUnitOfMeasure.Code, Qty);
+        ItemJournalLine.Validate("New Location Code", Location.Code);
+        ItemJournalLine.Validate("New Bin Code", Bin[2].Code);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] Bin content in "PACK" in bin "B1" is cleared and deleted.
+        VerifyBinContentDoesNotExist(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code);
+
+        // [THEN] The warehouse entry for bin "B1" is registered as -"Qty" "PACK".
+        VerifyNegativeWhseEntryInUOM(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, -Qty, QtyPerUOM);
+
+        // [THEN] Bin "B2" has bin content in "EA" for "Qty" * "QtyPerUOM", and the bin content in "PACK" is unchanged.
+        VerifyBinContentQtyBase(Location.Code, Bin[2].Code, Item."No.", Item."Base Unit of Measure", Qty * QtyPerUOM);
+        VerifyBinContentQtyBase(Location.Code, Bin[2].Code, Item."No.", ItemUnitOfMeasure.Code, Qty * QtyPerUOM);
+        VerifyInvtQty(Item."No.", 2 * Qty * QtyPerUOM);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NegativeAdjmtInNonBaseUOMUsesBaseUOMBinContentWhenNonBaseUOMBinContentIsNotSufficient()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Bin: array[2] of Record Bin;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        QtyPerUOM: Decimal;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Directed Put-away and Pick] [Bin Content]
+        // [SCENARIO 9678] A negative adjustment in a non-base unit of measure is taken from base unit of measure bin content when the non-base unit of measure bin content cannot cover it.
+        Initialize();
+        QtyPerUOM := LibraryRandom.RandIntInRange(2, 5);
+        Qty := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] Location with "Directed Put-away and Pick", item with base unit of measure "EA" and unit of measure "PACK".
+        // [GIVEN] Bin content of "Qty" "PACK" in bin "B".
+        // [GIVEN] "Directed Put-away and Pick" is turned off on the location.
+        CreateNonBaseUOMBinContentWithoutDirectedPutAwayAndPick(Location, Item, ItemUnitOfMeasure, Bin, QtyPerUOM, Qty);
+
+        // [GIVEN] Bin content of 2 * "Qty" * "QtyPerUOM" "EA" in bin "B".
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Location.Code, Bin[1].Code,
+          Item."Base Unit of Measure", 2 * Qty * QtyPerUOM);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [WHEN] Post a negative adjustment of "Qty" + 1 "PACK" in bin "B".
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::"Negative Adjmt.", Item."No.", Location.Code, Bin[1].Code,
+          ItemUnitOfMeasure.Code, Qty + 1);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] The quantity is taken from bin content in "EA". Bin content in "PACK" is unchanged.
+        VerifyBinContentQtyBase(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, Qty * QtyPerUOM);
+        VerifyBinContentQtyBase(
+          Location.Code, Bin[1].Code, Item."No.", Item."Base Unit of Measure", 2 * Qty * QtyPerUOM - (Qty + 1) * QtyPerUOM);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PositiveWhseRegistrationInNonBaseUOMInsertsBinContentForRegisteredUOM()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Bin: array[2] of Record Bin;
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+        QtyPerUOM: Decimal;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Directed Put-away and Pick] [Bin Content]
+        // [SCENARIO 9678] At a location without directed put-away and pick, a positive warehouse registration looks up bin content by the unit of measure it registers, not by the unit of measure on the journal line.
+        Initialize();
+        QtyPerUOM := LibraryRandom.RandIntInRange(2, 5);
+        Qty := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] Location with "Directed Put-away and Pick", item with base unit of measure "EA" and unit of measure "PACK".
+        // [GIVEN] Bin content of "Qty" "PACK" in bin "B".
+        // [GIVEN] "Directed Put-away and Pick" is turned off on the location.
+        CreateNonBaseUOMBinContentWithoutDirectedPutAwayAndPick(Location, Item, ItemUnitOfMeasure, Bin, QtyPerUOM, Qty);
+
+        // [WHEN] Register a positive adjustment of "Qty" "PACK" into bin "B".
+        WarehouseJournalLine.Init();
+        WarehouseJournalLine."Entry Type" := WarehouseJournalLine."Entry Type"::"Positive Adjmt.";
+        WarehouseJournalLine."Location Code" := Location.Code;
+        WarehouseJournalLine."To Zone Code" := Bin[1]."Zone Code";
+        WarehouseJournalLine."To Bin Code" := Bin[1].Code;
+        WarehouseJournalLine."Item No." := Item."No.";
+        WarehouseJournalLine."Unit of Measure Code" := ItemUnitOfMeasure.Code;
+        WarehouseJournalLine."Qty. per Unit of Measure" := QtyPerUOM;
+        WarehouseJournalLine.Quantity := Qty;
+        WarehouseJournalLine."Qty. (Base)" := Qty * QtyPerUOM;
+        WarehouseJournalLine."Qty. (Absolute)" := Qty;
+        WarehouseJournalLine."Qty. (Absolute, Base)" := Qty * QtyPerUOM;
+        WarehouseJournalLine."Registering Date" := WorkDate();
+        Codeunit.Run(Codeunit::"Whse. Jnl.-Register Line", WarehouseJournalLine);
+
+        // [THEN] The quantity is registered in "EA", and bin content in "EA" exists for it.
+        VerifyWhseEntryQtyInBin(Location.Code, Bin[1].Code, Item."No.", Item."Base Unit of Measure", Qty * QtyPerUOM);
+        VerifyBinContentQtyBase(Location.Code, Bin[1].Code, Item."No.", Item."Base Unit of Measure", Qty * QtyPerUOM);
+        VerifyBinContentQtyBase(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, Qty * QtyPerUOM);
+    end;
+
+    local procedure CreateNonBaseUOMBinContentWithoutDirectedPutAwayAndPick(var Location: Record Location; var Item: Record Item; var ItemUnitOfMeasure: Record "Item Unit of Measure"; var Bin: array[2] of Record Bin; QtyPerUOM: Decimal; Qty: Decimal)
+    var
+        WarehouseJournalTemplate: Record "Warehouse Journal Template";
+        WarehouseJournalBatch: Record "Warehouse Journal Batch";
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+        ItemJournalBatch: Record "Item Journal Batch";
+        i: Integer;
+    begin
+        CreateFullWMSLocation(Location, false);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUOM);
+
+        LibraryWarehouse.WarehouseJournalSetup(Location.Code, WarehouseJournalTemplate, WarehouseJournalBatch);
+        for i := 1 to ArrayLen(Bin) do begin
+            LibraryWarehouse.CreateBin(Bin[i], Location.Code, '', FindLocationPickZone(Location.Code), FindPutPickBinType());
+            LibraryWarehouse.CreateWhseJournalLine(
+              WarehouseJournalLine, WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code, Bin[i]."Zone Code", Bin[i].Code,
+              WarehouseJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Qty);
+            WarehouseJournalLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+            WarehouseJournalLine.Modify(true);
+        end;
+        LibraryWarehouse.PostWhseJournalLine(WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, Location.Code);
+
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        ItemJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        ItemJournalBatch.Modify(true);
+        LibraryWarehouse.CalculateWhseAdjustment(Item, ItemJournalBatch);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        Location.Get(Location.Code);
+        Location.Validate("Directed Put-away and Pick", false);
+        Location.Modify(true);
+
+        for i := 1 to ArrayLen(Bin) do
+            VerifyBinContentQtyBase(Location.Code, Bin[i].Code, Item."No.", ItemUnitOfMeasure.Code, Qty * QtyPerUOM);
+    end;
+
+    local procedure CreateItemJournalLineWithBinAndUOM(var ItemJournalLine: Record "Item Journal Line"; ItemJournalBatch: Record "Item Journal Batch"; EntryType: Enum "Item Ledger Entry Type"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; UOMCode: Code[10]; Qty: Decimal)
+    begin
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name, EntryType, ItemNo, Qty);
+        ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Validate("Bin Code", BinCode);
+        ItemJournalLine.Validate("Unit of Measure Code", UOMCode);
+        ItemJournalLine.Modify(true);
+    end;
+
+    local procedure VerifyBinContentQtyBase(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; UOMCode: Code[10]; ExpectedQtyBase: Decimal)
+    var
+        BinContent: Record "Bin Content";
+    begin
+        BinContent.Get(LocationCode, BinCode, ItemNo, '', UOMCode);
+        BinContent.CalcFields("Quantity (Base)");
+        BinContent.TestField("Quantity (Base)", ExpectedQtyBase);
+    end;
+
+    local procedure VerifyBinContentDoesNotExist(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; UOMCode: Code[10])
+    var
+        BinContent: Record "Bin Content";
+    begin
+        Assert.IsFalse(BinContent.Get(LocationCode, BinCode, ItemNo, '', UOMCode), 'Bin content in the non-base unit of measure must be deleted.');
+    end;
+
+    local procedure VerifyWhseEntryQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; UOMCode: Code[10]; ExpectedQtyBase: Decimal)
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Unit of Measure Code", UOMCode);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        WarehouseEntry.TestField("Qty. (Base)", ExpectedQtyBase);
+    end;
+
+    local procedure VerifyNegativeWhseEntryInUOM(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; UOMCode: Code[10]; ExpectedQty: Decimal; ExpectedQtyPerUOM: Decimal)
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        NegativeEntryCount: Integer;
+    begin
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Unit of Measure Code", UOMCode);
+        WarehouseEntry.FindSet();
+        repeat
+            if WarehouseEntry.Quantity < 0 then begin
+                NegativeEntryCount += 1;
+                WarehouseEntry.TestField(Quantity, ExpectedQty);
+                WarehouseEntry.TestField("Qty. per Unit of Measure", ExpectedQtyPerUOM);
+                WarehouseEntry.TestField("Qty. (Base)", ExpectedQty * ExpectedQtyPerUOM);
+            end;
+        until WarehouseEntry.Next() = 0;
+        Assert.AreEqual(1, NegativeEntryCount, 'Expected one negative warehouse entry in the non-base unit of measure.');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
