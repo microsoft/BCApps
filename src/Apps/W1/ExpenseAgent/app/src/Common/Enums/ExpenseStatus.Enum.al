@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies the status of an expense, from open through released, pending approval, and submitted.
+/// </summary>
 enum 6907 "Expense Status"
 {
-    Access = Internal;
     Caption = 'Status';
 
     value(0; Open) { Caption = 'Open'; }

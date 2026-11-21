@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Stores the itemized lines of a posted expense report line.
+/// </summary>
 table 6919 "Posted Exp. Rep. Line Item"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line Itemization';
     DataClassification = CustomerContent;
     LookupPageId = "Posted Exp. Rep. Line Items";
