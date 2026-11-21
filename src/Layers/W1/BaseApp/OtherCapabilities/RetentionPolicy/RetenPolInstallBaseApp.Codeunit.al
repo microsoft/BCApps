@@ -54,6 +54,7 @@ codeunit 3999 "Reten. Pol. Install - BaseApp"
             RetenPolAllowedTables.AddAllowedTable(Database::"Report Inbox");
             RetenPolAllowedTables.AddAllowedTable(Database::"Error Message");
             RetenPolAllowedTables.AddAllowedTable(Database::"Error Message Register");
+            RetenPolAllowedTables.AddAllowedTable(Database::"Session Event");
             if IsInitialSetup then
                 UpgradeTag.SetUpgradeTag(GetRetenPolBaseAppTablesUpgradeTag());
         end;
