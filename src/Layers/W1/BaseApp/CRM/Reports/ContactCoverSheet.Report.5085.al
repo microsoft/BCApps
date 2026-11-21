@@ -18,7 +18,11 @@ report 5085 "Contact Cover Sheet"
     Caption = 'Contact Cover Sheet';
     PreviewMode = PrintLayout;
     WordMergeDataItem = TempSegmentLine;
+#if not CLEAN30
     DefaultRenderingLayout = WordLayout;
+#else
+    DefaultRenderingLayout = WordLayoutBody;
+#endif
 
     dataset
     {
@@ -230,11 +234,24 @@ report 5085 "Contact Cover Sheet"
             LayoutFile = './CRM/Reports/ContactCoverSheet.5085.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
+#if not CLEAN30
         layout(WordLayout)
         {
             Type = Word;
             LayoutFile = './CRM/Reports/ContactCoverSheet.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './CRM/Reports/ContactCoverSheetBody.docx';
+            Caption = 'Body-only: Contact Cover Sheet (Word)';
+            Summary = 'Portrait orientated. Shows the contact and company address blocks, followed by the company VAT registration number, giro number, and bank details, and closes with a regards line.';
         }
     }
 
@@ -279,4 +296,3 @@ report 5085 "Contact Cover Sheet"
         RunFromSegment := true;
     end;
 }
-
