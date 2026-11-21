@@ -54,11 +54,78 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Assert.IsFalse(Response.Contains('consentRequired'), 'The consent signal should be absent once approved');
     end;
 
+    [Test]
+    procedure GetCapabilitiesSignalsConsentRequiredWhenNotApproved()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Privacy]
+        // [SCENARIO] GetCapabilities reports a missing approval, so the connection check can name it at setup time.
+        // [GIVEN] this environment has not approved sharing [THEN] capabilities carry consentRequired
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        Response.ReadFrom(SourceApi.GetCapabilities());
+        Assert.IsTrue(GetBoolean(Response, 'consentRequired'), 'Capabilities should signal consentRequired when not approved');
+        Assert.IsTrue(FeaturesContain(Response, 'records'), 'Features should still be advertised');
+
+        // [WHEN] the environment approves sharing [THEN] the signal is absent
+        Clear(Response);
+        ApproveSourceConsent();
+        Response.ReadFrom(SourceApi.GetCapabilities());
+        Assert.IsFalse(Response.Contains('consentRequired'), 'The consent signal should be absent once approved');
+    end;
+
     local procedure ApproveSourceConsent()
     var
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
     begin
         LibraryMasterDataMgt.ApproveCrossEnvPrivacyNotice();
+    end;
+
+    [Test]
+    procedure SourceReportsTablesTheAppCannotRead()
+    var
+        Item: Record Item;
+        PermissionsMock: Codeunit "Permissions Mock";
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+        ItemEntry: JsonObject;
+        CustomerEntry: JsonObject;
+        TableIds: JsonArray;
+        TableIdsText: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 656413] A table outside the registered app's permission set is reported as readPermission:false instead
+        //                   of failing the call, and in a change-detection batch it doesn't stop the other tables.
+        ApproveSourceConsent();
+        TableIds.Add(Database::Item);
+        TableIds.Add(Database::Customer);
+        TableIds.WriteTo(TableIdsText);
+
+        // [GIVEN] the session has only the permission set the source admin assigns to the registered app (no Item read)
+        // Don't call PermissionsMock.Stop(): the test runner toggles the mock around every test, and stopping it here
+        // would leave it inverted for the rest of the session.
+        PermissionsMock.Set('MDM Cross-Env Read');
+        Assert.IsFalse(Item.ReadPermission(), 'Precondition: the cross-environment permission set should not grant Item read');
+
+        // [WHEN] records are requested from the unreadable table
+        Response.ReadFrom(SourceApi.GetRecords(Database::Item, FieldIdsArray(Item.FieldNo(Description)), '{}', 10, ''));
+
+        // [THEN] the source reports the missing read permission and returns no records
+        Assert.IsTrue(GetBoolean(Response, 'tableAvailable'), 'The table exists on the source');
+        Assert.IsFalse(GetBoolean(Response, 'readPermission'), 'The missing read permission should be reported');
+        Assert.AreEqual(0, RecordCount(Response), 'No records should be returned for an unreadable table');
+
+        // [WHEN] change detection probes the unreadable table together with a readable one
+        Response.ReadFrom(SourceApi.LastModifiedAtPerTable(TableIdsText));
+
+        // [THEN] only the unreadable table is flagged; the readable one is still answered
+        GetTableEntry(Response, 0, ItemEntry);
+        GetTableEntry(Response, 1, CustomerEntry);
+        Assert.IsFalse(GetBoolean(ItemEntry, 'readPermission'), 'The unreadable table should be flagged in the batch');
+        Assert.IsFalse(CustomerEntry.Contains('readPermission'), 'A readable table should not be flagged');
+        Assert.IsTrue(GetBoolean(CustomerEntry, 'tableAvailable'), 'The readable table should still be answered');
     end;
 
     [Test]
@@ -264,6 +331,15 @@ codeunit 139931 "MDM Cross-Env Source Tests"
     begin
         Response.Get(PropertyName, Token);
         exit(Token.AsValue().AsBoolean());
+    end;
+
+    local procedure GetTableEntry(var Response: JsonObject; Index: Integer; var Entry: JsonObject)
+    var
+        Token: JsonToken;
+    begin
+        Response.Get('tables', Token);
+        Token.AsArray().Get(Index, Token);
+        Entry := Token.AsObject();
     end;
 
     local procedure NextCursorText(var Response: JsonObject) CursorText: Text
