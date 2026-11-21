@@ -268,6 +268,20 @@ page 6998 "Posted Expense Report"
                     RunPageLink = "No." = field("Spend Request No.");
                     Visible = Rec."Spend Request No." <> '';
                 }
+                action(ChangeHistory)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Change History';
+                    Image = ChangeLog;
+                    ToolTip = 'View the changes to dimensions, accounts, billing, purchase invoice, merchant, project, and VAT information that were made after the expense report was submitted, including who made each change.';
+
+                    trigger OnAction()
+                    var
+                        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
+                    begin
+                        ExpReportChangeLogMgt.ShowChangeLog(Rec);
+                    end;
+                }
             }
         }
         area(processing)
@@ -352,6 +366,9 @@ page 6998 "Posted Expense Report"
                     {
                     }
                     actionref("Spend Request_Promoted"; "Spend Request")
+                    {
+                    }
+                    actionref(ChangeHistory_Promoted; ChangeHistory)
                     {
                     }
                 }
