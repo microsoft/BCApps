@@ -8,10 +8,8 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using System;
 using System.IO;
 using System.Utilities;
-using System.Xml;
 
 report 10876 "EC Sales List - Services"
 {
@@ -314,7 +312,7 @@ report 10876 "EC Sales List - Services"
     begin
         if CreateXMLFile then begin
             if CheckXMLLine then
-                XMLDoc.Save(XMLFile)
+                SaveXMLFile()
             else
                 Error(Text10801);
             ToFile := Text005;
@@ -356,11 +354,10 @@ report 10876 "EC Sales List - Services"
         CompanyInfo: Record "Company Information";
         GLSetup: Record "General Ledger Setup";
         VATEntry: Record "VAT Entry";
-        XMLDOMMgt: Codeunit "XML DOM Management";
-        XMLCurrNode: DotNet XmlNode;
-        XMLDoc: DotNet XmlDocument;
-        NewChildNode: DotNet XmlNode;
-        NewChildNode2: DotNet XmlNode;
+        XMLRootElement: XmlElement;
+        XMLCurrNode: XmlElement;
+        NewChildNode: XmlElement;
+        NewChildNode2: XmlElement;
         XMLFile: Text;
         Email: Text;
         ContactName: Text;
@@ -413,22 +410,15 @@ report 10876 "EC Sales List - Services"
 
     [Scope('OnPrem')]
     procedure CreateXMLDocument()
-    var
-        XMLCurrNode2: DotNet XmlNode;
-        ProcessingInstruction: DotNet XmlProcessingInstruction;
     begin
-        XMLDoc := XMLDoc.XmlDocument();
-        XMLCurrNode2 := XMLDoc.CreateElement('fichier_des');
-        XMLDoc.AppendChild(XMLCurrNode2);
-        XMLCurrNode := XMLDoc.CreateElement('declaration_des');
-        XMLCurrNode2.AppendChild(XMLCurrNode);
+        XMLRootElement := XmlElement.Create('fichier_des');
+        XMLCurrNode := XmlElement.Create('declaration_des');
+        XMLRootElement.Add(XMLCurrNode);
 
-        ProcessingInstruction := XMLDoc.CreateProcessingInstruction('xml', 'version="1.0" encoding="UTF-8"');
-
-        XMLDOMMgt.AddElement(XMLCurrNode, 'num_des', '000001', '', NewChildNode);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'num_tvaFr', VATRegNo, '', NewChildNode);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'mois_des', Format(Date2DMY(PeriodStart, 2), 0, '<Integer,2><Filler Character,0>'), '', NewChildNode);
-        XMLDOMMgt.AddElement(XMLCurrNode, 'an_des', Format(Date2DMY(PeriodStart, 3)), '', NewChildNode);
+        AddElement(XMLCurrNode, 'num_des', '000001', NewChildNode);
+        AddElement(XMLCurrNode, 'num_tvaFr', VATRegNo, NewChildNode);
+        AddElement(XMLCurrNode, 'mois_des', Format(Date2DMY(PeriodStart, 2), 0, '<Integer,2><Filler Character,0>'), NewChildNode);
+        AddElement(XMLCurrNode, 'an_des', Format(Date2DMY(PeriodStart, 3)), NewChildNode);
     end;
 
     [Scope('OnPrem')]
@@ -436,10 +426,42 @@ report 10876 "EC Sales List - Services"
     begin
         CheckXMLLine := true;
 
-        XMLDOMMgt.AddElement(XMLCurrNode, 'ligne_des', '', '', NewChildNode);
-        XMLDOMMgt.AddElement(NewChildNode, 'numlin_des', Format(LineNo, 0, '<Integer,6><Filler Character,0>'), '', NewChildNode2);
-        XMLDOMMgt.AddElement(NewChildNode, 'valeur', Format(VATAmountXML, 0, '<Sign><Integer>'), '', NewChildNode2);
-        XMLDOMMgt.AddElement(NewChildNode, 'partner_des', PrevVATRegNo, '', NewChildNode2);
+        AddElement(XMLCurrNode, 'ligne_des', '', NewChildNode);
+        AddElement(NewChildNode, 'numlin_des', Format(LineNo, 0, '<Integer,6><Filler Character,0>'), NewChildNode2);
+        AddElement(NewChildNode, 'valeur', Format(VATAmountXML, 0, '<Sign><Integer>'), NewChildNode2);
+        AddElement(NewChildNode, 'partner_des', PrevVATRegNo, NewChildNode2);
+    end;
+
+    local procedure AddElement(var ParentXmlElement: XmlElement; NodeName: Text; NodeText: Text; var CreatedXmlElement: XmlElement)
+    var
+        NewXmlElement: XmlElement;
+    begin
+        NewXmlElement := XmlElement.Create(NodeName);
+        if NodeText <> '' then
+            NewXmlElement.Add(XmlText.Create(NodeText));
+        ParentXmlElement.Add(NewXmlElement);
+        CreatedXmlElement := NewXmlElement;
+    end;
+
+    local procedure SaveXMLFile()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        ServerFile: File;
+        FileOutStream: OutStream;
+        BlobOutStream: OutStream;
+        BlobInStream: InStream;
+        XmlText: Text;
+    begin
+        // The file is written without an XML declaration and without a byte order mark.
+        XMLRootElement.WriteTo(XmlText);
+        TempBlob.CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        BlobOutStream.WriteText(XmlText);
+        TempBlob.CreateInStream(BlobInStream);
+        ServerFile.WriteMode(true);
+        ServerFile.Create(XMLFile);
+        ServerFile.CreateOutStream(FileOutStream);
+        CopyStream(FileOutStream, BlobInStream);
+        ServerFile.Close();
     end;
 
     local procedure PageUpdateRequestForm()

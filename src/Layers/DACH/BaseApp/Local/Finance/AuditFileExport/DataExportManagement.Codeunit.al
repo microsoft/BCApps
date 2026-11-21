@@ -24,7 +24,6 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System;
 using System.IO;
-using System.Xml;
 
 codeunit 11000 "Data Export Management"
 {
@@ -191,7 +190,6 @@ codeunit 11000 "Data Export Management"
         CompanyInfo: Record "Company Information";
         TempPKDataExportRecordField: Record "Data Export Record Field" temporary;
         TempNonPKDataExportRecordField: Record "Data Export Record Field" temporary;
-        XMLDOMManagement: Codeunit "XML DOM Management";
         XMLDocOut: DotNet XmlDocument;
         XMLCurrNode: DotNet XmlElement;
         XMLMediaNode: DotNet XmlElement;
@@ -209,37 +207,37 @@ codeunit 11000 "Data Export Management"
 
         CompanyInfo.Get();
         XMLCurrNode := XMLDocOut.DocumentElement;
-        XMLDOMManagement.AddNode(XMLCurrNode, 'Version', '');
-        XMLDOMManagement.AddGroupNode(XMLCurrNode, 'DataSupplier');
-        XMLDOMManagement.AddNode(XMLCurrNode, 'Name', ConvertString(CompanyName));
-        XMLDOMManagement.AddNode(XMLCurrNode, 'Location',
+        AddNode(XMLCurrNode, 'Version', '');
+        AddGroupNode(XMLCurrNode, 'DataSupplier');
+        AddNode(XMLCurrNode, 'Name', ConvertString(CompanyName));
+        AddNode(XMLCurrNode, 'Location',
           ConvertString(CompanyInfo.Address) + ' ' + ConvertString(CompanyInfo."Address 2") + ' ' +
           ConvertString(CompanyInfo."Post Code") + ' ' + ConvertString(CompanyInfo.City));
-        XMLDOMManagement.AddLastNode(XMLCurrNode, 'Comment', ConvertString(Description));
+        AddLastNode(XMLCurrNode, 'Comment', ConvertString(Description));
         if TempDataExportRecordSource.FindSet() then begin
-            XMLDOMManagement.AddGroupNode(XMLCurrNode, 'Media');
+            AddGroupNode(XMLCurrNode, 'Media');
             XMLMediaNode := XMLCurrNode;
-            XMLDOMManagement.AddNode(XMLCurrNode, 'Name', ConvertString(TempDataExportRecordSource."Data Exp. Rec. Type Code"));
+            AddNode(XMLCurrNode, 'Name', ConvertString(TempDataExportRecordSource."Data Exp. Rec. Type Code"));
             repeat
                 XMLCurrNode := XMLMediaNode;
-                XMLDOMManagement.AddGroupNode(XMLCurrNode, 'Table');
-                XMLDOMManagement.AddNode(XMLCurrNode, 'URL', ConvertString(TempDataExportRecordSource."Export File Name"));
-                XMLDOMManagement.AddNode(XMLCurrNode, 'Name', ConvertString(TempDataExportRecordSource."Export Table Name"));
+                AddGroupNode(XMLCurrNode, 'Table');
+                AddNode(XMLCurrNode, 'URL', ConvertString(TempDataExportRecordSource."Export File Name"));
+                AddNode(XMLCurrNode, 'Name', ConvertString(TempDataExportRecordSource."Export Table Name"));
                 TempDataExportRecordSource.CalcFields("Table Name");
-                XMLDOMManagement.AddNode(XMLCurrNode, 'Description', ConvertString(TempDataExportRecordSource."Table Name"));
+                AddNode(XMLCurrNode, 'Description', ConvertString(TempDataExportRecordSource."Table Name"));
                 if TempDataExportRecordSource."Period Field No." > 0 then begin
-                    XMLDOMManagement.AddGroupNode(XMLCurrNode, 'Validity');
-                    XMLDOMManagement.AddGroupNode(XMLCurrNode, 'Range');
-                    XMLDOMManagement.AddNode(XMLCurrNode, 'From', Format(StartDate, 0, '<Day,2>.<Month,2>.<Year4>'));
-                    XMLDOMManagement.AddLastNode(XMLCurrNode, 'To', Format(EndDate, 0, '<Day,2>.<Month,2>.<Year4>'));
+                    AddGroupNode(XMLCurrNode, 'Validity');
+                    AddGroupNode(XMLCurrNode, 'Range');
+                    AddNode(XMLCurrNode, 'From', Format(StartDate, 0, '<Day,2>.<Month,2>.<Year4>'));
+                    AddLastNode(XMLCurrNode, 'To', Format(EndDate, 0, '<Day,2>.<Month,2>.<Year4>'));
                     XMLCurrNode := XMLCurrNode.ParentNode;
                 end;
-                XMLDOMManagement.AddNode(XMLCurrNode, FileEncoding, '');
+                AddNode(XMLCurrNode, FileEncoding, '');
 
                 GetDelimiterSymbols(Symbol);
-                XMLDOMManagement.AddNode(XMLCurrNode, 'DecimalSymbol', Symbol[1]);
-                XMLDOMManagement.AddNode(XMLCurrNode, 'DigitGroupingSymbol', Symbol[2]);
-                XMLDOMManagement.AddGroupNode(XMLCurrNode, 'VariableLength');
+                AddNode(XMLCurrNode, 'DecimalSymbol', Symbol[1]);
+                AddNode(XMLCurrNode, 'DigitGroupingSymbol', Symbol[2]);
+                AddGroupNode(XMLCurrNode, 'VariableLength');
                 FilterFields(DataExportRecField, TempDataExportRecordSource);
                 CollectFieldNumbers(DataExportRecField, TempPKDataExportRecordField, TempNonPKDataExportRecordField);
                 AddFieldsData(DataExportRecField, TempPKDataExportRecordField, 'VariablePrimaryKey', XMLCurrNode);
@@ -322,7 +320,6 @@ codeunit 11000 "Data Export Management"
     local procedure AddFieldsData(var DataExportRecordField: Record "Data Export Record Field"; var TempDataExportRecordField: Record "Data Export Record Field" temporary; FieldTagName: Text; XMLRootNode: DotNet XmlElement)
     var
         DataExportRecordField2: Record "Data Export Record Field";
-        XMLDOMManagement: Codeunit "XML DOM Management";
         XMLCurrNode: DotNet XmlElement;
         RecRef: RecordRef;
         FieldRef: FieldRef;
@@ -335,29 +332,29 @@ codeunit 11000 "Data Export Management"
                 FieldRef := RecRef.Field(TempDataExportRecordField."Field No.");
 
                 XMLCurrNode := XMLRootNode;
-                XMLDOMManagement.AddGroupNode(XMLCurrNode, FieldTagName);
+                AddGroupNode(XMLCurrNode, FieldTagName);
 
                 DataExportRecordField2.SetRange("Field No.", TempDataExportRecordField."Field No.");
                 DataExportRecordField2.SetRange("Line No.", TempDataExportRecordField."Line No.");
                 DataExportRecordField2.FindFirst();
-                XMLDOMManagement.AddNode(XMLCurrNode, 'Name', ConvertString(DataExportRecordField2."Export Field Name"));
+                AddNode(XMLCurrNode, 'Name', ConvertString(DataExportRecordField2."Export Field Name"));
                 DataExportRecordField2.CalcFields("Field Name");
-                XMLDOMManagement.AddNode(XMLCurrNode, 'Description', ConvertString(DataExportRecordField2."Field Name"));
+                AddNode(XMLCurrNode, 'Description', ConvertString(DataExportRecordField2."Field Name"));
 
                 case FieldRef.Type of
                     FieldType::Integer, FieldType::BigInteger:
-                        XMLDOMManagement.AddLastNode(XMLCurrNode, 'Numeric', '');
+                        AddLastNode(XMLCurrNode, 'Numeric', '');
                     FieldType::Decimal:
                         begin
-                            XMLDOMManagement.AddGroupNode(XMLCurrNode, 'Numeric');
-                            XMLDOMManagement.AddLastNode(XMLCurrNode, 'Accuracy',
+                            AddGroupNode(XMLCurrNode, 'Numeric');
+                            AddLastNode(XMLCurrNode, 'Accuracy',
                               CopyStr(GLSetup."Amount Decimal Places", StrLen(GLSetup."Amount Decimal Places")));
                             XMLCurrNode := XMLCurrNode.ParentNode;
                         end;
                     FieldType::Date:
-                        XMLDOMManagement.AddLastNode(XMLCurrNode, 'Date', '');
+                        AddLastNode(XMLCurrNode, 'Date', '');
                     else
-                        XMLDOMManagement.AddLastNode(XMLCurrNode, 'AlphaNumeric', '');
+                        AddLastNode(XMLCurrNode, 'AlphaNumeric', '');
                 end;
             until TempDataExportRecordField.Next() = 0;
         RecRef.Close();
@@ -399,6 +396,37 @@ codeunit 11000 "Data Export Management"
         XMLDocOut.Load(EmptyIndexXMLName);
         Erase(EmptyIndexXMLName);
         Erase(EmptyDTDFileName);
+    end;
+
+    local procedure AddNode(var XMLNode: DotNet XmlElement; NodeName: Text; NodeText: Text)
+    var
+        XMLNewChild: DotNet XmlElement;
+    begin
+        AddElement(XMLNode, NodeName, NodeText, XMLNewChild);
+    end;
+
+    local procedure AddGroupNode(var XMLNode: DotNet XmlElement; NodeName: Text)
+    var
+        XMLNewChild: DotNet XmlElement;
+    begin
+        AddElement(XMLNode, NodeName, '', XMLNewChild);
+        XMLNode := XMLNewChild;
+    end;
+
+    local procedure AddLastNode(var XMLNode: DotNet XmlElement; NodeName: Text; NodeText: Text)
+    var
+        XMLNewChild: DotNet XmlElement;
+    begin
+        AddElement(XMLNode, NodeName, NodeText, XMLNewChild);
+        XMLNode := XMLNode.ParentNode;
+    end;
+
+    local procedure AddElement(var XMLNode: DotNet XmlElement; NodeName: Text; NodeText: Text; var CreatedXMLNode: DotNet XmlElement)
+    begin
+        CreatedXMLNode := XMLNode.OwnerDocument.CreateElement(NodeName);
+        if NodeText <> '' then
+            CreatedXMLNode.InnerText := NodeText;
+        XMLNode.AppendChild(CreatedXMLNode);
     end;
 
     local procedure IndexFileName(): Text[30]
