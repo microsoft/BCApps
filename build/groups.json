@@ -9782,5 +9782,25 @@
         "name": "OnPremExtensions"
       }
     ]
+  },
+  {
+    "name": "Electronic Reporting Procedure",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
   }
 ]
