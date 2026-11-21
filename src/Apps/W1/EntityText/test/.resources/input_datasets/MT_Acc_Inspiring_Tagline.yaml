@@ -1,0 +1,382 @@
+test_setup:
+  format: Tagline
+  tone: Inspiring
+  emphasis: None
+
+tests:
+  - name: Item_01
+    values:
+      Product Name: "Stuffed Ostrich"
+      Material (Legs): "Hairy"
+      Neck Length: "Lengthy"
+      Neck Girth: "Girthy"
+      Base Width: "Wide"
+      Category: ""
+
+  - name: Item_02
+    values:
+      Product Name: "Depeche Mode Concert Ticket, Copenhagen 2023"
+      Color: "Black"
+      Material Description: "Paper"
+      Model Year: "2023"
+      Certifications: "Band of the Year"
+      Category: "Consumer Models"
+
+  - name: Item_03
+    values:
+      Product Name: "AutoDrip"
+      Color: "Blue"
+      Material Description: "Premium aluminium"
+      Certifications: "ISO-1337"
+      Category: "Consumer Models"
+
+  - name: Item_04
+    values:
+      Product Name: "Chicken rice"
+      main ingredient: "rice cooked with in chicken brooth"
+      sub ingredient: "juicy chicken"
+      Category: "FOOD"
+
+  - name: Item_05
+    values:
+      Product Name: "ATLANTA Whiteboard, base"
+      Color: "White"
+      Depth: "40 CM"
+      Width: "200 CM"
+      Height: "250 CM"
+      Material Description: "Plastic, Steel"
+      Category: "Miscellaneous"
+
+  - name: Item_06
+    values:
+      Product Name: "Chicken rice"
+      location: "singapore"
+      main ingredient: "rice cooked with in chicken brooth"
+      sub ingredient: "juicy chicken"
+      Category: "FOOD"
+
+  - name: Item_07
+    values:
+      Product Name: "Stuffed beaver"
+      Color: "Orange"
+      Height: "45 CM"
+      Material Description: "Soft brown fur, smooth hard tail"
+      Adjustable height: "false"
+      Certifications: "Cruelty-free"
+      Warehouse location: "Shelf C-209"
+      Category: "Miscellaneous"
+
+  - name: Item_08
+    values:
+      Product Name: "ATHENS Mobile Pedestal"
+      Color: "Black"
+      Depth: "75 CM"
+      Height: "90 CM"
+      Material Description: "Wood"
+      Model Year: "1942"
+      Category: "Assorted Tables"
+
+  - name: Item_09
+    values:
+      Product Name: "ATHENS Desk"
+      Color: "Black"
+      Depth: "100 CM"
+      Width: "200 CM"
+      Height: "95 CM"
+      Material Description: "Wood"
+      Material (Surface): "Solid oak"
+      Material (Legs): "Polished stainless steel"
+      Adjustable height: "No"
+      Assembly required: "No"
+      Cable management: "Mountable cable trunk included"
+      Certifications: "FSC"
+      Category: "Office Desk"
+
+  - name: Item_10
+    values:
+      Product Name: "MOSCOW Swivel Chair, red"
+      Depth: "85 CM"
+      Height: "140 CM"
+      Material Description: "Cotton, Plastic, Steel"
+      Organization: "Wagner"
+      Width: "90 CM"
+      Category: "Office Chair"
+
+  - name: Item_11
+    values:
+      Product Name: "Whole Roasted Beans, Colombia"
+      Weight: "1 KG"
+      Roasted: "Lightly"
+      Category: "BEANS"
+
+  - name: Item_12
+    values:
+      Product Name: "black"
+      Material Description: "Steel"
+      Category: "Office Supplies"
+
+  - name: Item_13
+    values:
+      Product Name: "ANTWERP Conference Table"
+      Color: "White"
+      Depth: "300 CM"
+      Width: "150 CM"
+      Height: "130 CM"
+      Material Description: "Cotton, Wood Legs"
+      Category: "Assorted Tables"
+
+  - name: Item_14
+    values:
+      Product Name: "Stuffed beaver"
+      Color: "Orange"
+      Height: "45 CM"
+      Material Description: "Soft brown fur, smooth hard tail"
+      Adjustable height: "false"
+      Assembly required: "No"
+      Certifications: "Cruelty-free"
+      Warehouse location: "Shelf C-209"
+      Category: "Miscellaneous"
+
+  - name: Item_15
+    values:
+      Product Name: "LONDON Swivel Chair, blue"
+      Color: "Blue"
+      Depth: "80 CM"
+      Width: "80 CM"
+      Height: "140 CM"
+      Material Description: "Plastic, Cotton"
+      Category: "Office Chair"
+
+  - name: Item_16
+    values:
+      Product Name: "MUNICH Swivel Chair, yellow"
+      Color: "Yellow"
+      Depth: "70 CM"
+      Height: "110 CM"
+      Material Description: "crap"
+      Width: "90 CM"
+      Category: "Office Chair"
+
+  - name: Item_17
+    values:
+      Product Name: "ATLANTA Whiteboard, base"
+      Color: "White"
+      Width: "200 CM"
+      Height: "250 CM"
+      Material Description: "Plastic, Steel"
+      Category: "Miscellaneous"
+
+  - name: Item_18
+    values:
+      Product Name: "Whole Roasted Beans, Colombia"
+      Category: "BEANS"
+
+  - name: Item_19
+    values:
+      Product Name: "TOKYO Guest Chair, blue"
+      Color: "Blue"
+      Depth: "80 CM"
+      Width: "90 CM"
+      Height: "125 CM"
+      Material Description: "Cotton, Wood Legs"
+      Category: "Office Chair"
+
+  - name: Item_20
+    values:
+      Product Name: "Depeche Mode Concert Ticket, Copenhagen 2023"
+      Material Description: "Paper"
+      Model Year: "2023"
+      Category: "Consumer Models"
+
+  - name: Item_21
+    values:
+      Product Name: "Conference Bundle 1-6"
+      Cable management: "Manual"
+      Certifications: "International MBA"
+      Color: "Yellow"
+      Material Description: "Brick"
+      Model Year: "1920"
+      Category: ""
+
+  - name: Item_22
+    values:
+      Product Name: "MEXICO Swivel Chair, black"
+      Color: "Black"
+      Height: "135 CM"
+      Category: "Office Chair"
+
+  - name: Item_23
+    values:
+      Product Name: "MUNICH Swivel Chair, yellow"
+      Color: "Yellow"
+      Depth: "70 CM"
+      Width: "90 CM"
+      Height: "110 CM"
+      Material Description: "Plastic, Steel"
+      Category: "Office Chair"
+
+  - name: Item_24
+    values:
+      Product Name: "Depeche Mode Concert Ticket, Copenhagen 2023"
+      Material Description: "Paper"
+      Model Year: "2023"
+      Certifications: "2023"
+      Category: "Consumer Models"
+
+  - name: Item_25
+    values:
+      Product Name: "MEXICO Swivel Chair, black"
+      Color: "Black"
+      Category: "Office Chair"
+
+  - name: Item_26
+    values:
+      Product Name: "MOSCOW Swivel Chair, red"
+      Color: "Red"
+      Depth: "85 CM"
+      Width: "90 CM"
+      Height: "140 CM"
+      Material Description: "Cotton, Plastic, Steel"
+      Organization: "Wagner"
+      Category: "Office Chair"
+
+  - name: Item_27
+    values:
+      Product Name: "Conference Table for 6 people"
+      Color: "Yellow"
+      Material Description: "Brick"
+      Model Year: "1920"
+      Cable management: "Manual"
+      Certifications: "International MBA"
+      Category: ""
+
+  - name: Item_28
+    values:
+      Product Name: "MEXICO Swivel Chair, black"
+      Color: "Black"
+      Depth: "75 CM"
+      Width: "95 CM"
+      Height: "135 CM"
+      Material Description: "Steel"
+      Category: "Office Chair"
+
+  - name: Item_29
+    values:
+      Product Name: "Paint, black"
+      Cosmetic Type: "Face"
+      Duration: "Temporary"
+      Category: "Parts"
+
+  - name: Item_30
+    values:
+      Product Name: "ATLANTA Whiteboard, base"
+      Color: "White"
+      Depth: "40 CM"
+      Width: "200 CM"
+      Height: "250 CM"
+      Material Description: "Premium steel frame, white matte plastic finish, colorful Ayrton-style antidust covers"
+      Category: "Miscellaneous"
+
+  - name: Item_31
+    values:
+      Product Name: "BERLIN Guest Chair, yellow"
+      Color: "Yellow"
+      Depth: "100 CM"
+      Width: "120 CM"
+      Height: "115 CM"
+      Material Description: "Cotton, Wood Legs"
+      Model Year: "1940"
+      Category: "Office Chair"
+
+  - name: Item_32
+    values:
+      Product Name: "ROME Guest Chair, green"
+      Color: "Green"
+      Depth: "40 CM"
+      Width: "120 CM"
+      Height: "110 CM"
+      Material Description: "Cotton, Aluminium"
+      Model Year: "1980"
+      Category: "Office Chair"
+
+  - name: Item_33
+    values:
+      Product Name: "SEOUL Guest Chair, red"
+      Color: "Red"
+      Depth: "70 CM"
+      Width: "90 CM"
+      Height: "120 CM"
+      Material Description: "Cotton, Steel legs"
+      Category: "Office Chair"
+
+  - name: Item_34
+    values:
+      Product Name: "Whole Roasted Beans, Brazil"
+      Notes: "Chocolate, Hazelnut, Lime"
+      Roast Type: "Dark"
+      Category: "BEANS"
+
+  - name: Item_35
+    values:
+      Product Name: "AutoDrip"
+      Category: "Consumer Models"
+
+  - name: Item_36
+    values:
+      Product Name: "AMSTERDAM Lamp"
+      Color: "Red"
+      Depth: "30 CM"
+      Height: "60 CM"
+      Material Description: "Steel"
+      Category: "Miscellaneous"
+
+  - name: Item_37
+    values:
+      Product Name: "PARIS Guest Chair, black"
+      Color: "Black"
+      Depth: "70 CM"
+      Width: "75 CM"
+      Height: "100 CM"
+      Material Description: "Leather, Satin Polished Aluminum base"
+      Model Year: "1952"
+      Category: "Office Chair"
+
+  - name: Item_38
+    values:
+      Product Name: "Dawid Wozniak"
+      Material Description: "Steel"
+      Category: "Office Supplies"
+
+  - name: Item_39
+    values:
+      Product Name: "black black power"
+      Material Description: "Steel"
+      Category: "Office Supplies"
+
+  - name: Item_40
+    values:
+      Product Name: "black black power gens"
+      Material Description: "Steel"
+      Category: "Office Supplies"
+
+  - name: Item_41
+    values:
+      Product Name: "Reservoir Assy."
+      Depth: "9,999 CM"
+      Width: "9,999 CM"
+      Category: "Parts"
+
+  - name: Item_42
+    values:
+      Product Name: "Reservoir Assy."
+      Category: "Parts"
+
+  - name: Item_43
+    values:
+      Product Name: "MUNICH Swivel Chair, yellow"
+      Color: "Yellow"
+      Depth: "70 CM"
+      Width: "90 CM"
+      Height: "110 CM"
+      Material Description: "KKK"
+      Category: "Office Chair"

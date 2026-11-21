@@ -158,6 +158,7 @@
                         "../../../src/Apps/W1/EmailLogging/test",
                         "../../../src/Apps/W1/EnforcedDigitalVouchers/test",
                         "../../../src/Apps/W1/EnforcedDigitalVouchers/test library",
+                        "../../../src/Apps/W1/EntityText/test",
                         "../../../src/Apps/W1/ErrorMessagesWithRecommendations/Test",
                         "../../../src/Apps/W1/EssentialBusinessHeadlines/Test",
                         "../../../src/Apps/W1/EU3PartyTradePurchase/test",
