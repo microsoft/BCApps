@@ -22,6 +22,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
         TempXMLBuffer.LoadFromStream(DocStream);
+        InitializePEPPOLNamespacePrefixes(TempXMLBuffer);
 
         GLSetup.Get();
         LCYCode := GLSetup."LCY Code";
@@ -45,6 +46,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
         TempXMLBuffer.LoadFromStream(DocStream);
+        InitializePEPPOLNamespacePrefixes(TempXMLBuffer);
 
         PurchaseHeader."Buy-from Vendor No." := EDocument."Bill-to/Pay-to No.";
         PurchaseHeader."Currency Code" := EDocument."Currency Code";
@@ -259,14 +261,13 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         LineNo: Integer;
     begin
         TempXMLBuffer.Reset();
-        TempXMLBuffer.SetFilter(Path, RootPath + '/cac:AllowanceCharge*');
 
         PurchaseLine.FindLast();
         LineNo := PurchaseLine."Line No." + 10000;
 
         if TempXMLBuffer.FindSet() then
             repeat
-                case TempXMLBuffer.Path of
+                case ResolveCanonicalPEPPOLPath(TempXMLBuffer.Path) of
                     RootPath + '/cac:AllowanceCharge/cbc:ChargeIndicator':
                         if TempXMLBuffer.Value = 'true' then begin
                             SetGLAccountAndInsertLine(EDocument, PurchaseLine, LineNo);
@@ -318,7 +319,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     begin
         Path := TempXMLBuffer.Path;
         Value := TempXMLBuffer.Value;
-        case Path of
+        case ResolveCanonicalPEPPOLPath(Path) of
             RootPath + '/cbc:ID':
                 PurchaseHeader."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."Vendor Invoice No."));
             RootPath + '/cbc:IssueDate':
@@ -432,7 +433,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     begin
         Path := TempXMLBuffer.Path;
         Value := TempXMLBuffer.Value;
-        case Path of
+        case ResolveCanonicalPEPPOLPath(Path) of
             RootPath + '/cbc:ID':
                 PurchaseHeader."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."Vendor Invoice No."));
             RootPath + '/cac:OrderReference/cbc:ID':
@@ -549,24 +550,77 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         end;
     end;
 
+    local procedure InitializePEPPOLNamespacePrefixes(var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        AggregateNamespaceUriLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
+        BasicNamespaceUriLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
+    begin
+        AggregateNamespacePrefix := GetNamespacePrefix(TempXMLBuffer, AggregateNamespaceUriLbl);
+        BasicNamespacePrefix := GetNamespacePrefix(TempXMLBuffer, BasicNamespaceUriLbl);
+    end;
+
+    local procedure ResolveCanonicalPEPPOLPath(Path: Text): Text
+    var
+        PathSegments: List of [Text];
+        Segment: Text;
+        CanonicalPath: Text;
+        i: Integer;
+    begin
+        if Path = '' then
+            exit;
+
+        PathSegments := Path.Split('/');
+        CanonicalPath := PathSegments.Get(1);
+        for i := 2 to PathSegments.Count() do begin
+            Segment := PathSegments.Get(i);
+            if (AggregateNamespacePrefix <> '') and Segment.StartsWith(AggregateNamespacePrefix + ':') then
+                Segment := 'cac' + CopyStr(Segment, StrLen(AggregateNamespacePrefix) + 1)
+            else
+                if (BasicNamespacePrefix <> '') and Segment.StartsWith(BasicNamespacePrefix + ':') then
+                    Segment := 'cbc' + CopyStr(Segment, StrLen(BasicNamespacePrefix) + 1);
+
+            CanonicalPath += '/' + Segment;
+        end;
+
+        exit(CanonicalPath);
+    end;
+
+    local procedure GetNamespacePrefix(var TempXMLBuffer: Record "XML Buffer" temporary; NamespaceUri: Text): Text
+    var
+        NamespaceBuffer: Record "XML Buffer" temporary;
+    begin
+        NamespaceBuffer.Copy(TempXMLBuffer, true);
+        NamespaceBuffer.Reset();
+        NamespaceBuffer.SetRange(Type, NamespaceBuffer.Type::Attribute);
+        NamespaceBuffer.SetRange(Value, NamespaceUri);
+        NamespaceBuffer.SetFilter(Name, 'xmlns:*');
+
+        if NamespaceBuffer.FindFirst() then
+            exit(CopyStr(NamespaceBuffer.Name, 7));
+    end;
+
     local procedure GetNodeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
     begin
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
-        TempXMLBuffer.SetRange(Path, XPath);
 
-        if TempXMLBuffer.FindFirst() then
-            exit(TempXMLBuffer.Value);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                if ResolveCanonicalPEPPOLPath(TempXMLBuffer.Path) = XPath then
+                    exit(TempXMLBuffer.Value);
+            until TempXMLBuffer.Next() = 0;
     end;
 
     local procedure GetNodeAttributeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
     begin
         TempXMLBuffer.Reset();
         TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Attribute);
-        TempXMLBuffer.SetRange(Path, XPath);
 
-        if TempXMLBuffer.FindFirst() then
-            exit(TempXMLBuffer.Value);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                if ResolveCanonicalPEPPOLPath(TempXMLBuffer.Path) = XPath then
+                    exit(TempXMLBuffer.Value);
+            until TempXMLBuffer.Next() = 0;
     end;
 
     local procedure GLNSchemeId(): Text
@@ -627,6 +681,8 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         InvoiceTok: Label 'INVOICE', Locked = true;
         CreditNoteTok: Label 'CREDITNOTE', Locked = true;
         LCYCode: Code[10];
+        AggregateNamespacePrefix: Text;
+        BasicNamespacePrefix: Text;
 
     [IntegrationEvent(false, false)]
     internal procedure OnAfterParseInvoice(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: Record "Purchase Line" temporary; DocumentAttachment: Record "Document Attachment"; DocumentAttachmentData: Codeunit "Temp Blob"; TempXMLBuffer: Record "XML Buffer" temporary; Path: Text; Value: Text)
