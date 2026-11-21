@@ -77,6 +77,7 @@ codeunit 137083 "SCM Production Orders IV"
         FieldMustNotBeEditableErr: Label '%1 must not be editable in %2', Comment = ' %1 = Field Name , %2 = Page Name';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
         EntryMustBeEqualErr: Label '%1 must be equal to %2 for Entry No. %3 in the %4.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Entry No., %4 = Table Caption';
+        ValueMustNotBeZeroErr: Label '%1 must not be 0 in the %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         CannotFinishProductionLineErr: Label 'You cannot finish line %1 on %2 %3. It has consumption or capacity posted with no output.', Comment = '%1 = Production Order Line No. , %2 = Table Caption , %3 = Production Order No.';
         MaterialCostMustBeEqualErr: Label 'Material Cost must be equal to %1 in item %2', Comment = ' %1 = Expected Value , %2 = Item No.';
         CapacityCostMustBeEqualErr: Label 'Capacity Cost must be equal to %1 in item %2', Comment = ' %1 = Expected Value , %2 = Item No.';
@@ -4561,6 +4562,143 @@ codeunit 137083 "SCM Production Orders IV"
         Assert.RecordIsNotEmpty(DocumentAttachment);
     end;
 
+    [Test]
+    [HandlerFunctions('PostProductionJournalWithOutputQtyHandler,ConfirmHandlerTrue,MessageHandler,ReleasedProdOrderPageHandler')]
+    procedure AdjustCostDoesNotCreateExpectedCostVarianceAfterReopenAndReverseFinishedProdOrder()
+    var
+        CompItem: Record Item;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        PostValueEntryToGL: Record "Post Value Entry to G/L";
+        ProdItem: Record Item;
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ValueEntry: Record "Value Entry";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        Quantity: Decimal;
+        LastValueEntryNo: Integer;
+    begin
+        // [SCENARIO 651524] Adjust Cost must not create a Variance Value Entry with "Expected Cost" = Yes
+        // after a Finished Production Order of a Standard Cost item is reopened, its entries reversed and new output posted.
+        Initialize();
+
+        // [GIVEN] Inventory Setup: "Automatic Cost Posting" = No, "Expected Cost Posting to G/L" = Yes, "Automatic Cost Adjustment" = Never.
+        LibraryInventory.SetAutomaticCostPosting(false);
+        LibraryInventory.SetExpectedCostPosting(true);
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Update "Journal Templ. Name Mandatory" in General Ledger Setup.
+        LibraryERMCountryData.UpdateJournalTemplMandatory(false);
+
+        // [GIVEN] Component Item "C" with Unit Cost different from the Standard Cost of the production item.
+        LibraryInventory.CreateItem(CompItem);
+        CompItem.Validate("Replenishment System", CompItem."Replenishment System"::Purchase);
+        CompItem.Modify(true);
+
+        // [GIVEN] Production Item "P" with "Costing Method" = Standard and certified Production BOM with "C", "Quantity per" = 1.
+        CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem, 1);
+        LibraryInventory.CreateItem(ProdItem);
+        ProdItem.Validate("Costing Method", ProdItem."Costing Method"::Standard);
+        ProdItem.Validate("Standard Cost", LibraryRandom.RandIntInRange(5, 10));
+        ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
+        ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ProdItem.Modify(true);
+
+        // [GIVEN] Inventory Posting Setup for blank location has Inventory, Inventory (Interim), WIP and Variance accounts.
+        LibraryInventory.UpdateInventoryPostingSetup(Location, CompItem."Inventory Posting Group");
+        LibraryInventory.UpdateInventoryPostingSetup(Location, ProdItem."Inventory Posting Group");
+
+        // [GIVEN] Post inventory of "C" via Item Journal.
+        CreateItemJournalLineWithUnitCost(ItemJournalBatch, ItemJournalLine, CompItem."No.", Quantity * 2, '', '', LibraryRandom.RandIntInRange(20, 30));
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+
+        // [GIVEN] Released Production Order for "P", refreshed, and Production Journal posted with full output and consumption.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, ProdItem."No.", Quantity, '', '');
+        FindProdOrderLine(ProdOrderLine, ProdOrderLine.Status::Released, ProductionOrder."No.");
+        LibraryVariableStorage.Enqueue(Quantity);
+        LibraryManufacturing.OpenProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [GIVEN] Production Order is finished, cost is adjusted and inventory cost is posted to G/L.
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+        LibraryCosting.AdjustCostItemEntries(StrSubstNo('%1|%2', CompItem."No.", ProdItem."No."), '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), '');
+
+        // [GIVEN] Finished Production Order is reopened.
+        ProductionOrder.Get(ProductionOrder.Status::Finished, ProductionOrder."No.");
+        ProdOrderStatusMgt.ReopenFinishedProdOrder(ProductionOrder);
+
+        // [GIVEN] Output and Consumption Item Ledger Entries of the Production Order are reversed.
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        ItemLedgerEntry.SetRange("Entry No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [GIVEN] Production Journal posted again with "Output Quantity" = 1.
+        ProductionOrder.Get(ProductionOrder.Status::Released, ProductionOrder."No.");
+        FindProdOrderLine(ProdOrderLine, ProdOrderLine.Status::Released, ProductionOrder."No.");
+        LibraryVariableStorage.Enqueue(1);
+        LibraryManufacturing.OpenProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
+
+        // [GIVEN] Production Order is finished again.
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+
+        // [GIVEN] Save the last Value Entry No. before running Adjust Cost again.
+        ValueEntry.FindLast();
+        LastValueEntryNo := ValueEntry."Entry No.";
+
+        // [WHEN] Run Adjust Cost - Item Entries.
+        LibraryCosting.AdjustCostItemEntries(StrSubstNo('%1|%2', CompItem."No.", ProdItem."No."), '');
+
+        // [THEN] Adjust Cost created a new adjustment Variance Value Entry for item "P".
+        ValueEntry.Reset();
+        ValueEntry.SetFilter("Entry No.", '>%1', LastValueEntryNo);
+        ValueEntry.SetRange("Item No.", ProdItem."No.");
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        ValueEntry.SetRange(Adjustment, true);
+        Assert.RecordIsNotEmpty(ValueEntry);
+
+        // [THEN] Every Variance Value Entry created by Adjust Cost for item "P" has "Expected Cost" = No and "Cost Amount (Expected)" = 0.
+        ValueEntry.SetRange(Adjustment);
+        ValueEntry.FindSet();
+        repeat
+            Assert.AreEqual(
+                false,
+                ValueEntry."Expected Cost",
+                StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Expected Cost"), false, ValueEntry."Entry No.", ValueEntry.TableCaption()));
+            Assert.AreEqual(
+                0,
+                ValueEntry."Cost Amount (Expected)",
+                StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Expected)"), 0, ValueEntry."Entry No.", ValueEntry.TableCaption()));
+        until ValueEntry.Next() = 0;
+
+        // [THEN] The adjustment Variance Value Entry for item "P" is posted to "Cost Amount (Actual)".
+        ValueEntry.SetRange(Adjustment, true);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        Assert.AreNotEqual(
+            0, ValueEntry."Cost Amount (Actual)",
+            StrSubstNo(ValueMustNotBeZeroErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ValueEntry.TableCaption()));
+
+        // [THEN] Post Inventory Cost to G/L completes successfully and posts all Value Entries of item "P".
+        LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), '');
+        PostValueEntryToGL.SetRange("Item No.", ProdItem."No.");
+        Assert.RecordIsEmpty(PostValueEntryToGL);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SCM Production Orders IV");
@@ -5433,6 +5571,14 @@ codeunit 137083 "SCM Production Orders IV"
     [ModalPageHandler]
     procedure PostProductionJournalHandler(var ProductionJournal: TestPage "Production Journal")
     begin
+        ProductionJournal.Post.Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure PostProductionJournalWithOutputQtyHandler(var ProductionJournal: TestPage "Production Journal")
+    begin
+        Assert.IsTrue(ProductionJournal.FindFirstField(ProductionJournal."Entry Type", "Item Ledger Entry Type"::Output), '');
+        ProductionJournal."Output Quantity".SetValue(LibraryVariableStorage.DequeueDecimal());
         ProductionJournal.Post.Invoke();
     end;
 
