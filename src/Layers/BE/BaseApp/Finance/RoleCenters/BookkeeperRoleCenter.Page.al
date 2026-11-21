@@ -121,7 +121,6 @@ page 9004 "Bookkeeper Role Center"
                     Caption = 'Bank &Detail Trial Balance';
                     Image = "Report";
                     RunObject = Report "Bank Acc. - Detail Trial Bal.";
-                    ToolTip = 'View transactions for all bank accounts with subtotals per account. Each account shows the opening balance on the first line, the list of transactions for the account and a closing balance on the last line.';
                 }
                 action("Trial Balance - Debit/Credit")
                 {
