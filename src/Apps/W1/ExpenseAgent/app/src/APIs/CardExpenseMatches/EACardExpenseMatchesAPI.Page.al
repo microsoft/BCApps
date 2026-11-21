@@ -52,6 +52,10 @@ page 7420 "EA Card Expense Matches API"
                 {
                     Caption = 'Merchant Name';
                 }
+                field(cardLast4; Rec."Card Last 4")
+                {
+                    Caption = 'Card Last 4';
+                }
                 field(expenseId; Rec."Expense SystemId")
                 {
                     Caption = 'Expense Id';
@@ -75,10 +79,10 @@ page 7420 "EA Card Expense Matches API"
         Rec."Expense User SystemId" := GetScopedExpenseUserSystemId();
         if IsNullGuid(Rec."Expense SystemId") then
             Rec."Expense SystemId" := ReceiptExpenseMatch.FindMatchingExpense(
-                Rec."Expense User SystemId", Rec."Expense Date", Rec.Amount, Rec."Currency Code", Rec."Merchant Name")
+                Rec."Expense User SystemId", Rec."Expense Date", Rec.Amount, Rec."Currency Code", Rec."Merchant Name", Rec."Card Last 4")
         else
             Rec."Expense SystemId" := ReceiptExpenseMatch.CheckMatchingExpense(
-                Rec."Expense User SystemId", Rec."Expense SystemId", Rec."Expense Date", Rec.Amount, Rec."Currency Code");
+                Rec."Expense User SystemId", Rec."Expense SystemId", Rec."Expense Date", Rec.Amount, Rec."Currency Code", Rec."Card Last 4");
         Rec.Insert();
         exit(false);
     end;

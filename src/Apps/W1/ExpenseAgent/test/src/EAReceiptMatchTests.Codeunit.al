@@ -157,7 +157,7 @@ codeunit 148355 EAReceiptMatchTests
         // [WHEN] The receipt is matched for the other expense user.
         // [THEN] No expense is returned.
         Assert.IsTrue(
-            IsNullGuid(ReceiptExpenseMatch.FindMatchingExpense(OtherExpenseUser.SystemId, WorkDate(), 20, '', 'CONTOSO COFFEE')),
+            IsNullGuid(ReceiptExpenseMatch.FindMatchingExpense(OtherExpenseUser.SystemId, WorkDate(), 20, '', 'CONTOSO COFFEE', '')),
             'Another user''s expense must not match.');
     end;
 
@@ -284,6 +284,72 @@ codeunit 148355 EAReceiptMatchTests
         Assert.IsTrue(IsNullGuid(CheckMatch(Expense, OtherExpense.SystemId, WorkDate(), 20)), 'Another user''s expense must not fit.');
     end;
 
+    [Test]
+    procedure ReceiptCardLast4SelectsExpensePaidWithThatCard()
+    var
+        Expense: Record Expense;
+        OtherCardExpense: Record Expense;
+    begin
+        // [SCENARIO] When the receipt shows the card's last four digits, only expenses paid with a card ending in those digits match.
+        Initialize();
+
+        // [GIVEN] Two equal card expenses of the same expense user, paid with cards ending in 0001 and 7777.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CreateCardExpense(OtherCardExpense, CreateSecondCard('CORPCARD-0001', '****7777'), WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] The receipt is matched with card last four digits 7777.
+        // [THEN] The expense paid with the card ending in 7777 is returned.
+        Assert.AreEqual(OtherCardExpense.SystemId, FindMatch(Expense, WorkDate(), 20, '7777'), 'The expense paid with the receipt card must match.');
+    end;
+
+    [Test]
+    procedure ReceiptCardLast4OfNoUserCardDoesNotMatch()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] A receipt paid with a card the expense user does not have matches no expense.
+        Initialize();
+
+        // [GIVEN] A card expense paid with the card ending in 0001.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] The receipt is matched with card last four digits 9999.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20, '9999')), 'Another card must not match.');
+    end;
+
+    [Test]
+    procedure ReceiptInvalidCardLast4IsIgnored()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Card digits that are not exactly four digits are ignored.
+        Initialize();
+
+        // [GIVEN] A card expense paid with the card ending in 0001.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] The receipt is matched with card last four digits 12A4.
+        // [THEN] The card expense is returned.
+        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20, '12A4'), 'Invalid card digits must be ignored.');
+    end;
+
+    [Test]
+    procedure CheckReturnsEmptyWhenCardLast4Differs()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Checking a receipt paid with another card against a given card expense returns no match.
+        Initialize();
+
+        // [GIVEN] A card expense paid with the card ending in 0001.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] A receipt with card last four digits 9999 is checked against the expense.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(CheckMatch(Expense, Expense.SystemId, WorkDate(), 20, '9999')), 'Another card must not fit.');
+    end;
+
     local procedure Initialize()
     begin
         CorpCardTestLib.InitializeCorpCardData();
@@ -291,20 +357,45 @@ codeunit 148355 EAReceiptMatchTests
     end;
 
     local procedure FindMatch(Expense: Record Expense; ReceiptDate: Date; ReceiptAmount: Decimal): Guid
+    begin
+        exit(FindMatch(Expense, ReceiptDate, ReceiptAmount, ''));
+    end;
+
+    local procedure FindMatch(Expense: Record Expense; ReceiptDate: Date; ReceiptAmount: Decimal; CardLast4: Text): Guid
     var
         ExpenseUser: Record "Expense User";
     begin
         ExpenseUser.Get(Expense."Expense User No.");
-        exit(ReceiptExpenseMatch.FindMatchingExpense(ExpenseUser.SystemId, ReceiptDate, ReceiptAmount, '', Expense."Merchant Name"));
+        exit(ReceiptExpenseMatch.FindMatchingExpense(ExpenseUser.SystemId, ReceiptDate, ReceiptAmount, '', Expense."Merchant Name", CardLast4));
+    end;
+
+    local procedure CheckMatch(Expense: Record Expense; ExpenseSystemId: Guid; ReceiptDate: Date; ReceiptAmount: Decimal): Guid
+    begin
+        exit(CheckMatch(Expense, ExpenseSystemId, ReceiptDate, ReceiptAmount, ''));
     end;
 
     // Checks the receipt for the expense user of Expense against the expense identified by ExpenseSystemId.
-    local procedure CheckMatch(Expense: Record Expense; ExpenseSystemId: Guid; ReceiptDate: Date; ReceiptAmount: Decimal): Guid
+    local procedure CheckMatch(Expense: Record Expense; ExpenseSystemId: Guid; ReceiptDate: Date; ReceiptAmount: Decimal; CardLast4: Text): Guid
     var
         ExpenseUser: Record "Expense User";
     begin
         ExpenseUser.Get(Expense."Expense User No.");
-        exit(ReceiptExpenseMatch.CheckMatchingExpense(ExpenseUser.SystemId, ExpenseSystemId, ReceiptDate, ReceiptAmount, ''));
+        exit(ReceiptExpenseMatch.CheckMatchingExpense(ExpenseUser.SystemId, ExpenseSystemId, ReceiptDate, ReceiptAmount, '', CardLast4));
+    end;
+
+    // Creates another card for the expense user of the given card and returns its card ID.
+    local procedure CreateSecondCard(CardId: Code[50]; MaskedCardNo: Text[30]): Code[50]
+    var
+        CorpCard: Record "EA Corp Card";
+        SecondCorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.Get(CardId);
+        SecondCorpCard := CorpCard;
+        SecondCorpCard."Card Id" := CopyStr(CardId + '-2', 1, MaxStrLen(SecondCorpCard."Card Id"));
+        SecondCorpCard."External Card Ref" := '';
+        SecondCorpCard."Masked Card No." := MaskedCardNo;
+        SecondCorpCard.Insert(true);
+        exit(SecondCorpCard."Card Id");
     end;
 
     local procedure CreateCardExpense(var Expense: Record Expense; CardId: Code[50]; ExpenseDate: Date; MerchantName: Text[100])

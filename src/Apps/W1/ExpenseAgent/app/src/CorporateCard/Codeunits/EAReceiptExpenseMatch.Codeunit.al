@@ -36,45 +36,86 @@ codeunit 7438 "EA Receipt Expense Match"
     /// <summary>
     /// Returns the SystemId of the pending card expense that the receipt belongs to, or an empty GUID when none matches.
     /// Candidates must have the same expense user, currency and exact amount, and an expense date within the
-    /// Corp Card Date Match Window. The closest date and most similar merchant name win; ties keep the lowest expense number.
+    /// Corp Card Date Match Window. When CardLast4 is four digits, the expense must also be paid with one of the user's cards
+    /// ending in those digits. The closest date and most similar merchant name win; ties keep the lowest expense number.
     /// </summary>
-    internal procedure FindMatchingExpense(ExpenseUserSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]; MerchantName: Text[100]) ExpenseSystemId: Guid
+    internal procedure FindMatchingExpense(ExpenseUserSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]; MerchantName: Text[100]; CardLast4: Text) ExpenseSystemId: Guid
     var
         Expense: Record Expense;
+        CardIds: List of [Code[50]];
+        ExpenseUserNo: Code[20];
+        FilterByCard: Boolean;
+        HasCandidate: Boolean;
         Score: Decimal;
         BestScore: Decimal;
     begin
-        SetCandidateFilters(Expense, GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount), ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
+        ExpenseUserNo := GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount);
+        SetCandidateFilters(Expense, ExpenseUserNo, ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
+        FilterByCard := GetCardIdsEndingIn(ExpenseUserNo, CardLast4, CardIds);
 
-        Expense.SetLoadFields(SystemId, "Expense Date", "Merchant Name");
+        Expense.SetLoadFields(SystemId, "Expense Date", "Merchant Name", "Corporate Card Id");
         if not Expense.FindSet() then
             exit;
 
-        BestScore := CalculateMatchScore(ExpenseDate, MerchantName, Expense);
-        ExpenseSystemId := Expense.SystemId;
-        while Expense.Next() <> 0 do begin
-            Score := CalculateMatchScore(ExpenseDate, MerchantName, Expense);
-            if Score > BestScore then begin
-                BestScore := Score;
-                ExpenseSystemId := Expense.SystemId;
+        HasCandidate := false;
+        BestScore := 0;
+        repeat
+            if IsPaidWithCard(Expense, FilterByCard, CardIds) then begin
+                Score := CalculateMatchScore(ExpenseDate, MerchantName, Expense);
+                if (not HasCandidate) or (Score > BestScore) then begin
+                    HasCandidate := true;
+                    BestScore := Score;
+                    ExpenseSystemId := Expense.SystemId;
+                end;
             end;
-        end;
+        until Expense.Next() = 0;
     end;
 
     /// <summary>
     /// Returns ExpenseSystemId when that expense is a pending card expense the receipt belongs to, or an empty GUID otherwise.
     /// Uses the same rules as FindMatchingExpense; the merchant name only ranks candidates, so it is not checked.
     /// </summary>
-    internal procedure CheckMatchingExpense(ExpenseUserSystemId: Guid; ExpenseSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]): Guid
+    internal procedure CheckMatchingExpense(ExpenseUserSystemId: Guid; ExpenseSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]; CardLast4: Text): Guid
     var
         Expense: Record Expense;
+        CardIds: List of [Code[50]];
+        ExpenseUserNo: Code[20];
         EmptyGuid: Guid;
     begin
-        SetCandidateFilters(Expense, GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount), ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
+        ExpenseUserNo := GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount);
+        SetCandidateFilters(Expense, ExpenseUserNo, ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
         Expense.SetRange(SystemId, ExpenseSystemId);
-        if Expense.IsEmpty() then
+        Expense.SetLoadFields("Corporate Card Id");
+        if not Expense.FindFirst() then
+            exit(EmptyGuid);
+        if not IsPaidWithCard(Expense, GetCardIdsEndingIn(ExpenseUserNo, CardLast4, CardIds), CardIds) then
             exit(EmptyGuid);
         exit(ExpenseSystemId);
+    end;
+
+    // Returns false when CardLast4 is not exactly four digits, so matching ignores the card.
+    local procedure GetCardIdsEndingIn(ExpenseUserNo: Code[20]; CardLast4: Text; var CardIds: List of [Code[50]]): Boolean
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        if (StrLen(CardLast4) <> 4) or (DelChr(CardLast4, '=', '0123456789') <> '') then
+            exit(false);
+
+        CorpCard.SetRange("Expense User No.", ExpenseUserNo);
+        CorpCard.SetLoadFields("Card Id", "Masked Card No.");
+        if CorpCard.FindSet() then
+            repeat
+                if CorpCard.GetLastFourDigits() = CardLast4 then
+                    CardIds.Add(CorpCard."Card Id");
+            until CorpCard.Next() = 0;
+        exit(true);
+    end;
+
+    local procedure IsPaidWithCard(Expense: Record Expense; FilterByCard: Boolean; CardIds: List of [Code[50]]): Boolean
+    begin
+        if not FilterByCard then
+            exit(true);
+        exit(CardIds.Contains(Expense."Corporate Card Id"));
     end;
 
     local procedure GetExpenseUserNo(ExpenseUserSystemId: Guid; ExpenseDate: Date; Amount: Decimal): Code[20]
