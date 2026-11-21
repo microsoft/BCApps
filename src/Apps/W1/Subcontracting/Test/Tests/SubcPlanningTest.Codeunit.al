@@ -543,21 +543,26 @@ codeunit 139996 "Subc. Planning Test"
         ProductionOrder: Record "Production Order";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderComponent: Record "Prod. Order Component";
+        SecondProdOrderComponent: Record "Prod. Order Component";
         PurchaseLine: Record "Purchase Line";
         PurchaseLineComp: Record "Purchase Line";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
         WorkCenter: array[2] of Record "Work Center";
+        LeadTimeCalculation: DateFormula;
+        SafetyLeadTimeCalculation: DateFormula;
+        ComponentDueDate: array[2] of Date;
         InitialQty: Decimal;
         NewQty: Decimal;
+        ComponentIndex: Integer;
     begin
-        // [SCENARIO 637496] When a production order quantity changes and the subcontracting purchase order
-        // is rescheduled via the requisition worksheet, the Vendor-Supplied component purchase lines
-        // should be updated to reflect the new quantity.
+        // [SCENARIO 650504] When a subcontracting purchase order is rescheduled, duplicate Vendor-Supplied
+        // components are matched one-to-one and use their own quantities and requirement dates.
 
-        // [GIVEN] A subcontracting setup with a Vendor-Supplied component
+        // [GIVEN] A subcontracting setup with two Vendor-Supplied components for the same item and operation
         Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
 
@@ -567,10 +572,25 @@ codeunit 139996 "Subc. Planning Test"
         SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
 
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
         // [GIVEN] A released production order
         InitialQty := LibraryRandom.RandIntInRange(5, 10);
         SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
             ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", InitialQty);
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+        LibraryManufacturing.CreateProductionOrderComponent(
+            SecondProdOrderComponent, ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+        SecondProdOrderComponent.Validate("Item No.", ProdOrderComponent."Item No.");
+        SecondProdOrderComponent.Validate("Quantity per", 2);
+        SecondProdOrderComponent.Validate("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        SecondProdOrderComponent.Validate("Component Supply Method", ProdOrderComponent."Component Supply Method");
+        SecondProdOrderComponent.Modify(true);
 
         // [GIVEN] A subcontracting purchase order created via the requisition worksheet
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
@@ -578,24 +598,42 @@ codeunit 139996 "Subc. Planning Test"
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
 
         // [GIVEN] The vendor-supplied component purchase line exists
-        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-#pragma warning disable AA0210
-        ProductionBOMLine.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-#pragma warning restore AA0210
-        ProductionBOMLine.FindFirst();
-        ComponentItem.Get(ProductionBOMLine."No.");
-
         SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, Item."No.", ProductionOrder."No.");
         SubcontractingMgmtLibrary.FindComponentPurchLine(PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
         Assert.IsTrue(PurchaseLineComp.FindFirst(), 'Vendor-Supplied component purchase line should exist after initial PO creation.');
+        Assert.AreEqual(2, PurchaseLineComp.Count(), 'Two Vendor-Supplied component purchase lines should exist for the duplicate component item.');
+        Evaluate(LeadTimeCalculation, '<2D>');
+        Evaluate(SafetyLeadTimeCalculation, '<0D>');
+        if PurchaseLineComp.FindSet(true) then
+            repeat
+                PurchaseLineComp.Validate("Lead Time Calculation", LeadTimeCalculation);
+                PurchaseLineComp.Validate("Safety Lead Time", SafetyLeadTimeCalculation);
+                PurchaseLineComp.Modify(true);
+            until PurchaseLineComp.Next() = 0;
 
-        // [WHEN] The production order quantity is increased and refreshed
+        // [WHEN] The production order quantity and the two component due dates are changed
         NewQty := InitialQty + LibraryRandom.RandIntInRange(3, 7);
         ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
         ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderLine.FindFirst();
         ProdOrderLine.Validate(Quantity, NewQty);
         ProdOrderLine.Modify(true);
+
+        ComponentDueDate[1] := DMY2Date(7, 10, 2026);
+        ComponentDueDate[2] := DMY2Date(9, 10, 2026);
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+#pragma warning disable AA0210
+        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+#pragma warning restore AA0210
+        ComponentIndex := 1;
+        if ProdOrderComponent.FindSet(true) then
+            repeat
+                ProdOrderComponent.Validate("Due Date", ComponentDueDate[ComponentIndex]);
+                ProdOrderComponent.Modify(true);
+                ComponentIndex += 1;
+            until ProdOrderComponent.Next() = 0;
 
         // [WHEN] CalculateSubcontracts is run again and carried out (reschedule path)
         SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
@@ -608,20 +646,571 @@ codeunit 139996 "Subc. Planning Test"
 
         SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
 
-        // [THEN] The component purchase line quantity matches the updated component remaining quantity
+        // [THEN] Each purchase line matches one component and has exact backward-scheduled dates
+        ProdOrderComponent.FindSet();
+        PurchaseLineComp.FindSet();
+        Assert.AreEqual(
+            ProdOrderComponent.Count(), PurchaseLineComp.Count(),
+            'Each Vendor-Supplied component must have one purchase line after rescheduling.');
+        repeat
+            PurchaseLineComp.TestField(Quantity, ProdOrderComponent."Remaining Quantity");
+            PurchaseLineComp.TestField("Expected Receipt Date", ProdOrderComponent."Due Date");
+            PurchaseLineComp.TestField("Planned Receipt Date", ProdOrderComponent."Due Date");
+            PurchaseLineComp.TestField("Order Date", CalcDate('<-2D>', ProdOrderComponent."Due Date"));
+            PurchaseLineComp.Next();
+        until ProdOrderComponent.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
+    procedure MissingVendorSuppliedComponentPurchaseLineDoesNotAbortCarryOut()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        // [SCENARIO 650504] A missing Vendor-Supplied component purchase line does not abort the worksheet batch.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        PurchaseLineComp.FindFirst();
+        PurchaseLineComp.Delete(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Reset();
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(PurchaseLineComp);
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
+    procedure RemainingVendorSuppliedComponentUpdatesItsOwnPurchaseLine()
+    var
+        ComponentItem: Record Item;
+        FirstProdOrderComponent: Record "Prod. Order Component";
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SecondPurchaseLine: Record "Purchase Line";
+        SecondProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [SCENARIO 650504] Component rescheduling uses stable component identity after another component is removed.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+
         ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
         ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
-#pragma warning disable AA0210
-        ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
-#pragma warning restore AA0210
+        ProdOrderComponent.FindSet();
+        FirstProdOrderComponent := ProdOrderComponent;
+        ProdOrderComponent.Next();
+        SecondProdOrderComponent := ProdOrderComponent;
+
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        PurchaseLineComp.FindSet();
+        PurchaseLineComp.Next();
+        SecondPurchaseLine := PurchaseLineComp;
+
+        FirstProdOrderComponent.Delete(true);
+        SecondProdOrderComponent.Validate("Quantity per", SecondProdOrderComponent."Quantity per" + 1);
+        SecondProdOrderComponent.Validate("Due Date", DMY2Date(15, 10, 2026));
+        SecondProdOrderComponent.Modify(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        SecondProdOrderComponent.Get(
+            SecondProdOrderComponent.Status, SecondProdOrderComponent."Prod. Order No.",
+            SecondProdOrderComponent."Prod. Order Line No.", SecondProdOrderComponent."Line No.");
+        SecondPurchaseLine.Get(
+            SecondPurchaseLine."Document Type", SecondPurchaseLine."Document No.", SecondPurchaseLine."Line No.");
+        SecondPurchaseLine.TestField(Quantity, SecondProdOrderComponent."Remaining Quantity");
+        SecondPurchaseLine.TestField("Expected Receipt Date", SecondProdOrderComponent."Due Date");
+    end;
+
+    [Test]
+    procedure ChangeQuantityPreservesManuallyAdjustedComponentDates()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        ManuallyAdjustedDate: Date;
+    begin
+        // [SCENARIO 650504] A quantity-only action preserves manually adjusted component purchase dates.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        PurchaseLineComp.FindFirst();
+        ManuallyAdjustedDate := DMY2Date(20, 10, 2026);
+        PurchaseLineComp.Validate("Expected Receipt Date", ManuallyAdjustedDate);
+        PurchaseLineComp.Modify(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        RequisitionLine.TestField("Action Message", RequisitionLine."Action Message"::"Change Qty.");
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Expected Receipt Date", ManuallyAdjustedDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
+    procedure AmbiguousLegacyComponentPurchaseLinesAreNotAssigned()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+    begin
+        // [SCENARIO 650504] Ambiguous legacy component lines are not assigned a persisted component identity.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
+        PurchaseLineComp.FindSet(true);
+        repeat
+            ClearComponentPurchaseLineIdentity(PurchaseLineComp);
+        until PurchaseLineComp.Next() = 0;
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.FindSet();
+        repeat
+            PurchaseLineComp.TestField("Subc. Prod. Order Line No.", 0);
+            PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Line No.", 0);
+        until PurchaseLineComp.Next() = 0;
+    end;
+
+    [Test]
+    procedure LegacyQuantityChangePreservesManuallyAdjustedComponentDates()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RemovedProdOrderComponent: Record "Prod. Order Component";
+        RemovedPurchaseLine: Record "Purchase Line";
+        ManuallyAdjustedDate: Date;
+    begin
+        // [SCENARIO 650504] A unique legacy match initializes source tracking without overwriting manual dates.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, PurchaseLineComp, RemovedProdOrderComponent, RemovedPurchaseLine);
+        RemovedProdOrderComponent.Delete(true);
+        RemovedPurchaseLine.Delete(true);
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        ClearComponentPurchaseLineIdentity(PurchaseLineComp);
+        ManuallyAdjustedDate := DMY2Date(20, 10, 2026);
+        PurchaseLineComp.Validate("Expected Receipt Date", ManuallyAdjustedDate);
+        PurchaseLineComp.Modify(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        RequisitionLine.TestField("Action Message", RequisitionLine."Action Message"::"Change Qty.");
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Due Date", ProdOrderComponent."Due Date");
+        PurchaseLineComp.TestField("Expected Receipt Date", ManuallyAdjustedDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('SiblingProductionOrderLineNotificationHandler')]
+    procedure SiblingProductionOrderLineIsNotReportedAsOrphan()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SiblingProdOrderComponent: Record "Prod. Order Component";
+        SiblingPurchaseLine: Record "Purchase Line";
+        ProbeNotification: Notification;
+    begin
+        // [SCENARIO 650504] A purchase line for a sibling production-order line is outside the orphan count.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, PurchaseLineComp, SiblingProdOrderComponent, SiblingPurchaseLine);
+        SiblingProdOrderComponent.Delete(true);
+        SiblingPurchaseLine."Subc. Prod. Order Line No." := ProdOrderComponent."Prod. Order Line No." + 10000;
+        SiblingPurchaseLine.Modify(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+        SiblingProductionOrderLineNotificationRaised := false;
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+        ProbeNotification.Message := 'Sibling production-order-line notification probe.';
+        ProbeNotification.Send();
+
+        Assert.IsFalse(
+            SiblingProductionOrderLineNotificationRaised,
+            'A component purchase line for a sibling production-order line must not be reported as an orphan.');
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField(Quantity, ProdOrderComponent."Remaining Quantity");
+    end;
+
+    [Test]
+    procedure ExactComponentIdentityWithDifferentItemDoesNotUpdatePurchaseLine()
+    var
+        ComponentItem: Record Item;
+        NewComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SecondProdOrderComponent: Record "Prod. Order Component";
+        SecondPurchaseLine: Record "Purchase Line";
+        OriginalPurchaseQuantity: Decimal;
+    begin
+        // [SCENARIO 650504] Stable component identity does not update a purchase line for a replaced item.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, PurchaseLineComp, SecondProdOrderComponent, SecondPurchaseLine);
+        OriginalPurchaseQuantity := PurchaseLineComp.Quantity;
+        LibraryInventory.CreateItem(NewComponentItem);
+        ProdOrderComponent.Validate("Item No.", NewComponentItem."No.");
+        ProdOrderComponent.Validate("Quantity per", ProdOrderComponent."Quantity per" + 1);
+        ProdOrderComponent.Modify(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("No.", ComponentItem."No.");
+        PurchaseLineComp.TestField(Quantity, OriginalPurchaseQuantity);
+    end;
+
+    [Test]
+    procedure ExactComponentIdentityWithDifferentVariantDoesNotUpdatePurchaseLine()
+    var
+        ComponentItem: Record Item;
+        ItemVariant: Record "Item Variant";
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        SecondProdOrderComponent: Record "Prod. Order Component";
+        SecondPurchaseLine: Record "Purchase Line";
+        OriginalPurchaseQuantity: Decimal;
+    begin
+        // [SCENARIO 650504] Stable component identity does not update a purchase line for a replaced variant.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, PurchaseLineComp, SecondProdOrderComponent, SecondPurchaseLine);
+        OriginalPurchaseQuantity := PurchaseLineComp.Quantity;
+        LibraryInventory.CreateItemVariant(ItemVariant, ComponentItem."No.");
+        ProdOrderComponent.Validate("Variant Code", ItemVariant.Code);
+        ProdOrderComponent.Validate("Quantity per", ProdOrderComponent."Quantity per" + 1);
+        ProdOrderComponent.Modify(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Variant Code", '');
+        PurchaseLineComp.TestField(Quantity, OriginalPurchaseQuantity);
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
+    procedure OneLegacyPurchaseLineForTwoComponentsIsNotAssigned()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RemovedPurchaseLine: Record "Purchase Line";
+        SecondProdOrderComponent: Record "Prod. Order Component";
+        OriginalPurchaseQuantity: Decimal;
+    begin
+        // [SCENARIO 650504] A legacy line is not assigned when two source components can claim it.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, RemovedPurchaseLine, SecondProdOrderComponent, PurchaseLineComp);
+        RemovedPurchaseLine.Delete(true);
+        ClearComponentPurchaseLineIdentity(PurchaseLineComp);
+        OriginalPurchaseQuantity := PurchaseLineComp.Quantity;
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Subc. Prod. Order Line No.", 0);
+        PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Line No.", 0);
+        PurchaseLineComp.TestField(Quantity, OriginalPurchaseQuantity);
+    end;
+
+    [Test]
+    [HandlerFunctions('ComponentPurchLineMismatchNotificationHandler')]
+    procedure OneLegacyPurchaseLineForComponentsAcrossOutputsIsNotAssigned()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RemovedPurchaseLine: Record "Purchase Line";
+        SiblingProdOrderComponent: Record "Prod. Order Component";
+        OriginalPurchaseQuantity: Decimal;
+        SiblingProdOrderLineNo: Integer;
+    begin
+        // [SCENARIO 650504] A legacy line is not assigned when compatible source components exist on different production-order outputs.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, RemovedPurchaseLine, SiblingProdOrderComponent, PurchaseLineComp);
+        SiblingProdOrderLineNo := ProdOrderComponent."Prod. Order Line No." + 10000;
+        SiblingProdOrderComponent.Rename(
+            SiblingProdOrderComponent.Status, SiblingProdOrderComponent."Prod. Order No.",
+            SiblingProdOrderLineNo, SiblingProdOrderComponent."Line No.");
+        RemovedPurchaseLine.Delete(true);
+        ClearComponentPurchaseLineIdentity(PurchaseLineComp);
+        OriginalPurchaseQuantity := PurchaseLineComp.Quantity;
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Subc. Prod. Order Line No.", 0);
+        PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Line No.", 0);
+        PurchaseLineComp.TestField(Quantity, OriginalPurchaseQuantity);
+    end;
+
+    [Test]
+    procedure FirstLegacyRescheduleAppliesComponentDueDate()
+    var
+        ComponentItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseLineComp: Record "Purchase Line";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RemovedProdOrderComponent: Record "Prod. Order Component";
+        RemovedPurchaseLine: Record "Purchase Line";
+        NewComponentDueDate: Date;
+    begin
+        // [SCENARIO 650504] A legacy line's first reschedule applies and tracks the component due date.
+        CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+            ProductionOrder, PurchaseLine, ComponentItem, RequisitionWkshName);
+        FindDuplicateComponentsAndPurchaseLines(
+            ProductionOrder, ComponentItem, PurchaseLine."Document No.",
+            ProdOrderComponent, PurchaseLineComp, RemovedProdOrderComponent, RemovedPurchaseLine);
+        RemovedProdOrderComponent.Delete(true);
+        RemovedPurchaseLine.Delete(true);
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        ClearComponentPurchaseLineIdentity(PurchaseLineComp);
+        NewComponentDueDate := CalcDate('<10D>', ProdOrderComponent."Due Date");
+        ProdOrderComponent.Validate("Due Date", NewComponentDueDate);
+        ProdOrderComponent.Modify(true);
+        PurchaseLine.Validate(
+            "Expected Receipt Date", CalcDate('<20D>', PurchaseLine."Expected Receipt Date"));
+        PurchaseLine.Modify(true);
+        ChangeProductionOrderQuantity(ProductionOrder);
+
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        RequisitionLine.TestField(
+            "Action Message", RequisitionLine."Action Message"::"Resched. & Chg. Qty.");
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Expected Receipt Date", NewComponentDueDate);
+        PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Due Date", NewComponentDueDate);
+
+        ChangeProductionOrderQuantity(ProductionOrder);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        RequisitionLine.TestField("Action Message", RequisitionLine."Action Message"::"Change Qty.");
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+
+        PurchaseLineComp.Get(
+            PurchaseLineComp."Document Type", PurchaseLineComp."Document No.", PurchaseLineComp."Line No.");
+        PurchaseLineComp.TestField("Expected Receipt Date", NewComponentDueDate);
+        PurchaseLineComp.TestField("Subc. Prod. Ord. Comp Due Date", NewComponentDueDate);
+    end;
+
+    local procedure ClearComponentPurchaseLineIdentity(var PurchaseLine: Record "Purchase Line")
+    begin
+        PurchaseLine."Subc. Prod. Order Line No." := 0;
+        PurchaseLine."Subc. Prod. Ord. Comp Line No." := 0;
+        PurchaseLine."Subc. Prod. Ord. Comp Due Date" := 0D;
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure FindDuplicateComponentsAndPurchaseLines(
+        ProductionOrder: Record "Production Order";
+        ComponentItem: Record Item;
+        PurchaseOrderNo: Code[20];
+        var ProdOrderComponent: Record "Prod. Order Component";
+        var PurchaseLine: Record "Purchase Line";
+        var SecondProdOrderComponent: Record "Prod. Order Component";
+        var SecondPurchaseLine: Record "Purchase Line")
+    begin
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindSet();
+        ProdOrderComponent.Next();
+        SecondProdOrderComponent := ProdOrderComponent;
         ProdOrderComponent.FindFirst();
 
-        PurchaseLineComp.FindFirst();
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            PurchaseLine, PurchaseOrderNo, ComponentItem."No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        PurchaseLine.SetRange("Subc. Prod. Ord. Comp Line No.", ProdOrderComponent."Line No.");
+        PurchaseLine.FindFirst();
+        SecondPurchaseLine.Reset();
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            SecondPurchaseLine, PurchaseOrderNo, ComponentItem."No.");
+        SecondPurchaseLine.SetRange("Subc. Prod. Order Line No.", SecondProdOrderComponent."Prod. Order Line No.");
+        SecondPurchaseLine.SetRange("Subc. Prod. Ord. Comp Line No.", SecondProdOrderComponent."Line No.");
+        SecondPurchaseLine.FindFirst();
+    end;
+
+    local procedure CreateSubcontractingOrderWithDuplicateVendorSuppliedComponents(
+        var ProductionOrder: Record "Production Order";
+        var PurchaseLine: Record "Purchase Line";
+        var ComponentItem: Record Item;
+        var RequisitionWkshName: Record "Requisition Wksh. Name")
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        PurchaseLineComp: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        SecondProdOrderComponent: Record "Prod. Order Component";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(
+            WorkCenter, MachineCenter, Subcontracting, UnitCostCalculation);
+        SubcWarehouseLibrary.CreateItemForProductionWithCostOverrides(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(
+            Item, "Component Supply Method"::"Vendor-Supplied");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+
+        ProdOrderComponent.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        ProdOrderComponent.FindFirst();
+        LibraryManufacturing.CreateProductionOrderComponent(
+            SecondProdOrderComponent, ProdOrderComponent.Status,
+            ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.");
+        SecondProdOrderComponent.Validate("Item No.", ProdOrderComponent."Item No.");
+        SecondProdOrderComponent.Validate("Quantity per", 2);
+        SecondProdOrderComponent.Validate("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        SecondProdOrderComponent.Validate("Component Supply Method", ProdOrderComponent."Component Supply Method");
+        SecondProdOrderComponent.Modify(true);
+
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(
+            RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(
+            PurchaseLine, Item."No.", ProductionOrder."No.");
+        SubcontractingMgmtLibrary.FindComponentPurchLine(
+            PurchaseLineComp, PurchaseLine."Document No.", ComponentItem."No.");
         Assert.AreEqual(
-            ProdOrderComponent."Remaining Quantity",
-            PurchaseLineComp.Quantity,
-            'Vendor-Supplied component purchase line quantity should match the updated production order component remaining quantity.');
+            2, PurchaseLineComp.Count(),
+            'Two Vendor-Supplied component purchase lines should exist for the duplicate component item.');
+    end;
+
+    local procedure ChangeProductionOrderQuantity(ProductionOrder: Record "Production Order")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, ProdOrderLine.Quantity + 1);
+        ProdOrderLine.Modify(true);
     end;
 
     local procedure Initialize()
@@ -781,9 +1370,29 @@ codeunit 139996 "Subc. Planning Test"
         Response := ACTION::LookupOK;
     end;
 
+    [SendNotificationHandler]
+    procedure ComponentPurchLineMismatchNotificationHandler(var Notification: Notification): Boolean
+    begin
+        Assert.ExpectedMessage(
+            'Subcontracting component purchase-line synchronization skipped',
+            Notification.Message);
+    end;
+
+    [SendNotificationHandler]
+    procedure SiblingProductionOrderLineNotificationHandler(var Notification: Notification): Boolean
+    begin
+        if StrPos(
+             Notification.Message,
+             'Subcontracting component purchase-line synchronization skipped') > 0
+        then
+            SiblingProductionOrderLineNotificationRaised := true;
+        exit(true);
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
         LibraryPlanning: Codeunit "Library - Planning";
@@ -797,6 +1406,7 @@ codeunit 139996 "Subc. Planning Test"
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         IsInitialized: Boolean;
+        SiblingProductionOrderLineNotificationRaised: Boolean;
         Subcontracting: Boolean;
         UnitCostCalculation: Option Time,Units;
 }
