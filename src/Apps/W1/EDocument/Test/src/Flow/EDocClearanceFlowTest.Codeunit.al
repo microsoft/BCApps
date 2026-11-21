@@ -340,6 +340,7 @@ codeunit 133529 "E-Doc. Clearance Flow Test"
         WorkflowCode: Code[20];
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
+        LibraryEDoc.DeleteInProcessEDocumentJobQueueEntries();
         Clear(EDocImplState);
 
         if IsInitialized then

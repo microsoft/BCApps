@@ -2308,6 +2308,7 @@ codeunit 139624 "E-Doc E2E Test"
         Date: Date;
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
+        LibraryEDoc.DeleteInProcessEDocumentJobQueueEntries();
         LibraryVariableStorage.Clear();
         Clear(EDocImplState);
 
@@ -2376,6 +2377,7 @@ codeunit 139624 "E-Doc E2E Test"
         EDocumentServiceStatus: Record "E-Document Service Status";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
+        LibraryEDoc.DeleteInProcessEDocumentJobQueueEntries();
         LibraryVariableStorage.Clear();
         Clear(EDocImplState);
 
