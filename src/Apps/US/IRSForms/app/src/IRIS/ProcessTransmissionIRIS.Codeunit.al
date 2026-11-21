@@ -48,6 +48,10 @@ codeunit 10056 "Process Transmission IRIS"
         UnableToParseResponseErr: Label 'Could not parse the response from IRIS.', Locked = true;
         UnableToParseResponseUserErr: Label 'Could not get the transmission status from the response returned by IRIS. Use the Download Acknowledgment Content action on the Transmission History page to download the response content and check the errors.';
         CannotUpdateRejectedTransmissionErr: Label 'Updating rejected transmissions is not allowed. \Send the replacement transmission until it is no longer rejected.';
+        RemovedParentErr: Label 'Document %1 has supplemental lines linked to form box %2. Recalculation would remove the document line for that form box. Remove the linked lines in Supplemental Lines before recalculating.', Comment = '%1 = document ID, %2 = form box';
+        DocCannotBeRemovedFromTransmErr: Label 'Document %1 cannot be reopened and removed from the transmission because it has submission or correction information, or a recorded send attempt. Check its IRS status before taking further action. If an accepted form should not have been filed, use Send Zero Amounts Correction.', Comment = '%1 = document ID';
+        AmbiguousSourceErr: Label 'More than one document with a status other than Abandoned exists for period %1, vendor %2, form %3. Select the source document before creating replacement lines.', Comment = '%1 = period, %2 = vendor, %3 = form';
+        AbandonedSourceErr: Label 'Document %1 has status Abandoned and cannot be used to create replacement lines.', Comment = '%1 = document ID';
 
     procedure CheckOriginal(var Transmission: Record "Transmission IRIS")
     begin
@@ -383,7 +387,7 @@ codeunit 10056 "Process Transmission IRIS"
         TransmissionLog."Unique Transmission ID" := UniqueTransmissionId;
         TransmissionLog."Transmission Date/Time" := CurrentDateTime();
         TransmissionLog."Response Http Status Code" := HttpStatusCode;
-        TransmissionLog.SetTransmissonContextInfo(TransmissionContentBlob, Transmission.GetSchemaSource());
+        TransmissionLog.SetTransmissionContextInfo(TransmissionContentBlob, Transmission.GetSchemaSource());
         if EnvironmentInformation.IsSandbox() then
             TransmissionLog."BC Environment" := 'Sandbox'
         else
@@ -771,7 +775,7 @@ codeunit 10056 "Process Transmission IRIS"
                 Supplemental.RecalculateIncludeIn1099(DocumentID);
                 Supplemental.ValidateSupplementalLines(DocumentID);
                 if not DocumentHaveLinesToReport(DocHeader) then begin
-                    CheckNonfilingDocumentIsUnsent(DocHeader);
+                    CheckDocumentCanBeRemovedFromTransmission(DocHeader);
                     DocHeader.Status := DocHeader.Status::Open;
                     DocHeader."IRIS Transmission Document ID" := 0;
                     DocHeader.Modify(true);
@@ -789,11 +793,10 @@ codeunit 10056 "Process Transmission IRIS"
         AddedDocsCount := AddSelectedFormDocsToTransmission(Transmission, TempDocHeaderToAdd);
     end;
 
-    local procedure CheckNonfilingDocumentIsUnsent(DocHeader: Record "IRS 1099 Form Doc. Header")
+    local procedure CheckDocumentCanBeRemovedFromTransmission(DocHeader: Record "IRS 1099 Form Doc. Header")
     var
         OriginalDocHeader: Record "IRS 1099 Form Doc. Header";
         TransmissionLogLine: Record "Transmission Log Line IRIS";
-        UnsafeNonfilingUpdateErr: Label 'Document %1 cannot be reopened and removed from the transmission because it has submission history, correction details, or a recorded send attempt. Review the transmission history and resolve the previous submission or correction before trying again.', Comment = '%1 = document ID';
     begin
         OriginalDocHeader.Get(DocHeader.ID);
         if not (OriginalDocHeader.Status in [OriginalDocHeader.Status::Open, OriginalDocHeader.Status::Released]) or
@@ -806,13 +809,11 @@ codeunit 10056 "Process Transmission IRIS"
            OriginalDocHeader."IRIS Updated Not Sent" or OriginalDocHeader."IRIS Corrected" or
            OriginalDocHeader."IRIS Corrected to Zeros"
         then
-            Error(UnsafeNonfilingUpdateErr, OriginalDocHeader.ID);
+            Error(DocCannotBeRemovedFromTransmErr, OriginalDocHeader.ID);
 
-        // Log lines are created after a send attempt, not merely XML generation.
-        // Even an orphaned association is unsafe; other documents' attempts are irrelevant.
         TransmissionLogLine.SetRange("IRS 1099 Form Document ID", OriginalDocHeader.ID);
         if not TransmissionLogLine.IsEmpty() then
-            Error(UnsafeNonfilingUpdateErr, OriginalDocHeader.ID);
+            Error(DocCannotBeRemovedFromTransmErr, OriginalDocHeader.ID);
     end;
 
     local procedure IsFormSupported(FormNo: Code[20]): Boolean
@@ -963,7 +964,6 @@ codeunit 10056 "Process Transmission IRIS"
         IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
         SourceDocumentIDs: Dictionary of [Integer, Integer];
         LineNo: Integer;
-        RemovedParentErr: Label 'Document %1 has supplemental lines linked to form box %2. Recalculation would remove the document line for that form box. Remove the linked lines in Supplemental Lines before recalculating.', Comment = '%1 = document ID, %2 = form box';
     begin
         if TempFormDocLineToUpdate.IsEmpty() then
             exit;
@@ -973,7 +973,7 @@ codeunit 10056 "Process Transmission IRIS"
         if TempFormDocLineToUpdate.FindSet() then
             repeat
                 TempFormDocLineToCreate := TempFormDocLineToUpdate;
-                ResolveCreateSourceDocument(TempFormDocLineToCreate);
+                FindAndValidateSourceDocument(TempFormDocLineToCreate);
                 TempFormDocLineToCreate.Insert(true);
                 CopyFormLineDetails(TempFormDocLineDetail, TempCreateDetails, TempFormDocLineToUpdate, TempFormDocLineToCreate);
                 if TempFormDocLineToCreate."Line No." > LineNo then
@@ -997,7 +997,7 @@ codeunit 10056 "Process Transmission IRIS"
                 if IRS1099FormDocHeader.Get(TempFormDocLineToCreate."Document ID") then
                     if IRS1099FormDocHeader.Status <> IRS1099FormDocHeader.Status::Abandoned then begin
                         Supplemental.CopySupplLinesToTemp(IRS1099FormDocHeader.ID, TempSupplLine);
-                        // Retain only lines that were not selected for removal.
+                        // keep only lines that were not selected for removal
                         IRS1099FormDocLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
                         if IRS1099FormDocLine.FindSet() then
                             repeat
@@ -1009,6 +1009,7 @@ codeunit 10056 "Process Transmission IRIS"
                                 end;
                             until IRS1099FormDocLine.Next() = 0;
 
+                        // abandon old document
                         IRS1099FormDocument.Abandon(IRS1099FormDocHeader);
                     end;
             until TempFormDocLineToCreate.Next() = 0;
@@ -1026,6 +1027,7 @@ codeunit 10056 "Process Transmission IRIS"
         CreateTempFormHeadersFromLines(TempFormDocLineToCreate, TempFormDocHeaderToCreate, TempCreateDetails, SourceDocumentIDs);
 
         NewIRS1099FormDocHeaderIDs := IRS1099FormDocImpl.InsertFormDocsFromTempBuffer(TempFormDocHeaderToCreate, TempFormDocLineToCreate, TempCreateDetails, TempSupplLine, SourceDocumentIDs);
+
         if TempFormDocLineToAbandon.FindSet() then
             repeat
                 if IRS1099FormDocHeader.Get(TempFormDocLineToAbandon."Document ID") then
@@ -1033,11 +1035,9 @@ codeunit 10056 "Process Transmission IRIS"
             until TempFormDocLineToAbandon.Next() = 0;
     end;
 
-    local procedure ResolveCreateSourceDocument(var CandidateDocLine: Record "IRS 1099 Form Doc. Line" temporary)
+    local procedure FindAndValidateSourceDocument(var CandidateDocLine: Record "IRS 1099 Form Doc. Line" temporary)
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
-        AmbiguousSourceErr: Label 'More than one document with a status other than Abandoned exists for period %1, vendor %2, form %3. Select the source document before creating replacement lines.', Comment = '%1 = period, %2 = vendor, %3 = form';
-        AbandonedSourceErr: Label 'Document %1 has status Abandoned and cannot be used to create replacement lines.', Comment = '%1 = document ID';
     begin
         if CandidateDocLine."Document ID" <> 0 then begin
             DocHeader.Get(CandidateDocLine."Document ID");

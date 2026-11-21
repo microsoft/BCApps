@@ -84,12 +84,12 @@ codeunit 148000 "Library IRS Reporting Period"
         IRSReportingPeriod.CopyReportingPeriodSetup(FromPeriodNo, ToPeriodNo, TempSelectedCompany);
     end;
 
-    procedure ReconcileAnnualSetup(PeriodNo: Code[20]; TargetCompany: Text): Text
+    procedure UpdateAnnualSetup(PeriodNo: Code[20]; TargetCompany: Text): Text
     var
         IRSFormsData: Codeunit "IRS Forms Data";
         Details: Text;
     begin
-        IRSFormsData.ReconcileAnnualSetup(PeriodNo, TargetCompany, Details);
+        IRSFormsData.UpdateAnnualSetup(PeriodNo, TargetCompany, Details);
         exit(Details);
     end;
 

@@ -12,7 +12,6 @@ codeunit 10038 "IRIS Schema 2.0.3" implements "IRIS XML Schema"
     Access = Internal;
 
     var
-        Helper: Codeunit "Helper IRIS";
         Generator: Codeunit "Generate Xml File IRIS";
         SupplementalSchemaErr: Label 'Document %1 contains supplemental lines that cannot be reported using IRIS XML schema %2. Select XML schema version 5.0.7 before generating the transmission.', Comment = '%1 - document ID, %2 - schema version';
 
@@ -29,9 +28,8 @@ codeunit 10038 "IRIS Schema 2.0.3" implements "IRIS XML Schema"
     var
         FormType: Text;
     begin
-        Clear(Helper);
         Clear(Generator);
-        Generator.PrepareTransmission(Helper, Transmission, TransmissionType, CorrectionToZeroMode, GetVersionText(),
+        Generator.PrepareTransmission(Transmission, TransmissionType, CorrectionToZeroMode, GetVersionText(),
             Transmission."Period No." in ['2024', '2025'], UniqueTransmissionId, TempDocHeader);
         if TempDocHeader.FindSet() then
             repeat
@@ -58,17 +56,17 @@ codeunit 10038 "IRIS Schema 2.0.3" implements "IRIS XML Schema"
         SubmissionId: Text[20];
         RecordId: Text[20];
     begin
-        Helper.AddParentXmlNode('IRSubmission1Grp');
+        Generator.AddParentXmlNode('IRSubmission1Grp');
         VendorList := Generator.GetVendorList(TempDocHeader);
         SubmissionId := Generator.StartSubmissionHeader(TempDocHeader);
         Generator.GetContactCompanyInformation(CompanyInformation);
         Generator.AddContactPersonInformationGrp(CompanyInformation);
         Generator.AddSubmissionFormInfo(TempDocHeader, VendorList.Count());
         Generator.AddSubmissionTotals(TempDocHeader, XmlValues);
-        Helper.CloseParentXmlNode();
-        Generator.SaveSubmissionId(TempDocHeader, SubmissionId);
+        Generator.CloseParentXmlNode();
+        Generator.SetSubmissionIdOnTempHeaders(TempDocHeader, SubmissionId);
 
-        Helper.AddParentXmlNode('IRSubmission1Detail');
+        Generator.AddParentXmlNode('IRSubmission1Detail');
         foreach VendorNo in VendorList do begin
             TempDocHeader.SetRange("Vendor No.", VendorNo);
             if Generator.StartFormDetail(TempDocHeader, RecordId) then begin
@@ -79,8 +77,8 @@ codeunit 10038 "IRIS Schema 2.0.3" implements "IRIS XML Schema"
                 Generator.FinishFormDetail(TempDocHeader, RecordId, XmlValues, OccupationCodes);
             end;
         end;
-        Helper.CloseParentXmlNode();
-        Helper.CloseParentXmlNode();
+        Generator.CloseParentXmlNode();
+        Generator.CloseParentXmlNode();
     end;
 
     local procedure ValidateSupplementalDocument(DocumentID: Integer)

@@ -82,8 +82,6 @@ table 10055 "IRS 1099 Doc. Suppl. Line"
     end;
 
     trigger OnModify()
-    var
-        SnapshotChangedErr: Label 'You cannot change the document, parent form box, or value type of a saved supplemental line directly. To change the parent form box or value type, select the supplemental box again on a document with status Open.';
     begin
         TestStatusOpen();
         if ("Document ID" <> xRec."Document ID") or
@@ -110,19 +108,20 @@ table 10055 "IRS 1099 Doc. Suppl. Line"
 
     var
         Supplemental: Codeunit "IRS 1099 Supplemental";
+        SnapshotChangedErr: Label 'You cannot change the document, parent form box, or value type of a saved supplemental line directly. To change the parent form box or value type, select the supplemental box again on a document with status Open.';
 
     local procedure ApplySupplBoxSetup()
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
-        IRS1099SupplBox: Record "IRS 1099 Suppl. Box";
+        SupplBox: Record "IRS 1099 Suppl. Box";
     begin
         DocHeader.Get("Document ID");
-        IRS1099SupplBox.Get(DocHeader."Period No.", DocHeader."Form No.", "Supplemental Box No.");
-        Supplemental.ValidateDefinition(IRS1099SupplBox);
+        SupplBox.Get(DocHeader."Period No.", DocHeader."Form No.", "Supplemental Box No.");
+        Supplemental.ValidateSupplBoxSetup(SupplBox);
         // Check the existing typed values before assigning the new type.
-        Supplemental.ValidateTypedValues(Rec, IRS1099SupplBox."Value Type");
-        "Parent Form Box No." := IRS1099SupplBox."Parent Form Box No.";
-        "Value Type" := IRS1099SupplBox."Value Type";
+        Supplemental.ValidateTypedValues(Rec, SupplBox."Value Type");
+        "Parent Form Box No." := SupplBox."Parent Form Box No.";
+        "Value Type" := SupplBox."Value Type";
         Supplemental.ValidateLine(Rec);
     end;
 

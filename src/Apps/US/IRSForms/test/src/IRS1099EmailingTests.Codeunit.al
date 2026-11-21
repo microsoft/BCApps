@@ -25,6 +25,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit "Assert";
         IsInitialized: Boolean;
         EmailSetupMissingErr: Label 'You must set up email in Business Central before you can send 1099 forms.';
@@ -392,29 +393,17 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     [HandlerFunctions('StatementEmailReqPageHandler')]
     procedure StatementCopiesEmailTheExplicitlyRegeneratedPdf()
     var
-        CompanyInformation: Record "Company Information";
         SavedCompanyInformation: Record "Company Information";
-        DocHeader: Record "IRS 1099 Form Doc. Header";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRSFormsData: Codeunit "IRS Forms Data";
         DocumentIDs: List of [Integer];
-        DocumentID: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Both recipient copies use the document year and the explicitly regenerated cached PDF.
+        // [SCENARIO 653992] Both recipient copies use the document year and the explicitly regenerated cached PDF.
         Initialize();
 
         // [GIVEN] Synthetic payer P and fresh year-specific setup use the existing test email connector.
-        SavedCompanyInformation.Get();
-        CompanyInformation := SavedCompanyInformation;
-        CompanyInformation.Name := 'SYNTHETIC IRS STATEMENT TEST';
-        CompanyInformation.Address := '1 Test Street';
-        CompanyInformation."Address 2" := '';
-        CompanyInformation.City := 'Test City';
-        CompanyInformation.County := 'WA';
-        CompanyInformation."Post Code" := '00000';
-        CompanyInformation."Federal ID No." := '000000001';
-        CompanyInformation."Phone No." := '0000000000';
-        CompanyInformation.Modify();
+        SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
         IRSFormsData.AddReportingPeriodsWithForms(2025);
         IRSFormsData.AddReportingPeriodsWithForms(2026);
@@ -425,114 +414,110 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         DocumentIDs.Add(VerifyStatementCopies('2025', 'NEC'));
         DocumentIDs.Add(VerifyStatementCopies('2026', 'MISC'));
         DocumentIDs.Add(VerifyStatementCopies('2026', 'NEC'));
-        foreach DocumentID in DocumentIDs do begin
-            DocHeader.Get(DocumentID);
-            DocHeader.Status := DocHeader.Status::Released;
-            DocHeader.Modify();
-            Commit();
-            VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
-            Commit();
-            VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
-        end;
+        SetDocumentReleased(IRS1099FormDocHeader, DocumentIDs.Get(1));
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        SetDocumentReleased(IRS1099FormDocHeader, DocumentIDs.Get(2));
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        SetDocumentReleased(IRS1099FormDocHeader, DocumentIDs.Get(3));
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        SetDocumentReleased(IRS1099FormDocHeader, DocumentIDs.Get(4));
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        Commit();
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
 
         // [THEN] Each mock attachment equals its selected saved PDF, with no silent cache replacement.
+        RestoreStatementPayer(SavedCompanyInformation);
         LibraryVariableStorage.AssertEmpty();
-        CompanyInformation.Get();
-        CompanyInformation.TransferFields(SavedCompanyInformation, false);
-        CompanyInformation.Modify();
     end;
 
     [Test]
     [HandlerFunctions('StatementEmailReqPageHandler')]
     procedure StatementEmailRetainsExcludedAndZeroTipSourceValues()
     var
-        CompanyInformation: Record "Company Information";
         SavedCompanyInformation: Record "Company Information";
-        DocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentDocLine: Record "IRS 1099 Form Doc. Line";
-        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
+        SupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
         IRSFormsData: Codeunit "IRS Forms Data";
         Lines: JsonArray;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Emailing suppressed disclosures does not erase the excluded amounts or zero-tip codes.
+        // [SCENARIO 653992] Emailing suppressed disclosures does not erase the excluded amounts or zero-tip codes.
         Initialize();
 
         // [GIVEN] MISC document D has qualifying rents but an excluded saved other-income parent.
-        SavedCompanyInformation.Get();
-        CompanyInformation := SavedCompanyInformation;
-        CompanyInformation.Name := 'SYNTHETIC IRS STATEMENT TEST';
-        CompanyInformation.Address := '1 Test Street';
-        CompanyInformation."Address 2" := '';
-        CompanyInformation.City := 'Test City';
-        CompanyInformation.County := 'WA';
-        CompanyInformation."Post Code" := '00000';
-        CompanyInformation."Federal ID No." := '000000001';
-        CompanyInformation."Phone No." := '0000000000';
-        CompanyInformation.Modify();
+        SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
         IRSFormsData.AddReportingPeriodsWithForms(2026);
-        CreateStatementDocument(DocHeader, '2026', 'MISC');
-        ParentDocLine.Get('2026', DocHeader."Vendor No.", 'MISC', DocHeader.ID, 0);
-        ParentDocLine.Validate(Amount, 500);
-        ParentDocLine.Modify(true);
-        Clear(ParentDocLine);
-        ParentDocLine."Line No." := 1;
-        LibraryIRS1099Document.MockFormDocumentLineForVendor(ParentDocLine, DocHeader.ID, '2026', DocHeader."Vendor No.", 'MISC', 'MISC-01');
-        ParentDocLine.Validate(Amount, 2500);
-        ParentDocLine.Modify(true);
+        CreateStatementDocument(IRS1099FormDocHeader, '2026', 'MISC');
+        ParentIRS1099FormDocLine.Get('2026', IRS1099FormDocHeader."Vendor No.", 'MISC', IRS1099FormDocHeader.ID, 0);
+        ParentIRS1099FormDocLine.Validate(Amount, 500);
+        ParentIRS1099FormDocLine.Modify(true);
+        Clear(ParentIRS1099FormDocLine);
+        ParentIRS1099FormDocLine."Line No." := 1;
+        LibraryIRS1099Document.MockFormDocumentLineForVendor(ParentIRS1099FormDocLine, IRS1099FormDocHeader.ID, '2026', IRS1099FormDocHeader."Vendor No.", 'MISC', 'MISC-01');
+        ParentIRS1099FormDocLine.Validate(Amount, 2500);
+        ParentIRS1099FormDocLine.Modify(true);
         Commit();
 
         // [WHEN] Both excluded-parent copies are generated and mock-emailed.
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
-        DocHeader.Status := DocHeader.Status::Released;
-        DocHeader.Modify();
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
+        IRS1099FormDocHeader.Modify();
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
 
         // [THEN] The selected disclosure values still belong to D.
-        SupplLine.Get(DocHeader.ID, 'MISC-13A');
-        Assert.AreEqual(100, SupplLine.Amount, 'Excluded tips remain stored.');
-        VerifyStoredOccupationCodes(DocHeader.ID, 'MISC-13B');
+        SupplementalLine.Get(IRS1099FormDocHeader.ID, 'MISC-13A');
+        Assert.AreEqual(100, SupplementalLine.Amount, 'Excluded tips remain stored.');
+        VerifyStoredOccupationCodes(IRS1099FormDocHeader.ID, 'MISC-13B');
 
         // [GIVEN] The parent qualifies again but outgoing tips round to zero while overtime rounds up.
-        DocHeader.Status := DocHeader.Status::Open;
-        DocHeader.Modify();
-        ParentDocLine.Get('2026', DocHeader."Vendor No.", 'MISC', DocHeader.ID, 0);
-        ParentDocLine.Validate(Amount, 5000);
-        ParentDocLine.Modify(true);
-        SupplLine.Validate(Amount, 0.004);
-        SupplLine.Modify(true);
-        SupplLine.Get(DocHeader.ID, 'MISC-14');
-        SupplLine.Validate(Amount, 0.006);
-        SupplLine.Modify(true);
+        IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Open;
+        IRS1099FormDocHeader.Modify();
+        ParentIRS1099FormDocLine.Get('2026', IRS1099FormDocHeader."Vendor No.", 'MISC', IRS1099FormDocHeader.ID, 0);
+        ParentIRS1099FormDocLine.Validate(Amount, 5000);
+        ParentIRS1099FormDocLine.Modify(true);
+        SupplementalLine.Validate(Amount, 0.004);
+        SupplementalLine.Modify(true);
+        SupplementalLine.Get(IRS1099FormDocHeader.ID, 'MISC-14');
+        SupplementalLine.Validate(Amount, 0.006);
+        SupplementalLine.Modify(true);
         Commit();
 
         // [WHEN] Both copies are deliberately regenerated and mock-emailed.
-        Lines := LibraryIRS1099Document.GetStatementDataset(DocHeader);
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
-        DocHeader.Status := DocHeader.Status::Released;
-        DocHeader.Modify();
+        Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
+        IRS1099FormDocHeader.Modify();
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
 
         // [THEN] The attachment source projects cents without codes, while rendering/sending retains raw disclosures.
         VerifyFractionalEmailDataset(Lines);
-        SupplLine.Get(DocHeader.ID, 'MISC-13A');
-        Assert.AreEqual(0.004, SupplLine.Amount, 'Email generation does not round saved tips.');
-        SupplLine.Get(DocHeader.ID, 'MISC-14');
-        Assert.AreEqual(0.006, SupplLine.Amount, 'Email generation does not round saved overtime.');
-        VerifyStoredOccupationCodes(DocHeader.ID, 'MISC-13B');
+        SupplementalLine.Get(IRS1099FormDocHeader.ID, 'MISC-13A');
+        Assert.AreEqual(0.004, SupplementalLine.Amount, 'Email generation does not round saved tips.');
+        SupplementalLine.Get(IRS1099FormDocHeader.ID, 'MISC-14');
+        Assert.AreEqual(0.006, SupplementalLine.Amount, 'Email generation does not round saved overtime.');
+        VerifyStoredOccupationCodes(IRS1099FormDocHeader.ID, 'MISC-13B');
+        RestoreStatementPayer(SavedCompanyInformation);
         LibraryVariableStorage.AssertEmpty();
-        CompanyInformation.Get();
-        CompanyInformation.TransferFields(SavedCompanyInformation, false);
-        CompanyInformation.Modify();
     end;
 
     [Test]
@@ -540,32 +525,32 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     procedure Copied2027MiscStatementEmailsRegeneratedPdfs()
     var
         SavedCompanyInformation: Record "Company Information";
-        DocHeader: Record "IRS 1099 Form Doc. Header";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Standard next-year MISC setup produces both recipient attachments without disclosures.
+        // [SCENARIO 653992] Standard next-year MISC setup produces both recipient attachments without disclosures.
         Initialize();
 
         // [GIVEN] D is an ordinary 2027 MISC document after copying standard 2026 setup.
         SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
-        CreateCopiedOrdinaryStatement(DocHeader, 'MISC');
+        CreateCopiedOrdinaryStatement(IRS1099FormDocHeader, 'MISC');
         Commit();
 
         // [WHEN] Both recipient PDFs are explicitly regenerated and sent through the connector mock.
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
-        DocHeader.Status := DocHeader.Status::Released;
-        DocHeader.Modify();
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
+        IRS1099FormDocHeader.Modify();
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
 
         // [THEN] Both mock attachments match their saved PDFs and contain only ordinary financial output.
-        VerifyCopiedOrdinaryStatement(DocHeader, 'MISC-03 - Other Income');
-        LibraryVariableStorage.AssertEmpty();
+        VerifyCopiedOrdinaryStatement(IRS1099FormDocHeader, 'MISC-03 - Other Income');
         RestoreStatementPayer(SavedCompanyInformation);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -573,45 +558,116 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     procedure Copied2027NecStatementEmailsRegeneratedPdfs()
     var
         SavedCompanyInformation: Record "Company Information";
-        DocHeader: Record "IRS 1099 Form Doc. Header";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Standard next-year NEC setup produces both recipient attachments without disclosures.
+        // [SCENARIO 653992] Standard next-year NEC setup produces both recipient attachments without disclosures.
         Initialize();
 
         // [GIVEN] D is an ordinary 2027 NEC document after copying standard 2026 setup.
         SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
-        CreateCopiedOrdinaryStatement(DocHeader, 'NEC');
+        CreateCopiedOrdinaryStatement(IRS1099FormDocHeader, 'NEC');
         Commit();
 
         // [WHEN] Both recipient PDFs are explicitly regenerated and sent through the connector mock.
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
-        RegenerateCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
-        DocHeader.Status := DocHeader.Status::Released;
-        DocHeader.Modify();
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
+        IRS1099FormDocHeader.Modify();
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
         Commit();
-        VerifyEmailCopy(DocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
+        VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
 
         // [THEN] Both mock attachments match their saved PDFs and contain only ordinary financial output.
-        VerifyCopiedOrdinaryStatement(DocHeader, 'NEC-01 - Nonemployee Compensation (box 1a)');
-        LibraryVariableStorage.AssertEmpty();
+        VerifyCopiedOrdinaryStatement(IRS1099FormDocHeader, 'NEC-01 - Nonemployee Compensation (box 1a)');
         RestoreStatementPayer(SavedCompanyInformation);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
     begin
+        LibraryVariableStorage.Clear();
+        LibrarySetupStorage.Restore();
         DeleteFormDocuments();
         IRSReportingPeriod.DeleteAll(true);
 
         if IsInitialized then
             exit;
 
+        LibrarySetupStorage.SaveCompanyInformation();
         IsInitialized := true;
+    end;
+
+    local procedure CreateCopiedOrdinaryStatement(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; FormNo: Code[20])
+    var
+        IRSFormsData: Codeunit "IRS Forms Data";
+        PeriodNo: Code[20];
+    begin
+        IRSFormsData.AddReportingPeriodsWithForms(2026);
+        PeriodNo := LibraryIRSReportingPeriod.CreateReportingPeriod(20270101D, 20271231D);
+        LibraryIRSReportingPeriod.CopyPeriodSetup('2026', PeriodNo);
+        CreateStatementDocument(IRS1099FormDocHeader, PeriodNo, FormNo);
+    end;
+
+    local procedure CreateStatementDocument(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; PeriodNo: Code[20]; FormNo: Code[20])
+    var
+        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
+        FormBox: Record "IRS 1099 Form Box";
+        Vendor: Record Vendor;
+        SupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
+        ParentFormBoxNo: Code[20];
+        CashTipsBoxNo: Code[20];
+        OccupationCodesBoxNo: Code[20];
+        OvertimeBoxNo: Code[20];
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Name := 'SYNTHETIC STATEMENT RECIPIENT';
+        Vendor.Address := '2 Test Street';
+        Vendor."Address 2" := '';
+        Vendor.City := 'Test City';
+        Vendor.County := 'WA';
+        Vendor."Post Code" := '00000';
+        Vendor."Federal ID No." := '000000101';
+        Vendor.Modify();
+        IRS1099FormDocHeader.Get(LibraryIRS1099Document.MockFormDocumentForVendor(PeriodNo, Vendor."No.", FormNo, IRS1099FormDocHeader.Status::Open));
+        UpdateDocumentEmailAndConsent(IRS1099FormDocHeader, 'recipient@example.test', true);
+        if FormNo = 'NEC' then begin
+            ParentFormBoxNo := 'NEC-01';
+            CashTipsBoxNo := 'NEC-01B';
+            OccupationCodesBoxNo := 'NEC-01C';
+            OvertimeBoxNo := 'NEC-01D';
+        end else begin
+            ParentFormBoxNo := 'MISC-03';
+            CashTipsBoxNo := 'MISC-13A';
+            OccupationCodesBoxNo := 'MISC-13B';
+            OvertimeBoxNo := 'MISC-14';
+        end;
+        LibraryIRS1099Document.MockFormDocumentLineForVendor(ParentIRS1099FormDocLine, IRS1099FormDocHeader.ID, PeriodNo, Vendor."No.", FormNo, ParentFormBoxNo);
+        FormBox.Get(PeriodNo, FormNo, ParentFormBoxNo);
+        ParentIRS1099FormDocLine."Minimum Reportable Amount" := FormBox."Minimum Reportable Amount";
+        ParentIRS1099FormDocLine.Validate(Amount, 5000);
+        ParentIRS1099FormDocLine.Modify(true);
+        if PeriodNo <> '2026' then
+            exit;
+        SupplementalLine."Document ID" := IRS1099FormDocHeader.ID;
+        SupplementalLine.Validate("Supplemental Box No.", CashTipsBoxNo);
+        SupplementalLine.Validate(Amount, 100);
+        SupplementalLine.Insert(true);
+        SupplementalLine.Init();
+        SupplementalLine."Document ID" := IRS1099FormDocHeader.ID;
+        SupplementalLine.Validate("Supplemental Box No.", OccupationCodesBoxNo);
+        SupplementalLine.Validate("Occupation Code 1", '101');
+        SupplementalLine.Validate("Occupation Code 2", '000');
+        SupplementalLine.Insert(true);
+        SupplementalLine.Init();
+        SupplementalLine."Document ID" := IRS1099FormDocHeader.ID;
+        SupplementalLine.Validate("Supplemental Box No.", OvertimeBoxNo);
+        SupplementalLine.Validate(Amount, 50);
+        SupplementalLine.Insert(true);
     end;
 
     local procedure DeleteFormDocuments()
@@ -633,6 +689,19 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         TestEmailAccount.DeleteAll(true);
     end;
 
+    local procedure GetSavedPdf(DocumentID: Integer; ReportType: Enum "IRS 1099 Form Report Type"): Text
+    var
+        FormReport: Record "IRS 1099 Form Report";
+        Base64Convert: Codeunit "Base64 Convert";
+        Content: InStream;
+    begin
+        FormReport.Get(DocumentID, ReportType);
+        FormReport.CalcFields("File Content");
+        Assert.IsTrue(FormReport."File Content".HasValue(), 'File content should exist for the document and report type.');
+        FormReport."File Content".CreateInStream(Content);
+        exit(Base64Convert.ToBase64(Content));
+    end;
+
     local procedure MockFormDocument(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; Status: Enum "IRS 1099 Form Doc. Status")
     var
         PeriodNo, FormNo, VendorNo, FormBoxNo : Code[20];
@@ -648,21 +717,29 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         IRS1099FormDocHeader.Get(DocID);
     end;
 
-    local procedure UpdateDocumentEmailAndConsent(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; EmailAddress: Text[80]; EmailConsent: Boolean)
+    local procedure RegenerateCopy(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ReportType: Enum "IRS 1099 Form Report Type")
+    var
+        TempPrintParams: Record "IRS 1099 Print Params";
+        IRSFormsFacade: Codeunit "IRS Forms Facade";
     begin
-        IRS1099FormDocHeader."Vendor E-Mail" := EmailAddress;
-        IRS1099FormDocHeader."Receiving 1099 E-Form Consent" := EmailConsent;
-        IRS1099FormDocHeader.Modify();
+        TempPrintParams."Report Type" := ReportType;
+        IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, TempPrintParams, true);
     end;
 
-    local procedure UpdateVendorEmailAndConsent(VendorNo: Code[20]; EmailAddress: Text[80]; EmailConsent: Boolean)
+    local procedure RestoreStatementPayer(SavedCompanyInformation: Record "Company Information")
     var
-        Vendor: Record Vendor;
+        CompanyInformation: Record "Company Information";
     begin
-        Vendor.Get(VendorNo);
-        Vendor."E-Mail" := EmailAddress;
-        Vendor."Receiving 1099 E-Form Consent" := EmailConsent;
-        Vendor.Modify();
+        CompanyInformation.Get();
+        CompanyInformation.TransferFields(SavedCompanyInformation, false);
+        CompanyInformation.Modify();
+    end;
+
+    local procedure SetDocumentReleased(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; DocumentID: Integer)
+    begin
+        IRS1099FormDocHeader.Get(DocumentID);
+        IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
+        IRS1099FormDocHeader.Modify();
     end;
 
     local procedure SetSyntheticStatementPayer(var SavedCompanyInformation: Record "Company Information")
@@ -682,36 +759,33 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         CompanyInformation.Modify();
     end;
 
-    local procedure RestoreStatementPayer(SavedCompanyInformation: Record "Company Information")
-    var
-        CompanyInformation: Record "Company Information";
+    local procedure UpdateDocumentEmailAndConsent(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; EmailAddress: Text[80]; EmailConsent: Boolean)
     begin
-        CompanyInformation.Get();
-        CompanyInformation.TransferFields(SavedCompanyInformation, false);
-        CompanyInformation.Modify();
+        IRS1099FormDocHeader."Vendor E-Mail" := EmailAddress;
+        IRS1099FormDocHeader."Receiving 1099 E-Form Consent" := EmailConsent;
+        IRS1099FormDocHeader.Modify();
     end;
 
-    local procedure CreateCopiedOrdinaryStatement(var DocHeader: Record "IRS 1099 Form Doc. Header"; FormNo: Code[20])
+    local procedure UpdateVendorEmailAndConsent(VendorNo: Code[20]; EmailAddress: Text[80]; EmailConsent: Boolean)
     var
-        IRSFormsData: Codeunit "IRS Forms Data";
-        PeriodNo: Code[20];
+        Vendor: Record Vendor;
     begin
-        IRSFormsData.AddReportingPeriodsWithForms(2026);
-        PeriodNo := LibraryIRSReportingPeriod.CreateReportingPeriod(20270101D, 20271231D);
-        LibraryIRSReportingPeriod.CopyPeriodSetup('2026', PeriodNo);
-        CreateStatementDocument(DocHeader, PeriodNo, FormNo);
+        Vendor.Get(VendorNo);
+        Vendor."E-Mail" := EmailAddress;
+        Vendor."Receiving 1099 E-Form Consent" := EmailConsent;
+        Vendor.Modify();
     end;
 
-    local procedure VerifyCopiedOrdinaryStatement(DocHeader: Record "IRS 1099 Form Doc. Header"; ExpectedName: Text)
+    local procedure VerifyCopiedOrdinaryStatement(IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ExpectedName: Text)
     var
-        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+        SupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
         Lines: JsonArray;
         Line: JsonToken;
         Value: JsonToken;
     begin
-        SupplLine.SetRange("Document ID", DocHeader.ID);
-        Assert.IsTrue(SupplLine.IsEmpty(), 'The ordinary document has no saved supplemental rows.');
-        Lines := LibraryIRS1099Document.GetStatementDataset(DocHeader);
+        SupplementalLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
+        Assert.IsTrue(SupplementalLine.IsEmpty(), 'The ordinary document has no saved supplemental rows.');
+        Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
         Assert.AreEqual(1, Lines.Count(), 'The attachment dataset contains only ordinary financial output.');
         Lines.Get(0, Line);
         Line.AsObject().Get('name', Value);
@@ -720,125 +794,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         Assert.AreEqual('5000', Value.AsValue().AsText(), 'The ordinary financial amount is unchanged.');
     end;
 
-    local procedure CreateStatementDocument(var DocHeader: Record "IRS 1099 Form Doc. Header"; PeriodNo: Code[20]; FormNo: Code[20])
-    var
-        ParentDocLine: Record "IRS 1099 Form Doc. Line";
-        FormBox: Record "IRS 1099 Form Box";
-        Vendor: Record Vendor;
-        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
-        ParentBox: Code[20];
-        TipsBox: Code[20];
-        CodesBox: Code[20];
-        OvertimeBox: Code[20];
-    begin
-        LibraryPurchase.CreateVendor(Vendor);
-        Vendor.Name := 'SYNTHETIC STATEMENT RECIPIENT';
-        Vendor.Address := '2 Test Street';
-        Vendor."Address 2" := '';
-        Vendor.City := 'Test City';
-        Vendor.County := 'WA';
-        Vendor."Post Code" := '00000';
-        Vendor."Federal ID No." := '000000101';
-        Vendor.Modify();
-        DocHeader.Get(LibraryIRS1099Document.MockFormDocumentForVendor(PeriodNo, Vendor."No.", FormNo, DocHeader.Status::Open));
-        UpdateDocumentEmailAndConsent(DocHeader, 'recipient@example.test', true);
-        if FormNo = 'NEC' then begin
-            ParentBox := 'NEC-01';
-            TipsBox := 'NEC-01B';
-            CodesBox := 'NEC-01C';
-            OvertimeBox := 'NEC-01D';
-        end else begin
-            ParentBox := 'MISC-03';
-            TipsBox := 'MISC-13A';
-            CodesBox := 'MISC-13B';
-            OvertimeBox := 'MISC-14';
-        end;
-        LibraryIRS1099Document.MockFormDocumentLineForVendor(ParentDocLine, DocHeader.ID, PeriodNo, Vendor."No.", FormNo, ParentBox);
-        FormBox.Get(PeriodNo, FormNo, ParentBox);
-        ParentDocLine."Minimum Reportable Amount" := FormBox."Minimum Reportable Amount";
-        ParentDocLine.Validate(Amount, 5000);
-        ParentDocLine.Modify(true);
-        if PeriodNo <> '2026' then
-            exit;
-        SupplLine."Document ID" := DocHeader.ID;
-        SupplLine.Validate("Supplemental Box No.", TipsBox);
-        SupplLine.Validate(Amount, 100);
-        SupplLine.Insert(true);
-        SupplLine.Init();
-        SupplLine."Document ID" := DocHeader.ID;
-        SupplLine.Validate("Supplemental Box No.", CodesBox);
-        SupplLine.Validate("Occupation Code 1", '101');
-        SupplLine.Validate("Occupation Code 2", '000');
-        SupplLine.Insert(true);
-        SupplLine.Init();
-        SupplLine."Document ID" := DocHeader.ID;
-        SupplLine.Validate("Supplemental Box No.", OvertimeBox);
-        SupplLine.Validate(Amount, 50);
-        SupplLine.Insert(true);
-    end;
-
-    local procedure VerifyStatementCopies(PeriodNo: Code[20]; FormNo: Code[20]): Integer
-    var
-        DocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentDocLine: Record "IRS 1099 Form Doc. Line";
-        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
-        TempPrintParams: Record "IRS 1099 Print Params";
-        IRSFormsFacade: Codeunit "IRS Forms Facade";
-        OriginalCopyB: Text;
-        OriginalCopy2: Text;
-    begin
-        CreateStatementDocument(DocHeader, PeriodNo, FormNo);
-        TempPrintParams."Report Type" := TempPrintParams."Report Type"::"Copy B";
-        IRSFormsFacade.SaveContentForDocument(DocHeader, TempPrintParams, false);
-        OriginalCopyB := GetSavedPdf(DocHeader.ID, TempPrintParams."Report Type");
-        TempPrintParams."Report Type" := TempPrintParams."Report Type"::"Copy 2";
-        IRSFormsFacade.SaveContentForDocument(DocHeader, TempPrintParams, false);
-        OriginalCopy2 := GetSavedPdf(DocHeader.ID, TempPrintParams."Report Type");
-        ParentDocLine.Get(PeriodNo, DocHeader."Vendor No.", FormNo, DocHeader.ID, 0);
-        ParentDocLine.Validate(Amount, 6000);
-        ParentDocLine.Modify(true);
-        SupplLine.SetRange("Document ID", DocHeader.ID);
-        SupplLine.SetRange("Value Type", SupplLine."Value Type"::Amount);
-        if SupplLine.FindSet(true) then
-            repeat
-                SupplLine.Validate(Amount, SupplLine.Amount + 25);
-                SupplLine.Modify(true);
-            until SupplLine.Next() = 0;
-        IRSFormsFacade.SaveContentForDocument(DocHeader, TempPrintParams, false);
-        Assert.AreEqual(OriginalCopy2, GetSavedPdf(DocHeader.ID, TempPrintParams."Report Type"), 'Ordinary save must retain the issued Copy 2 bytes.');
-        TempPrintParams."Report Type" := TempPrintParams."Report Type"::"Copy B";
-        IRSFormsFacade.SaveContentForDocument(DocHeader, TempPrintParams, false);
-        Assert.AreEqual(OriginalCopyB, GetSavedPdf(DocHeader.ID, TempPrintParams."Report Type"), 'Ordinary save must retain the issued Copy B bytes.');
-        RegenerateCopy(DocHeader, TempPrintParams."Report Type");
-        Assert.AreNotEqual(OriginalCopyB, GetSavedPdf(DocHeader.ID, TempPrintParams."Report Type"), 'Explicit replacement must regenerate Copy B.');
-        Assert.AreEqual(OriginalCopy2, GetSavedPdf(DocHeader.ID, TempPrintParams."Report Type"::"Copy 2"), 'Replacing Copy B must not replace Copy 2.');
-        RegenerateCopy(DocHeader, TempPrintParams."Report Type"::"Copy 2");
-        Assert.AreNotEqual(OriginalCopy2, GetSavedPdf(DocHeader.ID, TempPrintParams."Report Type"::"Copy 2"), 'Explicit replacement must regenerate Copy 2.');
-        exit(DocHeader.ID);
-    end;
-
-    local procedure GetSavedPdf(DocumentID: Integer; ReportType: Enum "IRS 1099 Form Report Type"): Text
-    var
-        FormReport: Record "IRS 1099 Form Report";
-        Base64Convert: Codeunit "Base64 Convert";
-        Content: InStream;
-    begin
-        FormReport.Get(DocumentID, ReportType);
-        FormReport.CalcFields("File Content");
-        FormReport."File Content".CreateInStream(Content);
-        exit(Base64Convert.ToBase64(Content));
-    end;
-
-    local procedure RegenerateCopy(var DocHeader: Record "IRS 1099 Form Doc. Header"; ReportType: Enum "IRS 1099 Form Report Type")
-    var
-        TempPrintParams: Record "IRS 1099 Print Params";
-        IRSFormsFacade: Codeunit "IRS Forms Facade";
-    begin
-        TempPrintParams."Report Type" := ReportType;
-        IRSFormsFacade.SaveContentForDocument(DocHeader, TempPrintParams, true);
-    end;
-
-    local procedure VerifyEmailCopy(var DocHeader: Record "IRS 1099 Form Doc. Header"; ReportType: Enum "IRS 1099 Form Report Type")
+    local procedure VerifyEmailCopy(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ReportType: Enum "IRS 1099 Form Report Type")
     var
         SentEmail: Record "Sent Email";
         EmailMessage: Codeunit "Email Message";
@@ -849,17 +805,17 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         SentCount := SentEmail.Count();
         LibraryVariableStorage.Enqueue(ReportType.AsInteger());
         FormDocument.OpenEdit();
-        FormDocument.Filter.SetFilter(ID, Format(DocHeader.ID));
+        FormDocument.Filter.SetFilter(ID, Format(IRS1099FormDocHeader.ID));
         FormDocument.SendEmail.Invoke();
         FormDocument.Close();
         Assert.AreEqual(SentCount + 1, SentEmail.Count(), 'Exactly one mock email must be sent.');
         Assert.IsTrue(EmailMessage.Get(ConnectorMock.GetEmailMessageID()), 'The message passed to the test connector is available.');
         Assert.IsTrue(EmailMessage.Attachments_First(), 'The recipient copy is attached.');
-        Assert.AreEqual(GetSavedPdf(DocHeader.ID, ReportType), EmailMessage.Attachments_GetContentBase64(), 'The selected regenerated PDF and actual mock email attachment must match byte for byte.');
+        Assert.AreEqual(GetSavedPdf(IRS1099FormDocHeader.ID, ReportType), EmailMessage.Attachments_GetContentBase64(), 'The selected regenerated PDF and actual mock email attachment must match byte for byte.');
         Assert.AreEqual(0, EmailMessage.Attachments_Next(), 'No other recipient copy is attached.');
-        DocHeader.Get(DocHeader.ID);
-        Assert.IsTrue((ReportType = ReportType::"Copy B") and DocHeader."Copy B Sent" or
-            (ReportType = ReportType::"Copy 2") and DocHeader."Copy 2 Sent", 'The selected copy has its sent flag.');
+        IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
+        Assert.IsTrue((ReportType = ReportType::"Copy B") and IRS1099FormDocHeader."Copy B Sent" or
+            (ReportType = ReportType::"Copy 2") and IRS1099FormDocHeader."Copy 2 Sent", 'The selected copy has its sent flag.');
     end;
 
     local procedure VerifyFractionalEmailDataset(Lines: JsonArray)
@@ -887,13 +843,53 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         Assert.IsTrue(OvertimeFound, 'The overtime statement row must remain present.');
     end;
 
-    local procedure VerifyStoredOccupationCodes(DocumentID: Integer; CodesBox: Code[20])
+    local procedure VerifyStatementCopies(PeriodNo: Code[20]; FormNo: Code[20]): Integer
     var
-        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
+        SupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
+        TempPrintParams: Record "IRS 1099 Print Params";
+        IRSFormsFacade: Codeunit "IRS Forms Facade";
+        OriginalCopyB: Text;
+        OriginalCopy2: Text;
     begin
-        SupplLine.Get(DocumentID, CodesBox);
-        Assert.AreEqual('101', SupplLine."Occupation Code 1", 'The first occupation code remains stored.');
-        Assert.AreEqual('000', SupplLine."Occupation Code 2", 'Leading zeros remain stored.');
+        CreateStatementDocument(IRS1099FormDocHeader, PeriodNo, FormNo);
+        TempPrintParams."Report Type" := TempPrintParams."Report Type"::"Copy B";
+        IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, TempPrintParams, false);
+        OriginalCopyB := GetSavedPdf(IRS1099FormDocHeader.ID, TempPrintParams."Report Type");
+        TempPrintParams."Report Type" := TempPrintParams."Report Type"::"Copy 2";
+        IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, TempPrintParams, false);
+        OriginalCopy2 := GetSavedPdf(IRS1099FormDocHeader.ID, TempPrintParams."Report Type");
+        ParentIRS1099FormDocLine.Get(PeriodNo, IRS1099FormDocHeader."Vendor No.", FormNo, IRS1099FormDocHeader.ID, 0);
+        ParentIRS1099FormDocLine.Validate(Amount, 6000);
+        ParentIRS1099FormDocLine.Modify(true);
+        SupplementalLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
+        SupplementalLine.SetRange("Value Type", SupplementalLine."Value Type"::Amount);
+        if SupplementalLine.FindSet(true) then
+            repeat
+                SupplementalLine.Validate(Amount, SupplementalLine.Amount + 25);
+                SupplementalLine.Modify(true);
+            until SupplementalLine.Next() = 0;
+        IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, TempPrintParams, false);
+        Assert.AreEqual(OriginalCopy2, GetSavedPdf(IRS1099FormDocHeader.ID, TempPrintParams."Report Type"), 'Ordinary save must retain the issued Copy 2 bytes.');
+        TempPrintParams."Report Type" := TempPrintParams."Report Type"::"Copy B";
+        IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, TempPrintParams, false);
+        Assert.AreEqual(OriginalCopyB, GetSavedPdf(IRS1099FormDocHeader.ID, TempPrintParams."Report Type"), 'Ordinary save must retain the issued Copy B bytes.');
+        RegenerateCopy(IRS1099FormDocHeader, TempPrintParams."Report Type");
+        Assert.AreNotEqual(OriginalCopyB, GetSavedPdf(IRS1099FormDocHeader.ID, TempPrintParams."Report Type"), 'Explicit replacement must regenerate Copy B.');
+        Assert.AreEqual(OriginalCopy2, GetSavedPdf(IRS1099FormDocHeader.ID, TempPrintParams."Report Type"::"Copy 2"), 'Replacing Copy B must not replace Copy 2.');
+        RegenerateCopy(IRS1099FormDocHeader, TempPrintParams."Report Type"::"Copy 2");
+        Assert.AreNotEqual(OriginalCopy2, GetSavedPdf(IRS1099FormDocHeader.ID, TempPrintParams."Report Type"::"Copy 2"), 'Explicit replacement must regenerate Copy 2.');
+        exit(IRS1099FormDocHeader.ID);
+    end;
+
+    local procedure VerifyStoredOccupationCodes(DocumentID: Integer; OccupationCodesBoxNo: Code[20])
+    var
+        SupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
+    begin
+        SupplementalLine.Get(DocumentID, OccupationCodesBoxNo);
+        Assert.AreEqual('101', SupplementalLine."Occupation Code 1", 'The first occupation code remains stored.');
+        Assert.AreEqual('000', SupplementalLine."Occupation Code 2", 'Leading zeros remain stored.');
     end;
 
     [MessageHandler]

@@ -22,8 +22,10 @@ codeunit 10040 "IRS 1099 Supplemental"
         ExcludedParentTxt: Label 'Not reported because the parent document line is not included in 1099 reporting. Your entered values have been kept.';
         ZeroTipsTxt: Label 'Saved occupation codes are not reported because cash tips are excluded or round to zero. The codes are kept and will be used if reportable cash tips are entered again.';
 
-    procedure IsFinancialAmountReportable(FormNo: Code[20]; FormBoxNo: Code[20]; Amount: Decimal; MinimumAmount: Decimal; HasBackupWithholding: Boolean): Boolean
+    procedure IsFormBoxAmountReportable(FormNo: Code[20]; FormBoxNo: Code[20]; Amount: Decimal; MinimumAmount: Decimal; HasBackupWithholding: Boolean): Boolean
     begin
+        if Amount < 0 then
+            exit(false);
         if ((FormNo = 'NEC') and (FormBoxNo = 'NEC-04')) or
            ((FormNo = 'MISC') and (FormBoxNo = 'MISC-04'))
         then
@@ -56,7 +58,7 @@ codeunit 10040 "IRS 1099 Supplemental"
         DocLine.SetRange(Amount);
         if DocLine.FindSet(true) then
             repeat
-                IncludeIn1099 := IsFinancialAmountReportable(DocLine."Form No.", DocLine."Form Box No.",
+                IncludeIn1099 := IsFormBoxAmountReportable(DocLine."Form No.", DocLine."Form Box No.",
                     DocLine.Amount, DocLine."Minimum Reportable Amount", HasBackupWithholding);
                 if DocLine."Include In 1099" <> IncludeIn1099 then begin
                     DocLine."Include In 1099" := IncludeIn1099;
@@ -81,7 +83,7 @@ codeunit 10040 "IRS 1099 Supplemental"
                 TempWithholding.SetRange("Period No.", TempBuffer."Period No.");
                 TempWithholding.SetRange("Vendor No.", TempBuffer."Vendor No.");
                 TempWithholding.SetRange("Form No.", TempBuffer."Form No.");
-                TempBuffer."Include In 1099" := IsFinancialAmountReportable(TempBuffer."Form No.", TempBuffer."Form Box No.",
+                TempBuffer."Include In 1099" := IsFormBoxAmountReportable(TempBuffer."Form No.", TempBuffer."Form Box No.",
                     TempBuffer."Reporting Amount", TempBuffer."Minimum Reportable Amount", not TempWithholding.IsEmpty());
                 TempBuffer.Modify();
             until TempBuffer.Next() = 0;
@@ -105,7 +107,7 @@ codeunit 10040 "IRS 1099 Supplemental"
             repeat
                 ValidateLine(SupplLine);
                 SupplBox.Get(DocHeader."Period No.", DocHeader."Form No.", SupplLine."Supplemental Box No.");
-                ValidateDefinition(SupplBox);
+                ValidateSupplBoxSetup(SupplBox);
                 if (SupplBox."Parent Form Box No." <> SupplLine."Parent Form Box No.") or
                    (SupplBox."Value Type" <> SupplLine."Value Type")
                 then
@@ -216,12 +218,12 @@ codeunit 10040 "IRS 1099 Supplemental"
         exit((SupplLine.Amount <> 0) or (SupplLine."Occupation Code 1" <> '') or (SupplLine."Occupation Code 2" <> ''));
     end;
 
-    procedure ValidateDefinition(var IRS1099SupplBox: Record "IRS 1099 Suppl. Box")
+    procedure ValidateSupplBoxSetup(var SupplBox: Record "IRS 1099 Suppl. Box")
     begin
-        ValidateSupplBoxSetup(IRS1099SupplBox, CompanyName());
+        ValidateSupplBoxSetup(SupplBox, SupplBox.CurrentCompany());
     end;
 
-    procedure ValidateSupplBoxSetup(IRS1099SupplBox: Record "IRS 1099 Suppl. Box"; TargetCompany: Text)
+    procedure ValidateSupplBoxSetup(SupplBox: Record "IRS 1099 Suppl. Box"; TargetCompany: Text)
     var
         FormBox: Record "IRS 1099 Form Box";
         ReportingPeriod: Record "IRS Reporting Period";
@@ -229,26 +231,26 @@ codeunit 10040 "IRS 1099 Supplemental"
         ExpectedElement: Text[100];
         ExpectedType: Enum "IRS 1099 Supplemental Type";
     begin
-        ValidateSupplPeriodAndForm(IRS1099SupplBox."Period No.", IRS1099SupplBox."Form No.", TargetCompany);
-        IRS1099SupplBox.TestField("No.");
-        IRS1099SupplBox.TestField("Parent Form Box No.");
+        ValidateSupplPeriodAndForm(SupplBox."Period No.", SupplBox."Form No.", TargetCompany);
+        SupplBox.TestField("No.");
+        SupplBox.TestField("Parent Form Box No.");
         FormBox.ChangeCompany(TargetCompany);
-        FormBox.Get(IRS1099SupplBox."Period No.", IRS1099SupplBox."Form No.", IRS1099SupplBox."Parent Form Box No.");
-        if FormBox.Get(IRS1099SupplBox."Period No.", IRS1099SupplBox."Form No.", IRS1099SupplBox."No.") then
-            Error(MappingErr, IRS1099SupplBox."No.");
+        FormBox.Get(SupplBox."Period No.", SupplBox."Form No.", SupplBox."Parent Form Box No.");
+        if FormBox.Get(SupplBox."Period No.", SupplBox."Form No.", SupplBox."No.") then
+            Error(MappingErr, SupplBox."No.");
         ReportingPeriod.ChangeCompany(TargetCompany);
-        ReportingPeriod.Get(IRS1099SupplBox."Period No.");
-        if GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), IRS1099SupplBox."Form No.", IRS1099SupplBox."No.", ExpectedParent, ExpectedElement, ExpectedType) then begin
-            if (IRS1099SupplBox."Parent Form Box No." <> ExpectedParent) or
-               (IRS1099SupplBox."XML Element Name" <> ExpectedElement) or
-               (IRS1099SupplBox."Value Type" <> ExpectedType)
+        ReportingPeriod.Get(SupplBox."Period No.");
+        if GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), SupplBox."Form No.", SupplBox."No.", ExpectedParent, ExpectedElement, ExpectedType) then begin
+            if (SupplBox."Parent Form Box No." <> ExpectedParent) or
+               (SupplBox."XML Element Name" <> ExpectedElement) or
+               (SupplBox."Value Type" <> ExpectedType)
             then
-                Error(MappingErr, IRS1099SupplBox."No.");
+                Error(MappingErr, SupplBox."No.");
         end else
-            if (IRS1099SupplBox."XML Element Name" <> '') or
-               (IRS1099SupplBox."No." in ['NEC-01B', 'NEC-01C', 'NEC-01D', 'MISC-13A', 'MISC-13B', 'MISC-14'])
+            if (SupplBox."XML Element Name" <> '') or
+               (SupplBox."No." in ['NEC-01B', 'NEC-01C', 'NEC-01D', 'MISC-13A', 'MISC-13B', 'MISC-14'])
             then
-                Error(MappingErr, IRS1099SupplBox."No.");
+                Error(MappingErr, SupplBox."No.");
     end;
 
     procedure ValidateSupplPeriodAndForm(PeriodNo: Code[20]; FormNo: Code[20])
@@ -358,7 +360,7 @@ codeunit 10040 "IRS 1099 Supplemental"
                 SupplLine."Supplemental Box No.");
     end;
 
-    procedure FilterAvailableDefinitions(var IRS1099SupplBox: Record "IRS 1099 Suppl. Box"; DocumentID: Integer)
+    procedure FilterAvailableSupplBoxes(var SupplBox: Record "IRS 1099 Suppl. Box"; DocumentID: Integer)
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
         DocLine: Record "IRS 1099 Form Doc. Line";
@@ -367,21 +369,21 @@ codeunit 10040 "IRS 1099 Supplemental"
         DocHeader.Get(DocumentID);
         DocHeader.TestField(Status, DocHeader.Status::Open);
         ValidateSupplPeriodAndForm(DocHeader."Period No.", DocHeader."Form No.");
-        IRS1099SupplBox.Reset();
-        IRS1099SupplBox.ClearMarks();
-        IRS1099SupplBox.SetRange("Period No.", DocHeader."Period No.");
-        IRS1099SupplBox.SetRange("Form No.", DocHeader."Form No.");
-        if IRS1099SupplBox.FindSet() then
+        SupplBox.Reset();
+        SupplBox.ClearMarks();
+        SupplBox.SetRange("Period No.", DocHeader."Period No.");
+        SupplBox.SetRange("Form No.", DocHeader."Form No.");
+        if SupplBox.FindSet() then
             repeat
                 DocLine.SetRange("Document ID", DocumentID);
-                DocLine.SetRange("Form Box No.", IRS1099SupplBox."Parent Form Box No.");
-                if not DocLine.IsEmpty() and not SupplLine.Get(DocumentID, IRS1099SupplBox."No.") then begin
-                    ValidateDefinition(IRS1099SupplBox);
-                    IRS1099SupplBox.Mark(true);
+                DocLine.SetRange("Form Box No.", SupplBox."Parent Form Box No.");
+                if not DocLine.IsEmpty() and not SupplLine.Get(DocumentID, SupplBox."No.") then begin
+                    ValidateSupplBoxSetup(SupplBox);
+                    SupplBox.Mark(true);
                 end;
-            until IRS1099SupplBox.Next() = 0;
-        IRS1099SupplBox.MarkedOnly(true);
-        if IRS1099SupplBox.IsEmpty() then
+            until SupplBox.Next() = 0;
+        SupplBox.MarkedOnly(true);
+        if SupplBox.IsEmpty() then
             Error(NoChoicesErr);
     end;
 }

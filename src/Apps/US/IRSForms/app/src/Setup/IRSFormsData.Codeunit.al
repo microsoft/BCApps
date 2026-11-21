@@ -11,6 +11,30 @@ codeunit 10039 "IRS Forms Data"
 {
     var
         Supplemental: Codeunit "IRS 1099 Supplemental";
+        UnsupportedMsg: Label 'Supplemental boxes were not added because the target reporting period starts in %1 and ends in %2. Supplemental boxes are supported for tax years 2026 and later within a single calendar year.', Comment = '%1 = target starting year, %2 = target ending year';
+        MissingFormMsg: Label 'Form %1 does not exist in this reporting period.', Comment = '%1 = form';
+        MissingParentMsg: Label 'Parent form box %1 does not exist in this reporting period.', Comment = '%1 = parent form box';
+        MappingMsg: Label 'The supplemental box number, parent form box, value type, or XML element does not meet the reporting requirements. Review the setup on the IRS 1099 Supplemental Boxes page.';
+        BoxNoUsedByFormBoxMsg: Label 'The supplemental box number is already used by a form box.';
+        StatementConflictMsg: Label '\\Company %1, period %2, statement row %3 has custom settings and was not changed. Review Value Source, Supplemental Box No., Description, Print with, and line order on the IRS 1099 Form Statement page.', Comment = '%1 = company, %2 = period, %3 = standard row';
+        IncomeBoxConflictMsg: Label '\\Company %1, period %2, form box %3: the custom minimum reportable amount %4 was kept instead of the standard amount %5. Review Minimum Reportable Amount for this form box.', Comment = '%1 = company, %2 = period, %3 = box, %4 = custom minimum, %5 = standard minimum';
+        SupplBoxConflictMsg: Label '\\Company %1, period %2, supplemental box %3 was not changed because its setup is customized or cannot be used for reporting. Review Parent Form Box No., Value Type, and XML Element Name on the IRS 1099 Supplemental Boxes page. Existing document lines were not changed.', Comment = '%1 = company, %2 = period, %3 = supplemental box';
+        SupplBoxNumberConflictMsg: Label '\\Company %1, period %2, box number %3 is already used by a form box. The existing form box was not changed. Resolve the duplicate box number before setting up the supplemental box.', Comment = '%1 = company, %2 = period, %3 = box';
+        SupplBoxParentMissingMsg: Label '\\Company %1, period %2, form %3, supplemental box %4 was not created because parent form box %5 does not exist. Create or correct the parent form box before setting up the supplemental box.', Comment = '%1 = company, %2 = period, %3 = form, %4 = supplemental box, %5 = parent form box';
+        RecalculateMsg: Label '\\Company %1, period %2, document %3 with status Open (vendor %4, form %5) needs recalculation. Use Create Form Documents or Update Transmission and select the changes to apply. Existing documents and transmissions have not been changed.', Comment = '%1 = company, %2 = period, %3 = document ID, %4 = vendor, %5 = form';
+        ParachuteTxt: Label 'Shows your total compensation of excess golden parachute payments subject to a 20% excise tax. See your tax return instructions for where to report.';
+        ReservedTxt: Label 'Reserved for future use.';
+        FatcaTxt: Label 'If the FATCA filing requirement box is checked, the payer is reporting on this Form 1099 to satisfy its account reporting requirement under chapter 4 of the Internal Revenue Code. You may also have a filing requirement. See the Instructions for Form 8938.';
+        NecGeneralInstructionTxt: Label 'You received this form instead of Form W-2 because the payer did not consider you an employee and did not withhold income tax or social security and Medicare tax. If you believe you are an employee and cannot get the payer to correct this form, report the amount shown in box 1 on the line for “Wages, salaries, tips, etc.” of Form 1040, 1040-SR, or 1040-NR. You must also complete Form 8919 and attach it to your return. For more information, see Pub. 1779, Independent Contractor or Employee. If you are not an employee but the amount in box 1 is not self-employment (SE) income (for example, it is income from a sporadic activity or a hobby), report the amount shown in box 1 on the “Other income” line (on Schedule 1 (Form 1040)).', Locked = true;
+        NecCompensationInstructionTxt: Label 'Shows nonemployee compensation. If the amount in this box is SE income, report it on Schedule C or F (Form 1040) if a sole proprietor, or on Form 1065 and Schedule K-1 (Form 1065) if a partnership, and the recipient/partner completes Schedule SE (Form 1040).', Locked = true;
+        NecNoteInstructionTxt: Label 'If you are receiving payments on which no income, social security, and Medicare taxes are withheld, you should make estimated tax payments. See Form 1040-ES (or Form 1040-ES (NR)). Individuals must report these amounts as explained in these box 1 instructions. Corporations, fiduciaries, and partnerships must report these amounts on the appropriate line of their tax returns.', Locked = true;
+        PreviousCashTipsTxt: Label 'Shows cash tips already included in the reported income. This is a breakdown, not additional income. Determine any deduction using the instructions for your tax return.';
+        PreviousOccupationTxt: Label 'Shows up to two Treasury tipped occupation codes. Code 000 identifies a nonqualifying occupation and retains its leading zeros.';
+        PreviousOvertimeTxt: Label 'Shows qualified overtime compensation already included in the reported income. Report only the qualified overtime premium portion, not all overtime pay. Determine any deduction using the instructions for your tax return.';
+        CashTipsTxt: Label 'Shows the total amount of cash tips. “Cash tips” include tips received in cash or charged. This amount has been included in the amount reported in box %1. Use the amount in box %2 when determining the qualified tip deduction in Part II of Schedule 1-A (Form 1040).', Comment = '%1 = income box, %2 = cash tips box';
+        OccupationTxt: Label 'Shows up to two Treasury Tipped Occupation Code(s) (TTOC) for your tipped occupation(s). Use this code(s) in determining the deduction for qualified tips in Part II of Schedule 1-A (Form 1040). If the occupation code 000 is used, and no other code is included in box %1, your cash tips are not qualified tips; do not use the amount reported in box %2 for the deduction for qualified tips.', Comment = '%1 = occupation codes box, %2 = cash tips box';
+        OvertimeTxt: Label 'Shows the total amount of qualified overtime compensation. This amount has been included in the amount reported in box %1. Use the amount in box %2 when determining the qualified overtime compensation deduction in Part III of Schedule 1-A (Form 1040).', Comment = '%1 = income box, %2 = overtime compensation box';
+        InstructionConflictMsg: Label '\\Company %1, period %2, form %3, instruction line %4 has custom text or ordering and was not changed. Review it on the IRS 1099 Form Instructions page.', Comment = '%1 = company, %2 = period, %3 = form, %4 = instruction line';
 
     procedure AddReportingPeriodsWithForms(ReportingYear: Integer)
     var
@@ -22,19 +46,19 @@ codeunit 10039 "IRS Forms Data"
                 Format(ReportingYear),
                 DMY2Date(1, 1, ReportingYear), DMY2Date(31, 12, ReportingYear), Format(ReportingYear));
         AddForm(PeriodNo, 'MISC', 'Miscellaneous Income');
-        AddFormBox(PeriodNo, 'MISC', 'MISC-01', 'Rents', GetIncomeMinimum(ReportingYear, 600));
+        AddFormBox(PeriodNo, 'MISC', 'MISC-01', 'Rents', GetMinimumReportableAmount(ReportingYear, 600));
         AddFormBox(PeriodNo, 'MISC', 'MISC-02', 'Royalties', 10);
-        AddFormBox(PeriodNo, 'MISC', 'MISC-03', 'Other Income', GetIncomeMinimum(ReportingYear, 600));
+        AddFormBox(PeriodNo, 'MISC', 'MISC-03', 'Other Income', GetMinimumReportableAmount(ReportingYear, 600));
         AddFormBox(PeriodNo, 'MISC', 'MISC-04', 'Federal Income Tax Withheld', 0);
         AddFormBox(PeriodNo, 'MISC', 'MISC-05', 'Fishing Boat Proceeds', 600);
-        AddFormBox(PeriodNo, 'MISC', 'MISC-06', 'Medical and Health Care Payments', GetIncomeMinimum(ReportingYear, 600));
+        AddFormBox(PeriodNo, 'MISC', 'MISC-06', 'Medical and Health Care Payments', GetMinimumReportableAmount(ReportingYear, 600));
         AddFormBox(PeriodNo, 'MISC', 'MISC-07', 'Payer made direct sales totaling $5,000 or more of consumer products to recipient for resale', 5000);
         AddFormBox(PeriodNo, 'MISC', 'MISC-08', 'Substitute Payments in Lieu of Dividends or Interest', 10);
-        AddFormBox(PeriodNo, 'MISC', 'MISC-09', 'Crop Insurance Proceeds', GetIncomeMinimum(ReportingYear, 1));
+        AddFormBox(PeriodNo, 'MISC', 'MISC-09', 'Crop Insurance Proceeds', GetMinimumReportableAmount(ReportingYear, 1));
         AddFormBox(PeriodNo, 'MISC', 'MISC-10', 'Gross Proceeds Paid to an Attorney', 0);
         AddFormBox(PeriodNo, 'MISC', 'MISC-11', 'Fish purchased for resale', 600);
-        AddFormBox(PeriodNo, 'MISC', 'MISC-12', 'Section 409A deferrals', GetIncomeMinimum(ReportingYear, 600));
-        AddFormBox(PeriodNo, 'MISC', 'MISC-15', 'Nonqualified deferred compensation', GetIncomeMinimum(ReportingYear, 0));
+        AddFormBox(PeriodNo, 'MISC', 'MISC-12', 'Section 409A deferrals', GetMinimumReportableAmount(ReportingYear, 600));
+        AddFormBox(PeriodNo, 'MISC', 'MISC-15', 'Nonqualified deferred compensation', GetMinimumReportableAmount(ReportingYear, 0));
         AddFormBox(PeriodNo, 'MISC', 'MISC-16', 'State tax withheld', 0);
         AddFormStatementLine(PeriodNo, 'MISC', 'MISC-01', 10000, 'Rents');
         AddFormStatementLine(PeriodNo, 'MISC', 'MISC-02', 20000, 'Royalties');
@@ -52,7 +76,7 @@ codeunit 10039 "IRS Forms Data"
         AddFormStatementLine(PeriodNo, 'MISC', 'MISC-16', 150000, 'State tax withheld');
 
         AddForm(PeriodNo, 'NEC', 'Nonemployee Compensation');
-        AddFormBox(PeriodNo, 'NEC', 'NEC-01', 'Nonemployee Compensation', GetIncomeMinimum(ReportingYear, 600));
+        AddFormBox(PeriodNo, 'NEC', 'NEC-01', 'Nonemployee Compensation', GetMinimumReportableAmount(ReportingYear, 600));
         AddFormBox(PeriodNo, 'NEC', 'NEC-02', 'Payer made direct sales totaling $5,000 or more of consumer products to recipient for resale', 5000);
         AddFormBox(PeriodNo, 'NEC', 'NEC-03', 'Excess golden parachute payments', 0);
         AddFormBox(PeriodNo, 'NEC', 'NEC-04', 'Federal Income Tax Withheld', 0);
@@ -124,28 +148,28 @@ codeunit 10039 "IRS Forms Data"
         AddFormStatementLine(PeriodNo, 'DIV', 'DIV-13', 170000, 'Specified private activity bond interest dividends');
 
         AddFormInstructionLines(PeriodNo);
-        ReconcileAnnualSetup(PeriodNo, CompanyName(), SetupDetails);
+        UpdateAnnualSetup(PeriodNo, CompanyName(), SetupDetails);
     end;
 
-    internal procedure ReconcileAnnualSetup(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
+    internal procedure UpdateAnnualSetup(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
     var
         ReportingPeriod: Record "IRS Reporting Period";
     begin
         ReportingPeriod.ChangeCompany(TargetCompany);
         ReportingPeriod.Get(PeriodNo);
-        ReportFinancialIdentityConflicts(PeriodNo, TargetCompany, Details);
-        ReconcileAnnualInstructions(ReportingPeriod, TargetCompany, Details);
+        AddFormBoxNumberConflictMessages(PeriodNo, TargetCompany, Details);
+        UpdateAnnualBoxSetup(PeriodNo, TargetCompany, Details);
+        UpdateAnnualInstructions(ReportingPeriod, TargetCompany, Details);
         if not SupportsSupplementalSetup(PeriodNo, TargetCompany) then
             exit;
 
-        ReconcileAnnualDefinitions(PeriodNo, TargetCompany, Details);
-        ReconcileCompensationStatement(PeriodNo, TargetCompany, Details);
-        ReconcileSupplementalStatement(PeriodNo, TargetCompany, 'NEC', 'NEC-01B', 12500, 'Cash tips (box 1b)', Details);
-        ReconcileSupplementalStatement(PeriodNo, TargetCompany, 'NEC', 'NEC-01C', 15000, 'Treasury tipped occupation codes (box 1c)', Details);
-        ReconcileSupplementalStatement(PeriodNo, TargetCompany, 'NEC', 'NEC-01D', 17500, 'Qualified overtime compensation (box 1d)', Details);
-        ReconcileSupplementalStatement(PeriodNo, TargetCompany, 'MISC', 'MISC-13A', 125000, 'Cash tips (box 13a)', Details);
-        ReconcileSupplementalStatement(PeriodNo, TargetCompany, 'MISC', 'MISC-13B', 127500, 'Treasury tipped occupation codes (box 13b)', Details);
-        ReconcileSupplementalStatement(PeriodNo, TargetCompany, 'MISC', 'MISC-14', 130000, 'Qualified overtime compensation (box 14)', Details);
+        UpdateCompensationStatementLine(PeriodNo, TargetCompany, Details);
+        UpdateSupplStatementLine(PeriodNo, TargetCompany, 'NEC', 'NEC-01B', 12500, 'Cash tips (box 1b)', Details);
+        UpdateSupplStatementLine(PeriodNo, TargetCompany, 'NEC', 'NEC-01C', 15000, 'Treasury tipped occupation codes (box 1c)', Details);
+        UpdateSupplStatementLine(PeriodNo, TargetCompany, 'NEC', 'NEC-01D', 17500, 'Qualified overtime compensation (box 1d)', Details);
+        UpdateSupplStatementLine(PeriodNo, TargetCompany, 'MISC', 'MISC-13A', 125000, 'Cash tips (box 13a)', Details);
+        UpdateSupplStatementLine(PeriodNo, TargetCompany, 'MISC', 'MISC-13B', 127500, 'Treasury tipped occupation codes (box 13b)', Details);
+        UpdateSupplStatementLine(PeriodNo, TargetCompany, 'MISC', 'MISC-14', 130000, 'Qualified overtime compensation (box 14)', Details);
         AddRecalculationNotice(PeriodNo, TargetCompany, Details);
     end;
 
@@ -159,104 +183,99 @@ codeunit 10039 "IRS Forms Data"
              (Date2DMY(ReportingPeriod."Ending Date", 3) = Date2DMY(ReportingPeriod."Starting Date", 3)));
     end;
 
-    internal procedure ReconcileAnnualDefinitions(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
+    internal procedure UpdateAnnualBoxSetup(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
     begin
         if not SupportsSupplementalSetup(PeriodNo, TargetCompany) then
             exit;
 
-        ReconcileIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-01', 'Rents', 600, Details);
-        ReconcileIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-03', 'Other Income', 600, Details);
-        ReconcileIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-06', 'Medical and Health Care Payments', 600, Details);
-        ReconcileIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-09', 'Crop Insurance Proceeds', 1, Details);
-        ReconcileIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-12', 'Section 409A deferrals', 600, Details);
-        ReconcileIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-15', 'Nonqualified deferred compensation', 0, Details);
-        ReconcileIncomeBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01', 'Nonemployee Compensation', 600, Details);
-        ReconcileSupplementalBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01B', 'Cash tips (box 1b)', Details);
-        ReconcileSupplementalBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01C', 'Treasury tipped occupation codes (box 1c)', Details);
-        ReconcileSupplementalBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01D', 'Qualified overtime compensation (box 1d)', Details);
-        ReconcileSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-13A', 'Cash tips (box 13a)', Details);
-        ReconcileSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-13B', 'Treasury tipped occupation codes (box 13b)', Details);
-        ReconcileSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-14', 'Qualified overtime compensation (box 14)', Details);
+        UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-01', 'Rents', 600, Details);
+        UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-03', 'Other Income', 600, Details);
+        UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-06', 'Medical and Health Care Payments', 600, Details);
+        UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-09', 'Crop Insurance Proceeds', 1, Details);
+        UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-12', 'Section 409A deferrals', 600, Details);
+        UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-15', 'Nonqualified deferred compensation', 0, Details);
+        UpdateIncomeBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01', 'Nonemployee Compensation', 600, Details);
+        UpdateSupplementalBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01B', 'Cash tips (box 1b)', Details);
+        UpdateSupplementalBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01C', 'Treasury tipped occupation codes (box 1c)', Details);
+        UpdateSupplementalBox(PeriodNo, TargetCompany, 'NEC', 'NEC-01D', 'Qualified overtime compensation (box 1d)', Details);
+        UpdateSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-13A', 'Cash tips (box 13a)', Details);
+        UpdateSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-13B', 'Treasury tipped occupation codes (box 13b)', Details);
+        UpdateSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-14', 'Qualified overtime compensation (box 14)', Details);
     end;
 
-    internal procedure GetUnsupportedSupplementalSetupReason(PeriodNo: Code[20]; TargetCompany: Text): Text
+    internal procedure GetUnsupportedSupplSetupReason(PeriodNo: Code[20]; TargetCompany: Text): Text
     var
         ReportingPeriod: Record "IRS Reporting Period";
-        UnsupportedMsg: Label 'Supplemental boxes were not added because the target reporting period starts in %1 and ends in %2. Supplemental boxes are supported for tax years 2026 and later within a single calendar year.', Comment = '%1 = target starting year, %2 = target ending year';
     begin
         ReportingPeriod.ChangeCompany(TargetCompany);
         ReportingPeriod.Get(PeriodNo);
         exit(StrSubstNo(UnsupportedMsg, Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), Format(Date2DMY(ReportingPeriod."Ending Date", 3), 0, 9)));
     end;
 
-    internal procedure GetSupplementalDefinitionConflict(Definition: Record "IRS 1099 Suppl. Box"; TargetCompany: Text): Text
+    internal procedure GetSupplBoxSetupConflictMessage(SupplBox: Record "IRS 1099 Suppl. Box"; TargetCompany: Text): Text
     var
         ReportingPeriod: Record "IRS Reporting Period";
         Form: Record "IRS 1099 Form";
-        FinancialFormBox: Record "IRS 1099 Form Box";
+        FormBox: Record "IRS 1099 Form Box";
         ParentBoxNo: Code[20];
         ElementName: Text[100];
         ValueType: Enum "IRS 1099 Supplemental Type";
-        MissingFormMsg: Label 'Form %1 does not exist in this reporting period.', Comment = '%1 = form';
-        MissingParentMsg: Label 'Parent form box %1 does not exist in this reporting period.', Comment = '%1 = parent form box';
-        MappingMsg: Label 'The supplemental box number, parent form box, value type, or XML element does not meet the reporting requirements. Review the setup on the IRS 1099 Supplemental Boxes page.';
-        FinancialIdentityMsg: Label 'The supplemental box number is already used by a form box.';
     begin
-        if not SupportsSupplementalSetup(Definition."Period No.", TargetCompany) then
-            exit(GetUnsupportedSupplementalSetupReason(Definition."Period No.", TargetCompany));
-        if not (Definition."Form No." in ['MISC', 'NEC']) or (Definition."No." = '') or
-           (Definition."Parent Form Box No." = '')
+        if not SupportsSupplementalSetup(SupplBox."Period No.", TargetCompany) then
+            exit(GetUnsupportedSupplSetupReason(SupplBox."Period No.", TargetCompany));
+        if not (SupplBox."Form No." in ['MISC', 'NEC']) or (SupplBox."No." = '') or
+           (SupplBox."Parent Form Box No." = '')
         then
             exit(MappingMsg);
         Form.ChangeCompany(TargetCompany);
-        if not Form.Get(Definition."Period No.", Definition."Form No.") then
-            exit(StrSubstNo(MissingFormMsg, Definition."Form No."));
-        FinancialFormBox.ChangeCompany(TargetCompany);
-        if FinancialFormBox.Get(Definition."Period No.", Definition."Form No.", Definition."No.") then
-            exit(FinancialIdentityMsg);
-        if not FinancialFormBox.Get(Definition."Period No.", Definition."Form No.", Definition."Parent Form Box No.") then
-            exit(StrSubstNo(MissingParentMsg, Definition."Parent Form Box No."));
-        if FinancialFormBox.GetSupplementalIdentityConflict() <> '' then
-            exit(FinancialFormBox.GetSupplementalIdentityConflict());
+        if not Form.Get(SupplBox."Period No.", SupplBox."Form No.") then
+            exit(StrSubstNo(MissingFormMsg, SupplBox."Form No."));
+        FormBox.ChangeCompany(TargetCompany);
+        if FormBox.Get(SupplBox."Period No.", SupplBox."Form No.", SupplBox."No.") then
+            exit(BoxNoUsedByFormBoxMsg);
+        if not FormBox.Get(SupplBox."Period No.", SupplBox."Form No.", SupplBox."Parent Form Box No.") then
+            exit(StrSubstNo(MissingParentMsg, SupplBox."Parent Form Box No."));
+        if FormBox.GetSupplBoxNoConflictMessage() <> '' then
+            exit(FormBox.GetSupplBoxNoConflictMessage());
         ReportingPeriod.ChangeCompany(TargetCompany);
-        ReportingPeriod.Get(Definition."Period No.");
-        if Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), Definition."Form No.", Definition."No.", ParentBoxNo, ElementName, ValueType) then begin
-            if (Definition."Parent Form Box No." <> ParentBoxNo) or (Definition."Value Type" <> ValueType) or
-               (Definition."XML Element Name" <> ElementName)
+        ReportingPeriod.Get(SupplBox."Period No.");
+        if Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), SupplBox."Form No.", SupplBox."No.", ParentBoxNo, ElementName, ValueType) then begin
+            if (SupplBox."Parent Form Box No." <> ParentBoxNo) or (SupplBox."Value Type" <> ValueType) or
+               (SupplBox."XML Element Name" <> ElementName)
             then
                 exit(MappingMsg);
         end else
-            if (Definition."XML Element Name" <> '') or
-               (Definition."No." in ['NEC-01B', 'NEC-01C', 'NEC-01D', 'MISC-13A', 'MISC-13B', 'MISC-14'])
+            if (SupplBox."XML Element Name" <> '') or
+               (SupplBox."No." in ['NEC-01B', 'NEC-01C', 'NEC-01D', 'MISC-13A', 'MISC-13B', 'MISC-14'])
             then
                 exit(MappingMsg);
         exit('');
     end;
 
-    local procedure ReportFinancialIdentityConflicts(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
+    local procedure AddFormBoxNumberConflictMessages(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
     var
-        FinancialFormBox: Record "IRS 1099 Form Box";
+        FormBox: Record "IRS 1099 Form Box";
         Conflict: Text;
     begin
-        FinancialFormBox.ChangeCompany(TargetCompany);
-        FinancialFormBox.SetRange("Period No.", PeriodNo);
-        if FinancialFormBox.FindSet() then
+        FormBox.ChangeCompany(TargetCompany);
+        FormBox.SetRange("Period No.", PeriodNo);
+        if FormBox.FindSet() then
             repeat
-                Conflict := FinancialFormBox.GetSupplementalIdentityConflict();
+                Conflict := FormBox.GetSupplBoxNoConflictMessage();
                 if Conflict <> '' then
                     Details += '\\' + Conflict;
-            until FinancialFormBox.Next() = 0;
+            until FormBox.Next() = 0;
     end;
 
-    local procedure ReconcileCompensationStatement(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
+    local procedure UpdateCompensationStatementLine(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
     var
         StatementLine: Record "IRS 1099 Form Statement Line";
         StandardLine: Record "IRS 1099 Form Statement Line";
-        FinancialFormBox: Record "IRS 1099 Form Box";
+        FormBox: Record "IRS 1099 Form Box";
         Description: Text[100];
     begin
-        FinancialFormBox.ChangeCompany(TargetCompany);
-        if not FinancialFormBox.Get(PeriodNo, 'NEC', 'NEC-01') then
+        FormBox.ChangeCompany(TargetCompany);
+        if not FormBox.Get(PeriodNo, 'NEC', 'NEC-01') then
             exit;
         Description := 'Nonemployee Compensation (box 1a)';
         StandardLine."Period No." := PeriodNo;
@@ -269,7 +288,7 @@ codeunit 10039 "IRS Forms Data"
         StatementLine.SetRange("Form No.", 'NEC');
         StatementLine.SetRange("Row No.", 'NEC-01');
         if StatementLine.FindFirst() then begin
-            if not IsStandardStatementSelector(StatementLine, StandardLine) or
+            if not HasStandardStatementSettings(StatementLine, StandardLine) or
                (StatementLine."Line No." <> StandardLine."Line No.") or
                not (StatementLine.Description in ['Nonemployee Compensation', Description])
             then begin
@@ -291,30 +310,30 @@ codeunit 10039 "IRS Forms Data"
         StatementLine.Insert();
     end;
 
-    local procedure ReconcileSupplementalStatement(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; DefaultLineNo: Integer; Description: Text[100]; var Details: Text)
+    local procedure UpdateSupplStatementLine(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; DefaultLineNo: Integer; Description: Text[100]; var Details: Text)
     var
         ReportingPeriod: Record "IRS Reporting Period";
-        Definition: Record "IRS 1099 Suppl. Box";
-        FinancialFormBox: Record "IRS 1099 Form Box";
+        SupplBox: Record "IRS 1099 Suppl. Box";
+        FormBox: Record "IRS 1099 Form Box";
         StatementLine: Record "IRS 1099 Form Statement Line";
         StandardLine: Record "IRS 1099 Form Statement Line";
         ParentBoxNo: Code[20];
         ElementName: Text[100];
         ValueType: Enum "IRS 1099 Supplemental Type";
     begin
-        Definition.ChangeCompany(TargetCompany);
-        if not Definition.Get(PeriodNo, FormNo, BoxNo) then
+        SupplBox.ChangeCompany(TargetCompany);
+        if not SupplBox.Get(PeriodNo, FormNo, BoxNo) then
             exit;
-        if GetSupplementalDefinitionConflict(Definition, TargetCompany) <> '' then
+        if GetSupplBoxSetupConflictMessage(SupplBox, TargetCompany) <> '' then
             exit;
-        FinancialFormBox.ChangeCompany(TargetCompany);
-        if FinancialFormBox.Get(PeriodNo, FormNo, BoxNo) then
+        FormBox.ChangeCompany(TargetCompany);
+        if FormBox.Get(PeriodNo, FormNo, BoxNo) then
             exit;
         ReportingPeriod.ChangeCompany(TargetCompany);
         ReportingPeriod.Get(PeriodNo);
         Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), FormNo, BoxNo, ParentBoxNo, ElementName, ValueType);
-        if (Definition."Parent Form Box No." <> ParentBoxNo) or (Definition."XML Element Name" <> ElementName) or
-           (Definition."Value Type" <> ValueType)
+        if (SupplBox."Parent Form Box No." <> ParentBoxNo) or (SupplBox."XML Element Name" <> ElementName) or
+           (SupplBox."Value Type" <> ValueType)
         then
             exit;
         StandardLine."Period No." := PeriodNo;
@@ -329,7 +348,7 @@ codeunit 10039 "IRS Forms Data"
         StatementLine.SetRange("Form No.", FormNo);
         StatementLine.SetRange("Row No.", BoxNo);
         if StatementLine.FindFirst() then begin
-            if not IsStandardStatementSelector(StatementLine, StandardLine) or
+            if not HasStandardStatementSettings(StatementLine, StandardLine) or
                (StatementLine.Description <> Description) or (StatementLine."Line No." <> DefaultLineNo)
             then
                 AddStatementConflict(PeriodNo, TargetCompany, BoxNo, Details);
@@ -344,7 +363,7 @@ codeunit 10039 "IRS Forms Data"
         StatementLine.Insert();
     end;
 
-    local procedure IsStandardStatementSelector(StatementLine: Record "IRS 1099 Form Statement Line"; StandardLine: Record "IRS 1099 Form Statement Line"): Boolean
+    local procedure HasStandardStatementSettings(StatementLine: Record "IRS 1099 Form Statement Line"; StandardLine: Record "IRS 1099 Form Statement Line"): Boolean
     begin
         exit((StatementLine."Value Source" = StandardLine."Value Source") and
              (StatementLine."Supplemental Box No." = StandardLine."Supplemental Box No.") and
@@ -356,27 +375,24 @@ codeunit 10039 "IRS Forms Data"
     end;
 
     local procedure AddStatementConflict(PeriodNo: Code[20]; TargetCompany: Text; BoxNo: Code[20]; var Details: Text)
-    var
-        ConflictMsg: Label '\\Company %1, period %2, statement row %3 has custom settings and was not changed. Review Value Source, Supplemental Box No., Description, Print with, and line order on the IRS 1099 Form Statement page.', Comment = '%1 = company, %2 = period, %3 = standard row';
     begin
-        Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, BoxNo);
+        Details += StrSubstNo(StatementConflictMsg, TargetCompany, PeriodNo, BoxNo);
     end;
 
-    local procedure GetIncomeMinimum(ReportingYear: Integer; PreviousMinimum: Decimal): Decimal
+    local procedure GetMinimumReportableAmount(ReportingYear: Integer; PreviousMinimum: Decimal): Decimal
     begin
         if ReportingYear >= 2026 then
             exit(2000);
         exit(PreviousMinimum);
     end;
 
-    local procedure ReconcileIncomeBox(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; Description: Text[250]; PreviousMinimum: Decimal; var Details: Text)
+    local procedure UpdateIncomeBox(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; Description: Text[250]; PreviousMinimum: Decimal; var Details: Text)
     var
         ReportingPeriod: Record "IRS Reporting Period";
         IRS1099Form: Record "IRS 1099 Form";
         FormBox: Record "IRS 1099 Form Box";
         MinimumAmount: Decimal;
-        FinancialConflict: Text;
-        ConflictMsg: Label '\\Company %1, period %2, form box %3: the custom minimum reportable amount %4 was kept instead of the standard amount %5. Review Minimum Reportable Amount for this form box.', Comment = '%1 = company, %2 = period, %3 = box, %4 = custom minimum, %5 = standard minimum';
+        FormBoxConflictMessage: Text;
     begin
         IRS1099Form.ChangeCompany(TargetCompany);
         FormBox.ChangeCompany(TargetCompany);
@@ -389,7 +405,7 @@ codeunit 10039 "IRS Forms Data"
         end;
         ReportingPeriod.ChangeCompany(TargetCompany);
         ReportingPeriod.Get(PeriodNo);
-        MinimumAmount := GetIncomeMinimum(Date2DMY(ReportingPeriod."Starting Date", 3), PreviousMinimum);
+        MinimumAmount := GetMinimumReportableAmount(Date2DMY(ReportingPeriod."Starting Date", 3), PreviousMinimum);
         if not FormBox.Get(PeriodNo, FormNo, BoxNo) then begin
             FormBox.Init();
             FormBox."Period No." := PeriodNo;
@@ -397,15 +413,15 @@ codeunit 10039 "IRS Forms Data"
             FormBox."No." := BoxNo;
             FormBox.Description := Description;
             FormBox."Minimum Reportable Amount" := MinimumAmount;
-            FinancialConflict := FormBox.GetSupplementalIdentityConflict();
-            if FinancialConflict <> '' then begin
-                Details += '\\' + FinancialConflict;
+            FormBoxConflictMessage := FormBox.GetSupplBoxNoConflictMessage();
+            if FormBoxConflictMessage <> '' then begin
+                Details += '\\' + FormBoxConflictMessage;
                 exit;
             end;
             FormBox.Insert(true);
             exit;
         end;
-        if FormBox.GetSupplementalIdentityConflict() <> '' then
+        if FormBox.GetSupplBoxNoConflictMessage() <> '' then
             exit;
         if FormBox."Minimum Reportable Amount" = MinimumAmount then
             exit;
@@ -413,10 +429,10 @@ codeunit 10039 "IRS Forms Data"
             FormBox.Validate("Minimum Reportable Amount", MinimumAmount);
             FormBox.Modify(true);
         end else
-            Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, BoxNo, FormBox."Minimum Reportable Amount", MinimumAmount);
+            Details += StrSubstNo(IncomeBoxConflictMsg, TargetCompany, PeriodNo, BoxNo, FormBox."Minimum Reportable Amount", MinimumAmount);
     end;
 
-    local procedure ReconcileSupplementalBox(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; Description: Text[250]; var Details: Text)
+    local procedure UpdateSupplementalBox(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; Description: Text[250]; var Details: Text)
     var
         ReportingPeriod: Record "IRS Reporting Period";
         SupplBox: Record "IRS 1099 Suppl. Box";
@@ -425,16 +441,13 @@ codeunit 10039 "IRS Forms Data"
         ElementName: Text[100];
         ValueType: Enum "IRS 1099 Supplemental Type";
         DependencyConflict: Text;
-        ConflictMsg: Label '\\Company %1, period %2, supplemental box %3 was not changed because its setup is customized or cannot be used for reporting. Review Parent Form Box No., Value Type, and XML Element Name on the IRS 1099 Supplemental Boxes page. Existing document lines were not changed.', Comment = '%1 = company, %2 = period, %3 = supplemental box';
-        FinancialConflictMsg: Label '\\Company %1, period %2, box number %3 is already used by a form box. The existing form box was not changed. Resolve the duplicate box number before setting up the supplemental box.', Comment = '%1 = company, %2 = period, %3 = box';
-        MissingParentMsg: Label '\\Company %1, period %2, form %3, supplemental box %4 was not created because parent form box %5 does not exist. Create or correct the parent form box before setting up the supplemental box.', Comment = '%1 = company, %2 = period, %3 = form, %4 = supplemental box, %5 = parent form box';
     begin
         ReportingPeriod.ChangeCompany(TargetCompany);
         ReportingPeriod.Get(PeriodNo);
         Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), FormNo, BoxNo, ParentBoxNo, ElementName, ValueType);
         FormBox.ChangeCompany(TargetCompany);
         if FormBox.Get(PeriodNo, FormNo, BoxNo) then begin
-            Details += StrSubstNo(FinancialConflictMsg, TargetCompany, PeriodNo, BoxNo);
+            Details += StrSubstNo(SupplBoxNumberConflictMsg, TargetCompany, PeriodNo, BoxNo);
             exit;
         end;
         SupplBox.ChangeCompany(TargetCompany);
@@ -442,14 +455,14 @@ codeunit 10039 "IRS Forms Data"
             if (SupplBox."Parent Form Box No." <> ParentBoxNo) or (SupplBox."Value Type" <> ValueType) or
                (SupplBox."XML Element Name" <> ElementName)
             then
-                Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, BoxNo)
+                Details += StrSubstNo(SupplBoxConflictMsg, TargetCompany, PeriodNo, BoxNo)
             else
-                if GetSupplementalDefinitionConflict(SupplBox, TargetCompany) <> '' then
-                    Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, BoxNo);
+                if GetSupplBoxSetupConflictMessage(SupplBox, TargetCompany) <> '' then
+                    Details += StrSubstNo(SupplBoxConflictMsg, TargetCompany, PeriodNo, BoxNo);
             exit;
         end;
         if not FormBox.Get(PeriodNo, FormNo, ParentBoxNo) then begin
-            Details += StrSubstNo(MissingParentMsg, TargetCompany, PeriodNo, FormNo, BoxNo, ParentBoxNo);
+            Details += StrSubstNo(SupplBoxParentMissingMsg, TargetCompany, PeriodNo, FormNo, BoxNo, ParentBoxNo);
             exit;
         end;
         SupplBox.Init();
@@ -460,9 +473,9 @@ codeunit 10039 "IRS Forms Data"
         SupplBox."Parent Form Box No." := ParentBoxNo;
         SupplBox."Value Type" := ValueType;
         SupplBox."XML Element Name" := ElementName;
-        DependencyConflict := GetSupplementalDefinitionConflict(SupplBox, TargetCompany);
+        DependencyConflict := GetSupplBoxSetupConflictMessage(SupplBox, TargetCompany);
         if DependencyConflict <> '' then begin
-            Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, BoxNo) + ' ' + DependencyConflict;
+            Details += StrSubstNo(SupplBoxConflictMsg, TargetCompany, PeriodNo, BoxNo) + ' ' + DependencyConflict;
             exit;
         end;
         // ChangeCompany does not move table triggers into the target company.
@@ -475,7 +488,6 @@ codeunit 10039 "IRS Forms Data"
         DocHeader: Record "IRS 1099 Form Doc. Header";
         DocLine: Record "IRS 1099 Form Doc. Line";
         FormBox: Record "IRS 1099 Form Box";
-        RecalculateMsg: Label '\\Company %1, period %2, document %3 with status Open (vendor %4, form %5) needs recalculation. Use Create Form Documents or Update Transmission and select the changes to apply. Existing documents and transmissions have not been changed.', Comment = '%1 = company, %2 = period, %3 = document ID, %4 = vendor, %5 = form';
         RequiresRecalculation: Boolean;
     begin
         DocHeader.ChangeCompany(TargetCompany);
@@ -509,46 +521,39 @@ codeunit 10039 "IRS Forms Data"
         AddMiscFormInstructionLines(PeriodNo);
         AddDivFormInstructionLines(PeriodNo);
         ReportingPeriod.Get(PeriodNo);
-        ReconcileAnnualInstructions(ReportingPeriod, CompanyName(), Details);
+        UpdateAnnualInstructions(ReportingPeriod, CompanyName(), Details);
     end;
 
-    local procedure ReconcileAnnualInstructions(ReportingPeriod: Record "IRS Reporting Period"; TargetCompany: Text; var Details: Text)
+    local procedure UpdateAnnualInstructions(ReportingPeriod: Record "IRS Reporting Period"; TargetCompany: Text; var Details: Text)
     var
         ReportingYear: Integer;
-        ParachuteTxt: Label 'Shows your total compensation of excess golden parachute payments subject to a 20% excise tax. See your tax return instructions for where to report.';
-        ReservedTxt: Label 'Reserved for future use.';
-        FatcaTxt: Label 'If the FATCA filing requirement box is checked, the payer is reporting on this Form 1099 to satisfy its account reporting requirement under chapter 4 of the Internal Revenue Code. You may also have a filing requirement. See the Instructions for Form 8938.';
-        CashTipsTxt: Label 'Shows cash tips already included in the reported income. This is a breakdown, not additional income. Determine any deduction using the instructions for your tax return.';
-        OccupationTxt: Label 'Shows up to two Treasury tipped occupation codes. Code 000 identifies a nonqualifying occupation and retains its leading zeros.';
-        OvertimeTxt: Label 'Shows qualified overtime compensation already included in the reported income. Report only the qualified overtime premium portion, not all overtime pay. Determine any deduction using the instructions for your tax return.';
     begin
         ReportingYear := Date2DMY(ReportingPeriod."Starting Date", 3);
         if (ReportingYear < 2025) or (Date2DMY(ReportingPeriod."Ending Date", 3) <> ReportingYear) then
             exit;
 
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 7, 'Box 3.', ReservedTxt, '', 'Box 3.', ParachuteTxt, Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 7, 'Box 3.', ReservedTxt, '', '', 'Box 3.', ParachuteTxt, Details);
         if ReportingYear = 2025 then begin
-            ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 18, 'Box 14.', ParachuteTxt, '', 'Box 14.', ReservedTxt, Details);
+            UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 18, 'Box 14.', ParachuteTxt, '', '', 'Box 14.', ReservedTxt, Details);
             exit;
         end;
 
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 1, '', GetNecGeneralInstruction(), '', '', GetNecGeneralInstruction().Replace('box 1', 'box 1a'), Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 4, 'Box 1.', GetNecCompensationInstruction(), '', 'Box 1a.', GetNecCompensationInstruction(), Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 5, 'Note:', GetNecNoteInstruction(), '', 'Note:', GetNecNoteInstruction().Replace('box 1', 'box 1a'), Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 12, 'Box 1b.', CashTipsTxt, '', 'Box 1b.', CashTipsTxt, Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 13, 'Box 1c.', OccupationTxt, '', 'Box 1c.', OccupationTxt, Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 14, 'Box 1d.', OvertimeTxt, '', 'Box 1d.', OvertimeTxt, Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 17, 'Box 13.', FatcaTxt, '', 'FATCA filing requirement.', FatcaTxt, Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 18, 'Box 14.', ParachuteTxt, ReservedTxt, 'Box 14.', OvertimeTxt, Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 23, 'Box 13a.', CashTipsTxt, '', 'Box 13a.', CashTipsTxt, Details);
-        ReconcileInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 24, 'Box 13b.', OccupationTxt, '', 'Box 13b.', OccupationTxt, Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 1, '', NecGeneralInstructionTxt, '', '', '', NecGeneralInstructionTxt.Replace('box 1', 'box 1a'), Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 4, 'Box 1.', NecCompensationInstructionTxt, '', '', 'Box 1a.', NecCompensationInstructionTxt, Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 5, 'Note:', NecNoteInstructionTxt, '', '', 'Note:', NecNoteInstructionTxt.Replace('box 1', 'box 1a'), Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 12, 'Box 1b.', PreviousCashTipsTxt, '', '', 'Box 1b.', StrSubstNo(CashTipsTxt, '1a', '1b'), Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 13, 'Box 1c.', PreviousOccupationTxt, '', '', 'Box 1c.', StrSubstNo(OccupationTxt, '1c', '1b'), Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'NEC', 14, 'Box 1d.', PreviousOvertimeTxt, '', '', 'Box 1d.', StrSubstNo(OvertimeTxt, '1a', '1d'), Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 17, 'Box 13.', FatcaTxt, '', '', 'FATCA filing requirement.', FatcaTxt, Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 18, 'Box 14.', ParachuteTxt, ReservedTxt, PreviousOvertimeTxt, 'Box 14.', StrSubstNo(OvertimeTxt, '3', '14'), Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 23, 'Box 13a.', PreviousCashTipsTxt, '', '', 'Box 13a.', StrSubstNo(CashTipsTxt, '3', '13a'), Details);
+        UpdateFormInstruction(ReportingPeriod."No.", TargetCompany, 'MISC', 24, 'Box 13b.', PreviousOccupationTxt, '', '', 'Box 13b.', StrSubstNo(OccupationTxt, '13b', '13a'), Details);
     end;
 
-    local procedure ReconcileInstruction(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; LineNo: Integer; PreviousHeader: Text; PreviousDescription: Text; EarlierDescription: Text; Header: Text; Description: Text; var Details: Text)
+    local procedure UpdateFormInstruction(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; LineNo: Integer; PreviousHeader: Text; PreviousDescription: Text; EarlierDescription: Text; AdditionalPreviousDescription: Text; Header: Text; Description: Text; var Details: Text)
     var
         Form: Record "IRS 1099 Form";
         Instruction: Record "IRS 1099 Form Instruction";
-        ConflictMsg: Label '\\Company %1, period %2, form %3, instruction line %4 has custom text or ordering and was not changed. Review it on the IRS 1099 Form Instructions page.', Comment = '%1 = company, %2 = period, %3 = form, %4 = instruction line';
     begin
         Form.ChangeCompany(TargetCompany);
         if not Form.Get(PeriodNo, FormNo) then
@@ -559,9 +564,10 @@ codeunit 10039 "IRS Forms Data"
                 exit;
             if (Instruction.Header <> PreviousHeader) or
                ((Instruction.Description <> PreviousDescription) and
-                ((EarlierDescription = '') or (Instruction.Description <> EarlierDescription)))
+                ((EarlierDescription = '') or (Instruction.Description <> EarlierDescription)) and
+                ((AdditionalPreviousDescription = '') or (Instruction.Description <> AdditionalPreviousDescription)))
             then begin
-                Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, FormNo, LineNo);
+                Details += StrSubstNo(InstructionConflictMsg, TargetCompany, PeriodNo, FormNo, LineNo);
                 exit;
             end;
         end else begin
@@ -569,7 +575,7 @@ codeunit 10039 "IRS Forms Data"
             Instruction.SetRange("Form No.", FormNo);
             Instruction.SetFilter(Header, '%1|%2', Header, PreviousHeader);
             if not Instruction.IsEmpty() then begin
-                Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, FormNo, LineNo);
+                Details += StrSubstNo(InstructionConflictMsg, TargetCompany, PeriodNo, FormNo, LineNo);
                 exit;
             end;
             Instruction.Init();
@@ -583,32 +589,17 @@ codeunit 10039 "IRS Forms Data"
         Instruction.Modify();
     end;
 
-    local procedure GetNecGeneralInstruction(): Text
-    begin
-        exit('You received this form instead of Form W-2 because the payer did not consider you an employee and did not withhold income tax or social security and Medicare tax. If you believe you are an employee and cannot get the payer to correct this form, report the amount shown in box 1 on the line for “Wages, salaries, tips, etc.” of Form 1040, 1040-SR, or 1040-NR. You must also complete Form 8919 and attach it to your return. For more information, see Pub. 1779, Independent Contractor or Employee. If you are not an employee but the amount in box 1 is not self-employment (SE) income (for example, it is income from a sporadic activity or a hobby), report the amount shown in box 1 on the “Other income” line (on Schedule 1 (Form 1040)).');
-    end;
-
-    local procedure GetNecCompensationInstruction(): Text
-    begin
-        exit('Shows nonemployee compensation. If the amount in this box is SE income, report it on Schedule C or F (Form 1040) if a sole proprietor, or on Form 1065 and Schedule K-1 (Form 1065) if a partnership, and the recipient/partner completes Schedule SE (Form 1040).');
-    end;
-
-    local procedure GetNecNoteInstruction(): Text
-    begin
-        exit('If you are receiving payments on which no income, social security, and Medicare taxes are withheld, you should make estimated tax payments. See Form 1040-ES (or Form 1040-ES (NR)). Individuals must report these amounts as explained in these box 1 instructions. Corporations, fiduciaries, and partnerships must report these amounts on the appropriate line of their tax returns.');
-    end;
-
     local procedure AddNecFormInstructionLines(PeriodNo: Code[20])
     var
         IRS1099Form: Record "IRS 1099 Form";
     begin
         if not IRS1099Form.Get(PeriodNo, 'NEC') then
             exit;
-        AddFormInstructionLine(PeriodNo, 'NEC', 1, '', GetNecGeneralInstruction());
+        AddFormInstructionLine(PeriodNo, 'NEC', 1, '', NecGeneralInstructionTxt);
         AddFormInstructionLine(PeriodNo, 'NEC', 2, 'Recipient’s taxpayer identification number (TIN).', 'For your protection, this form may show only the last four digits of your TIN (social security number (SSN), individual taxpayer identification number (ITIN), adoption taxpayer identification number (ATIN), or employer identification number (EIN)). However, the issuer has reported your complete TIN to the IRS.');
         AddFormInstructionLine(PeriodNo, 'NEC', 3, 'Account number.', 'May show an account or other unique number the payer assigned to distinguish your account.');
-        AddFormInstructionLine(PeriodNo, 'NEC', 4, 'Box 1.', GetNecCompensationInstruction());
-        AddFormInstructionLine(PeriodNo, 'NEC', 5, 'Note:', GetNecNoteInstruction());
+        AddFormInstructionLine(PeriodNo, 'NEC', 4, 'Box 1.', NecCompensationInstructionTxt);
+        AddFormInstructionLine(PeriodNo, 'NEC', 5, 'Note:', NecNoteInstructionTxt);
         AddFormInstructionLine(PeriodNo, 'NEC', 6, 'Box 2.', 'If checked, consumer products totaling $5,000 or more were sold to you for resale, on a buy-sell, a deposit-commission, or other basis. Generally, report any income from your sale of these products on Schedule C (Form 1040).');
         AddFormInstructionLine(PeriodNo, 'NEC', 7, 'Box 3.', 'Reserved for future use.');
         AddFormInstructionLine(PeriodNo, 'NEC', 8, 'Box 4.', 'Shows backup withholding. A payer must backup withhold on certain payments if you did not give your TIN to the payer. See Form W-9, Request for Taxpayer Identification Number and Certification, for information on backup withholding. Include this amount on your income tax return as tax withheld.');

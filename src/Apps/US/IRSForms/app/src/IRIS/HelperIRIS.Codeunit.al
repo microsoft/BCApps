@@ -601,8 +601,10 @@ codeunit 10035 "Helper IRIS"
         NodeName: Text;
     begin
         OnBeforeAddOtherForm1099DetailsPart(TempIRS1099FormDocHeader, XmlNodesNameValue);
+
         if XmlNodesNameValue.Count() = 0 then
             exit;
+
         foreach NodeName in XmlNodesNameValue.Keys() do
             AppendXmlNode(NodeName, XmlNodesNameValue.Get(NodeName));
     end;
@@ -647,6 +649,7 @@ codeunit 10035 "Helper IRIS"
         Ch: Char;
     begin
         InputText := RemoveExtraSpaces(InputText);
+
         foreach Ch in InputText do
             if IsLatinLetter(Ch) or IsDigit(Ch) or
                (Ch = '#') or (Ch = '-') or (Ch = '(') or (Ch = ')') or
@@ -668,6 +671,7 @@ codeunit 10035 "Helper IRIS"
         Ch: Char;
     begin
         InputText := RemoveExtraSpaces(InputText);
+
         foreach Ch in InputText do
             if IsLatinLetter(Ch) or IsDigit(Ch) or
                (Ch = '-') or (Ch = '''') or (Ch = ' ')
@@ -683,6 +687,7 @@ codeunit 10035 "Helper IRIS"
         Ch: Char;
     begin
         InputText := RemoveExtraSpaces(InputText);
+
         foreach Ch in InputText do
             if IsLatinLetter(Ch) or (Ch = '-') or (Ch = ' ') then
                 if TB.Length < 20 then
@@ -698,6 +703,7 @@ codeunit 10035 "Helper IRIS"
         Ch: Char;
     begin
         InputText := RemoveExtraSpaces(InputText);
+
         foreach Ch in InputText do
             if IsLatinLetter(Ch) or IsDigit(Ch) or
                (Ch = ' ') or (Ch = '/') or (Ch = '-')
@@ -722,12 +728,14 @@ codeunit 10035 "Helper IRIS"
         AddrMaxLength: Integer;
     begin
         InputText := RemoveExtraSpaces(InputText);
+
         case AddressType of
             AddressType::USAddress:
                 AddrMaxLength := 40;
             AddressType::ForeignAddress:
                 AddrMaxLength := 50;
         end;
+
         foreach Ch in InputText do
             if IsLatinLetter(Ch) or (Ch = ' ') then
                 if TB.Length < AddrMaxLength then

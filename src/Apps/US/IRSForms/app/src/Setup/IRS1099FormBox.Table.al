@@ -54,53 +54,53 @@ table 10033 "IRS 1099 Form Box"
 
     var
         FormBoxCannotBeDeletedErr: Label 'The 1099 form box %1 cannot be deleted because it is used in the 1099 form document lines.', Comment = '%1 = Form box number';
+        BoxNoAlreadyUsedBySupplBoxErr: Label 'Company %1, period %2, form %3, box %4 already exists as a supplemental box and cannot be used as a form box. Existing setup has not been changed. Use a different box number or remove the unused supplemental box first.', Comment = '%1 = company, %2 = period, %3 = form, %4 = box';
+        ParentReferencedErr: Label 'Form box %1 in period %2, form %3 is the parent of supplemental box %4. On the IRS 1099 Supplemental Boxes page, remove that supplemental box or select a different Parent Form Box No. before deleting or renaming this form box.', Comment = '%1 = form box, %2 = period, %3 = form, %4 = supplemental box';
 
     trigger OnInsert()
     begin
-        CheckSupplementalIdentity();
+        CheckBoxNoIsNotUsedBySupplBox();
     end;
 
     trigger OnDelete()
     begin
-        CheckFormBoxIsNotInUse();
+        CheckFormBoxCanBeDeletedOrRenamed();
     end;
 
     trigger OnRename()
     begin
-        xRec.CheckFormBoxIsNotInUse();
-        CheckSupplementalIdentity();
+        xRec.CheckFormBoxCanBeDeletedOrRenamed();
+        CheckBoxNoIsNotUsedBySupplBox();
     end;
 
-    local procedure CheckSupplementalIdentity()
+    local procedure CheckBoxNoIsNotUsedBySupplBox()
     var
-        Conflict: Text;
+        SupplBoxNoConflictMessage: Text;
     begin
-        Conflict := GetSupplementalIdentityConflict();
-        if Conflict <> '' then
-            Error(Conflict);
+        SupplBoxNoConflictMessage := GetSupplBoxNoConflictMessage();
+        if SupplBoxNoConflictMessage <> '' then
+            Error(SupplBoxNoConflictMessage);
     end;
 
-    internal procedure GetSupplementalIdentityConflict(): Text
+    internal procedure GetSupplBoxNoConflictMessage(): Text
     var
-        SupplementalBox: Record "IRS 1099 Suppl. Box";
-        IdentifierConflictErr: Label 'Company %1, period %2, form %3, box %4 already exists as a supplemental box and cannot be used as a form box. Existing setup has not been changed. Use a different box number or remove the unused supplemental box first.', Comment = '%1 = company, %2 = period, %3 = form, %4 = box';
+        SupplBox: Record "IRS 1099 Suppl. Box";
     begin
-        SupplementalBox.ChangeCompany(CurrentCompany());
-        if SupplementalBox.Get("Period No.", "Form No.", "No.") then
-            exit(StrSubstNo(IdentifierConflictErr, CurrentCompany(), "Period No.", "Form No.", "No."));
+        SupplBox.ChangeCompany(CurrentCompany());
+        if SupplBox.Get("Period No.", "Form No.", "No.") then
+            exit(StrSubstNo(BoxNoAlreadyUsedBySupplBoxErr, CurrentCompany(), "Period No.", "Form No.", "No."));
     end;
 
-    internal procedure CheckFormBoxIsNotInUse()
+    internal procedure CheckFormBoxCanBeDeletedOrRenamed()
     var
         DocLine: Record "IRS 1099 Form Doc. Line";
-        SupplementalBox: Record "IRS 1099 Suppl. Box";
-        ParentReferencedErr: Label 'Form box %1 in period %2, form %3 is the parent of supplemental box %4. On the IRS 1099 Supplemental Boxes page, remove that supplemental box or select a different Parent Form Box No. before deleting or renaming this form box.', Comment = '%1 = form box, %2 = period, %3 = form, %4 = supplemental box';
+        SupplBox: Record "IRS 1099 Suppl. Box";
     begin
-        SupplementalBox.SetRange("Period No.", "Period No.");
-        SupplementalBox.SetRange("Form No.", "Form No.");
-        SupplementalBox.SetRange("Parent Form Box No.", "No.");
-        if SupplementalBox.FindFirst() then
-            Error(ParentReferencedErr, "No.", "Period No.", "Form No.", SupplementalBox."No.");
+        SupplBox.SetRange("Period No.", "Period No.");
+        SupplBox.SetRange("Form No.", "Form No.");
+        SupplBox.SetRange("Parent Form Box No.", "No.");
+        if SupplBox.FindFirst() then
+            Error(ParentReferencedErr, "No.", "Period No.", "Form No.", SupplBox."No.");
         DocLine.SetRange("Period No.", "Period No.");
         DocLine.SetRange("Form No.", "Form No.");
         DocLine.SetRange("Form Box No.", "No.");

@@ -57,19 +57,19 @@ table 10054 "IRS 1099 Suppl. Box"
 
     trigger OnInsert()
     begin
-        Supplemental.ValidateDefinition(Rec);
+        Supplemental.ValidateSupplBoxSetup(Rec);
     end;
 
     trigger OnModify()
     var
-        StoredDefinition: Record "IRS 1099 Suppl. Box";
+        StoredSupplBox: Record "IRS 1099 Suppl. Box";
     begin
-        StoredDefinition.Get("Period No.", "Form No.", "No.");
-        if ("Parent Form Box No." <> StoredDefinition."Parent Form Box No.") or
-           ("Value Type" <> StoredDefinition."Value Type") or ("XML Element Name" <> StoredDefinition."XML Element Name")
+        StoredSupplBox.Get("Period No.", "Form No.", "No.");
+        if ("Parent Form Box No." <> StoredSupplBox."Parent Form Box No.") or
+           ("Value Type" <> StoredSupplBox."Value Type") or ("XML Element Name" <> StoredSupplBox."XML Element Name")
         then
-            StoredDefinition.CheckNotUsed();
-        Supplemental.ValidateDefinition(Rec);
+            StoredSupplBox.CheckNotUsed();
+        Supplemental.ValidateSupplBoxSetup(Rec);
     end;
 
     trigger OnDelete()
@@ -80,19 +80,19 @@ table 10054 "IRS 1099 Suppl. Box"
     trigger OnRename()
     begin
         xRec.CheckNotUsed();
-        Supplemental.ValidateDefinition(Rec);
+        Supplemental.ValidateSupplBoxSetup(Rec);
     end;
 
     var
         Supplemental: Codeunit "IRS 1099 Supplemental";
+        InUseErr: Label 'Supplemental box %1 in period %2, form %3 is used by document %4. You cannot delete the box or change its reporting period, form, number, parent form box, value type, or XML element while it is in use.', Comment = '%1 = supplemental box, %2 = period, %3 = form, %4 = document ID';
+        StatementInUseErr: Label 'Supplemental box %1 in period %2, form %3 is used by statement row %4 (line %5). You cannot delete the box or change its reporting period, form, number, parent form box, value type, or XML element. Remove or change the box selection on the IRS 1099 Form Statement page first.', Comment = '%1 = supplemental box, %2 = period, %3 = form, %4 = statement row, %5 = statement line';
 
     procedure CheckNotUsed()
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
         SupplLine: Record "IRS 1099 Doc. Suppl. Line";
         StatementLine: Record "IRS 1099 Form Statement Line";
-        InUseErr: Label 'Supplemental box %1 in period %2, form %3 is used by document %4. You cannot delete the box or change its reporting period, form, number, parent form box, value type, or XML element while it is in use.', Comment = '%1 = supplemental box, %2 = period, %3 = form, %4 = document ID';
-        StatementInUseErr: Label 'Supplemental box %1 in period %2, form %3 is used by statement row %4 (line %5). You cannot delete the box or change its reporting period, form, number, parent form box, value type, or XML element. Remove or change the box selection on the IRS 1099 Form Statement page first.', Comment = '%1 = supplemental box, %2 = period, %3 = form, %4 = statement row, %5 = statement line';
     begin
         StatementLine.SetRange("Period No.", "Period No.");
         StatementLine.SetRange("Form No.", "Form No.");

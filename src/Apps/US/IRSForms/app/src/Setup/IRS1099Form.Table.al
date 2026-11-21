@@ -58,7 +58,7 @@ table 10032 "IRS 1099 Form"
         IRS1099FormBox: Record "IRS 1099 Form Box";
         IRSForm1099StatementLine: Record "IRS 1099 Form Statement Line";
         IRS1099FormInstruction: Record "IRS 1099 Form Instruction";
-        IRS1099SupplBox: Record "IRS 1099 Suppl. Box";
+        SupplBox: Record "IRS 1099 Suppl. Box";
     begin
         IRS1099FormDocHeader.SetRange("Period No.", "Period No.");
         IRS1099FormDocHeader.SetRange("Form No.", "No.");
@@ -67,9 +67,9 @@ table 10032 "IRS 1099 Form"
         IRSForm1099StatementLine.SetRange("Period No.", "Period No.");
         IRSForm1099StatementLine.SetRange("Form No.", "No.");
         IRSForm1099StatementLine.DeleteAll(true);
-        IRS1099SupplBox.SetRange("Period No.", "Period No.");
-        IRS1099SupplBox.SetRange("Form No.", "No.");
-        IRS1099SupplBox.DeleteAll(true);
+        SupplBox.SetRange("Period No.", "Period No.");
+        SupplBox.SetRange("Form No.", "No.");
+        SupplBox.DeleteAll(true);
         IRS1099FormBox.SetRange("Period No.", "Period No.");
         IRS1099FormBox.SetRange("Form No.", "No.");
         IRS1099FormBox.DeleteAll(true);

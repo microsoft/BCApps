@@ -15,9 +15,9 @@ using System.Utilities;
 /// Builds shared IRIS transmission XML parts for schema implementations.
 /// </summary>
 /// <remarks>
-/// Use fresh or cleared generator and XML-helper instances for each transmission.
+/// Use a fresh or cleared generator instance for each transmission.
 /// Call PrepareTransmission first, build the manifest and submissions, then call FinishTransmission.
-/// Keep the same generator and XML-helper instances throughout the operation.
+/// Keep the same generator instance throughout the operation; it owns the XML-helper instance.
 /// </remarks>
 codeunit 10033 "Generate Xml File IRIS"
 {
@@ -55,17 +55,15 @@ codeunit 10033 "Generate Xml File IRIS"
     /// <summary>
     /// Selects and validates documents, initializes XML and returns a new transmission ID.
     /// </summary>
-    /// <remarks>Clear both codeunit instances before calling. Preparation may ask for tax-year mapping confirmation.</remarks>
-    /// <param name="XmlHelper">The XML-helper instance to share with the schema implementation.</param>
+    /// <remarks>Clear the generator instance before calling. Preparation may ask for tax-year mapping confirmation.</remarks>
     /// <param name="TempDocHeader">Cleared and populated with the selected documents.</param>
-    procedure PrepareTransmission(var XmlHelper: Codeunit "Helper IRIS"; Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; CorrectionToZeroMode: Boolean; VersionText: Text; VerifiedTaxYear: Boolean; var UniqueTransmissionId: Text[100]; var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
+    procedure PrepareTransmission(Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; CorrectionToZeroMode: Boolean; VersionText: Text; VerifiedTaxYear: Boolean; var UniqueTransmissionId: Text[100]; var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
         ProcessTransmission: Codeunit "Process Transmission IRIS";
         Supplemental: Codeunit "IRS 1099 Supplemental";
         PrevTransmissionStatus: Enum "Transmission Status IRIS";
     begin
-        Helper := XmlHelper;
         CorrectionToZeroModeGlobal := CorrectionToZeroMode;
         TaxYearGlobal := Transmission."Period No.";
         SoftwareIdGlobal := Helper.GetSoftwareId(TaxYearGlobal);
@@ -105,6 +103,22 @@ codeunit 10033 "Generate Xml File IRIS"
         InitSubmissionAndRecordIds(Transmission."Document ID");
 
         InitTransmissionDocElement();
+    end;
+
+    /// <summary>
+    /// Opens an XML group in the transmission document.
+    /// </summary>
+    procedure AddParentXmlNode(NodeName: Text)
+    begin
+        Helper.AddParentXmlNode(NodeName);
+    end;
+
+    /// <summary>
+    /// Closes the current XML group in the transmission document.
+    /// </summary>
+    procedure CloseParentXmlNode()
+    begin
+        Helper.CloseParentXmlNode();
     end;
 
     /// <summary>
@@ -261,7 +275,7 @@ codeunit 10033 "Generate Xml File IRIS"
     /// <summary>
     /// Sets the submission ID on the filtered temporary document headers.
     /// </summary>
-    procedure SaveSubmissionId(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; SubmissionId: Text[20])
+    procedure SetSubmissionIdOnTempHeaders(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; SubmissionId: Text[20])
     begin
         // update SubmissionId for temporary IRS 1099 Document records
         if TempDocHeader.FindSet() then
@@ -274,8 +288,8 @@ codeunit 10033 "Generate Xml File IRIS"
     /// <summary>
     /// Adds ordered financial and supplied supplemental totals for the filtered documents.
     /// </summary>
-    /// <param name="FormBoxAmtXmlElemNamesValues">Supplemental XML values on entry; financial totals are added before writing.</param>
-    procedure AddSubmissionTotals(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text])
+    /// <param name="XmlValues">Supplemental XML values on entry; financial totals are added before writing.</param>
+    procedure AddSubmissionTotals(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var XmlValues: Dictionary of [Text, Text])
     var
         FormType: Enum "Form Type IRIS";
         FormTotalAmounts: Dictionary of [Text, Decimal];
@@ -292,8 +306,8 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.AddParentXmlNode('IRSubmission1FormTotals');
 
         CalcFormTotalAmounts(TempDocHeader, FormTotalAmounts, TotalReportedAmt, FederalIncomeTaxWithheldAmt);
-        GetFormBoxAmtXmlElemNamesAndValues(TempDocHeader, FormTotalAmounts, FormBoxAmtXmlElemNamesValues);
-        FormBoxAmtXmlElemNamesValues.Add('TotalReportedAmt', Helper.FormatDecimal(TotalReportedAmt));
+        AddFormBoxXmlValues(TempDocHeader, FormTotalAmounts, XmlValues);
+        XmlValues.Add('TotalReportedAmt', Helper.FormatDecimal(TotalReportedAmt));
 
         Form1099TotalAmtGrpTagName := GetForm1099TotalAmtGrpTagName(FormType);
 
@@ -302,7 +316,7 @@ codeunit 10033 "Generate Xml File IRIS"
         // elements with total amounts must be added in a specific order
         AmtXmlElemNames := Helper.GetTotalAmountsXmlElementsOrder(TempDocHeader."Period No.", FormType);
         foreach AmtXmlElemName in AmtXmlElemNames do
-            if FormBoxAmtXmlElemNamesValues.Get(AmtXmlElemName, AmtXmlElemValue) then
+            if XmlValues.Get(AmtXmlElemName, AmtXmlElemValue) then
                 Helper.AppendXmlNode(AmtXmlElemName, AmtXmlElemValue);
 
         Helper.CloseParentXmlNode();
@@ -405,7 +419,7 @@ codeunit 10033 "Generate Xml File IRIS"
     /// <summary>
     /// Writes recipient details and adds financial XML values for the filtered documents.
     /// </summary>
-    procedure AddRecipientAndFormValues(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text])
+    procedure AddRecipientAndFormValues(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var XmlValues: Dictionary of [Text, Text])
     var
         Vendor: Record Vendor;
         FormType: Enum "Form Type IRIS";
@@ -418,7 +432,7 @@ codeunit 10033 "Generate Xml File IRIS"
         Helper.AppendXmlNode('RecipientAccountNum', Helper.GetVendorBankAccountNo(Vendor));
 
         CalcFormTotalAmounts(TempDocHeader, TotalAmounts);
-        GetFormBoxAmtXmlElemNamesAndValues(TempDocHeader, TotalAmounts, FormBoxAmtXmlElemNamesValues);
+        AddFormBoxXmlValues(TempDocHeader, TotalAmounts, XmlValues);
 
         case FormType of
             FormType::"DIV":
@@ -437,7 +451,7 @@ codeunit 10033 "Generate Xml File IRIS"
     /// <summary>
     /// Writes ordered values, closes the form detail and saves its ID to the filtered temporary headers.
     /// </summary>
-    procedure FinishFormDetail(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; RecordId: Text[20]; FormBoxAmtXmlElemNamesValues: Dictionary of [Text, Text]; OccupationCodes: List of [Text])
+    procedure FinishFormDetail(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; RecordId: Text[20]; XmlValues: Dictionary of [Text, Text]; OccupationCodes: List of [Text])
     var
         FormType: Enum "Form Type IRIS";
         AmtXmlElemNames: List of [Text];
@@ -452,7 +466,7 @@ codeunit 10033 "Generate Xml File IRIS"
                 foreach OccupationCode in OccupationCodes do
                     Helper.AppendXmlNode(AmtXmlElemName, OccupationCode)
             else
-                if FormBoxAmtXmlElemNamesValues.Get(AmtXmlElemName, AmtXmlElemValue) then
+                if XmlValues.Get(AmtXmlElemName, AmtXmlElemValue) then
                     Helper.AppendXmlNode(AmtXmlElemName, AmtXmlElemValue);
 
         Helper.CloseParentXmlNode();
@@ -774,7 +788,7 @@ codeunit 10033 "Generate Xml File IRIS"
         until TempIRS1099FormDocHeader.Next() = 0;
     end;
 
-    local procedure GetFormBoxAmtXmlElemNamesAndValues(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; FormTotalAmounts: Dictionary of [Text, Decimal]; var XmlElemNamesValues: Dictionary of [Text, Text])
+    local procedure AddFormBoxXmlValues(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; FormTotalAmounts: Dictionary of [Text, Decimal]; var XmlValues: Dictionary of [Text, Text])
     var
         IRS1099FormBox: Record "IRS 1099 Form Box";
         FormBoxAmtXmlElemNames: Dictionary of [Text, Text];
@@ -799,7 +813,7 @@ codeunit 10033 "Generate Xml File IRIS"
                     XmlElemValue := Helper.FormatDecimal(FormBoxAmt);
             end;
             XmlElemName := FormBoxAmtXmlElemNames.Get(FormBoxNo);
-            if XmlElemNamesValues.Add(XmlElemName, XmlElemValue) then;
+            if XmlValues.Add(XmlElemName, XmlElemValue) then;
         end;
     end;
 

@@ -60,7 +60,7 @@ page 10073 "IRS 1099 Suppl. Boxes"
     begin
         if LookupDocumentID <> 0 then begin
             CurrPage.Editable(false);
-            Supplemental.FilterAvailableDefinitions(Rec, LookupDocumentID);
+            Supplemental.FilterAvailableSupplBoxes(Rec, LookupDocumentID);
         end;
     end;
 

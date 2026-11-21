@@ -60,131 +60,9 @@ codeunit 148023 "Library - IRS 1099 IRIS"
     #endregion Company
 
     #region Transmission
-    procedure ResolveSchemaVersion(PeriodNo: Code[20]; var Source: Text): Enum "XML Schema Version IRIS"
-    var
-        Helper: Codeunit "Helper IRIS";
+    procedure SetTransmissionContextInfo(var TransmissionLog: Record "Transmission Log IRIS"; var Payload: Codeunit "Temp Blob"; Source: Text)
     begin
-        exit(Helper.GetXmlSchemaVersion(PeriodNo, Source));
-    end;
-
-    procedure ParseSchemaVersion(Version: Text): Enum "XML Schema Version IRIS"
-    var
-        Helper: Codeunit "Helper IRIS";
-    begin
-        exit(Helper.ParseSchemaVersion(Version));
-    end;
-
-    procedure ResolveSoftwareId(TaxYear: Text): Text
-    var
-        Helper: Codeunit "Helper IRIS";
-    begin
-        exit(Helper.GetSoftwareId(TaxYear));
-    end;
-
-    procedure ValidateTaxYear(TaxYear: Text)
-    var
-        Helper: Codeunit "Helper IRIS";
-    begin
-        Helper.ValidateTaxYear(TaxYear);
-    end;
-
-    procedure GetAmountXmlElements(TaxYear: Text): JsonObject
-    var
-        Helper: Codeunit "Helper IRIS";
-    begin
-        exit(Helper.GetAmtXmlElementsFileContent(TaxYear));
-    end;
-
-    procedure GetAuthEndpoint(): Text
-    var
-        KeyVaultClient: Codeunit "Key Vault Client IRIS";
-    begin
-        exit(KeyVaultClient.GetAuthURL());
-    end;
-
-    procedure GetSubmitEndpoint(): Text
-    var
-        KeyVaultClient: Codeunit "Key Vault Client IRIS";
-    begin
-        exit(KeyVaultClient.GetSubmitEndpointURL());
-    end;
-
-    procedure GetStatusEndpoint(): Text
-    var
-        KeyVaultClient: Codeunit "Key Vault Client IRIS";
-    begin
-        exit(KeyVaultClient.GetStatusEndpointURL());
-    end;
-
-    procedure CapturePayloadContext(var TransmissionLog: Record "Transmission Log IRIS"; var Payload: Codeunit "Temp Blob"; Source: Text)
-    begin
-        TransmissionLog.SetTransmissonContextInfo(Payload, Source);
-    end;
-
-    procedure SendOriginal(var Transmission: Record "Transmission IRIS")
-    var
-        ProcessTransmission: Codeunit "Process Transmission IRIS";
-    begin
-        ProcessTransmission.SendOriginal(Transmission);
-    end;
-
-    procedure SendReplacement(var Transmission: Record "Transmission IRIS")
-    var
-        ProcessTransmission: Codeunit "Process Transmission IRIS";
-    begin
-        ProcessTransmission.SendReplacement(Transmission);
-    end;
-
-    procedure SendCorrection(var Transmission: Record "Transmission IRIS"; CorrectionToZero: Boolean)
-    var
-        ProcessTransmission: Codeunit "Process Transmission IRIS";
-    begin
-        ProcessTransmission.SendCorrection(Transmission, CorrectionToZero);
-    end;
-
-    procedure RequestStatus(ReceiptID: Text[100]; UniqueTransmissionID: Text[100]; var StatusText: Text)
-    var
-        ProcessTransmission: Codeunit "Process Transmission IRIS";
-    begin
-        ProcessTransmission.RequestStatus(ReceiptID, UniqueTransmissionID, StatusText);
-    end;
-
-    [NonDebuggable]
-    procedure InitializeOfflineAccessToken()
-    var
-        UserParams: Record "User Params IRIS";
-        OAuthClient: Codeunit "OAuth Client IRIS";
-        Token: SecretText;
-        TokenText: Text;
-    begin
-        RestoreOfflineAccessToken();
-        UserParams.GetRecord();
-        SavedAccessTokenKey := UserParams."Access Token Key";
-        SavedAccessTokenExpiresAt := UserParams."Access Token Expires At";
-        TokenText := 'synthetic-offline-token';
-        Token := TokenText;
-        OAuthClient.SetToken(OfflineAccessTokenKey, Token);
-        UserParams."Access Token Key" := OfflineAccessTokenKey;
-        UserParams."Access Token Expires At" := CurrentDateTime() + 3600000;
-        UserParams.Modify();
-        OfflineAccessTokenInitialized := true;
-    end;
-
-    [NonDebuggable]
-    procedure RestoreOfflineAccessToken()
-    var
-        UserParams: Record "User Params IRIS";
-        OAuthClient: Codeunit "OAuth Client IRIS";
-        EmptyToken: SecretText;
-    begin
-        if not OfflineAccessTokenInitialized then
-            exit;
-        UserParams.GetRecord();
-        UserParams."Access Token Key" := SavedAccessTokenKey;
-        UserParams."Access Token Expires At" := SavedAccessTokenExpiresAt;
-        UserParams.Modify();
-        OAuthClient.SetToken(OfflineAccessTokenKey, EmptyToken);
-        OfflineAccessTokenInitialized := false;
+        TransmissionLog.SetTransmissionContextInfo(Payload, Source);
     end;
 
     procedure CreateTransmission(var Transmission: Record "Transmission IRIS"; PeriodNo: Code[20])
@@ -215,6 +93,128 @@ codeunit 148023 "Library - IRS 1099 IRIS"
         TransmissionLog.DeleteAll(true);
         Transmission.ModifyAll(Status, Enum::"Transmission Status IRIS"::None);
         Transmission.DeleteAll(true);
+    end;
+
+    procedure GetAmountXmlElements(TaxYear: Text): JsonObject
+    var
+        Helper: Codeunit "Helper IRIS";
+    begin
+        exit(Helper.GetAmtXmlElementsFileContent(TaxYear));
+    end;
+
+    procedure GetAuthEndpoint(): Text
+    var
+        KeyVaultClient: Codeunit "Key Vault Client IRIS";
+    begin
+        exit(KeyVaultClient.GetAuthURL());
+    end;
+
+    procedure GetStatusEndpoint(): Text
+    var
+        KeyVaultClient: Codeunit "Key Vault Client IRIS";
+    begin
+        exit(KeyVaultClient.GetStatusEndpointURL());
+    end;
+
+    procedure GetSubmitEndpoint(): Text
+    var
+        KeyVaultClient: Codeunit "Key Vault Client IRIS";
+    begin
+        exit(KeyVaultClient.GetSubmitEndpointURL());
+    end;
+
+    [NonDebuggable]
+    procedure InitializeOfflineAccessToken()
+    var
+        UserParams: Record "User Params IRIS";
+        OAuthClient: Codeunit "OAuth Client IRIS";
+        Token: SecretText;
+        TokenText: Text;
+    begin
+        RestoreOfflineAccessToken();
+        UserParams.GetRecord();
+        SavedAccessTokenKey := UserParams."Access Token Key";
+        SavedAccessTokenExpiresAt := UserParams."Access Token Expires At";
+        TokenText := 'synthetic-offline-token';
+        Token := TokenText;
+        OAuthClient.SetToken(OfflineAccessTokenKey, Token);
+        UserParams."Access Token Key" := OfflineAccessTokenKey;
+        UserParams."Access Token Expires At" := CurrentDateTime() + 3600000;
+        UserParams.Modify();
+        OfflineAccessTokenInitialized := true;
+    end;
+
+    procedure ParseSchemaVersion(Version: Text): Enum "XML Schema Version IRIS"
+    var
+        Helper: Codeunit "Helper IRIS";
+    begin
+        exit(Helper.ParseSchemaVersion(Version));
+    end;
+
+    procedure RequestStatus(ReceiptID: Text[100]; UniqueTransmissionID: Text[100]; var StatusText: Text)
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        ProcessTransmission.RequestStatus(ReceiptID, UniqueTransmissionID, StatusText);
+    end;
+
+    procedure ResolveSchemaVersion(PeriodNo: Code[20]; var Source: Text): Enum "XML Schema Version IRIS"
+    var
+        Helper: Codeunit "Helper IRIS";
+    begin
+        exit(Helper.GetXmlSchemaVersion(PeriodNo, Source));
+    end;
+
+    procedure ResolveSoftwareId(TaxYear: Text): Text
+    var
+        Helper: Codeunit "Helper IRIS";
+    begin
+        exit(Helper.GetSoftwareId(TaxYear));
+    end;
+
+    [NonDebuggable]
+    procedure RestoreOfflineAccessToken()
+    var
+        UserParams: Record "User Params IRIS";
+        OAuthClient: Codeunit "OAuth Client IRIS";
+        EmptyToken: SecretText;
+    begin
+        if not OfflineAccessTokenInitialized then
+            exit;
+        UserParams.GetRecord();
+        UserParams."Access Token Key" := SavedAccessTokenKey;
+        UserParams."Access Token Expires At" := SavedAccessTokenExpiresAt;
+        UserParams.Modify();
+        OAuthClient.SetToken(OfflineAccessTokenKey, EmptyToken);
+        OfflineAccessTokenInitialized := false;
+    end;
+
+    procedure SendCorrection(var Transmission: Record "Transmission IRIS"; CorrectionToZero: Boolean)
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        ProcessTransmission.SendCorrection(Transmission, CorrectionToZero);
+    end;
+
+    procedure SendOriginal(var Transmission: Record "Transmission IRIS")
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        ProcessTransmission.SendOriginal(Transmission);
+    end;
+
+    procedure SendReplacement(var Transmission: Record "Transmission IRIS")
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        ProcessTransmission.SendReplacement(Transmission);
+    end;
+
+    procedure ValidateTaxYear(TaxYear: Text)
+    var
+        Helper: Codeunit "Helper IRIS";
+    begin
+        Helper.ValidateTaxYear(TaxYear);
     end;
     #endregion Transmission
 

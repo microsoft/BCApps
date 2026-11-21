@@ -25,15 +25,15 @@ page 10074 "IRS 1099 Doc. Suppl. Lines"
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
-                        IRS1099SupplBox: Record "IRS 1099 Suppl. Box";
-                        IRS1099SupplBoxes: Page "IRS 1099 Suppl. Boxes";
+                        SupplBox: Record "IRS 1099 Suppl. Box";
+                        SupplBoxes: Page "IRS 1099 Suppl. Boxes";
                     begin
-                        IRS1099SupplBoxes.SetDocumentLookup(Rec."Document ID");
-                        IRS1099SupplBoxes.LookupMode(true);
-                        if IRS1099SupplBoxes.RunModal() = Action::LookupOK then begin
-                            IRS1099SupplBoxes.GetRecord(IRS1099SupplBox);
-                            Rec.Validate("Supplemental Box No.", IRS1099SupplBox."No.");
-                            Text := IRS1099SupplBox."No.";
+                        SupplBoxes.SetDocumentLookup(Rec."Document ID");
+                        SupplBoxes.LookupMode(true);
+                        if SupplBoxes.RunModal() = Action::LookupOK then begin
+                            SupplBoxes.GetRecord(SupplBox);
+                            Rec.Validate("Supplemental Box No.", SupplBox."No.");
+                            Text := SupplBox."No.";
                             exit(true);
                         end;
                         exit(false);

@@ -42,11 +42,10 @@ codeunit 10053 "IRIS Schema 5.0.7" implements "IRIS XML Schema"
         FormType: Text;
         PriorYearDataIndicator: Text;
     begin
-        Clear(Helper);
         Clear(Generator);
         TaxYear := Transmission."Period No.";
         CorrectionToZeroModeGlobal := CorrectionToZeroMode;
-        Generator.PrepareTransmission(Helper, Transmission, TransmissionType, CorrectionToZeroMode, GetVersionText(),
+        Generator.PrepareTransmission(Transmission, TransmissionType, CorrectionToZeroMode, GetVersionText(),
             TaxYear in ['2025', '2026'], UniqueTransmissionId, TempDocHeader);
         PriorYearDataIndicator := '0';
         if TaxYear = '2025' then
@@ -71,7 +70,7 @@ codeunit 10053 "IRIS Schema 5.0.7" implements "IRIS XML Schema"
         SubmissionId: Text[20];
         RecordId: Text[20];
     begin
-        Helper.AddParentXmlNode('IRSubmission1Grp');
+        Generator.AddParentXmlNode('IRSubmission1Grp');
         VendorList := Generator.GetVendorList(TempDocHeader);
         SubmissionId := Generator.StartSubmissionHeader(TempDocHeader);
         Generator.GetContactCompanyInformation(CompanyInformation);
@@ -84,10 +83,10 @@ codeunit 10053 "IRIS Schema 5.0.7" implements "IRIS XML Schema"
         Generator.AddSubmissionFormInfo(TempDocHeader, VendorList.Count());
         AddSupplementalTotals(TempDocHeader, XmlValues);
         Generator.AddSubmissionTotals(TempDocHeader, XmlValues);
-        Helper.CloseParentXmlNode();
-        Generator.SaveSubmissionId(TempDocHeader, SubmissionId);
+        Generator.CloseParentXmlNode();
+        Generator.SetSubmissionIdOnTempHeaders(TempDocHeader, SubmissionId);
 
-        Helper.AddParentXmlNode('IRSubmission1Detail');
+        Generator.AddParentXmlNode('IRSubmission1Detail');
         foreach VendorNo in VendorList do begin
             TempDocHeader.SetRange("Vendor No.", VendorNo);
             if Generator.StartFormDetail(TempDocHeader, RecordId) then begin
@@ -99,8 +98,8 @@ codeunit 10053 "IRIS Schema 5.0.7" implements "IRIS XML Schema"
                 Generator.FinishFormDetail(TempDocHeader, RecordId, XmlValues, OccupationCodes);
             end;
         end;
-        Helper.CloseParentXmlNode();
-        Helper.CloseParentXmlNode();
+        Generator.CloseParentXmlNode();
+        Generator.CloseParentXmlNode();
     end;
 
     local procedure AddSupplementalTotals(var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var XmlValues: Dictionary of [Text, Text])

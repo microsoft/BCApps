@@ -49,6 +49,18 @@ codeunit 10042 "IRS Reporting Period"
         UpdatedPurchInvHeadersTelemetryMsg: Label 'Updated Purch. Inv. Headers: %1 -> %2', Comment = '%1 = from form box no, %2 = to form box no', Locked = true;
         UpdatedPurchCrMemoHeadersTelemetryMsg: Label 'Updated Purch. Cr. Memo Headers: %1 -> %2', Comment = '%1 = from form box no, %2 = to form box no', Locked = true;
         UpdatedPurchaseHeaderArchivesTelemetryMsg: Label 'Updated Purchase Header Archives: %1 -> %2', Comment = '%1 = from form box no, %2 = to form box no', Locked = true;
+        IncompatibleMsg: Label 'The supplemental box in the target period has a different parent form box, value type, or XML element and was not changed. Review it on the IRS 1099 Supplemental Boxes page.';
+        StatementLineDescriptionMsg: Label 'statement line %1, row %2, supplemental box %3', Comment = '%1 = line number, %2 = row number, %3 = supplemental box';
+        OccupiedMsg: Label 'The statement line in the target period has custom settings and was not changed. Review it on the IRS 1099 Form Statement page.';
+        MissingSupplBoxMsg: Label 'Supplemental box %1 does not exist in the %2 reporting period.', Comment = '%1 = supplemental box, %2 = source or target';
+        SourceTxt: Label 'source';
+        TargetTxt: Label 'target';
+        MissingFormMsg: Label 'Form %1 does not exist in this reporting period.', Comment = '%1 = form';
+        MissingParentMsg: Label 'Form box %1 does not exist in this reporting period.', Comment = '%1 = form box';
+        ConflictMsg: Label '\\Company %1, period %2, form %3, %4: not copied. %5', Comment = '%1 = company, %2 = period, %3 = form, %4 = setup identity, %5 = reason';
+        SupplBoxConflictMsg: Label '\\Company %1, period %2, form %3, supplemental box %4 cannot be used for reporting in the target period and was not changed. Review it on the IRS 1099 Supplemental Boxes page. %5', Comment = '%1 = company, %2 = period, %3 = form, %4 = supplemental box, %5 = reason';
+        StatementConflictMsg: Label '\\Company %1, period %2, form %3, statement line %4, supplemental box %5 cannot be used for reporting in the target period and was not changed. Review it on the IRS 1099 Form Statement page. %6', Comment = '%1 = company, %2 = period, %3 = form, %4 = statement line, %5 = supplemental box, %6 = reason';
+        MissingSelectedSupplBoxMsg: Label 'The selected supplemental box does not exist.';
 
     procedure ShowIRSFormsGuideNotificationIfRequired()
     var
@@ -179,8 +191,8 @@ codeunit 10042 "IRS Reporting Period"
         NewIRS1099VendorFormBoxAdj: Record "IRS 1099 Vendor Form Box Adj.";
         NewIRS1099FormInstruction: Record "IRS 1099 Form Instruction";
         IRSFormsData: Codeunit "IRS Forms Data";
-        FinancialConflict: Text;
-        CopiedFinancialBoxes: Integer;
+        SupplBoxNoConflictMessage: Text;
+        CopiedFormBoxes: Integer;
         CopiedVendorSetups: Integer;
         CopiedStatements: Integer;
         CopiedAdjustments: Integer;
@@ -213,24 +225,24 @@ codeunit 10042 "IRS Reporting Period"
                     NewIRS1099FormBox := IRS1099FormBox;
                     NewIRS1099FormBox.ChangeCompany(CompanyNameToUpdate);
                     NewIRS1099FormBox."Period No." := ToPeriodNo;
-                    FinancialConflict := NewIRS1099FormBox.GetSupplementalIdentityConflict();
-                    if FinancialConflict = '' then begin
+                    SupplBoxNoConflictMessage := NewIRS1099FormBox.GetSupplBoxNoConflictMessage();
+                    if SupplBoxNoConflictMessage = '' then begin
                         NewIRS1099FormBox.Insert();
-                        CopiedFinancialBoxes += 1;
+                        CopiedFormBoxes += 1;
                     end else
-                        SetupCompletedMessage += '\\' + FinancialConflict;
+                        SetupCompletedMessage += '\\' + SupplBoxNoConflictMessage;
                 end else begin
-                    FinancialConflict := NewIRS1099FormBox.GetSupplementalIdentityConflict();
-                    if FinancialConflict <> '' then
-                        SetupCompletedMessage += '\\' + FinancialConflict;
+                    SupplBoxNoConflictMessage := NewIRS1099FormBox.GetSupplBoxNoConflictMessage();
+                    if SupplBoxNoConflictMessage <> '' then
+                        SetupCompletedMessage += '\\' + SupplBoxNoConflictMessage;
                 end;
             until IRS1099FormBox.Next() = 0;
-            if CopiedFinancialBoxes > 0 then
-                UpdateSummaryMessage(SetupCompletedMessage, SomethingHasBeenCopied, IRS1099FormBox.TableCaption, CopiedFinancialBoxes, SummaryMessageCreated);
+            if CopiedFormBoxes > 0 then
+                UpdateSummaryMessage(SetupCompletedMessage, SomethingHasBeenCopied, IRS1099FormBox.TableCaption, CopiedFormBoxes, SummaryMessageCreated);
         end;
-        // Make definitions available without occupying source statement line numbers with defaults.
-        IRSFormsData.ReconcileAnnualDefinitions(ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage);
-        CopySupplementalDefinitions(FromPeriodNo, ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage, SomethingHasBeenCopied, SummaryMessageCreated);
+        // Copy source descriptions before seeding missing supplemental defaults.
+        CopySupplementalBoxes(FromPeriodNo, ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage, SomethingHasBeenCopied, SummaryMessageCreated);
+        IRSFormsData.UpdateAnnualBoxSetup(ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage);
         IRS1099VendorFormBoxSetup.SetRange("Period No.", FromPeriodNo);
         if IRS1099VendorFormBoxSetup.FindSet() then begin
             repeat
@@ -238,12 +250,12 @@ codeunit 10042 "IRS Reporting Period"
                     NewIRS1099VendorFormBoxSetup := IRS1099VendorFormBoxSetup;
                     NewIRS1099VendorFormBoxSetup."Period No." := ToPeriodNo;
                     NewIRS1099VendorFormBoxSetup.ChangeCompany(CompanyNameToUpdate);
-                    FinancialConflict := GetFinancialCopyConflict(ToPeriodNo, IRS1099VendorFormBoxSetup."Form No.", IRS1099VendorFormBoxSetup."Form Box No.", CompanyNameToUpdate);
-                    if FinancialConflict = '' then begin
+                    SupplBoxNoConflictMessage := GetFormBoxCopyConflictMessage(ToPeriodNo, IRS1099VendorFormBoxSetup."Form No.", IRS1099VendorFormBoxSetup."Form Box No.", CompanyNameToUpdate);
+                    if SupplBoxNoConflictMessage = '' then begin
                         NewIRS1099VendorFormBoxSetup.Insert();
                         CopiedVendorSetups += 1;
                     end else
-                        AddSetupCopyConflict(SetupCompletedMessage, ToPeriodNo, IRS1099VendorFormBoxSetup."Form No.", IRS1099VendorFormBoxSetup.TableCaption() + ' ' + IRS1099VendorFormBoxSetup."Vendor No.", CompanyNameToUpdate, FinancialConflict);
+                        AddSetupCopyConflict(SetupCompletedMessage, ToPeriodNo, IRS1099VendorFormBoxSetup."Form No.", IRS1099VendorFormBoxSetup.TableCaption() + ' ' + IRS1099VendorFormBoxSetup."Vendor No.", CompanyNameToUpdate, SupplBoxNoConflictMessage);
                 end;
             until IRS1099VendorFormBoxSetup.Next() = 0;
             if CopiedVendorSetups > 0 then
@@ -266,12 +278,12 @@ codeunit 10042 "IRS Reporting Period"
                     NewIRS1099VendorFormBoxAdj."Period No." := ToPeriodNo;
                     NewIRS1099VendorFormBoxAdj.Amount := 0;
                     NewIRS1099VendorFormBoxAdj.ChangeCompany(CompanyNameToUpdate);
-                    FinancialConflict := GetFinancialCopyConflict(ToPeriodNo, IRS1099VendorFormBoxAdj."Form No.", IRS1099VendorFormBoxAdj."Form Box No.", CompanyNameToUpdate);
-                    if FinancialConflict = '' then begin
+                    SupplBoxNoConflictMessage := GetFormBoxCopyConflictMessage(ToPeriodNo, IRS1099VendorFormBoxAdj."Form No.", IRS1099VendorFormBoxAdj."Form Box No.", CompanyNameToUpdate);
+                    if SupplBoxNoConflictMessage = '' then begin
                         NewIRS1099VendorFormBoxAdj.Insert();
                         CopiedAdjustments += 1;
                     end else
-                        AddSetupCopyConflict(SetupCompletedMessage, ToPeriodNo, IRS1099VendorFormBoxAdj."Form No.", IRS1099VendorFormBoxAdj.TableCaption() + ' ' + IRS1099VendorFormBoxAdj."Vendor No.", CompanyNameToUpdate, FinancialConflict);
+                        AddSetupCopyConflict(SetupCompletedMessage, ToPeriodNo, IRS1099VendorFormBoxAdj."Form No.", IRS1099VendorFormBoxAdj.TableCaption() + ' ' + IRS1099VendorFormBoxAdj."Vendor No.", CompanyNameToUpdate, SupplBoxNoConflictMessage);
                 end;
             until IRS1099VendorFormBoxAdj.Next() = 0;
             if CopiedAdjustments > 0 then
@@ -289,12 +301,12 @@ codeunit 10042 "IRS Reporting Period"
             until IRS1099FormInstruction.Next() = 0;
             UpdateSummaryMessage(SetupCompletedMessage, SomethingHasBeenCopied, IRS1099FormInstruction.TableCaption, IRS1099FormInstruction.Count(), SummaryMessageCreated);
         end;
-        IRSFormsData.ReconcileAnnualSetup(ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage);
-        ReportTargetSupplementalConflicts(ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage);
+        IRSFormsData.UpdateAnnualSetup(ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage);
+        ReportTargetSupplConflicts(ToPeriodNo, CompanyNameToUpdate, SetupCompletedMessage);
         SummaryMessageCreated := true;
     end;
 
-    local procedure CopySupplementalDefinitions(FromPeriodNo: Code[20]; ToPeriodNo: Code[20]; TargetCompany: Text; var Details: Text; var SomethingHasBeenCopied: Boolean; SummaryMessageCreated: Boolean)
+    local procedure CopySupplementalBoxes(FromPeriodNo: Code[20]; ToPeriodNo: Code[20]; TargetCompany: Text; var Details: Text; var SomethingHasBeenCopied: Boolean; SummaryMessageCreated: Boolean)
     var
         SupplBox: Record "IRS 1099 Suppl. Box";
         TargetSupplBox: Record "IRS 1099 Suppl. Box";
@@ -302,8 +314,7 @@ codeunit 10042 "IRS Reporting Period"
         IRSFormsData: Codeunit "IRS Forms Data";
         Supplemental: Codeunit "IRS 1099 Supplemental";
         Conflict: Text;
-        CopiedDefinitions: Integer;
-        IncompatibleMsg: Label 'The supplemental box in the target period has a different parent form box, value type, or XML element and was not changed. Review it on the IRS 1099 Supplemental Boxes page.';
+        CopiedSupplBoxes: Integer;
     begin
         SupplBox.SetRange("Period No.", FromPeriodNo);
         TargetSupplBox.ChangeCompany(TargetCompany);
@@ -311,115 +322,107 @@ codeunit 10042 "IRS Reporting Period"
             repeat
                 Clear(Conflict);
                 if not IRSFormsData.SupportsSupplementalSetup(ToPeriodNo, TargetCompany) then
-                    Conflict := IRSFormsData.GetUnsupportedSupplementalSetupReason(ToPeriodNo, TargetCompany)
+                    Conflict := IRSFormsData.GetUnsupportedSupplSetupReason(ToPeriodNo, TargetCompany)
                 else begin
-                    Conflict := IRSFormsData.GetSupplementalDefinitionConflict(SupplBox, SupplBox.CurrentCompany());
+                    Conflict := IRSFormsData.GetSupplBoxSetupConflictMessage(SupplBox, SupplBox.CurrentCompany());
                     if Conflict = '' then begin
                         ProposedSupplBox := SupplBox;
                         ProposedSupplBox.ChangeCompany(TargetCompany);
                         ProposedSupplBox."Period No." := ToPeriodNo;
-                        Conflict := IRSFormsData.GetSupplementalDefinitionConflict(ProposedSupplBox, TargetCompany);
+                        Conflict := IRSFormsData.GetSupplBoxSetupConflictMessage(ProposedSupplBox, TargetCompany);
                         if Conflict = '' then
                             if TargetSupplBox.Get(ToPeriodNo, SupplBox."Form No.", SupplBox."No.") then begin
-                                if not CompatibleSupplementalDefinitions(SupplBox, TargetSupplBox) then
+                                if not HaveCompatibleSupplBoxSetup(SupplBox, TargetSupplBox) then
                                     Conflict := IncompatibleMsg;
                             end else begin
                                 Supplemental.ValidateSupplBoxSetup(ProposedSupplBox, TargetCompany);
                                 ProposedSupplBox.Insert();
-                                CopiedDefinitions += 1;
+                                CopiedSupplBoxes += 1;
                             end;
                     end;
                 end;
                 if Conflict <> '' then
                     AddSetupCopyConflict(Details, ToPeriodNo, SupplBox."Form No.", SupplBox.TableCaption() + ' ' + SupplBox."No.", TargetCompany, Conflict);
             until SupplBox.Next() = 0;
-        if CopiedDefinitions > 0 then
-            UpdateSummaryMessage(Details, SomethingHasBeenCopied, SupplBox.TableCaption(), CopiedDefinitions, SummaryMessageCreated);
+        if CopiedSupplBoxes > 0 then
+            UpdateSummaryMessage(Details, SomethingHasBeenCopied, SupplBox.TableCaption(), CopiedSupplBoxes, SummaryMessageCreated);
     end;
 
-    local procedure CopyStatementLine(Source: Record "IRS 1099 Form Statement Line"; ToPeriodNo: Code[20]; TargetCompany: Text; var Details: Text): Boolean
+    local procedure CopyStatementLine(SourceStatementLine: Record "IRS 1099 Form Statement Line"; ToPeriodNo: Code[20]; TargetCompany: Text; var Details: Text): Boolean
     var
-        Target: Record "IRS 1099 Form Statement Line";
-        Proposed: Record "IRS 1099 Form Statement Line";
+        TargetStatementLine: Record "IRS 1099 Form Statement Line";
+        ProposedStatementLine: Record "IRS 1099 Form Statement Line";
         Conflict: Text;
-        StatementIdentity: Text;
-        StatementIdentityMsg: Label 'statement line %1, row %2, supplemental box %3', Comment = '%1 = line number, %2 = row number, %3 = supplemental box';
-        OccupiedMsg: Label 'The statement line in the target period has custom settings and was not changed. Review it on the IRS 1099 Form Statement page.';
+        StatementLineDescription: Text;
     begin
-        StatementIdentity := StrSubstNo(StatementIdentityMsg, Format(Source."Line No.", 0, 9), Source."Row No.", Source."Supplemental Box No.");
-        Conflict := GetStatementCopyConflict(Source, ToPeriodNo, TargetCompany);
+        StatementLineDescription := StrSubstNo(StatementLineDescriptionMsg, Format(SourceStatementLine."Line No.", 0, 9), SourceStatementLine."Row No.", SourceStatementLine."Supplemental Box No.");
+        Conflict := GetStatementCopyConflict(SourceStatementLine, ToPeriodNo, TargetCompany);
         if Conflict <> '' then begin
-            AddSetupCopyConflict(Details, ToPeriodNo, Source."Form No.", StatementIdentity, TargetCompany, Conflict);
+            AddSetupCopyConflict(Details, ToPeriodNo, SourceStatementLine."Form No.", StatementLineDescription, TargetCompany, Conflict);
             exit(false);
         end;
-        Target.ChangeCompany(TargetCompany);
-        if Target.Get(ToPeriodNo, Source."Form No.", Source."Line No.") then begin
-            if not CompatibleStatementLines(Source, Target) then
-                AddSetupCopyConflict(Details, ToPeriodNo, Source."Form No.", StatementIdentity, TargetCompany, OccupiedMsg);
+        TargetStatementLine.ChangeCompany(TargetCompany);
+        if TargetStatementLine.Get(ToPeriodNo, SourceStatementLine."Form No.", SourceStatementLine."Line No.") then begin
+            if not CompatibleStatementLines(SourceStatementLine, TargetStatementLine) then
+                AddSetupCopyConflict(Details, ToPeriodNo, SourceStatementLine."Form No.", StatementLineDescription, TargetCompany, OccupiedMsg);
             exit(false);
         end;
-        Proposed := Source;
-        Proposed.ChangeCompany(TargetCompany);
-        Proposed."Period No." := ToPeriodNo;
-        Proposed.ValidateSupplBox(TargetCompany);
-        Proposed.Insert();
+        ProposedStatementLine := SourceStatementLine;
+        ProposedStatementLine.ChangeCompany(TargetCompany);
+        ProposedStatementLine."Period No." := ToPeriodNo;
+        ProposedStatementLine.ValidateSupplBox(TargetCompany);
+        ProposedStatementLine.Insert();
         exit(true);
     end;
 
-    local procedure GetStatementCopyConflict(Source: Record "IRS 1099 Form Statement Line"; ToPeriodNo: Code[20]; TargetCompany: Text): Text
+    local procedure GetStatementCopyConflict(SourceStatementLine: Record "IRS 1099 Form Statement Line"; ToPeriodNo: Code[20]; TargetCompany: Text): Text
     var
-        SourceDefinition: Record "IRS 1099 Suppl. Box";
-        TargetDefinition: Record "IRS 1099 Suppl. Box";
+        SourceSupplBox: Record "IRS 1099 Suppl. Box";
+        TargetSupplBox: Record "IRS 1099 Suppl. Box";
         IRSFormsData: Codeunit "IRS Forms Data";
-        Conflict: Text;
-        MissingDefinitionMsg: Label 'Supplemental box %1 does not exist in the %2 reporting period.', Comment = '%1 = supplemental box, %2 = source or target';
-        SourceTxt: Label 'source';
-        TargetTxt: Label 'target';
-        IncompatibleMsg: Label 'The supplemental box in the target period has a different parent form box, value type, or XML element and was not changed. Review it on the IRS 1099 Supplemental Boxes page.';
+        ConflictMessage: Text;
     begin
-        if Source."Value Source" <> Source."Value Source"::"Supplemental Line" then
+        if SourceStatementLine."Value Source" <> SourceStatementLine."Value Source"::"Supplemental Line" then
             exit('');
         if not IRSFormsData.SupportsSupplementalSetup(ToPeriodNo, TargetCompany) then
-            exit(IRSFormsData.GetUnsupportedSupplementalSetupReason(ToPeriodNo, TargetCompany));
-        SourceDefinition.ChangeCompany(Source.CurrentCompany());
-        if not SourceDefinition.Get(Source."Period No.", Source."Form No.", Source."Supplemental Box No.") then
-            exit(StrSubstNo(MissingDefinitionMsg, Source."Supplemental Box No.", SourceTxt));
-        Conflict := IRSFormsData.GetSupplementalDefinitionConflict(SourceDefinition, Source.CurrentCompany());
-        if Conflict <> '' then
-            exit(Conflict);
-        TargetDefinition.ChangeCompany(TargetCompany);
-        if not TargetDefinition.Get(ToPeriodNo, Source."Form No.", Source."Supplemental Box No.") then
-            exit(StrSubstNo(MissingDefinitionMsg, Source."Supplemental Box No.", TargetTxt));
-        Conflict := IRSFormsData.GetSupplementalDefinitionConflict(TargetDefinition, TargetCompany);
-        if Conflict <> '' then
-            exit(Conflict);
-        if not CompatibleSupplementalDefinitions(SourceDefinition, TargetDefinition) then
+            exit(IRSFormsData.GetUnsupportedSupplSetupReason(ToPeriodNo, TargetCompany));
+        SourceSupplBox.ChangeCompany(SourceStatementLine.CurrentCompany());
+        if not SourceSupplBox.Get(SourceStatementLine."Period No.", SourceStatementLine."Form No.", SourceStatementLine."Supplemental Box No.") then
+            exit(StrSubstNo(MissingSupplBoxMsg, SourceStatementLine."Supplemental Box No.", SourceTxt));
+        ConflictMessage := IRSFormsData.GetSupplBoxSetupConflictMessage(SourceSupplBox, SourceStatementLine.CurrentCompany());
+        if ConflictMessage <> '' then
+            exit(ConflictMessage);
+        TargetSupplBox.ChangeCompany(TargetCompany);
+        if not TargetSupplBox.Get(ToPeriodNo, SourceStatementLine."Form No.", SourceStatementLine."Supplemental Box No.") then
+            exit(StrSubstNo(MissingSupplBoxMsg, SourceStatementLine."Supplemental Box No.", TargetTxt));
+        ConflictMessage := IRSFormsData.GetSupplBoxSetupConflictMessage(TargetSupplBox, TargetCompany);
+        if ConflictMessage <> '' then
+            exit(ConflictMessage);
+        if not HaveCompatibleSupplBoxSetup(SourceSupplBox, TargetSupplBox) then
             exit(IncompatibleMsg);
         exit('');
     end;
 
-    local procedure CompatibleSupplementalDefinitions(Source: Record "IRS 1099 Suppl. Box"; Target: Record "IRS 1099 Suppl. Box"): Boolean
+    local procedure HaveCompatibleSupplBoxSetup(SourceSupplBox: Record "IRS 1099 Suppl. Box"; TargetSupplBox: Record "IRS 1099 Suppl. Box"): Boolean
     begin
-        exit((Source."Parent Form Box No." = Target."Parent Form Box No.") and
-             (Source."Value Type" = Target."Value Type") and
-             (Source."XML Element Name" = Target."XML Element Name"));
+        exit((SourceSupplBox."Parent Form Box No." = TargetSupplBox."Parent Form Box No.") and
+             (SourceSupplBox."Value Type" = TargetSupplBox."Value Type") and
+             (SourceSupplBox."XML Element Name" = TargetSupplBox."XML Element Name"));
     end;
 
-    local procedure CompatibleStatementLines(Source: Record "IRS 1099 Form Statement Line"; Target: Record "IRS 1099 Form Statement Line"): Boolean
+    local procedure CompatibleStatementLines(SourceStatementLine: Record "IRS 1099 Form Statement Line"; TargetStatementLine: Record "IRS 1099 Form Statement Line"): Boolean
     begin
-        exit((Source."Row No." = Target."Row No.") and (Source.Description = Target.Description) and
-             (Source."Value Source" = Target."Value Source") and (Source."Supplemental Box No." = Target."Supplemental Box No.") and
-             (Source."Print Value Type" = Target."Print Value Type") and (Source."Print with" = Target."Print with") and
-             (Source."Record View String" = Target."Record View String") and (Source."Filter Expression" = Target."Filter Expression") and
-             (Source."Row Totaling" = Target."Row Totaling"));
+        exit((SourceStatementLine."Row No." = TargetStatementLine."Row No.") and (SourceStatementLine.Description = TargetStatementLine.Description) and
+             (SourceStatementLine."Value Source" = TargetStatementLine."Value Source") and (SourceStatementLine."Supplemental Box No." = TargetStatementLine."Supplemental Box No.") and
+             (SourceStatementLine."Print Value Type" = TargetStatementLine."Print Value Type") and (SourceStatementLine."Print with" = TargetStatementLine."Print with") and
+             (SourceStatementLine."Record View String" = TargetStatementLine."Record View String") and (SourceStatementLine."Filter Expression" = TargetStatementLine."Filter Expression") and
+             (SourceStatementLine."Row Totaling" = TargetStatementLine."Row Totaling"));
     end;
 
-    local procedure GetFinancialCopyConflict(PeriodNo: Code[20]; FormNo: Code[20]; BoxNo: Code[20]; TargetCompany: Text): Text
+    local procedure GetFormBoxCopyConflictMessage(PeriodNo: Code[20]; FormNo: Code[20]; BoxNo: Code[20]; TargetCompany: Text): Text
     var
         Form: Record "IRS 1099 Form";
-        FinancialFormBox: Record "IRS 1099 Form Box";
-        MissingFormMsg: Label 'Form %1 does not exist in this reporting period.', Comment = '%1 = form';
-        MissingParentMsg: Label 'Form box %1 does not exist in this reporting period.', Comment = '%1 = form box';
+        FormBox: Record "IRS 1099 Form Box";
     begin
         if (FormNo = '') and (BoxNo = '') then
             exit('');
@@ -428,48 +431,43 @@ codeunit 10042 "IRS Reporting Period"
             exit(StrSubstNo(MissingFormMsg, FormNo));
         if BoxNo = '' then
             exit('');
-        FinancialFormBox.ChangeCompany(TargetCompany);
-        if not FinancialFormBox.Get(PeriodNo, FormNo, BoxNo) then
+        FormBox.ChangeCompany(TargetCompany);
+        if not FormBox.Get(PeriodNo, FormNo, BoxNo) then
             exit(StrSubstNo(MissingParentMsg, BoxNo));
-        exit(FinancialFormBox.GetSupplementalIdentityConflict());
+        exit(FormBox.GetSupplBoxNoConflictMessage());
     end;
 
-    local procedure AddSetupCopyConflict(var Details: Text; PeriodNo: Code[20]; FormNo: Code[20]; Identity: Text; TargetCompany: Text; Reason: Text)
-    var
-        ConflictMsg: Label '\\Company %1, period %2, form %3, %4: not copied. %5', Comment = '%1 = company, %2 = period, %3 = form, %4 = setup identity, %5 = reason';
+    local procedure AddSetupCopyConflict(var Details: Text; PeriodNo: Code[20]; FormNo: Code[20]; SetupDescription: Text; TargetCompany: Text; Reason: Text)
     begin
-        Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, FormNo, Identity, Reason);
+        Details += StrSubstNo(ConflictMsg, TargetCompany, PeriodNo, FormNo, SetupDescription, Reason);
     end;
 
-    local procedure ReportTargetSupplementalConflicts(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
+    local procedure ReportTargetSupplConflicts(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
     var
-        Definition: Record "IRS 1099 Suppl. Box";
+        SupplBox: Record "IRS 1099 Suppl. Box";
         StatementLine: Record "IRS 1099 Form Statement Line";
         IRSFormsData: Codeunit "IRS Forms Data";
         Conflict: Text;
-        DefinitionConflictMsg: Label '\\Company %1, period %2, form %3, supplemental box %4 cannot be used for reporting in the target period and was not changed. Review it on the IRS 1099 Supplemental Boxes page. %5', Comment = '%1 = company, %2 = period, %3 = form, %4 = supplemental box, %5 = reason';
-        StatementConflictMsg: Label '\\Company %1, period %2, form %3, statement line %4, supplemental box %5 cannot be used for reporting in the target period and was not changed. Review it on the IRS 1099 Form Statement page. %6', Comment = '%1 = company, %2 = period, %3 = form, %4 = statement line, %5 = supplemental box, %6 = reason';
-        MissingDefinitionMsg: Label 'The selected supplemental box does not exist.';
     begin
-        Definition.ChangeCompany(TargetCompany);
-        Definition.SetRange("Period No.", PeriodNo);
-        if Definition.FindSet() then
+        SupplBox.ChangeCompany(TargetCompany);
+        SupplBox.SetRange("Period No.", PeriodNo);
+        if SupplBox.FindSet() then
             repeat
-                Conflict := IRSFormsData.GetSupplementalDefinitionConflict(Definition, TargetCompany);
+                Conflict := IRSFormsData.GetSupplBoxSetupConflictMessage(SupplBox, TargetCompany);
                 if Conflict <> '' then
-                    Details += StrSubstNo(DefinitionConflictMsg, TargetCompany, PeriodNo, Definition."Form No.", Definition."No.", Conflict);
-            until Definition.Next() = 0;
-        Definition.Reset();
-        Definition.ChangeCompany(TargetCompany);
+                    Details += StrSubstNo(SupplBoxConflictMsg, TargetCompany, PeriodNo, SupplBox."Form No.", SupplBox."No.", Conflict);
+            until SupplBox.Next() = 0;
+        SupplBox.Reset();
+        SupplBox.ChangeCompany(TargetCompany);
         StatementLine.ChangeCompany(TargetCompany);
         StatementLine.SetRange("Period No.", PeriodNo);
         StatementLine.SetRange("Value Source", StatementLine."Value Source"::"Supplemental Line");
         if StatementLine.FindSet() then
             repeat
-                if Definition.Get(PeriodNo, StatementLine."Form No.", StatementLine."Supplemental Box No.") then
-                    Conflict := IRSFormsData.GetSupplementalDefinitionConflict(Definition, TargetCompany)
+                if SupplBox.Get(PeriodNo, StatementLine."Form No.", StatementLine."Supplemental Box No.") then
+                    Conflict := IRSFormsData.GetSupplBoxSetupConflictMessage(SupplBox, TargetCompany)
                 else
-                    Conflict := MissingDefinitionMsg;
+                    Conflict := MissingSelectedSupplBoxMsg;
                 if Conflict <> '' then
                     Details += StrSubstNo(StatementConflictMsg, TargetCompany, PeriodNo, StatementLine."Form No.", Format(StatementLine."Line No.", 0, 9), StatementLine."Supplemental Box No.", Conflict);
             until StatementLine.Next() = 0;
@@ -525,7 +523,7 @@ codeunit 10042 "IRS Reporting Period"
         if ToYear >= 2025 then begin
             if TempSelectedCompany.FindSet() then
                 repeat
-                    IRSFormsData.ReconcileAnnualSetup(ToPeriodNo, TempSelectedCompany.Name, SetupDetails);
+                    IRSFormsData.UpdateAnnualSetup(ToPeriodNo, TempSelectedCompany.Name, SetupDetails);
                 until TempSelectedCompany.Next() = 0;
             if SetupDetails <> '' then
                 Message(SetupDetails);

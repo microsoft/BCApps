@@ -87,6 +87,7 @@ table 10031 "IRS Reporting Period"
         StartingEndingDateOverlapErr: Label 'The starting date and ending date overlap with an existing reporting period.';
         CannotChangeWhenOpenFormDocumentConnectedErr: Label 'Cannot change %1 when one or more open form documents are connected', Comment = '%1 - field caption';
         StartingDateMoreThanEndingDateErr: Label 'Starting date cannot be greater than ending date';
+        PeriodIsUsedErr: Label 'Reporting period %1 is used by 1099 form documents and cannot be deleted.', Comment = '%1 = reporting period';
 
     trigger OnDelete()
     var
@@ -94,7 +95,6 @@ table 10031 "IRS Reporting Period"
         IRS1099VendorFormBoxSetup: Record "IRS 1099 Vendor Form Box Setup";
         IRS1099VendorFormBoxAdj: Record "IRS 1099 Vendor Form Box Adj.";
         DocHeader: Record "IRS 1099 Form Doc. Header";
-        PeriodIsUsedErr: Label 'Reporting period %1 is used by 1099 form documents and cannot be deleted.', Comment = '%1 = reporting period';
     begin
         DocHeader.SetRange("Period No.", "No.");
         if not DocHeader.IsEmpty() then

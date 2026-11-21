@@ -146,7 +146,7 @@ table 10047 "Transmission Log IRIS"
         exit(Rec.FindLast());
     end;
 
-    internal procedure SetTransmissonContextInfo(var TransmissionContent: Codeunit "Temp Blob"; Source: Text)
+    internal procedure SetTransmissionContextInfo(var TransmissionContent: Codeunit "Temp Blob"; Source: Text)
     var
         Document: XmlDocument;
         PayloadStream: InStream;
