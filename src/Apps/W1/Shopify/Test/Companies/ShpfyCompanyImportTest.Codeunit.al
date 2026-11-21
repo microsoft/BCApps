@@ -107,6 +107,7 @@ codeunit 139647 "Shpfy Company Import Test"
         CreateCompanyLocation(CompanyLocation, ShopifyCompany, ShopifyPaymentTermsId);
 
         // [WHEN] Invoke UpdateCustomerFromCompany
+        UpdateCustomer.SetShop(Shop);
         UpdateCustomer.UpdateCustomerFromCompany(ShopifyCompany);
 
         // [THEN] Customer record is updated with the correct payment terms.
@@ -253,6 +254,7 @@ codeunit 139647 "Shpfy Company Import Test"
         ShopifyPaymentTerms: Record "Shpfy Payment Terms";
     begin
         ShopifyPaymentTerms.Init();
+        ShopifyPaymentTerms."Shop Code" := Shop.Code;
         ShopifyPaymentTerms.Id := Any.IntegerInRange(10000, 99999);
         ShopifyPaymentTerms."Payment Terms Code" := PaymentTermsCode;
         ShopifyPaymentTerms.Insert(false);
