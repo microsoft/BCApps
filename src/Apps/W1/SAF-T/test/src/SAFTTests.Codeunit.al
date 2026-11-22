@@ -1,4 +1,6 @@
+#pragma warning disable AA0247
 codeunit 139511 "SAF-T Tests"
+#pragma warning restore AA0247
 {
     Subtype = Test;
     TestType = Uncategorized;
@@ -21,6 +23,33 @@ codeunit 139511 "SAF-T Tests"
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
+        SAFTFinancialFileNameLbl: Label 'SAF-T Financial_%1', Comment = '%1: VAT Registration No.';
+        FileNameStartErrLbl: Label 'File name must start with %1', Comment = '%1: File name prefix';
+        FileNameEndErrLbl: Label 'File name must end with %1', Comment = '%1: File name suffix';
+
+    [Test]
+    procedure SAFTVisibilityIsSelectedThroughInterface()
+    var
+        AuditFileExportPageVisibility: Interface "Audit File Export Page Visibility";
+        FieldVisibility: Dictionary of [Text, Boolean];
+        ActionVisibility: Dictionary of [Text, Boolean];
+    begin
+        FieldVisibility.Set('Contact', true);
+        FieldVisibility.Set('SplitByMonth', true);
+        ActionVisibility.Set('DataCheck', true);
+        AuditFileExportPageVisibility := "Audit File Export Format"::SAFT;
+
+        AuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
+
+        Assert.IsFalse(FieldVisibility.Get('Contact'), 'SAF-T must hide the contact through the selected format interface.');
+        Assert.IsTrue(FieldVisibility.Get('SplitByMonth'), 'SAF-T must retain monthly splitting.');
+        Assert.IsTrue(ActionVisibility.Get('DataCheck'), 'SAF-T must retain data check.');
+
+        FieldVisibility.Set('Contact', true);
+        AuditFileExportPageVisibility := "Audit File Export Format"::None;
+        AuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
+        Assert.IsTrue(FieldVisibility.Get('Contact'), 'SAF-T must not hide the contact for another format.');
+    end;
 
     [Test]
     [HandlerFunctions('ConfirmHandlerYes,MessageHandler')]
@@ -60,7 +89,7 @@ codeunit 139511 "SAF-T Tests"
 
         // [THEN] Three files were created - one for master data, one for G/L Entries and one for source documents.
         CompanyInformation.Get();
-        AuditFileNamesStart := StrSubstNo('SAF-T Financial_%1', CompanyInformation."VAT Registration No.");
+        AuditFileNamesStart := StrSubstNo(SAFTFinancialFileNameLbl, CompanyInformation."VAT Registration No.");
         AuditFileNamesEnd.AddRange('_1_3.xml', '_2_3.xml', '_3_3.xml');
         Commit();
         VerifyAuditFileCountAndNames(AuditFileExportHeader, AuditFileNamesStart, AuditFileNamesEnd);
@@ -888,8 +917,8 @@ codeunit 139511 "SAF-T Tests"
 
         for i := 1 to AuditFile.Count() do begin
             AuditFile.Get(AuditFileExportHeader.ID, i);
-            Assert.IsTrue(AuditFile."File Name".StartsWith(AuditFileNamesStart), StrSubstNo('File name must start with %1', AuditFileNamesStart));
-            Assert.IsTrue(AuditFile."File Name".EndsWith(AuditFileNamesEnd.Get(i)), StrSubstNo('File name must end with %1', AuditFileNamesEnd.Get(i)));
+            Assert.IsTrue(AuditFile."File Name".StartsWith(AuditFileNamesStart), StrSubstNo(FileNameStartErrLbl, AuditFileNamesStart));
+            Assert.IsTrue(AuditFile."File Name".EndsWith(AuditFileNamesEnd.Get(i)), StrSubstNo(FileNameEndErrLbl, AuditFileNamesEnd.Get(i)));
         end;
     end;
 
@@ -908,7 +937,9 @@ codeunit 139511 "SAF-T Tests"
         GLAccount.FindFirst();
         Customer.Get(CustomerNo);
         Vendor.Get(VendorNo);
+#pragma warning disable AA0210
         VATPostingSetup.SetFilter("Sales VAT Account", '<>%1', '');
+#pragma warning restore AA0210
         VATPostingSetup.FindFirst();
 
         XmlDataHandlingSAFTTest.GetAuditFileNamespace(NamespacePrefix, NamespaceUri);

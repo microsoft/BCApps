@@ -45,6 +45,11 @@ codeunit 148004 "Test Verifactu Export"
         RegisteredDocumentXPathLbl: Label '//*[local-name()="RegistroAlta"][*[local-name()="IDFactura"]/*[local-name()="NumSerieFactura" and text()="%1"]]', Locked = true, Comment = '%1 = Document number';
         PostedBatchRecipientNameLbl: Label 'Posted bill-to recipient %1', Locked = true, Comment = '%1 = Invoice index';
         PostedBatchRecipientVATLbl: Label 'B0000000%1', Locked = true, Comment = '%1 = Invoice index';
+        SistemaInformaticoXPathLbl: Label '//*[local-name()="SistemaInformatico"]', Locked = true;
+        SistemaInformaticoChildXPathLbl: Label '//*[local-name()="SistemaInformatico"]/*[local-name()="%1"]', Locked = true, Comment = '%1 = Child node name';
+        SistemaInformaticoIDOtroChildXPathLbl: Label '//*[local-name()="SistemaInformatico"]/*[local-name()="IDOtro"]/*[local-name()="%1"]', Locked = true, Comment = '%1 = IDOtro child node name';
+        XMLNodeNotFoundLbl: Label 'XML should contain node %1', Locked = true, Comment = '%1 = XPath';
+        XMLNodeUnexpectedValueLbl: Label 'Unexpected value of node %1', Locked = true, Comment = '%1 = XPath';
 
     #region SalesInvoice
     [Test]
@@ -276,8 +281,37 @@ codeunit 148004 "Test Verifactu Export"
 
         // [THEN] XML contains SistemaInformatico element with Business Central information
         Assert.IsTrue(XMLText.Contains('SistemaInformatico'), 'XML should contain SistemaInformatico');
-        Assert.IsTrue(XMLText.Contains('BusinessCentral'), 'XML should contain BusinessCentral');
+        Assert.IsTrue(XMLText.Contains('Dynamics 365 Business Central'), 'XML should contain Dynamics 365 Business Central');
         Assert.IsTrue(XMLText.Contains('NombreSistemaInformatico'), 'XML should contain NombreSistemaInformatico');
+    end;
+
+    [Test]
+    procedure ExportSalesInvoiceUsesMicrosoftProducerInformation()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        CompanyInformation: Record "Company Information";
+        XMLText: Text;
+    begin
+        // [SCENARIO 653145] Software producer identification is independent of the issuing company.
+        Initialize();
+
+        // [GIVEN] An issuing company other than Microsoft and a posted sales invoice.
+        CompanyInformation.Get();
+        CompanyInformation.Validate(Name, 'Test invoice issuer');
+        CompanyInformation.Validate("VAT Registration No.", 'B12345678');
+        CompanyInformation.Modify(true);
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", LibraryRandom.RandDecInRange(1000, 5000, 2), LibraryRandom.RandIntInRange(10, 25));
+
+        // [WHEN] The invoice is exported.
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] SistemaInformatico identifies Microsoft and Dynamics 365 Business Central, not the issuing company.
+        VerifySistemaInformatico(XMLText);
+
+        // [THEN] The issuing company's information remains in the XML.
+        VerifyCompanyInformation(CompanyInformation, XMLText);
     end;
     #endregion
 
@@ -2766,6 +2800,43 @@ codeunit 148004 "Test Verifactu Export"
     begin
         Assert.IsTrue(XMLText.Contains(CompanyInformation.Name), 'XML should contain company name');
         Assert.IsTrue(XMLText.Contains(CompanyInformation."VAT Registration No."), 'XML should contain VAT number');
+    end;
+
+    local procedure VerifySistemaInformatico(XMLText: Text)
+    var
+        ParsedXMLDocument: XmlDocument;
+        SistemaInformaticoXMLNodes: XmlNodeList;
+        NIFXMLNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectNodes(SistemaInformaticoXPathLbl, SistemaInformaticoXMLNodes), 'XML should contain SistemaInformatico');
+        Assert.AreEqual(1, SistemaInformaticoXMLNodes.Count(), 'XML should contain exactly one SistemaInformatico');
+
+        VerifySistemaInformaticoNodeValue(XMLText, 'NombreRazon', 'Microsoft Corporation');
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoIDOtroChildXPathLbl, 'CodigoPais'), 'US');
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoIDOtroChildXPathLbl, 'IDType'), '04');
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoIDOtroChildXPathLbl, 'ID'), '91-1144442');
+        VerifySistemaInformaticoNodeValue(XMLText, 'NombreSistemaInformatico', 'Dynamics 365 Business Central');
+        VerifySistemaInformaticoNodeValue(XMLText, 'IdSistemaInformatico', 'BC');
+
+        Assert.IsFalse(
+            ParsedXMLDocument.SelectSingleNode(StrSubstNo(SistemaInformaticoChildXPathLbl, 'NIF'), NIFXMLNode),
+            'SistemaInformatico should not contain the company NIF');
+    end;
+
+    local procedure VerifySistemaInformaticoNodeValue(XMLText: Text; NodeName: Text; ExpectedValue: Text)
+    begin
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoChildXPathLbl, NodeName), ExpectedValue);
+    end;
+
+    local procedure VerifyXMLNodeValue(XMLText: Text; XPath: Text; ExpectedValue: Text)
+    var
+        ParsedXMLDocument: XmlDocument;
+        ValueXMLNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectSingleNode(XPath, ValueXMLNode), StrSubstNo(XMLNodeNotFoundLbl, XPath));
+        Assert.AreEqual(ExpectedValue, ValueXMLNode.AsXmlElement().InnerText(), StrSubstNo(XMLNodeUnexpectedValueLbl, XPath));
     end;
 
     local procedure VerifyDocumentNumber(DocumentNo: Code[20]; XMLText: Text)

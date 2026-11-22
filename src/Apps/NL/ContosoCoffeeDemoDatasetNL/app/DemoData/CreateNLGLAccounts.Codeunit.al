@@ -133,6 +133,9 @@ codeunit 11499 "Create NL GL Accounts"
         CreateGLAccount: Codeunit "Create G/L Account";
         CreateMfgAccount: Codeunit "Create Mfg GL Account";
     begin
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '1800');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '4850');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '6930');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.BalanceSheetName(), '0000');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.AssetsName(), '0001');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.TangibleFixedAssetsName(), '0100');
@@ -1200,10 +1203,8 @@ codeunit 11499 "Create NL GL Accounts"
         GLAccount: Record "G/L Account";
     begin
         GLAccount.SetRange("No.", FromGLAccountNo, ToGLAccountNo);
-        if GLAccount.FindSet() then begin
-            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", false);
-            GLAccount.ModifyAll("Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
-        end;
+        if GLAccount.FindSet() then
+            GLAccount.ModifyAll("Account Category", GLAccountCategory."Account Category", "Account Subcategory Entry No.", GLAccountCategory."Entry No.", false);
     end;
 
     procedure IntangibleFixedAssetsName(): Text[100]

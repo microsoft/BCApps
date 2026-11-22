@@ -12,7 +12,7 @@ using Microsoft.Purchases.Vendor;
 
 codeunit 20522 "Subc. Planning Comp. Ext."
 {
-#if not CLEAN29
+#if not CLEAN28
     var
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -22,7 +22,7 @@ codeunit 20522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Routing Link Code", false, false)]
     local procedure OnAfterValidateRoutingLinkCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -36,7 +36,7 @@ codeunit 20522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterTransferFromComponent, '', false, false)]
     local procedure OnAfterTransferFromComponent(var PlanningComponent: Record "Planning Component"; var ProdOrderComp: Record "Prod. Order Component")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -50,7 +50,7 @@ codeunit 20522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Location Code", false, false)]
     local procedure OnAfterValidateLocationCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -65,7 +65,7 @@ codeunit 20522 "Subc. Planning Comp. Ext."
     [EventSubscriber(ObjectType::Table, Database::"Planning Component", OnAfterValidateEvent, "Bin Code", false, false)]
     local procedure OnAfterValidateBinCode(var Rec: Record "Planning Component"; var xRec: Record "Planning Component"; CurrFieldNo: Integer)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

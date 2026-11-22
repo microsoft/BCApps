@@ -44,8 +44,7 @@ codeunit 20116 "AMC Bank Install"
         PaymentMethod: Record "Payment Method";
     begin
         BankExportImportSetup.SetFilter("Data Exch. Def. Code", '%1|%2', 'BANKDATACONVSERVCT', 'BANKDATACONVSERVSTMT');
-        BankExportImportSetup.ModifyAll("Processing Codeunit ID", Codeunit::"AMC Bank Upg. Notification");
-        BankExportImportSetup.ModifyAll("Data Exch. Def. Code", '');
+        BankExportImportSetup.ModifyAll("Processing Codeunit ID", Codeunit::"AMC Bank Upg. Notification", "Data Exch. Def. Code", '');
 
         PaymentMethod.SetFilter("Pmt. Export Line Definition", '%1|%2', 'BANKDATACONVSERVCT', 'BANKDATACONVSERVSTMT');
         PaymentMethod.ModifyAll("Pmt. Export Line Definition", '');

@@ -559,8 +559,7 @@ codeunit 10752 "SII Doc. Upload Management"
             until TempXMLBuffer[1].Next() = 0
         else begin
             XMLParseErrorCode(TempXMLBuffer[2], TempSIIHistory);
-            TempSIIHistoryBuffer.ModifyAll("Error Message", TempSIIHistory."Error Message");
-            TempSIIHistoryBuffer.ModifyAll(Status, TempSIIHistory.Status);
+            TempSIIHistoryBuffer.ModifyAll("Error Message", TempSIIHistory."Error Message", Status, TempSIIHistory.Status);
             TempSIIHistoryBuffer.SetRange(Status, TempSIIHistory.Status);
             ProcessBatchResponse(TempSIIHistoryBuffer);
         end;
@@ -569,8 +568,7 @@ codeunit 10752 "SII Doc. Upload Management"
         // update remaining Pending (not matched within XML)
         TempSIIHistoryBuffer.SetRange(Status, TempSIIHistory.Status::Pending);
         if not TempSIIHistoryBuffer.IsEmpty() then begin
-            TempSIIHistoryBuffer.ModifyAll("Error Message", ParseMatchDocumentErr);
-            TempSIIHistoryBuffer.ModifyAll(Status, TempSIIHistory.Status::Failed);
+            TempSIIHistoryBuffer.ModifyAll("Error Message", ParseMatchDocumentErr, Status, TempSIIHistory.Status::Failed);
             ProcessBatchResponse(TempSIIHistoryBuffer);
         end;
     end;

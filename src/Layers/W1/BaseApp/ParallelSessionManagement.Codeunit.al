@@ -139,7 +139,9 @@ codeunit 490 "Parallel Session Management"
         if TempParallelSessionEntry.FindSet() then
             repeat
                 TempInteger.Init();
+#pragma warning disable AL0603
                 StartSession(TempInteger.Number, TempParallelSessionEntry."Object ID to Run", CompanyName, TempParallelSessionEntry);
+#pragma warning restore AL0603
                 TempInteger.Insert();
                 TempParallelSessionEntry.Processed := true;
                 TempParallelSessionEntry."Session ID" := TempInteger.Number;

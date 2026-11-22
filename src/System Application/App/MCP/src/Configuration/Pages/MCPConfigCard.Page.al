@@ -102,6 +102,14 @@ page 8351 "MCP Config Card"
                 Visible = not IsDefault and APIToolsActive;
                 Editable = not Rec.Active;
             }
+            part(AgentList; "MCP Config Agent List")
+            {
+                ApplicationArea = All;
+                SubPageLink = ID = field(SystemId);
+                UpdatePropagation = Both;
+                Visible = not IsDefault and AgentToolsActive;
+                Editable = not Rec.Active;
+            }
         }
         area(FactBoxes)
         {
@@ -255,6 +263,7 @@ page 8351 "MCP Config Card"
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
         IsDefault: Boolean;
         APIToolsActive: Boolean;
+        AgentToolsActive: Boolean;
         DesignatedDefaultCannotBeDeactivatedErr: Label 'The designated default configuration cannot be deactivated. Clear the default designation first.';
 
     local procedure RefreshSubPages()
@@ -264,7 +273,10 @@ page 8351 "MCP Config Card"
         CurrPage.ServerFeatureList.Page.Reload(Rec.SystemId, not IsDefault and not Rec.Active);
         ServerFeature := "MCP Server Feature"::"API Tools";
         APIToolsActive := ServerFeature.IsActive(Rec.SystemId);
+        ServerFeature := "MCP Server Feature"::"Agent Tools";
+        AgentToolsActive := ServerFeature.IsActive(Rec.SystemId);
         CurrPage.SystemToolList.Page.Reload(Rec.SystemId);
         CurrPage.ToolList.Page.SetConfigActive(Rec.Active);
+        CurrPage.AgentList.Page.SetConfigActive(Rec.Active);
     end;
 }

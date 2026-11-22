@@ -358,7 +358,6 @@ codeunit 131352 "Library - Document Approvals"
     begin
         GetApprovalEntries(ApprovalEntry, RecordID);
         UserSetup.Get(UserId);
-        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", true);
-        ApprovalEntry.ModifyAll("Approver ID", UserSetup."User ID", true);
+        ApprovalEntry.ModifyAll("Sender ID", UserSetup."Approver ID", "Approver ID", UserSetup."User ID", true);
     end;
 }

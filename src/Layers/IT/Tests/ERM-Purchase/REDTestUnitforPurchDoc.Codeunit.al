@@ -2,6 +2,7 @@
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -1264,6 +1265,7 @@
         PurchaseHeader1: Record "Purchase Header";
         PurchaseHeader2: Record "Purchase Header";
         LibraryJobQueue: Codeunit "Library - Job Queue";
+        REDTestUnitforPurchDoc: Codeunit "RED Test Unit for Purch Doc";
         DeferralTemplateCode: Code[10];
         AccNo: Code[20];
         DocNo1: Code[20];
@@ -1289,8 +1291,10 @@
           NewPostDate, PurchaseHeader1."Posting Date", false,
           PurchaseHeader1."No.", PurchaseHeader2."No.",
           REPORT::"Batch Post Purchase Invoices");
+        BindSubscription(REDTestUnitforPurchDoc);
         LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(PurchaseHeader1.RecordId);
         LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(PurchaseHeader2.RecordId);
+        UnbindSubscription(REDTestUnitforPurchDoc);
 
         // [THEN] Confirm is called once
         Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), ConfirmCallOnceErr);
@@ -1314,6 +1318,7 @@
         PurchaseHeader1: Record "Purchase Header";
         PurchaseHeader2: Record "Purchase Header";
         LibraryJobQueue: Codeunit "Library - Job Queue";
+        REDTestUnitforPurchDoc: Codeunit "RED Test Unit for Purch Doc";
         DeferralTemplateCode: Code[10];
         AccNo: Code[20];
         DocNo1: Code[20];
@@ -1339,8 +1344,10 @@
           NewPostDate, PurchaseHeader1."Posting Date", false,
           PurchaseHeader1."No.", PurchaseHeader2."No.",
           REPORT::"Batch Post Purchase Orders");
+        BindSubscription(REDTestUnitforPurchDoc);
         LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(PurchaseHeader1.RecordId);
         LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(PurchaseHeader2.RecordId);
+        UnbindSubscription(REDTestUnitforPurchDoc);
 
         // [THEN] Confirm is called once
         Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), ConfirmCallOnceErr);
@@ -1364,6 +1371,7 @@
         PurchaseHeader1: Record "Purchase Header";
         PurchaseHeader2: Record "Purchase Header";
         LibraryJobQueue: Codeunit "Library - Job Queue";
+        REDTestUnitforPurchDoc: Codeunit "RED Test Unit for Purch Doc";
         DeferralTemplateCode: Code[10];
         AccNo: Code[20];
         DocNo1: Code[20];
@@ -1389,8 +1397,10 @@
           NewPostDate, PurchaseHeader1."Posting Date", false,
           PurchaseHeader1."No.", PurchaseHeader2."No.",
           REPORT::"Batch Post Purch. Credit Memos");
+        BindSubscription(REDTestUnitforPurchDoc);
         LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(PurchaseHeader1.RecordId);
         LibraryJobQueue.FindAndRunJobQueueEntryByRecordId(PurchaseHeader2.RecordId);
+        UnbindSubscription(REDTestUnitforPurchDoc);
 
         // [THEN] Confirm is called once
         Assert.AreEqual(1, LibraryVariableStorage.DequeueInteger(), ConfirmCallOnceErr);
@@ -3782,6 +3792,15 @@
     procedure ConfirmMessageHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnBeforeUpdatePurchLinesByFieldNo', '', false, false)]
+    local procedure SkipDeferralUpdateOnBeforeUpdatePurchLinesByFieldNo(var PurchaseHeader: Record "Purchase Header"; ChangedFieldNo: Integer; var AskQuestion: Boolean; var IsHandled: Boolean)
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        if ChangedFieldNo = PurchaseLine.FieldNo("Deferral Code") then
+            IsHandled := true;
     end;
 }
 

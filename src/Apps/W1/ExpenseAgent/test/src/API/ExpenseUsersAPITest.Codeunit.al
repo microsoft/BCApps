@@ -10,6 +10,7 @@ using Microsoft.HumanResources.Employee;
 codeunit 148315 "Expense Users API Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
@@ -21,7 +22,6 @@ codeunit 148315 "Expense Users API Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseUsers', Locked = true;
         EmployeesServiceNameTok: Label 'employees', Locked = true;
@@ -102,6 +102,7 @@ codeunit 148315 "Expense Users API Test"
         TargetURL := LibraryGraphMgt.CreateTargetURL(
             Format(UnlinkedExpenseUser.SystemId), Page::"Expense Users API", ServiceNameTok);
         asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 404);
+        Assert.ExpectedError('Response code is 404');
 
         // [WHEN] the full collection is fetched through the API
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Users API", ServiceNameTok);
@@ -125,7 +126,6 @@ codeunit 148315 "Expense Users API Test"
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Users API Test");
         if not ExpenseAgentSetup.Get() then begin
             ExpenseAgentSetup.Init();

@@ -25,7 +25,7 @@ reportextension 9666 "Composite Layout" extends "Tenant Report Defaults"
             LayoutFile = 'Foundation\Reporting\ReportParts\HeaderFooterDesign\ExternalDefault.docx';
             Type = Word;
             Subtype = HeaderFooter;
-            Summary = 'Header/footer design for portrait or landscape. Header with company logo, report name, document date and page number; footer with homepage, phone, email and fax number. Standard external layout for customer-facing documents.';
+            Summary = 'Header/footer design for portrait or landscape. Header with company logo, report name and page number; footer with homepage, phone, email and fax number. Standard external layout for customer-facing documents.';
         }
 
         layout("ExternalDefaultDetailedHFDesign")
@@ -34,7 +34,7 @@ reportextension 9666 "Composite Layout" extends "Tenant Report Defaults"
             LayoutFile = 'Foundation\Reporting\ReportParts\HeaderFooterDesign\ExternalDefaultDetailed.docx';
             Type = Word;
             Subtype = HeaderFooter;
-            Summary = 'Header/footer design for portrait or landscape. Header with company logo, report name, document date and page number; footer with homepage, phone, email, fax plus bank, bank account, VAT reg. no. and giro no. Detailed external layout.';
+            Summary = 'Header/footer design for portrait or landscape. Header with company logo, report name and page number; footer with homepage, phone, email, fax plus bank, bank account, VAT reg. no. and giro no. Detailed external layout.';
         }
 
         layout("ExternalMinimalisticHFDesign")
@@ -61,7 +61,7 @@ reportextension 9666 "Composite Layout" extends "Tenant Report Defaults"
             LayoutFile = 'Foundation\Reporting\ReportParts\HeaderFooterDesign\ExternalModern.docx';
             Type = Word;
             Subtype = HeaderFooter;
-            Summary = 'Header/footer design for portrait or landscape, modern style without logo. Header with report name, document date and company name in uppercase; footer with page number and full contact details (homepage, phone, email, fax, VAT, giro, bank).';
+            Summary = 'Header/footer design for portrait or landscape, modern style without logo. Header with report name and company name in uppercase; footer with page number and full contact details (homepage, phone, email, fax, VAT, giro, bank).';
         }
 
         layout("ExternalModernLogoHFDesign")
@@ -70,7 +70,7 @@ reportextension 9666 "Composite Layout" extends "Tenant Report Defaults"
             LayoutFile = 'Foundation\Reporting\ReportParts\HeaderFooterDesign\ExternalModernLogo.docx';
             Type = Word;
             Subtype = HeaderFooter;
-            Summary = 'Header/footer design for portrait or landscape. Header with company logo, report name, document date and page number; footer with homepage, phone, email, fax plus bank, bank account, VAT reg. no. and giro no. Modern external layout.';
+            Summary = 'Header/footer design for portrait or landscape. Header with company logo, report name and page number; footer with homepage, phone, email, fax plus bank, bank account, VAT reg. no. and giro no. Modern external layout.';
         }
 
         layout("InternalDefaultHFDesign")

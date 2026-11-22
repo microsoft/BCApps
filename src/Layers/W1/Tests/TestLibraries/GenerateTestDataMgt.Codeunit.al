@@ -228,10 +228,7 @@ codeunit 130150 "Generate Test Data Mgt."
         GenerateTestDataLine.SetFilter(Status, '<>%1&<>%2', GenerateTestDataLine.Status::Scheduled, GenerateTestDataLine.Status::"In Progress");
         GenerateTestDataLine.SetRange(Enabled, true);
         if not GenerateTestDataLine.IsEmpty() then begin
-            GenerateTestDataLine.ModifyAll("Records To Add", RecordsToAdd);
-            GenerateTestDataLine.ModifyAll("Added Records", 0);
-            GenerateTestDataLine.ModifyAll("Session ID", 0);
-            GenerateTestDataLine.ModifyAll("Service Instance ID", 0);
+            GenerateTestDataLine.ModifyAll("Records To Add", RecordsToAdd, "Added Records", 0, "Session ID", 0, "Service Instance ID", 0);
             StartTime := CurrentDateTime;
             GenerateTestDataLine.FindSet(true);
             repeat

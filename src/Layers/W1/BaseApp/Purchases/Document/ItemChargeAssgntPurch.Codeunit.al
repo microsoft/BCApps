@@ -401,10 +401,7 @@ codeunit 5805 "Item Charge Assgnt. (Purch.)"
         ItemChargeAssgntPurch.SetRange("Document Line No.", PurchLine."Line No.");
 
         if not ItemChargeAssgntPurch.IsEmpty() then begin
-            ItemChargeAssgntPurch.ModifyAll("Amount to Assign", 0);
-            ItemChargeAssgntPurch.ModifyAll("Qty. to Assign", 0);
-            ItemChargeAssgntPurch.ModifyAll("Amount to Handle", 0);
-            ItemChargeAssgntPurch.ModifyAll("Qty. to Handle", 0);
+            ItemChargeAssgntPurch.ModifyAll("Amount to Assign", 0, "Qty. to Assign", 0, "Amount to Handle", 0, "Qty. to Handle", 0);
             OnAssignItemChargesFromLineOnAfterItemChargeAssignmentModifyAll(PurchLine, ItemChargeAssgntPurch);
             ItemChargeAssgntPurch.FindSet();
 

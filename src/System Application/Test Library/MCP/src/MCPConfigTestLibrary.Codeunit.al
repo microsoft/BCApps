@@ -61,6 +61,19 @@ codeunit 130131 "MCP Config Test Library"
         exit(MCPConfigImplementation.EncodeForMCPHeaderIfNonAscii(Value));
     end;
 
+    procedure GetAgentSystemTools(var SystemTools: Dictionary of [Text, Text])
+    var
+        TempMCPSystemTool: Record "MCP System Tool" temporary;
+        MCPAgentToolsFeature: Codeunit "MCP Agent Tools Feature";
+    begin
+        Clear(SystemTools);
+        MCPAgentToolsFeature.LoadSystemTools(TempMCPSystemTool);
+        if TempMCPSystemTool.FindSet() then
+            repeat
+                SystemTools.Add(TempMCPSystemTool."Tool Name", TempMCPSystemTool."Tool Description");
+            until TempMCPSystemTool.Next() = 0;
+    end;
+
     procedure ConfirmDataQueryToolsOnImport(EnableDataQueryTools: Boolean): Boolean
     begin
         exit(MCPConfigImplementation.ConfirmDataQueryToolsOnImport(EnableDataQueryTools));

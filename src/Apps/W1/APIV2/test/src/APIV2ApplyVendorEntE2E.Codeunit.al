@@ -1,6 +1,8 @@
 codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
+    RequiredTestIsolation = Disabled;
     TestType = Uncategorized;
     TestPermissions = Disabled;
 
@@ -170,6 +172,8 @@ codeunit 139867 "APIV2 - Apply Vendor Ent. E2E"
 
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
+
         LibraryTestInitialize.OnTestInitialize(Codeunit::"APIV2 - Apply Vendor Ent. E2E");
 
         if not isInitialized then

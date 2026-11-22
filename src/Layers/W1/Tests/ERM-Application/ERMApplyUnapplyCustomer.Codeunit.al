@@ -37,6 +37,7 @@
         SelectionFilterErr: Label 'Problem with selection filter: Original selection: %1. Returned selection: %2.', Comment = '%1: original selection filter;%2: returned selection filter';
         NoEntriesAppliedErr: Label 'Cannot post because you did not specify which entry to apply. You must specify an entry in the Applies-to ID field for one or more open entries.';
         VATEntryCntLbl: Label 'Wrong count of VAT Entries created.';
+        RemAmtLCYChangedByUnapplyErr: Label 'Remaining Amt. (LCY) as of %1 must be the same as before the application.', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -1902,6 +1903,57 @@
     end;
 
     [Test]
+    procedure UnapplyFCYPaymentWithManualFactorBeforeLaterExchRateAdjmtKeepsBalances()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
+        ERMApplyUnapplyCustomer: Codeunit "ERM Apply Unapply Customer";
+        PostingDate: array[3] of Date;
+        ExpectedRemainingAmtLCY: array[3] of Decimal;
+        CurrencyCode: Code[10];
+        LastDtldEntryNo: Integer;
+    begin
+        // [FEATURE] [AI test 1.0] [FCY] [Adjust Exchange Rate]
+        // [SCENARIO] Unapplying an FCY customer payment on a date before later exchange rate adjustments does not change the payment's LCY balance on any date.
+        Initialize();
+        BindSubscription(ERMApplyUnapplyCustomer);
+
+        // [GIVEN] "Appln. between Currencies" = All
+        LibrarySales.SetApplnBetweenCurrencies(SalesReceivablesSetup."Appln. between Currencies"::All);
+
+        // [GIVEN] Currency "EUR" with exchange rates 1.16, 1.167018 and 1.168121 on dates D1, D2 and D3
+        CurrencyCode := CreateCurrencyWithExchRatesOnThreeDates(PostingDate);
+
+        // [GIVEN] LCY invoice "I" of 27609.25 and EUR payment "P" of 27586 with manual currency factor 1.134468 (24316.24 LCY), both posted on D1
+        PostLCYInvoiceAndFCYPayment(
+          InvoiceCustLedgerEntry, PaymentCustLedgerEntry, PostingDate[1], CurrencyCode, 27609.25, -27586, 1.134468);
+
+        // [GIVEN] Exchange rates adjusted on D2 and D3
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[2], PostingDate[2]);
+        LibraryERM.RunExchRateAdjustmentSimple(CurrencyCode, PostingDate[3], PostingDate[3]);
+
+        // [GIVEN] "P" applied to "I" on D1
+        ApplyAndPostCustomerEntry(
+          InvoiceCustLedgerEntry."Document No.", PaymentCustLedgerEntry."Document No.", 27609.25,
+          InvoiceCustLedgerEntry."Document Type", PaymentCustLedgerEntry."Document Type");
+        LastDtldEntryNo := GetLastDtldCustLedgEntryNo();
+
+        // [WHEN] Unapply "P" on D1
+        PostUnapplyCustLedgEntryOnDate(PaymentCustLedgerEntry, PostingDate[1]);
+        UnbindSubscription(ERMApplyUnapplyCustomer);
+
+        // [THEN] "Remaining Amt. (LCY)" of "P" is -24316.24 as of D1, -23638.02 as of D2 and -23615.70 as of D3, the same as before the application
+        ExpectedRemainingAmtLCY[1] := -24316.24;
+        ExpectedRemainingAmtLCY[2] := -23638.02;
+        ExpectedRemainingAmtLCY[3] := -23615.7;
+        VerifyCustLedgEntryRemAmtLCYOnDates(PaymentCustLedgerEntry."Entry No.", PostingDate, ExpectedRemainingAmtLCY);
+
+        // [THEN] Unapply posts no unrealized gain or loss for "P"
+        VerifyNoUnrealizedGainLossDtldCustLedgEntryPosted(PaymentCustLedgerEntry."Entry No.", LastDtldEntryNo);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure RoundingACYWhenPaymentAppliedToInvoiceWithRevChargeVAT()
     var
@@ -2584,8 +2636,9 @@
         // [THEN] Check General Ledger Entry All Lines Must have Value in "Additional-Currency Amount" Field.
         GlEntry.Reset();
         GlEntry.SetRange("Document No.", PaymentDocNo);
+        Assert.RecordIsNotEmpty(GlEntry);
         GlEntry.SetRange("Additional-Currency Amount", 0);
-        Assert.RecordCount(GlEntry, 2); // new line for source currency only
+        Assert.RecordCount(GlEntry, 0);
     end;
 
     [Test]
@@ -2676,6 +2729,7 @@
 
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibrarySetupStorage.Save(DATABASE::"Source Code Setup");
+        LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Apply Unapply Customer");
     end;
@@ -3001,6 +3055,71 @@
         GenJournalLine.Validate("Currency Code", CurrencyCode);
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
+    end;
+
+    local procedure CreateCurrencyWithExchRatesOnThreeDates(var PostingDate: array[3] of Date) CurrencyCode: Code[10]
+    begin
+        PostingDate[1] := WorkDate();
+        PostingDate[2] := PostingDate[1] + 1;
+        PostingDate[3] := PostingDate[2] + 1;
+        CurrencyCode := CreateCurrencyAndExchangeRate(1.16, 1, PostingDate[1]);
+        CreateExchangeRate(CurrencyCode, 1.167018, 1, PostingDate[2]);
+        CreateExchangeRate(CurrencyCode, 1.168121, 1, PostingDate[3]);
+    end;
+
+    local procedure PostLCYInvoiceAndFCYPayment(var InvoiceCustLedgerEntry: Record "Cust. Ledger Entry"; var PaymentCustLedgerEntry: Record "Cust. Ledger Entry"; PostingDate: Date; CurrencyCode: Code[10]; InvoiceAmount: Decimal; PaymentAmount: Decimal; PaymentCurrencyFactor: Decimal)
+    var
+        Customer: Record Customer;
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        SelectGenJournalBatch(GenJournalBatch, false);
+        CreateAndPostGenJnlLineWithCurrency(
+          GenJournalLine, GenJournalBatch, PostingDate, GenJournalLine."Document Type"::Invoice, Customer."No.", '', InvoiceAmount);
+        LibraryERM.FindCustomerLedgerEntry(InvoiceCustLedgerEntry, InvoiceCustLedgerEntry."Document Type"::Invoice, GenJournalLine."Document No.");
+
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+          GenJournalLine."Account Type"::Customer, Customer."No.", PaymentAmount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate("Currency Factor", PaymentCurrencyFactor);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        LibraryERM.FindCustomerLedgerEntry(PaymentCustLedgerEntry, PaymentCustLedgerEntry."Document Type"::Payment, GenJournalLine."Document No.");
+    end;
+
+    local procedure PostUnapplyCustLedgEntryOnDate(CustLedgerEntry: Record "Cust. Ledger Entry"; PostingDate: Date)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        TempApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
+    begin
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        DetailedCustLedgEntry.SetRange("Entry Type", DetailedCustLedgEntry."Entry Type"::Application);
+        DetailedCustLedgEntry.FindLast();
+        TempApplyUnapplyParameters."Document No." := CustLedgerEntry."Document No.";
+        TempApplyUnapplyParameters."Posting Date" := PostingDate;
+        CustEntryApplyPostedEntries.PostUnApplyCustomer(DetailedCustLedgEntry, TempApplyUnapplyParameters);
+    end;
+
+    local procedure GetCustLedgEntryRemAmtLCYOnDate(CustLedgerEntryNo: Integer; PostingDate: Date): Decimal
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry.Get(CustLedgerEntryNo);
+        CustLedgerEntry.SetRange("Date Filter", 0D, PostingDate);
+        CustLedgerEntry.CalcFields("Remaining Amt. (LCY)");
+        exit(CustLedgerEntry."Remaining Amt. (LCY)");
+    end;
+
+    local procedure GetLastDtldCustLedgEntryNo(): Integer
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry.FindLast();
+        exit(DetailedCustLedgEntry."Entry No.");
     end;
 
     local procedure CreateAndPostSalesInvoiceAndPayment(CustomerNo: Code[20]; var GenJournalLine: Record "Gen. Journal Line"): Code[20]
@@ -3406,6 +3525,31 @@
         CustLedgerEntry.FindFirst();
         CustLedgerEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
         CustLedgerEntry.TestField("Remaining Amt. (LCY)", Round(CustLedgerEntry."Remaining Amount" / CustLedgerEntry."Adjusted Currency Factor", 0.01));
+    end;
+
+    local procedure VerifyCustLedgEntryRemAmtLCYOnDates(CustLedgerEntryNo: Integer; PostingDate: array[3] of Date; ExpectedRemainingAmtLCY: array[3] of Decimal)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to ArrayLen(PostingDate) do
+            Assert.AreEqual(
+              ExpectedRemainingAmtLCY[Index], GetCustLedgEntryRemAmtLCYOnDate(CustLedgerEntryNo, PostingDate[Index]),
+              StrSubstNo(RemAmtLCYChangedByUnapplyErr, PostingDate[Index]));
+    end;
+
+    local procedure VerifyNoUnrealizedGainLossDtldCustLedgEntryPosted(CustLedgerEntryNo: Integer; LastEntryNoBeforeUnapply: Integer)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntryNo);
+        DetailedCustLedgEntry.SetFilter("Entry No.", '>%1', LastEntryNoBeforeUnapply);
+        DetailedCustLedgEntry.SetRange(
+          "Entry Type", DetailedCustLedgEntry."Entry Type"::"Unrealized Loss", DetailedCustLedgEntry."Entry Type"::"Unrealized Gain");
+        if DetailedCustLedgEntry.FindSet() then
+            repeat
+                Assert.IsTrue(
+                  DetailedCustLedgEntry.Unapplied, StrSubstNo(UnappliedErr, DetailedCustLedgEntry.TableCaption(), DetailedCustLedgEntry.Unapplied));
+            until DetailedCustLedgEntry.Next() = 0;
     end;
 
     local procedure VerifyGLEntries(DocumentNo: Code[20])

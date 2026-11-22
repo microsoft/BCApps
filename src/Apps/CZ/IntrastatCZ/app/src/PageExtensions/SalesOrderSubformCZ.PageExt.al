@@ -18,6 +18,12 @@ pageextension 31326 "Sales Order Subform CZ" extends "Sales Order Subform"
                 ToolTip = 'Specifies the statistic indication code.';
                 Visible = false;
             }
+            field("Country/Reg. of Orig. Code CZ"; Rec."Country/Reg. of Orig. Code CZ")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
+                Visible = false;
+            }
         }
     }
 }

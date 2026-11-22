@@ -133,7 +133,8 @@ table 6916 "Posted Expense Report Line"
         field(21; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const(" ")) "Standard Text"
+            TableRelation =
+            if ("Account Type" = const(" ")) "Standard Text"
             else
             if ("Account Type" = const(Resource)) Resource
             else
@@ -329,6 +330,52 @@ table 6916 "Posted Expense Report Line"
         {
             Caption = 'Credit Card Feed No.';
         }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id";
+            Editable = false;
+            ToolTip = 'Specifies the corporate card used to pay for the posted expense.';
+        }
+        field(108; "Card Payable Account No."; Code[20])
+        {
+            Caption = 'Card Payable Account No.';
+            DataClassification = AccountData;
+            TableRelation = "G/L Account"."No.";
+            Editable = false;
+        }
+        field(109; "Card Liability Amount"; Decimal)
+        {
+            Caption = 'Card Liability Amount';
+            DataClassification = AccountData;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Card Liability Currency Code";
+            Editable = false;
+        }
+        field(110; "Card Liability Amount (LCY)"; Decimal)
+        {
+            Caption = 'Card Liability Amount (LCY)';
+            DataClassification = AccountData;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Editable = false;
+        }
+        field(111; "Card Liability Currency Code"; Code[10])
+        {
+            Caption = 'Card Liability Currency Code';
+            DataClassification = AccountData;
+            TableRelation = Currency.Code;
+            Editable = false;
+        }
+        field(112; "Card Liability Currency Factor"; Decimal)
+        {
+            Caption = 'Card Liability Currency Factor';
+            DataClassification = AccountData;
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 15;
+            Editable = false;
+        }
         field(52; "Applied Rule Id"; Guid)
         {
             Caption = 'Applied Rule Id';
@@ -488,6 +535,12 @@ table 6916 "Posted Expense Report Line"
         key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
         {
         }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
+        key(CorporateCard; "Corporate Card Id")
+        {
+        }
     }
 
     var
@@ -531,5 +584,30 @@ table 6916 "Posted Expense Report Line"
     internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
     begin
         exit(Rec."Policy Status At Posting");
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 }

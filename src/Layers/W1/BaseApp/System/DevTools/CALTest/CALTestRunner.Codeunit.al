@@ -58,8 +58,7 @@ codeunit 130400 "CAL Test Runner"
     begin
         OnBeforeRunTests(CALTestLine);
         OpenWindow();
-        CALTestLine.ModifyAll(Result, CALTestLine.Result::" ");
-        CALTestLine.ModifyAll("First Error", '');
+        CALTestLine.ModifyAll(Result, CALTestLine.Result::" ", "First Error", '');
         Commit();
         TestRunNo := CALTestResult.LastTestRunNo() + 1;
         CompanyWorkDate := WorkDate();
