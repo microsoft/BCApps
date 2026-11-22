@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies how a missing receipt attachment is handled for an expense: not enforced, a warning, or an error.
+/// </summary>
 enum 6914 "Expense Attachment Enforcement"
 {
-    Access = Internal;
     Caption = 'Attachment Enforcement';
 
     value(0; " ")

@@ -13,6 +13,9 @@ using Microsoft.HumanResources.Employee;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores spend request headers, including requester, purpose, expected amounts, dimensions, and approval status.
+/// </summary>
 table 6840 "Spend Request"
 {
     Caption = 'Spend Request';
@@ -377,6 +380,10 @@ table 6840 "Spend Request"
         exit(Rec."Total Expected Amount (LCY)" - Rec."Total Spent Amount (LCY)");
     end;
 
+    /// <summary>
+    /// Gets the description of the document type, falling back to the table caption when the document type is blank.
+    /// </summary>
+    /// <returns>The document type description used in messages.</returns>
     procedure GetDocumentTypeDescription(): Text
     begin
         if Rec."Document Type" = Rec."Document Type"::" " then

@@ -613,9 +613,9 @@ report 702 "Inventory Posting - Test"
                     No[2] := "Salespers./Purch. Code";
                     CheckDimValuePosting("Item Journal Line");
 
-                    if (ItemJnlTemplate.Type in
-                        [ItemJnlTemplate.GetConsumptionTemplateType(), ItemJnlTemplate.Type::Transfer]) or
-                       ((ItemJnlTemplate.Type = ItemJnlTemplate.GetProdOrderTemplateType()) and
+                    if ItemJnlTemplate.IsConsumptionTemplateType() or
+                       (ItemJnlTemplate.Type = ItemJnlTemplate.Type::Transfer) or
+                       (ItemJnlTemplate.IsProdOrderTemplateType() and
                         ("Entry Type" = "Entry Type"::Consumption))
                     then begin
                         ItemJnlLine4.Reset();
