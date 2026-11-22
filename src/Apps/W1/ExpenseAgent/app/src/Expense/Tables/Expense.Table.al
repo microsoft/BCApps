@@ -536,6 +536,18 @@ table 6900 Expense
                 CorpCardSelectionMgt.LookupCard(Rec);
             end;
         }
+        field(108; "Awaiting Receipt"; Boolean)
+        {
+            Caption = 'Awaiting Receipt';
+            ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is still open without a receipt or a no receipt declaration.';
+            FieldClass = FlowField;
+            CalcFormula = exist(Expense where("No." = field("No."),
+                                              Source = const(CorporateCard),
+                                              Status = const(Open),
+                                              "Receipt Attached" = const(false),
+                                              "No Receipt Type" = const(" ")));
+            Editable = false;
+        }
         field(34; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';

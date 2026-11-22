@@ -126,6 +126,11 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Receipt Attached';
                 }
+                field(awaitingReceipt; Rec."Awaiting Receipt")
+                {
+                    Caption = 'Awaiting Receipt';
+                    Editable = false;
+                }
                 field(receiptEntry; Rec."Receipt Entry")
                 {
                     Caption = 'Receipt Entry';

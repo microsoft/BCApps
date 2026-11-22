@@ -552,6 +552,14 @@ GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseU
 
 The list uses the same pending rules as receipt matching: source `CorporateCard`, linked to a card transaction, no receipt, no **No Receipt Type** (expenses marked *Lost Receipt* or *Receipt not needed* are excluded), status `Open`, and not on an expense report. It is read-only; change an expense or attach its receipt through `expenses({id})`.
 
+The `expenses` API also exposes a read-only, filterable `awaitingReceipt` flag (a FlowField, so it is always current). It is `true` when the expense has source `CorporateCard`, status `Open`, no receipt and no **No Receipt Type**. Use it to split an expense user's expenses into those still waiting for a receipt and all others, including expenses that need no receipt by declaration:
+
+```http
+GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=awaitingReceipt eq false;$orderby=systemCreatedAt desc;$top=50)
+```
+
+Clients can detect support by checking for the `awaitingReceipt` property on the `expense` entity in `$metadata`.
+
 ### Receipt Matching (Card Expense Matches API)
 
 When a receipt has been extracted, the client asks Business Central which pending card expense it belongs to. The expense user comes only from the URL; nothing is written.
