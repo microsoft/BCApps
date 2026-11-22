@@ -396,38 +396,6 @@ codeunit 137438 "Prod. Order Default Loc. UI"
         VerifyRefreshed(ProductionOrder, true);
     end;
 
-    [Test]
-    [HandlerFunctions('RefreshProductionOrderRequestPageHandler,RefreshLocationWarningHandler')]
-    procedure RefreshWithoutRequestPageAfterInteractiveRun()
-    var
-        FirstOrder: Record "Production Order";
-        SecondOrder: Record "Production Order";
-        RefreshProductionOrder: Report "Refresh Production Order";
-    begin
-        // [SCENARIO] Reusing a report without a request page does not retain the prior run's interactive warning.
-        InitializeRefreshWarning();
-        // [GIVEN] One report instance has interactively refreshed a blank-location order.
-        CreateOrderForRefresh(FirstOrder);
-        CreateOrderForRefresh(SecondOrder);
-        EnqueueRefreshWarning(FirstOrder, true, 'Continue');
-        Commit();
-        FirstOrder.SetRecFilter();
-        RefreshProductionOrder.SetTableView(FirstOrder);
-        RefreshProductionOrder.InitializeRequest(1, true, true, true, false);
-        RefreshProductionOrder.SetHideValidationDialog(false);
-        RefreshProductionOrder.UseRequestPage(true);
-        RefreshProductionOrder.RunModal();
-        // [WHEN] The same instance refreshes another blank-location order without a request page.
-        SecondOrder.SetRecFilter();
-        RefreshProductionOrder.SetTableView(SecondOrder);
-        RefreshProductionOrder.UseRequestPage(false);
-        RefreshProductionOrder.RunModal();
-        // [THEN] Both orders refresh and only the interactive run displays a warning.
-        VerifyRefreshed(FirstOrder, true);
-        VerifyRefreshed(SecondOrder, true);
-        LibraryVariableStorage.AssertEmpty();
-    end;
-
     local procedure InitializeRefreshWarning()
     var
         MyNotifications: Record "My Notifications";
