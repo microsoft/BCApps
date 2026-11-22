@@ -391,12 +391,16 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [SCENARIO 656413] When the source's registered app can't read the table, the sync stops with an error that
         //                   tells the source admin to grant read permission, instead of failing without a usable message.
         Initialize();
+        // [GIVEN] a cross-environment setup whose source reports that its app can't read the Customer table
         LibrarySalesLib.CreateCustomer(Customer);
         LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
         InProcessTransport.Activate();
         InProcessTransport.SetCannedResponse('{"tableId":18,"tableAvailable":true,"readPermission":false,"records":[],"hasMore":false}');
 
+        // [WHEN] the subsidiary reads a customer from the source
         asserterror LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
+
+        // [THEN] the error tells the source admin to grant read permission
         Assert.ExpectedError('grant it read permission to this table');
 
         CleanUp();
@@ -412,12 +416,16 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
         // [SCENARIO 656413] The full-synch review doesn't treat an unreadable source table as empty (which would skip it).
         Initialize();
+        // [GIVEN] a Customer mapping whose source reports that its app can't read the table
         CreateMinimalCustomerMapping(IntegrationTableMapping);
         LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
         InProcessTransport.Activate();
         InProcessTransport.SetCannedResponse('{"tables":[{"tableId":18,"tableAvailable":true,"readPermission":false}]}');
 
+        // [WHEN] the full-synch review checks whether the source table has records
         asserterror LibraryMasterDataMgt.GetIntegrationRecRefCount(IntegrationTableMapping);
+
+        // [THEN] it stops with the read-permission error instead of reporting an empty table
         Assert.ExpectedError('grant it read permission to this table');
 
         CleanUp();
@@ -543,6 +551,44 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] the question names the missing approval on the source
         Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
         Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'has not approved sharing its master data') > 0, 'The question should name the missing approval: ' + ConfirmQuestions.Get(1));
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('RecordingConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardFinishRejectsCapabilitiesWithoutVersion()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A JSON response without the contract version isn't from the source API, so Finish doesn't treat it as a connection.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        Clear(ConfirmQuestions);
+        // [GIVEN] a source that answers GetCapabilities with a JSON object that has no version
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('{"features":["records","lastModifiedPerTable"]}');
+
+        // [WHEN] the user completes the wizard
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the connection is reported as failed rather than verified
+        Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'Could not connect to the source environment') > 0, 'The question should report the failed connection: ' + ConfirmQuestions.Get(1));
         ConnectionDetails.Close();
 
         LibraryMasterDataMgt.PrivacyNoticeResetApproval();

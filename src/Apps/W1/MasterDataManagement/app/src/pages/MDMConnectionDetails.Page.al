@@ -500,11 +500,12 @@ page 7232 "MDM Connection Details"
         // Reachable, but the source hasn't approved sharing: report it now, with the same message the sync would show.
         if SourceResponse.ConsentRequired(Capabilities) then
             Error(CrossEnvDataSource.SourceConsentError());
-        if Capabilities.Get('version', VersionToken) then begin
-            if not (VersionToken.IsValue() and Evaluate(VersionValue, VersionToken.AsValue().AsText())) then // malformed version is a broken capabilities contract, not user-actionable
-                Error(ConnectionFailedErr);
-            VersionText := Format(VersionValue);
-        end;
+        // A missing or malformed version means the response isn't from the source API; never report it as a success.
+        if not Capabilities.Get('version', VersionToken) then
+            Error(ConnectionFailedErr);
+        if not (VersionToken.IsValue() and Evaluate(VersionValue, VersionToken.AsValue().AsText())) then
+            Error(ConnectionFailedErr);
+        VersionText := Format(VersionValue);
     end;
 
     local procedure NextStep()
