@@ -51,6 +51,7 @@ page 7421 "EA Pending Card Expenses API"
                 field(currencyCode; CurrencyCodeDisplay)
                 {
                     Caption = 'Currency Code';
+                    ToolTip = 'Specifies the currency of the expense. The local currency is represented by its currency code in the API.';
                 }
                 field(merchantName; Rec."Merchant Name")
                 {
