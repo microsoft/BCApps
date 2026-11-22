@@ -22,6 +22,7 @@ codeunit 148354 "EA Receipt Match API Tests"
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
         PendingCardExpensesServiceNameTok: Label 'pendingCardExpenses', Locked = true;
+        CardIdTok: Label 'CORPCARD-0001', Locked = true;
 
     [Test]
     procedure CardExpenseMatchesAPIReturnsMatchingCardExpense()
@@ -92,6 +93,54 @@ codeunit 148354 "EA Receipt Match API Tests"
     end;
 
     [Test]
+    procedure CardExpenseMatchesAPISelectsExpenseByCardLast4()
+    var
+        Expense: Record Expense;
+        OtherCardExpense: Record Expense;
+        EmptyGuid: Guid;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Posting receipt data with cardLast4 returns the card expense paid with the card ending in those digits.
+        Initialize();
+
+        // [GIVEN] Two equal card expenses of the same expense user, paid with cards ending in 0001 and 7777.
+        CreateCardExpense(Expense);
+        CreateCardExpense(OtherCardExpense, CreateAdditionalCard('****7777'));
+        Commit();
+
+        // [WHEN] Receipt data with cardLast4 7777 is posted.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateReceiptRequest(WorkDate(), 20, EmptyGuid, '7777'), ResponseText, 201);
+
+        // [THEN] The expense paid with the card ending in 7777 is returned.
+        Assert.AreEqual(OtherCardExpense.SystemId, GetExpenseId(ResponseText), 'The API must return the expense paid with the receipt card.');
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure CardExpenseMatchesAPICheckReturnsEmptyForOtherCardLast4()
+    var
+        Expense: Record Expense;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Posting receipt data with an expenseId and the cardLast4 of another card of the same expense user returns an empty id.
+        Initialize();
+
+        // [GIVEN] A card expense paid with the card ending in 0001 and another card of the same expense user ending in 7777.
+        CreateCardExpense(Expense);
+        CreateAdditionalCard('****7777');
+        Commit();
+
+        // [WHEN] Receipt data with cardLast4 7777 is posted with the id of the expense.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateReceiptRequest(WorkDate(), 20, Expense.SystemId, '7777'), ResponseText, 201);
+
+        // [THEN] An empty expense id is returned.
+        Assert.IsTrue(IsNullGuid(GetExpenseId(ResponseText)), 'A receipt paid with another card must not fit the checked expense.');
+        CompleteTest();
+    end;
+
+    [Test]
     procedure PendingCardExpensesAPIListsOnlyExpensesWaitingForReceipt()
     var
         PendingExpense: Record Expense;
@@ -145,17 +194,30 @@ codeunit 148354 "EA Receipt Match API Tests"
     end;
 
     local procedure CreateCardExpense(var Expense: Record Expense)
+    begin
+        CreateCardExpense(Expense, CardIdTok);
+    end;
+
+    local procedure CreateCardExpense(var Expense: Record Expense; CardId: Code[50])
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
         ExpenseNo: Code[20];
     begin
-        CorpCard.Get('CORPCARD-0001');
+        CorpCard.Get(CardId);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
         CorpCardTrans.Modify(true);
         Expense.Get(ExpenseNo);
+    end;
+
+    local procedure CreateAdditionalCard(MaskedCardNo: Text[30]): Code[50]
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.Get(CardIdTok);
+        exit(CorpCardTestLib.CreateAdditionalCard(CorpCard, MaskedCardNo));
     end;
 
     local procedure GetUserScopedURL(Expense: Record Expense; SubpageServiceName: Text): Text
@@ -174,6 +236,11 @@ codeunit 148354 "EA Receipt Match API Tests"
     end;
 
     local procedure CreateReceiptRequest(ReceiptDate: Date; ReceiptAmount: Decimal; ExpenseSystemId: Guid): Text
+    begin
+        exit(CreateReceiptRequest(ReceiptDate, ReceiptAmount, ExpenseSystemId, ''));
+    end;
+
+    local procedure CreateReceiptRequest(ReceiptDate: Date; ReceiptAmount: Decimal; ExpenseSystemId: Guid; CardLast4: Text): Text
     var
         Request: JsonObject;
         RequestText: Text;
@@ -183,6 +250,8 @@ codeunit 148354 "EA Receipt Match API Tests"
         Request.Add('merchantName', 'Contoso Coffee');
         if not IsNullGuid(ExpenseSystemId) then
             Request.Add('expenseId', LowerCase(DelChr(Format(ExpenseSystemId), '=', '{}')));
+        if CardLast4 <> '' then
+            Request.Add('cardLast4', CardLast4);
         Request.WriteTo(RequestText);
         exit(RequestText);
     end;
