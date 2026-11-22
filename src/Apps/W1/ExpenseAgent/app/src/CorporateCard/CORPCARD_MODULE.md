@@ -178,7 +178,6 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7450 | EA Corp Card Lookup | List | Read-only employee-card selection with provider short name and last four digits |
 | 7451 | Expense Corporate Cards API | API | Read-only, single-expense-user card catalog |
 | 7420 | EA Card Expense Matches API | API | `expenseUsers({id})/cardExpenseMatches`: read-only receipt-to-card-expense matching |
-| 7421 | EA Pending Card Expenses API | API | `expenseUsers({id})/pendingCardExpenses`: card-created expenses waiting for a receipt and a report |
 | 7452 | EA Card Liability Transfer | StandardDialog | Posting-date selection for a manual liability transfer |
 | 7440 | EA Payment Rec. Journal | Page extension | Shows corporate card transaction and posted expense report references |
 | 7441 | EA Bank Account Stmt. Lines | Page extension | Shows durable corporate card and posted expense report references |
@@ -544,21 +543,14 @@ The `expenses` API exposes a read-only `source` field. `Manual` is the default, 
 
 Once a `CorporateCard`-source expense is stored, its amount, expense date, and currency cannot be changed, including through receipt extraction/API updates. The Expense Card shows these fields as read-only. Updates that retain the financial values and updates to other receipt details remain allowed. `Manual`-source expenses are not subject to this restriction, even after matching to a transaction.
 
-To list corporate-card-created expenses awaiting a receipt and an expense report for one expense user:
+The `expenses` API exposes a read-only, filterable `pendingCardExpense` flag (a FlowField, so it is always current). It is `true` for a corporate-card-created expense that is still waiting for a receipt, using the same rules as receipt matching: source `CorporateCard`, linked to a card transaction, no receipt, no **No Receipt Type**, status `Open`, and not on an expense report. Expenses marked *Lost Receipt* or *Receipt not needed* are `false`. Use it to split an expense user's expenses into card expenses waiting for a receipt and all others:
 
 ```http
-GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/pendingCardExpenses
+GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/expenses?$filter=pendingCardExpense eq true
+GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=pendingCardExpense eq false;$orderby=systemCreatedAt desc;$top=50)
 ```
 
-The list uses the same pending rules as receipt matching: source `CorporateCard`, linked to a card transaction, no receipt, no **No Receipt Type** (expenses marked *Lost Receipt* or *Receipt not needed* are excluded), status `Open`, and not on an expense report. It is read-only; change an expense or attach its receipt through `expenses({id})`.
-
-The `expenses` API also exposes a read-only, filterable `awaitingReceipt` flag (a FlowField, so it is always current). It is `true` when the expense has source `CorporateCard`, status `Open`, no receipt and no **No Receipt Type**. Use it to split an expense user's expenses into those still waiting for a receipt and all others, including expenses that need no receipt by declaration:
-
-```http
-GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=awaitingReceipt eq false;$orderby=systemCreatedAt desc;$top=50)
-```
-
-Clients can detect support by checking for the `awaitingReceipt` property on the `expense` entity in `$metadata`.
+Clients can detect support by checking for the `pendingCardExpense` property on the `expense` entity in `$metadata`.
 
 ### Receipt Matching (Card Expense Matches API)
 
@@ -580,7 +572,7 @@ Recommended client flow for a matched expense:
 
 When there is no match, the client creates the expense as usual.
 
-When the user picks a transaction from `pendingCardExpenses` and submits a receipt for it, the client can check that the extracted receipt really fits that expense by posting the same data with its `expenseId`:
+When the user picks a pending card expense (`pendingCardExpense eq true`) and submits a receipt for it, the client can check that the extracted receipt really fits that expense by posting the same data with its `expenseId`:
 
 ```http
 POST .../expenseUsers({expenseUserId})/cardExpenseMatches
