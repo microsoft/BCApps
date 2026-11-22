@@ -130,13 +130,6 @@ page 6918 "Expense Users API"
                     SubPageLink = "Expense User SystemId" = field(SystemId);
                 }
 
-                part(pendingCardExpenses; "EA Pending Card Expenses API")
-                {
-                    EntityName = 'pendingCardExpense';
-                    EntitySetName = 'pendingCardExpenses';
-                    SubPageLink = "Expense User No." = field("No.");
-                }
-
                 part(cardExpenseMatches; "EA Card Expense Matches API")
                 {
                     EntityName = 'cardExpenseMatch';

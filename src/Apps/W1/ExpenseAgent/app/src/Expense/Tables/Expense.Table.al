@@ -536,16 +536,19 @@ table 6900 Expense
                 CorpCardSelectionMgt.LookupCard(Rec);
             end;
         }
-        field(108; "Awaiting Receipt"; Boolean)
+        field(108; "Pending Card Expense"; Boolean)
         {
-            Caption = 'Awaiting Receipt';
-            ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is still open without a receipt or a no receipt declaration.';
+            Caption = 'Pending Card Expense';
+            ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is still open and waiting for a receipt, with no no-receipt declaration and no expense report.';
             FieldClass = FlowField;
+            // Keep in sync with "EA Receipt Expense Match".SetPendingCardExpenseFilters.
             CalcFormula = exist(Expense where("No." = field("No."),
                                               Source = const(CorporateCard),
-                                              Status = const(Open),
+                                              "Credit Card Feed No." = filter(<> 0),
                                               "Receipt Attached" = const(false),
-                                              "No Receipt Type" = const(" ")));
+                                              "No Receipt Type" = const(" "),
+                                              Status = const(Open),
+                                              "Expense Report No." = const('')));
             Editable = false;
         }
         field(34; "Dimension Set ID"; Integer)

@@ -21,7 +21,6 @@ codeunit 148354 "EA Receipt Match API Tests"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
-        PendingCardExpensesServiceNameTok: Label 'pendingCardExpenses', Locked = true;
         ExpensesServiceNameTok: Label 'expenses', Locked = true;
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
 
@@ -142,44 +141,48 @@ codeunit 148354 "EA Receipt Match API Tests"
     end;
 
     [Test]
-    procedure ExpensesAPIAwaitingReceiptIsTrueOnlyForCardExpenseWaitingForReceipt()
+    procedure ExpensesAPIPendingCardExpenseIsTrueOnlyForCardExpenseWaitingForReceipt()
     var
         PendingExpense: Record Expense;
         ExpenseWithReceipt: Record Expense;
         LostReceiptExpense: Record Expense;
         ReleasedExpense: Record Expense;
+        UnlinkedExpense: Record Expense;
         ManualExpense: Record Expense;
         CorpCard: Record "EA Corp Card";
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] awaitingReceipt is true only for open card expenses without a receipt or a no receipt declaration.
+        // [SCENARIO] pendingCardExpense is true only for open card expenses linked to a transaction, without a receipt or a no receipt declaration.
         Initialize();
 
-        // [GIVEN] A card expense waiting for a receipt, one with a receipt, one declared as lost receipt, one released and a manual expense paid with the card.
+        // [GIVEN] A card expense waiting for a receipt, one with a receipt, one declared as lost receipt, one released, one no longer linked to its transaction and a manual expense paid with the card.
         CreateCardExpense(PendingExpense);
         CreateCardExpenseWithReceipt(ExpenseWithReceipt);
         CreateLostReceiptCardExpense(LostReceiptExpense);
         CreateCardExpense(ReleasedExpense);
         ReleasedExpense.Status := ReleasedExpense.Status::Released;
         ReleasedExpense.Modify();
+        CreateCardExpense(UnlinkedExpense);
+        UnlinkedExpense."Credit Card Feed No." := 0;
+        UnlinkedExpense.Modify();
         CorpCard.Get(CardIdTok);
         CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
         Commit();
 
-        // [WHEN] The expenses of the expense user are filtered on awaitingReceipt eq true.
+        // [WHEN] The expenses of the expense user are filtered on pendingCardExpense eq true.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
-            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(GetUserScopedURL(PendingExpense, ExpensesServiceNameTok), '$filter=awaitingReceipt eq true'), 200);
+            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(GetUserScopedURL(PendingExpense, ExpensesServiceNameTok), '$filter=pendingCardExpense eq true'), 200);
 
         // [THEN] Only the card expense waiting for a receipt is returned.
         GetExpenseIds(ResponseText, 'value', ExpenseIds);
-        Assert.AreEqual(1, ExpenseIds.Count(), 'Only the card expense waiting for a receipt must be awaiting a receipt.');
-        Assert.IsTrue(ExpenseIds.Contains(PendingExpense.SystemId), 'The card expense waiting for a receipt must be awaiting a receipt.');
+        Assert.AreEqual(1, ExpenseIds.Count(), 'Only the card expense waiting for a receipt must be pending.');
+        Assert.IsTrue(ExpenseIds.Contains(PendingExpense.SystemId), 'The card expense waiting for a receipt must be pending.');
         CompleteTest();
     end;
 
     [Test]
-    procedure ExpenseUsersAPIExpandFiltersExpensesOnAwaitingReceiptBeforeTop()
+    procedure ExpenseUsersAPIExpandFiltersExpensesOnPendingCardExpenseBeforeTop()
     var
         ExpenseWithReceipt: Record Expense;
         LostReceiptExpense: Record Expense;
@@ -189,10 +192,10 @@ codeunit 148354 "EA Receipt Match API Tests"
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] Expanding the expenses of an expense user filtered on awaitingReceipt applies the filter before $top.
+        // [SCENARIO] Expanding the expenses of an expense user filtered on pendingCardExpense applies the filter before $top.
         Initialize();
 
-        // [GIVEN] Two card expenses that are not awaiting a receipt, followed by two newer card expenses that are.
+        // [GIVEN] Two card expenses that are not pending, followed by two newer card expenses that are.
         CreateCardExpenseWithReceipt(ExpenseWithReceipt);
         CreateLostReceiptCardExpense(LostReceiptExpense);
         CreateCardExpense(PendingExpense);
@@ -200,59 +203,19 @@ codeunit 148354 "EA Receipt Match API Tests"
         ExpenseUser.Get(PendingExpense."Expense User No.");
         Commit();
 
-        // [WHEN] The expense user is read with expenses expanded on awaitingReceipt eq false, newest first, top 2.
+        // [WHEN] The expense user is read with expenses expanded on pendingCardExpense eq false, newest first, top 2.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
             ResponseText,
             LibraryGraphMgt.AppendQueryParameterToTargetURL(
                 LibraryGraphMgt.CreateTargetURL(Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok),
-                '$expand=expenses($filter=awaitingReceipt eq false;$orderby=systemCreatedAt desc;$top=2)'),
+                '$expand=expenses($filter=pendingCardExpense eq false;$orderby=systemCreatedAt desc;$top=2)'),
             200);
 
-        // [THEN] The two expenses that are not awaiting a receipt are returned.
+        // [THEN] The two expenses that are not pending are returned.
         GetExpenseIds(ResponseText, 'expenses', ExpenseIds);
         Assert.AreEqual(2, ExpenseIds.Count(), 'The filter must be applied before $top.');
         Assert.IsTrue(ExpenseIds.Contains(ExpenseWithReceipt.SystemId), 'The expense with a receipt must be returned.');
         Assert.IsTrue(ExpenseIds.Contains(LostReceiptExpense.SystemId), 'The expense declared as lost receipt must be returned.');
-        CompleteTest();
-    end;
-
-    [Test]
-    procedure PendingCardExpensesAPIListsOnlyExpensesWaitingForReceipt()
-    var
-        PendingExpense: Record Expense;
-        ExpenseWithReceipt: Record Expense;
-        LostReceiptExpense: Record Expense;
-        Response: JsonObject;
-        Rows: JsonToken;
-        Row: JsonToken;
-        IdToken: JsonToken;
-        ExpenseId: Guid;
-        ResponseText: Text;
-    begin
-        // [SCENARIO] The pending list contains card expenses that still need a receipt.
-        Initialize();
-
-        // [GIVEN] A card expense waiting for a receipt, one with a receipt and one declared as lost receipt.
-        CreateCardExpense(PendingExpense);
-        CreateCardExpense(ExpenseWithReceipt);
-        ExpenseWithReceipt."Receipt Attached" := true;
-        ExpenseWithReceipt.Modify();
-        CreateCardExpense(LostReceiptExpense);
-        LostReceiptExpense."No Receipt Type" := LostReceiptExpense."No Receipt Type"::"Lost Receipt";
-        LostReceiptExpense.Modify();
-        Commit();
-
-        // [WHEN] The list is read through expenseUsers({id})/pendingCardExpenses.
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, GetUserScopedURL(PendingExpense, PendingCardExpensesServiceNameTok), 200);
-
-        // [THEN] Only the expense still waiting for a receipt is listed.
-        Response.ReadFrom(ResponseText);
-        Response.Get('value', Rows);
-        Assert.AreEqual(1, Rows.AsArray().Count(), 'Only the pending card expense must be listed.');
-        Rows.AsArray().Get(0, Row);
-        Row.AsObject().Get('id', IdToken);
-        Evaluate(ExpenseId, IdToken.AsValue().AsText());
-        Assert.AreEqual(PendingExpense.SystemId, ExpenseId, 'The pending card expense must be listed.');
         CompleteTest();
     end;
 

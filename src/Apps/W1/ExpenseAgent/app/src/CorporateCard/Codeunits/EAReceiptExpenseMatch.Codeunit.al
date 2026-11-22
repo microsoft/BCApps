@@ -22,6 +22,7 @@ codeunit 7438 "EA Receipt Expense Match"
 
     /// <summary>
     /// Sets the filters that define a card-created expense waiting for a receipt and an expense report.
+    /// Keep in sync with the Expense field "Pending Card Expense", which exposes the same rule through the expenses API.
     /// </summary>
     internal procedure SetPendingCardExpenseFilters(var Expense: Record Expense)
     begin

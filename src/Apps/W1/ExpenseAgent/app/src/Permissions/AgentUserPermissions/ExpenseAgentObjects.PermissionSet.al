@@ -47,7 +47,6 @@ permissionset 6952 "Expense Agent - Objects"
                   page "Expense Corporate Cards API" = X,
                   codeunit "EA Corp Card Selection Mgt" = X,
                   page "EA Card Expense Matches API" = X,
-                  page "EA Pending Card Expenses API" = X,
                   table "EA Card Expense Match Buffer" = X,
                   codeunit "EA Receipt Expense Match" = X,
                   codeunit "EA Corp Card Enh. Match Mgt" = X,
