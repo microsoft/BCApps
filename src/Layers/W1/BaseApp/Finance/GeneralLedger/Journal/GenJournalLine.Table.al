@@ -3897,7 +3897,7 @@ table 81 "Gen. Journal Line"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-        field(8842; "Purchase Invoice Source SystemId"; Guid)
+        field(8842; "Purch. Invoice Source SystemId"; Guid)
         {
             Caption = 'Purchase Invoice Source SystemId';
             Editable = false;

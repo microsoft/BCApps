@@ -105,9 +105,9 @@ codeunit 8847 "Purchase Installment Posting"
         if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             exit;
         GenJournalLine."Installment Plan ID" := PurchaseHeader."Installment Plan ID";
-        Clear(GenJournalLine."Purchase Invoice Source SystemId");
+        Clear(GenJournalLine."Purch. Invoice Source SystemId");
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice then
-            GenJournalLine."Purchase Invoice Source SystemId" := PurchaseHeader.SystemId;
+            GenJournalLine."Purch. Invoice Source SystemId" := PurchaseHeader.SystemId;
         PurchInstallmentCorrection.PrepareCreditApplication(PurchaseHeader, GenJournalLine);
     end;
 
@@ -145,7 +145,7 @@ codeunit 8847 "Purchase Installment Posting"
             GenJournalLine.TestField("Document Type", GenJournalLine."Document Type"::Invoice);
             GenJournalLine.TestField("System-Created Entry", true);
             GenJournalLine.TestField("Journal Template Name", '');
-            GenJournalLine.TestField("Purchase Invoice Source SystemId");
+            GenJournalLine.TestField("Purch. Invoice Source SystemId");
             exit;
         end;
         if not ((GenJournalLine."Account Type" = GenJournalLine."Account Type"::Vendor) or
@@ -161,8 +161,8 @@ codeunit 8847 "Purchase Installment Posting"
         if IsPurchaseCreditMemoJournal(GenJournalLine) then
             exit;
         // Existing ordinary invoices do not acquire a plan when reusable setup is changed.
-        if not IsNullGuid(GenJournalLine."Purchase Invoice Source SystemId") then
-            if PurchaseHeader.GetBySystemId(GenJournalLine."Purchase Invoice Source SystemId") then
+        if not IsNullGuid(GenJournalLine."Purch. Invoice Source SystemId") then
+            if PurchaseHeader.GetBySystemId(GenJournalLine."Purch. Invoice Source SystemId") then
                 if (GenJournalLine."Account Type" = GenJournalLine."Account Type"::Vendor) and
                    (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Invoice) and
                    (PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice) and
@@ -220,7 +220,7 @@ codeunit 8847 "Purchase Installment Posting"
         Plan.LockTable();
         Plan.Get(GenJournalLine."Installment Plan ID");
         Plan.TestField(Status, Plan.Status::Draft);
-        if not PurchaseHeader.GetBySystemId(GenJournalLine."Purchase Invoice Source SystemId") then
+        if not PurchaseHeader.GetBySystemId(GenJournalLine."Purch. Invoice Source SystemId") then
             RaiseInternalError(SourceErr);
         if PurchaseHeader."Installment Plan ID" <> Plan.ID then
             RaiseInternalError(SourceErr);
