@@ -266,9 +266,10 @@ codeunit 139825 "APIV2 - Dim. Set Lines E2E"
         Commit();
 
         // [WHEN] we POST the JSON to the web service
-        // [THEN] the request fails because it doesn't have a parent Id
+        // [THEN] the request is rejected as a bad request because it doesn't have a parent Id
         TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"APIV2 - Dimension Set Lines", ServiceNameTxt);
-        asserterror LibraryGraphMgt.PostToWebService(TargetURL, LineJSON, ResponseText);
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, LineJSON, ResponseText, 400);
+        Assert.ExpectedError('Response code is 400 (BadRequest)');
     end;
 
     [Test]

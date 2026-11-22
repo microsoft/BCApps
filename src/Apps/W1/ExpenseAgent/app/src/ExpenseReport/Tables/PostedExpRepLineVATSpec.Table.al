@@ -14,7 +14,6 @@ using Microsoft.Finance.VAT.Setup;
 /// </summary>
 table 6934 "Posted Exp. Rep. Line VAT Spec"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line VAT Specification';
     DataClassification = CustomerContent;
     ReplicateData = false;
@@ -211,6 +210,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
         }
         field(40; Source; Enum "Expense VAT Spec Source")
         {
+            Access = Internal;
             Caption = 'Source';
             ToolTip = 'Specifies the source of this VAT specification line, indicating how it was generated (e.g., from the original expense report line, from a correction, etc.). This can be used for tracking and reporting purposes to understand the origin of each VAT specification line.';
         }
@@ -222,6 +222,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
         }
         field(42; Confidence; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Confidence';
             DecimalPlaces = 0 : 5;
@@ -299,7 +300,7 @@ table 6934 "Posted Exp. Rep. Line VAT Spec"
     end;
 
     /// <summary>Stores a UTF-8 reclaim justification text into the blob.</summary>
-    procedure SetJustification(NewText: Text)
+    internal procedure SetJustification(NewText: Text)
     var
         OutStream: OutStream;
     begin

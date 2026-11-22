@@ -178,7 +178,7 @@ page 7290 "Sales Line From Attachment"
     [NonDebuggable]
     // Builds the search query based on the data in the file and the mapping provided by the user.
     // An exampel for the output is: Search for products based on product info and quantities listed below. Ensure decimal numbers in quantity is preserved.\n20 pieces "Paint, red",10 boxes paint brush
-    local procedure BuildSearchQuery(FileData: List of [List of [Text]]; FileParserResult: Codeunit "File Handler Result"): Text
+    internal procedure BuildSearchQuery(FileData: List of [List of [Text]]; FileParserResult: Codeunit "File Handler Result"): Text
     var
         SLSPrompts: Codeunit "SLS Prompts";
         ProductInfoAsText: Text;

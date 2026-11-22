@@ -109,13 +109,18 @@ table 6937 "Expense Vendor"
 
     trigger OnInsert()
     var
+        ExpenseVendor: Record "Expense Vendor";
         NoSeriesManagement: Codeunit "No. Series";
     begin
         if "No." = '' then begin
             ExpenseSetup.Get();
             ExpenseSetup.TestField("Expense Vendor Nos.");
-            "No." := NoSeriesManagement.GetNextNo(ExpenseSetup."Expense Vendor Nos.", WorkDate(), true);
             "No. Series" := ExpenseSetup."Expense Vendor Nos.";
+            "No." := NoSeriesManagement.GetNextNo("No. Series", WorkDate());
+            ExpenseVendor.ReadIsolation(IsolationLevel::ReadUncommitted);
+            ExpenseVendor.SetLoadFields("No.");
+            while ExpenseVendor.Get("No.") do
+                "No." := NoSeriesManagement.GetNextNo("No. Series", WorkDate());
         end;
     end;
 
