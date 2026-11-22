@@ -113,4 +113,13 @@ enum 6984 "Expense Capability"
     {
         Caption = 'No Receipt', Locked = true;
     }
+
+    /// <summary>
+    /// Submitters can assign or change the interim approver on their expense reports. Reported enabled only when the agent and
+    /// "Can Overwrite Interim Approver" are enabled in the Expense Agent Setup; otherwise the interim approver comes from the Expense Approval Setup and is read-only.
+    /// </summary>
+    value(11; InterimApproverOverwrite)
+    {
+        Caption = 'Interim Approver Overwrite', Locked = true;
+    }
 }

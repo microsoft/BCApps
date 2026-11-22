@@ -717,6 +717,12 @@ table 6930 "Expense Agent Setup"
             Caption = 'Allow No Receipt';
             ToolTip = 'Specifies whether users can replace a missing original receipt with a system-generated no receipt declaration.';
         }
+        field(107; "Can Overwrite Interim Approver"; Boolean)
+        {
+            Access = Internal;
+            Caption = 'Can Overwrite Interim Approver';
+            ToolTip = 'Specifies whether submitters can assign or change the interim approver on their expense reports. When turned off, the interim approver is assigned only from the Expense Approval Setup and cannot be changed by the submitter.';
+        }
         field(120; "Enable Project Fields"; Boolean)
         {
             Access = Internal;

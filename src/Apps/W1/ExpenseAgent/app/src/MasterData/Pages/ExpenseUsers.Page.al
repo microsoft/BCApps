@@ -57,6 +57,12 @@ page 6951 "Expense Users"
                     DrillDown = false;
                     Editable = false;
                 }
+                field(ExpRepInterimApproverName; Rec."Exp. Rep. Interim Appr. Name")
+                {
+                    DrillDown = false;
+                    Editable = false;
+                    Visible = false;
+                }
                 field("Welcome Email Status"; Rec."Welcome Email Status")
                 {
                     ToolTip = 'Specifies whether a welcome email has been queued, sent, or failed for the expense user.';

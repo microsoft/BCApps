@@ -27,6 +27,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
+        InterimApproverOverwriteNotAllowedErr: Label 'You cannot assign an interim approver because %1 is turned off in %2. The interim approver is assigned from the %3.', Comment = '%1 = Can Overwrite Interim Approver field caption, %2 = Expense Agent Setup table caption, %3 = Expense Approval Setup table caption';
         InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1 or %2.', Comment = '%1 = Released status caption, %2 = Pending Approval status caption';
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
@@ -34,6 +35,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the approver the report is currently assigned to';
         InterimApproverActorErr: Label 'Only the expense report owner %1 can assign an interim approver.', Comment = '%1 = Expense User No. of the report owner';
         InterimApproverAssignedCommentTxt: Label 'Interim approver set to %1 (%2).', Comment = '%1 = Interim Approver No., %2 = Interim Approver Name';
+        InterimAlternateAssignedCommentTxt: Label 'Interim approver set to %1 (%2) as alternate for %3 (%4).', Comment = '%1 = Alternate interim approver No., %2 = Alternate interim approver name, %3 = Primary interim approver No., %4 = Primary interim approver name';
         AlternateApproverInterimConflictErr: Label 'The alternate approver cannot be the same as the interim approver.';
         AlternateApproverAssignedCommentTxt: Label 'Alternate approver set to %1 (%2).', Comment = '%1 = Alternate Approver No., %2 = Alternate Approver Name';
         FinalApproverRevertedCommentTxt: Label 'Alternate coverage ended. Final approval returned to %1 (%2).', Comment = '%1 = Expense User No., %2 = Expense User Name';
@@ -108,6 +110,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
     var
         ExpenseUser: Record "Expense User";
         IsResubmission: Boolean;
+        InterimApproverAssignedOnSubmit: Boolean;
     begin
         if ExpenseReportHeader.Status = ExpenseReportHeader.Status::"Pending Approval" then
             exit;
@@ -117,12 +120,15 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseReportHeader.TestApprovalStatus();
         ExpenseReportHeader.UpdateApproverID();
         SetApproverBasedOnApprovalLimit(ExpenseReportHeader);
+        InterimApproverAssignedOnSubmit := AssignInterimApproverFromSetup(ExpenseReportHeader);
         CheckAndAssignAlternateApproval(ExpenseReportHeader);
         RouteToInterimIfAssigned(ExpenseReportHeader);
 
         UpdateSubmitterComment(ExpenseReportHeader, SubmissionComment);
         SetApprovalStatusToPendingApprovalInExpenseReport(ExpenseReportHeader, SubmitterExpenseUserNo, ExpenseUser."User Id For Approvals");
         LogExpenseReportSubmission(ExpenseReportHeader, SubmitterExpenseUserNo, IsResubmission, SubmissionComment);
+        if InterimApproverAssignedOnSubmit then
+            LogInterimApproverAssignedOnSubmit(ExpenseReportHeader);
     end;
 
     procedure ReopenSubmitted(var ExpenseReportHeader: Record "Expense Report Header")
@@ -268,11 +274,20 @@ codeunit 6901 "Expense Report Approval Mgmt"
     var
         InterimApprover: Record "Expense User";
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
         AssignedInterimApproverNo: Code[20];
     begin
         ExpenseAgentSetup.GetRecordOnce();
         if not ExpenseAgentSetup."Enable Agent" then
             Error(InterimApproverAgentRequiredErr, ExpenseAgentSetup.TableCaption());
+
+        // Only the submitter is restricted; system reassignments to an active alternate must still work.
+        if (ActorRole = ActorRole::Submitter) and not ExpenseAgentSetup."Can Overwrite Interim Approver" then
+            Error(
+                InterimApproverOverwriteNotAllowedErr,
+                ExpenseAgentSetup.FieldCaption("Can Overwrite Interim Approver"),
+                ExpenseAgentSetup.TableCaption(),
+                ExpenseApprovalSetup.TableCaption());
 
         if not CanAssignInterimApprover(ExpenseReportHeader) then
             Error(
@@ -317,6 +332,129 @@ codeunit 6901 "Expense Report Approval Mgmt"
         exit(ExpenseReportHeader.Status in [
             ExpenseReportHeader.Status::Released,
             ExpenseReportHeader.Status::"Pending Approval"]);
+    end;
+
+    /// <summary>
+    /// Returns whether submitters can assign or change the interim approver on their expense reports.
+    /// </summary>
+    /// <returns>True when the agent is enabled and Can Overwrite Interim Approver is turned on in the Expense Agent Setup.</returns>
+    internal procedure IsInterimApproverOverwriteAllowed(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if not ExpenseAgentSetup.Get() then
+            exit(false);
+        exit(ExpenseAgentSetup."Enable Agent" and ExpenseAgentSetup."Can Overwrite Interim Approver");
+    end;
+
+    /// <summary>
+    /// Returns the interim approver configured in the Expense Approval Setup for the owner of the expense report.
+    /// </summary>
+    /// <param name="ExpenseReportHeader">The expense report with the owner and final approver set.</param>
+    /// <returns>The configured interim approver, or blank when the agent is disabled, none is configured, or it is the owner or the final approver.</returns>
+    internal procedure GetInterimApproverNoFromSetup(ExpenseReportHeader: Record "Expense Report Header"): Code[20]
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        if ExpenseReportHeader."Expense User No." = '' then
+            exit('');
+
+        ExpenseAgentSetup.GetRecordOnce();
+        if not ExpenseAgentSetup."Enable Agent" then
+            exit('');
+
+        ExpenseApprovalSetup.SetLoadFields("Exp. Rep. Interim Approver No.");
+        if not ExpenseApprovalSetup.Get(ExpenseReportHeader."Expense User No.") then
+            exit('');
+
+        if (ExpenseApprovalSetup."Exp. Rep. Interim Approver No." = ExpenseReportHeader."Expense User No.") or
+           (ExpenseApprovalSetup."Exp. Rep. Interim Approver No." = ExpenseReportHeader."Final Approver No.")
+        then
+            exit('');
+
+        exit(ExpenseApprovalSetup."Exp. Rep. Interim Approver No.");
+    end;
+
+    // Resolves the interim approver on submission and applies an active alternate for it. When overwriting is allowed, the primary
+    // interim approver already on the report is used; otherwise it is taken from the Expense Approval Setup again.
+    // The interim approver is cleared when it is the report owner or final approver, or is not eligible to approve.
+    // Returns true when a new interim approver was assigned.
+    local procedure AssignInterimApproverFromSetup(var ExpenseReportHeader: Record "Expense Report Header"): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        InterimApprover: Record "Expense User";
+        PrimaryInterimApproverNo: Code[20];
+        AlternateInterimApproverNo: Code[20];
+        PreviousInterimApproverNo: Code[20];
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if not ExpenseAgentSetup."Enable Agent" then
+            exit(false);
+
+        PreviousInterimApproverNo := ExpenseReportHeader."Interim Approver No.";
+        if ExpenseAgentSetup."Can Overwrite Interim Approver" and (PreviousInterimApproverNo <> '') then
+            PrimaryInterimApproverNo := GetPrimaryInterimApproverNo(ExpenseReportHeader)
+        else
+            PrimaryInterimApproverNo := GetInterimApproverNoFromSetup(ExpenseReportHeader);
+
+        ExpenseReportHeader."Interim Approver No." := '';
+        ExpenseReportHeader."Primary Interim Approver No." := '';
+
+        if PrimaryInterimApproverNo = '' then
+            exit(false);
+
+        if (PrimaryInterimApproverNo = ExpenseReportHeader."Expense User No.") or
+           (PrimaryInterimApproverNo = ExpenseReportHeader."Final Approver No.")
+        then
+            exit(false);
+
+        if not InterimApprover.Get(PrimaryInterimApproverNo) then
+            exit(false);
+
+        if not IsApproverEligible(InterimApprover) then
+            exit(false);
+
+        AlternateInterimApproverNo := GetActiveAlternateApproverNo(PrimaryInterimApproverNo, WorkDate());
+        if (AlternateInterimApproverNo <> '') and
+           (AlternateInterimApproverNo <> ExpenseReportHeader."Expense User No.") and
+           (AlternateInterimApproverNo <> ExpenseReportHeader."Final Approver No.")
+        then begin
+            ExpenseReportHeader."Primary Interim Approver No." := PrimaryInterimApproverNo;
+            ExpenseReportHeader."Interim Approver No." := AlternateInterimApproverNo;
+        end else
+            ExpenseReportHeader."Interim Approver No." := PrimaryInterimApproverNo;
+
+        exit(ExpenseReportHeader."Interim Approver No." <> PreviousInterimApproverNo);
+    end;
+
+    // Logs the interim approver resolved on submission as a system assignment. When it is an alternate, the comment names
+    // the primary interim approver it covers, so a substituted submitter choice is not reported as coming from the setup.
+    local procedure LogInterimApproverAssignedOnSubmit(ExpenseReportHeader: Record "Expense Report Header")
+    var
+        InterimApprover: Record "Expense User";
+        PrimaryInterimApprover: Record "Expense User";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        LogComment: Text;
+    begin
+        if not InterimApprover.Get(ExpenseReportHeader."Interim Approver No.") then
+            exit;
+
+        if (ExpenseReportHeader."Primary Interim Approver No." <> '') and
+           PrimaryInterimApprover.Get(ExpenseReportHeader."Primary Interim Approver No.")
+        then
+            LogComment := StrSubstNo(
+                InterimAlternateAssignedCommentTxt,
+                InterimApprover."No.", InterimApprover.Name,
+                PrimaryInterimApprover."No.", PrimaryInterimApprover.Name)
+        else
+            LogComment := StrSubstNo(InterimApproverAssignedCommentTxt, InterimApprover."No.", InterimApprover.Name);
+
+        ExpenseActivityLogMgt.LogExpenseReportEventByBCUser(
+            ExpenseReportHeader,
+            Enum::"Expense Activity Event Type"::InterimApproverAssigned,
+            Enum::"Expense Activity Actor Role"::Administrator,
+            LogComment);
     end;
 
     local procedure CheckInterimApproverConflict(ExpenseReportHeader: Record "Expense Report Header"; InterimApproverExpenseUserNo: Code[20])

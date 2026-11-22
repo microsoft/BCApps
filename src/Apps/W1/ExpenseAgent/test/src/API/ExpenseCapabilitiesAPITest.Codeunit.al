@@ -208,6 +208,45 @@ codeunit 148318 "Expense Capabilities API Test"
             'aiAssistedPolicyEvaluation must be disabled when Evaluate Policies is false.');
     end;
 
+    [Test]
+    procedure CapabilitiesInterimApproverOverwriteFollowsSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+    begin
+        // [SCENARIO 638116] The interimApproverOverwrite capability is enabled only when the agent and "Can Overwrite Interim Approver" are enabled.
+        Initialize();
+
+        // [GIVEN] Expense Agent Setup exists with the agent enabled and Can Overwrite Interim Approver = false.
+        if not ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup.Init();
+            ExpenseAgentSetup.Insert();
+        end;
+        ExpenseAgentSetup."Enable Agent" := true;
+        ExpenseAgentSetup."Can Overwrite Interim Approver" := false;
+        ExpenseAgentSetup.Modify();
+
+        // [THEN] The provider reports interimApproverOverwrite as disabled.
+        Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::InterimApproverOverwrite),
+            'interimApproverOverwrite must be disabled when Can Overwrite Interim Approver is false.');
+
+        // [WHEN] Can Overwrite Interim Approver is turned on.
+        ExpenseAgentSetup."Can Overwrite Interim Approver" := true;
+        ExpenseAgentSetup.Modify();
+
+        // [THEN] The provider reports interimApproverOverwrite as enabled.
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::InterimApproverOverwrite),
+            'interimApproverOverwrite must be enabled when the agent and Can Overwrite Interim Approver are enabled.');
+
+        // [WHEN] The agent is disabled.
+        ExpenseAgentSetup."Enable Agent" := false;
+        ExpenseAgentSetup.Modify();
+
+        // [THEN] The provider reports interimApproverOverwrite as disabled.
+        Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::InterimApproverOverwrite),
+            'interimApproverOverwrite must be disabled when the agent is disabled.');
+    end;
+
     local procedure Initialize()
     begin
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
