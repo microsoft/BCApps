@@ -348,6 +348,9 @@ page 6996 "Expense Agent Setup"
                         end;
                     end;
                 }
+                field("Can Overwrite Interim Approver"; Rec."Can Overwrite Interim Approver")
+                {
+                }
             }
 #if not CLEAN29
             group(Projects)

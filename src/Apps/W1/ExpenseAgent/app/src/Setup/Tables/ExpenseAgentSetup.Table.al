@@ -708,6 +708,12 @@ table 6930 "Expense Agent Setup"
             ToolTip = 'Specifies whether the default VAT rates have been applied.';
             Editable = false;
         }
+        field(107; "Can Overwrite Interim Approver"; Boolean)
+        {
+            Access = Internal;
+            Caption = 'Can Overwrite Interim Approver';
+            ToolTip = 'Specifies whether submitters can assign or change the interim approver on their expense reports. When turned off, the interim approver is assigned only from the Expense Approval Setup and cannot be changed by the submitter.';
+        }
         field(120; "Enable Project Fields"; Boolean)
         {
             Access = Internal;
