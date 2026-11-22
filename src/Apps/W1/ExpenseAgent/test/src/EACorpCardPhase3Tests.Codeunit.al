@@ -149,6 +149,8 @@ codeunit 148353 EACorpCardPhase3Tests
         HasStructuredErrorInfo: Boolean;
         LastSuccessfulImport: DateTime;
     begin
+        // [SCENARIO] An all-rejected mapped import preserves diagnostics and recovery information without advancing the last successful import time.
+        // [GIVEN] Mapped input containing an unknown card and a blocked card, and a previous successful import time.
         Initialize();
         SetXmlCardValidationPayload();
         CorpCard.Get('XML-CARD-SAMPLE');
@@ -159,12 +161,14 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardProvider."Last Import DT" := LastSuccessfulImport;
         CorpCardProvider.Modify(true);
 
+        // [WHEN] The mapped provider import runs.
         BindSubscription(EACorpCardTestLib);
         Assert.IsFalse(
             CorpCardImportOrch.RunProvider(CorpCardProvider, false, ImportErrorText, ImportErrorInfo, HasStructuredErrorInfo),
             'Mapped input containing only unknown and blocked cards must return a failed import outcome.');
         UnbindSubscription(EACorpCardTestLib);
 
+        // [THEN] The failed statement retains metadata, both row diagnostics, and structured recovery information, without transactions, expenses, or a new successful import time.
         CorpCardProvider.Get(CorpCardXmlProviderCodeTok);
         CorpCardStatement.Get(CorpCardProvider."Last Statement Entry No.");
         Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'An all-rejected mapped import must finalize as failed.');
@@ -201,22 +205,23 @@ codeunit 148353 EACorpCardPhase3Tests
         CorpCardImportOrch: Codeunit "EA Corp Card Import Orch";
         CorpCardErrorContext: Codeunit "EA Corp Card Error Context";
     begin
+        // [SCENARIO] All-rejected mapped staging persists its diagnostics without acknowledging the provider.
+        // [GIVEN] An importing statement and mapped input containing an unknown card and a blocked card.
         Initialize();
         SetXmlCardValidationPayload();
         CorpCard.Get('XML-CARD-SAMPLE');
         CorpCard.Blocked := true;
         CorpCard.Modify(true);
-        CorpCardStatement.Init();
-        CorpCardStatement."Provider Code" := CorpCardXmlProviderCodeTok;
-        CorpCardStatement.Status := CorpCardStatement.Status::Importing;
-        CorpCardStatement.Insert(true);
+        EACorpCardTestLib.CreateStatement(CorpCardStatement, CorpCardXmlProviderCodeTok, 'MAPPED-REJECTED', 0, CorpCardStatement.Status::Importing);
         CorpCardErrorContext.ClearErrorInfo();
         Commit();
 
+        // [WHEN] The statement is staged through the import orchestrator.
         BindSubscription(EACorpCardTestLib);
         Assert.IsTrue(CorpCardImportOrch.Run(CorpCardStatement), 'Mapped row failures must not roll back their diagnostics.');
         UnbindSubscription(EACorpCardTestLib);
 
+        // [THEN] The failed outcome and both row diagnostics persist, and the import stage does not advance to acknowledgment.
         CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
         Assert.AreEqual(CorpCardStatement.Status::Failed, CorpCardStatement.Status, 'Mapped staging must persist its failed validation outcome.');
         Assert.AreEqual(2, CorpCardStatement.Rejected, 'Mapped staging must retain the exact rejection count.');
@@ -231,6 +236,8 @@ codeunit 148353 EACorpCardPhase3Tests
     var
         CorpCardStatement: Record "EA Corp Card Statement";
     begin
+        // [SCENARIO] A repeated mapped import containing a duplicate and a rejected row still succeeds.
+        // [GIVEN] Mapped input with one known-card transaction already imported and one unknown-card row rejected.
         Initialize();
         SetXmlCardValidationPayload();
         RunImportAndGetLastStatement(CorpCardXmlProviderCodeTok, CorpCardStatement);
@@ -238,8 +245,10 @@ codeunit 148353 EACorpCardPhase3Tests
         Assert.AreEqual(1, CorpCardStatement.Rejected, 'The first mapped import must reject only the unknown card.');
         SetXmlCardValidationPayload();
 
+        // [WHEN] The same mapped input is imported again.
         RunImportAndGetLastStatement(CorpCardXmlProviderCodeTok, CorpCardStatement);
 
+        // [THEN] The import succeeds with one duplicate and one rejection, without creating another transaction.
         Assert.AreEqual(CorpCardStatement.Status::Imported, CorpCardStatement.Status, 'A duplicate transaction must prevent an all-rejected failure.');
         Assert.AreEqual(0, CorpCardStatement.Imported, 'The repeated mapped import must not create duplicate transactions.');
         Assert.AreEqual(1, CorpCardStatement.Duplicates, 'The repeated mapped import must recognize the known transaction.');

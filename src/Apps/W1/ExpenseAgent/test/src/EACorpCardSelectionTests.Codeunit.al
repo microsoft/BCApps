@@ -85,6 +85,7 @@ codeunit 148364 EACorpCardSelectionTests
         ConfiguredCard: Record "EA Corp Card";
         TempConfiguredCard: Record "EA Corp Card" temporary;
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+        LibraryUtility: Codeunit "Library - Utility";
         ProviderIndex: Integer;
     begin
         Initialize();
@@ -93,13 +94,11 @@ codeunit 148364 EACorpCardSelectionTests
         SourceCard.Get('CORPCARD-0001');
         for ProviderIndex := 1 to 2 do begin
             ConfiguredCard := SourceCard;
-            if ProviderIndex = 1 then begin
-                ConfiguredCard."Card Id" := 'CORPCARD-0009';
-                ConfiguredCard."Provider Code" := 'CORPCARDCSV';
-            end else begin
-                ConfiguredCard."Card Id" := 'CONFIGURED-XML-CARD';
+            ConfiguredCard."Card Id" := LibraryUtility.GenerateRandomCode20(ConfiguredCard.FieldNo("Card Id"), Database::"EA Corp Card");
+            if ProviderIndex = 1 then
+                ConfiguredCard."Provider Code" := 'CORPCARDCSV'
+            else
                 ConfiguredCard."Provider Code" := 'CORPCARDXML';
-            end;
             ConfiguredCard."External Card Ref" := 'CONFIGURED-ACCOUNT-REF';
             ConfiguredCard."Masked Card No." := '****5588';
             ConfiguredCard."Currency Code" := 'EUR';
@@ -503,14 +502,18 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
     begin
+        // [SCENARIO] A feed-created draft cannot be deleted even before it joins an expense report.
+        // [GIVEN] A draft expense linked to a corporate-card transaction and not assigned to a report.
         CreateCorporateCardDraft(Expense);
         Expense.TestField("Expense Report No.", '');
         CorpCardTrans.Get(Expense."Credit Card Feed No.");
         CorpCardTrans.TestField(Status, CorpCardTrans.Status::DraftCreated);
         Commit();
 
+        // [WHEN] The draft expense is deleted with triggers.
         asserterror Expense.Delete(true);
 
+        // [THEN] Deletion is rejected, and both records retain their links and the transaction's draft-created status.
         Assert.ExpectedError(StrSubstNo(CannotDeleteFeedLinkedExpenseErr, Expense."No.", CorpCardTrans."Entry No."));
         Expense.Get(Expense."No.");
         Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
@@ -525,13 +528,17 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
     begin
+        // [SCENARIO] Clearing only the deletion buffer's feed link cannot bypass protection of a stored feed-created draft.
+        // [GIVEN] A stored draft expense linked to a corporate-card transaction.
         CreateCorporateCardDraft(Expense);
         CorpCardTrans.Get(Expense."Credit Card Feed No.");
         Commit();
-        Expense."Credit Card Feed No." := 0;
 
+        // [WHEN] The feed link is cleared only in the record buffer and deletion is attempted with triggers.
+        Expense."Credit Card Feed No." := 0;
         asserterror Expense.Delete(true);
 
+        // [THEN] Deletion is rejected using the stored link, and both records retain their links and draft-created status.
         Assert.ExpectedError(StrSubstNo(CannotDeleteFeedLinkedExpenseErr, Expense."No.", CorpCardTrans."Entry No."));
         Expense.Get(Expense."No.");
         Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
@@ -546,14 +553,19 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
     begin
+        // [SCENARIO] A manual expense matched to a corporate-card transaction cannot be deleted.
         Initialize();
+
+        // [GIVEN] A manual expense linked to a transaction with matched status.
         CreateLinkedManualExpense(Expense);
         CorpCardTrans.Get(Expense."Credit Card Feed No.");
         CorpCardTrans.TestField(Status, CorpCardTrans.Status::Matched);
         Commit();
 
+        // [WHEN] The matched expense is deleted with triggers.
         asserterror Expense.Delete(true);
 
+        // [THEN] Deletion is rejected, and both records retain their links and the transaction's matched status.
         Assert.ExpectedError(StrSubstNo(CannotDeleteFeedLinkedExpenseErr, Expense."No.", CorpCardTrans."Entry No."));
         Expense.Get(Expense."No.");
         Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
@@ -568,13 +580,18 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         Expense: Record Expense;
     begin
+        // [SCENARIO] A manual corporate-card expense without a feed link remains deletable.
         Initialize();
+
+        // [GIVEN] A manual card expense with no linked corporate-card transaction.
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         Expense.TestField("Credit Card Feed No.", 0);
 
+        // [WHEN] The expense is deleted with triggers.
         Expense.Delete(true);
 
+        // [THEN] The expense no longer exists.
         Assert.IsFalse(Expense.Get(Expense."No."), 'An unlinked manual card expense must remain deletable.');
     end;
 

@@ -164,7 +164,10 @@ codeunit 148360 EACorpCardSettlementTests
         ActiveLine: Record "EA Corp Card Settlement Line";
         CorpCardStatement: Record "EA Corp Card Statement";
     begin
+        // [SCENARIO] Saving rechecks statement ownership, and deleting the owning settlement releases the statement.
         Initialize();
+
+        // [GIVEN] Two settlement lines were validated for the same statement before the first line was saved.
         CreateSettlement(FirstSettlement, 2000);
         CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
         CreateStatement(CorpCardStatement, 'STMT-CLAIM', 2000, CorpCardStatement.Status::Validated);
@@ -178,14 +181,20 @@ codeunit 148360 EACorpCardSettlementTests
         FirstLine.Insert(true);
         Commit();
 
+        // [WHEN] The previously validated second line is saved.
         asserterror SecondLine.Insert(true);
 
+        // [THEN] The save is rejected, and only the first settlement owns the statement.
         Assert.ExpectedError('already included in settlement');
         ActiveLine.SetRange("Statement Entry No.", CorpCardStatement."Statement Entry No.");
         ActiveLine.SetRange(Inactive, false);
         Assert.AreEqual(1, ActiveLine.Count(), 'Only the first saved settlement may own the statement.');
+
+        // [WHEN] The owning settlement is deleted and the second line is saved again.
         FirstSettlement.Delete(true);
         SecondLine.Insert(true);
+
+        // [THEN] The second settlement becomes the statement's only active owner.
         Assert.AreEqual(1, ActiveLine.Count(), 'Deleting the open membership must allow exactly one replacement owner.');
         ActiveLine.FindFirst();
         Assert.AreEqual(SecondSettlement."Settlement Entry No.", ActiveLine."Settlement Entry No.", 'The replacement must become the active owner.');
@@ -201,7 +210,10 @@ codeunit 148360 EACorpCardSettlementTests
         SettlementLine: Record "EA Corp Card Settlement Line";
         ActiveLine: Record "EA Corp Card Settlement Line";
     begin
+        // [SCENARIO] A previously validated reassignment cannot take a statement claimed by another settlement before saving.
         Initialize();
+
+        // [GIVEN] A line's reassignment was validated before another settlement claimed the target statement.
         CreateSettlement(FirstSettlement, 2000);
         CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
         CreateStatement(FirstStatement, 'STMT-ORIGINAL', 2000, FirstStatement.Status::Validated);
@@ -212,8 +224,10 @@ codeunit 148360 EACorpCardSettlementTests
         AddStatement(SecondSettlement, SecondStatement, 10000);
         Commit();
 
+        // [WHEN] The previously validated reassignment is saved.
         asserterror SettlementLine.Modify(true);
 
+        // [THEN] The reassignment is rejected, preserving the original membership and the target statement's sole owner.
         Assert.ExpectedError('already included in settlement');
         SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
         Assert.AreEqual(FirstStatement."Statement Entry No.", SettlementLine."Statement Entry No.", 'Failed reassignment must preserve the original membership.');
@@ -230,15 +244,20 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardStatement: Record "EA Corp Card Statement";
         SettlementLine: Record "EA Corp Card Settlement Line";
     begin
+        // [SCENARIO] Renaming a settlement line cannot move its statement membership to another settlement.
         Initialize();
+
+        // [GIVEN] Two settlements and a statement line belonging to the first settlement.
         CreateSettlement(FirstSettlement, 2000);
         CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
         CreateStatement(CorpCardStatement, 'STMT-RENAME', 2000, CorpCardStatement.Status::Validated);
         AddStatement(FirstSettlement, CorpCardStatement, 10000);
         SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
 
+        // [WHEN] The line is renamed to use the second settlement's entry number.
         asserterror SettlementLine.Rename(SecondSettlement."Settlement Entry No.", 10000);
 
+        // [THEN] The settlement entry number change is rejected.
         Assert.ExpectedError('Settlement Entry No.');
     end;
 
@@ -344,7 +363,10 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
         BankEntryCount: Integer;
     begin
+        // [SCENARIO] Posting rejects legacy statement membership shared by multiple settlements.
         Initialize();
+
+        // [GIVEN] A ready-to-post settlement whose statement also has a legacy membership in another settlement.
         CreateSettlement(CorpCardSettlement, 3000);
         CorpCardTestLib.CreateSettlement(OtherSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 3000);
         CreateStatement(CorpCardStatement, 'STMT-DUP-OWNER', 3000, CorpCardStatement.Status::Validated);
@@ -357,8 +379,10 @@ codeunit 148360 EACorpCardSettlementTests
         Commit();
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] The settlement is posted.
         asserterror CorpCardSettlementMgt.PostSettlement(CorpCardSettlement);
 
+        // [THEN] Posting is rejected without creating bank entries, and the settlement remains ready to post.
         Assert.ExpectedError('already included in settlement');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'An ambiguous owner must prevent all settlement bank postings.');
         CorpCardSettlement.Get(CorpCardSettlement."Settlement Entry No.");
@@ -375,7 +399,10 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardSettlementMgt: Codeunit "EA Corp Card Settlement Mgt";
         BankEntryCount: Integer;
     begin
+        // [SCENARIO] Posting rejects legacy duplicate statement lines even when the settlement amount includes both.
         Initialize();
+
+        // [GIVEN] A ready-to-post settlement with a legacy duplicate statement line and a doubled settlement amount.
         CreateSettlement(CorpCardSettlement, 3000);
         CreateStatement(CorpCardStatement, 'STMT-DUP-LINE', 3000, CorpCardStatement.Status::Validated);
         AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
@@ -388,8 +415,10 @@ codeunit 148360 EACorpCardSettlementTests
         Commit();
         BankEntryCount := BankAccountLedgerEntry.Count();
 
+        // [WHEN] The settlement is posted.
         asserterror CorpCardSettlementMgt.PostSettlement(CorpCardSettlement);
 
+        // [THEN] Posting is rejected without creating bank entries or a doubled withdrawal.
         Assert.ExpectedError('already included in settlement');
         Assert.AreEqual(BankEntryCount, BankAccountLedgerEntry.Count(), 'A duplicated statement must not produce a doubled withdrawal.');
     end;

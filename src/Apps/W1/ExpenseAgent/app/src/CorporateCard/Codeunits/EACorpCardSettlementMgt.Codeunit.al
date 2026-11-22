@@ -200,7 +200,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
             Error(DuplicateSettlementErr, CorpCardSettlement."Settlement No.", CorpCardSettlement."Provider Code");
 
         CorpCardSettlementLine.ReadIsolation := IsolationLevel::ReadCommitted;
-        CorpCardSettlementLine.SetCurrentKey("Statement Entry No.");
+        CorpCardSettlementLine.SetCurrentKey("Settlement Entry No.", "Statement Entry No.");
         CorpCardSettlementLine.SetRange("Settlement Entry No.", CorpCardSettlement."Settlement Entry No.");
         CorpCardSettlementLine.SetRange(Inactive, false);
         if not CorpCardSettlementLine.FindSet() then
@@ -299,7 +299,7 @@ codeunit 7443 "EA Corp Card Settlement Mgt"
             CopyStr(
                 StrSubstNo(SettlementReversedReasonTxt, CorpCardSettlement."Settlement No.", CorpCardSettlement."Reversal Reason"),
                 1, MaxStrLen(InvalidationReason));
-        CorpCardSettlementLine.SetCurrentKey("Statement Entry No.");
+        CorpCardSettlementLine.SetCurrentKey("Settlement Entry No.", "Statement Entry No.");
         CorpCardSettlementLine.SetRange("Settlement Entry No.", CorpCardSettlement."Settlement Entry No.");
         CorpCardSettlementLine.SetRange(Inactive, false);
         if not CorpCardSettlementLine.FindSet(true) then

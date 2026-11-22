@@ -115,6 +115,9 @@ table 7431 "EA Corp Card Settlement Line"
         key(Statement; "Statement Entry No.")
         {
         }
+        key(SettlementStatement; "Settlement Entry No.", "Statement Entry No.")
+        {
+        }
     }
 
     trigger OnInsert()

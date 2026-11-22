@@ -291,7 +291,7 @@ table 7430 "EA Corp Card Settlement"
         CorpCardSettlementLine: Record "EA Corp Card Settlement Line";
     begin
         CorpCardSettlementLine.ReadIsolation := IsolationLevel::ReadCommitted;
-        CorpCardSettlementLine.SetCurrentKey("Statement Entry No.");
+        CorpCardSettlementLine.SetCurrentKey("Settlement Entry No.", "Statement Entry No.");
         CorpCardSettlementLine.SetRange("Settlement Entry No.", "Settlement Entry No.");
         if CorpCardSettlementLine.FindSet() then
             repeat
