@@ -295,7 +295,7 @@ codeunit 148355 EAReceiptMatchTests
 
         // [GIVEN] Two equal card expenses of the same expense user, paid with cards ending in 0001 and 7777.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
-        CreateCardExpense(OtherCardExpense, CreateSecondCard('CORPCARD-0001', '****7777'), WorkDate(), 'CONTOSO COFFEE');
+        CreateCardExpense(OtherCardExpense, CreateAdditionalCard('CORPCARD-0001', '****7777'), WorkDate(), 'CONTOSO COFFEE');
 
         // [WHEN] The receipt is matched with card last four digits 7777.
         // [THEN] The expense paid with the card ending in 7777 is returned.
@@ -335,19 +335,36 @@ codeunit 148355 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure CheckReturnsEmptyWhenCardLast4Differs()
+    procedure CheckReturnsExpenseWhenCardLast4Matches()
     var
         Expense: Record Expense;
     begin
-        // [SCENARIO] Checking a receipt paid with another card against a given card expense returns no match.
+        // [SCENARIO] Checking a receipt paid with the expense's card against that card expense returns the expense.
         Initialize();
 
         // [GIVEN] A card expense paid with the card ending in 0001.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
 
-        // [WHEN] A receipt with card last four digits 9999 is checked against the expense.
+        // [WHEN] A receipt with card last four digits 0001 is checked against the expense.
+        // [THEN] The expense is returned.
+        Assert.AreEqual(Expense.SystemId, CheckMatch(Expense, Expense.SystemId, WorkDate(), 20, '0001'), 'The receipt paid with the expense card must fit.');
+    end;
+
+    [Test]
+    procedure CheckReturnsEmptyWhenCardLast4Differs()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Checking a receipt paid with another card of the same expense user against a given card expense returns no match.
+        Initialize();
+
+        // [GIVEN] A card expense paid with the card ending in 0001 and another card of the same expense user ending in 7777.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CreateAdditionalCard('CORPCARD-0001', '****7777');
+
+        // [WHEN] A receipt with card last four digits 7777 is checked against the expense.
         // [THEN] No expense is returned.
-        Assert.IsTrue(IsNullGuid(CheckMatch(Expense, Expense.SystemId, WorkDate(), 20, '9999')), 'Another card must not fit.');
+        Assert.IsTrue(IsNullGuid(CheckMatch(Expense, Expense.SystemId, WorkDate(), 20, '7777')), 'A receipt paid with another card must not fit.');
     end;
 
     local procedure Initialize()
@@ -383,19 +400,12 @@ codeunit 148355 EAReceiptMatchTests
         exit(ReceiptExpenseMatch.CheckMatchingExpense(ExpenseUser.SystemId, ExpenseSystemId, ReceiptDate, ReceiptAmount, '', CardLast4));
     end;
 
-    // Creates another card for the expense user of the given card and returns its card ID.
-    local procedure CreateSecondCard(CardId: Code[50]; MaskedCardNo: Text[30]): Code[50]
+    local procedure CreateAdditionalCard(CardId: Code[50]; MaskedCardNo: Text[30]): Code[50]
     var
         CorpCard: Record "EA Corp Card";
-        SecondCorpCard: Record "EA Corp Card";
     begin
         CorpCard.Get(CardId);
-        SecondCorpCard := CorpCard;
-        SecondCorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(SecondCorpCard."Card Id"));
-        SecondCorpCard."External Card Ref" := '';
-        SecondCorpCard."Masked Card No." := MaskedCardNo;
-        SecondCorpCard.Insert(true);
-        exit(SecondCorpCard."Card Id");
+        exit(CorpCardTestLib.CreateAdditionalCard(CorpCard, MaskedCardNo));
     end;
 
     local procedure CreateCardExpense(var Expense: Record Expense; CardId: Code[50]; ExpenseDate: Date; MerchantName: Text[100])
