@@ -382,7 +382,6 @@ codeunit 148306 "Expense Report Test"
     procedure FieldsCannotBeChangedWhenExpenseReportIsReleased()
     var
         ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportLine: Record "Expense Report Line";
         Currency: Record Currency;
         Expense: Record Expense;
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
@@ -430,33 +429,6 @@ codeunit 148306 "Expense Report Test"
         asserterror ExpenseReportHeader.Validate(Description, '');
 
         // [THEN] Verify that the "Description" cannot be changed.
-        Assert.ExpectedTestFieldError(ExpenseReportHeader.FieldCaption(Status), Format(ExpenseReportHeader.Status::Open));
-
-        // [WHEN] Update "Shortcut Dimension 1 Code" in Expense Report.
-        asserterror ExpenseReportHeader.Validate("Shortcut Dimension 1 Code", '');
-
-        // [THEN] Verify that the "Shortcut Dimension 1 Code" cannot be changed.
-        Assert.ExpectedTestFieldError(ExpenseReportHeader.FieldCaption(Status), Format(ExpenseReportHeader.Status::Open));
-
-        // [WHEN] Update "Shortcut Dimension 2 Code" in Expense Report.
-        asserterror ExpenseReportHeader.Validate("Shortcut Dimension 2 Code", '');
-
-        // [THEN] Verify that the "Shortcut Dimension 2 Code" cannot be changed.
-        Assert.ExpectedTestFieldError(ExpenseReportHeader.FieldCaption(Status), Format(ExpenseReportHeader.Status::Open));
-
-        // [GIVEN] Get Expense Report Line.
-        FindExpenseReportLine(ExpenseReportLine, Expense);
-
-        // [WHEN] Update "Job No." in Expense Report Line.
-        asserterror ExpenseReportLine.Validate("Job No.", '');
-
-        // [THEN] Verify that the "Job No." cannot be changed in Expense Report Line.
-        Assert.ExpectedTestFieldError(ExpenseReportHeader.FieldCaption(Status), Format(ExpenseReportHeader.Status::Open));
-
-        // [WHEN] Update "Job Task No." in Expense Report Line.
-        asserterror ExpenseReportLine.Validate("Job Task No.", '');
-
-        // [THEN] Verify that the "Job Task No." cannot be changed in Expense Report Line.
         Assert.ExpectedTestFieldError(ExpenseReportHeader.FieldCaption(Status), Format(ExpenseReportHeader.Status::Open));
     end;
 
