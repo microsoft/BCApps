@@ -83,7 +83,15 @@ codeunit 144186 "UT VAT Settlement"
     end;
 
     local procedure Initialize()
+#if not CLEAN30
+    var
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+        LibraryITLocalization: Codeunit "Library - IT Localization";
+#endif
     begin
+#if not CLEAN30
+        LibraryITLocalization.SetFeatureStatus(BusinessActivityFeature.GetFeatureKey(), Enum::"Feature Status"::Complete);
+#endif
         Clear(LibraryReportValidation);
         if IsInitialized then
             exit;

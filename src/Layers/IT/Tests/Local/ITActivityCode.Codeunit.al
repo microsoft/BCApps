@@ -61,7 +61,7 @@ codeunit 144003 "IT - Business Activity Code"
 #pragma warning disable AL0432
     [Test]
     [Scope('OnPrem')]
-    procedure UpgradeMigratesLegacyBusinessActivityData()
+    procedure EnablingFeatureMigratesLegacyBusinessActivityData()
     var
         ActivityCode: Record "Activity Code";
         BusinessActivity: Record "Business Activity";
@@ -69,11 +69,14 @@ codeunit 144003 "IT - Business Activity Code"
         GeneralLedgerSetup: Record "General Ledger Setup";
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
         VATSetup: Record "VAT Setup";
-        UpgradeBaseApp: Codeunit "Upgrade - BaseApp";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        LibraryITLocalization: Codeunit "Library - IT Localization";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        // [SCENARIO] Upgrade migrates activity data while preserving the existing IT settlement activity code.
+        // [SCENARIO] Feature activation migrates activity data before switching the company to business activities.
         Initialize();
         RemoveBusinessActivityUpgradeTag();
         CreateLegacyActivityCode(ActivityCode);
@@ -94,8 +97,13 @@ codeunit 144003 "IT - Business Activity Code"
         VATSetup."Per Activity Code Settl. Entry" := true;
         VATSetup.Modify();
 
-        UpgradeBaseApp.UpgradeBusinessActivityCodes();
+        LibraryITLocalization.SetFeatureStatus(BusinessActivityFeature.GetFeatureKey(), Enum::"Feature Status"::Pending);
+        Assert.IsFalse(BusinessActivityFeature.IsEnabled(), 'Pending migration must keep the legacy implementation active.');
+        FeatureDataUpdateStatus.Get(BusinessActivityFeature.GetFeatureKey(), CompanyName());
 
+        FeatureManagementFacade.UpdateData(FeatureDataUpdateStatus);
+
+        Assert.IsTrue(BusinessActivityFeature.IsEnabled(), 'The new implementation must become active after migration completes.');
         BusinessActivity.Get(ActivityCode.Code);
         Assert.AreEqual(ActivityCode.Description, BusinessActivity.Description, BusinessActivity.FieldCaption(Description));
         GenJournalLine.Find();
@@ -144,6 +152,68 @@ codeunit 144003 "IT - Business Activity Code"
 
         GenJournalLine.Find();
         GenJournalLine.TestField("Business Activity Code", NewBusinessActivityCode);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PendingFeaturePostsOnlyLegacyActivityCode()
+    var
+        ActivityCode: Record "Activity Code";
+        GenJournalLine: Record "Gen. Journal Line";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        VATEntry: Record "VAT Entry";
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+        LibraryITLocalization: Codeunit "Library - IT Localization";
+    begin
+        // [SCENARIO] Pending migration preserves legacy posting even if both setup flags are set.
+        Initialize();
+        CreateLegacyActivityCode(ActivityCode);
+        CreateGenJournalLine(GenJournalLine);
+        GenJournalLine."Activity Code" := ActivityCode.Code;
+        GenJournalLine."Business Activity Code" := '';
+        GenJournalLine.Modify();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Use Activity Code" := true;
+        GeneralLedgerSetup."Use Business Activity Code" := true;
+        GeneralLedgerSetup.Modify();
+        LibraryITLocalization.SetFeatureStatus(BusinessActivityFeature.GetFeatureKey(), Enum::"Feature Status"::Pending);
+
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        VATEntry.FindFirst();
+        VATEntry.TestField("Activity Code", ActivityCode.Code);
+        VATEntry.TestField("Business Activity Code", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PendingFeatureSplitsOnlyLegacyActivityCodes()
+    var
+        ActivityCode: Record "Activity Code";
+        OtherActivityCode: Record "Activity Code";
+        PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
+        PeriodicVATSettlement: Codeunit "Periodic VAT Settlement";
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+        LibraryITLocalization: Codeunit "Library - IT Localization";
+        BusinessActivityCode: Code[10];
+        VATPeriod: Code[10];
+    begin
+        // [SCENARIO] Pending migration splits settlement entries using only legacy master data.
+        Initialize();
+        CreateLegacyActivityCode(ActivityCode);
+        repeat
+            BusinessActivityCode := CreateBusinessActivityCode();
+        until not OtherActivityCode.Get(BusinessActivityCode);
+        VATPeriod := Format(WorkDate(), 0, '<Year4>-<Month,2>');
+        PeriodicVATSettlementEntry.SetRange("VAT Period", VATPeriod);
+        PeriodicVATSettlementEntry.DeleteAll();
+        LibraryITLocalization.SetFeatureStatus(BusinessActivityFeature.GetFeatureKey(), Enum::"Feature Status"::Pending);
+
+        PeriodicVATSettlement.CreateSeparateEntries(VATPeriod);
+
+        Assert.IsTrue(PeriodicVATSettlementEntry.Get(VATPeriod, ActivityCode.Code), 'A settlement entry must be created for the legacy activity.');
+        Assert.IsFalse(PeriodicVATSettlementEntry.Get(VATPeriod, BusinessActivityCode), 'New master data must not be used before migration completes.');
     end;
 
     local procedure CreateLegacyActivityCode(var ActivityCode: Record "Activity Code")
@@ -333,10 +403,18 @@ codeunit 144003 "IT - Business Activity Code"
     procedure PostingPossibleWithActivityCodeForJournals()
     var
         GenJournalLine: Record "Gen. Journal Line";
+#if not CLEAN30
+        GeneralLedgerSetup: Record "General Ledger Setup";
+#endif
     begin
         // [FEATURE] [General Journal] [Post]
         // [SCENARIO 338450] User can post Gen. Journal Line with Activity Code when Use activity code is enabled
         Initialize();
+#if not CLEAN30
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Use Activity Code" := true;
+        GeneralLedgerSetup.Modify();
+#endif
 
         // [GIVEN] General journal line was created with an activity code
         CreateGenJournalLine(GenJournalLine);
@@ -518,7 +596,15 @@ codeunit 144003 "IT - Business Activity Code"
     end;
 
     local procedure Initialize()
+#if not CLEAN30
+    var
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+        LibraryITLocalization: Codeunit "Library - IT Localization";
+#endif
     begin
+#if not CLEAN30
+        LibraryITLocalization.SetFeatureStatus(BusinessActivityFeature.GetFeatureKey(), Enum::"Feature Status"::Complete);
+#endif
         LibrarySetupStorage.Restore();
 
         if IsInitialized then

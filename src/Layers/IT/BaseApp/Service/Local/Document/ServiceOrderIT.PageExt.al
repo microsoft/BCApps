@@ -10,6 +10,11 @@ pageextension 12451 "Service Order IT" extends "Service Order"
 {
     layout
     {
+        modify("Business Activity Code")
+        {
+            Visible = BusinessActivityEnabled;
+        }
+
         addafter("Responsibility Center")
         {
             field("Operation Occurred Date"; Rec."Operation Occurred Date")
@@ -32,7 +37,7 @@ pageextension 12451 "Service Order IT" extends "Service Order"
             {
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the code for the company''s primary activity.';
-                Visible = false;
+                Visible = not BusinessActivityEnabled;
                 ObsoleteReason = 'Replaced by the Business Activity Code field.';
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
@@ -202,4 +207,13 @@ pageextension 12451 "Service Order IT" extends "Service Order"
     begin
         CurrPage.Update();
     end;
+    trigger OnOpenPage()
+    begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
+    end;
+
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

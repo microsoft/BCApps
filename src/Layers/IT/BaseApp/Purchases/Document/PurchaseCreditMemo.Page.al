@@ -363,7 +363,7 @@ page 52 "Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
-                    Visible = false;
+                    Visible = not BusinessActivityEnabled;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
@@ -371,6 +371,7 @@ page 52 "Purchase Credit Memo"
 #endif
                 field("Business Activity Code"; Rec."Business Activity Code")
                 {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -1815,6 +1816,7 @@ page 52 "Purchase Credit Memo"
         EnvironmentInfo: Codeunit "Environment Information";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         DocAmountEnable := PurchSetup.ShouldDocumentTotalAmountsBeChecked(Rec);
         DocAmountsEditable := PurchSetup.CanDocumentTotalAmountsBeEdited(Rec);
         SetDocNoVisible();
@@ -1907,10 +1909,10 @@ page 52 "Purchase Credit Memo"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+        IsActivityCodeMandatory := GeneralLedgerSetup.IsBusinessActivityCodeEnabled();
     #if not CLEAN30
-        IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup.IsLegacyActivityCodeEnabled();
     #endif
-        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";
     end;
 
     procedure CallPostDocument(PostingCodeunitID: Integer; Navigate: Enum "Navigate After Posting")
@@ -2170,4 +2172,8 @@ page 52 "Purchase Credit Memo"
     local procedure OnPostDocumentOnAfterCalcDocumentIsScheduledForPosting(var PurchaseHeader: Record "Purchase Header"; var DocumentIsScheduledForPosting: Boolean; var DocumentIsPosted: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

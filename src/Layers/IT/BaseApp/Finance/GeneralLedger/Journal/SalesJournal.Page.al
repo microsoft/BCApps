@@ -490,7 +490,7 @@ page 253 "Sales Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
-                    Visible = false;
+                    Visible = not BusinessActivityEnabled;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
@@ -498,6 +498,7 @@ page 253 "Sales Journal"
 #endif
                 field("Business Activity Code"; Rec."Business Activity Code")
                 {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
                 }
@@ -1534,6 +1535,7 @@ page 253 "Sales Journal"
         LastGenJnlBatch: Code[10];
         IsHandled: Boolean;
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         UseAllocationAccountNumber := AllocationAccountMgt.UseAllocationAccountNoField();
@@ -1860,5 +1862,9 @@ page 253 "Sales Journal"
     local procedure OnBeforeUpdateBalance(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var IsHandled: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

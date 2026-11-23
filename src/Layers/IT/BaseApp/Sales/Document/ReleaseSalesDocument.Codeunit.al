@@ -140,10 +140,10 @@ codeunit 414 "Release Sales Document"
         OnAfterReleaseATOs(SalesHeader, SalesLine, PreviewMode);
         GeneralLedgerSetup.GetRecordOnce();
 #if not CLEAN30
-        if GeneralLedgerSetup."Use Activity Code" then
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
             SalesHeader.TestField("Activity Code");
 #endif
-        if GeneralLedgerSetup."Use Business Activity Code" then
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
             SalesHeader.TestField("Business Activity Code");
 
         SalesHeader.Modify(true);

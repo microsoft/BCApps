@@ -468,9 +468,11 @@ report 295 "Combine Shipments"
             SalesHeader.Validate("Bank Account", SalesOrderHeader."Bank Account");
             SalesHeader.Validate("Operation Type", OperationType.Code);
 #if not CLEAN30
-            SalesHeader.Validate("Activity Code", SalesOrderHeader."Activity Code");
+            if not BusinessActivityFeature.IsEnabled() then
+                SalesHeader.Validate("Activity Code", SalesOrderHeader."Activity Code");
 #endif
-            SalesHeader.Validate("Business Activity Code", SalesOrderHeader."Business Activity Code");
+            if BusinessActivityFeature.IsEnabled() then
+                SalesHeader.Validate("Business Activity Code", SalesOrderHeader."Business Activity Code");
             SalesHeader.Validate("Posting Date", PostingDateReq);
             SalesHeader.Validate("Document Date", DocDateReq);
             SalesHeader.Validate("VAT Reporting Date", VATDateReq);
@@ -604,9 +606,9 @@ report 295 "Combine Shipments"
           (SalesOrderHeader."Payment Terms Code" <> SalesHeader."Payment Terms Code") or
           (SalesOrderHeader."Payment Method Code" <> SalesHeader."Payment Method Code") or
 #if not CLEAN30
-          (SalesOrderHeader."Activity Code" <> SalesHeader."Activity Code") or
+          (not BusinessActivityFeature.IsEnabled() and (SalesOrderHeader."Activity Code" <> SalesHeader."Activity Code")) or
 #endif
-          (SalesOrderHeader."Business Activity Code" <> SalesHeader."Business Activity Code") or
+          (BusinessActivityFeature.IsEnabled() and (SalesOrderHeader."Business Activity Code" <> SalesHeader."Business Activity Code")) or
           (SalesOrderHeader."Bank Account" <> SalesHeader."Bank Account") or
           (SalesOrderHeader."Fattura Project Code" <> SalesHeader."Fattura Project Code") or
           (SalesOrderHeader."Fattura Tender Code" <> SalesHeader."Fattura Tender Code");
@@ -729,4 +731,7 @@ report 295 "Combine Shipments"
     local procedure OnBeforeInsertInventoryLineFromShipmentLine(SalesShipmentLine: Record "Sales Shipment Line"; var IsHandled: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -5983,9 +5983,11 @@ codeunit 80 "Sales-Post"
                 ICInOutBoxMgt.CreateOutboxJnlLine(ICTransactionNo, 1, TempICGenJnlLine);
                 ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
 #if not CLEAN30
-                TempICGenJnlLine."Activity Code" := ActivityCode;
+                if not BusinessActivityFeature.IsEnabled() then
+                    TempICGenJnlLine."Activity Code" := ActivityCode;
 #endif
-                TempICGenJnlLine."Business Activity Code" := BusinessActivityCode;
+                if BusinessActivityFeature.IsEnabled() then
+                    TempICGenJnlLine."Business Activity Code" := BusinessActivityCode;
                 if TempICGenJnlLine.Amount <> 0 then
                     GenJnlPostLine.RunWithCheck(TempICGenJnlLine);
             until TempICGenJnlLine.Next() = 0;
@@ -14237,4 +14239,7 @@ codeunit 80 "Sales-Post"
     local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
     begin
     end;
+
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

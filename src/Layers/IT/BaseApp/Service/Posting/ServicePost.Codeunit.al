@@ -486,10 +486,10 @@ codeunit 5980 "Service-Post"
             ValidateIncludeInVATReport(PassedServiceHeader);
         GLSetup.GetRecordOnce();
 #if not CLEAN30
-        if GLSetup."Use Activity Code" then
+        if GLSetup.IsLegacyActivityCodeEnabled() then
             PassedServiceHeader.TestField("Activity Code", ErrorInfo.Create());
 #endif
-        if GLSetup."Use Business Activity Code" then
+        if GLSetup.IsBusinessActivityCodeEnabled() then
             PassedServiceHeader.TestField("Business Activity Code", ErrorInfo.Create());
 
         if PassedServiceHeader."Applies-to Doc. No." <> '' then

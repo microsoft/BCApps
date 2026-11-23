@@ -80,7 +80,7 @@ report 12126 "Annual VAT Comm. - 2010"
                 column(CompanyInfo__VAT_Registration_No__; CompanyInfo."VAT Registration No.")
                 {
                 }
-                column(ActivityCode_Code; ActivityCode2.Code)
+                column(ActivityCode_Code; GetActivityCode())
                 {
                 }
                 column(SeparateLedgerTxt; SeparateLedgerTxt)
@@ -385,6 +385,7 @@ report 12126 "Annual VAT Comm. - 2010"
 #if not CLEAN30
                     field(ActivityCode; ActivityCode2.Code)
                     {
+                        Visible = not BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Activity Code';
                         TableRelation = "Activity Code".Code;
@@ -396,6 +397,7 @@ report 12126 "Annual VAT Comm. - 2010"
 #endif
                     field(BusinessActivityCode; BusinessActivity.Code)
                     {
+                        Visible = BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Business Activity Code';
                         TableRelation = "Business Activity".Code;
@@ -466,6 +468,7 @@ report 12126 "Annual VAT Comm. - 2010"
 
     trigger OnInitReport()
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         CompanyInfo.Get();
         GeneralLedgerSetup.GetRecordOnce();
     end;
@@ -482,10 +485,10 @@ report 12126 "Annual VAT Comm. - 2010"
 
         "VAT Statement Name".SetRange("Statement Template Name", "VAT Statement Name"."Statement Template Name");
 #if not CLEAN30
-        if GeneralLedgerSetup."Use Activity Code" then
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
             "VAT Statement Line".SetFilter("Activity Code Filter", '%1', ActivityCode2.Code);
 #endif
-        if GeneralLedgerSetup."Use Business Activity Code" then
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
             "VAT Statement Line".SetFilter("Business Activity Code Filter", '%1', BusinessActivity.Code);
         "VAT Statement Line".SetRange("Date Filter", StartDate, EndDate);
 
@@ -622,5 +625,18 @@ report 12126 "Annual VAT Comm. - 2010"
         StartDate := NewStartDate;
         EndDate := NewEndDate;
     end;
+
+    local procedure GetActivityCode(): Code[10]
+    begin
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then
+            exit(ActivityCode2.Code);
+#endif
+        exit(BusinessActivity.Code);
+    end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

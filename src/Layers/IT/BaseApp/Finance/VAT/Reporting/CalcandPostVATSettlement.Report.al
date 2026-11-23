@@ -379,8 +379,12 @@ report 20 "Calc. and Post VAT Settlement"
                             GenJnlLine."Deductible %" := 100;
                             GenJnlLine."Posting Date" := PostingDate;
                             GenJnlLine."Operation Occurred Date" := PostingDate;
-                            if GLSetup."Use Activity Code" then
-                                GenJnlLine."Activity Code" := ActivityCode.Code;
+#if not CLEAN30
+                            if GLSetup.IsLegacyActivityCodeEnabled() then
+                                GenJnlLine."Activity Code" := CopyStr(ActivityCode.Code, 1, MaxStrLen(GenJnlLine."Activity Code"));
+#endif
+                            if GLSetup.IsBusinessActivityCodeEnabled() then
+                                GenJnlLine."Business Activity Code" := ActivityCode.Code;
                             GenJnlLine."Document Type" := GenJnlLine."Document Type"::" ";
                             GenJnlLine."Document No." := DocNo;
                             GenJnlLine."Source Code" := SourceCodeSetup."VAT Settlement";
@@ -511,8 +515,12 @@ report 20 "Calc. and Post VAT Settlement"
                     trigger OnAfterGetRecord()
                     begin
                         VATEntry.Reset();
-                        if GLSetup."Use Activity Code" then
+#if not CLEAN30
+                        if GLSetup.IsLegacyActivityCodeEnabled() then
                             VATEntry.SetFilter("Activity Code", '%1', ActivityCode.Code);
+#endif
+                        if GLSetup.IsBusinessActivityCodeEnabled() then
+                            VATEntry.SetFilter("Business Activity Code", '%1', ActivityCode.Code);
                         VATEntry.SetRange(Type, VATType);
                         VATEntry.SetRange(Closed, false);
                         VATEntry.SetFilter("Operation Occurred Date", VATDateFilter);
@@ -608,14 +616,14 @@ report 20 "Calc. and Post VAT Settlement"
                 }
                 trigger OnAfterGetRecord()
                 begin
-                    if (Number = 1) and GLSetup."Use Activity Code" then begin
+                    if (Number = 1) and IsActivityCodeEnabled() then begin
                         if ActivityCodeFilter <> '' then
                             ActivityCode.SetFilter(Code, ActivityCodeFilter);
                         ActivityCode.FindSet();
                     end;
-                    if (Number = 2) and not GLSetup."Use Activity Code" then
+                    if (Number = 2) and not IsActivityCodeEnabled() then
                         CurrReport.Break();
-                    if (Number >= 2) and GLSetup."Use Activity Code" then
+                    if (Number >= 2) and IsActivityCodeEnabled() then
                         if ActivityCode.Next() = 0 then
                             CurrReport.Break();
                 end;
@@ -910,17 +918,45 @@ report 20 "Calc. and Post VAT Settlement"
                             exit(false);
                         end;
                     }
+#if not CLEAN30
                     field("Activity Code Filter"; ActivityCodeFilter)
                     {
+                        Visible = not BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Activity Code Filter';
                         ToolTip = 'Specifies the activity code to filter the VAT settlement.';
                         Importance = Additional;
+                        ObsoleteReason = 'Replaced by the Business Activity Code Filter field.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '30.0';
 
                         trigger OnLookup(var Text: Text): Boolean
                         var
                             ActivityCodeRec: Record "Activity Code";
                             ActivityCodesPage: Page "Activity Codes";
+                        begin
+                            ActivityCodesPage.LookupMode(true);
+                            if ActivityCodesPage.RunModal() = Action::LookupOK then begin
+                                ActivityCodesPage.GetRecord(ActivityCodeRec);
+                                ActivityCodeFilter := ActivityCodeRec.Code;
+                                exit(true);
+                            end;
+                            exit(false);
+                        end;
+                    }
+#endif
+                    field("Business Activity Code Filter"; ActivityCodeFilter)
+                    {
+                        Visible = BusinessActivityEnabled;
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Business Activity Code Filter';
+                        ToolTip = 'Specifies the activity code to filter the VAT settlement.';
+                        Importance = Additional;
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            ActivityCodeRec: Record "Business Activity";
+                            ActivityCodesPage: Page "Business Activities";
                         begin
                             ActivityCodesPage.LookupMode(true);
                             if ActivityCodesPage.RunModal() = Action::LookupOK then begin
@@ -1024,10 +1060,16 @@ report 20 "Calc. and Post VAT Settlement"
 
         if VATSetup.Get() then;
         if VATSetup."Per Activity Code Settl. Entry" then begin
-            GLSetup.TestField("Use Activity Code");
+#if not CLEAN30
+            if not BusinessActivityFeature.IsEnabled() then
+                GLSetup.TestField("Use Activity Code")
+            else
+#endif
+            GLSetup.TestField("Use Business Activity Code");
             ValidatePreviousEntrySplit();
         end;
 
+        InitializeActivityCodes();
         InitializeTotals();
         if PostSettlement then
             GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
@@ -1042,7 +1084,7 @@ report 20 "Calc. and Post VAT Settlement"
         VATEntry: Record "VAT Entry";
         TaxJurisdiction: Record "Tax Jurisdiction";
         GLSetup: Record "General Ledger Setup";
-        ActivityCode: Record "Activity Code";
+        ActivityCode: Record "Business Activity" temporary;
         VATSetup: Record "VAT Setup";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         PrintVATEntries: Boolean;
@@ -1070,7 +1112,7 @@ report 20 "Calc. and Post VAT Settlement"
         TotalPurchaseAmount: Decimal;
         TotalPurchRounded: Decimal;
         TotalSaleRounded: Decimal;
-        VATAmountPerActivity, TotalSaleAmountPerActivity, TotalPurchaseAmountPerActivity, TotalPurchRoundedPerActivity, TotalSaleRoundedPerActivity : Dictionary of [Code[6], Decimal];
+        VATAmountPerActivity, TotalSaleAmountPerActivity, TotalPurchaseAmountPerActivity, TotalPurchRoundedPerActivity, TotalSaleRoundedPerActivity : Dictionary of [Code[10], Decimal];
         CreditNextPeriod: Decimal;
         DebitNextPeriod: Decimal;
         NewVATAmount: Decimal;
@@ -1159,7 +1201,7 @@ report 20 "Calc. and Post VAT Settlement"
         Initialized := true;
     end;
 
-    local procedure AddToTotals(TotalDictionary: Dictionary of [Code[6], Decimal]; ActivityCodeParam: Code[6]; Amount: Decimal)
+    local procedure AddToTotals(TotalDictionary: Dictionary of [Code[10], Decimal]; ActivityCodeParam: Code[10]; Amount: Decimal)
     begin
         if not VATSetup."Per Activity Code Settl. Entry" then
             exit;
@@ -1170,14 +1212,14 @@ report 20 "Calc. and Post VAT Settlement"
             TotalDictionary.Add(ActivityCodeParam, Amount);
     end;
 
-    local procedure GetTotalOrZero(TotalDictionary: Dictionary of [Code[6], Decimal]; ActivityCodeParam: Code[6]): Decimal
+    local procedure GetTotalOrZero(TotalDictionary: Dictionary of [Code[10], Decimal]; ActivityCodeParam: Code[10]): Decimal
     begin
         if TotalDictionary.ContainsKey(ActivityCodeParam) then
             exit(TotalDictionary.Get(ActivityCodeParam));
         exit(0);
     end;
 
-    local procedure SafeSet(ToDictionary: Dictionary of [Code[6], Decimal]; ActivityCodeKey: Code[6]; Value: Decimal)
+    local procedure SafeSet(ToDictionary: Dictionary of [Code[10], Decimal]; ActivityCodeKey: Code[10]; Value: Decimal)
     begin
         if ToDictionary.ContainsKey(ActivityCodeKey) then
             ToDictionary.Set(ActivityCodeKey, Value)
@@ -1187,8 +1229,10 @@ report 20 "Calc. and Post VAT Settlement"
 
     local procedure InitializeTotals()
     var
-        ActivityCodeLocal: Record "Activity Code";
+        ActivityCodeLocal: Record "Business Activity" temporary;
     begin
+        ActivityCodeLocal.Copy(ActivityCode, true);
+        ActivityCodeLocal.Reset();
         if VATSetup."Per Activity Code Settl. Entry" then begin
             if ActivityCodeLocal.FindSet() then
                 repeat
@@ -1213,7 +1257,7 @@ report 20 "Calc. and Post VAT Settlement"
         end;
     end;
 
-    local procedure InitializeValuesFromPriorPeriodEntry(ActivityCodeParam: Code[6])
+    local procedure InitializeValuesFromPriorPeriodEntry(ActivityCodeParam: Code[10])
     var
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
         TempInputVAT, TempOutputVAT : Decimal;
@@ -1330,13 +1374,15 @@ report 20 "Calc. and Post VAT Settlement"
 
     local procedure UpdatePeriodicSettlementVATEntryActivityCode()
     var
-        ActivityCodeLocal: Record "Activity Code";
+        ActivityCodeLocal: Record "Business Activity" temporary;
         PriorPeriodVATEntry: Record "Periodic VAT Settlement Entry";
         PriorPeriodVATEntry2: Record "Periodic VAT Settlement Entry";
         DateFormula: DateFormula;
         IsNewYear: Boolean;
         NewVATAmount: Decimal;
     begin
+        ActivityCodeLocal.Copy(ActivityCode, true);
+        ActivityCodeLocal.Reset();
         if VATSetup."Per Activity Code Settl. Entry" then begin
             if ActivityCodeLocal.Findset() then
                 repeat
@@ -1406,7 +1452,7 @@ report 20 "Calc. and Post VAT Settlement"
         GLSetup.Modify();
     end;
 
-    local procedure UpdatePeriodicSettlementVATEntry(ActivityCode: Code[6])
+    local procedure UpdatePeriodicSettlementVATEntry(ActivityCode: Code[10])
     var
         PeriodicVATSettlementEntryPrior: Record "Periodic VAT Settlement Entry";
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
@@ -1442,7 +1488,7 @@ report 20 "Calc. and Post VAT Settlement"
         end else begin
             PeriodicVATSettlementEntryPrior."VAT Period" := Format(Date2DMY(EndDateReq, 3)) + '/' +
               ConvertStr(Format(Date2DMY(EndDateReq, 2), 2), ' ', '0');
-            PeriodicVATSettlementEntryPrior."Activity Code" := ActivityCode;
+            PeriodicVATSettlementEntryPrior."Activity Code" := CopyStr(ActivityCode, 1, MaxStrLen(PeriodicVATSettlementEntryPrior."Activity Code"));
             PeriodicVATSettlementEntryPrior."VAT Settlement" := NewVATAmount;
             PeriodicVATSettlementEntryPrior."VAT Period Closed" := true;
             PeriodicVATSettlementEntryPrior.Insert(true);
@@ -1458,7 +1504,7 @@ report 20 "Calc. and Post VAT Settlement"
 
         PeriodicVATSettlementEntry.Init();
         PeriodicVATSettlementEntry."VAT Period" := Format(Date2DMY(CalcDate(DateFormula, EndDateReq), 3)) + '/' + ConvertStr(Format(Date2DMY(CalcDate(DateFormula, EndDateReq), 2), 2), ' ', '0');
-        PeriodicVATSettlementEntry."Activity Code" := ActivityCode;
+        PeriodicVATSettlementEntry."Activity Code" := CopyStr(ActivityCode, 1, MaxStrLen(PeriodicVATSettlementEntry."Activity Code"));
         PeriodicVATSettlementEntry.Insert();
 
         IsNewYear := Date2DMY(CalcDate(DateFormula, EndDateReq), 3) <> Date2DMY(EndDateReq, 3);
@@ -1701,4 +1747,50 @@ report 20 "Calc. and Post VAT Settlement"
     local procedure OnVATPostingSetupOnPostDataItemOnBeforePostSettlement(var GenJnlLine: Record "Gen. Journal Line")
     begin
     end;
+    trigger OnInitReport()
+    begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
+    end;
+
+
+    local procedure IsActivityCodeEnabled(): Boolean
+    begin
+#if not CLEAN30
+        if GLSetup.IsLegacyActivityCodeEnabled() then
+            exit(true);
+#endif
+        exit(GLSetup.IsBusinessActivityCodeEnabled());
+    end;
+
+    local procedure InitializeActivityCodes()
+    var
+        BusinessActivity: Record "Business Activity";
+#if not CLEAN30
+        LegacyActivityCode: Record "Activity Code";
+#endif
+    begin
+        ActivityCode.Reset();
+        ActivityCode.DeleteAll();
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then begin
+            if LegacyActivityCode.FindSet() then
+                repeat
+                    ActivityCode.Init();
+                    ActivityCode.Code := LegacyActivityCode.Code;
+                    ActivityCode.Description := LegacyActivityCode.Description;
+                    ActivityCode.Insert();
+                until LegacyActivityCode.Next() = 0;
+            exit;
+        end;
+#endif
+        if BusinessActivity.FindSet() then
+            repeat
+                ActivityCode := BusinessActivity;
+                ActivityCode.Insert();
+            until BusinessActivity.Next() = 0;
+    end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

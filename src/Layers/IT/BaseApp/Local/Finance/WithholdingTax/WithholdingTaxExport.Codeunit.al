@@ -443,13 +443,13 @@ codeunit 12132 "Withholding Tax Export"
         FlatFileManagement.WriteBlockValue('DA001009', ConstFormat::AN, CompanyInformation."E-Mail");
         GeneralLedgerSetup.GetRecordOnce();
 #if not CLEAN30
-        if GeneralLedgerSetup."Use Activity Code" then begin
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then begin
             TempErrorMessage.LogIfEmpty(
               CompanyInformation, CompanyInformation.FieldNo("Activity Code"), TempErrorMessage."Message Type"::Error);
             FlatFileManagement.WriteBlockValue('DA001010', ConstFormat::AN, CompanyInformation."Activity Code");
         end;
 #endif
-        if GeneralLedgerSetup."Use Business Activity Code" then begin
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then begin
             TempErrorMessage.LogIfEmpty(
               CompanyInformation, CompanyInformation.FieldNo("Business Activity Code"), TempErrorMessage."Message Type"::Error);
             FlatFileManagement.WriteBlockValue('DA001010', ConstFormat::AN, CompanyInformation."Business Activity Code");

@@ -173,7 +173,7 @@ page 118 "General Ledger Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Use activity code in purchase/sales headers';
-                    Visible = false;
+                    Visible = not BusinessActivityEnabled;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
@@ -181,6 +181,7 @@ page 118 "General Ledger Setup"
 #endif
                 field("Use Business Activity Code"; Rec."Use Business Activity Code")
                 {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether to use business activity codes in purchase and sales headers.';
                 }
@@ -983,6 +984,7 @@ page 118 "General Ledger Setup"
     trigger OnOpenPage()
     var
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         Rec.Reset();
         if not Rec.Get() then begin
             Rec.Init();
@@ -1016,4 +1018,8 @@ page 118 "General Ledger Setup"
           (Rec."Shortcut Dimension 7 Code" <> xGeneralLedgerSetup."Shortcut Dimension 7 Code") or
           (Rec."Shortcut Dimension 8 Code" <> xGeneralLedgerSetup."Shortcut Dimension 8 Code"));
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

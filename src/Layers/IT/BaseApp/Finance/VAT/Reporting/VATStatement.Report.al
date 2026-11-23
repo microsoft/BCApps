@@ -208,6 +208,7 @@ report 12 "VAT Statement"
 #if not CLEAN30
                     field(ActivityCode; ActivityCode)
                     {
+                        Visible = not BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Activity Code';
                         Importance = Additional;
@@ -220,6 +221,7 @@ report 12 "VAT Statement"
 #endif
                     field("Business Activity Code"; ActivityCode)
                     {
+                        Visible = BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Business Activity Code';
                         Importance = Additional;
@@ -392,10 +394,10 @@ report 12 "VAT Statement"
                         VATEntry.SetRange("Use Tax", VATStmtLine2."Use Tax");
                     end;
                     VATEntry.SetRange(Type, VATStmtLine2."Gen. Posting Type");
-                    if GLSetup."Use Business Activity Code" then
+                    if GLSetup.IsBusinessActivityCodeEnabled() then
                         VATEntry.SetFilter("Business Activity Code", "VAT Statement Line".GetFilter("Business Activity Code Filter"));
 #if not CLEAN30
-                    if GLSetup."Use Activity Code" and not GLSetup."Use Business Activity Code" then
+                    if GLSetup.IsLegacyActivityCodeEnabled() then
                         VATEntry.SetFilter("Activity Code", "VAT Statement Line".GetFilter("Activity Code Filter"));
 #endif
                     if (EndDateReq = 0D) and (StartDate = 0D) then
@@ -806,5 +808,14 @@ report 12 "VAT Statement"
     local procedure OnBeforeCalcLineTotalWithBase(VATStmtLine2: Record "VAT Statement Line"; var TotalAmount: Decimal; var TotalBase: Decimal; Level: Integer; var RowNo: array[6] of Code[10]; var ErrorText: Text[80]; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
+    trigger OnInitReport()
+    begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
+    end;
+
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

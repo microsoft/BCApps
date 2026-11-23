@@ -342,9 +342,11 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine.Validate(GenJnlLine."Document Date", ServiceHeader."Document Date");
         GenJnlLine."Operation Occurred Date" := ServiceHeader."Operation Occurred Date";
 #if not CLEAN30
-        GenJnlLine."Activity Code" := ServiceHeader."Activity Code";
+        if not BusinessActivityFeature.IsEnabled() then
+            GenJnlLine."Activity Code" := ServiceHeader."Activity Code";
 #endif
-        GenJnlLine."Business Activity Code" := ServiceHeader."Business Activity Code";
+        if BusinessActivityFeature.IsEnabled() then
+            GenJnlLine."Business Activity Code" := ServiceHeader."Business Activity Code";
 
         GenJnlLine.CopyDocumentFields(
             InvoicePostingParameters."Document Type", InvoicePostingParameters."Document No.",
@@ -517,4 +519,7 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
     procedure CreatePostedDeferralSchedule(ServiceLineVar: Variant; NewDocumentType: Integer; NewDocumentNo: Code[20]; NewLineNo: Integer; PostingDate: Date)
     begin
     end;
+
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

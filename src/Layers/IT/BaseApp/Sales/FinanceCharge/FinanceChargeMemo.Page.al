@@ -138,7 +138,7 @@ page 446 "Finance Charge Memo"
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
-                    Visible = false;
+                    Visible = not BusinessActivityEnabled;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
@@ -146,6 +146,7 @@ page 446 "Finance Charge Memo"
 #endif
                 field("Business Activity Code"; Rec."Business Activity Code")
                 {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -477,6 +478,7 @@ page 446 "Finance Charge Memo"
     var
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         SetDocNoVisible();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
     end;
@@ -513,4 +515,8 @@ page 446 "Finance Charge Memo"
         if Customer2.Get(Rec."Customer No.") then
             IsPostingGroupEditable := Customer2."Allow Multiple Posting Groups";
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

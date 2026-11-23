@@ -147,9 +147,6 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetRestoreOrderQtyOnReturnInSalesAndPurchasesSetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLocationBinPolicySetupsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetAllowInventoryAdjmtUpgradeTag());
-#if not CLEAN30
-        PerCompanyUpgradeTags.Add(GetBusinessActivityCodeUpgradeTag());
-#endif
 #if not CLEAN29
         PerCompanyUpgradeTags.Add(GetDirectTransferPostingToEnumUpgradeTag());
 #endif

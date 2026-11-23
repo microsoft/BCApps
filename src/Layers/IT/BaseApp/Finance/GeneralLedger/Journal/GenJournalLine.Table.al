@@ -7932,9 +7932,11 @@ table 81 "Gen. Journal Line"
         "System-Created Entry" := true;
         Prepayment := true;
 #if not CLEAN30
-        "Activity Code" := PurchHeader."Activity Code";
+        if not BusinessActivityFeature.IsEnabled() then
+            "Activity Code" := PurchHeader."Activity Code";
 #endif
-        "Business Activity Code" := PurchHeader."Business Activity Code";
+        if BusinessActivityFeature.IsEnabled() then
+            "Business Activity Code" := PurchHeader."Business Activity Code";
         "Fiscal Code" := PurchHeader."Fiscal Code";
         "Individual Person" := PurchHeader."Individual Person";
         Resident := PurchHeader.Resident;
@@ -8059,9 +8061,11 @@ table 81 "Gen. Journal Line"
         "IC Partner Code" := SalesHeader."Sell-to IC Partner Code";
         "Payment Method Code" := SalesHeader."Payment Method Code";
 #if not CLEAN30
-        "Activity Code" := SalesHeader."Activity Code";
+        if not BusinessActivityFeature.IsEnabled() then
+            "Activity Code" := SalesHeader."Activity Code";
 #endif
-        "Business Activity Code" := SalesHeader."Business Activity Code";
+        if BusinessActivityFeature.IsEnabled() then
+            "Business Activity Code" := SalesHeader."Business Activity Code";
         "Fiscal Code" := SalesHeader."Fiscal Code";
         "Individual Person" := SalesHeader."Individual Person";
         Resident := SalesHeader.Resident;
@@ -8934,9 +8938,11 @@ table 81 "Gen. Journal Line"
         FAGenJournalLine.Validate("Currency Code", "Currency Code");
         FAGenJournalLine.Validate("Posting Date", "Posting Date");
 #if not CLEAN30
-        FAGenJournalLine.Validate("Activity Code", "Activity Code");
+        if not BusinessActivityFeature.IsEnabled() then
+            FAGenJournalLine.Validate("Activity Code", "Activity Code");
 #endif
-        FAGenJournalLine.Validate("Business Activity Code", "Business Activity Code");
+        if BusinessActivityFeature.IsEnabled() then
+            FAGenJournalLine.Validate("Business Activity Code", "Business Activity Code");
         FAGenJournalLine.Validate("FA Posting Type", "FA Posting Type"::"Acquisition Cost");
         FAGenJournalLine.Validate("External Document No.", "External Document No.");
         FAGenJournalLine.Insert(true);
@@ -13533,4 +13539,7 @@ table 81 "Gen. Journal Line"
     local procedure OnBeforeGetAccCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; var CurrencyCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -471,10 +471,10 @@ codeunit 442 "Sales-Post Prepayments"
         if GLSetup."Journal Templ. Name Mandatory" then
             SalesHeader.TestField("Journal Templ. Name");
 #if not CLEAN30
-        if GLSetup."Use Activity Code" then
+        if GLSetup.IsLegacyActivityCodeEnabled() then
             SalesHeader.TestField("Activity Code");
 #endif
-        if GLSetup."Use Business Activity Code" then
+        if GLSetup.IsBusinessActivityCodeEnabled() then
             SalesHeader.TestField("Business Activity Code");
         if SalesHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             SalesHeader.FieldError("Operation Occurred Date", Text1130007);

@@ -274,10 +274,10 @@ codeunit 12173 "Vendor Bill List - Post"
         if PurchInvHeader.GET(VendLedgEntry."Document No.") then begin
             GeneralLedgerSetup.GetRecordOnce();
 #if not CLEAN30
-            if GeneralLedgerSetup."Use Activity Code" then
+            if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
                 GenJnlLine.Validate("Activity Code", PurchInvHeader."Activity Code");
 #endif
-            if GeneralLedgerSetup."Use Business Activity Code" then
+            if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
                 GenJnlLine.Validate("Business Activity Code", PurchInvHeader."Business Activity Code");
         end;
 

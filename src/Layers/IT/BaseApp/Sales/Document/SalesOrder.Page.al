@@ -403,7 +403,7 @@ page 42 "Sales Order"
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
-                    Visible = false;
+                    Visible = not BusinessActivityEnabled;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
@@ -411,6 +411,7 @@ page 42 "Sales Order"
 #endif
                 field("Business Activity Code"; Rec."Business Activity Code")
                 {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -2741,6 +2742,7 @@ page 42 "Sales Order"
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
 
         Rec.SetRange("Date Filter", 0D, WorkDate());
@@ -2875,10 +2877,10 @@ page 42 "Sales Order"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
+        IsActivityCodeMandatory := GeneralLedgerSetup.IsBusinessActivityCodeEnabled();
     #if not CLEAN30
-        IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup.IsLegacyActivityCodeEnabled();
     #endif
-        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup."Use Business Activity Code";
     end;
 
     protected procedure PostSalesOrder(PostingCodeunitID: Integer; Navigate: Enum "Navigate After Posting")
@@ -3193,4 +3195,8 @@ page 42 "Sales Order"
     local procedure OnBeforeLookupBillToName(var Customer: Record Customer; SalesHeader: Record "Sales Header")
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -6020,9 +6020,11 @@ codeunit 90 "Purch.-Post"
                 ICOutboxExport.ProcessAutoSendOutboxTransactionNo(ICTransactionNo);
                 if TempICGenJnlLine.Amount <> 0 then begin
 #if not CLEAN30
-                    TempICGenJnlLine."Activity Code" := ActivityCode;
+                    if not BusinessActivityFeature.IsEnabled() then
+                        TempICGenJnlLine."Activity Code" := ActivityCode;
 #endif
-                    TempICGenJnlLine."Business Activity Code" := BusinessActivityCode;
+                    if BusinessActivityFeature.IsEnabled() then
+                        TempICGenJnlLine."Business Activity Code" := BusinessActivityCode;
                     GenJnlPostLine.RunWithCheck(TempICGenJnlLine);
                 end;
             until TempICGenJnlLine.Next() = 0;
@@ -12045,4 +12047,7 @@ codeunit 90 "Purch.-Post"
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

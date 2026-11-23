@@ -781,10 +781,10 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                     GenJnlLine2."Deductible %" := GenJnlAlloc."Deductible %";
                     GenJnlLine2."Operation Occurred Date" := AllocateGenJnlLine."Operation Occurred Date";
 #if not CLEAN30
-                    if GLSetup."Use Activity Code" then
+                    if GLSetup.IsLegacyActivityCodeEnabled() then
                         GenJnlLine2."Activity Code" := AllocateGenJnlLine."Activity Code";
 #endif
-                    if GLSetup."Use Business Activity Code" then
+                    if GLSetup.IsBusinessActivityCodeEnabled() then
                         GenJnlLine2."Business Activity Code" := AllocateGenJnlLine."Business Activity Code";
                     GenJnlLine2."Allow Zero-Amount Posting" := true;
                     UpdateDimBalBatchName(GenJnlLine2);

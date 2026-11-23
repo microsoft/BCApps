@@ -140,7 +140,7 @@ report 12125 "Exp. Annual VAT Communication"
                   PadStr('', 20) +
                   Format(TaxYear, 4) +
                   PadStr(CompanyInfo."VAT Registration No.", 11) +
-                  PADSTR(ActivityCode.Code, 5) +
+                  PadStr(GetActivityCode(), 5) +
                   ConvertBoolean(SeparateLedger) +
                   ConvertBoolean(GroupSettlement) +
                   ConvertBoolean(ExceptionalEvent) +
@@ -270,6 +270,7 @@ report 12125 "Exp. Annual VAT Communication"
 #if not CLEAN30
                     field("ActivityCode.Code"; ActivityCode.Code)
                     {
+                        Visible = not BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Activity Code';
                         TableRelation = "Activity Code".Code;
@@ -281,6 +282,7 @@ report 12125 "Exp. Annual VAT Communication"
 #endif
                     field("BusinessActivityCode.Code"; BusinessActivity.Code)
                     {
+                        Visible = BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Business Activity Code';
                         TableRelation = "Business Activity".Code;
@@ -361,6 +363,7 @@ report 12125 "Exp. Annual VAT Communication"
 
     trigger OnInitReport()
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         CompanyInfo.Get();
         CompanyInfo.TestField(Name);
         CompanyInfo.TestField("VAT Registration No.");
@@ -395,10 +398,10 @@ report 12125 "Exp. Annual VAT Communication"
         VATStatementLine.SetFilter("Annual VAT Comm. Field", '<>%1', VATStatementLine."Annual VAT Comm. Field"::" ");
         VATStatementLine.FilterGroup := 0;
 #if not CLEAN30
-        if GeneralLedgerSetup."Use Activity Code" then
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
             VATStatementLine.SetRange("Activity Code Filter", ActivityCode.Code);
 #endif
-        if GeneralLedgerSetup."Use Business Activity Code" then
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
             VATStatementLine.SetRange("Business Activity Code Filter", BusinessActivity.Code);
         VATStatementLine.SetRange("Date Filter", StartDate, EndDate);
 
@@ -482,7 +485,7 @@ report 12125 "Exp. Annual VAT Communication"
         end;
 
 #if not CLEAN30
-        if GeneralLedgerSetup."Use Activity Code" then begin
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then begin
             if VATStatementName.GetFilter("Activity Code Filter") <> '' then begin
                 ActivityCode.SetFilter(Code, VATStatementName.GetFilter("Activity Code Filter"));
                 if ActivityCode.Count() <> 1 then
@@ -495,7 +498,7 @@ report 12125 "Exp. Annual VAT Communication"
             VATStatementName.CopyFilter("Activity Code Filter", VATStatementLine."Activity Code Filter");
         end;
 #endif
-        if GeneralLedgerSetup."Use Business Activity Code" then begin
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then begin
             if VATStatementName.GetFilter("Business Activity Code Filter") <> '' then begin
                 BusinessActivity.SetFilter(Code, VATStatementName.GetFilter("Business Activity Code Filter"));
                 if BusinessActivity.Count() <> 1 then
@@ -510,5 +513,18 @@ report 12125 "Exp. Annual VAT Communication"
 
         VATStatementLine.SetFilter("Date Filter", VATStatementName.GetFilter("Date Filter"));
     end;
+
+    local procedure GetActivityCode(): Code[10]
+    begin
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then
+            exit(ActivityCode.Code);
+#endif
+        exit(BusinessActivity.Code);
+    end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

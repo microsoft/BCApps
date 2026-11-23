@@ -240,9 +240,6 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeLocationBinPolicySetups();
         UpgradeInventorySetupAllowInvtAdjmt();
         UpgradeNoSeriesIT();
-#if not CLEAN30
-        UpgradeBusinessActivityCodes();
-#endif
 #if not CLEAN29
         UpgradeDirectTransferPostingToEnum();
 #endif
@@ -3851,6 +3848,50 @@ codeunit 104000 "Upgrade - BaseApp"
     end;
 
 #if not CLEAN30
+    internal procedure GetBusinessActivityUpgradeOverview(var TempDocumentEntry: Record Microsoft.Foundation.Navigate."Document Entry" temporary)
+    var
+        SourceRecord: RecordRef;
+        TableIds: List of [Integer];
+        TableId: Integer;
+    begin
+        TempDocumentEntry.Reset();
+        TempDocumentEntry.DeleteAll();
+        TableIds.Add(Database::"Activity Code");
+        TableIds.Add(Database::"Gen. Journal Line");
+        TableIds.Add(Database::"Posted Gen. Journal Line");
+        TableIds.Add(Database::"General Ledger Setup");
+        TableIds.Add(Database::"VAT Entry");
+        TableIds.Add(Database::"Company Information");
+        TableIds.Add(Database::"Purchase Header Archive");
+        TableIds.Add(Database::"Purchase Header");
+        TableIds.Add(Database::"Purch. Cr. Memo Hdr.");
+        TableIds.Add(Database::"Purch. Inv. Header");
+        TableIds.Add(Database::"Sales Header Archive");
+        TableIds.Add(Database::"Sales Header");
+        TableIds.Add(Database::"Finance Charge Memo Header");
+        TableIds.Add(Database::"Issued Fin. Charge Memo Header");
+        TableIds.Add(Database::"Sales Cr.Memo Header");
+        TableIds.Add(Database::"Sales Invoice Header");
+        TableIds.Add(Database::"Service Header Archive");
+        TableIds.Add(Database::"Filed Service Contract Header");
+        TableIds.Add(Database::"Service Contract Header");
+        TableIds.Add(Database::"Service Header");
+        TableIds.Add(Database::"Service Cr.Memo Header");
+        TableIds.Add(Database::"Service Invoice Header");
+        foreach TableId in TableIds do begin
+            SourceRecord.Open(TableId);
+            if not SourceRecord.IsEmpty() then begin
+                TempDocumentEntry.Init();
+                TempDocumentEntry."Entry No." += 1;
+                TempDocumentEntry."Table ID" := TableId;
+                TempDocumentEntry."Table Name" := CopyStr(SourceRecord.Caption(), 1, MaxStrLen(TempDocumentEntry."Table Name"));
+                TempDocumentEntry."No. of Records" := SourceRecord.Count();
+                TempDocumentEntry.Insert();
+            end;
+            SourceRecord.Close();
+        end;
+    end;
+
     internal procedure UpgradeBusinessActivityCodes()
     var
         ActivityCode: Record "Activity Code";

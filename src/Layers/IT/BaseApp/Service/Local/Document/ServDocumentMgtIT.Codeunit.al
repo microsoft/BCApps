@@ -392,7 +392,7 @@ codeunit 12140 "Serv. Document Mgt. IT"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."Use Activity Code" then
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
             ServiceHeader."Activity Code" := ServiceContractHeader."Activity Code";
     end;
 #endif

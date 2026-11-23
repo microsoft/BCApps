@@ -1600,6 +1600,28 @@ table 98 "General Ledger Setup"
         FinConsolidConfiguredLbl: Label 'Financial Consolidation cross-tenant query has been enabled by UserSecurityId %1.', Locked = true;
 
     /// <summary>
+    /// Returns whether business activity codes are required by the active Italian implementation.
+    /// </summary>
+    procedure IsBusinessActivityCodeEnabled(): Boolean
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
+    begin
+        exit(BusinessActivityFeature.IsEnabled() and "Use Business Activity Code");
+    end;
+
+#if not CLEAN30
+    /// <summary>
+    /// Returns whether legacy activity codes are required before the Italian feature is enabled.
+    /// </summary>
+    procedure IsLegacyActivityCodeEnabled(): Boolean
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
+    begin
+        exit(not BusinessActivityFeature.IsEnabled() and "Use Activity Code");
+    end;
+#endif
+
+    /// <summary>
     /// Validates and corrects the format of decimal places configuration for currency and amount display.
     /// </summary>
     /// <param name="DecimalPlaces">Decimal places format string to validate and potentially correct</param>

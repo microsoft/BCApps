@@ -638,7 +638,15 @@ codeunit 144015 "IT - Calc. And Post VAT Settl."
 
 
     local procedure Initialize()
+#if not CLEAN30
+    var
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+        LibraryITLocalization: Codeunit "Library - IT Localization";
+#endif
     begin
+#if not CLEAN30
+        LibraryITLocalization.SetFeatureStatus(BusinessActivityFeature.GetFeatureKey(), Enum::"Feature Status"::Complete);
+#endif
         LibraryVariableStorage.Clear();
     end;
 

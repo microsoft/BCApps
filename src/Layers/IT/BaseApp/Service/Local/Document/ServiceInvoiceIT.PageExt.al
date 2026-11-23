@@ -10,6 +10,11 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
 {
     layout
     {
+        modify("Business Activity Code")
+        {
+            Visible = BusinessActivityEnabled;
+        }
+
         addafter("Document Date")
         {
             field("Operation Occurred Date"; Rec."Operation Occurred Date")
@@ -27,7 +32,7 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
             {
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the code for the company''s primary activity.';
-                Visible = false;
+                Visible = not BusinessActivityEnabled;
                 ObsoleteReason = 'Replaced by the Business Activity Code field.';
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
@@ -219,4 +224,13 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
             }
         }
     }
+    trigger OnOpenPage()
+    begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
+    end;
+
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -151,7 +151,7 @@ report 12127 "Exp.Annual VAT Comm. - 2010"
                   PadStr('', 20) +
                   Format(TaxYear, 4) +
                   PadStr(CompanyInfo."VAT Registration No.", 11) +
-                  PadStr(ActivityCode.Code, 6) +
+                  PadStr(GetActivityCode(), 6) +
                   ConvertBoolean(SeparateLedger) +
                   ConvertBoolean(GroupSettlement) +
                   ConvertBoolean(ExceptionalEvent) +
@@ -339,7 +339,7 @@ report 12127 "Exp.Annual VAT Comm. - 2010"
             Error(Text008, CompanyInfo.FieldCaption("Tax Representative No."), CompanyInfo.TableCaption());
 
 #if not CLEAN30
-        if GeneralLedgerSetup."Use Activity Code" then begin
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then begin
             if VATStatementFilters.GetFilter("Activity Code Filter") = '' then
                 Error(EmptyActivityCodeFilterErr, VATStatementFilters.FieldCaption("Activity Code Filter"));
 
@@ -352,7 +352,7 @@ report 12127 "Exp.Annual VAT Comm. - 2010"
             VATStatementFilters.CopyFilter("Activity Code Filter", VATStatementLine."Activity Code Filter");
         end;
 #endif
-        if GeneralLedgerSetup."Use Business Activity Code" then begin
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then begin
             if VATStatementFilters.GetFilter("Business Activity Code Filter") = '' then
                 Error(EmptyActivityCodeFilterErr, VATStatementFilters.FieldCaption("Business Activity Code Filter"));
 
@@ -454,5 +454,19 @@ report 12127 "Exp.Annual VAT Comm. - 2010"
         ServerFileName := NewServerFileName;
         TestRun := NewTestRun;
     end;
+
+    local procedure GetActivityCode(): Code[10]
+    begin
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then
+            exit(ActivityCode.Code);
+#endif
+        exit(BusinessActivity.Code);
+    end;
+
+#if not CLEAN30
+    var
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+#endif
 }
 

@@ -527,7 +527,7 @@ page 254 "Purchase Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
-                    Visible = false;
+                    Visible = not BusinessActivityEnabled;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
@@ -535,6 +535,7 @@ page 254 "Purchase Journal"
 #endif
                 field("Business Activity Code"; Rec."Business Activity Code")
                 {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
                 }
@@ -1635,6 +1636,7 @@ page 254 "Purchase Journal"
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
         LastGenJnlBatch: Code[10];
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         UseAllocationAccountNumber := AllocationAccountMgt.UseAllocationAccountNoField();
@@ -1979,5 +1981,9 @@ page 254 "Purchase Journal"
     local procedure OnOpenPageOnAfterOpenJnl(var CurrentJnlBatchName: Code[10])
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

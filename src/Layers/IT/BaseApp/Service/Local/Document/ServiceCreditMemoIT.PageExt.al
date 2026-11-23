@@ -10,6 +10,11 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
 {
     layout
     {
+        modify("Business Activity Code")
+        {
+            Visible = BusinessActivityEnabled;
+        }
+
         addafter("External Document No.")
         {
             field("Operation Occurred Date"; Rec."Operation Occurred Date")
@@ -32,7 +37,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
             {
                 ApplicationArea = Service;
                 ToolTip = 'Specifies the code for the company''s primary activity.';
-                Visible = false;
+                Visible = not BusinessActivityEnabled;
                 ObsoleteReason = 'Replaced by the Business Activity Code field.';
                 ObsoleteState = Pending;
                 ObsoleteTag = '30.0';
@@ -184,4 +189,13 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
         CurrPage.Update();
     end;
 
+    trigger OnOpenPage()
+    begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
+    end;
+
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -103,10 +103,10 @@ page 475 "VAT Statement Preview Line"
                                     VATEntry.SetRange("Operation Occurred Date");
                                     GeneralLedgerSetup.GetRecordOnce();
 #if not CLEAN30
-                                    if GeneralLedgerSetup."Use Activity Code" and not GeneralLedgerSetup."Use Business Activity Code" then
+                                    if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
                                         VATEntry.SetFilter("Activity Code", Rec.GetFilter("Activity Code Filter"));
 #endif
-                                    if GeneralLedgerSetup."Use Business Activity Code" then
+                                    if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
                                         VATEntry.SetFilter("Business Activity Code", Rec.GetFilter("Business Activity Code Filter"));
                                     if Selection = Selection::Closed then
                                         if VATPeriod <> '' then
@@ -212,10 +212,10 @@ page 475 "VAT Statement Preview Line"
         VATStmtName.CopyFilter("Date Filter", Rec."Date Filter");
         GeneralLedgerSetup.GetRecordOnce();
 #if not CLEAN30
-        if GeneralLedgerSetup."Use Activity Code" then
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
             VATStmtName.CopyFilter("Activity Code Filter", Rec."Activity Code Filter");
 #endif
-        if GeneralLedgerSetup."Use Business Activity Code" then
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
             VATStmtName.CopyFilter("Business Activity Code Filter", Rec."Business Activity Code Filter");
         Selection := NewSelection;
         PeriodSelection := NewPeriodSelection;

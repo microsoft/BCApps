@@ -40,7 +40,7 @@ page 12127 "Annual VAT Comm. Preview"
                     Caption = 'Activity Code';
                     TableRelation = "Activity Code".Code;
                     ToolTip = 'Specifies a code that describes a primary activity for the company.';
-                    Visible = false;
+                    Visible = not BusinessActivityEnabled;
                     ObsoleteReason = 'Replaced by the Business Activity Code field.';
                     ObsoleteState = Pending;
                     ObsoleteTag = '30.0';
@@ -54,6 +54,7 @@ page 12127 "Annual VAT Comm. Preview"
 #endif
                 field("Business Activity Code"; ActivityCode)
                 {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Business Activity Code';
                     TableRelation = "Business Activity".Code;
@@ -140,6 +141,7 @@ page 12127 "Annual VAT Comm. Preview"
 
     trigger OnOpenPage()
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         UpdateSubForm();
     end;
 
@@ -154,5 +156,9 @@ page 12127 "Annual VAT Comm. Preview"
     begin
         CurrPage.VATStatementLineSubForm.PAGE.UpdateForm(Rec, Selection, PeriodSelection, false, '');
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

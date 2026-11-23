@@ -27,8 +27,21 @@ codeunit 12195 "Periodic VAT Settlement"
     internal procedure CreateSeparateEntries(Period: Code[10])
     var
         BusinessActivity: Record "Business Activity";
+#if not CLEAN30
+        ActivityCode: Record "Activity Code";
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+#endif
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
     begin
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then begin
+            if ActivityCode.FindSet() then
+                repeat
+                    InsertPeriodicVATSettlementEntry(PeriodicVATSettlementEntry, Period, ActivityCode.Code);
+                until ActivityCode.Next() = 0;
+            exit;
+        end;
+#endif
         if BusinessActivity.FindSet() then
             repeat
                 InsertPeriodicVATSettlementEntry(PeriodicVATSettlementEntry, Period, BusinessActivity.Code);

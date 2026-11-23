@@ -530,10 +530,10 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         GenJnlLine.CopyFromSalesHeader(SalesHeader);
 #if not CLEAN30
-        if GLSetup."Use Activity Code" then
+        if GLSetup.IsLegacyActivityCodeEnabled() then
             GenJnlLine."Activity Code" := SalesHeader."Activity Code";
 #endif
-        if GLSetup."Use Business Activity Code" then
+        if GLSetup.IsBusinessActivityCodeEnabled() then
             GenJnlLine."Business Activity Code" := SalesHeader."Business Activity Code";
         GenJnlLine."Fiscal Code" := SalesHeader."Fiscal Code";
         GenJnlLine."Individual Person" := SalesHeader."Individual Person";

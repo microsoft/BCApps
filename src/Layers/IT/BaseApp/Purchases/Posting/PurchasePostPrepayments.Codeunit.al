@@ -419,10 +419,10 @@ codeunit 444 "Purchase-Post Prepayments"
         if GLSetup."Journal Templ. Name Mandatory" then
             PurchHeader.TestField("Journal Templ. Name");
 #if not CLEAN30
-        if GLSetup."Use Activity Code" then
+        if GLSetup.IsLegacyActivityCodeEnabled() then
             PurchHeader.TestField("Activity Code");
 #endif
-        if GLSetup."Use Business Activity Code" then
+        if GLSetup.IsBusinessActivityCodeEnabled() then
             PurchHeader.TestField("Business Activity Code");
         if PurchHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             PurchHeader.FieldError("Operation Occurred Date", Text1130008);

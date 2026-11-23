@@ -5,6 +5,8 @@
 #if not CLEAN30
 namespace Microsoft.Utilities;
 
+using Microsoft.Foundation.AuditCodes;
+
 page 12124 "Activity Codes"
 {
     ApplicationArea = Basic, Suite;
@@ -39,6 +41,16 @@ page 12124 "Activity Codes"
     actions
     {
     }
+
+    trigger OnOpenPage()
+    var
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
+    begin
+        if BusinessActivityFeature.IsEnabled() then begin
+            Page.Run(Page::"Business Activities");
+            CurrPage.Close();
+        end;
+    end;
 }
 #endif
 
