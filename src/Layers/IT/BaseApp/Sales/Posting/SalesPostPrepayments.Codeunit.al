@@ -483,11 +483,10 @@ codeunit 442 "Sales-Post Prepayments"
         if SalesHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             SalesHeader.FieldError("Operation Occurred Date", Text1130007);
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             if SalesHeader."Applies-to Doc. No." <> '' then
                 if SalesHeader."Applies-to Occurrence No." = 0 then
                     Error(Text1130004, SalesHeader.FieldCaption("Applies-to Occurrence No."));
-        end;
 #endif
 
         ErrorMessageMgt.PushContext(ErrorContextElement, SalesHeader.RecordId, 0, '');
@@ -1594,9 +1593,8 @@ codeunit 442 "Sales-Post Prepayments"
         GenJnlLine."Applies-to Doc. Type" := DocType;
         GenJnlLine."Applies-to Doc. No." := DocNo;
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             GenJnlLine."Applies-to Occurrence No." := 1;
-        end;
 #endif
 
         GenJnlLine."Orig. Pmt. Disc. Possible" := TotalPrepmtInvLineBuffer."Orig. Pmt. Disc. Possible";

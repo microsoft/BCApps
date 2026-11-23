@@ -13,7 +13,6 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Entity;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;

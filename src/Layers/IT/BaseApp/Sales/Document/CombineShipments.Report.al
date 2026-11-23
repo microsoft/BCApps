@@ -151,9 +151,8 @@ report 295 "Combine Shipments"
                                         exit;
                                     end;
                                 until PaymentTermsLine.Next() = 0;
-                        end else
+                        end else begin
 #endif
-                        begin
                             PaymentTerms.Get(Cust."Payment Terms Code");
                             if PaymentTerms.Code = "Payment Terms Code" then begin
                                 DueDate := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
@@ -172,7 +171,9 @@ report 295 "Combine Shipments"
                                 CurrReport.Skip();
                                 exit;
                             end;
+#if not CLEAN30
                         end;
+#endif
                     end;
                 end;
 

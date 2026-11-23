@@ -686,7 +686,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
     var
         Customer: Record Customer;
         Entry: Record "Cust. Ledger Entry";
-        PlanLine: Record "Installment Plan Line";
+        PlanLine: Record "Sales Installment Plan Line";
         CustomerVariant: Variant;
         RequestPageXml: Text;
         Value: Variant;

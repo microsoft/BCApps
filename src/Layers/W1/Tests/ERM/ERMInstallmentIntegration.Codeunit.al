@@ -13,7 +13,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
-using Microsoft.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
 codeunit 134499 "ERM Installment Integration"

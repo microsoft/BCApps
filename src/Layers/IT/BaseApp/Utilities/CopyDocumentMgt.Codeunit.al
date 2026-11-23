@@ -7271,9 +7271,8 @@ codeunit 6620 "Copy Document Mgt."
                 ToSalesHeader."Applies-to Doc. No." := FromDocNo;
             end;
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 ToSalesHeader."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
-            end;
 #endif
             CustLedgEntry.CalcFields("Remaining Amount");
             CustLedgEntry."Amount to Apply" := CustLedgEntry."Remaining Amount";
@@ -7310,9 +7309,8 @@ codeunit 6620 "Copy Document Mgt."
                     ToPurchHeader."Applies-to Doc. No." := FromDocNo;
                 end;
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     ToPurchHeader."Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
-                end;
 #endif
                 VendLedgEntry.CalcFields("Remaining Amount");
                 VendLedgEntry."Amount to Apply" := VendLedgEntry."Remaining Amount";

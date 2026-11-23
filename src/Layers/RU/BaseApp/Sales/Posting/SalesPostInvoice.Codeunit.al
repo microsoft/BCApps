@@ -626,6 +626,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
     var
         SalesHeader: Record "Sales Header";
         GenJnlLine: Record "Gen. Journal Line";
+        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+        PrepmtDiffCustLedgerEntry: Record "Cust. Ledger Entry";
         InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin
