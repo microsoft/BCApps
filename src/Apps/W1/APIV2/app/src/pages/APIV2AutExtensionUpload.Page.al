@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN30
 namespace Microsoft.API.V2;
 
 using Microsoft.API;
@@ -9,7 +9,7 @@ page 30006 "APIV2 - Aut. Extension Upload"
 {
     ObsoleteReason = 'Use the Business Central admin center API to upload per-tenant extensions.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     APIGroup = 'automation';
     APIPublisher = 'microsoft';
     APIVersion = 'v2.0';

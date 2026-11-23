@@ -29,8 +29,10 @@ codeunit 9665 "Composite Layout Lookup Helper"
         ReportLayoutList: Record "Report Layout List";
         ReportThemeHeaderFooter: Page "Report Theme and Header/Footer";
     begin
+        ReportLayoutList.SetRange("Report ID", this.GetTenantReportDefaultsReportID());
         ReportLayoutList.SetRange("Layout Subtype", Subtype);
         ReportThemeHeaderFooter.SetTableView(ReportLayoutList);
+        ReportThemeHeaderFooter.SetLookupSubtype(Subtype);
         ReportThemeHeaderFooter.LookupMode(true);
         if ReportThemeHeaderFooter.RunModal() <> Action::LookupOK then
             exit(false);
@@ -156,6 +158,33 @@ codeunit 9665 "Composite Layout Lookup Helper"
     /// header/footer layouts) are stored so they can be assigned as defaults for any report.
     /// </summary>
     /// <returns>The Tenant Report Defaults report ID.</returns>
+    procedure CompositeLayoutKey(LayoutRec: Record "Report Layout List"): Text
+    begin
+        exit(this.EncodeCompositeName(LayoutRec."Application ID", this.DecodeLayoutName(LayoutRec.Name)));
+    end;
+
+    procedure IsBodyLayout(ReportID: Integer; LayoutName: Text): Boolean
+    var
+        ReportLayoutList: Record "Report Layout List";
+        WantedAppId: Guid;
+        PlainWanted: Text;
+        AppIdGiven: Boolean;
+    begin
+        PlainWanted := this.DecodeLayoutName(LayoutName);
+        AppIdGiven := StrPos(LayoutName, '::') > 1;
+        if AppIdGiven then
+            WantedAppId := this.DecodeAppId(LayoutName);
+
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange("Layout Subtype", ReportLayoutList."Layout Subtype"::Body);
+        ReportLayoutList.SetRange(Name, CopyStr(PlainWanted, 1, MaxStrLen(ReportLayoutList.Name)));
+        if AppIdGiven then
+            ReportLayoutList.SetRange("Application ID", WantedAppId);
+
+        exit(not ReportLayoutList.IsEmpty());
+    end;
+
     internal procedure GetTenantReportDefaultsReportID(): Integer
     begin
         exit(2000000001); // The platform's virtual "Tenant Report Defaults" report.

@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,7 +11,7 @@ table 2508 "Extension Deployment Status"
 {
     ObsoleteReason = 'Use the Business Central admin center API to monitor per-tenant extension operations.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     Caption = 'Extension Deployment Status';
     TableType = Temporary;
     InherentEntitlements = RX;

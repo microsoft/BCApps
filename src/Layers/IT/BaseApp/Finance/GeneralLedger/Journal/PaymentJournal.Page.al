@@ -358,6 +358,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Amount (LCY)"; Rec."Amount (LCY)")
@@ -369,6 +370,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Debit Amount"; Rec."Debit Amount")
@@ -379,6 +381,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("Credit Amount"; Rec."Credit Amount")
@@ -389,6 +392,7 @@ page 256 "Payment Journal"
                     trigger OnValidate()
                     begin
                         CheckAmountMatchedToAppliedLines();
+                        UpdateBatchTotalAfterAmountChange();
                     end;
                 }
                 field("VAT Amount"; Rec."VAT Amount")
@@ -727,6 +731,20 @@ page 256 "Payment Journal"
                             Editable = false;
                             ToolTip = 'Specifies the total balance in the payment journal.';
                             Visible = TotalBalanceVisible;
+                        }
+                    }
+                    group("Batch Total")
+                    {
+                        Caption = 'Batch Total (LCY)';
+                        field(BatchTotal; BatchTotal)
+                        {
+                            ApplicationArea = All;
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
+                            Caption = 'Batch Total (LCY)';
+                            Editable = false;
+                            ToolTip = 'Specifies the total amount, in local currency, of the lines that are shown in the journal. Use this to see how much is selected for payment before you post the journal.';
+                            Visible = BatchTotalVisible;
                         }
                     }
                 }
@@ -1088,6 +1106,22 @@ page 256 "Payment Journal"
                     begin
                         NetCustomerVendorBalances.SetGenJnlLine(Rec);
                         NetCustomerVendorBalances.RunModal();
+                    end;
+                }
+                action(SendVendorRemittanceAdvice)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Send Remittance Advice';
+                    Image = SendToMultiple;
+                    ToolTip = 'Send the remittance advice before posting a payment journal or after posting a payment. The advice contains vendor invoice numbers, which helps vendors to perform reconciliations.';
+
+                    trigger OnAction()
+                    var
+                        GenJournalLine: Record "Gen. Journal Line";
+                    begin
+                        GenJournalLine := Rec;
+                        CurrPage.SetSelectionFilter(GenJournalLine);
+                        SendVendorRemittanceAdviceRecords(GenJournalLine);
                     end;
                 }
             }
@@ -1820,6 +1854,7 @@ page 256 "Payment Journal"
     begin
         TotalBalanceVisible := true;
         BalanceVisible := true;
+        BatchTotalVisible := true;
         AmountVisible := true;
         GeneralLedgerSetup.Get();
         IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
@@ -1899,12 +1934,15 @@ page 256 "Payment Journal"
         GenJnlLineApprovalStatus: Text[20];
         Balance: Decimal;
         TotalBalance: Decimal;
+        BatchTotal: Decimal;
         NumberOfRecords: Integer;
         ShowBalance: Boolean;
         ShowTotalBalance: Boolean;
+        ShowBatchTotal: Boolean;
         HasPmtFileErr: Boolean;
         BalanceVisible: Boolean;
         TotalBalanceVisible: Boolean;
+        BatchTotalVisible: Boolean;
         IsPostingGroupEditable: Boolean;
         StyleTxt: Text;
         OverdueWarningText: Text;
@@ -1947,6 +1985,7 @@ page 256 "Payment Journal"
         VoidAllPrintedChecksQst: Label 'Void all printed checks?';
         GeneratingPaymentsMsg: Label 'Generating Payment file...';
         AmountToApplyMissMatchMsg: Label 'Amount assigned on Apply Entries (%1) is bigger then the amount on the line (%2). System will remove all related Applies-to ID. Do you want to proceed?', Comment = '%1 - Amount to apply, %2 - Amount on the line';
+        RemittanceAdviceTxt: Label 'Remittance Advice';
 
     protected var
         GenJnlManagement: Codeunit GenJnlManagement;
@@ -1963,6 +2002,23 @@ page 256 "Payment Journal"
         ApplyEntriesActionEnabled: Boolean;
         AccName: Text[100];
         BalAccName: Text[100];
+
+    local procedure SendVendorRemittanceAdviceRecords(var GenJournalLine: Record "Gen. Journal Line")
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        DummyReportSelections: Record "Report Selections";
+        ReportSelectionInteger: Integer;
+    begin
+        if not GenJournalLine.FindSet() then
+            exit;
+
+        DummyReportSelections.Usage := DummyReportSelections.Usage::"V.Remittance";
+        ReportSelectionInteger := DummyReportSelections.Usage.AsInteger();
+
+        DocumentSendingProfile.SendVendorRecords(
+            ReportSelectionInteger, GenJournalLine, RemittanceAdviceTxt, Rec."Account No.", Rec."Document No.",
+            GenJournalLine.FieldNo("Account No."), GenJournalLine.FieldNo("Document No."));
+    end;
 
     local procedure CheckForPmtJnlErrors()
     var
@@ -1994,7 +2050,24 @@ page 256 "Payment Journal"
         if ShowTotalBalance then
             NumberOfRecords := Rec.Count();
 
+        UpdateBatchTotal();
+
         OnAfterUpdateBalance(TotalBalanceVisible);
+    end;
+
+    local procedure UpdateBatchTotal()
+    begin
+        GenJnlManagement.CalcBatchTotal(Rec, BatchTotal, ShowBatchTotal);
+        BatchTotalVisible := ShowBatchTotal;
+    end;
+
+    local procedure UpdateBatchTotalAfterAmountChange()
+    begin
+        if (Rec."Line No." = xRec."Line No.") and (Rec."Amount (LCY)" = xRec."Amount (LCY)") then
+            exit;
+
+        CurrPage.SaveRecord();
+        UpdateBatchTotal();
     end;
 
     local procedure EnableApplyEntriesAction()

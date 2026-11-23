@@ -9,6 +9,7 @@ tableextension 10833 "Customer Bank Account" extends "Customer Bank Account"
 {
     fields
     {
+#pragma warning disable AS0099 // Preserve existing field IDs for compatibility.
         field(10805; "Agency Code FR"; Text[5])
         {
             Caption = 'Agency Code';
@@ -38,6 +39,7 @@ tableextension 10833 "Customer Bank Account" extends "Customer Bank Account"
             Editable = false;
             DataClassification = CustomerContent;
         }
+#pragma warning restore AS0099
         modify("Bank Branch No.")
         {
             trigger OnBeforeValidate()

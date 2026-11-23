@@ -292,7 +292,7 @@ codeunit 799 "VAT Reporting Date Mgt"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeCode, '', false, false)]
-    local procedure ResetVATReturnPeriodWarningOnBeforeGenJnlPostLineCode(var GLEntryNo: Integer)
+    local procedure ResetVATReturnPeriodWarningOnBeforeGenJnlPostLineCode(var GLEntryNo: BigInteger)
     begin
         if GLEntryNo = 0 then
             ResetVATReturnPeriodWarning();
@@ -459,8 +459,7 @@ codeunit 799 "VAT Reporting Date Mgt"
 
         if Rec."VAT Reporting Date Usage" = Enum::"VAT Reporting Date Usage"::Disabled then begin
             // Disable restriction on VAT posting
-            UserSetup.ModifyAll("Allow VAT Date From", 0D);
-            UserSetup.ModifyAll("Allow VAT Date To", 0D);
+            UserSetup.ModifyAll("Allow VAT Date From", 0D, "Allow VAT Date To", 0D);
             VATSetup.Get();
             VATSetup."Allow VAT Date From" := 0D;
             VATSetup."Allow VAT Date To" := 0D;

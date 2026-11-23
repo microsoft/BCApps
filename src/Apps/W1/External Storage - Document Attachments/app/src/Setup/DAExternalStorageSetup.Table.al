@@ -37,7 +37,7 @@ table 8750 "DA External Storage Setup"
                 ConfirmManagement: Codeunit "Confirm Management";
                 DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
                 DisclaimerMsg: Label 'You are about to enable External Storage.\\When this feature is enabled, files will be stored outside the Business Central service boundary.\Microsoft does not manage, back up, or restore data stored in external storage.\\You are responsible for the configuration, security, compliance, backup, and recovery of all externally stored files.\This feature is provided as-is, and you enable it at your own risk.\\Do you want to continue?';
-                DisableSetupErr: Label 'Cannot disable External Storage because there are files stored externally.\\To disable this feature:\1. Open the Document Attachments - External Storage page.\2. Use "Copy from External To Internal" to restore files.\3. Then disable the feature.';
+                DisableSetupErr: Label 'Cannot disable External Storage while attachments reference external files.\\Use Storage Sync with To Internal Storage and Move to restore content and retire local external references, then disable the feature. Copy alone keeps both references. Remote files are retained.';
             begin
                 if not xRec.Enabled and Rec.Enabled then
                     if not ConfirmManagement.GetResponseOrDefault(DisclaimerMsg) then begin
@@ -60,7 +60,7 @@ table 8750 "DA External Storage Setup"
         field(7; "Delete from External Storage"; Boolean)
         {
             Caption = 'Delete External File on Attachment Delete';
-            ToolTip = 'Specifies if files should be deleted from external storage when the attachment is deleted from Business Central.';
+            ToolTip = 'Specifies the saved external deletion policy. External cleanup is currently blocked regardless of this setting, so files are retained when attachments are deleted.';
             InitValue = true;
         }
         field(10; "Root Folder"; Text[250])

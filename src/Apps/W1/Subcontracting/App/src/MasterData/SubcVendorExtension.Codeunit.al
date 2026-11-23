@@ -6,19 +6,19 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Vendor;
 
-codeunit 99001531 "Subc. Vendor Extension"
+codeunit 20531 "Subc. Vendor Extension"
 {
     [EventSubscriber(ObjectType::Table, Database::Vendor, OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteVendor(var Rec: Record Vendor; RunTrigger: Boolean)
     var
         SubcontractorPrice: Record "Subcontractor Price";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

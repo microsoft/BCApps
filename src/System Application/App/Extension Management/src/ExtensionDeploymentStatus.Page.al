@@ -1,4 +1,3 @@
-#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,9 +12,6 @@ using System.Environment;
 /// </summary>
 page 2508 "Extension Deployment Status"
 {
-    ObsoleteReason = 'Use the Business Central admin center or the admin center API to monitor per-tenant extension operations.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
     Extensible = false;
     Editable = false;
     PageType = List;
@@ -123,16 +119,23 @@ page 2508 "Extension Deployment Status"
                         until NavAppTenantOperationTable.Next() = 0;
                 end;
             }
+#if not CLEAN30
             action("Upload Extension")
             {
                 ApplicationArea = All;
                 Caption = 'Upload Extension';
                 Image = Import;
+#pragma warning disable AL0432
                 RunObject = page "Upload And Deploy Extension";
+#pragma warning restore AL0432
                 ToolTip = 'Upload an extension to your application.';
                 Ellipsis = true;
                 Visible = IsSaaS;
+                ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
+#endif
         }
         area(Navigation)
         {
@@ -190,4 +193,3 @@ page 2508 "Extension Deployment Status"
         OperationType: Option Upload,Install;
         IsSaaS: Boolean;
 }
-#endif

@@ -26,12 +26,14 @@ codeunit 5611 "Calculate Normal Depreciation"
         DerogFALedgEntry: Record "FA Ledger Entry";
         DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DeprBookCode: Code[10];
         DaysInFiscalYear: Integer;
         EntryAmounts: array[4] of Decimal;
         MinusBookValue: Decimal;
         StraightLineBonusBaseReductionAmount: Decimal;
         StraightLineBonusBaseReductionCalculated: Boolean;
+        HasDerogatoryBook: Boolean;
         DateFromProjection: Date;
         SkipOnZero: Boolean;
         UntilDate: Date;
@@ -556,6 +558,9 @@ codeunit 5611 "Calculate Normal Depreciation"
 
     local procedure TransferValues()
     var
+#if not CLEAN30
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         IsHandled: Boolean;
     begin
         FADeprBook.TestField("Depreciation Starting Date");
@@ -594,8 +599,17 @@ codeunit 5611 "Calculate Normal Depreciation"
         end else
             BookValue := EntryAmounts[1];
         if DateFromProjection = 0D then begin
-            DerogDeprBook.SetRange("Derogatory Calculation", DeprBookCode);
-            if DerogDeprBook.FindFirst() then begin
+#if not CLEAN30
+            if AcceleratedDeprFeature.IsEnabled() then
+                HasDerogatoryBook := DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook)
+            else begin
+                DerogDeprBook.SetRange("Derogatory Calculation", DeprBookCode);
+                HasDerogatoryBook := DerogDeprBook.FindFirst();
+            end;
+#else
+            HasDerogatoryBook := DerogatoryPostingMgt.GetDerogatoryBook(DeprBookCode, DerogDeprBook);
+#endif
+            if HasDerogatoryBook then begin
                 DerogFALedgEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date");
                 DerogFALedgEntry.SetRange("FA No.", FADeprBook."FA No.");
                 DerogFALedgEntry.SetRange("Depreciation Book Code", FADeprBook."Depreciation Book Code");
@@ -682,9 +696,10 @@ codeunit 5611 "Calculate Normal Depreciation"
         AccountingPeriod: Record "Accounting Period";
         Result: Boolean;
         IsHandled: Boolean;
+        NewYearDateOverride: Date;
     begin
         IsHandled := false;
-        OnBeforeSetHalfYearConventionMethod(FADeprBook, DeprMethod, Year365Days, FirstDeprDate, NewYearDate, Result, IsHandled);
+        OnBeforeSetHalfYearConventionMethod(FADeprBook, DeprMethod, Year365Days, FirstDeprDate, NewYearDate, Result, IsHandled, NewYearDateOverride);
         if IsHandled then
             exit(Result);
 
@@ -702,7 +717,10 @@ codeunit 5611 "Calculate Normal Depreciation"
           "Starting Date", '>=%1',
           DepreciationCalc.ToMorrow(FADeprBook."Depreciation Starting Date", Year365Days, DeprBook."Use Accounting Period"));
         AccountingPeriod.FindFirst();
-        NewYearDate := AccountingPeriod."Starting Date";
+        if NewYearDateOverride <> 0D then
+            NewYearDate := NewYearDateOverride
+        else
+            NewYearDate := AccountingPeriod."Starting Date";
         if FirstDeprDate >= NewYearDate then
             exit(false);
 
@@ -1156,8 +1174,7 @@ codeunit 5611 "Calculate Normal Depreciation"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetHalfYearConventionMethod(FADeprBook: Record "FA Depreciation Book"; DeprMethod: Enum "FA Depr. Method Internal"; Year365Days: Boolean; FirstDeprDate: Date; NewYearDate: Date; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeSetHalfYearConventionMethod(FADeprBook: Record "FA Depreciation Book"; DeprMethod: Enum "FA Depr. Method Internal"; Year365Days: Boolean; FirstDeprDate: Date; NewYearDate: Date; var Result: Boolean; var IsHandled: Boolean; var NewYearDateOverride: Date)
     begin
     end;
 }
-

@@ -16,7 +16,8 @@ codeunit 8903 "Email Record Reference Impl." implements "Record Reference"
     InherentPermissions = X;
     InherentEntitlements = X;
     Permissions = tabledata "Sent Email" = r,
-                  tabledata "Email Outbox" = r;
+                  tabledata "Email Outbox" = r,
+                  tabledata "Email Inbox" = r;
 
     var
         InitializedCallerModuleId: Guid;
@@ -35,7 +36,7 @@ codeunit 8903 "Email Record Reference Impl." implements "Record Reference"
         if not IsAllowedCallerModuleId(CallerModuleInfo.Id) then
             exit;
 
-        if RecordRef.Number in [Database::"Sent Email", Database::"Email Outbox"] then begin
+        if RecordRef.Number in [Database::"Sent Email", Database::"Email Outbox", Database::"Email Inbox"] then begin
             RecordReference := EmailRecordReferenceImpl;
             EmailRecordReferenceImpl.SetInitializedCalledModuleId(CallerModuleInfo.Id);
             IsInitialized := true;

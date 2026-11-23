@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
@@ -14,9 +15,11 @@ using Microsoft.Inventory.Location;
 using System.Globalization;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores the header of a posted expense report as history after the expense report has been posted.
+/// </summary>
 table 6915 "Posted Expense Report Header"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Header';
     DataCaptionFields = "No.", Description;
     DataClassification = CustomerContent;
@@ -284,6 +287,17 @@ table 6915 "Posted Expense Report Header"
             CalcFormula = sum("Posted Exp. Rep. Line VAT Spec"."Reclaim VAT Amount (LCY)" where("Expense Report No." = field("No."), "Reclaim Status" = const(Approved)));
             ToolTip = 'Specifies the total VAT amount approved for reclaim across all VAT specification lines of this posted expense report, in local currency.';
         }
+        field(100; "Spend Request No."; Code[20])
+        {
+            Caption = 'Travel Request No.';
+            ToolTip = 'Specifies the travel request to which the posted expense report is linked.';
+            TableRelation = "Spend Request";
+        }
+        field(101; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Travel Request Close';
+            ToolTip = 'Specifies that the travel request will be closed when the expense report is posted.';
+        }
     }
 
     keys
@@ -291,6 +305,15 @@ table 6915 "Posted Expense Report Header"
         key(PK; "No.")
         {
             Clustered = true;
+        }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
+        key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
+        {
+        }
+        key(ExpenseUser; "Expense User No.", "No.")
+        {
         }
     }
 
@@ -311,7 +334,9 @@ table 6915 "Posted Expense Report Header"
     trigger OnDelete()
     var
         PostedExpenseReportLines: Record "Posted Expense Report Line";
+        ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
+        ExpenseActivityLogMgt.DeleteEntriesForSource(Database::"Posted Expense Report Header", Rec.SystemId);
         PostedExpenseReportLines.SetRange("Document No.", Rec."No.");
         PostedExpenseReportLines.DeleteAll();
     end;
@@ -319,6 +344,9 @@ table 6915 "Posted Expense Report Header"
     var
         EntryRecIDLbl: Label '%1 %2', Locked = true;
 
+    /// <summary>
+    /// Shows the dimension set of the posted expense report.
+    /// </summary>
     procedure ShowDimensions()
     var
         DimMgt: Codeunit DimensionManagement;
@@ -326,6 +354,9 @@ table 6915 "Posted Expense Report Header"
         DimMgt.ShowDimensionSet(Rec."Dimension Set ID", StrSubstNo(EntryRecIDLbl, Rec.TableCaption(), Rec."No."));
     end;
 
+    /// <summary>
+    /// Opens the employee card of the employee related to the expense user of the posted expense report.
+    /// </summary>
     procedure ShowEmployeeCard()
     var
         Employee: Record Employee;

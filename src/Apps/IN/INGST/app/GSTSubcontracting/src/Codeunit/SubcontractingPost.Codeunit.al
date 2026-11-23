@@ -399,7 +399,13 @@ codeunit 18466 "Subcontracting Post"
     var
         PurchHeader: Record "Purchase Header";
         PurchPost: Codeunit "Purch.-Post";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforePostPurchOrder(PurchLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if not Confirm(PostConfirmationQst) then
             exit;
 
@@ -701,6 +707,7 @@ codeunit 18466 "Subcontracting Post"
                                             ItemJnlLine.Validate(Quantity, Abs(OldReservEntry."Qty. to Invoice (Base)"));
                                         end else begin
                                             ItemJnlLine.Validate(Quantity, RemQtytoPost);
+                                            RemQtytoPost := 0;
                                             Completed := true;
                                         end
                                     else
@@ -709,6 +716,7 @@ codeunit 18466 "Subcontracting Post"
                                             ItemJnlLine.Validate(Quantity, ItemLedgerEntry."Remaining Quantity");
                                         end else begin
                                             ItemJnlLine.Validate(Quantity, RemQtytoPost);
+                                            RemQtytoPost := 0;
                                             Completed := true;
                                         end;
 
@@ -791,6 +799,9 @@ codeunit 18466 "Subcontracting Post"
                                     ItemLedgerEntry);
                             end;
                     until (ItemLedgerEntry.Next() = 0) or Completed;
+
+                if RemQtytoPost <> 0 then
+                    Error(NotEnoughInvtoryErr);
 
                 AppliedDeliveryChallan."Qty. to Consume" := 0;
                 AppliedDeliveryChallan.Modify();
@@ -1350,6 +1361,7 @@ codeunit 18466 "Subcontracting Post"
                                             ItemLedgerEntry,
                                             TypeQty::Receive);
 
+                                    OnRecieveBackCompOnBeforePostItemJnlLine(ItemJnlLine, AppliedDeliveryChallan, SubOrderCompListVendLocal, ReceiptNo);
                                     PostItemJnlLine(ItemJnlLine);
                                 end;
                             end;
@@ -1558,13 +1570,20 @@ codeunit 18466 "Subcontracting Post"
         AppDelChallan: Record "Applied Delivery Challan")
     var
         CopyItemLedgerEntry: Record "Item Ledger Entry";
+        DeliveryChallanLine: Record "Delivery Challan Line";
         IsHandled: Boolean;
         AvailableQty: Decimal;
+        VariantCode: Code[10];
     begin
         IsHandled := false;
         OnBeforeGetApplicationLines(ProdOrderComp, SubOrderCompVend, ItemLedgerEntry, TotalQtyToPost, AppDelChallan, IsHandled);
         if IsHandled then
             exit;
+
+        if DeliveryChallanLine.Get(AppDelChallan."Applied Delivery Challan No.", AppDelChallan."App. Delivery Challan Line No.") then
+            VariantCode := DeliveryChallanLine."Variant Code"
+        else
+            VariantCode := SubOrderCompVend."Variant Code";
 
         ItemLedgerEntry.Reset();
         if AppDelChallan."Applies-to Entry" = 0 then begin
@@ -1575,6 +1594,9 @@ codeunit 18466 "Subcontracting Post"
             ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComp."Line No.");
             ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
             ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
+            ItemLedgerEntry.SetRange(Open, true);
+            ItemLedgerEntry.SetRange(Positive, true);
+            ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
 
             CopyItemLedgerEntry.Copy(ItemLedgerEntry);
             if CopyItemLedgerEntry.FindSet() then begin
@@ -1590,6 +1612,9 @@ codeunit 18466 "Subcontracting Post"
                 ItemLedgerEntry.SetRange("Item No.", ProdOrderComp."Item No.");
                 ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
                 ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
+                ItemLedgerEntry.SetRange(Open, true);
+                ItemLedgerEntry.SetRange(Positive, true);
+                ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
 
                 CopyItemLedgerEntry.Reset();
                 CopyItemLedgerEntry.Copy(ItemLedgerEntry);
@@ -1607,12 +1632,12 @@ codeunit 18466 "Subcontracting Post"
             ItemLedgerEntry.SetCurrentKey("Entry Type", "Location Code", "External Document No.", "Item No.");
             ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
             ItemLedgerEntry.SetRange("Location Code", SubOrderCompVend."Vendor Location");
-            ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
-            ItemLedgerEntry.SetRange("Order No.", AppDelChallan."Production Order No.");
-            ItemLedgerEntry.SetRange("Order Line No.", AppDelChallan."Production Order Line No.");
             ItemLedgerEntry.SetRange("External Document No.", AppDelChallan."Applied Delivery Challan No.");
             ItemLedgerEntry.SetRange("Item No.", AppDelChallan."Item No.");
+            ItemLedgerEntry.SetRange("Variant Code", VariantCode);
             ItemLedgerEntry.SetRange(Open, true);
+            ItemLedgerEntry.SetRange(Positive, true);
+            ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
         end;
     end;
 
@@ -1620,8 +1645,13 @@ codeunit 18466 "Subcontracting Post"
     var
         PurchHeader: Record "Purchase Header";
         SubconCompListVend: Record "Sub Order Comp. List Vend";
-
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCreatePostedReceipt(PurchLine, IsHandled);
+        if IsHandled then
+            exit;
+
         SubconCompListVend.Reset();
         SubconCompListVend.SetRange("Document No.", PurchLine."Document No.");
         SubconCompListVend.SetRange("Document Line No.", PurchLine."Line No.");
@@ -2060,6 +2090,7 @@ codeunit 18466 "Subcontracting Post"
                 OldReservEntry.TestField("Location Code", TransferLocation);
                 OldReservEntry."New Serial No." := OldReservEntry."Serial No.";
                 OldReservEntry."New Lot No." := OldReservEntry."Lot No.";
+                OldReservEntry."New Package No." := OldReservEntry."Package No.";
 
                 TransferQty := CreateReservEntry.TransferReservEntry(Database::"Item Journal Line",
                     ItemJournalLineEntryTypeEnum2EntryTypeOption(ItemJnlLine."Entry Type"), ItemJnlLine."Journal Template Name",
@@ -2563,8 +2594,10 @@ codeunit 18466 "Subcontracting Post"
         if ItemJnlLine."Entry Type" <> ItemJnlLine."Entry Type"::Output then
             exit;
 
-        if (PurchLine."Prod. Order No." <> '') and (PurchLine."Subcon. Receiving") then
+        if (PurchLine."Prod. Order No." <> '') and (PurchLine."Subcon. Receiving") then begin
             ItemJnlLine."Posting Date" := PurchLine."Posting Date";
+            ItemJnlLine."Subcon Order No." := PurchLine."Document No.";
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeValidateQtyToInvoice', '', false, false)]
@@ -2651,6 +2684,21 @@ codeunit 18466 "Subcontracting Post"
             var ItemJrnlLine: Record "Item Journal Line";
             DeliveryChallanHeader: Record "Delivery Challan Header";
             SubOrderCompList: Record "Sub Order Component List"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostPurchOrder(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRecieveBackCompOnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; AppliedDeliveryChallan: Record "Applied Delivery Challan"; SubOrderCompListVend: Record "Sub Order Comp. List Vend"; ReceiptNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreatePostedReceipt(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 }

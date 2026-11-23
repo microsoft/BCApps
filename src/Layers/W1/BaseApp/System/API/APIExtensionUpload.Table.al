@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN30
 namespace Microsoft.API;
 
 using System.Apps;
@@ -7,7 +7,7 @@ table 5447 "API Extension Upload"
 {
     ObsoleteReason = 'Use the Business Central admin center API to upload per-tenant extensions.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     DataClassification = CustomerContent;
 
     fields

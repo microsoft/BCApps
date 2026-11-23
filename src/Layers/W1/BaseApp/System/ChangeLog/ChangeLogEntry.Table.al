@@ -166,9 +166,21 @@ table 405 "Change Log Entry"
         key(Key3; "Table No.", "Date and Time")
         {
         }
+#if not CLEANSCHEMA32
         key(Key4; "Notification Message Id")
         {
+            Enabled = false;
+            ObsoleteReason = 'The key is disabled because Notification Message Id is not used for record retrieval.';
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
+            ObsoleteTag = '29.0';
+#pragma warning restore AS0072
+#if not CLEAN29
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
         }
+#endif
         key(key5; "Field Log Entry Feature")
         {
         }

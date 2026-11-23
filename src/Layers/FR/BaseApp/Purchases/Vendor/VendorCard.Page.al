@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -367,6 +367,12 @@ page 26 "Vendor Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Self-Billing Invoice Nos."; Rec."Self-Billing Invoice Nos.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    Enabled = Rec."Self-Billing Agreement";
+                }
                 field("Price Calculation Method"; Rec."Price Calculation Method")
                 {
                     Visible = ExtendedPriceEnabled;
@@ -466,10 +472,14 @@ page 26 "Vendor Card"
                                 PaymentToleranceMgt.CalcTolVendLedgEntry(Rec);
                     end;
                 }
+#if not CLEAN30
                 field("Payment Balance (LCY)"; Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total value of your completed purchases from the vendor in the current fiscal year. It is calculated from amounts excluding VAT on all completed purchase invoices and credit memos.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '30.0';
 
                     trigger OnDrillDown()
                     var
@@ -483,6 +493,7 @@ page 26 "Vendor Card"
                         VendLedgEntry.DrillDownOnEntries(DtldVendLedgEntry);
                     end;
                 }
+#endif
 #if not CLEAN28
                 field("Payment in progress (LCY)"; Rec."Payment in progress (LCY)")
                 {
@@ -573,6 +584,11 @@ page 26 "Vendor Card"
                 {
                     ApplicationArea = All;
                     Visible = OverReceiptAllowed;
+                }
+                field("Receipt on Invoice Policy"; Rec."Receipt on Invoice Policy")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Receipt on Invoice';
                 }
             }
         }
@@ -2115,4 +2131,3 @@ page 26 "Vendor Card"
     begin
     end;
 }
-

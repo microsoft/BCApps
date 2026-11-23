@@ -206,7 +206,7 @@ table 121 "Purch. Rcpt. Line"
             Caption = 'Appl.-to Item Entry';
             ToolTip = 'Specifies the number of the item ledger entry that the document or journal line is applied to.';
         }
-        field(39; "Item Rcpt. Entry No."; Integer)
+        field(39; "Item Rcpt. Entry No."; BigInteger)
         {
             Caption = 'Item Rcpt. Entry No.';
         }
@@ -1224,7 +1224,7 @@ table 121 "Purch. Rcpt. Line"
         PurchaseLine: Record "Purchase Line";
     begin
         if Type = Type::" " then
-            exit(PurchaseLine.FormatType());
+            exit(PurchaseLine.FormatTypeAsText());
 
         exit(Format(Type));
     end;

@@ -808,9 +808,11 @@ codeunit 147141 "ERM Purchase VAT Ledger Export"
 
     local procedure RunVATLedgerExportReportOnDate(VendorNo: Code[20]; StartDate: Date; EndDate: Date; AddSheet: Boolean; UseExternalDocNo: Boolean)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         VATLedgerCode: Code[20];
         FileName: Text[1024];
     begin
+        BindSubscription(RUReportDownloadHandler);
         VATLedgerCode :=
           LibraryPurchase.CreatePurchaseVATLedger(StartDate, EndDate, VendorNo, UseExternalDocNo, true);
         if AddSheet then
@@ -820,6 +822,7 @@ codeunit 147141 "ERM Purchase VAT Ledger Export"
         FileName := LibraryReportValidation.GetFileName();
 
         LibraryPurchase.ExportPurchaseVATLedger(VATLedgerCode, AddSheet, FileName);
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure CreateAndPostPurchInvoice(var VendorNo: Code[20]; CurrencyCode: Code[10]; VATRate: Decimal; AddSheet: Boolean) DocumentNo: Code[20]

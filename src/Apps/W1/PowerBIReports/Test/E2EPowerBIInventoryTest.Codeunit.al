@@ -44,6 +44,7 @@ using System.Utilities;
 codeunit 139877 "E2E PowerBI Inventory Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = Uncategorized;
     Access = Internal;
 

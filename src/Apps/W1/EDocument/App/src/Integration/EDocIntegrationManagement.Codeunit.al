@@ -600,6 +600,10 @@ codeunit 6134 "E-Doc. Integration Management"
 
     #endregion
 
+    internal procedure RunOnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
+    begin
+        this.OnAfterUpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
+    end;
     var
         EDocumentLog: Codeunit "E-Document Log";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -647,6 +651,11 @@ codeunit 6134 "E-Doc. Integration Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSendDocument(EDocuments: Record "E-Document"; EDocumentService: Record "E-Document Service"; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage)
+    begin
+    end;
+    
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
     begin
     end;
 }

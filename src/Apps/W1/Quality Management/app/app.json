@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Quality Management helps ensure products meet defined standards by enabling systematic quality control.",
   "description": "Quality Management helps ensure products meet defined standards by integrating inspection routines, test plans, and quality specifications directly into production, inventory, and purchasing workflows.",
-  "version": "29.0.0.0",
+  "version": "30.0.0.0",
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2338953",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2182906",
@@ -13,11 +13,15 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [],
   "screenshots": [],
-  "platform": "29.0.0.0",
-  "application": "29.0.0.0",
+  "platform": "30.0.0.0",
+  "application": "30.0.0.0",
   "idRanges": [
     {
       "from": 20400,
+      "to": 20499
+    },
+    {
+      "from": 20596,
       "to": 20600
     }
   ],
@@ -34,6 +38,11 @@
     {
       "id": "9c32d4af-77d5-4fba-a3de-361805163a00",
       "name": "Quality Management Test Library",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "40bf2bab-2a57-4c34-9002-c11d23fcbff6",
+      "name": "Quality Management Contoso Coffee Demo Dataset",
       "publisher": "Microsoft"
     }
   ]

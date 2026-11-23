@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -16,7 +16,7 @@ page 2507 "Upload And Deploy Extension"
     Extensible = false;
     ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     PageType = NavigatePage;
     SourceTable = "Published Application";
     SourceTableTemporary = true;

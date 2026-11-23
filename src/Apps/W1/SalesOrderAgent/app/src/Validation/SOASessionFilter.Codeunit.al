@@ -37,6 +37,14 @@ codeunit 4306 "SOA Session Filter"
         Rec.FilterGroup(0);
     end;
 
+    [EventSubscriber(ObjectType::Page, Page::"Sales Quote Subform", 'OnOpenPageEvent', '', false, false)]
+    local procedure SetFiltersOnOpenSalesQuoteSubform(var Rec: Record "Sales Line")
+    begin
+        Rec.FilterGroup(10);
+        Rec.SetRange(Type, Rec.Type::Item);
+        Rec.FilterGroup(0);
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterModifyEvent', '', false, false)]
     local procedure VerifySameCustomer(var Rec: Record "Sales Header")
     var
@@ -59,12 +67,9 @@ codeunit 4306 "SOA Session Filter"
         SOASetup: Record "SOA Setup";
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         ContactFilter, CustomerFilter : Text;
-        SearchOnlyAvailableItems: Boolean;
     begin
-        if SOASetup.FindFirst() then begin
+        if SOASetup.GetForCurrentAgentSession() then
             CalculateEarliestShipmentDate := SOASetup."Incl. Capable to Promise";
-            SearchOnlyAvailableItems := SOASetup."Search Only Available Items";
-        end;
 
         ContactFilter := SOAFiltersImpl.GetSecurityFiltersForContacts(AgentTaskID);
         Contact.SetFilter("No.", ContactFilter);
@@ -78,8 +83,7 @@ codeunit 4306 "SOA Session Filter"
         Customer.SetFilter("No.", CustomerFilter);
         if Customer.FindFirst() then begin
             CustomerNo := Customer."No.";
-            if SearchOnlyAvailableItems then
-                LocationFilter := Customer.GetDefaultLocation();
+            LocationFilter := Customer.GetDefaultLocation();
         end;
     end;
 

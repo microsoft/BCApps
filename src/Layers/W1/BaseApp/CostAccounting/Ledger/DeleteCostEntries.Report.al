@@ -32,8 +32,7 @@ report 1130 "Delete Cost Entries"
                 if Source = Source::Allocation then begin
                     CostEntry.SetCurrentKey("Allocated with Journal No.");
                     CostEntry.SetRange("Allocated with Journal No.", "No.");
-                    CostEntry.ModifyAll(Allocated, false);
-                    CostEntry.ModifyAll("Allocated with Journal No.", 0);
+                    CostEntry.ModifyAll(Allocated, false, "Allocated with Journal No.", 0);
                 end;
 
                 CostEntry.Reset();
@@ -151,7 +150,7 @@ report 1130 "Delete Cost Entries"
         CostRegisterHasBeenModifiedErr: Label 'Another user has modified the cost register. The To Register No. field must be equal to %1.\Run the Delete Cost Entries batch job again.';
 #pragma warning restore AA0470
 
-    procedure InitializeRequest(NewFromRegisterNo: Integer; NewToRegisterNo: Integer)
+    procedure InitializeRequest(NewFromRegisterNo: BigInteger; NewToRegisterNo: BigInteger)
     begin
         CostRegister2."No." := NewFromRegisterNo;
         CostRegister3."No." := NewToRegisterNo;

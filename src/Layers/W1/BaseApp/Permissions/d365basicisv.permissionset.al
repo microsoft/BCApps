@@ -254,7 +254,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "API Data Upgrade" = RIMD,
                   tabledata "API Entities Setup" = RIMD,
 #pragma warning disable AL0432
-#if not CLEAN29
+#if not CLEAN30
                   tabledata "API Extension Upload" = rimd,
 #endif
 #pragma warning restore AL0432
@@ -516,9 +516,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Exchange Folder" = RIMD,
                   tabledata "Exchange Object" = RIMD,
                   tabledata "Exchange Service Setup" = RIMD,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
-#endif
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,
                   tabledata "Extended Text Header" = RIMD,

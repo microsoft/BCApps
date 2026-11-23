@@ -76,6 +76,11 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, 
 
     procedure IsManualAgentTaskCreationEnabled(AgentUserId: Guid; ManualTaskType: Enum "Manual Agent Task Creation Type"): Boolean
     begin
+        // Do not read the Agent table here, in any form. The platform calls this method while it builds an
+        // agent record, and every read of that virtual table, including a filtered IsEmpty, is served by
+        // building records, which calls this method again until the stack overflows. Filtering does not
+        // avoid it. The platform already hides task creation for an archived agent, and
+        // CreateManualAgentTask guards the operation itself.
         exit(ManualTaskType = ManualTaskType::Default);
     end;
 
@@ -86,6 +91,7 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, 
 
     procedure CreateManualAgentTask(AgentUserId: Guid; Files: List of [FileUpload])
     begin
+        SOASetupCU.CheckAgentNotArchived(AgentUserId);
         SOACreateTaskImpl.OpenCreateTaskPage(AgentUserId);
     end;
 

@@ -385,7 +385,7 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Analysis View Filter" = RIMD,
                   tabledata "API Entities Setup" = RIMD,
 #pragma warning disable AL0432
-#if not CLEAN29
+#if not CLEAN30
                   tabledata "API Extension Upload" = rimd,
 #endif
 #pragma warning restore AL0432
@@ -773,9 +773,7 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Exchange Service Setup" = RIMD,
                   tabledata "Contact Sync User" = RIMD,
                   tabledata "Outlook Contacts" = RIMD,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = RIMD,
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,

@@ -27,15 +27,20 @@ codeunit 2503 "Extension Operation Impl"
         OperationInvokerHasBeenCreated: Boolean;
         InstallerHasBeenCreated: Boolean;
         ExtensionFileNameTxt: Label '%1_%2_%3.zip', Comment = '%1=Name, %2=Publisher, %3=Version', Locked = true;
+#if not CLEAN30
         CurrentOperationProgressMsg: Label 'Extension installation is in progress. Please check the Extension Installation Status page for updates.';
         ScheduledOperationMajorProgressMsg: Label 'Extension installation has been scheduled for the next major version. Please check the Extension Installation Status page for updates.';
         ScheduledOperationMinorProgressMsg: Label 'Extension installation has been scheduled for the next minor version. Please check the Extension Installation Status page for updates.';
+#endif
         DownloadExtensionSourceIsNotAllowedErr: Label 'The effective policies for this package do not allow you to download the source code. Contact the extension provider for more information.';
         DialogTitleTxt: Label 'Export';
         OutExtTxt: Label 'Text Files (*.txt)|*.txt|*.*';
         InstallationFailedOpenDetailsQst: Label 'Sorry, we couldn''t install the app. Do you want to see the details?';
         InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
         InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
+        InstallationFailedOpenStatusQst: Label 'Sorry, we couldn''t install the app. Do you want to open Extension Installation Status?';
+        InstallationFailedOpenStatusTxt: Label 'App installation failed. User has chosen to open Extension Installation Status.', Locked = true;
+        InstallationFailedDoNotOpenStatusTxt: Label 'App installation failed. User has chosen not to open Extension Installation Status.', Locked = true;
         PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
         AdminCenterExtensionManagementUrlLbl: Label 'https://go.microsoft.com/fwlink/?LinkId=2374621', Locked = true;
 
@@ -84,8 +89,8 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
-#if not CLEAN29
-    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '29.0')]
+#if not CLEAN30
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure UploadExtension(PackageInStream: InStream; lcid: Integer)
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
@@ -96,7 +101,23 @@ codeunit 2503 "Extension Operation Impl"
         DotNetALNavAppOperationInvoker.UploadPackage(PackageInStream, DotNetALPackageDeploymentSchedule, Format(lcid));
     end;
 
-    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '29.0')]
+#endif
+
+    internal procedure ShowInstallFailureStatus()
+    begin
+        if not GuiAllowed() then
+            exit;
+
+        if Confirm(InstallationFailedOpenStatusQst) then begin
+            Session.LogMessage('0000VD5', InstallationFailedOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+            Page.Run(Page::"Extension Deployment Status");
+        end else
+            Session.LogMessage('0000VD6', InstallationFailedDoNotOpenStatusTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
+    end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure DeployAndUploadExtension(PackageInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To"; SyncMode: Enum "Extension Sync Mode")
     var
         DotNetALPackageDeploymentSchedule: DotNet ALPackageDeploymentSchedule;
@@ -133,6 +154,7 @@ codeunit 2503 "Extension Operation Impl"
                 end;
         end;
     end;
+#pragma warning restore AL0432
 #endif
 
     procedure UnpublishExtension(PackageID: Guid): Boolean
@@ -273,8 +295,9 @@ codeunit 2503 "Extension Operation Impl"
         ExtensionInstallationImpl.CheckPermissions();
     end;
 
-#if not CLEAN29
-    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '29.0')]
+#if not CLEAN30
+#pragma warning disable AL0432
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetAllExtensionDeploymentStatusEntries(var TempExtensionDeploymentStatus: Record "Extension Deployment Status" temporary)
     var
         NavAppTenantOperation: Record "NAV App Tenant Operation";
@@ -286,6 +309,7 @@ codeunit 2503 "Extension Operation Impl"
             TempExtensionDeploymentStatus.Insert();
         until NavAppTenantOperation.Next() = 0;
     end;
+#pragma warning restore AL0432
 #endif
 
     procedure GetDeploymentDetailedStatusMessageAsStream(OperationId: Guid; OutStream: OutStream)

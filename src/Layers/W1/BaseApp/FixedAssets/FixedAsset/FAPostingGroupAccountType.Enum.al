@@ -57,4 +57,8 @@ enum 5606 "FA Posting Group Account Type"
     {
         Caption = 'Book Value Loss';
     }
+    value(12; "Derogatory")
+    {
+        Caption = 'Derogatory';
+    }
 }

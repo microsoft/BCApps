@@ -210,9 +210,11 @@ codeunit 144720 "SCM Torg-13 Test"
 
     local procedure PrintTorg13ForReclassJnlLine(JournalNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         ReclassificationItemJournalLine: Record "Item Journal Line";
         ItemReclassTORG13: Report "Item Reclass. TORG-13";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(JournalNo);
 
         ReclassificationItemJournalLine.SetRange("No.", JournalNo);
@@ -221,27 +223,33 @@ codeunit 144720 "SCM Torg-13 Test"
         ItemReclassTORG13.SetTableView(ReclassificationItemJournalLine);
         ItemReclassTORG13.UseRequestPage(false);
         ItemReclassTORG13.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PrintTorg13ForTransferOrder(HeaderNo: Code[20])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TransferHeader: Record "Transfer Header";
         TransferOrderTORG13: Report "Transfer Order TORG-13";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(HeaderNo);
         TransferHeader.SetRange("No.", HeaderNo);
         TransferOrderTORG13.InitializeRequest(LibraryReportValidation.GetFileName());
         TransferOrderTORG13.SetTableView(TransferHeader);
         TransferOrderTORG13.UseRequestPage(false);
         TransferOrderTORG13.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure PostTransferAndPrintTorg13ForTransferReceipt(HeaderNo: Code[20]): Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TransferHeader: Record "Transfer Header";
         TransferReceiptHeader: Record "Transfer Receipt Header";
         TransferReceiptTORG13: Report "Transfer Receipt TORG-13";
     begin
+        BindSubscription(RUReportDownloadHandler);
         TransferHeader.Get(HeaderNo);
         LibraryInventory.PostTransferHeader(TransferHeader, true, true);
 
@@ -253,15 +261,18 @@ codeunit 144720 "SCM Torg-13 Test"
         TransferReceiptTORG13.Run();
 
         TransferReceiptHeader.FindFirst();
+        UnbindSubscription(RUReportDownloadHandler);
         exit(TransferReceiptHeader."No.");
     end;
 
     local procedure PostTransferAndPrintTorg13ForTransferShipment(HeaderNo: Code[20]): Code[20]
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TransferHeader: Record "Transfer Header";
         TransferShipmentHeader: Record "Transfer Shipment Header";
         TransferShipmentTORG13: Report "Transfer Shipment TORG-13";
     begin
+        BindSubscription(RUReportDownloadHandler);
         TransferHeader.Get(HeaderNo);
         LibraryInventory.PostTransferHeader(TransferHeader, true, true);
 
@@ -273,6 +284,7 @@ codeunit 144720 "SCM Torg-13 Test"
         TransferShipmentTORG13.Run();
 
         TransferShipmentHeader.FindFirst();
+        UnbindSubscription(RUReportDownloadHandler);
         exit(TransferShipmentHeader."No.");
     end;
 

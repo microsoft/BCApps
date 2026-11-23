@@ -14,10 +14,7 @@ codeunit 1883 "Sandbox Cleanup local"
         if CompanyName() <> CompanyName then
             ElecTaxDeclarationSetup.ChangeCompany(CompanyName);
 
-        ElecTaxDeclarationSetup.ModifyAll("Digipoort Client Cert. Name", '');
-        ElecTaxDeclarationSetup.ModifyAll("Digipoort Service Cert. Name", '');
-        ElecTaxDeclarationSetup.ModifyAll("Digipoort Delivery URL", '');
-        ElecTaxDeclarationSetup.ModifyAll("Digipoort Status URL", '');
+        ElecTaxDeclarationSetup.ModifyAll("Digipoort Client Cert. Name", '', "Digipoort Service Cert. Name", '', "Digipoort Delivery URL", '', "Digipoort Status URL", '');
     end;
 }
 

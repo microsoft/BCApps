@@ -2552,31 +2552,27 @@ codeunit 18131 "GST On Purchase Tests"
     begin
         LibraryERM.CreateCurrency(Currency);
         LibraryERM.SetCurrencyGainLossAccounts(Currency);
-        with Currency do begin
-            Validate("Residual Gains Account", "Realized Gains Acc.");
-            Validate("Residual Losses Account", "Realized Losses Acc.");
-            Validate("Appln. Rounding Precision", ApplnRoundingPrecision);
-            Modify(true);
-        end;
+        Currency.Validate("Residual Gains Account", Currency."Realized Gains Acc.");
+        Currency.Validate("Residual Losses Account", Currency."Realized Losses Acc.");
+        Currency.Validate("Appln. Rounding Precision", ApplnRoundingPrecision);
+        Currency.Modify(true);
     end;
 
     local procedure CreateExchangeRate(CurrencyCode: Code[10]; StartingDate: Date; RelExchangeRateAmount: Decimal; RelAdjustmentExchangeRateAmount: Decimal)
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
-        with CurrencyExchangeRate do begin
-            Init();
-            Validate("Currency Code", CurrencyCode);
-            Validate("Starting Date", StartingDate);
-            Insert(true);
+        CurrencyExchangeRate.Init();
+        CurrencyExchangeRate.Validate("Currency Code", CurrencyCode);
+        CurrencyExchangeRate.Validate("Starting Date", StartingDate);
+        CurrencyExchangeRate.Insert(true);
 
-            Validate("Exchange Rate Amount", 1);
-            Validate("Adjustment Exch. Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", 1);
 
-            Validate("Relational Exch. Rate Amount", RelExchangeRateAmount);
-            Validate("Relational Adjmt Exch Rate Amt", RelAdjustmentExchangeRateAmount);
-            Modify(true);
-        end;
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", RelExchangeRateAmount);
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", RelAdjustmentExchangeRateAmount);
+        CurrencyExchangeRate.Modify(true);
     end;
 
     local procedure UpdateVendorCurrencyAndLocation(VendorNo: Code[20]; CurrencyCode: Code[10])

@@ -313,13 +313,11 @@ codeunit 27020 "DIOT - Initialize"
         DIOTCountryData: Record "DIOT Country/Region Data";
         DIOTDataMgt: Codeunit "DIOT Data Management";
     begin
-        with DIOTCountryData do begin
-            Init();
-            "Country/Region Code" := CountryCode;
-            Nationality := CopyStr(DIOTDataMgt.RemoveUnwantedCharacters(NewNationality, ' &´.'), 1, MaxStrLen(Nationality));
-            "BC Country/Region Code" := CountryCode;
-            "ISO A-3 Country/Region Code" := DIOTCountryCode;
-            if Insert(true) then;
-        end;
+        DIOTCountryData.Init();
+        DIOTCountryData."Country/Region Code" := CountryCode;
+        DIOTCountryData.Nationality := CopyStr(DIOTDataMgt.RemoveUnwantedCharacters(NewNationality, ' &´.'), 1, MaxStrLen(DIOTCountryData.Nationality));
+        DIOTCountryData."BC Country/Region Code" := CountryCode;
+        DIOTCountryData."ISO A-3 Country/Region Code" := DIOTCountryCode;
+        if DIOTCountryData.Insert(true) then;
     end;
 }

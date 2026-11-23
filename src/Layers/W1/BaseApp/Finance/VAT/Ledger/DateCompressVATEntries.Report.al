@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Ledger;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Period;
 using System.DataAdministration;
@@ -154,7 +155,7 @@ report 95 "Date Compress VAT Entries"
 
             trigger OnPreDataItem()
             var
-                LastTransactionNo: Integer;
+                LastTransactionNo: BigInteger;
             begin
                 if EntrdDateComprReg."Ending Date" = 0D then
                     Error(Text003, EntrdDateComprReg.FieldCaption("Ending Date"));
@@ -172,6 +173,7 @@ report 95 "Date Compress VAT Entries"
 
                 SourceCodeSetup.Get();
                 SourceCodeSetup.TestField("Compress VAT Entries");
+                CheckConcurrentPostingIsNotEnabled();
 
                 GLEntry.LockTable();
                 NewVATEntry.LockTable();
@@ -351,9 +353,9 @@ report 95 "Date Compress VAT Entries"
         DataArchive: Codeunit "Data Archive";
         Window: Dialog;
         VATEntryFilter: Text[250];
-        LastGLEntryNo: Integer;
-        LastVATEntryNo: Integer;
-        NextTransactionNo: Integer;
+        LastGLEntryNo: BigInteger;
+        LastVATEntryNo: BigInteger;
+        NextTransactionNo: BigInteger;
         NoOfDeleted: Integer;
         GLRegExists: Boolean;
         UseDataArchive: Boolean;
@@ -381,6 +383,16 @@ report 95 "Date Compress VAT Entries"
 
     protected var
         EntrdDateComprReg: Record "Date Compr. Register";
+
+    local procedure CheckConcurrentPostingIsNotEnabled()
+    var
+        GLSetup: Record "General Ledger Setup";
+        ConcurrentPostingNotSupportedErr: Label 'Date compression is not supported while concurrent posting is enabled in General Ledger Setup.';
+    begin
+        GLSetup.Get();
+        if GLSetup.UseConcurrentPosting() then
+            Error(ConcurrentPostingNotSupportedErr);
+    end;
 
     local procedure InitRegisters()
     begin
@@ -418,9 +430,9 @@ report 95 "Date Compress VAT Entries"
 
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        FoundLastEntryNo: Integer;
-        FoundLastVATEntryNo: Integer;
-        LastTransactionNo: Integer;
+        FoundLastEntryNo: BigInteger;
+        FoundLastVATEntryNo: BigInteger;
+        LastTransactionNo: BigInteger;
     begin
         GLEntry.Init();
         LastGLEntryNo := LastGLEntryNo + 1;

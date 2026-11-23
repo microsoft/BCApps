@@ -11,7 +11,8 @@ using Microsoft.Foundation.NoSeries;
 
 codeunit 5058 "BankCont-Update"
 {
-    Permissions = tabledata Contact = rimd;
+    Permissions = tabledata Contact = rimd,
+                  tabledata "Contact Business Relation" = r;
 
     trigger OnRun()
     begin

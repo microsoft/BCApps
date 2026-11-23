@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -13,6 +16,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Family;
 using Microsoft.Manufacturing.MachineCenter;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
@@ -20,21 +24,26 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
+using Microsoft.Warehouse.InventoryDocument;
+using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Structure;
 using Microsoft.Warehouse.Worksheet;
 
 codeunit 149908 "Subc. Warehouse Library"
 {
+    EventSubscriberInstance = Manual;
     // [FEATURE] Subcontracting Warehouse Test Library
     // Consolidated data creation functions for warehouse tests to avoid code duplication
 
     var
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
@@ -42,6 +51,349 @@ codeunit 149908 "Subc. Warehouse Library"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcLibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+        SummaryAssert: Codeunit Assert;
+        SummarySetupLibrary: Codeunit "Subc. Setup Library";
+        SummaryDetailRecords: List of [RecordId];
+
+    /// <summary>
+    /// Inserts a synthetic receipt-history line for reader tests without creating a header or running posting logic.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic history line.</param>
+    /// <param name="Quantity">The signed document quantity, including precision used to test exact stored comparisons.</param>
+    procedure InsertSummaryReceipt(OrderNo: Code[20]; Quantity: Decimal)
+    var
+        ReceiptLine: Record "Purch. Rcpt. Line";
+    begin
+        ReceiptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ReceiptLine."Document No."));
+        ReceiptLine."Line No." := 10000;
+        ReceiptLine."Prod. Order No." := OrderNo;
+        ReceiptLine.Quantity := Quantity;
+        ReceiptLine.Insert();
+    end;
+
+    /// <summary>
+    /// Inserts a synthetic invoice-history line for reader tests without creating a header or running posting logic.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic history line.</param>
+    /// <param name="Quantity">The signed document quantity, including precision used to test exact stored comparisons.</param>
+    procedure InsertSummaryInvoice(OrderNo: Code[20]; Quantity: Decimal)
+    var
+        InvoiceLine: Record "Purch. Inv. Line";
+    begin
+        InvoiceLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(InvoiceLine."Document No."));
+        InvoiceLine."Line No." := 10000;
+        InvoiceLine."Prod. Order No." := OrderNo;
+        InvoiceLine.Quantity := Quantity;
+        InvoiceLine.Insert();
+    end;
+
+    /// <summary>
+    /// Inserts a synthetic purchase line without a header or validation to test summary source and signed-quantity predicates.
+    /// </summary>
+    /// <param name="OrderNo">The production order identity assigned to the synthetic line.</param>
+    /// <param name="DocumentType">The included or deliberately excluded purchase document type.</param>
+    /// <param name="Quantity">The raw signed document quantity to persist.</param>
+    /// <param name="Invoiced">The raw signed invoiced quantity to compare with the document quantity.</param>
+    /// <param name="PurchaseLine">Returns the inserted line with a unique document number and a line number of 10000.</param>
+    procedure InsertSummaryPurchase(OrderNo: Code[20]; DocumentType: Enum "Purchase Document Type"; Quantity: Decimal; Invoiced: Decimal; var PurchaseLine: Record "Purchase Line")
+    begin
+        Clear(PurchaseLine);
+        PurchaseLine."Document Type" := DocumentType;
+        PurchaseLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchaseLine."Document No."));
+        PurchaseLine."Line No." := 10000;
+        PurchaseLine."Prod. Order No." := OrderNo;
+        PurchaseLine.Quantity := Quantity;
+        PurchaseLine."Quantity Invoiced" := Invoiced;
+        PurchaseLine.Insert();
+    end;
+
+    /// <summary>
+    /// Enables Premium application areas and creates a refreshed released item order with subcontracting and WIP transfer.
+    /// </summary>
+    /// <param name="Quantity">The production order quantity in the created item's base unit of measure.</param>
+    /// <param name="ProductionOrder">Returns the released production order with its item, location and routing.</param>
+    /// <param name="WorkCenter">Returns the routing's subcontracting work center with a configured vendor location.</param>
+    procedure CreateSummaryOrder(Quantity: Decimal; var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center")
+    var
+        Item: Record Item;
+        Location: Record Location;
+        RoutingNo: Code[20];
+    begin
+        RoutingNo := CreateSummaryRouting(WorkCenter);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", RoutingNo);
+        Item.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item,
+            Item."No.", Quantity, Location.Code);
+    end;
+
+    /// <summary>
+    /// Enables Premium application areas and creates a refreshed released family order with two items and subcontracting.
+    /// </summary>
+    /// <param name="FirstBaseQuantity">The first family item's quantity for one unit of family output, in base units.</param>
+    /// <param name="SecondBaseQuantity">The second family item's quantity for one unit of family output, in base units.</param>
+    /// <param name="ProductionOrder">Returns the released family order with a quantity of one.</param>
+    /// <param name="WorkCenter">Returns the shared subcontracting work center with WIP transfer enabled.</param>
+    /// <param name="Items">Returns the two output items in family-line order.</param>
+    procedure CreateSummaryFamily(FirstBaseQuantity: Decimal; SecondBaseQuantity: Decimal; var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center"; var Items: array[2] of Record Item)
+    var
+        Family: Record Family;
+        FamilyLine: Record "Family Line";
+        Location: Record Location;
+        RoutingNo: Code[20];
+    begin
+        RoutingNo := CreateSummaryRouting(WorkCenter);
+        LibraryManufacturing.CreateFamily(Family);
+        LibraryInventory.CreateItem(Items[1]);
+        LibraryInventory.CreateItem(Items[2]);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[1]."No.", FirstBaseQuantity);
+        LibraryManufacturing.CreateFamilyLine(FamilyLine, Family."No.", Items[2]."No.", SecondBaseQuantity);
+        Family.Validate("Routing No.", RoutingNo);
+        Family.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Family,
+            Family."No.", 1, Location.Code);
+    end;
+
+    local procedure CreateSummaryRouting(var WorkCenter: Record "Work Center"): Code[20]
+    var
+        Location: Record Location;
+        Vendor: Record Vendor;
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+    begin
+        LibraryApplicationArea.EnablePremiumSetup();
+        SubcLibraryMfgManagement.CreateSubcontractingWorkCenterWithCalendar(WorkCenter);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        Vendor.Validate("Subc. Location Code", Location.Code);
+        Vendor.Modify(true);
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", WorkCenter."No.");
+        RoutingLine.Validate("Transfer WIP Item", true);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        exit(RoutingHeader."No.");
+    end;
+
+    /// <summary>
+    /// Creates a native subcontract purchase order for the production routing and ensures its general posting setup is valid.
+    /// </summary>
+    /// <param name="ProductionOrder">The refreshed order containing an operation for the supplied work center.</param>
+    /// <param name="WorkCenter">The subcontracting work center whose first matching operation is purchased.</param>
+    /// <param name="PurchaseHeader">Returns the created purchase order header.</param>
+    /// <param name="PurchaseLine">Returns the linked subcontract purchase line.</param>
+    procedure CreateSummaryPurchase(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
+    var
+        RoutingLine: Record "Prod. Order Routing Line";
+    begin
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.SetRange("Work Center No.", WorkCenter."No.");
+        RoutingLine.FindFirst();
+        CreateSubcontractingOrderFromProdOrderRouting(
+            RoutingLine."Routing No.", WorkCenter."No.", ProductionOrder."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SummarySetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+    end;
+
+    /// <summary>
+    /// Configures a transit route and invokes the purchase order action to create an outbound subcontracting WIP transfer.
+    /// </summary>
+    /// <param name="ProductionOrder">The order whose location supplies the WIP.</param>
+    /// <param name="WorkCenter">The subcontracting work center whose vendor has a configured subcontracting location.</param>
+    /// <param name="PurchaseHeader">The subcontract purchase order with transferable WIP lines.</param>
+    /// <param name="TransferHeader">Returns the outbound transfer found for the purchase order.</param>
+    procedure CreateSummaryForward(ProductionOrder: Record "Production Order"; WorkCenter: Record "Work Center"; PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header")
+    var
+        Vendor: Record Vendor;
+        InTransitLocation: Record Location;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        CreateTransferRoutesForWIPTransfer(ProductionOrder."Location Code", Vendor."Subc. Location Code", InTransitLocation.Code);
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        FindSubcontractingTransferHeader(PurchaseHeader, false, TransferHeader);
+    end;
+
+    /// <summary>
+    /// Invokes the purchase order action to create a return transfer for available subcontractor WIP.
+    /// </summary>
+    /// <param name="PurchaseHeader">The subcontract purchase order with WIP available to return.</param>
+    /// <param name="TransferHeader">Returns the return transfer found for the purchase order.</param>
+    procedure CreateSummaryReturn(PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header")
+    var
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrder.Close();
+        FindSubcontractingTransferHeader(PurchaseHeader, true, TransferHeader);
+    end;
+
+    /// <summary>
+    /// Reopens the purchase order, assigns a unique vendor invoice number and invoices only the specified line quantity.
+    /// </summary>
+    /// <param name="PurchaseHeader">The existing order; final posting can delete it.</param>
+    /// <param name="PurchaseLine">The existing line with enough received, uninvoiced quantity; posting can delete it.</param>
+    /// <param name="Quantity">The quantity to invoice in the line's document unit of measure.</param>
+    procedure PostSummaryInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
+    var
+        OtherLine: Record "Purchase Line";
+    begin
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        PurchaseHeader.Validate("Vendor Invoice No.", CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchaseHeader."Vendor Invoice No.")));
+        PurchaseHeader.Modify(true);
+        OtherLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        OtherLine.SetRange("Document No.", PurchaseHeader."No.");
+        OtherLine.SetFilter(Type, '<>%1', OtherLine.Type::" ");
+        if OtherLine.FindSet() then
+            repeat
+                OtherLine.Validate("Qty. to Invoice", 0);
+                OtherLine.Modify(true);
+            until OtherLine.Next() = 0;
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Invoice", Quantity);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+    end;
+
+    /// <summary>
+    /// Clears captured detail keys before binding this manual subscriber instance and opening a summary drilldown.
+    /// </summary>
+    procedure StartSummaryDetailCapture()
+    begin
+        Clear(SummaryDetailRecords);
+    end;
+
+    /// <summary>
+    /// Asserts the number of distinct table and primary-key identities captured by the bound detail-page subscribers.
+    /// </summary>
+    /// <param name="ExpectedCount">The expected number of distinct detail records since capture was cleared.</param>
+    procedure VerifySummaryDetailRecordCount(ExpectedCount: Integer)
+    begin
+        SummaryAssert.AreEqual(ExpectedCount, SummaryDetailRecords.Count(), 'Drilldown must contain exactly the expected full record keys.');
+    end;
+
+    /// <summary>
+    /// Asserts that a detail drilldown visited the expected table and complete primary key.
+    /// </summary>
+    /// <param name="ExpectedRecordId">The source record identity expected in the current capture.</param>
+    procedure VerifySummaryDetailRecord(ExpectedRecordId: RecordId)
+    begin
+        SummaryAssert.IsTrue(SummaryDetailRecords.Contains(ExpectedRecordId), 'Drilldown must contain the complete expected table and primary key.');
+    end;
+
+    local procedure CaptureSummaryDetail(DetailRecordId: RecordId)
+    begin
+        if not SummaryDetailRecords.Contains(DetailRecordId) then
+            SummaryDetailRecords.Add(DetailRecordId);
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryPurchase(var Rec: Record "Purchase Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Purch. Receipt Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryReceipt(var Rec: Record "Purch. Rcpt. Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Subc. Summary Invoice Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryInvoice(var Rec: Record "Purch. Inv. Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Transfer Lines", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryTransfer(var Rec: Record "Transfer Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Prod. Order Routing", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryRouting(var Rec: Record "Prod. Order Routing Line")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Subc. WIP Ledger Entries", 'OnAfterGetRecordEvent', '', false, false)]
+    local procedure CaptureSummaryWIP(var Rec: Record "Subcontractor WIP Ledger Entry")
+    begin
+        CaptureSummaryDetail(Rec.RecordId());
+    end;
+
+    /// <summary>
+    /// Opens the released production order card and asserts all nine summary values before closing it.
+    /// </summary>
+    /// <param name="ProductionOrder">The released order whose subcontracting summary is eligible and visible.</param>
+    /// <param name="RoutingCount">The expected count of current subcontracting routing operations.</param>
+    /// <param name="PurchaseQuantity">The expected raw sum of linked purchase order line quantities.</param>
+    /// <param name="ReceiptQuantity">The expected signed sum of linked posted receipt quantities.</param>
+    /// <param name="InvoiceQuantity">The expected signed sum of linked posted invoice quantities.</param>
+    /// <param name="FullyInvoiced">The expected exact-quantity invoicing indicator.</param>
+    /// <param name="AtSubcontractor">The expected signed non-transit WIP balance in item base units.</param>
+    /// <param name="InTransit">The expected signed transit WIP balance in item base units.</param>
+    /// <param name="ForwardCount">The expected count of original forward transfer lines.</param>
+    /// <param name="ReturnCount">The expected count of original return transfer lines.</param>
+    procedure VerifySummaryCard(ProductionOrder: Record "Production Order"; RoutingCount: Integer; PurchaseQuantity: Decimal; ReceiptQuantity: Decimal; InvoiceQuantity: Decimal; FullyInvoiced: Boolean; AtSubcontractor: Decimal; InTransit: Decimal; ForwardCount: Integer; ReturnCount: Integer)
+    var
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.RoutingCount.AssertEquals(RoutingCount);
+        ReleasedOrder.SubcontractingSummary.PurchaseQuantity.AssertEquals(PurchaseQuantity);
+        ReleasedOrder.SubcontractingSummary.ReceiptQuantity.AssertEquals(ReceiptQuantity);
+        ReleasedOrder.SubcontractingSummary.InvoiceQuantity.AssertEquals(InvoiceQuantity);
+        ReleasedOrder.SubcontractingSummary.FullyInvoiced.AssertEquals(Format(FullyInvoiced));
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(AtSubcontractor);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(InTransit);
+        ReleasedOrder.SubcontractingSummary.TransferCount.AssertEquals(ForwardCount);
+        ReleasedOrder.SubcontractingSummary.ReturnTransferCount.AssertEquals(ReturnCount);
+        ReleasedOrder.Close();
+    end;
+
+    /// <summary>
+    /// Asserts that the released order card and persisted WIP ledger agree on both transit balances.
+    /// </summary>
+    /// <param name="ProductionOrder">The released order whose subcontracting summary is eligible and visible.</param>
+    /// <param name="AtSubcontractor">The expected signed non-transit WIP balance in item base units.</param>
+    /// <param name="InTransit">The expected signed transit WIP balance in item base units.</param>
+    procedure VerifySummaryWIP(ProductionOrder: Record "Production Order"; AtSubcontractor: Decimal; InTransit: Decimal)
+    var
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.AssertEquals(AtSubcontractor);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.AssertEquals(InTransit);
+        ReleasedOrder.Close();
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntry.SetRange("In Transit", false);
+        WIPEntry.CalcSums("Quantity (Base)");
+        SummaryAssert.AreEqual(AtSubcontractor, WIPEntry."Quantity (Base)", 'Persisted non-transit WIP must agree.');
+        WIPEntry.SetRange("In Transit", true);
+        WIPEntry.CalcSums("Quantity (Base)");
+        SummaryAssert.AreEqual(InTransit, WIPEntry."Quantity (Base)", 'Persisted transit WIP must agree.');
+    end;
 
     /// <summary>
     /// Creates and calculates needed work and machine centers.
@@ -62,10 +414,10 @@ codeunit 149908 "Subc. Warehouse Library"
 
         if Subcontracting then begin
             LibraryPurchase.CreateSubcontractor(Vendor1);
-            Vendor1."Subc. Location Code" := LibraryWarehouse.CreateLocation(Location);
+            Vendor1."Subc. Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
             Vendor1.Modify(true);
             LibraryPurchase.CreateSubcontractor(Vendor2);
-            Vendor2."Subc. Location Code" := LibraryWarehouse.CreateLocation(Location);
+            Vendor2."Subc. Location Code" := LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
             Vendor2.Modify(true);
         end;
 
@@ -171,6 +523,12 @@ codeunit 149908 "Subc. Warehouse Library"
             "Reordering Policy"::" ", "Flushing Method"::Backward, RoutingNo, ProductionBOMNo);
     end;
 
+    /// <summary>
+    /// Creates a production item with a parallel routing that includes subcontracting operations.
+    /// </summary>
+    /// <param name="Item">The production item to create.</param>
+    /// <param name="MachineCenter">The in-house machine centers used by the routing.</param>
+    /// <param name="WorkCenter">The subcontracting work centers used by the routing.</param>
     procedure CreateParallelRoutingItemWithSubcontracting(var Item: Record Item; var MachineCenter: array[2] of Record "Machine Center"; var WorkCenter: array[2] of Record "Work Center")
     var
         Item2: Record Item;
@@ -386,6 +744,90 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
+    /// Creates a production item with a three-operation routing where the first subcontracting
+    /// operation transfers WIP and the second subcontracting operation is the last operation.
+    /// </summary>
+    /// <param name="Item">The item record that is created and configured for the scenario</param>
+    /// <param name="WorkCenter">The work centers used for the subcontracting operations</param>
+    /// <param name="MachineCenter">The machine centers used for the in-house routing operation</param>
+    procedure CreateThreeOpRoutingWithWIPTransfer(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center")
+    var
+        Item2: Record Item;
+        Item3: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink1: Record "Routing Link";
+        RoutingLink2: Record "Routing Link";
+        ProductionBOMNo: Code[20];
+    begin
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Machine Center", MachineCenter[1]."No.");
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", WorkCenter[1]."No.");
+        RoutingLine."Transfer WIP Item" := true;
+        RoutingLine.Modify(true);
+        LibraryManufacturing.CreateRoutingLine(
+            RoutingHeader, RoutingLine, '', '30', RoutingLine.Type::"Work Center", WorkCenter[2]."No.");
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryInventory.CreateItem(Item2);
+        LibraryInventory.CreateItem(Item3);
+        ProductionBOMNo := LibraryManufacturing.CreateCertifProdBOMWithTwoComp(
+            ProductionBOMHeader, Item2."No.", Item3."No.", 1);
+
+        LibraryManufacturing.CreateItemManufacturing(
+            Item, "Costing Method"::FIFO, LibraryRandom.RandDec(10, 2),
+            "Reordering Policy"::" ", "Flushing Method"::Backward, RoutingHeader."No.", ProductionBOMNo);
+
+        LibraryManufacturing.CreateRoutingLink(RoutingLink1);
+        LibraryManufacturing.CreateRoutingLink(RoutingLink2);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenter[1]."No.");
+        if RoutingLine.FindFirst() then begin
+            RoutingLine.Validate("Routing Link Code", RoutingLink1.Code);
+            RoutingLine.Modify(true);
+        end;
+
+        RoutingLine.SetRange("No.", WorkCenter[2]."No.");
+        if RoutingLine.FindFirst() then begin
+            RoutingLine.Validate("Routing Link Code", RoutingLink2.Code);
+            RoutingLine.Modify(true);
+        end;
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        ProductionBOMHeader.Get(Item."Production BOM No.");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
+        if ProductionBOMLine.FindFirst() then begin
+            ProductionBOMLine.Validate("Routing Link Code", RoutingLink1.Code);
+            ProductionBOMLine.Modify(true);
+        end;
+        if ProductionBOMLine.FindLast() then begin
+            ProductionBOMLine.Validate("Routing Link Code", RoutingLink2.Code);
+            ProductionBOMLine.Modify(true);
+        end;
+
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+    end;
+
+    /// <summary>
     /// Creates a location with warehouse handling enabled.
     /// </summary>
     /// <param name="Location">The location record which will be created and updated</param>
@@ -440,6 +882,9 @@ codeunit 149908 "Subc. Warehouse Library"
         LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
         Location."Require Receive" := false;
         Location."Require Put-away" := false;
+
+        Location."Pick Bin Policy" := Location."Pick Bin Policy"::"Default Bin";
+        Location."Put-away Bin Policy" := Location."Put-away Bin Policy"::"Default Bin";
         Location.Modify(true);
         LibraryInventory.UpdateInventoryPostingSetup(Location);
     end;
@@ -458,6 +903,79 @@ codeunit 149908 "Subc. Warehouse Library"
         Location."Require Put-away" := true;
         Location.Modify(true);
         LibraryInventory.UpdateInventoryPostingSetup(Location);
+    end;
+
+    /// <summary>
+    /// Creates a location for single-step logistics (Inventory Put-away).
+    /// Require Receive = false, Require Put-away = true, Bin Mandatory = false.
+    /// This is the minimal location setup that triggers the Inventory Put-away code path
+    /// instead of the two-step Warehouse Receipt + Put-away path.
+    /// </summary>
+    /// <param name="Location">The location record which will be created and updated</param>
+    procedure CreateLocationWithInvtPutAwaySetup(var Location: Record Location)
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, true, false);
+        Location."Require Receive" := false;
+        Location."Require Put-away" := true;
+        Location.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+    end;
+
+    /// <summary>
+    /// Creates a location pair for WIP transfer pick scenarios: a shipping location with
+    /// single-step outbound pick enabled and a production location that can be used as the
+    /// WIP transfer source.
+    /// </summary>
+    /// <param name="ShipLocation">The shipping location created with Require Pick = true and Require Shipment = false</param>
+    /// <param name="ProdLocation">The production location created for the WIP transfer source</param>
+    /// <param name="BinMandatory">Specifies whether both locations should be created as bin mandatory</param>
+    procedure CreateLocationForWIPPick(var ShipLocation: Record Location; var ProdLocation: Record Location; BinMandatory: Boolean)
+    var
+        ProdBin: Record Bin;
+        ShipBin: Record Bin;
+    begin
+        LibraryWarehouse.CreateLocationWMS(ShipLocation, BinMandatory, false, true, false, false);
+        ShipLocation."Require Pick" := true;
+        ShipLocation."Require Shipment" := false;
+        ShipLocation.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(ShipLocation);
+
+        if BinMandatory then begin
+            LibraryWarehouse.CreateBin(ShipBin, ShipLocation.Code, 'PICK', '', '');
+            ShipLocation.Validate("Default Bin Code", ShipBin.Code);
+            ShipLocation.Modify(true);
+
+            CreateLocationWithBinMandatoryOnly(ProdLocation);
+            LibraryWarehouse.CreateBin(ProdBin, ProdLocation.Code, 'PROD', '', '');
+            ProdLocation.Validate("Default Bin Code", ProdBin.Code);
+            ProdLocation."From-Production Bin Code" := ProdBin.Code;
+            ProdLocation.Modify(true);
+        end else
+            LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ProdLocation);
+    end;
+
+    /// <summary>
+    /// Creates a location for single-step logistics (Inventory Put-away) with Bin Mandatory = true.
+    /// Require Receive = false, Require Put-away = true, Bin Mandatory = true.
+    /// A default bin is created and assigned so that Inventory Put-away lines can be posted.
+    /// A Warehouse Employee must additionally be created for the location before posting
+    /// (see Library - Warehouse.CreateWarehouseEmployee), since Bin Mandatory locations
+    /// enforce warehouse employee authorization.
+    /// </summary>
+    /// <param name="Location">The location record which will be created and updated</param>
+    /// <param name="DefaultBin">The bin record which will be created and set as the default bin</param>
+    procedure CreateLocationWithInvtPutAwaySetupAndBin(var Location: Record Location; var DefaultBin: Record Bin)
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, true, false);
+        Location."Require Receive" := false;
+        Location."Require Put-away" := true;
+        Location.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+
+        LibraryWarehouse.CreateBin(DefaultBin, Location.Code, 'PUTAWAY', '', '');
+        Location.Validate("Default Bin Code", DefaultBin.Code);
+        Location."From-Production Bin Code" := DefaultBin.Code;
+        Location.Modify(true);
     end;
 
     /// <summary>
@@ -530,6 +1048,36 @@ codeunit 149908 "Subc. Warehouse Library"
         SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRtngLine);
 
         // Find the created purchase line
+        PurchaseLine.SetRange("Routing No.", RoutingNo);
+        PurchaseLine.SetRange("Work Center No.", WorkCenterNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    /// <summary>
+    /// Same as <see cref="CreateSubcontractingOrderFromProdOrderRouting"/>, but additionally filters the
+    /// Prod. Order Routing Line lookup by Prod. Order No. This disambiguation is required whenever more than
+    /// one production order for the same item/routing exists (e.g. a LastOperation order and a separate
+    /// NotLastOperation order created from the same Item in the same test) - without it, the plain
+    /// (Routing No. + Work Center No.) filter can silently match a DIFFERENT production order's routing line
+    /// (e.g. one that has already produced its full output and has Remaining Quantity = 0), causing
+    /// "Subc. Purchase Order Creator".CreateSubcontractingPurchaseOrderFromRoutingLine to exit without creating
+    /// any purchase line at all.
+    /// </summary>
+    procedure CreateSubcontractingOrderFromProdOrderRouting(RoutingNo: Code[20]; WorkCenterNo: Code[20]; ProdOrderNo: Code[20]; var PurchaseLine: Record "Purchase Line")
+    var
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+    begin
+        ProdOrderRtngLine.SetRange("Prod. Order No.", ProdOrderNo);
+        ProdOrderRtngLine.SetRange("Routing No.", RoutingNo);
+        ProdOrderRtngLine.SetRange(Type, ProdOrderRtngLine.Type::"Work Center");
+        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenterNo);
+        ProdOrderRtngLine.FindFirst();
+
+        SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRtngLine);
+
+        // Find the created purchase line
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderNo);
         PurchaseLine.SetRange("Routing No.", RoutingNo);
         PurchaseLine.SetRange("Work Center No.", WorkCenterNo);
         PurchaseLine.FindFirst();
@@ -677,9 +1225,94 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
-    /// Posts a partial put-away by setting quantity to handle on all lines and registering the warehouse activity.
+    /// Creates an Inventory Put-away document (single-step logistics) from a released
+    /// subcontracting Purchase Order, without showing the source documents request page.
     /// </summary>
-    /// <param name="WarehouseActivityHeader">The warehouse activity header for the put-away to register</param>
+    /// <param name="PurchaseHeader">The released purchase header used as source</param>
+    /// <param name="WarehouseActivityHeader">The created Inventory Put-away header</param>
+    procedure CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader: Record "Purchase Header"; var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    var
+        WhseRequest: Record "Warehouse Request";
+    begin
+        WhseRequest.Reset();
+        WhseRequest.SetCurrentKey("Source Document", "Source No.");
+        WhseRequest.SetRange(Type, WhseRequest.Type::Inbound);
+        WhseRequest.SetRange("Source Document", WhseRequest."Source Document"::"Purchase Order");
+        WhseRequest.SetRange("Source No.", PurchaseHeader."No.");
+        WhseRequest.SetRange("Document Status", WhseRequest."Document Status"::Released);
+        WhseRequest.FindFirst();
+
+        LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, false, false);
+        WarehouseActivityHeader.Reset();
+        WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Put-away");
+        WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Purchase Order");
+        WarehouseActivityHeader.SetRange("Source No.", PurchaseHeader."No.");
+        WarehouseActivityHeader.SetRange("Source Type", Database::"Purchase Line");
+        WarehouseActivityHeader.SetRange("Source Subtype", PurchaseHeader."Document Type");
+        WarehouseActivityHeader.FindFirst();
+    end;
+
+    /// <summary>
+    /// Creates an Inventory Put-away document (single-step logistics) from a released,
+    /// shipped subcontracting Transfer Order (e.g. a WIP Item transfer between subcontracting
+    /// locations), without showing the source documents request page.
+    /// </summary>
+    /// <param name="TransferHeader">The released, shipped transfer header used as source</param>
+    /// <param name="WarehouseActivityHeader">The created Inventory Put-away header</param>
+    procedure CreateInvtPutAwayFromTransferOrder(TransferHeader: Record "Transfer Header"; var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    var
+        WhseRequest: Record "Warehouse Request";
+    begin
+        WhseRequest.Reset();
+        WhseRequest.SetCurrentKey("Source Document", "Source No.");
+        WhseRequest.SetRange(Type, WhseRequest.Type::Inbound);
+        WhseRequest.SetRange("Source Document", WhseRequest."Source Document"::"Inbound Transfer");
+        WhseRequest.SetRange("Source No.", TransferHeader."No.");
+        WhseRequest.SetRange("Document Status", WhseRequest."Document Status"::Released);
+        WhseRequest.FindFirst();
+
+        LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, false, false);
+        WarehouseActivityHeader.Reset();
+        WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Put-away");
+        WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Inbound Transfer");
+        WarehouseActivityHeader.SetRange("Source No.", TransferHeader."No.");
+        WarehouseActivityHeader.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseActivityHeader.FindFirst();
+    end;
+
+    /// <summary>
+    /// Creates an Inventory Pick document (single-step logistics) from a released
+    /// transfer order using the outbound transfer warehouse request.
+    /// </summary>
+    /// <param name="TransferHeader">The released transfer header used as source</param>
+    /// <param name="WarehouseActivityHeader">The created Inventory Pick header</param>
+    procedure CreateInvtPickFromTransferOrder(TransferHeader: Record "Transfer Header"; var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    var
+        WhseRequest: Record "Warehouse Request";
+    begin
+        WhseRequest.Reset();
+        WhseRequest.SetCurrentKey("Source Document", "Source No.");
+        WhseRequest.SetRange(Type, WhseRequest.Type::Outbound);
+        WhseRequest.SetRange("Source Document", WhseRequest."Source Document"::"Outbound Transfer");
+        WhseRequest.SetRange("Source No.", TransferHeader."No.");
+        WhseRequest.SetRange("Document Status", WhseRequest."Document Status"::Released);
+        WhseRequest.FindFirst();
+
+        // Create the activity for this transfer request only.
+        LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, true, false);
+
+        WarehouseActivityHeader.Reset();
+        WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Pick");
+        WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Outbound Transfer");
+        WarehouseActivityHeader.SetRange("Source No.", TransferHeader."No.");
+        WarehouseActivityHeader.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseActivityHeader.FindFirst();
+    end;
+
+    /// <summary>
+    /// Posts a partial put-away by setting quantity to handle on all lines and posting the warehouse activity.
+    /// </summary>
+    /// <param name="WarehouseActivityHeader">The warehouse activity header for the put-away to post</param>
     /// <param name="PartialQuantity">The quantity to handle assigned to each warehouse activity line</param>
     procedure PostPartialPutAway(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PartialQuantity: Decimal)
     var
@@ -693,7 +1326,67 @@ codeunit 149908 "Subc. Warehouse Library"
                 WarehouseActivityLine.Modify(true);
             until WarehouseActivityLine.Next() = 0;
 
-        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+        if WarehouseActivityHeader.Type = WarehouseActivityHeader.Type::"Invt. Put-away" then
+            LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false)
+        else
+            LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
+    /// <summary>
+    /// Posts a partial inventory pick by setting quantity to handle on all lines and posting the warehouse activity.
+    /// </summary>
+    /// <param name="WarehouseActivityHeader">The warehouse activity header for the inventory pick to post</param>
+    /// <param name="PartialQuantity">The quantity to handle assigned to each warehouse activity line</param>
+    procedure PostPartialInventoryPick(var WarehouseActivityHeader: Record "Warehouse Activity Header"; PartialQuantity: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        if WarehouseActivityLine.FindSet() then
+            repeat
+                WarehouseActivityLine.Validate("Qty. to Handle", PartialQuantity);
+                WarehouseActivityLine.Modify(true);
+            until WarehouseActivityLine.Next() = 0;
+
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+    end;
+
+    /// <summary>
+    /// Splits the first warehouse activity line on the document across up to three bins.
+    /// </summary>
+    /// <param name="WarehouseActivityHeader">The warehouse activity header whose first line is split</param>
+    /// <param name="ActivityType">The activity type of the document being split</param>
+    /// <param name="Bins">The bins assigned to the resulting split lines</param>
+    /// <param name="Quantities">The quantities assigned to the resulting split lines; zero quantities are skipped</param>
+    procedure SplitActivityLineAcrossBins(var WarehouseActivityHeader: Record "Warehouse Activity Header"; ActivityType: Enum "Warehouse Activity Type"; Bins: array[3] of Record Bin; Quantities: array[3] of Decimal)
+    var
+        NewWarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        Index: Integer;
+    begin
+        WarehouseActivityHeader.TestField(Type, ActivityType);
+
+        WarehouseActivityLine.SetRange("Activity Type", ActivityType);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.FindFirst();
+
+        Bins[1].TestField(Code);
+        WarehouseActivityLine.Validate("Bin Code", Bins[1].Code);
+        WarehouseActivityLine.Validate("Qty. to Handle", Quantities[1]);
+        WarehouseActivityLine.Modify(true);
+
+        for Index := 2 to ArrayLen(Quantities) do
+            if Quantities[Index] <> 0 then begin
+                Bins[Index].TestField(Code);
+
+                // SplitLine derives the quantities from Qty. to Handle.
+                WarehouseActivityLine.SplitLine(WarehouseActivityLine, NewWarehouseActivityLine);
+                NewWarehouseActivityLine.Validate("Bin Code", Bins[Index].Code);
+                NewWarehouseActivityLine.Validate("Qty. to Handle", Quantities[Index]);
+                NewWarehouseActivityLine.Modify(true);
+                WarehouseActivityLine := NewWarehouseActivityLine;
+            end;
     end;
 
     /// <summary>
@@ -836,6 +1529,65 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
+    /// Returns the number of posted inventory put-away lines created from the specified purchase order.
+    /// </summary>
+    /// <param name="PurchOrderNo">The purchase order number used as source</param>
+    /// <returns>The number of posted inventory put-away lines for the purchase order</returns>
+    procedure GetPostedInvtPutAwayLineCountForPurchaseOrder(PurchOrderNo: Code[20]): Integer
+    var
+        PostedInvtPutAwayLine: Record "Posted Invt. Put-away Line";
+    begin
+        PostedInvtPutAwayLine.SetRange("Source Document", PostedInvtPutAwayLine."Source Document"::"Purchase Order");
+        PostedInvtPutAwayLine.SetRange("Source No.", PurchOrderNo);
+        exit(PostedInvtPutAwayLine.Count());
+    end;
+
+    /// <summary>
+    /// Returns the number of posted inventory put-away lines created from the specified transfer order.
+    /// </summary>
+    /// <param name="TransferOrderNo">The transfer order number used as source</param>
+    /// <returns>The number of posted inventory put-away lines for the transfer order</returns>
+    procedure GetPostedInvtPutAwayLineCountForTransferOrder(TransferOrderNo: Code[20]): Integer
+    var
+        PostedInvtPutAwayLine: Record "Posted Invt. Put-away Line";
+    begin
+        PostedInvtPutAwayLine.SetRange("Source Document", PostedInvtPutAwayLine."Source Document"::"Inbound Transfer");
+        PostedInvtPutAwayLine.SetRange("Source No.", TransferOrderNo);
+        exit(PostedInvtPutAwayLine.Count());
+    end;
+
+    /// <summary>
+    /// Verifies that no warehouse entries exist for the item at the specified location.
+    /// </summary>
+    /// <param name="ItemNo">The item number to verify</param>
+    /// <param name="LocationCode">The location code to verify</param>
+    procedure VerifyNoWarehouseEntry(ItemNo: Code[20]; LocationCode: Code[10])
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        Assert: Codeunit Assert;
+    begin
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        Assert.RecordIsEmpty(WarehouseEntry);
+    end;
+
+    /// <summary>
+    /// Verifies that no output item ledger entries exist for the item at the specified location.
+    /// </summary>
+    /// <param name="ItemNo">The item number to verify</param>
+    /// <param name="LocationCode">The location code to verify</param>
+    procedure VerifyNoItemLedgerEntry(ItemNo: Code[20]; LocationCode: Code[10])
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Assert: Codeunit Assert;
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Location Code", LocationCode);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+    end;
+
+    /// <summary>
     /// Sets up a complete subcontracting warehouse scenario including item, location, production order, and purchase order.
     /// </summary>
     /// <param name="Item">The item record that is created and configured for the scenario</param>
@@ -925,6 +1677,41 @@ codeunit 149908 "Subc. Warehouse Library"
         Item.Modify(true);
     end;
 
+    /// <summary>
+    /// Creates a production item with combined lot and package tracking setup using generated
+    /// number series and routing/BOM configuration.
+    /// </summary>
+    /// <param name="Item">The item record that is created and updated with lot and package tracking setup</param>
+    /// <param name="WorkCenter">The work centers used when creating routing data for the item</param>
+    /// <param name="MachineCenter">The machine centers used when creating routing data for the item</param>
+    procedure CreatePackageAndLotTrackedItemForProductionWithSetup(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center")
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        LotNoSeries: Record "No. Series";
+        LotNoSeriesLine: Record "No. Series Line";
+    begin
+        LibraryUtility.CreateNoSeries(LotNoSeries, true, true, false);
+        LibraryUtility.CreateNoSeriesLine(LotNoSeriesLine, LotNoSeries.Code,
+            PadStr(Format(CurrentDateTime(), 0, 'L<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '0'),
+            PadStr(Format(CurrentDateTime(), 0, 'L<Year><Month,2><Day,2><Hours24><Minutes><Seconds>'), 19, '9'));
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true, true);
+
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Validate("Lot Nos.", LotNoSeries.Code);
+        Item.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates a transfer order line marked as a WIP item without subcontracting routing references.
+    /// </summary>
+    /// <param name="TransferHeader">The transfer header to create.</param>
+    /// <param name="TransferLine">The WIP transfer line to create.</param>
+    /// <param name="FromLocation">The source location code.</param>
+    /// <param name="ToLocation">The destination location code.</param>
+    /// <param name="InTransitCode">The in-transit location code.</param>
+    /// <param name="Item">The transfer item.</param>
+    /// <param name="Quantity">The transfer quantity.</param>
     procedure CreateTransferOrderWithWIPItemFlagWithoutRoutingReference(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; FromLocation: Code[10]; ToLocation: Code[10]; InTransitCode: Code[10]; Item: Record Item; Quantity: Decimal)
     var
         TransferRoute: Record "Transfer Route";
@@ -936,5 +1723,261 @@ codeunit 149908 "Subc. Warehouse Library"
         LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Quantity);
         TransferLine.Validate("Transfer WIP Item", true);
         TransferLine.Modify();
+    end;
+
+    /// <summary>
+    /// Sets Transfer WIP Item = true on the routing line for the specified work center.
+    /// The routing is temporarily uncertified, modified, and re-certified.
+    /// Must be called BEFORE the production order is refreshed so the Prod. Order Routing Line
+    /// inherits the flag.
+    /// </summary>
+    procedure SetTransferWIPItemOnRoutingLine(Item: Record Item; WorkCenterNo: Code[20])
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenterNo);
+        if RoutingLine.FindFirst() then begin
+            RoutingLine."Transfer WIP Item" := true;
+            RoutingLine.Modify(true);
+        end;
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates bidirectional Transfer Routes between production and subcontractor locations,
+    /// both using the supplied in-transit location. Required for WIP item forward and return
+    /// transfers that use an in-transit step.
+    /// </summary>
+    procedure CreateTransferRoutesForWIPTransfer(ProdLocationCode: Code[10]; SubcLocationCode: Code[10]; InTransitLocationCode: Code[10])
+    var
+        TransferRoute: Record "Transfer Route";
+    begin
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, ProdLocationCode, SubcLocationCode, InTransitLocationCode, '', '');
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, SubcLocationCode, ProdLocationCode, InTransitLocationCode, '', '');
+    end;
+
+    /// <summary>
+    /// Creates a subcontracting forward Transfer Order from the purchase order by running
+    /// "Subc. Create Transf. Order" without the request page.
+    /// The caller must register a page handler for the Transfer Order page that is opened
+    /// by the report's ShowDocument() procedure.
+    /// </summary>
+    procedure CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader.SetRecFilter();
+        Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
+    end;
+
+    /// <summary>
+    /// Finds the first subcontracting Transfer Header linked to the purchase order.
+    /// IsReturn = false for forward transfers, true for return transfers (Rückumlagerungen).
+    /// </summary>
+    procedure FindSubcontractingTransferHeader(PurchaseHeader: Record "Purchase Header"; IsReturn: Boolean; var TransferHeader: Record "Transfer Header")
+    begin
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.SetRange("Subc. Return Order", IsReturn);
+        TransferHeader.FindFirst();
+    end;
+
+    /// <summary>
+    /// Creates a WIP item Return Transfer Order (Rückumlagerung) directly, with the full
+    /// subcontracting routing context copied from the given purchase line.
+    /// This is used instead of running SubcCreateSubCReturnOrder (which requires
+    /// non-zero Subcontractor WIP Ledger Entries that cannot be created automatically).
+    /// </summary>
+    procedure CreateReturnTransferWithSubcContext(
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubcLocationCode: Code[10];
+        ProdLocationCode: Code[10];
+        InTransitLocationCode: Code[10];
+        Quantity: Decimal;
+        var ReturnTransferHeader: Record "Transfer Header")
+    var
+        ReturnTransferLine: Record "Transfer Line";
+    begin
+        LibraryWarehouse.CreateTransferHeader(ReturnTransferHeader, SubcLocationCode, ProdLocationCode, InTransitLocationCode);
+        ReturnTransferHeader."Subc. Source Type" := ReturnTransferHeader."Subc. Source Type"::Subcontracting;
+        ReturnTransferHeader."Source ID" := PurchaseHeader."Buy-from Vendor No.";
+        ReturnTransferHeader."Subcontr. Purch. Order No." := PurchaseHeader."No.";
+        ReturnTransferHeader."Subc. Return Order" := true;
+        ReturnTransferHeader.Modify();
+
+        LibraryWarehouse.CreateTransferLine(ReturnTransferHeader, ReturnTransferLine, PurchaseLine."No.", Quantity);
+        ReturnTransferLine.Validate("Transfer WIP Item", true);
+        ReturnTransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
+        ReturnTransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
+        ReturnTransferLine."Subc. Prod. Order No." := PurchaseLine."Prod. Order No.";
+        ReturnTransferLine."Subc. Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
+        ReturnTransferLine."Subc. Routing No." := PurchaseLine."Routing No.";
+        ReturnTransferLine."Subc. Routing Reference No." := PurchaseLine."Routing Reference No.";
+        ReturnTransferLine."Subc. Work Center No." := PurchaseLine."Work Center No.";
+        ReturnTransferLine."Subc. Operation No." := PurchaseLine."Operation No.";
+        ReturnTransferLine."Subc. Return Order" := true;
+        ReturnTransferLine.Modify();
+    end;
+
+    /// <summary>
+    /// Creates work and machine centers with detailed cost setup (Direct Unit Cost, Indirect Cost %,
+    /// Overhead Rate, Unit Cost Calculation). Preserves the original SubcSubcontractingTest behaviour
+    /// where the first work center is never a subcontractor.
+    /// </summary>
+    procedure CreateAndCalculateNeededWorkAndMachineCenter(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; IsSubcontracting: Boolean; UnitCostCalc: Option Time,Units)
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        ShopCalendarCode: Code[10];
+        MachineCenterNo: Code[20];
+        MachineCenterNo2: Code[20];
+        WorkCenterNo: Code[20];
+        WorkCenterNo2: Code[20];
+    begin
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+
+        CreateWorkCenterForTest(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not IsSubcontracting, UnitCostCalc, '');
+        WorkCenter[1].Get(WorkCenterNo);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        SubcLibraryMfgManagement.CreateMachineCenter(MachineCenterNo, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
+        MachineCenter[1].Get(MachineCenterNo);
+        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[1], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        SubcLibraryMfgManagement.CreateMachineCenter(MachineCenterNo2, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
+        MachineCenter[2].Get(MachineCenterNo2);
+        LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        if IsSubcontracting then
+            CreateWorkCenterForTest(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", IsSubcontracting, UnitCostCalc, '')
+        else
+            CreateWorkCenterForTest(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", not IsSubcontracting, UnitCostCalc, '');
+        WorkCenter[2].Get(WorkCenterNo2);
+        LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+    end;
+
+    /// <summary>
+    /// Creates work and machine centers with detailed cost setup and the given unit cost calculation.
+    /// </summary>
+    procedure CreateAndCalculateNeededWorkAndMachineCenter(var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; IsSubcontracting: Boolean; UnitCostCalculationType: Enum "Unit Cost Calculation Type")
+    begin
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, IsSubcontracting, UnitCostCalculationType.AsInteger());
+    end;
+
+    /// <summary>
+    /// Creates a production item with routing and BOM using detailed cost fields on both
+    /// the item and its components (Overhead Rate, Indirect Cost %, Lot-for-Lot reorder policy,
+    /// Pick + Manual flushing). Preserves original SubcSubcontractingTest behaviour.
+    /// </summary>
+    procedure CreateItemForProductionWithCostOverrides(var Item: Record Item; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center")
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+        ProductionBOMHeader: Record "Production BOM Header";
+        NoSeries: Codeunit "No. Series";
+        ItemNo: Code[20];
+        ItemNo2: Code[20];
+        ProductionBOMNo: Code[20];
+        RoutingNo: Code[20];
+    begin
+        ManufacturingSetup.SetLoadFields("Routing Nos.");
+        ManufacturingSetup.Get();
+        RoutingNo := NoSeries.GetNextNo(ManufacturingSetup."Routing Nos.", WorkDate(), true);
+
+        SubcLibraryMfgManagement.CreateRouting(RoutingNo, MachineCenter[1]."No.", MachineCenter[2]."No.", WorkCenter[1]."No.", WorkCenter[2]."No.");
+
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
+        ItemNo := Item."No.";
+        Clear(Item);
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", '', '');
+        ItemNo2 := Item."No.";
+        Clear(Item);
+
+        ProductionBOMNo := LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ItemNo, ItemNo2, 1);
+
+        CreateItemForTest(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingNo, ProductionBOMNo);
+    end;
+
+    /// <summary>
+    /// Links a routing line and a production BOM line through a routing link whose code
+    /// is derived from the production BOM number. Preserves original SubcSubcontractingTest behaviour.
+    /// </summary>
+    procedure UpdateProdBomAndRoutingWithRoutingLinkByBOMNo(Item: Record Item; WorkCenterNo: Code[20])
+    var
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionBOMLine: Record "Production BOM Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RoutingLink: Record "Routing Link";
+    begin
+        RoutingLink.Init();
+        RoutingLink.Validate(Code, CopyStr(Item."Production BOM No.", 1, 10));
+        RoutingLink.Insert(true);
+
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenterNo);
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Routing Link Code", RoutingLink.Code);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        ProductionBOMHeader.Get(Item."Production BOM No.");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::New);
+        ProductionBOMHeader.Modify(true);
+
+        ProductionBOMLine.SetRange("Production BOM No.", ProductionBOMHeader."No.");
+        ProductionBOMLine.FindLast();
+        ProductionBOMLine.Validate("Routing Link Code", RoutingLink.Code);
+        ProductionBOMLine.Modify(true);
+
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+    end;
+
+    local procedure CreateWorkCenterForTest(var WorkCenterNo: Code[20]; ShopCalendarCode: Code[10]; FlushingMethod: Enum "Flushing Method"; Subcontract: Boolean; UnitCostCalc: Option; CurrencyCode: Code[10])
+    var
+        GenProductPostingGroup: Record "Gen. Product Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        WorkCenter: Record "Work Center";
+    begin
+        SubcLibraryMfgManagement.CreateWorkCenterWithFixedCost(WorkCenter, ShopCalendarCode, 0);
+
+        WorkCenter.Validate("Flushing Method", FlushingMethod);
+        WorkCenter.Validate("Direct Unit Cost", LibraryRandom.RandDec(10, 2));
+        WorkCenter.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 1));
+        WorkCenter.Validate("Overhead Rate", LibraryRandom.RandDec(5, 1));
+        WorkCenter.Validate("Unit Cost Calculation", UnitCostCalc);
+
+        if Subcontract then begin
+            LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+            GenProductPostingGroup.FindFirst();
+            GenProductPostingGroup.Validate("Def. VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+            GenProductPostingGroup.Modify(true);
+            WorkCenter.Validate("Subcontractor No.", SubcLibraryMfgManagement.CreateSubcontractorWithCurrency(CurrencyCode));
+        end;
+        WorkCenter.Modify(true);
+        WorkCenterNo := WorkCenter."No.";
+    end;
+
+    local procedure CreateItemForTest(var Item: Record Item; ItemCostingMethod: Enum "Costing Method"; ItemReorderPolicy: Enum "Reordering Policy"; FlushingMethod: Enum "Flushing Method"; RoutingNo: Code[20]; ProductionBOMNo: Code[20])
+    begin
+        LibraryManufacturing.CreateItemManufacturing(
+          Item, ItemCostingMethod, LibraryRandom.RandInt(10), ItemReorderPolicy, FlushingMethod, RoutingNo, ProductionBOMNo);
+        Item.Validate("Overhead Rate", LibraryRandom.RandDec(5, 2));
+        Item.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 2));
+        Item.Modify(true);
     end;
 }

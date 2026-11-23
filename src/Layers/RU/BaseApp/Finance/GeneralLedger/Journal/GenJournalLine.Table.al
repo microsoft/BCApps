@@ -2639,7 +2639,7 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this journal line relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request" where(Status = const(Approved), "Document Type" = const(" "));
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -2688,7 +2688,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Reference to incoming document entry for electronic invoice and document management integration.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             ToolTip = 'Specifies the number of the incoming document that this general journal line is created for.';
@@ -3624,7 +3624,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Fixed asset error entry number for tracking FA posting errors and corrections.
         /// </summary>
-        field(5615; "FA Error Entry No."; Integer)
+        field(5615; "FA Error Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';
@@ -7306,11 +7306,8 @@ table 81 "Gen. Journal Line"
         GenJournalLine.SetFilter("Line No.", '<>%1', "Line No.");
         GenJournalLine.SetRange("Document Type", "Applies-to Doc. Type");
         GenJournalLine.SetRange("Document No.", "Applies-to Doc. No.");
-        if not GenJournalLine.IsEmpty() then begin
-            GenJournalLine.ModifyAll("Applied Automatically", false);
-            GenJournalLine.ModifyAll("Account Type", GenJournalLine."Account Type"::"G/L Account");
-            GenJournalLine.ModifyAll("Account No.", '');
-        end;
+        if not GenJournalLine.IsEmpty() then
+            GenJournalLine.ModifyAll("Applied Automatically", false, "Account Type", GenJournalLine."Account Type"::"G/L Account", "Account No.", '');
     end;
 
     procedure GetIncomingDocumentURL(): Text[1024]
@@ -8438,6 +8435,8 @@ table 81 "Gen. Journal Line"
     end;
 
     procedure CopyFromPurchHeaderPrepmtPost(PurchHeader: Record "Purchase Header"; UsePmtDisc: Boolean)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
     begin
         "Account Type" := "Account Type"::Vendor;
         "Account No." := PurchHeader."Pay-to Vendor No.";
@@ -8454,6 +8453,13 @@ table 81 "Gen. Journal Line"
         "Due Date" := PurchHeader."Prepayment Due Date";
         "Payment Terms Code" := PurchHeader."Payment Terms Code";
         "Payment Method Code" := PurchHeader."Payment Method Code";
+        if PurchHeader."Payment Reference" <> '' then
+            "Payment Reference" := PurchHeader."Payment Reference"
+        else begin
+            PurchasesPayablesSetup.Get();
+            if PurchasesPayablesSetup."Copy Inv. No. To Pmt. Ref." then
+                "Payment Reference" := PurchHeader."Vendor Invoice No.";
+        end;
         if UsePmtDisc then begin
             "Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
             "Payment Discount %" := PurchHeader."Prepmt. Payment Discount %";

@@ -1,6 +1,7 @@
 namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Finance.GeneralLedger.Preview;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -3721,13 +3722,14 @@ codeunit 148190 "Sust. Value Entry Test"
     end;
 
     [Test]
-    procedure TestSystemMustThrowAnErrorIfTotalCO2eIsZeroWhenItemReclassJournalIsPosted()
+    procedure TestAverageItemReclassJournalCanBePostedWithZeroTotalCO2e()
     var
         Item: Record Item;
         Location: Record Location;
         SustainabilityAccount: Record "Sustainability Account";
         ItemJournalBatch: Record "Item Journal Batch";
         ItemJournalLine: Record "Item Journal Line";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
         ItemReclassJournal: TestPage "Item Reclass. Journal";
         CategoryCode: Code[20];
         SubcategoryCode: Code[20];
@@ -3735,8 +3737,7 @@ codeunit 148190 "Sust. Value Entry Test"
         ExpectedTotalCO2e: Decimal;
         Quantity: Decimal;
     begin
-        // [SCENARIO 580139] Verify System must throw an error If "Total CO2e" is zero in Item Journal Line.
-        // When Item Reclass Journal is posted.
+        // [SCENARIO 651041] An Average carbon tracking item can be reclassified with zero Total CO2e, creating a zero-amount Sustainability Value Entry without changing its CO2e per Unit.
         LibrarySustainability.CleanUpBeforeTesting();
 
         // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
@@ -3753,11 +3754,14 @@ codeunit 148190 "Sust. Value Entry Test"
         CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
         SustainabilityAccount.Get(AccountCode);
 
-        // [GIVEN] Create Item with Sustainability Account.
+        // [GIVEN] Create an Average carbon tracking item with a Sustainability Account.
         LibraryInventory.CreateItem(Item);
         Item.Validate("Default Sust. Account", AccountCode);
         Item.Validate("CO2e per Unit", ExpectedTotalCO2e);
         Item.Modify();
+
+        // [GIVEN] Ensure the inventory purchase can post without relying on country-specific account setup.
+        EnsureGeneralPostingSetupForItem(Item);
 
         // [GIVEN] Post Inventory for Item.
         PostInventoryForItem(Item."No.");
@@ -3779,17 +3783,30 @@ codeunit 148190 "Sust. Value Entry Test"
         ItemReclassJournal."Item No.".SetValue(Item."No.");
         ItemReclassJournal."New Location Code".SetValue(Location.Code);
         ItemReclassJournal.Quantity.SetValue(Quantity);
+        ItemReclassJournal."Total CO2e".AssertEquals(0);
         ItemReclassJournal.Close();
 
-        // [WHEN] Post Item Journal Batch.
-        asserterror LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+        // [WHEN] Post Item Journal Batch with zero Total CO2e.
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
-        // [THEN] Verify system must throw an error If "Total CO2e" is zero in Item Journal Line.
-        Assert.ExpectedError(CO2eMustNotBeZeroErr);
+        // [THEN] A Sustainability Value Entry is created with zero actual and expected CO2e amounts.
+        SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+#pragma warning disable AA0210
+        SustainabilityValueEntry.SetRange("Item Ledger Entry Type", SustainabilityValueEntry."Item Ledger Entry Type"::Transfer);
+#pragma warning restore AA0210
+        Assert.RecordCount(SustainabilityValueEntry, 1);
+        SustainabilityValueEntry.FindFirst();
+        Assert.AreEqual(
+            0,
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), 0, SustainabilityValueEntry.TableCaption()));
+        Assert.AreEqual(
+            0,
+            SustainabilityValueEntry."CO2e Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Expected)"), 0, SustainabilityValueEntry.TableCaption()));
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler')]
     procedure VerifySpecificCarbonTrackingCalculatesCO2eFromPurchaseLine()
     var
         CountryRegion: Record "Country/Region";
@@ -3830,8 +3847,9 @@ codeunit 148190 "Sust. Value Entry Test"
         PurchaseHeader.Modify();
 
         // [GIVEN] Create a Purchase Line of Item with Specific Carbon Tracking Method
-        LibrarySustainability.CreateItemWithSpecificCarbonTrackingMethod(Item);
-        CreatePurchaseLineWithEmissionValue(PurchaseLine, PurchaseHeader, Item."No.", '', '', LibraryRandom.RandIntInRange(10, 10), EmissionCO2[1], EmissionCH4[1], EmissionN2O[1], AccountCode);
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        CreatePurchaseLineWithEmissionValue(PurchaseLine, PurchaseHeader, Item."No.", Item."Item Tracking Code", LibraryUtility.GenerateGUID(), LibraryRandom.RandIntInRange(10, 10), EmissionCO2[1], EmissionCH4[1], EmissionN2O[1], AccountCode);
 
         // [GIVEN] Save Expected CO2e
         for Index := 1 to ArrayLen(ExpectedCO2eEmission) do
@@ -4046,7 +4064,8 @@ codeunit 148190 "Sust. Value Entry Test"
         CreateSustainabilityAccount(AccountCode[3], CategoryCode, SubcategoryCode, LibraryRandom.RandIntInRange(3, 3));
 
         // [GIVEN] Update "Default Sust. Account","CO2e per Unit" in Production Item.
-        LibraryInventory.CreateItem(ProdItem);
+        LibraryItemTracking.CreateLotItem(ProdItem);
+        ProdItem.Validate("Replenishment System", ProdItem."Replenishment System"::"Prod. Order");
         LibrarySustainability.UpdateCarbonTrackingMethod(ProdItem, ProdItem."Carbon Tracking Method"::Specific);
         ProdItem.Validate("Default Sust. Account", AccountCode[3]);
         ProdItem.Validate("CO2e per Unit", LibraryRandom.RandInt(100));
@@ -4072,8 +4091,11 @@ codeunit 148190 "Sust. Value Entry Test"
         ProductionOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         ProductionOrderRoutingLine.FindFirst();
 
-        // [WHEN] Post Production Journal.
+        // [GIVEN] Assign lot tracking to the output prod order line so the production journal can post.
         FindProdOrderLine(ProdOrderLine, ProductionOrder, ProdItem."No.");
+        SetTrackingForProdOrderLine(ProdOrderLine, LibraryUtility.GenerateGUID());
+
+        // [WHEN] Post Production Journal.
         LibraryManufacturing.OpenProductionJournal(ProductionOrder, ProdOrderLine."Line No.");
 
         // [THEN] Verify Sustainability Ledger Entry should not be created When Production Journal is posted.
@@ -4462,56 +4484,6 @@ codeunit 148190 "Sust. Value Entry Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,MessageHandler')]
-    procedure VerifyUndoSalesShipmentCreatesReversingCO2eForSpecificNonTrackedItem()
-    var
-        CountryRegion: Record "Country/Region";
-        Item: Record Item;
-        SalesHeader: Record "Sales Header";
-        SalesShipmentHeader: Record "Sales Shipment Header";
-        SalesShipmentLine: Record "Sales Shipment Line";
-        ExpectedShipmentCO2e: Decimal;
-        ShipmentNo: Code[20];
-        CategoryCode: Code[20];
-        SubcategoryCode: Code[20];
-        AccountCode: Code[20];
-    begin
-        // [SCENARIO 641487] Undo of a Sales Shipment for a Specific carbon item without item tracking creates a reversing
-        // (positive) Sustainability Value Entry so the item's emissions return to the pre-shipment value.
-        LibrarySustainability.CleanUpBeforeTesting();
-        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
-        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
-        LibraryERM.CreateCountryRegion(CountryRegion);
-
-        // [GIVEN] A Specific carbon item (no item tracking) with 10 pcs carrying a known CO2e per unit.
-        LibraryInventory.CreateItem(Item);
-        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
-        ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
-        PostPositiveAdjustmentWithCO2e(Item, AccountCode, 10, ExpectedShipmentCO2e * 10);
-
-        // [GIVEN] A Sales Order shipping 1 pc is posted (ship only, not invoiced).
-        CreateAndShipSalesOrderWithItemTracking(SalesHeader, CountryRegion.Code, AccountCode, Item."No.", 1, '', '');
-        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
-        SalesShipmentHeader.FindFirst();
-        ShipmentNo := SalesShipmentHeader."No.";
-
-        // [THEN] The shipment created one negative Sustainability Value Entry.
-        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, -ExpectedShipmentCO2e);
-
-        // [WHEN] The shipment is reversed with Undo Shipment.
-        SalesShipmentLine.SetRange("Document No.", ShipmentNo);
-#pragma warning disable AA0210
-        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
-#pragma warning restore AA0210
-        SalesShipmentLine.FindFirst();
-        LibrarySales.UndoSalesShipmentLine(SalesShipmentLine);
-
-        // [THEN] Reversing Sustainability Value Entries are created and the shipment nets to zero.
-        VerifySustainabilityValueEntryCountForDocument(ShipmentNo, 4);
-        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, 0);
-    end;
-
-    [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure VerifyUndoPurchaseReceiptCreatesReversingCO2eForNonTrackedItem()
     var
@@ -4841,6 +4813,117 @@ codeunit 148190 "Sust. Value Entry Test"
             StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), LotTotalCO2e[1] + LotTotalCO2e[2], SustainabilityValueEntry.TableCaption()));
     end;
 
+    [Test]
+    procedure VerifySalesAfterReclassUsesSpecificLotCO2eNotAverage()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        CountryRegion: Record "Country/Region";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        LotNo: array[2] of Code[50];
+        LotTotalCO2e: array[2] of Decimal;
+        Quantity: Decimal;
+        PostedInvoiceNo: Code[20];
+        ExpectedCO2ePerUnit: Decimal;
+        Index: Integer;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 641309] A sales order from a reclassified location must use the specific lot CO2e, not the item average.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Enable Value Chain Tracking.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create source and destination Locations and a Country/Region.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+
+        // [GIVEN] Create a lot-tracked Item with Specific Carbon Tracking Method and a Default Sust. Account.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        Item.Validate("Default Sust. Account", AccountCode);
+        Item.Modify();
+
+        // [GIVEN] Post two lots with clearly different CO2e so average differs from specific.
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+        PostTwoLotsWithSpecificCO2e(Item, FromLocation.Code, AccountCode, Quantity, LotNo, LotTotalCO2e);
+
+        // [GIVEN] Reclassify both lots (full quantity each) to the destination location.
+        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, AccountCode, Quantity * ArrayLen(LotNo));
+        ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[1]);
+        ItemJournalLine.Modify(true);
+        for Index := 1 to ArrayLen(LotNo) do begin
+            LibraryItemTracking.CreateItemReclassJnLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[Index], Quantity);
+            ReservationEntry.Validate("New Lot No.", ReservationEntry."Lot No.");
+            ReservationEntry.Modify();
+        end;
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [GIVEN] The specific CO2e per unit for the second lot.
+        ExpectedCO2ePerUnit := LotTotalCO2e[2] / Quantity;
+
+        // [WHEN] Post a Sales Order for 1 pc of the second lot from the destination location.
+        PostedInvoiceNo := CreateAndPostSalesFromLocationWithLotTracking(SalesHeader, CountryRegion.Code, AccountCode, Item."No.", ToLocation.Code, 1, '', LotNo[2]);
+
+        // [THEN] The Sustainability Value Entry uses the specific lot CO2e, not the item average.
+        SustainabilityValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        SustainabilityValueEntry.FindFirst();
+        Assert.AreEqual(
+            -ExpectedCO2ePerUnit,
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), -ExpectedCO2ePerUnit, SustainabilityValueEntry.TableCaption()));
+    end;
+
+    [Test]
+    procedure VerifySettingSpecificCarbonTrackingErrorsWhenItemLacksItemTracking()
+    var
+        Item: Record Item;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 641487] Setting the Carbon Tracking Method to Specific is blocked for an item without serial or lot-specific item tracking.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] An item without any item tracking code.
+        LibraryInventory.CreateItem(Item);
+
+        // [WHEN] The Carbon Tracking Method is set to Specific.
+        asserterror Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
+
+        // [THEN] An error blocks the change because per-unit emissions cannot be resolved without item tracking.
+        Assert.ExpectedError('requires serial or lot-specific tracking');
+    end;
+
+    [Test]
+    procedure VerifySettingSpecificCarbonTrackingIsAllowedForLotTrackedItem()
+    var
+        Item: Record Item;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 641487] Setting the Carbon Tracking Method to Specific is allowed for a lot-tracked item.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] A lot-tracked item.
+        LibraryItemTracking.CreateLotItem(Item);
+
+        // [WHEN] The Carbon Tracking Method is set to Specific.
+        Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
+
+        // [THEN] The Carbon Tracking Method is saved without error.
+        Item.TestField("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
+    end;
+
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
     begin
         CreateSustainabilitySubcategory(CategoryCode, SubcategoryCode, i);
@@ -5005,6 +5088,29 @@ codeunit 148190 "Sust. Value Entry Test"
         PurchaseLine.Modify();
 
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
+
+        if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
+            GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Direct Cost Applied Account" = '' then
+            GeneralPostingSetup.Validate("Direct Cost Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Overhead Applied Account" = '' then
+            GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."Purchase Variance Account" = '' then
+            GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure PostInventoryForItem(ItemNo: Code[20])
@@ -5330,20 +5436,24 @@ codeunit 148190 "Sust. Value Entry Test"
         LibrarySales.PostSalesDocument(SalesHeader, true, false);
     end;
 
-    local procedure PostPositiveAdjustmentWithCO2e(Item: Record Item; AccountCode: Code[20]; Qty: Decimal; TotalCO2e: Decimal)
+    local procedure CreateAndPostSalesFromLocationWithLotTracking(var SalesHeader: Record "Sales Header"; CountryRegion: Code[10]; SustAccountNo: Code[20]; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal; SerialNo: Code[50]; LotNo: Code[50]): Code[20]
     var
-        ItemJournalTemplate: Record "Item Journal Template";
-        ItemJournalBatch: Record "Item Journal Batch";
-        ItemJournalLine: Record "Item Journal Line";
+        SalesLine: Record "Sales Line";
+        ReservationEntry: Record "Reservation Entry";
     begin
-        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalTemplate.Type::Item);
-        LibraryInventory.CreateItemJournalLine(
-            ItemJournalLine, ItemJournalBatch, Item, '', '', WorkDate(),
-            ItemJournalLine."Entry Type"::"Positive Adjmt.", Qty, 0);
-        ItemJournalLine.Validate("Sust. Account No.", AccountCode);
-        ItemJournalLine.Validate("Total CO2e", TotalCO2e);
-        ItemJournalLine.Modify();
-        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, LibrarySales.CreateCustomerNo());
+        SalesHeader."Bill-to Country/Region Code" := CountryRegion;
+        SalesHeader.Modify();
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, ItemNo, Quantity);
+        SalesLine.Validate("Location Code", LocationCode);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandIntInRange(10, 200));
+        SalesLine.Validate("Sust. Account No.", SustAccountNo);
+        SalesLine.Modify();
+
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, SerialNo, LotNo, Quantity);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
     local procedure VerifySustainabilityValueEntrySumForDocument(DocumentNo: Code[20]; ExpectedSum: Decimal)
@@ -5428,6 +5538,19 @@ codeunit 148190 "Sust. Value Entry Test"
         ProdOrderComponent.SetRange("Item No.", CompItem."No.");
         if ProdOrderComponent.FindFirst() then
             LibraryManufacturing.CreateProdOrderCompItemTracking(ReservationEntry, ProdOrderComponent, '', LotNo, ProdOrderComponent."Expected Qty. (Base)");
+    end;
+
+    local procedure SetTrackingForProdOrderLine(ProdOrderLine: Record "Prod. Order Line"; LotNo: Code[50])
+    var
+        TempItemTrackingSetup: Record "Item Tracking Setup";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        TempItemTrackingSetup."Lot No." := LotNo;
+        LibraryItemTracking.InsertItemTracking(
+            ReservationEntry, true, ProdOrderLine."Item No.", '', ProdOrderLine."Variant Code",
+            ProdOrderLine."Quantity (Base)", ProdOrderLine."Qty. per Unit of Measure", TempItemTrackingSetup,
+            Database::"Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.",
+            '', ProdOrderLine."Line No.", 0, WorkDate());
     end;
 
     local procedure DefineEmissionArrays(var EmissionCO2: array[2] of Decimal; var EmissionCH4: array[2] of Decimal; var EmissionN2O: array[2] of Decimal)

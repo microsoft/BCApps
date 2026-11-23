@@ -96,9 +96,9 @@ codeunit 5988 "Serv-Documents Mgt."
         GenJnlLineDocNo: Code[20];
         SrcCode: Code[10];
         GenJnlLineDocType: Enum "Gen. Journal Document Type";
-        ItemLedgShptEntryNo: Integer;
-        NextServLedgerEntryNo: Integer;
-        NextWarrantyLedgerEntryNo: Integer;
+        ItemLedgShptEntryNo: BigInteger;
+        NextServLedgerEntryNo: BigInteger;
+        NextWarrantyLedgerEntryNo: BigInteger;
         Ship: Boolean;
         Consume: Boolean;
         Invoice: Boolean;
@@ -134,7 +134,7 @@ codeunit 5988 "Serv-Documents Mgt."
 #pragma warning restore AA0074
         TrackingSpecificationExists: Boolean;
         ServLineInvoicedConsumedQty: Decimal;
-        ServLedgEntryNo: Integer;
+        ServLedgEntryNo: BigInteger;
 
     procedure Initialize(var PassedServiceHeader: Record "Service Header"; var PassedServiceLine: Record "Service Line")
     var
@@ -228,8 +228,8 @@ codeunit 5988 "Serv-Documents Mgt."
         RemQtyToBeConsumedBase: Decimal;
         TotalAmount: Decimal;
         LineCount: Integer;
-        ApplToServEntryNo: Integer;
-        WarrantyNo: Integer;
+        ApplToServEntryNo: BigInteger;
+        WarrantyNo: BigInteger;
         BiggestLineNo: Integer;
         LastLineRetrieved: Boolean;
         ShouldPostShipmentServiceEntry: Boolean;
@@ -549,7 +549,7 @@ codeunit 5988 "Serv-Documents Mgt."
         OnAfterInsertServLedgerEntrySaleConsume(NextServLedgerEntryNo);
     end;
 
-    local procedure PostServiceItemLine(ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; RemQtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeConsumedBase: Decimal; RemQtyToBeConsumed: Decimal; var WarrantyNo: Integer)
+    local procedure PostServiceItemLine(ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; RemQtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeConsumedBase: Decimal; RemQtyToBeConsumed: Decimal; var WarrantyNo: BigInteger)
     var
         TempServLine: Record "Service Line" temporary;
         TempVATAmountLineForSLE: Record "VAT Amount Line" temporary;
@@ -593,7 +593,7 @@ codeunit 5988 "Serv-Documents Mgt."
                     TempHandlingSpecification, TempTrackingSpecification, ServShptHeader, '');
     end;
 
-    local procedure PostServiceResourceLine(var ServLine: Record "Service Line"; var WarrantyNo: Integer)
+    local procedure PostServiceResourceLine(var ServLine: Record "Service Line"; var WarrantyNo: BigInteger)
     var
         TempServLine: Record "Service Line" temporary;
         TempVATAmountLineForSLE: Record "VAT Amount Line" temporary;
@@ -820,7 +820,7 @@ codeunit 5988 "Serv-Documents Mgt."
         end;
     end;
 
-    local procedure PrepareShipmentLine(var PassedServLine: Record "Service Line"; passedWarrantyNo: Integer)
+    local procedure PrepareShipmentLine(var PassedServLine: Record "Service Line"; passedWarrantyNo: BigInteger)
     var
         WarrantyLedgerEntry: Record "Warranty Ledger Entry";
     begin
@@ -1453,7 +1453,7 @@ codeunit 5988 "Serv-Documents Mgt."
 
     local procedure FindFirstServLedgEntry(var TempServiceLine: Record "Service Line" temporary): Integer
     var
-        ApplServLedgEntryNo: Integer;
+        ApplServLedgEntryNo: BigInteger;
     begin
         if not TempServiceLine.Find('-') then
             exit(0);
@@ -2209,51 +2209,6 @@ codeunit 5988 "Serv-Documents Mgt."
         ServiceOrderAllocationRec.DeleteAll();
     end;
 
-#if not CLEAN27
-    [Obsolete('Moved to codeunit ServicePostingSubscrES', '27.0')]
-    [Scope('OnPrem')]
-    procedure TestSalesEfects(ServiceHeader: Record "Service Header"; Cust: Record Customer)
-    var
-        CustLedgEntry: Record Microsoft.Sales.Receivables."Cust. Ledger Entry";
-        ShowError: Boolean;
-        Text1100000: Label 'At least one document of %1 No. %2 is closed or in a Bill Group.';
-        Text1100001: Label 'This will avoid the document to be settled.\';
-        Text1100002: Label 'The posting process of %3 No. %4 will not settle any document.\';
-        Text1100003: Label 'Due this customer is using Apply to Oldest Application Method, please remove the lines for the Bill Group before posting.';
-    begin
-        ShowError := false;
-        if ServiceHeader."Document Type" = ServiceHeader."Document Type"::"Credit Memo" then begin
-            CustLedgEntry.SetCurrentKey("Document No.", "Document Type", "Customer No.");
-            CustLedgEntry.SetFilter("Document Type", '%1|%2', CustLedgEntry."Document Type"::Invoice,
-              CustLedgEntry."Document Type"::Bill);
-            CustLedgEntry.SetFilter("Document Situation", '<>%1', CustLedgEntry."Document Situation"::" ");
-            CustLedgEntry.SetRange("Customer No.", ServiceHeader."Bill-to Customer No.");
-            CustLedgEntry.SetRange(Open, true);
-
-            if CustLedgEntry.Find('-') then
-                repeat
-                    if CustLedgEntry."Document Situation" <> CustLedgEntry."Document Situation"::Cartera then
-                        if not ((CustLedgEntry."Document Situation" in
-                                 [CustLedgEntry."Document Situation"::"Closed Documents",
-                                  CustLedgEntry."Document Situation"::"Closed BG/PO"]) and
-                                (CustLedgEntry."Document Status" = CustLedgEntry."Document Status"::Rejected))
-                        then
-                            ShowError := true;
-                until CustLedgEntry.Next() = 0;
-
-            if ShowError then
-                Error(Text1100000 +
-                  Text1100001 +
-                  Text1100002 +
-                  Text1100003,
-                  Format(CustLedgEntry."Document Type"),
-                  Format(CustLedgEntry."Document No."),
-                  Format(ServiceHeader."Document Type"),
-                  Format(ServiceHeader."No."));
-        end;
-    end;
-#endif
-
     local procedure FinalizeWarrantyLedgerEntries(var ServiceHeader: Record "Service Header"; CloseCondition: Boolean)
     var
         WarrantyLedgerEntry: Record "Warranty Ledger Entry";
@@ -2329,7 +2284,7 @@ codeunit 5988 "Serv-Documents Mgt."
         OnAfterSortLines(ServLine);
     end;
 
-    local procedure UpdateServiceLedgerEntry(ServLedgEntryNo: Integer)
+    local procedure UpdateServiceLedgerEntry(ServLedgEntryNo: BigInteger)
     var
         ServiceLedgerEntry: Record "Service Ledger Entry";
     begin
@@ -2477,7 +2432,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertServLedgerEntrySaleConsume(var NextServLedgerEntryNo: Integer)
+    local procedure OnAfterInsertServLedgerEntrySaleConsume(var NextServLedgerEntryNo: BigInteger)
     begin
     end;
 
@@ -2607,7 +2562,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertServLedgerEntrySaleConsume(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; var ServMgtSetup: Record "Service Mgt. Setup"; var NextServLedgerEntryNo: Integer; var GenJnlLineDocNo: Code[20]; Consume: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeInsertServLedgerEntrySaleConsume(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var ServItemLine: Record "Service Item Line"; var ServMgtSetup: Record "Service Mgt. Setup"; var NextServLedgerEntryNo: BigInteger; var GenJnlLineDocNo: Code[20]; Consume: Boolean; var IsHandled: Boolean)
     begin
     end;
 
@@ -2757,7 +2712,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterCalcShouldPostShipmentServiceEntry(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var Ship: Boolean; var ApplToServEntryNo: Integer; var NextServLedgerEntryNo: Integer; var ShouldPostShipmentServiceEntry: Boolean)
+    local procedure OnPostDocumentLinesOnAfterCalcShouldPostShipmentServiceEntry(var ServHeader: Record "Service Header"; var ServLine: Record "Service Line"; var Ship: Boolean; var ApplToServEntryNo: BigInteger; var NextServLedgerEntryNo: BigInteger; var ShouldPostShipmentServiceEntry: Boolean)
     begin
     end;
 
@@ -2778,12 +2733,12 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtCreateCreditEntry(var NextServLedgerEntryNo: Integer; var ApplToServEntryNo: Integer; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
+    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtCreateCreditEntry(var NextServLedgerEntryNo: BigInteger; var ApplToServEntryNo: BigInteger; var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtInsertServLedgerEntrySaleInvoice(var NextServLedgerEntryNo: Integer)
+    local procedure OnPostDocumentLinesOnAfterServPostingJnlsMgtInsertServLedgerEntrySaleInvoice(var NextServLedgerEntryNo: BigInteger)
     begin
     end;
 
@@ -2923,7 +2878,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostDocumentLinesOnAfterAssignApplToServEntryNo(var ServiceHeader: Record "Service Header"; var ApplToServEntryNo: Integer)
+    local procedure OnPostDocumentLinesOnAfterAssignApplToServEntryNo(var ServiceHeader: Record "Service Header"; var ApplToServEntryNo: BigInteger)
     begin
     end;
 

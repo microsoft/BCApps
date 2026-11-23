@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN30
 namespace Microsoft.API.V1;
 
 using System.Apps;
@@ -7,7 +7,7 @@ page 20007 "APIV1 - Aut. Extension Depl."
 {
     ObsoleteReason = 'Use the Business Central admin center API to monitor per-tenant extension operations.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '30.0';
     APIGroup = 'automation';
     APIPublisher = 'microsoft';
     APIVersion = 'v1.0';

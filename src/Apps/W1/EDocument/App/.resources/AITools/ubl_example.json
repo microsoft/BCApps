@@ -2,12 +2,20 @@
     "customization_id": "urn:cen.eu:en16931:2017",
     "profile_id": "urn:fdc:peppol.eu:2017:poacc:billing:01:1.0",
     "id": "",
+    "invoice_type_code": "",
     "issue_date": "",
     "due_date": "",
     "document_currency_code": "",
     "order_reference": {
         "id": ""
     },
+    "billing_reference": [
+        {
+            "invoice_document_reference": {
+                "id": ""
+            }
+        }
+    ],
     "accounting_supplier_party": {
         "party": {
             "party_name": {

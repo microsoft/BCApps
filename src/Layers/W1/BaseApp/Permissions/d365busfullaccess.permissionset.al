@@ -252,7 +252,7 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "API Data Upgrade" = RIMD,
                   tabledata "API Entities Setup" = RIMD,
 #pragma warning disable AL0432
-#if not CLEAN29
+#if not CLEAN30
                   tabledata "API Extension Upload" = rimd,
 #endif
 #pragma warning restore AL0432
@@ -431,9 +431,7 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Exchange Contact" = RIMD,
 #endif
                   tabledata "Exchange Object" = RIMD,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RIMD,
-#endif
                   tabledata "Experience Tier Buffer" = RIMD,
                   tabledata "Experience Tier Setup" = RIMD,
                   tabledata "Extended Text Header" = RIMD,

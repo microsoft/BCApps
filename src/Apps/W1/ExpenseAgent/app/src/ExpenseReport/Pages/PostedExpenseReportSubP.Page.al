@@ -31,6 +31,23 @@ page 6993 "Posted Expense Report SubP."
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the category that classifies this expense line.';
                 }
+                field(PolicyStatus; PolicyStatus)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Policy Status';
+                    Editable = false;
+                    Visible = PolicyEvaluationEnabled;
+                    ToolTip = 'Specifies the policy evaluation status captured when the expense was posted: Not Evaluated when the agent had not assessed it, Flagged when one or more policies were not met, or Cleared when all evaluated policies were met. Choose the value to see the policies that were evaluated for this expense.';
+
+                    trigger OnDrillDown()
+                    var
+                        PostedExpPolicyEvaluation: Record "Posted Exp. Policy Evaluation";
+                    begin
+                        PostedExpPolicyEvaluation.SetRange("Subject Type", "Expense Policy Subject"::"Expense Report Line");
+                        PostedExpPolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
+                        Page.RunModal(Page::"Posted Exp. Policy Evaluations", PostedExpPolicyEvaluation);
+                    end;
+                }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
@@ -105,6 +122,11 @@ page 6993 "Posted Expense Report SubP."
                     ToolTip = 'Specifies the value of the Reimbursement Type field.';
                     Visible = false;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field("VAT Liable"; Rec."VAT Liable")
                 {
                     ApplicationArea = Basic, Suite;
@@ -128,6 +150,13 @@ page 6993 "Posted Expense Report SubP."
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment method used for refunds or reimbursements.';
                 }
+                field(CorporateCard; CorporateCardDisplay)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Corporate Card';
+                    ToolTip = 'Specifies the provider short name and last four card digits selected for this expense.';
+                    Editable = false;
+                }
                 field(Mileage; Rec.Mileage)
                 {
                     ApplicationArea = Basic, Suite;
@@ -142,6 +171,10 @@ page 6993 "Posted Expense Report SubP."
                     Editable = false;
                 }
                 field("Round Trip"; Rec."Round Trip")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Vehicle Type"; Rec."Vehicle Type")
                 {
                     ApplicationArea = Basic, Suite;
                 }
@@ -384,6 +417,16 @@ page 6993 "Posted Expense Report SubP."
                         Page.RunModal(Page::"Expense Rule Card", ExpenseRuleHeader);
                     end;
                 }
+                action("Spend Request")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Image = ProjectExpense;
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this posted expense report line.';
+                    RunObject = Page "Travel Request Card";
+                    RunPageLink = "No." = field("Spend Request No.");
+                    Visible = Rec."Spend Request No." <> '';
+                }
             }
         }
     }
@@ -406,10 +449,22 @@ page 6993 "Posted Expense Report SubP."
         UpdateControls();
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    begin
+        Clear(CardDisplayDocumentNo);
+        Clear(CardDisplays);
+        exit(Rec.Find(Which));
+    end;
+
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        CardDisplays: Dictionary of [Code[50], Text[150]];
+        CardDisplayDocumentNo: Code[20];
+        CorporateCardDisplay: Text[150];
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -420,12 +475,19 @@ page 6993 "Posted Expense Report SubP."
         IsRuleApplied: Boolean;
         TotalMileage: Decimal;
         AllowVATReclaim: Boolean;
+        PolicyEvaluationEnabled: Boolean;
+        PolicyStatus: Enum "Expense Policy Status";
 
     local procedure UpdateControls()
     begin
+        if CardDisplayDocumentNo <> Rec."Document No." then begin
+            CorpCardSelectionMgt.LoadPostedReportCardDisplays(Rec."Document No.", CardDisplays);
+            CardDisplayDocumentNo := Rec."Document No.";
+        end;
+        CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id", CardDisplays);
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
-        IsItemizationCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize;
+        IsItemizationCategory := Rec.IsItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
 
         IsRuleApplied := not IsNullGuid(Rec."Applied Rule Id");
@@ -436,6 +498,9 @@ page 6993 "Posted Expense Report SubP."
 
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        PolicyEvaluationEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation);
+        if PolicyEvaluationEnabled then
+            PolicyStatus := Rec.GetPolicyStatus();
     end;
 
     local procedure ValidateHeaderAmountField()

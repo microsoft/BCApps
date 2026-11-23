@@ -5,11 +5,18 @@
 namespace Microsoft.Bank.Payment;
 
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Receivables;
 
 pageextension 10838 "Customer Card" extends "Customer Card"
 {
     layout
     {
+#if not CLEAN30
+        modify("Payment Balance (LCY)")
+        {
+            Visible = not FeatureEnabled;
+        }
+#endif
 #if not CLEAN28
 #pragma warning disable AL0432
         modify("Payment in progress (LCY)")
@@ -22,8 +29,29 @@ pageextension 10838 "Customer Card" extends "Customer Card"
         }
 #pragma warning restore AL0432
 #endif
-        addafter("Payment Balance (LCY)")
+        addafter("Block Payment Tolerance")
         {
+            field("Payment Balance (LCY) FR"; Rec."Balance (LCY)")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Payment Balance (LCY)';
+                ToolTip = 'Specifies the payment amount that the customer owes for completed sales. This value is also known as the customer''s balance.';
+#if not CLEAN30
+                Visible = FeatureEnabled;
+#endif
+
+                trigger OnDrillDown()
+                var
+                    CustLedgEntry: Record "Cust. Ledger Entry";
+                    DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+                begin
+                    DtldCustLedgEntry.SetFilter("Customer No.", Rec."No.");
+                    Rec.CopyFilter("Global Dimension 1 Filter", DtldCustLedgEntry."Initial Entry Global Dim. 1");
+                    Rec.CopyFilter("Global Dimension 2 Filter", DtldCustLedgEntry."Initial Entry Global Dim. 2");
+                    Rec.CopyFilter("Currency Filter", DtldCustLedgEntry."Currency Code");
+                    CustLedgEntry.DrillDownOnEntries(DtldCustLedgEntry);
+                end;
+            }
             field("Payment in progress (LCY) FR"; Rec."Payment in progress (LCY) FR")
             {
                 ApplicationArea = Basic, Suite;
@@ -76,7 +104,7 @@ pageextension 10838 "Customer Card" extends "Customer Card"
         }
     }
 
-#if not CLEAN28
+#if not CLEAN30
     trigger OnOpenPage()
     var
         PaymentFeatureFR: Codeunit "Payment Management Feature FR";

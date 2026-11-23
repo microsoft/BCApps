@@ -42,6 +42,10 @@ page 6942 "Expense Agent Setup API"
                 {
                     Caption = 'Use Rules';
                 }
+                field(submitterRunEvaluation; Rec."Submitter-run Evaluation")
+                {
+                    Caption = 'Allow Submitters to Evaluate Policies';
+                }
                 field(enableAgent; Rec."Enable Agent")
                 {
                     Caption = 'Enable Agent';
@@ -89,6 +93,10 @@ page 6942 "Expense Agent Setup API"
                 field(enableAntiCorpStatement; Rec."Enable Anti-Corp. Statement")
                 {
                     Caption = 'Display Anti-Corruption Attestation';
+                }
+                field(allowNoReceipt; Rec."Allow No Receipt")
+                {
+                    Caption = 'Allow No Receipt';
                 }
                 field(expenseReportsNos; Rec."Expense Reports Nos.")
                 {

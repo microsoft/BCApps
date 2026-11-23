@@ -30,6 +30,18 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsPerDiemLocationsEnabled());
             Capability::ConsolidatedProjects:
                 exit(IsConsolidatedProjectsEnabled());
+            Capability::VATSpecifications:
+                exit(IsVATSpecificationsEnabled());
+            Capability::AiAssistedPolicyEvaluation:
+                exit(IsAiAssistedPolicyEvaluationEnabled());
+            Capability::NoReceipt:
+                exit(IsNoReceiptEnabled());
+            Capability::ActivityLog,
+            Capability::MileageRateSetup,
+            Capability::ApprovalConversation,
+            Capability::TravelRequest,
+            Capability::CreditCardFeed:
+                exit(true);
         end;
         exit(false);
     end;
@@ -43,6 +55,15 @@ codeunit 6906 "Expense Capabilities Provider"
         exit(ExpenseAgentSetup."Enable Project Fields");
     end;
 
+    local procedure IsNoReceiptEnabled(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if not ExpenseAgentSetup.Get() then
+            exit(false);
+        exit(ExpenseAgentSetup."Allow No Receipt");
+    end;
+
     local procedure IsPerDiemLocationsEnabled(): Boolean
     begin
         exit(true);
@@ -51,6 +72,23 @@ codeunit 6906 "Expense Capabilities Provider"
     local procedure IsConsolidatedProjectsEnabled(): Boolean
     begin
         exit(IsProjectsEnabled());
+    end;
+
+    local procedure IsVATSpecificationsEnabled(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if not ExpenseAgentSetup.Get() then
+            exit(false);
+        exit(ExpenseAgentSetup."Allow VAT Reclaim");
+    end;
+
+    local procedure IsAiAssistedPolicyEvaluationEnabled(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        exit(ExpenseAgentSetup."Evaluate Policies");
     end;
 
     /// <summary>

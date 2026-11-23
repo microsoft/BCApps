@@ -30,7 +30,7 @@ table 5222 "Employee Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the entry number that is assigned to the entry.';
@@ -177,7 +177,7 @@ table 5222 "Employee Ledger Entry"
             Caption = 'Positive';
             ToolTip = 'Specifies if the entry to be applied is positive.';
         }
-        field(44; "Closed by Entry No."; Integer)
+        field(44; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Employee Ledger Entry";
@@ -226,7 +226,8 @@ table 5222 "Employee Ledger Entry"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the balancing account that is used for the entry.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -236,7 +237,7 @@ table 5222 "Employee Ledger Entry"
             else
             if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
         }
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -357,10 +358,8 @@ table 5222 "Employee Ledger Entry"
             begin
                 TestField(Open, true);
                 CalcFields("Remaining Amount");
-
                 if AreOppositeSign("Amount to Apply", "Remaining Amount") then
                     FieldError("Amount to Apply", MustHaveSameSignErr);
-
                 if Abs("Amount to Apply") > Abs("Remaining Amount") then
                     FieldError("Amount to Apply", MustNotBeLargerErr);
             end;
@@ -375,23 +374,24 @@ table 5222 "Employee Ledger Entry"
             Caption = 'Reversed';
             DataClassification = CustomerContent;
         }
-        field(88; "Reversed by Entry No."; Integer)
+        field(88; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
             DataClassification = CustomerContent;
             TableRelation = "Employee Ledger Entry";
         }
-        field(89; "Reversed Entry No."; Integer)
+        field(89; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
             DataClassification = CustomerContent;
             TableRelation = "Employee Ledger Entry";
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
@@ -517,6 +517,16 @@ table 5222 "Employee Ledger Entry"
             Clustered = true;
         }
         key(Key2; "Employee No.", "Applies-to ID", Open, Positive)
+        {
+        }
+        // Supports the Payment Reconciliation Journal candidate search (Document Type + Open + date range).
+        key(PmtReconCandidates; "Document Type", Open, "Posting Date")
+        {
+        }
+        key(ClosedByEntryNo; "Closed by Entry No.")
+        {
+        }
+        key(LedgerEntries; "Document No.", "Document Type", "Posting Date")
         {
         }
     }

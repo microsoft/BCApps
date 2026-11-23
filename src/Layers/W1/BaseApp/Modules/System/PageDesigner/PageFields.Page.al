@@ -98,6 +98,7 @@ page 9620 "Page Fields"
                     // Comment to indicate to the server that this action must be run
                     // This action is here to override the default behavior of opening the card page with this record
                     // which is not desired in this case.
+                    exit;
                 end;
             }
         }

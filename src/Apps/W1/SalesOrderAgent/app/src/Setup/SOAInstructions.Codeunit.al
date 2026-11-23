@@ -26,7 +26,7 @@ codeunit 4598 "SOA Instructions"
         SecurityPromptReplacementText: Text;
         SignaturePlaceholderText: Text;
         InstructionsText: Text;
-        SOAInstructionsPromptTok: Label 'Prompts/SalesOrderAgent-AgentInstructions.md', Locked = true;
+        SOAInstructionsPromptTok: Label 'Prompts/SalesOrderAgent-AgentInstructions.json', Locked = true;
         SignaturePlaceholderTok: Label '%1', Locked = true;
         SecurityPromptReplacementTok: Label '%2', Locked = true;
         SOAInstructionsSecurityPromptTok: Label 'SalesOrderAgent-AgentInstructions-SecurityPromptV28', Locked = true;
@@ -50,7 +50,7 @@ codeunit 4598 "SOA Instructions"
 
     internal procedure GetBroaderItemSearchPrompt(): SecretText
     var
-        BroaderItemSearchPromptTok: Label 'Prompts/ItemSearch/item-entity-attribute-extraction-tool.md', Locked = true;
+        BroaderItemSearchPromptTok: Label 'Prompts/ItemSearch/item-entity-attribute-extraction-tool.json', Locked = true;
     begin
         exit(NavApp.GetResourceAsText(BroaderItemSearchPromptTok, TextEncoding::UTF8));
     end;
@@ -91,7 +91,7 @@ codeunit 4598 "SOA Instructions"
 
     internal procedure GetOutputMessageSignatureUpdateTool(): SecretText
     var
-        SignatureUpdateToolTok: Label 'Prompts/MailTemplate/signature-update-tool.md', Locked = true;
+        SignatureUpdateToolTok: Label 'Prompts/MailTemplate/signature-update-tool.json', Locked = true;
     begin
         exit(NavApp.GetResourceAsText(SignatureUpdateToolTok, TextEncoding::UTF8));
     end;
@@ -105,7 +105,7 @@ codeunit 4598 "SOA Instructions"
 
     internal procedure GetMailTemplateCheckTool(): SecretText
     var
-        MailTemplateCheckToolTok: Label 'Prompts/MailTemplate/mail-template-check-tool.md', Locked = true;
+        MailTemplateCheckToolTok: Label 'Prompts/MailTemplate/mail-template-check-tool.json', Locked = true;
     begin
         exit(NavApp.GetResourceAsText(MailTemplateCheckToolTok, TextEncoding::UTF8));
     end;
@@ -149,7 +149,7 @@ codeunit 4598 "SOA Instructions"
     internal procedure GetItemSelectorPrompt(): SecretText
     var
         Prompt: SecretText;
-        ItemSelectorToolPromptTok: Label 'Prompts/ItemSearch/itemselector-tool.md', Locked = true;
+        ItemSelectorToolPromptTok: Label 'Prompts/ItemSearch/itemselector-tool.json', Locked = true;
     begin
         if not ReadResourcePrompt(ItemSelectorToolPromptTok, Prompt) then
             Error(ConstructingPromptFailedErr);

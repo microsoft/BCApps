@@ -6,12 +6,12 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-tableextension 99001505 "Subc. Production Order Ext." extends "Production Order"
+tableextension 20505 "Subc. Production Order Ext." extends "Production Order"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001552; "Created from Purch. Order"; Boolean)
+        field(20552; "Created from Purch. Order"; Boolean)
         {
             Caption = 'Created from Purchase Order';
             DataClassification = CustomerContent;

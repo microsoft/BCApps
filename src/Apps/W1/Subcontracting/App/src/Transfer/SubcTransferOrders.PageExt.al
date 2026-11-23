@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-pageextension 99001551 "Subc. Transfer Orders" extends "Transfer Orders"
+pageextension 20551 "Subc. Transfer Orders" extends "Transfer Orders"
 {
     views
     {

@@ -13,7 +13,6 @@ page 9654 "Built-in Report Layouts"
     ModifyAllowed = false;
     PageType = List;
     SourceTable = "Report Layout List";
-    UsageCategory = Administration;
     AboutTitle = 'About Built-in Report Layouts';
     AboutText = '**This page has been deprecated and will be removed in a later release**. Please use the new system page _Report Layouts_ instead.';
 

@@ -21,6 +21,7 @@
         IsInitialized: Boolean;
         CannotBeLessThanMsg: Label 'cannot be less than %1', Comment = '.';
         CannotBeMoreThanMsg: Label 'cannot be more than %1', Comment = '.';
+        PrepmtAmtToDeductMisalignedErr: Label 'Prepmt Amt to Deduct must stay aligned with the posted prepayment after toggling Qty. to Invoice.';
 
     [Test]
     [Scope('OnPrem')]
@@ -802,6 +803,113 @@
         PostSalesPrepmtInvoice(SalesHeaderOrder);
 
         VerifyDescriptionOnPostedInvoiceRoundingLine(SalesHeaderOrder);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtAmtToDeductStableWhenTogglingQtyToInvoice()
+    var
+        SalesOrderHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Header";
+        SalesOrderLine: Record "Sales Line";
+        ExpectedPrepmtAmtToDeduct: Decimal;
+    begin
+        // [FEATURE] [Rounding]
+        // [SCENARIO 644912] "Prepmt Amt to Deduct" does not fluctuate when "Qty. to Invoice" is toggled after posting the prepayment invoice
+        Initialize();
+
+        // [GIVEN] Sales Order with 100% Prepayment, Qty = 2, "Qty. to Ship" = 1, "Qty. to Invoice" = 1, "Unit Price" = 42.963
+        PrepareSalesOrder(SalesOrderHeader);
+        AddSalesOrderLine(SalesOrderLine, SalesOrderHeader, 2, 42.963, 100, 0);
+        UpdateQtysInLine(SalesOrderLine, 1, 1);
+
+        // [GIVEN] The value posted for the invoiced quantity is the prorated Round(1 * Round(2 * 42.963) / 2) = 42.97
+        ExpectedPrepmtAmtToDeduct := 42.97;
+
+        // [GIVEN] Prepayment invoice is posted
+        PostSalesPrepmtInvoice(SalesOrderHeader);
+        SalesOrderLine.Find();
+        SalesOrderLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtAmtToDeduct);
+
+        // [WHEN] "Qty. to Invoice" is changed to 0 and then back to 1
+        SalesOrderLine.Validate("Qty. to Invoice", 0);
+        SalesOrderLine.Modify(true);
+        SalesOrderLine.Validate("Qty. to Invoice", 1);
+        SalesOrderLine.Modify(true);
+
+        // [THEN] "Prepmt Amt to Deduct" stays 42.97 and does not flip to 42.96
+        Assert.AreEqual(
+          ExpectedPrepmtAmtToDeduct, SalesOrderLine."Prepmt Amt to Deduct",
+          PrepmtAmtToDeductMisalignedErr);
+
+        // [WHEN] The order is fully shipped and invoiced
+        SalesInvoiceHeader."Sell-to Customer No." := SalesOrderHeader."Sell-to Customer No.";
+        CreateSalesInvoice(SalesInvoiceHeader, SalesOrderHeader."Prices Including VAT");
+        UpdateQtysInLine(SalesOrderLine, 2, 0);
+        SalesOrderHeader.Find();
+        LibrarySales.PostSalesDocument(SalesOrderHeader, true, false);
+        GetShipmentLine(SalesInvoiceHeader, SalesOrderHeader."Last Shipping No.");
+        LibrarySales.PostSalesDocument(SalesInvoiceHeader, false, true);
+
+        // [THEN] The full posted prepayment (42.97 + 42.96 = 85.93) is deducted with no rounding lost
+        SalesOrderLine.Find();
+        SalesOrderLine.TestField("Prepmt Amt Deducted", SalesOrderLine."Prepmt. Amt. Inv.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtLineAmountStaysAlignedAfterPartialInvoicesWithInvDiscRecalc()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        CustInvoiceDisc: Record "Cust. Invoice Disc.";
+        ExpectedLineAmount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [Rounding] [Invoice Discount]
+        // [SCENARIO 656844] "Prepmt. Line Amount" does not drift below "Prepmt. Amt. Inv." after several partial invoices of a 100% prepaid order
+        Initialize();
+
+        // [GIVEN] "Calc. Inv. Discount" is enabled and the customer has an invoice discount with "Discount %" = 0
+        LibrarySales.SetCalcInvDiscount(true);
+        PrepareSalesOrder(SalesHeader);
+        LibraryERM.CreateInvDiscForCustomer(CustInvoiceDisc, SalesHeader."Invoice Disc. Code", '', 0);
+
+        // [GIVEN] Sales order line with 100% prepayment, Quantity = 25, "Unit Price" = 98.802, "Line Amount" = 2470.05
+        ExpectedLineAmount := 2470.05;
+        AddSalesOrderLine(SalesLine, SalesHeader, 25, 98.802, 100, 0);
+        SalesLine.TestField("Line Amount", ExpectedLineAmount);
+
+        // [GIVEN] Posted prepayment invoice
+        PostSalesPrepmtInvoice(SalesHeader);
+
+        // [GIVEN] Four partial shipments and invoices of 2 units, each deducting a prepayment rounded down by 0.004 (197.60 instead of 197.604)
+        for i := 1 to 4 do begin
+            UpdateQtysInLine(SalesLine, 2, 2);
+            SalesHeader.Find();
+            LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        end;
+
+        // [WHEN] Reopen and release the order, which recalculates the invoice discount and the prepayment amounts
+        SalesHeader.Find();
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [THEN] "Prepmt. Line Amount" still equals "Prepmt. Amt. Inv." = 2470.05
+        SalesLine.Find();
+        SalesLine.TestField("Prepmt. Amt. Inv.", ExpectedLineAmount);
+        SalesLine.TestField("Prepmt. Line Amount", SalesLine."Prepmt. Amt. Inv.");
+
+        // [WHEN] Reopen the order and ship and invoice the remaining 17 units
+        LibrarySales.ReopenSalesDocument(SalesHeader);
+        UpdateQtysInLine(SalesLine, 17, 17);
+        SalesLine.Find();
+        SalesLine.TestField("Prepmt Amt to Deduct", SalesLine."Prepmt. Amt. Inv." - SalesLine."Prepmt Amt Deducted");
+        SalesHeader.Find();
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The remaining prepayment is fully deducted and the final invoice balance is zero
+        VerifyZeroCustomerAccEntry();
     end;
 
     local procedure Initialize()

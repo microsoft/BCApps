@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
@@ -18,11 +19,11 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
-codeunit 99001505 "Subcontracting Management"
+codeunit 20505 "Subcontracting Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -38,7 +39,7 @@ codeunit 99001505 "Subcontracting Management"
 
     procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -48,13 +49,13 @@ codeunit 99001505 "Subcontracting Management"
             "Component Supply Method"::"Consignment at Vendor",
             "Component Supply Method"::"Vendor-Supplied":
                 if (VendorSubcontrLocation <> '') and (ProdOrderComponent."Location Code" <> VendorSubcontrLocation) then
-                    ProdOrderComponent.Validate("Location Code", VendorSubcontrLocation);
+                    ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, VendorSubcontrLocation);
 
             "Component Supply Method"::"Transfer to Vendor",
             "Component Supply Method"::Empty:
                 begin
                     if (ProdOrderComponent."Location Code" <> OriginalLocationCode) and (OriginalLocationCode <> '') then begin
-                        ProdOrderComponent.Validate("Location Code", OriginalLocationCode);
+                        ValidateProdOrderCompLocationPreservingFlushingMethod(ProdOrderComponent, OriginalLocationCode);
                         ProdOrderComponent."Subc. Original Location Code" := '';
                     end;
                     if (ProdOrderComponent."Bin Code" <> OriginalBinCode) and (OriginalBinCode <> '') then begin
@@ -65,9 +66,41 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
+    internal procedure ValidateProdOrderCompLocationPreservingFlushingMethod(var ProdOrderComponent: Record "Prod. Order Component"; NewLocationCode: Code[10])
+    var
+        PreservedFlushingMethod: Enum "Flushing Method";
+        PreservedLocationCode: Code[10];
+        PreservedBinCode: Code[20];
+    begin
+        // Validating "Location Code" re-reads the planning parameters from the item or SKU (Prod. Order Component.GetUpdateFromSKU),
+        // which silently overwrites a manually chosen "Flushing Method". Subcontracting only shuttles the component between the
+        // shop floor and the subcontractor location, so a manually set "Flushing Method" must survive that automatic move.
+        // The "Flushing Method" is restored by direct assignment on purpose: re-validating it errors once consumption has been
+        // posted at the subcontractor (see the return leg), which is a lifecycle subcontracting must support.
+        PreservedFlushingMethod := ProdOrderComponent."Flushing Method";
+        PreservedLocationCode := ProdOrderComponent."Location Code";
+        PreservedBinCode := ProdOrderComponent."Bin Code";
+
+        ProdOrderComponent.Validate("Location Code", NewLocationCode);
+
+        if ProdOrderComponent."Flushing Method" <> PreservedFlushingMethod then
+            ProdOrderComponent."Flushing Method" := PreservedFlushingMethod;
+
+        // Restoring the "Flushing Method" by direct assignment does not undo the "Bin Code" that the "Location Code"/temporary
+        // "Flushing Method" validation already derived (GetDefaultBin/GetUpdateFromSKU -> UpdateBin). Realign the default bin with
+        // the preserved flushing method so it never lingers on the bin picked for the item/SKU flushing method.
+        if ProdOrderComponent."Location Code" <> PreservedLocationCode then
+            // The component actually moved: recompute the default bin, now evaluated against the preserved flushing method.
+            ProdOrderComponent.GetDefaultBin()
+        else
+            // Same location (e.g. the direct-transfer post revalidates the current location to trigger side effects): keep the
+            // component on the bin it already had instead of the one derived for the temporary flushing method.
+            ProdOrderComponent."Bin Code" := PreservedBinCode;
+    end;
+
     procedure ChangeLocationOnPlanningComponent(var PlanningComponent: Record "Planning Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -102,7 +135,7 @@ codeunit 99001505 "Subcontracting Management"
         ConfirmManagement: Codeunit "Confirm Management";
         PlanningGetParameters: Codeunit "Planning-Get Parameters";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -140,7 +173,7 @@ codeunit 99001505 "Subcontracting Management"
         WorkCenter: Record "Work Center";
         HasSubcontractor, IsHandled : Boolean;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -194,9 +227,22 @@ codeunit 99001505 "Subcontracting Management"
         end;
     end;
 
+    internal procedure SetSubcontractingOrderDate(var RequisitionLine: Record "Requisition Line"; RoutingStartingDate: Date)
+    var
+        LeadTimeManagement: Codeunit "Lead-Time Management";
+    begin
+        RequisitionLine.Validate(
+            "Order Date",
+            LeadTimeManagement.GetPlannedStartingDate(
+                RequisitionLine."No.", RequisitionLine."Location Code", RequisitionLine."Variant Code", RequisitionLine."Vendor No.",
+                LeadTimeManagement.PurchaseLeadTime(
+                    RequisitionLine."No.", RequisitionLine."Location Code", RequisitionLine."Variant Code", RequisitionLine."Vendor No."),
+                RequisitionLine."Ref. Order Type"::Purchase, RoutingStartingDate));
+    end;
+
     procedure UpdateSubcontractorPriceForRequisitionLine(var RequisitionLine: Record "Requisition Line")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -210,7 +256,7 @@ codeunit 99001505 "Subcontracting Management"
     var
         WorkCenter: Record "Work Center";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -237,7 +283,7 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -280,7 +326,7 @@ codeunit 99001505 "Subcontracting Management"
         OrigBinCode: Code[20];
         PurchOrderNo: Code[20];
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -342,7 +388,7 @@ codeunit 99001505 "Subcontracting Management"
         OrigLocationCode, VendorSubcontractingLocationCode : Code[10];
         OrigBinCode: Code[20];
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -388,7 +434,7 @@ codeunit 99001505 "Subcontracting Management"
         CompanyInformation: Record "Company Information";
         ComponentsLocationCode: Code[10];
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

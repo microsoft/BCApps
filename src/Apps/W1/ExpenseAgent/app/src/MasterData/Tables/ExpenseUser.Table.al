@@ -10,9 +10,11 @@ using System.Security.AccessControl;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Stores the users who can submit or approve expenses, including the related employee and approval settings.
+/// </summary>
 table 6923 "Expense User"
 {
-    Access = Internal;
     Caption = 'Expense User';
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", "Employee No.", Name;
@@ -86,11 +88,13 @@ table 6923 "Expense User"
         }
         field(9; "Expense Team Code"; Code[20])
         {
+            Access = Internal;
             Caption = 'Expense Team Code';
             TableRelation = "Expense Team"."Code";
         }
         field(10; "Team Manager"; Boolean)
         {
+            Access = Internal;
             Caption = 'Team Manager';
 
             trigger OnValidate()
@@ -101,6 +105,7 @@ table 6923 "Expense User"
         }
         field(15; "Entra Id"; Guid)
         {
+            Access = Internal;
             Caption = 'Entra Id';
             ToolTip = 'Specifies the Entra Id of the agent.';
             DataClassification = SystemMetadata;
@@ -113,10 +118,17 @@ table 6923 "Expense User"
             trigger OnValidate()
             begin
                 if not "Can Approve" then begin
+                    CheckNoPendingApprovals();
                     if not ConfirmApproverReassignment() then
                         Error('');
-                end else
+                    Rec."User Id For Approvals" := '';
+
+                    Rec.Validate("Unlimited Approval", false);
+                    Rec.Validate("Approval Limit (LCY)", 0);
+                end else begin
+                    Rec.Validate("Unlimited Approval", true);
                     UpdateApprovalUserId();
+                end;
             end;
         }
         field(30; "Is a System User"; Boolean)
@@ -172,6 +184,7 @@ table 6923 "Expense User"
 #if not CLEANSCHEMA29
         field(54; "Welcome Email Sent"; Boolean)
         {
+            Access = Internal;
             Caption = 'Welcome Email Sent';
             Editable = false;
 #if CLEAN29
@@ -180,16 +193,20 @@ table 6923 "Expense User"
             ObsoleteState = Pending;
 #endif
             ObsoleteReason = 'Replaced by Welcome Email Status, which also tracks queued and failed sends.';
+#pragma warning disable AS0072 // Bug 647877: temporary v30 suppression, restore ObsoleteTag to 30.0
             ObsoleteTag = '29.0';
+#pragma warning restore AS0072
         }
 #endif
         field(55; "Welcome Email Sent At"; DateTime)
         {
+            Access = Internal;
             Caption = 'Welcome Email Sent At';
             Editable = false;
         }
         field(56; "Welcome Email Status"; Option)
         {
+            Access = Internal;
             Caption = 'Welcome Email Status';
             Editable = false;
             OptionMembers = None,Queued,"In Outbox",Sent,Failed;
@@ -197,9 +214,44 @@ table 6923 "Expense User"
         }
         field(57; "Welcome Correlation Id"; Guid)
         {
+            Access = Internal;
             Caption = 'Welcome Correlation Id';
             Editable = false;
             ToolTip = 'Specifies the identifier used to correlate the welcome email with its delivery from the outbox.';
+        }
+        field(60; "Approval Limit (LCY)"; Integer)
+        {
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
+            Caption = 'Approval Limit (LCY)';
+            ToolTip = 'Specifies the maximum expense report amount this user can approve. Leave empty when Unlimited Approval is selected.';
+            BlankZero = true;
+
+            trigger OnValidate()
+            begin
+                if Rec."Approval Limit (LCY)" <> 0 then
+                    Rec.TestField("Can Approve", true);
+
+                if Rec."Unlimited Approval" and (Rec."Approval Limit (LCY)" <> 0) then
+                    Error(ConflictingApprovalsErr, Rec.FieldCaption("Approval Limit (LCY)"), Rec.FieldCaption("Unlimited Approval"));
+
+                if Rec."Approval Limit (LCY)" < 0 then
+                    Error(ApprovalLimitMustNotBeNegativeErr, Rec.FieldCaption("Approval Limit (LCY)"));
+            end;
+        }
+        field(61; "Unlimited Approval"; Boolean)
+        {
+            Caption = 'Unlimited Approval';
+            ToolTip = 'Specifies that this user can approve expense reports without a maximum amount.';
+
+            trigger OnValidate()
+            begin
+                if Rec."Unlimited Approval" then begin
+                    Rec.TestField("Can Approve", true);
+                    Rec."Approval Limit (LCY)" := 0;
+                end else
+                    CheckIfApproverIsDefaultApprover();
+            end;
         }
     }
 
@@ -212,6 +264,9 @@ table 6923 "Expense User"
         key(WelcomeCorrelationKey; "Welcome Correlation Id")
         {
         }
+        key(EmployeeNo; "Employee No.")
+        {
+        }
     }
 
     var
@@ -220,12 +275,13 @@ table 6923 "Expense User"
         ApproverReassignToDefaultQst: Label 'Expense user %1 was an approver for some users. These users will now be assigned the default approver. Continue?', Comment = '%1 = Expense User No.';
         ApproverRemoveQst: Label 'Expense user %1 was an approver for some users. These users will now have no approver. Continue?', Comment = '%1 = Expense User No.';
         CannotRemoveDefaultApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is the default approver. Change the default approver in %2 first.', Comment = '%1 = Expense User No., %2 = Expense Agent Setup table caption';
+        CannotRemovePendingApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is an interim or final approver for expense report %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Expense Report No.';
         ConfirmOverwriteExpenseUserInformationQst: Label 'Do you want to overwrite the employee Name and E-Mail on Expense User from Employee information of %1?', Comment = '%1 - Employee No.';
         ExistingExpenseTeamManagerErr: Label 'There is already a Team Manager (%1) for Expense Team %2.', Comment = '%1 - Expense User No. %2 -Expense Team Code';
         ExpenseApprovalSetupErr: Label 'You cannot remove approval rights from expense user %1. This expense user is currently configured as an approver in the %2.', Comment = '%1 - Expense User No., %2 - Table Caption';
         DuplicateEmailErr: Label '%1 %2 is already used by another %3. %1 must be unique.', Comment = '%1 = Email Caption, %2 = Email address, %3 = Expense User Table Caption';
         DuplicateEmployeeNoErr: Label '%1 %2 is already linked to another %3. Each employee can only be linked to one %3.', Comment = '%1 = Employee No. Caption, %2 = Employee No., %3 = Expense User Table Caption';
-        OnlyBCUserCanApproveErr: Label 'In order to be an expense approver there must be a user in Business Central for email %1 for expense user %2.', Comment = '%1 - Email, %2 - Expense User No.';
+        OnlyBCUserCanApproveErr: Label 'Expense user %2 cannot be an approver because no user in Business Central has %1 as their Microsoft 365 authentication email. Make sure a Business Central user exists whose Microsoft 365 authentication email matches the expense user''s email.', Comment = '%1 - Email, %2 - Expense User No.';
         CannotDeleteExpenseUserWithExpenseErr: Label 'You cannot delete Expense User %1 because they have active expense.', Comment = '%1 = Expense User No.';
         CannotDeleteExpenseUserWithExpenseReportErr: Label 'You cannot delete Expense User %1 because they have active expense report.', Comment = '%1 = Expense User No.';
         CannotDeleteExpenseUserWithPostedExpenseReportErr: Label 'You cannot delete Expense User %1 because they have posted expense report.', Comment = '%1 = Expense User No.';
@@ -233,11 +289,17 @@ table 6923 "Expense User"
         WelcomeEmailsQueuedMsg: Label '%1 welcome email(s) have been queued. The expense agent will send them shortly.', Comment = '%1 = number of welcome emails queued';
         NoWelcomeEmailsQueuedMsg: Label 'No welcome emails were sent. The selected expense users have already received one or have one that is still being sent.';
         NoExpenseUsersWithEmailErr: Label 'There are no expense users to send welcome email.';
+        NoExpenseUsersForEmployeeCreationErr: Label 'There are no selected expense users eligible for employee creation.';
+        EmployeesFromExpenseUsersProgressTxt: Label 'Creating employees...\\Expense User: #1########################################\\Total: #2####\\Processed: #3####', Comment = '#1 = current expense user value, #2 = total selected expense users, #3 = number of processed expense users';
+        EmployeesCreatedFromExpenseUsersMsg: Label 'Employee creation completed for %1 expense user(s).', Comment = '%1 = number of processed expense users';
         AgentNotEnabledErr: Label 'Please make sure the Expense Agent is active.';
         CommunicationDisabledErr: Label 'Sending emails to users is turned off. Turn on communication for the Expense Agent before sending welcome emails.';
         NoNoreplyAccountErr: Label 'No account is set for sending emails. Set the send mail account for the Expense Agent before sending welcome emails.';
         CurrentBCUserHasNoAuthEmailErr: Label 'Your Business Central user account is not linked to an authentication email, so it cannot be matched to an Expense User. Ask your administrator to set the Authentication Email on your user record in Business Central.';
         CurrentBCUserNotMatchedToExpenseUserErr: Label 'No Expense User exists for the email %1 used by your Business Central account. Ask your administrator to create an Expense User with this email, or to update the email on the existing Expense User to match.', Comment = '%1 = authentication email of the current Business Central user';
+        ApprovalLimitMustNotBeNegativeErr: Label '%1 must not be negative.', Comment = '%1 = Approval Limit field caption';
+        ConflictingApprovalsErr: Label 'You cannot have both a %1 and %2. ', Comment = '%1 = Approval Limit field caption, %2 = Unlimited Approval field caption';
+        CannotMarkAsFalseBecauseDefaultApproverErr: Label 'You cannot mark %1 as false because Expense User %2 is the default approver in Expense Agent Setup.', Comment = '%1 = field caption, %2 = Expense User No.';
 
     trigger OnDelete()
     var
@@ -458,18 +520,24 @@ table 6923 "Expense User"
         ExpenseUser: Record "Expense User";
         User: Record User;
         UserSecurityID: Guid;
+        AuthEmail: Text;
     begin
         FindUserSecurityID(UserSecurityID);
         User.Get(UserSecurityID);
         if User."Authentication Email" = '' then
             Error(CurrentBCUserHasNoAuthEmailErr);
 
-        ExpenseUser.SetLoadFields("No.");
-        ExpenseUser.SetRange("E-mail", User."Authentication Email");
-        if not ExpenseUser.FindFirst() then
-            Error(CurrentBCUserNotMatchedToExpenseUserErr, User."Authentication Email");
+        AuthEmail := LowerCase(User."Authentication Email");
 
-        exit(ExpenseUser."No.");
+        ExpenseUser.SetLoadFields("No.", "E-mail");
+        ExpenseUser.SetFilter("E-mail", '<>%1', '');
+        if ExpenseUser.FindSet() then
+            repeat
+                if LowerCase(ExpenseUser."E-mail") = AuthEmail then
+                    exit(ExpenseUser."No.");
+            until ExpenseUser.Next() = 0;
+
+        Error(CurrentBCUserNotMatchedToExpenseUserErr, User."Authentication Email");
     end;
 
     local procedure FindUserSecurityID(var UserSecurityID: Guid)
@@ -519,18 +587,20 @@ table 6923 "Expense User"
     local procedure GetUserIdByEmail(Email: Text[100]): Code[50]
     var
         User: Record User;
+        LowerEmail: Text;
     begin
         if Email = '' then
             exit('');
 
-        User.SetRange("Authentication Email", Email);
-        if User.FindFirst() then
-            exit(User."User Name");
+        LowerEmail := LowerCase(Email);
 
-        User.SetRange("Authentication Email");
-        User.SetRange("Contact Email", Email);
-        if User.FindFirst() then
-            exit(User."User Name");
+        User.SetLoadFields("User Name", "Authentication Email");
+        User.SetFilter("Authentication Email", '<>%1', '');
+        if User.FindSet() then
+            repeat
+                if LowerCase(User."Authentication Email") = LowerEmail then
+                    exit(User."User Name");
+            until User.Next() = 0;
     end;
 
     internal procedure CreateEmployeeFromExpenseUser()
@@ -570,6 +640,73 @@ table 6923 "Expense User"
         end;
 
         exit(CreateEmployee(EmployeeTempl, TemplateSelected));
+    end;
+
+    internal procedure CreateEmployeesFromExpenseUsers(var ExpenseUser: Record "Expense User")
+    var
+        EmployeeTempl: Record "Employee Templ.";
+        EmployeeTemplMgt: Codeunit "Employee Templ. Mgt.";
+        TemplateSelected: Boolean;
+        ProcessedCount: Integer;
+        TotalCount: Integer;
+        ProgressDialog: Dialog;
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup.TestField("Create Emp. for Expense Users");
+
+        ExpenseUser.SetRange("Employee No.", '');
+        ExpenseUser.SetFilter("Name", '<>%1', '');
+        ExpenseUser.SetFilter("E-mail", '<>%1', '');
+        if ExpenseUser.IsEmpty() then
+            Error(NoExpenseUsersForEmployeeCreationErr);
+
+        TotalCount := ExpenseUser.Count();
+
+        if EmployeeTemplMgt.IsEnabled() then begin
+            TemplateSelected := EmployeeTemplMgt.SelectEmployeeTemplateFromContact(EmployeeTempl);
+            if not TemplateSelected then
+                if EmployeeTemplMgt.TemplatesAreNotEmpty() then
+                    Error('');
+        end;
+
+        if GuiAllowed() then begin
+            ProgressDialog.Open(EmployeesFromExpenseUsersProgressTxt);
+            ProgressDialog.Update(1, '');
+            ProgressDialog.Update(2, TotalCount);
+            ProgressDialog.Update(3, 0);
+        end;
+
+        if ExpenseUser.FindSet() then
+            repeat
+                if GuiAllowed() then
+                    ProgressDialog.Update(1, ExpenseUser."No.");
+
+                ExpenseUser.CreateEmployeeFromExpenseUserWithTemplate(EmployeeTempl, TemplateSelected);
+                ProcessedCount += 1;
+                if GuiAllowed() then
+                    ProgressDialog.Update(3, ProcessedCount);
+            until ExpenseUser.Next() = 0;
+
+        if GuiAllowed() then
+            ProgressDialog.Close();
+
+        Message(EmployeesCreatedFromExpenseUsersMsg, ProcessedCount);
+    end;
+
+    internal procedure CreateEmployeeFromExpenseUserWithTemplate(EmployeeTempl: Record "Employee Templ."; TemplateSelected: Boolean)
+    var
+        ImportExpenseUser: Codeunit "Import Expense User";
+        EmployeeNo: Code[20];
+    begin
+        EmployeeNo := ImportExpenseUser.GetEmployeeNoFromEmail(Rec."E-mail");
+        if EmployeeNo = '' then begin
+            Rec.SetSkipOverwriteFromEmployee(true);
+            Rec.Validate("Employee No.", CreateEmployee(EmployeeTempl, TemplateSelected));
+            Rec.SetSkipOverwriteFromEmployee(false);
+        end else
+            Rec.Validate("Employee No.", EmployeeNo);
+
+        Rec.Modify();
     end;
 
     internal procedure CreateEmployee(EmployeeTempl: Record "Employee Templ."; TemplateSelected: Boolean): Code[20]
@@ -718,5 +855,27 @@ table 6923 "Expense User"
             repeat
                 ExpenseUser.SetWelcomeEmailDelivered(Delivered);
             until ExpenseUser.Next() = 0;
+    end;
+
+    local procedure CheckIfApproverIsDefaultApprover()
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Default Approver No." = Rec."No." then
+            Error(CannotMarkAsFalseBecauseDefaultApproverErr, Rec.FieldCaption("Unlimited Approval"), Rec."No.");
+    end;
+
+    local procedure CheckNoPendingApprovals()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        ExpenseReportHeader.SetFilter(Status, '%1|%2', ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status::"Interim Approved");
+        ExpenseReportHeader.SetRange("Interim Approver No.", Rec."No.");
+        if ExpenseReportHeader.FindFirst() then
+            Error(CannotRemovePendingApproverErr, Rec."No.", ExpenseReportHeader."No.");
+
+        ExpenseReportHeader.SetRange("Interim Approver No.");
+        ExpenseReportHeader.SetRange("Final Approver No.", Rec."No.");
+        if ExpenseReportHeader.FindFirst() then
+            Error(CannotRemovePendingApproverErr, Rec."No.", ExpenseReportHeader."No.");
     end;
 }

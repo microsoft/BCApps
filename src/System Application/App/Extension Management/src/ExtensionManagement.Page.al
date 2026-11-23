@@ -218,7 +218,7 @@ page 2500 "Extension Management"
                         CurrPage.Update(false);
                     end;
                 }
-#if not CLEAN29
+#if not CLEAN30
                 action("Upload Extension")
                 {
                     Caption = 'Upload Extension';
@@ -231,20 +231,18 @@ page 2500 "Extension Management"
                     Visible = IsSaaS;
                     ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
                 action("Deployment Status")
                 {
                     Caption = 'Installation Status';
                     Image = Status;
-#pragma warning disable AL0432
                     RunObject = page "Extension Deployment Status";
-#pragma warning restore AL0432
                     ToolTip = 'Check status for upload process for extensions.';
                     Visible = IsSaaS;
                     ObsoleteReason = 'Use the Business Central admin center or the admin center API to monitor per-tenant extension operations.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
 #endif
                 action("Delete Orphaned Extension Data")
@@ -333,19 +331,21 @@ page 2500 "Extension Management"
             group(Category_Category5)
             {
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
-#if not CLEAN29
+#if not CLEAN30
+#pragma warning disable AL0432
                 actionref("Upload Extension_Promoted"; "Upload Extension")
                 {
                     ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
                 actionref("Deployment Status_Promoted"; "Deployment Status")
                 {
                     ObsoleteReason = 'Use the Business Central admin center or the admin center API to monitor per-tenant extension operations.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '30.0';
                 }
+#pragma warning restore AL0432
 #endif
                 actionref(View_Promoted; View) { }
                 actionref(Install_Promoted; Install) { }

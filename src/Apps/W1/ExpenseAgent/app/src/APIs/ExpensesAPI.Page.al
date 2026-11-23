@@ -21,7 +21,9 @@ page 6927 "Expenses API"
     PageType = API;
     ODataKeyFields = SystemId;
     SourceTable = Expense;
+    PopulateAllFields = true;
     AboutText = 'Provides access to data from the Expense table';
+    Permissions = tabledata "EA Corp Card" = r;
 
     layout
     {
@@ -49,6 +51,10 @@ page 6927 "Expenses API"
                 field(expenseReportNo; Rec."Expense Report No.")
                 {
                     Caption = 'Expense Report No.';
+                }
+                field(postedExpenseReportNo; Rec."Posted Expense Report No.")
+                {
+                    Caption = 'Posted Expense Report No.';
                 }
                 field(expenseCategory; Rec."Expense Category")
                 {
@@ -185,6 +191,11 @@ page 6927 "Expenses API"
                     Caption = 'Round Trip';
                     ToolTip = 'Specifies whether the mileage expense is a round trip.';
                 }
+                field(vehicleType; Rec."Vehicle Type")
+                {
+                    Caption = 'Vehicle Type';
+                    ToolTip = 'Specifies the vehicle type used for this mileage expense.';
+                }
                 field(totalMileage; TotalMileage)
                 {
                     Caption = 'Total Mileage';
@@ -202,6 +213,17 @@ page 6927 "Expenses API"
                 field(creditCardFeedNo; Rec."Credit Card Feed No.")
                 {
                     Caption = 'Credit Card Feed No.';
+                    Editable = false;
+                }
+                field(source; Rec.Source)
+                {
+                    Caption = 'Source';
+                    ToolTip = 'Specifies how the expense was originally created.';
+                    Editable = false;
+                }
+                field(corporateCardId; Rec."Corporate Card Id")
+                {
+                    Caption = 'Corporate Card Id';
                 }
                 field(extractionConfidence; Rec."Extraction Confidence")
                 {
@@ -230,6 +252,31 @@ page 6927 "Expenses API"
                 field(ruleViolations; Rec."Rule Violations")
                 {
                     Caption = 'Rule Violations';
+                }
+                field(noReceiptType; Rec."No Receipt Type")
+                {
+                    Caption = 'No Receipt Type';
+                    Editable = false;
+                }
+                field(noReceiptReason; Rec."No Receipt Reason")
+                {
+                    Caption = 'No Receipt Reason';
+                    Editable = false;
+                }
+                field(noReceiptDeclarationId; Rec."No Receipt Declaration ID")
+                {
+                    Caption = 'No Receipt Declaration Id';
+                    Editable = false;
+                }
+                field(noReceiptDeclarationCurrent; NoReceiptDeclarationCurrent)
+                {
+                    Caption = 'No Receipt Declaration Current';
+                    Editable = false;
+                }
+                field(complianceStatus; Rec."Compliance Status")
+                {
+                    Caption = 'Compliance Status';
+                    Editable = false;
                 }
                 field(createdDateTime; Rec."Created Date-Time")
                 {
@@ -311,6 +358,13 @@ page 6927 "Expenses API"
                     EntitySetName = 'expenseperdiems';
                     SubPageLink = "Expense No." = field("No.");
                 }
+                part(expenseVATSpecifications; "Expense VAT Spec. API")
+                {
+                    Caption = 'Expense VAT Specifications';
+                    EntityName = 'expenseVATSpecification';
+                    EntitySetName = 'expenseVATSpecifications';
+                    SubPageLink = "Expense No." = field("No.");
+                }
                 part(expenseRuleViolations; "Expense Rule Violations API")
                 {
                     Caption = 'Expense Rule Violations';
@@ -331,6 +385,7 @@ page 6927 "Expenses API"
         CurrencyLCYDisplay: Code[10];
         ExpenseUserSystemId: Guid;
         TotalMileage: Decimal;
+        NoReceiptDeclarationCurrent: Boolean;
         JobDescription: Text[100];
         JobTaskDescription: Text[100];
         ExpenseCreatedLbl: Label 'Expense created via API.', Locked = true;
@@ -352,11 +407,13 @@ page 6927 "Expenses API"
         ExpenseUser: Record "Expense User";
         Job: Record Job;
         JobTask: Record "Job Task";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
     begin
         CurrencyCodeDisplay := CurrencyHelper.GetCurrencyCodeForAPI(Rec."Currency Code");
         XCurrencyCodeDisplay := CurrencyCodeDisplay;
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         TotalMileage := ExpenseAutoPopulation.GetEffectiveDistance(Rec.Mileage, Rec."Round Trip");
+        NoReceiptDeclarationCurrent := NoReceiptDeclarationMgt.HasCurrentDeclaration(Rec);
 
         JobDescription := '';
         JobTaskDescription := '';
@@ -381,7 +438,7 @@ page 6927 "Expenses API"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         if CurrencyCodeDisplay <> XCurrencyCodeDisplay then
-            Rec."Currency Code" := CurrencyHelper.GetCurrencyCodeFromAPI(CurrencyCodeDisplay);
+            Rec.Validate("Currency Code", CurrencyHelper.GetCurrencyCodeFromAPI(CurrencyCodeDisplay));
         UpdateExpenseUserNoFromSystemId();
         if ExpenseAgentAPIValidation.IsCurrentUserExpenseAgent() then
             Rec.SetCalledFromExpenseAgent(true);
@@ -394,7 +451,7 @@ page 6927 "Expenses API"
     trigger OnModifyRecord(): Boolean
     begin
         if CurrencyCodeDisplay <> XCurrencyCodeDisplay then
-            Rec."Currency Code" := CurrencyHelper.GetCurrencyCodeFromAPI(CurrencyCodeDisplay);
+            Rec.Validate("Currency Code", CurrencyHelper.GetCurrencyCodeFromAPI(CurrencyCodeDisplay));
         UpdateExpenseUserNoFromSystemId();
         exit(true);
     end;
@@ -402,11 +459,39 @@ page 6927 "Expenses API"
     local procedure UpdateExpenseUserNoFromSystemId()
     var
         ExpenseUser: Record "Expense User";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         NewExpenseUserNo: Code[20];
     begin
         NewExpenseUserNo := ExpenseUser.GetExpenseUserNoBySystemId(ExpenseUserSystemId);
         if (NewExpenseUserNo <> '') and (Rec."Expense User No." <> NewExpenseUserNo) then
             Rec."Expense User No." := NewExpenseUserNo;
+        CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
+    end;
+
+    [ServiceEnabled]
+    procedure CreateNoReceiptDeclaration(var ActionContext: WebServiceActionContext; reason: Text; attestationConfirmed: Boolean)
+    var
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+    begin
+        NoReceiptDeclarationMgt.CreateDeclaration(Rec, reason, attestationConfirmed);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expenses API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure CancelNoReceiptDeclaration(var ActionContext: WebServiceActionContext)
+    var
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+    begin
+        NoReceiptDeclarationMgt.CancelDeclaration(Rec);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expenses API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
     [ServiceEnabled]

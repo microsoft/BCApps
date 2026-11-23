@@ -23,12 +23,15 @@ codeunit 139608 "Shpfy Orders API Test"
     TestType = Uncategorized;
     TestPermissions = Disabled;
     TestHttpRequestPolicy = BlockOutboundRequests;
+    EventSubscriberInstance = Manual;
 
     var
         Shop: Record "Shpfy Shop";
         LibraryAssert: Codeunit "Library Assert";
         LibraryRandom: Codeunit "Library - Random";
         InitializeTest: Codeunit "Shpfy Initialize Test";
+        HttpResponses: Codeunit "Library - Variable Storage";
+        ShpfyOrdersAPITest: Codeunit "Shpfy Orders API Test";
         Any: Codeunit Any;
         CompanyLocationId: BigInteger;
         IsInitialized: Boolean;
@@ -554,6 +557,99 @@ codeunit 139608 "Shpfy Orders API Test"
 
     [Test]
     [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesDocumentTaxLiable()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        TaxArea: Record "Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Tax Liable from Shpfy Tax Area flows to the sales document
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Tax Area Priority" := Shop."Tax Area Priority"::"Ship-to -> Sell-to -> Bill-to";
+        Shop."County Source" := Shop."County Source"::"Code";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Shopify Tax Area with Tax Liable = true
+        CreateTaxArea(TaxArea, ShopifyTaxArea, Shop);
+
+        // [GIVEN] Order imported and mapped
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Ship-to City" := ShopifyTaxArea.County;
+        OrderHeader."Ship-to Country/Region Code" := ShopifyTaxArea."Country/Region Code";
+        OrderHeader."Ship-to County" := ShopifyTaxArea."County Code";
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document has Tax Area Code and Tax Liable
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Tax Area Code", TaxArea.Code, 'Tax Area Code is set');
+        LibraryAssert.IsTrue(SalesHeader."Tax Liable", 'Tax Liable must be true when Tax Area has Tax Liable');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    procedure UnitTestCreateSalesDocumentTaxExempt()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        SalesHeader: Record "Sales Header";
+        TaxArea: Record "Tax Area";
+        ShopifyTaxArea: Record "Shpfy Tax Area";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+    begin
+        // [SCENARIO] Tax Exempt order gets Tax Area Code but Tax Liable stays false
+        Initialize();
+
+        // [GIVEN] Shopify Shop
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Tax Area Priority" := Shop."Tax Area Priority"::"Ship-to -> Sell-to -> Bill-to";
+        Shop."County Source" := Shop."County Source"::"Code";
+        if not Shop.Modify() then
+            Shop.Insert();
+        ImportOrder.SetShop(Shop.Code);
+
+        // [GIVEN] Shopify Tax Area with Tax Liable = true
+        CreateTaxArea(TaxArea, ShopifyTaxArea, Shop);
+
+        // [GIVEN] Order imported with Tax Exempt = true
+        OrderHandlingHelper.ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+        OrderHeader."Ship-to City" := ShopifyTaxArea.County;
+        OrderHeader."Ship-to Country/Region Code" := ShopifyTaxArea."Country/Region Code";
+        OrderHeader."Ship-to County" := ShopifyTaxArea."County Code";
+        OrderHeader."Tax Exempt" := true;
+        OrderHeader.Modify();
+        Commit();
+
+        // [WHEN] Order is processed
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+        OrderHeader.GetBySystemId(OrderHeader.SystemId);
+
+        // [THEN] Sales document has Tax Area Code but Tax Liable = false
+        SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
+        LibraryAssert.AreEqual(SalesHeader."Tax Area Code", TaxArea.Code, 'Tax Area Code is set even for tax exempt orders');
+        LibraryAssert.IsFalse(SalesHeader."Tax Liable", 'Tax Liable must be false when order is Tax Exempt');
+    end;
+
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentReserve()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -859,6 +955,12 @@ codeunit 139608 "Shpfy Orders API Test"
         // [WHEN] Order is processed
         ProcessOrders.ProcessShopifyOrder(OrderHeader);
 
+        // [THEN] Currency handling is stored on the processed order
+        OrderHeader.Get(OrderHeader."Shopify Order Id");
+        LibraryAssert.AreEqual(
+            Enum::"Shpfy Currency Handling"::"Presentment Currency",
+            OrderHeader."Processed Currency Handling",
+            'Processed currency handling should match the shop setting');
         // [THEN] Sales document is created from Shopify order and order line is reserved
         SalesHeader.SetRange("Shpfy Order Id", OrderHeader."Shopify Order Id");
         LibraryAssert.IsTrue(SalesHeader.FindLast(), 'Sales document is created from Shopify order');
@@ -1607,6 +1709,388 @@ codeunit 139608 "Shpfy Orders API Test"
         LibraryAssert.AreEqual(1, PlanRefreshCallCount, 'Bulk sync report should issue exactly one plan-refresh query.');
     end;
 
+    [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure TestAutoCreateOrderStoresCurrencyHandlingUsedForSalesDocument()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        SalesHeader: Record "Sales Header";
+        ShopFilter: Record "Shpfy Shop";
+        SyncOrdersFromShopify: Report "Shpfy Sync Orders from Shopify";
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JShopifyOrder: JsonObject;
+        JShopifyLineItems: JsonArray;
+        EntryNo: Integer;
+        OrderId: BigInteger;
+    begin
+        Initialize();
+
+        Shop := CommunicationMgt.GetShopRecord();
+        Shop."Auto Create Orders" := true;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Presentment Currency";
+        Shop.Modify(false);
+
+        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
+        EntryNo := OrdersToImport."Entry No.";
+        OrderId := OrdersToImport.Id;
+        OrdersToImport.Reset();
+        OrdersToImport.SetFilter("Entry No.", '<>%1', EntryNo);
+        OrdersToImport.DeleteAll(false);
+        EnqueueAutoCreateOrderResponses(JShopifyOrder, JShopifyLineItems);
+        Commit();
+
+        ShopFilter.SetRange(Code, Shop.Code);
+        SyncOrdersFromShopify.SetTableView(ShopFilter);
+        SyncOrdersFromShopify.UseRequestPage(false);
+        BindSubscription(ShpfyOrdersAPITest);
+        SyncOrdersFromShopify.Run();
+        UnbindSubscription(ShpfyOrdersAPITest);
+        HttpResponses.AssertEmpty();
+
+        OrderHeader.Get(OrderId);
+        LibraryAssert.IsTrue(OrderHeader.Processed, 'Shopify order should be processed automatically');
+        LibraryAssert.AreEqual(
+            Enum::"Shpfy Currency Handling"::"Shop Currency",
+            OrderHeader."Processed Currency Handling",
+            'Automatically processed order should store the currency handling used for the sales document');
+        SalesHeader.SetRange("Shpfy Order Id", OrderId);
+        LibraryAssert.IsTrue(SalesHeader.FindFirst(), 'Sales document should be created automatically');
+        LibraryAssert.AreEqual(Shop."Currency Code", SalesHeader."Currency Code", 'Sales document should use the shop currency');
+
+        Shop.Get(Shop.Code);
+        Shop."Auto Create Orders" := false;
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop.Modify(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestUnverifiedReturnGiftCardIsNotExchangeItem()
+    var
+        OrderLine: Record "Shpfy Order Line";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] An unverified POS return is refunded to a gift card that Shopify adds as an exchange line, with no refund to offset it.
+        Initialize();
+
+        // [GIVEN] A fulfilled order whose only line is the gift card issued by an unverified return
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
+
+        // [WHEN] The order is imported
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [THEN] The gift card is not an exchange item
+        GetGiftCardOrderLine(OrdersToImport.Id, OrderLine);
+        LibraryAssert.IsFalse(OrderLine."Is Exchange Item", 'An unverified-return gift card must stay on the sales invoice.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestVerifiedReturnGiftCardRemainsExchangeItem()
+    var
+        OrderLine: Record "Shpfy Order Line";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] A gift card exchanged on a verified return is offset on the credit memo, so it stays off the sales invoice.
+        Initialize();
+
+        // [GIVEN] A fulfilled order whose only line is a gift card exchanged on a verified return
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'ReturnLineItem');
+
+        // [WHEN] The order is imported
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [THEN] The gift card remains an exchange item
+        GetGiftCardOrderLine(OrdersToImport.Id, OrderLine);
+        LibraryAssert.IsTrue(OrderLine."Is Exchange Item", 'A gift card on a verified return must remain an exchange item.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestReimportClearsStaleExchangeFlagOnUnverifiedReturnGiftCard()
+    var
+        OrderLine: Record "Shpfy Order Line";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] Orders imported before the fix have the unverified-return gift card flagged as an exchange item.
+        Initialize();
+
+        // [GIVEN] An imported unverified-return gift card order whose gift card line is flagged as an exchange item
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+        GetGiftCardOrderLine(OrdersToImport.Id, OrderLine);
+        OrderLine."Is Exchange Item" := true;
+        OrderLine.Modify();
+
+        // [WHEN] The order is imported again
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [THEN] The exchange flag is cleared
+        OrderLine.Get(OrderLine."Shopify Order Id", OrderLine."Line Id");
+        LibraryAssert.IsFalse(OrderLine."Is Exchange Item", 'Reimport must clear the stale exchange flag.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestUnverifiedReturnGiftCardCreatesReleasedInvoice()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] An unverified-return gift card order is invoiced with the gift card, so the invoice can be released.
+        Initialize();
+
+        // [GIVEN] An imported unverified-return gift card order
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [WHEN] The order is processed
+        ProcessImportedOrder(OrdersToImport.Id);
+
+        // [THEN] A released invoice with only the gift card line on the sold gift card account is created
+        OrderHeader.Get(OrdersToImport.Id);
+        LibraryAssert.IsFalse(OrderHeader."Has Error", OrderHeader."Error Message");
+        SalesHeader.Get(SalesHeader."Document Type"::Invoice, OrderHeader."Sales Invoice No.");
+        LibraryAssert.AreEqual(SalesHeader.Status::Released, SalesHeader.Status, 'The gift-card invoice must be released.');
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        LibraryAssert.AreEqual(1, SalesLine.Count(), 'The invoice must contain only the gift-card line.');
+        SalesLine.FindFirst();
+        LibraryAssert.AreEqual(SalesLine.Type::"G/L Account", SalesLine.Type, 'The gift card must be invoiced on a G/L account.');
+        LibraryAssert.AreEqual(Shop."Sold Gift Card Account", SalesLine."No.", 'The gift card must use the sold gift-card account.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestReimportProcessedUnverifiedReturnGiftCardOrderIsNotConflicting()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrdersToImport: Record "Shpfy Orders to Import";
+        ImportResponses: List of [Text];
+    begin
+        // [SCENARIO] The invoiced gift card is still a Shopify exchange line, so reimporting the order must not count as an order edit.
+        Initialize();
+
+        // [GIVEN] An imported and processed unverified-return gift card order
+        ImportResponses := CreateGiftCardExchangeOrder(OrdersToImport, 'UnverifiedReturnLineItem');
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+        ProcessImportedOrder(OrdersToImport.Id);
+
+        // [WHEN] The order is imported again
+        ImportOrderWithResponses(OrdersToImport, ImportResponses);
+
+        // [THEN] The processed order is not flagged as edited in Shopify
+        OrderHeader.Get(OrdersToImport.Id);
+        LibraryAssert.IsTrue(OrderHeader.Processed, OrderHeader."Error Message");
+        LibraryAssert.IsFalse(OrderHeader."Has Order State Error", 'Reimporting the invoiced gift card must not flag an order edit.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestUnverifiedReturnGiftCardRemovesSyntheticRefundLine()
+    var
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundLine: Record "Shpfy Refund Line";
+        GiftCardLineId: BigInteger;
+        ItemLineId: BigInteger;
+    begin
+        // [SCENARIO] Refund import must not offset a gift card that order import invoices for an unverified return.
+        Initialize();
+
+        // [GIVEN] A refund for an unverified return that exchanged a gift card and an item, with a gift-card refund line from an earlier import
+        CreateGiftCardExchangeRefund("Shpfy Return Line Type"::Unverified, RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [WHEN] The refund is imported
+        ImportGiftCardExchangeRefund(RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [THEN] The gift-card refund line is removed and the item keeps its negative exchange line
+        LibraryAssert.IsFalse(RefundLine.Get(RefundHeader."Refund Id", -GiftCardLineId), 'An unverified-return gift card must not have a synthetic exchange refund line.');
+        RefundLine.Get(RefundHeader."Refund Id", -ItemLineId);
+        LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The exchanged item must keep its negative exchange quantity.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeImportHttpHandler')]
+    procedure TestVerifiedReturnGiftCardKeepsSyntheticRefundLine()
+    var
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundLine: Record "Shpfy Refund Line";
+        GiftCardLineId: BigInteger;
+        ItemLineId: BigInteger;
+    begin
+        // [SCENARIO] Refund import still offsets a gift card exchanged on a verified return.
+        Initialize();
+
+        // [GIVEN] A refund for a verified return that exchanged a gift card and an item, with a gift-card refund line from an earlier import
+        CreateGiftCardExchangeRefund("Shpfy Return Line Type"::Default, RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [WHEN] The refund is imported
+        ImportGiftCardExchangeRefund(RefundHeader, GiftCardLineId, ItemLineId);
+
+        // [THEN] Both the gift card and the item have negative exchange refund lines
+        RefundLine.Get(RefundHeader."Refund Id", -GiftCardLineId);
+        LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The verified-return gift card must keep its negative exchange quantity.');
+        RefundLine.Get(RefundHeader."Refund Id", -ItemLineId);
+        LibraryAssert.AreEqual(-1, RefundLine.Quantity, 'The exchanged item must keep its negative exchange quantity.');
+    end;
+
+    local procedure CreateGiftCardExchangeOrder(var OrdersToImport: Record "Shpfy Orders to Import"; ReturnLineType: Text) ImportResponses: List of [Text]
+    var
+        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
+        JOrder: JsonObject;
+        JOrderLines: JsonArray;
+        JOrderLine: JsonToken;
+        JReturns: JsonObject;
+        OrderJson: Text;
+        OrderLinesJson: Text;
+        ReturnResponse: Text;
+        ReturnId: BigInteger;
+        EmptyResponseTok: Label '{"data":{}}', Locked = true;
+        OrderResponseTok: Label '{"data":{"order":%1}}', Locked = true, Comment = '%1 = Order JSON';
+        OrderLinesResponseTok: Label '{"data":{"order":{"lineItems":{"nodes":%1,"pageInfo":{"hasNextPage":false}}}}}', Locked = true, Comment = '%1 = Line items JSON';
+        OrderReturnsTok: Label '{"nodes":[{"id":"gid://shopify/Return/%1"}],"pageInfo":{"hasNextPage":false}}', Locked = true, Comment = '%1 = Return Id';
+        ExchangeLineItemsResponseTok: Label '{"data":{"order":{"returns":{"nodes":[{"id":"gid://shopify/Return/%1","exchangeLineItems":{"nodes":[{"lineItems":[{"id":"%2"}]}]}}],"pageInfo":{"hasNextPage":false}}}}}', Locked = true, Comment = '%1 = Return Id, %2 = Gift card line item GID';
+        ReturnResponseTok: Label '{"data":{"return":{"name":"R1","status":"CLOSED","totalQuantity":1,"order":{"legacyResourceId":%1},"reverseFulfillmentOrders":{"nodes":[],"pageInfo":{"hasNextPage":false}},"returnLineItems":{"nodes":[{"__typename":"%2","id":"gid://shopify/%2/%3","quantity":1}],"pageInfo":{"hasNextPage":false}}}}}', Locked = true, Comment = '%1 = Order Id, %2 = Return line type, %3 = Return line Id';
+    begin
+        Any.SetDefaultSeed();
+        ReturnId := Any.IntegerInRange(100000, 999999);
+        Shop.Get(Shop.Code);
+        Shop."Return and Refund Process" := "Shpfy ReturnRefund ProcessType"::"Import Only";
+        Shop."Customer Mapping Type" := "Shpfy Customer Mapping"::"By EMail/Phone";
+        Shop."Sold Gift Card Account" := Shop."Refund Account";
+        Shop."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        Shop."Auto Release Sales Orders" := true;
+        Shop."Create Invoices From Orders" := true;
+        Shop."Shopify Order No. on Doc. Line" := false;
+        Shop."Order Attributes To Shopify" := false;
+        Shop."Archive Processed Orders" := false;
+        Shop."Fulfillment Service Activated" := true;
+        Shop.Modify();
+
+        // A fulfilled, returned order whose only line is the gift card handed out as the exchange item.
+        JOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JOrderLines, false);
+        // The sync report fills Shop Code in production.
+        OrdersToImport."Shop Code" := Shop.Code;
+        OrdersToImport.Modify();
+        JOrder.Replace('displayFulfillmentStatus', 'FULFILLED');
+        JOrder.Add('returnStatus', 'RETURNED');
+        JReturns.ReadFrom(StrSubstNo(OrderReturnsTok, ReturnId));
+        JOrder.Add('returns', JReturns);
+        JOrderLines.Get(0, JOrderLine);
+        JOrderLine.AsObject().Add('isGiftCard', true);
+        JOrder.WriteTo(OrderJson);
+        JOrderLines.WriteTo(OrderLinesJson);
+
+        ImportResponses.Add(StrSubstNo(OrderResponseTok, OrderJson));
+        ImportResponses.Add(StrSubstNo(OrderLinesResponseTok, OrderLinesJson));
+        ImportResponses.Add(StrSubstNo(ExchangeLineItemsResponseTok, ReturnId, JOrderLine.AsObject().GetText('id')));
+        // Fulfillment orders, shipping lines and transactions.
+        ImportResponses.Add(EmptyResponseTok);
+        ImportResponses.Add(EmptyResponseTok);
+        ImportResponses.Add(EmptyResponseTok);
+        // Return header, return locations and return lines.
+        ReturnResponse := StrSubstNo(ReturnResponseTok, OrdersToImport.Id, ReturnLineType, ReturnId);
+        ImportResponses.Add(ReturnResponse);
+        ImportResponses.Add(ReturnResponse);
+        ImportResponses.Add(ReturnResponse);
+        // Fulfillments.
+        ImportResponses.Add(EmptyResponseTok);
+    end;
+
+    local procedure ImportOrderWithResponses(OrdersToImport: Record "Shpfy Orders to Import"; ImportResponses: List of [Text])
+    var
+        ImportOrder: Codeunit "Shpfy Import Order";
+        ImportResponse: Text;
+    begin
+        foreach ImportResponse in ImportResponses do
+            HttpResponses.Enqueue(ImportResponse);
+        ImportOrder.Run(OrdersToImport);
+        HttpResponses.AssertEmpty();
+    end;
+
+    local procedure GetGiftCardOrderLine(OrderId: BigInteger; var OrderLine: Record "Shpfy Order Line")
+    begin
+        OrderLine.SetRange("Shopify Order Id", OrderId);
+        OrderLine.SetRange("Gift Card", true);
+        OrderLine.FindFirst();
+    end;
+
+    local procedure ProcessImportedOrder(OrderId: BigInteger)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        ProcessOrders: Codeunit "Shpfy Process Orders";
+    begin
+        OrderHeader.Get(OrderId);
+        Commit();
+        ProcessOrders.ProcessShopifyOrder(OrderHeader);
+    end;
+
+    local procedure CreateGiftCardExchangeRefund(ReturnLineType: Enum "Shpfy Return Line Type"; var RefundHeader: Record "Shpfy Refund Header"; var GiftCardLineId: BigInteger; var ItemLineId: BigInteger)
+    var
+        RefundLine: Record "Shpfy Refund Line";
+        ReturnLine: Record "Shpfy Return Line";
+    begin
+        Any.SetDefaultSeed();
+        GiftCardLineId := Any.IntegerInRange(100000, 999999);
+        ItemLineId := GiftCardLineId + 1;
+        RefundHeader."Refund Id" := Any.IntegerInRange(100000, 999999);
+        RefundHeader."Order Id" := Any.IntegerInRange(100000, 999999);
+        RefundHeader."Return Id" := Any.IntegerInRange(100000, 999999);
+        // Whole seconds survive the SQL round trip, so GetRefundHeader skips the header request.
+        RefundHeader."Updated At" := CreateDateTime(Today(), 120000T);
+        RefundHeader."Shop Code" := Shop.Code;
+        RefundHeader.Insert();
+        ReturnLine."Return Line Id" := Any.IntegerInRange(100000, 999999);
+        ReturnLine."Return Id" := RefundHeader."Return Id";
+        ReturnLine.Type := ReturnLineType;
+        ReturnLine.Insert();
+
+        RefundLine."Refund Id" := RefundHeader."Refund Id";
+        RefundLine."Refund Line Id" := -GiftCardLineId;
+        RefundLine."Order Line Id" := GiftCardLineId;
+        RefundLine."Is Exchange Item" := true;
+        RefundLine.Insert();
+    end;
+
+    local procedure ImportGiftCardExchangeRefund(RefundHeader: Record "Shpfy Refund Header"; GiftCardLineId: BigInteger; ItemLineId: BigInteger)
+    var
+        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
+        RefundsAPI: Codeunit "Shpfy Refunds API";
+        JRefund: JsonObject;
+        JRefunds: JsonArray;
+        EmptyResponseTok: Label '{"data":{}}', Locked = true;
+        ExchangeLinesResponseTok: Label '{"data":{"refund":{"return":{"exchangeLineItems":{"pageInfo":{"hasNextPage":false},"nodes":[{"quantity":1,"lineItems":[{"id":"gid://shopify/LineItem/%1","isGiftCard":true,"originalUnitPriceSet":{"shopMoney":{"amount":100},"presentmentMoney":{"amount":100}}}]},{"quantity":1,"lineItems":[{"id":"gid://shopify/LineItem/%2","isGiftCard":false,"originalUnitPriceSet":{"shopMoney":{"amount":100},"presentmentMoney":{"amount":100}}}]}]}}}}}', Locked = true, Comment = '%1 = Gift card line item Id, %2 = Item line item Id';
+    begin
+        CommunicationMgt.SetShop(Shop);
+        // Return locations, refund lines and refund shipping lines.
+        HttpResponses.Enqueue(EmptyResponseTok);
+        HttpResponses.Enqueue(EmptyResponseTok);
+        HttpResponses.Enqueue(EmptyResponseTok);
+        HttpResponses.Enqueue(StrSubstNo(ExchangeLinesResponseTok, GiftCardLineId, ItemLineId));
+        JRefund.Add('legacyResourceId', RefundHeader."Refund Id");
+        JRefund.Add('updatedAt', RefundHeader."Updated At");
+        JRefunds.Add(JRefund);
+        RefundsAPI.GetRefunds(JRefunds);
+        HttpResponses.AssertEmpty();
+    end;
+
+    [HttpClientHandler]
+    internal procedure ExchangeImportHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        LibraryAssert.IsTrue(InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL"), 'Unexpected Shopify request URL.');
+        Response.Content.WriteFrom(HttpResponses.DequeueText());
+        exit(false);
+    end;
+
     local procedure CreateTaxArea(var TaxArea: Record "Tax Area"; var ShopifyTaxArea: Record "Shpfy Tax Area"; ShopParam: Record "Shpfy Shop")
     var
         ShopifyCustomerTemplate: Record "Shpfy Customer Template";
@@ -1626,6 +2110,7 @@ codeunit 139608 "Shpfy Orders API Test"
         ShopifyTaxArea."County Code" := CountyCode;
         ShopifyTaxArea.County := County;
         ShopifyTaxArea."Tax Area Code" := CountyCode;
+        ShopifyTaxArea."Tax Liable" := true;
         if ShopifyTaxArea.Insert() then;
         TaxArea.Code := CountyCode;
         if TaxArea.Insert() then;
@@ -1712,6 +2197,7 @@ codeunit 139608 "Shpfy Orders API Test"
         // the plan-refresh flag into the next test and corrupt unrelated HTTP calls.
         PlanRefreshExpected := false;
         PlanRefreshCallCount := 0;
+        HttpResponses.Clear();
 
         if IsInitialized then
             exit;
@@ -1733,6 +2219,11 @@ codeunit 139608 "Shpfy Orders API Test"
         if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
+        if HttpResponses.Length() > 0 then begin
+            Response.Content.WriteFrom(HttpResponses.DequeueText());
+            exit(false);
+        end;
+
         if PlanRefreshExpected and (PlanRefreshCallCount = 0) then begin
             PlanRefreshCallCount += 1;
             Response.Content.WriteFrom(DowngradedPlanShopResponseTok);
@@ -1746,6 +2237,43 @@ codeunit 139608 "Shpfy Orders API Test"
         end else
             Response.Content.WriteFrom('{"data":{}}');
         exit(false);
+    end;
+
+    local procedure EnqueueAutoCreateOrderResponses(JShopifyOrder: JsonObject; JShopifyLineItems: JsonArray)
+    var
+        HeaderData: JsonObject;
+        HeaderResponse: JsonObject;
+        LineData: JsonObject;
+        LineItems: JsonObject;
+        LineOrder: JsonObject;
+        LinePageInfo: JsonObject;
+        LineResponse: JsonObject;
+    begin
+        HttpResponses.Enqueue(DowngradedPlanShopResponseTok);
+        HttpResponses.Enqueue('{"data":{}}');
+
+        HeaderData.Add('order', JShopifyOrder);
+        HeaderResponse.Add('data', HeaderData);
+        HttpResponses.Enqueue(Format(HeaderResponse));
+
+        LinePageInfo.Add('hasNextPage', false);
+        LinePageInfo.Add('endCursor', '');
+        LineItems.Add('pageInfo', LinePageInfo);
+        LineItems.Add('nodes', JShopifyLineItems);
+        LineOrder.Add('lineItems', LineItems);
+        LineData.Add('order', LineOrder);
+        LineResponse.Add('data', LineData);
+        HttpResponses.Enqueue(Format(LineResponse));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Order Events", OnBeforeProcessSalesDocument, '', false, false)]
+    local procedure ChangeCurrencyHandlingOnBeforeProcessSalesDocument(var ShopifyOrderHeader: Record "Shpfy Order Header")
+    var
+        ShopToUpdate: Record "Shpfy Shop";
+    begin
+        ShopToUpdate.Get(ShopifyOrderHeader."Shop Code");
+        ShopToUpdate."Currency Handling" := "Shpfy Currency Handling"::"Shop Currency";
+        ShopToUpdate.Modify(false);
     end;
 
     local procedure PrepareOrdersToImportChannelLiableScenario(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; var JOrdersToImport: JsonObject; var ExpectedChannelLiable: Boolean; var ScenarioName: Text)

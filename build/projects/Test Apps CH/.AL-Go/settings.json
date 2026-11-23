@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/38f971084e949653850a8bba31c7a94ab31a0a7c/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/957ea1ea2e286bc966ac24c9f24035dbd30d72ed/Actions/.Modules/settings.schema.json",
   "projectName": "Unit Tests (CH)",
   "gitHubRunner": "GitHub-BCAppsPL",
   "projectsToTest": [

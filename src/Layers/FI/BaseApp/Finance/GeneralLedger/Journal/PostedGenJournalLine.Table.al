@@ -1114,7 +1114,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Specifies the spend request that this journal line relates to.
         /// </summary>
-        field(140; "Spend Request No."; Code[20])
+        field(146; "Spend Request No."; Code[20])
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this journal line relates to.';
@@ -1124,7 +1124,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Specifies that the spend request will be closed when the journal line is posted.
         /// </summary>
-        field(141; "Spend Request Close"; Boolean)
+        field(147; "Spend Request Close"; Boolean)
         {
             Caption = 'Spend Request Close';
             ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';
@@ -1149,7 +1149,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Incoming document entry number linking posted journal entries to source documents for audit trail and workflow tracking.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";
@@ -1625,7 +1625,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// Fixed asset error entry number linking to FA ledger entry for error correction and audit trail purposes.
         /// </summary>
-        field(5615; "FA Error Entry No."; Integer)
+        field(5615; "FA Error Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'FA Error Entry No.';
@@ -1795,7 +1795,7 @@ table 181 "Posted Gen. Journal Line"
         /// <summary>
         /// General ledger register number linking posted entries to specific G/L register for audit trail and batch tracking.
         /// </summary>
-        field(8010; "G/L Register No."; Integer)
+        field(8010; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             ToolTip = 'Specifies the number of the general ledger register.';
@@ -1814,7 +1814,7 @@ table 181 "Posted Gen. Journal Line"
             Caption = 'Auto. Acc. Group';
             TableRelation = "Automatic Acc. Header";
             ObsoleteReason = 'Moved to Automatic Account Codes app.';
-			ObsoleteState = Removed;
+            ObsoleteState = Removed;
             ObsoleteTag = '25.0';
         }
 #endif

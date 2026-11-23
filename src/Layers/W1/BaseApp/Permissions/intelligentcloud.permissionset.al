@@ -373,7 +373,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Analysis View Filter" = R,
                   tabledata "API Entities Setup" = R,
 #pragma warning disable AL0432
-#if not CLEAN29
+#if not CLEAN30
                   tabledata "API Extension Upload" = r,
 #endif
 #pragma warning restore AL0432
@@ -754,9 +754,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Exchange Folder" = R,
                   tabledata "Exchange Object" = R,
                   tabledata "Exchange Service Setup" = R,
-#if not CLEAN28
                   tabledata "Exchange Sync" = R,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = R,
                   tabledata "Experience Tier Buffer" = R,
                   tabledata "Experience Tier Setup" = R,

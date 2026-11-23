@@ -10,6 +10,7 @@ using Microsoft.Inventory.Reports;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Manufacturing.Wizard;
 
 pageextension 99000751 "Mfg. Item List" extends "Item List"
 {
@@ -154,25 +155,29 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
         }
         addafter("Invt. Valuation - Cost Spec.")
         {
-#if not CLEAN27
-            action("Compare List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Compare List (Obsolete)';
-                Image = "Report";
-                RunObject = Report "Compare List";
-                ToolTip = 'View a comparison of components for two items. The printout compares the components, their unit cost, cost share and cost per component.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This report has been replaced by the "Compare Production Cost Shares" report and will be removed in a future release.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             action("Compare Production Cost Shares")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Compare Production Cost Shares';
                 Image = "Report";
                 RunObject = Report "Compare Production Cost Shares";
+            }
+        }
+        addafter("&Create Stockkeeping Unit")
+        {
+            action("Mfg. RunProdDefinition")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Production Definition';
+                Image = ProductionSetup;
+                ToolTip = 'Define or review the bill of materials and routing for this item using the Production Definition Wizard.';
+
+                trigger OnAction()
+                var
+                    ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                begin
+                    ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
+                end;
             }
         }
     }
