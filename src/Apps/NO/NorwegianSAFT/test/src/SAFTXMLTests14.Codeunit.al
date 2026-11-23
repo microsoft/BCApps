@@ -134,13 +134,18 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure NOKSourceCurrencyDoesNotExportNOKTaxAmount()
+    procedure LCYSourceCurrencyDoesNotExportNOKTaxAmount()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
-        // [SCENARIO] A tax amount already denominated in NOK does not require a separate NOK tax amount.
-        // [GIVEN] A purchase VAT entry with NOK as its source currency and a source tax amount with 18 decimal places.
+        // [SCENARIO] A tax amount already denominated in LCY does not require a separate NOK tax amount.
+        // [GIVEN] A purchase VAT entry with LCY as its source currency and a source tax amount with 18 decimal places.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("LCY Code");
+
         // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
         // [THEN] DebitTaxAmount retains the source currency amount without a separate DebitNOKTaxAmount node.
-        VerifySourceCurrencyTaxAmount('NOK');
+        VerifySourceCurrencyTaxAmount(GeneralLedgerSetup."LCY Code");
     end;
 
     [Test]
@@ -216,6 +221,8 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         Currency: Record Currency;
         TempXMLBuffer: Record "XML Buffer" temporary;
         TempAmountXMLBuffer: Record "XML Buffer" temporary;
+        DebitAmount: Decimal;
+        CreditAmount: Decimal;
         EntryNo: Integer;
         TransactionNo: Integer;
         Sign: Integer;
@@ -232,19 +239,23 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         DocumentNo := LibraryUtility.GenerateGUID();
         Sign := IsDebit ? 1 : -1;
         AmountNode := IsDebit ? 'DebitAmount' : 'CreditAmount';
+        if IsDebit then
+            DebitAmount := 0.1
+        else
+            CreditAmount := -0.1;
         EntryNo := SAFTTestHelper.MockGLEntry(
             SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '',
             GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", '',
-            IsDebit ? 100 : 0, IsDebit ? 0 : -100);
+            DebitAmount, CreditAmount);
         SAFTTestHelper.MockCustLedgEntry(
             EntryNo, SAFTExportHeader."Ending Date", Customer."No.", TransactionNo, Currency.Code,
-            Sign * 0.000123456789012345, Sign * 0.000123456789012345, Sign * 100,
-            0.000123456789012345, "Gen. Journal Document Type"::Invoice);
+            Sign * 0.123456789012345678, Sign * 0.123456789012345678, Sign * 0.1,
+            1.23456789012345678, "Gen. Journal Document Type"::Invoice);
         // A different entry number exercises conversion rather than the stored ledger amount.
         SAFTTestHelper.MockGLEntry(
             SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '',
             GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", '',
-            IsDebit ? 1 : 0, IsDebit ? 0 : -1);
+            2 * DebitAmount, 2 * CreditAmount);
 
         // [WHEN] The entries are exported to SAF-T 1.4.
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
@@ -255,10 +266,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
                 '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:' + AmountNode),
             'Currency amount nodes were not exported.');
         Assert.RecordCount(TempXMLBuffer, 2);
-        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '100', '0.000123456789012345', '0.000123456789012345');
+        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '0.1', '0.123456789012345678', '0.810000007290000072');
         TempXMLBuffer.Next();
-        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '1',
-            Format(Round(1 / 0.000123456789012345, 0.000000000000000001), 0, 9), '0.000123456789012345');
+        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '0.2',
+            '0.246913578024691356', '0.810000007290000072');
     end;
 
     local procedure VerifyAmountChildren(var TempChildren: Record "XML Buffer" temporary; var TempParent: Record "XML Buffer" temporary; CurrencyCode: Code[10]; Amount: Text; CurrencyAmount: Text; ExchangeRate: Text)
@@ -362,8 +373,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
 
-        // [THEN] The source tax amount retains its precision and a separate NOK amount is present only for a non-NOK source currency.
-        VerifyTaxStructure(TempXMLBuffer, VATEntry, true, SourceCurrencyCode <> 'NOK', SourceCurrencyCode, 0.000123456789012345);
+        // [THEN] The source tax amount retains its precision and a separate NOK amount is present only for a foreign source currency.
+        VerifyTaxStructure(
+            TempXMLBuffer, VATEntry, true, SourceCurrencyCode <> GeneralLedgerSetup."LCY Code",
+            SourceCurrencyCode, 0.000123456789012345);
         AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:DebitTaxAmount/n1:CurrencyAmount', '0.000123456789012345');
     end;
 
