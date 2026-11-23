@@ -1008,6 +1008,7 @@ page 143 "Posted Sales Invoices"
         IsOfficeAddin: Boolean;
         HasPostedSalesInvoices: Boolean;
         HasInstallmentPlan: Boolean;
+        ProcessingInvoiceMsg: Label 'Processing record #1#######', Comment = '%1 = Record no';
 
     protected var
         SalesInvoiceStatsVisible: Boolean;

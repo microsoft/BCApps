@@ -253,13 +253,12 @@ table 25 "Vendor Ledger Entry"
                 TestField(Open, true);
 
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     if PostedPaymentLines.Get(PostedPaymentLines."Sales/Purchase"::Purchase, "Document Type", "Document No.",
                                               "Document Occurrence" * 10000) then begin
                         PostedPaymentLines."Due Date" := "Due Date";
                         PostedPaymentLines.Modify();
                     end;
-                end;
 #endif
             end;
         }

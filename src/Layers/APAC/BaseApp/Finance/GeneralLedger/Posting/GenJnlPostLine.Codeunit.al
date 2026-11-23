@@ -1602,6 +1602,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        WHTPostingSetup: Record "WHT Posting Setup";
+        WHTAmount: Decimal;
+        WHTAmountLCY: Decimal;
         DtldLedgEntryInserted: Boolean;
         CheckExtDocNoHandled: Boolean;
     begin
@@ -2358,9 +2361,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OnFinishPostingOnBeforeResetFirstEntryNo(GlobalGLEntry, NextEntryNo, FirstEntryNo, GenJournalLine);
         FirstEntryNo := 0;
-
-        if IsTransactionConsistent then
-            UpdateAppliedCVLedgerEntries();
 
         OnAfterFinishPosting(GlobalGLEntry, GLReg, IsTransactionConsistent, GenJournalLine);
     end;

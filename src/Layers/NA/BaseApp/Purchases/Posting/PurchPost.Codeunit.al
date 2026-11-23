@@ -11395,6 +11395,11 @@ codeunit 90 "Purch.-Post"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnPostSalesTaxToGLOnBeforeGenJnlPostLine(var GenJnlLine: Record "Gen. Journal Line"; PurchaseHeader: Record "Purchase Header"; var TempSalesTaxAmtLine: Record "Sales Tax Amount Line");
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnPostUpdateCreditMemoLineOnAfterPurchOrderLineModify(var PurchaseLine: Record "Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary; var ReturnShptLine: Record "Return Shipment Line")
     begin
     end;

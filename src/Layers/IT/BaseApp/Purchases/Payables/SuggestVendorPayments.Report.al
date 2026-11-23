@@ -787,9 +787,8 @@ report 393 "Suggest Vendor Payments"
                     if HandledEntry then begin
                         TempVendorPaymentBuffer."Vendor No." := VendLedgEntry."Vendor No.";
 #if not CLEAN30
-                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                             TempVendorPaymentBuffer."Document Occurrence" := VendLedgEntry."Document Occurrence";
-                        end;
 #endif
                         TempVendorPaymentBuffer."Currency Code" := VendLedgEntry."Currency Code";
                         TempVendorPaymentBuffer."Payment Method Code" := VendLedgEntry."Payment Method Code";
@@ -935,9 +934,8 @@ report 393 "Suggest Vendor Payments"
         GenJnlLine."Applies-to Invoice Id" := TempVendorPaymentBuffer."Ledg. Entry System Id";
         GenJnlLine."Payment Method Code" := TempVendorPaymentBuffer."Payment Method Code";
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             GenJnlLine."Applies-to Occurrence No." := TempVendorPaymentBuffer."Document Occurrence";
-        end;
 #endif
         GenJnlLine."Remit-to Code" := TempVendorPaymentBuffer."Remit-to Code";
 

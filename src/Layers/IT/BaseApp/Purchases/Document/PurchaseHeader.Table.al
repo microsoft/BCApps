@@ -1171,9 +1171,8 @@ table 38 "Purchase Header"
                     "Applies-to Doc. Type" := VendLedgEntry."Document Type";
                     "Applies-to Doc. No." := VendLedgEntry."Document No.";
 #if not CLEAN30
-                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                         "Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
-                    end;
 #endif
                     OnAfterAppliesToDocNoOnLookup(Rec, VendLedgEntry);
                 end;
@@ -2262,38 +2261,35 @@ table 38 "Purchase Header"
                             Validate("Prepayment Due Date", "Document Date");
                         Validate("Prepmt. Pmt. Discount Date", 0D);
                         Validate("Prepmt. Payment Discount %", 0);
-                    end else begin
 #if not CLEAN30
-                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
-                            PaymentTermsLine.Reset();
-                            PaymentTermsLine.SetRange("Sales/Purchase", PaymentPurchase."Sales/Purchase"::" ");
-                            PaymentTermsLine.SetRange(Type, PaymentTermsLine.Type::"Payment Terms");
-                            PaymentTermsLine.SetRange(Code, "Prepmt. Payment Terms Code");
-                            PaymentTermsLine.FindFirst();
-                            IsHandled := false;
-                            OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
-                            if not IsHandled then
-                                "Prepayment Due Date" := CalcDate(PaymentTermsLine."Due Date Calculation", "Document Date");
-                            IsHandled := false;
-                            OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled, UpdateDocumentDate);
-                            if not IsHandled then
-                                "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTermsLine."Discount Date Calculation", "Document Date");
-                            if not UpdateDocumentDate then
-                                Validate("Prepmt. Payment Discount %", PaymentTermsLine."Discount %");
-                        end else
+                    end else if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                        PaymentTermsLine.Reset();
+                        PaymentTermsLine.SetRange("Sales/Purchase", PaymentPurchase."Sales/Purchase"::" ");
+                        PaymentTermsLine.SetRange(Type, PaymentTermsLine.Type::"Payment Terms");
+                        PaymentTermsLine.SetRange(Code, "Prepmt. Payment Terms Code");
+                        PaymentTermsLine.FindFirst();
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Prepayment Due Date" := CalcDate(PaymentTermsLine."Due Date Calculation", "Document Date");
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled, UpdateDocumentDate);
+                        if not IsHandled then
+                            "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTermsLine."Discount Date Calculation", "Document Date");
+                        if not UpdateDocumentDate then
+                            Validate("Prepmt. Payment Discount %", PaymentTermsLine."Discount %");
 #endif
-                        begin
-                            IsHandled := false;
-                            OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
-                            if not IsHandled then
-                                "Prepayment Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-                            IsHandled := false;
-                            OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled, UpdateDocumentDate);
-                            if not IsHandled then
-                                "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
-                            if not UpdateDocumentDate then
-                                Validate("Prepmt. Payment Discount %", PaymentTerms."Discount %");
-                        end;
+                    end else begin
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
+                        if not IsHandled then
+                            "Prepayment Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                        IsHandled := false;
+                        OnValidatePaymentTermsCodeOnBeforeCalcPmtDiscDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled, UpdateDocumentDate);
+                        if not IsHandled then
+                            "Prepmt. Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                        if not UpdateDocumentDate then
+                            Validate("Prepmt. Payment Discount %", PaymentTerms."Discount %");
                     end;
                 end else begin
                     IsHandled := false;
@@ -3468,9 +3464,8 @@ table 38 "Purchase Header"
         PurchCommentLine.DeleteAll();
 
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             PaymentLines.DeletePaymentLines(Rec);
-        end;
 #endif
         PurchWithhSoc.DeleteRecByPurchHeader(Rec);
 

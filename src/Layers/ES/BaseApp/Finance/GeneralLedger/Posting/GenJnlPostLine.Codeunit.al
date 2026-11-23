@@ -1495,6 +1495,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             end;
         end;
 
+        OnPostCustOnBeforeApplyCustLedgEntry(GenJournalLine, CVLedgEntryBuf, FromBillSettlement);
         ApplyCustLedgEntry(CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJournalLine, Cust);
 
         CustLedgEntry.CopyFromCVLedgEntryBuffer(CVLedgEntryBuf);

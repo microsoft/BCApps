@@ -824,10 +824,9 @@ codeunit 80 "Sales-Post"
         InsertPostedHeaders(SalesHeader);
 
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             if SalesHeader.Invoice then
                 InsertPostedPayment(SalesHeader);
-        end;
 #endif
         UpdateIncomingDocument(SalesHeader."Incoming Document Entry No.", SalesHeader."Posting Date", GenJnlLineDocNo);
 
@@ -6255,9 +6254,8 @@ codeunit 80 "Sales-Post"
         GenJnlLine."Applies-to Doc. Type" := GenJnlLineDocType;
         GenJnlLine."Applies-to Doc. No." := GenJnlLineDocNo;
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             GenJnlLine."Applies-to Occurrence No." := 1;
-        end;
 #endif
         GenJnlLine."Source Type" := GenJnlLine."Source Type"::Customer;
         GenJnlLine."Source No." := SalesHeader."Bill-to Customer No.";
@@ -7189,11 +7187,10 @@ codeunit 80 "Sales-Post"
             if Check then
                 Error(ErrorInfo.Create(Text1130008Err, true, SalesHeader));
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             if SalesHeader."Applies-to Doc. No." <> '' then
                 if SalesHeader."Applies-to Occurrence No." = 0 then
                     Error(ErrorInfo.Create(StrSubstNo(SpecifyInstallmentErr, SalesHeader.FieldCaption("Applies-to Occurrence No.")), true, SalesHeader));
-        end;
 #endif
     end;
 
