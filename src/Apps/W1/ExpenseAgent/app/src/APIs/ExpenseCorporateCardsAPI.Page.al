@@ -54,15 +54,30 @@ page 7451 "Expense Corporate Cards API"
     var
         ExpenseUserNo: Code[20];
     begin
-        if Rec.GetFilter("Expense User No.") = '' then
-            Error(GetExpenseUserFilterRequiredError());
-        ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
-        if (ExpenseUserNo = '') or (ExpenseUserNo <> Rec.GetRangeMax("Expense User No.")) then
-            Error(GetExpenseUserFilterRequiredError());
+        if not GetLinkedExpenseUserNo(ExpenseUserNo) then begin
+            if Rec.GetFilter("Expense User No.") = '' then
+                Error(GetExpenseUserFilterRequiredError());
+            ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
+            if (ExpenseUserNo = '') or (ExpenseUserNo <> Rec.GetRangeMax("Expense User No.")) then
+                Error(GetExpenseUserFilterRequiredError());
+        end;
         Rec.FilterGroup(2);
         Rec.SetRange("Expense User No.", ExpenseUserNo);
         Rec.SetRange(Blocked, false);
         Rec.FilterGroup(0);
+    end;
+
+    // expenseUsers({id})/corporateCards passes the expense user through the subpage link, which is set in filter group 4.
+    local procedure GetLinkedExpenseUserNo(var ExpenseUserNo: Code[20]): Boolean
+    var
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(4);
+        if Rec.GetFilter("Expense User No.") <> '' then
+            ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
+        Rec.FilterGroup(OriginalFilterGroup);
+        exit(ExpenseUserNo <> '');
     end;
 
     local procedure GetExpenseUserFilterRequiredError(): ErrorInfo
