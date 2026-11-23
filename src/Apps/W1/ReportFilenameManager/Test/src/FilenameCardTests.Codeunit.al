@@ -7,7 +7,6 @@ namespace Microsoft.Test.Foundation.Reporting.FileNaming;
 using Microsoft.Assembly.Document;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.FinancialReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Company;
@@ -2353,7 +2352,6 @@ codeunit 149516 "Filename Card Tests"
         QuoteNoPatternTok: Label 'Quote-[No.]', Locked = true;
         EveryUsageHasSelectionErr: Label 'Every report usage has a report selection in this company, so a document cannot be kept from being found by its number.';
         QuotePrefixTok: Label 'Quote-', Locked = true;
-        DocTypeNoPatternTok: Label '[Document Type]-[No.]', Locked = true;
         QuoteNamedFromNumberErr: Label 'A sales quote was named "%1" from its number alone, which on Sales Header names a document of any type.', Comment = '%1 the name given';
         EmailDocumentNameTok: Label 'Invoice', Locked = true;
         DraftContentTok: Label 'content', Locked = true;
