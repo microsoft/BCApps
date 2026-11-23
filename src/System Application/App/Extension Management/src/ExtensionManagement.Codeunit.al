@@ -63,7 +63,9 @@ codeunit 2504 "Extension Management"
     [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure UploadExtension(FileStream: InStream; lcid: Integer)
     begin
+#pragma warning disable AL0432
         ExtensionOperationImpl.UploadExtension(FileStream, lcid);
+#pragma warning restore AL0432
     end;
 #endif
 

@@ -31,6 +31,9 @@ codeunit 135109 "Extension Mgt. Test Library"
         ExtensionOperationImpl.ShowInstallFailureStatus();
     end;
 
+    /// <summary>
+    /// Opens the Business Central admin center documentation for migrating PTE uploads.
+    /// </summary>
     procedure OpenAdminCenterExtensionManagementDocumentation()
     var
         DeprecationNotification: Notification;

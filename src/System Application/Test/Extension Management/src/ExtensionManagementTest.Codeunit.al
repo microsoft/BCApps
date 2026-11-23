@@ -14,6 +14,7 @@ using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
 codeunit 133100 "Extension Management Test"
+// [FEATURE] [Extension Management]
 {
 
     // For the purpose of this test, two sample extensions are pre-published.
@@ -58,14 +59,18 @@ codeunit 133100 "Extension Management Test"
     var
         ExtensionManagementPage: TestPage "Extension Management";
     begin
+        // [SCENARIO] SaaS users receive exactly one PTE upload migration notification.
+        // [GIVEN] Extension management permissions and a SaaS environment.
         PermissionsMock.Set('Exten. Mgt. - Admin');
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         LibraryVariableStorage.Clear();
         LibraryVariableStorage.Enqueue(ExtensionManagementDeprecationMsg);
 
+        // [WHEN] The Extension Management page is opened.
         ExtensionManagementPage.OpenView();
         ExtensionManagementPage.Close();
 
+        // [THEN] The expected notification was sent exactly once.
         LibraryVariableStorage.AssertEmpty();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
@@ -77,13 +82,17 @@ codeunit 133100 "Extension Management Test"
     var
         ExtensionManagementPage: TestPage "Extension Management";
     begin
+        // [SCENARIO] On-premises users do not receive the PTE upload migration notification.
+        // [GIVEN] Extension management permissions and an on-premises environment.
         PermissionsMock.Set('Exten. Mgt. - Admin');
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         LibraryVariableStorage.Clear();
 
+        // [WHEN] The Extension Management page is opened.
         ExtensionManagementPage.OpenView();
         ExtensionManagementPage.Close();
 
+        // [THEN] No migration notification was sent.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -92,7 +101,11 @@ codeunit 133100 "Extension Management Test"
     [HandlerFunctions('AdminCenterDocumentationHyperlinkHandler')]
     procedure ExtensionManagementDeprecationDocumentationLink()
     begin
+        // [SCENARIO] The migration documentation callback opens the expected help page.
+        // [GIVEN] The documentation callback for PTE upload migration.
+        // [WHEN] The callback is invoked through the test library.
         ExtensionMgtTestLibrary.OpenAdminCenterExtensionManagementDocumentation();
+        // [THEN] The hyperlink handler verifies the documentation URL.
     end;
 
     local procedure SetNavAppIds()
@@ -737,7 +750,7 @@ codeunit 133100 "Extension Management Test"
     begin
     end;
 
-    [SendNotificationHandler]
+    [SendNotificationHandler(true)]
     procedure ExtensionManagementNotificationHandler(var Notification: Notification): Boolean
     var
         ExpectedNotificationId: Guid;

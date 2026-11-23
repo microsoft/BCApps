@@ -142,7 +142,9 @@ page 2507 "Upload And Deploy Extension"
                     if FilePath = '' then
                         Message(ExtensionNotUploadedMsg)
                     else begin
+#pragma warning disable AL0432
                         ExtensionOperationImpl.DeployAndUploadExtension(FileStream, LanguageID, DeployToValue, SyncModeValue);
+#pragma warning restore AL0432
                         CurrPage.Close();
                     end;
                 end;

@@ -175,15 +175,19 @@ page 2508 "Extension Deployment Status"
         Rec.SetCurrentKey("Started On");
         Rec.Ascending(false);
 
+#if not CLEAN30
         DetermineEnvironmentConfigurations();
+#endif
     end;
 
+#if not CLEAN30
     local procedure DetermineEnvironmentConfigurations()
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
     end;
+#endif
 
     var
         Version: Text;
@@ -191,5 +195,7 @@ page 2508 "Extension Deployment Status"
         AppPublisher: Text;
         AppName: Text;
         OperationType: Option Upload,Install;
+#if not CLEAN30
         IsSaaS: Boolean;
+#endif
 }
