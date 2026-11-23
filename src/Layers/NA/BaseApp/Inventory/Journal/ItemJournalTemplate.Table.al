@@ -289,6 +289,26 @@ table 82 "Item Journal Template"
         OnGetProdOrderTemplateType(Type);
     end;
 
+    procedure IsCapacityTemplateType() Result: Boolean
+    begin
+        OnAfterIsCapacityTemplateType(Rec, Result);
+    end;
+
+    procedure IsConsumptionTemplateType() Result: Boolean
+    begin
+        OnAfterIsConsumptionTemplateType(Rec, Result);
+    end;
+
+    procedure IsOutputTemplateType() Result: Boolean
+    begin
+        OnAfterIsOutputTemplateType(Rec, Result);
+    end;
+
+    procedure IsProdOrderTemplateType() Result: Boolean
+    begin
+        OnAfterIsProdOrderTemplateType(Rec, Result);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateType(var ItemJournalTemplate: Record "Item Journal Template"; SourceCodeSetup: Record "Source Code Setup")
     begin
@@ -311,6 +331,26 @@ table 82 "Item Journal Template"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetProdOrderTemplateType(var Type: Enum "Item Journal Template Type")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsCapacityTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsConsumptionTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsOutputTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsProdOrderTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
     begin
     end;
 }
