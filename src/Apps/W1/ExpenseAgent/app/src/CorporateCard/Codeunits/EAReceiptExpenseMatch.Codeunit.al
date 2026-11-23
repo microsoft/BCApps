@@ -38,7 +38,8 @@ codeunit 7438 "EA Receipt Expense Match"
     /// Returns the SystemId of the pending card expense that the receipt belongs to, or an empty GUID when none matches.
     /// Candidates must have the same expense user, currency and exact amount, and an expense date within the
     /// Corp Card Date Match Window. When CardLast4 is four digits, the expense must also be paid with one of the user's cards
-    /// ending in those digits. The closest date and most similar merchant name win; ties keep the lowest expense number.
+    /// ending in those digits. Otherwise nothing proves the receipt was paid by card, so the merchant name must be similar
+    /// enough. The closest date and most similar merchant name win; ties keep the lowest expense number.
     /// </summary>
     internal procedure FindMatchingExpense(ExpenseUserSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]; MerchantName: Text[100]; CardLast4: Text) ExpenseSystemId: Guid
     var
@@ -47,6 +48,7 @@ codeunit 7438 "EA Receipt Expense Match"
         ExpenseUserNo: Code[20];
         FilterByCard: Boolean;
         HasCandidate: Boolean;
+        MerchantSimilarity: Decimal;
         Score: Decimal;
         BestScore: Decimal;
     begin
@@ -62,11 +64,14 @@ codeunit 7438 "EA Receipt Expense Match"
         BestScore := 0;
         repeat
             if IsPaidWithCard(Expense, FilterByCard, CardIds) then begin
-                Score := CalculateMatchScore(ExpenseDate, MerchantName, Expense);
-                if (not HasCandidate) or (Score > BestScore) then begin
-                    HasCandidate := true;
-                    BestScore := Score;
-                    ExpenseSystemId := Expense.SystemId;
+                MerchantSimilarity := GetMerchantSimilarity(MerchantName, Expense."Merchant Name");
+                if FilterByCard or (MerchantSimilarity >= GetMinMerchantSimilarity()) then begin
+                    Score := CalculateMatchScore(ExpenseDate, MerchantSimilarity, Expense);
+                    if (not HasCandidate) or (Score > BestScore) then begin
+                        HasCandidate := true;
+                        BestScore := Score;
+                        ExpenseSystemId := Expense.SystemId;
+                    end;
                 end;
             end;
         until Expense.Next() = 0;
@@ -74,7 +79,7 @@ codeunit 7438 "EA Receipt Expense Match"
 
     /// <summary>
     /// Returns ExpenseSystemId when that expense is a pending card expense the receipt belongs to, or an empty GUID otherwise.
-    /// Uses the same rules as FindMatchingExpense; the merchant name only ranks candidates, so it is not checked.
+    /// Uses the same rules as FindMatchingExpense, except the merchant name: the user picked the expense, so it is not checked.
     /// </summary>
     internal procedure CheckMatchingExpense(ExpenseUserSystemId: Guid; ExpenseSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]; CardLast4: Text): Guid
     var
@@ -156,9 +161,42 @@ codeunit 7438 "EA Receipt Expense Match"
     end;
 
     // Each day of date difference costs as much as 5 percentage points of merchant name similarity.
-    local procedure CalculateMatchScore(ReceiptDate: Date; ReceiptMerchantName: Text[100]; Expense: Record Expense): Decimal
+    local procedure CalculateMatchScore(ReceiptDate: Date; MerchantSimilarity: Decimal; Expense: Record Expense): Decimal
     begin
-        exit(100 - Abs(Expense."Expense Date" - ReceiptDate) * 5 + EnhMatchMgt.CalculateSimilarity(ReceiptMerchantName, Expense."Merchant Name") * 100);
+        exit(100 - Abs(Expense."Expense Date" - ReceiptDate) * 5 + MerchantSimilarity * 100);
+    end;
+
+    // Statement merchant names often add a location or legal suffix ("FOURTH COFFEE CANARY WHARF" for "Fourth Coffee"),
+    // so the shorter name is also compared with the start of the longer one.
+    local procedure GetMerchantSimilarity(ReceiptMerchantName: Text; ExpenseMerchantName: Text): Decimal
+    var
+        ShorterName: Text;
+        LongerName: Text;
+        FullSimilarity: Decimal;
+        PrefixSimilarity: Decimal;
+    begin
+        ReceiptMerchantName := DelChr(ReceiptMerchantName, '<>', ' ');
+        ExpenseMerchantName := DelChr(ExpenseMerchantName, '<>', ' ');
+        if (ReceiptMerchantName = '') or (ExpenseMerchantName = '') then
+            exit(0);
+
+        ShorterName := ReceiptMerchantName;
+        LongerName := ExpenseMerchantName;
+        if StrLen(ShorterName) > StrLen(LongerName) then begin
+            ShorterName := ExpenseMerchantName;
+            LongerName := ReceiptMerchantName;
+        end;
+
+        FullSimilarity := EnhMatchMgt.CalculateSimilarity(ReceiptMerchantName, ExpenseMerchantName);
+        PrefixSimilarity := EnhMatchMgt.CalculateSimilarity(ShorterName, CopyStr(LongerName, 1, StrLen(ShorterName)));
+        if PrefixSimilarity > FullSimilarity then
+            exit(PrefixSimilarity);
+        exit(FullSimilarity);
+    end;
+
+    local procedure GetMinMerchantSimilarity(): Decimal
+    begin
+        exit(0.6);
     end;
 
     // LCY can be stored as blank or as the LCY code, so both are accepted for an LCY receipt.

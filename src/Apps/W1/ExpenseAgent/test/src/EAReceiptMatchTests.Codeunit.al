@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching]
-codeunit 148355 EAReceiptMatchTests
+codeunit 148368 EAReceiptMatchTests
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -177,6 +177,54 @@ codeunit 148355 EAReceiptMatchTests
         // [WHEN] The receipt is matched.
         // [THEN] The expense with the same date and merchant is returned.
         Assert.AreEqual(CloserExpense.SystemId, FindMatch(CloserExpense, WorkDate(), 20), 'The closest candidate must match.');
+    end;
+
+    [Test]
+    procedure ReceiptFromUnrelatedMerchantDoesNotMatch()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Without card digits, a receipt from an unrelated merchant does not match a card expense with the same amount and date.
+        Initialize();
+
+        // [GIVEN] A card expense of 20 from a taxi company waiting for a receipt.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO TAXI');
+
+        // [WHEN] A lunch receipt of 20 on the same date from a restaurant is matched without card digits.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20, 'Fabrikam Bistro', '')), 'An unrelated merchant must not match.');
+    end;
+
+    [Test]
+    procedure ReceiptFromUnrelatedMerchantMatchesWhenCardLast4Matches()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Card digits that match the expense's card prove the payment, so the merchant name is not required to be similar.
+        Initialize();
+
+        // [GIVEN] A card expense of 20 paid with the card ending in 0001.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO TAXI');
+
+        // [WHEN] A receipt of 20 from a differently named merchant is matched with card last four digits 0001.
+        // [THEN] The card expense is returned.
+        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20, 'Fabrikam Bistro', '0001'), 'Matching card digits must match.');
+    end;
+
+    [Test]
+    procedure ReceiptMerchantMatchesStatementNameWithSuffix()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] A receipt merchant name matches a statement merchant name that adds a location suffix.
+        Initialize();
+
+        // [GIVEN] A card expense of 20 whose statement merchant name has a location suffix.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'FOURTH COFFEE CANARY WHARF');
+
+        // [WHEN] A receipt of 20 from Fourth Coffee is matched without card digits.
+        // [THEN] The card expense is returned.
+        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20, 'Fourth Coffee', ''), 'The merchant name with a suffix must match.');
     end;
 
     [Test]
@@ -379,11 +427,16 @@ codeunit 148355 EAReceiptMatchTests
     end;
 
     local procedure FindMatch(Expense: Record Expense; ReceiptDate: Date; ReceiptAmount: Decimal; CardLast4: Text): Guid
+    begin
+        exit(FindMatch(Expense, ReceiptDate, ReceiptAmount, Expense."Merchant Name", CardLast4));
+    end;
+
+    local procedure FindMatch(Expense: Record Expense; ReceiptDate: Date; ReceiptAmount: Decimal; ReceiptMerchantName: Text[100]; CardLast4: Text): Guid
     var
         ExpenseUser: Record "Expense User";
     begin
         ExpenseUser.Get(Expense."Expense User No.");
-        exit(ReceiptExpenseMatch.FindMatchingExpense(ExpenseUser.SystemId, ReceiptDate, ReceiptAmount, '', Expense."Merchant Name", CardLast4));
+        exit(ReceiptExpenseMatch.FindMatchingExpense(ExpenseUser.SystemId, ReceiptDate, ReceiptAmount, '', ReceiptMerchantName, CardLast4));
     end;
 
     local procedure CheckMatch(Expense: Record Expense; ExpenseSystemId: Guid; ReceiptDate: Date; ReceiptAmount: Decimal): Guid

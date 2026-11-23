@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching] [API]
-codeunit 148354 "EA Receipt Match API Tests"
+codeunit 148369 "EA Receipt Match API Tests"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
@@ -249,6 +249,8 @@ codeunit 148354 "EA Receipt Match API Tests"
         ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
         CorpCardTrans.Modify(true);
         Expense.Get(ExpenseNo);
+        Expense."Merchant Name" := 'CONTOSO COFFEE';
+        Expense.Modify();
     end;
 
     local procedure CreateAdditionalCard(MaskedCardNo: Text[30]): Code[50]

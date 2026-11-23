@@ -527,9 +527,10 @@ Corporate-card events use `Feature Telemetry` under the existing Expense Agent f
 
 ### Agent API Card Selection
 
-The read-only `corporateCards` entity set is published by `microsoft/expense/beta`. It requires agent access and an equality filter for exactly one nonblank `expenseUserNumber`, for example:
+The read-only `corporateCards` entity set is published by `microsoft/expense/beta`. It requires agent access and exactly one nonblank expense user, either from the `expenseUsers({id})/corporateCards` navigation or from an equality filter on `expenseUserNumber`, for example:
 
 ```http
+GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/corporateCards
 GET .../api/microsoft/expense/beta/companies({companyId})/corporateCards?$filter=expenseUserNumber eq 'EU0001'
 ```
 
@@ -561,7 +562,7 @@ POST .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expense
 { "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR", "merchantName": "Contoso Coffee", "cardLast4": "1234" }
 ```
 
-Candidates are the user's pending card expenses with the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. When the optional `cardLast4` is exactly four digits, candidates must also be paid with one of the user's cards whose **Masked Card No.** ends in those digits; other values are ignored. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
+Candidates are the user's pending card expenses with the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. When the optional `cardLast4` is exactly four digits, candidates must also be paid with one of the user's cards whose **Masked Card No.** ends in those digits; other values are ignored. Without valid card digits nothing proves the receipt was paid by card, so a candidate must also have a similar merchant name: a similarity of at least 0.6 (Levenshtein), where the shorter name is also compared with the start of the longer one, so "Fourth Coffee" fits "FOURTH COFFEE CANARY WHARF". A receipt without a merchant name and card digits therefore matches nothing. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
 
 Recommended client flow for a matched expense:
 
@@ -579,7 +580,7 @@ POST .../expenseUsers({expenseUserId})/cardExpenseMatches
 { "expenseId": "{expenseId}", "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR" }
 ```
 
-Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent (merchant name is not required). The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
+Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent. The merchant name is not checked, because the user picked the expense. The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
 
 ### Upgrade Behavior
 
