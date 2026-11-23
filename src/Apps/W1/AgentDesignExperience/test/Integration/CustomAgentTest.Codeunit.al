@@ -12,12 +12,11 @@ using System.Test.Agents.Designer;
 using System.TestLibraries.Utilities;
 
 codeunit 133754 "Custom Agent Test"
+// [FEATURE] [Custom Agent] [Manual Task Creation]
 {
     Subtype = Test;
     TestType = UnitTest;
     TestPermissions = Disabled;
-
-    // [FEATURE] [Custom Agent] [Manual Task Creation]
 
     var
         AgentDesignerTestLib: Codeunit "Agent Designer Test Lib.";
