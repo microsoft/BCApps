@@ -10,7 +10,7 @@ using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.HumanResources.Setup;
 
-codeunit 148354 "Travel Request Approval Test"
+codeunit 148369 "Travel Request Approval Test"
 {
     Subtype = Test;
     TestType = UnitTest;
