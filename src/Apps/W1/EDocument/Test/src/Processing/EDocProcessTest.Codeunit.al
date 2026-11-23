@@ -919,6 +919,73 @@ codeunit 139883 "E-Doc Process Test"
     #endregion
 
     [Test]
+    procedure DraftOfOtherServiceIsPreparedWithAndWithoutAgentDrivenLineMatching()
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        PreparePurchaseEDocDraft: Codeunit "Prepare Purchase E-Doc. Draft";
+    begin
+        // [SCENARIO] Agent-driven line matching does not skip preparing drafts of e-documents of other services, such as PEPPOL invoices
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A PEPPOL invoice of the vendor read into a draft of a PEPPOL E-Document service
+        ReadPEPPOLInvoiceIntoDraft(EDocument);
+
+        // [WHEN] The draft is prepared with agent-driven line matching
+        PreparePurchaseEDocDraft.PrepareDraft(EDocument, TempEDocImportParams, true);
+
+        // [THEN] The vendor is assigned
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual(Vendor."No.", EDocumentPurchaseHeader."[BC] Vendor No.", 'The draft of an e-document of another service must be prepared with agent-driven line matching.');
+
+        // [GIVEN] Another PEPPOL invoice of the vendor read into a draft
+        ReadPEPPOLInvoiceIntoDraft(EDocument);
+
+        // [WHEN] The draft is prepared without agent-driven line matching
+        PreparePurchaseEDocDraft.PrepareDraft(EDocument, TempEDocImportParams, false);
+
+        // [THEN] The vendor is assigned
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual(Vendor."No.", EDocumentPurchaseHeader."[BC] Vendor No.", 'The draft of an e-document of another service must be prepared without agent-driven line matching.');
+    end;
+
+    [Test]
+    procedure DraftOfAgentServiceIsLeftToAgentOnlyWithAgentDrivenLineMatching()
+    var
+        AgentEDocumentService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        PreparePurchaseEDocDraft: Codeunit "Prepare Purchase E-Doc. Draft";
+    begin
+        // [SCENARIO] Only with agent-driven line matching, the drafts of the Payables Agent's e-documents are left to the agent to prepare
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A PEPPOL invoice of the vendor read into a draft of the Payables Agent's E-Document service
+        ReadPEPPOLInvoiceIntoDraft(EDocument);
+        if not AgentEDocumentService.Get('AGENT') then begin
+            AgentEDocumentService.Code := 'AGENT';
+            AgentEDocumentService.Insert();
+        end;
+        EDocument.Service := AgentEDocumentService.Code;
+
+        // [WHEN] The draft is prepared with agent-driven line matching
+        PreparePurchaseEDocDraft.PrepareDraft(EDocument, TempEDocImportParams, true);
+
+        // [THEN] The draft is not prepared, so no vendor is assigned
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual('', EDocumentPurchaseHeader."[BC] Vendor No.", 'The draft of the agent''s e-document must be left to the agent with agent-driven line matching.');
+
+        // [WHEN] The draft is prepared without agent-driven line matching
+        PreparePurchaseEDocDraft.PrepareDraft(EDocument, TempEDocImportParams, false);
+
+        // [THEN] The vendor is assigned
+        EDocumentPurchaseHeader.Get(EDocument."Entry No");
+        Assert.AreEqual(Vendor."No.", EDocumentPurchaseHeader."[BC] Vendor No.", 'The draft of the agent''s e-document must be prepared without agent-driven line matching.');
+    end;
+
+    [Test]
     procedure AdditionalFieldsAreConsideredWhenCreatingPurchaseInvoice()
     var
         EDocPurchLineFieldSetup: Record "ED Purchase Line Field Setup";
@@ -1990,6 +2057,16 @@ codeunit 139883 "E-Doc Process Test"
     end;
 
     #endregion
+
+    local procedure ReadPEPPOLInvoiceIntoDraft(var EDocument: Record "E-Document")
+    var
+        TempEDocImportParams: Record "E-Doc. Import Parameters";
+    begin
+        Clear(EDocument);
+        TempEDocImportParams."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+        Assert.IsTrue(LibraryEDoc.CreateInboundPEPPOLDocumentToState(EDocument, EDocumentService, 'peppol/peppol-invoice-0.xml', TempEDocImportParams), 'The invoice should be read into a draft');
+        EDocument.Get(EDocument."Entry No");
+    end;
 
     local procedure Initialize(Integration: Enum "Service Integration")
     var
