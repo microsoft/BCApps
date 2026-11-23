@@ -141,6 +141,8 @@ codeunit 101899 "Create Demo Data from Config"
         GLEntry."Entry No." := Seed;
         if GLEntry.Insert() then;
         VATEntry."Entry No." := Seed;
+        VATEntry."VAT Bus. Posting Group" := CopyStr(Format(CreateGuid(), 2), 1, MaxStrLen(VATEntry."VAT Bus. Posting Group")); // to avoid the 'isempty' check in VATPosting Setup
+        VATEntry."VAT Prod. Posting Group" := CopyStr(Format(CreateGuid(), 2), 1, MaxStrLen(VATEntry."VAT Bus. Posting Group"));
         if VATEntry.Insert() then;
         ItemLedgerEntry."Entry No." := Seed;
         if ItemLedgerEntry.Insert() then;

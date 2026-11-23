@@ -1075,7 +1075,7 @@ report 20 "Calc. and Post VAT Settlement"
             (GenPostingType = GenPostingType::Sale));
     end;
 
-    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean): Integer
+    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean): BigInteger
     var
         NextAvailableVATEntryNo: BigInteger;
         LastPostedVATEntryNo: BigInteger;

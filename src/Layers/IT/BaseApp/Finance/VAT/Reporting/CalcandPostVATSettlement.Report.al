@@ -1509,7 +1509,7 @@ report 20 "Calc. and Post VAT Settlement"
         VATEntry.SetRange(Closed, false);
     end;
 
-    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean; IsPostingAllowed: Boolean): Integer
+    local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean): BigInteger
     var
         NextAvailableVATEntryNo: BigInteger;
         LastPostedVATEntryNo: BigInteger;
