@@ -207,9 +207,8 @@ report 12195 "Datifattura Suggest Lines"
         if VATEntry.Type <> VATEntry.Type::Purchase then
             exit(false);
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             VendorLedgerEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Vendor No.");
-        end;
 #endif
         VendorLedgerEntry.SetRange("Document Type", VATEntry."Document Type");
         VendorLedgerEntry.SetRange("Document No.", VATEntry."Document No.");

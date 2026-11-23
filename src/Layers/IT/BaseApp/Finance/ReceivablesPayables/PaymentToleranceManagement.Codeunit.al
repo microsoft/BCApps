@@ -271,9 +271,8 @@ codeunit 426 "Payment Tolerance Management"
         NewCustLedgEntry."Remaining Amount" := GenJnlLine.Amount;
         NewCustLedgEntry."Document Type" := GenJnlLine."Document Type";
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             NewCustLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
-        end;
 #endif
         GenJnlLineGlobal := GenJnlLine;
         exit(
@@ -307,9 +306,8 @@ codeunit 426 "Payment Tolerance Management"
         NewVendLedgEntry."Remaining Amount" += GenJnlLine.Amount;
         NewVendLedgEntry."Document Type" := GenJnlLine."Document Type";
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             NewVendLedgEntry."Applies-to Occurrence No." := GenJnlLine."Applies-to Occurrence No.";
-        end;
 #endif
         GenJnlLineGlobal := GenJnlLine;
         exit(
@@ -677,9 +675,8 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedCustLedgEntry.SetRange(Open, true);
                 AppliedCustLedgEntry.SetRange("Document No.", CustledgEntry."Applies-to Doc. No.");
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     AppliedCustLedgEntry.SetRange("Document Occurrence", CustledgEntry."Applies-to Occurrence No.");
-                end;
 #endif
                 if AppliedCustLedgEntry.Find('-') then begin
                     GetApplicationRoundingPrecisionForAppliesToDoc(
@@ -859,9 +856,8 @@ codeunit 426 "Payment Tolerance Management"
                 AppliedVendLedgEntry.SetRange(Open, true);
                 AppliedVendLedgEntry.SetRange("Document No.", VendledgEntry."Applies-to Doc. No.");
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     AppliedVendLedgEntry.SetRange("Document Occurrence", VendledgEntry."Applies-to Occurrence No.");
-                end;
 #endif
                 if AppliedVendLedgEntry.Find('-') then begin
                     GetApplicationRoundingPrecisionForAppliesToDoc(

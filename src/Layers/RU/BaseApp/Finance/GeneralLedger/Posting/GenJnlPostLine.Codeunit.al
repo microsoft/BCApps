@@ -5029,7 +5029,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure GetDtldCustLedgEntryAccNo(GenJnlLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; CustPostingGr: Record "Customer Posting Group"; OriginalTransactionNo: BigInteger; Unapply: Boolean) AccountNo: Code[20]
+    local procedure GetDtldCustLedgEntryAccNo(GenJnlLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; CustPostingGr: Record "Customer Posting Group"; OriginalTransactionNo: BigInteger; Unapply: Boolean; var BalAccNo: Code[20]) AccountNo: Code[20]
     var
         GenPostingSetup: Record "General Posting Setup";
         Currency: Record Currency;
@@ -5481,25 +5481,27 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewCVLedgEntryBuf."Applies-to ID" := '';
         NewCVLedgEntryBuf."Amount to Apply" := 0;
 
-        OnApplyVendLedgEntryOnBeforeUnrealizedVAT(GenJnlLine, NewCVLedgEntryBuf, NewVendLedgEntry);
-        if GLSetup."Unrealized VAT" or
-           (GLSetup."Prepayment Unrealized VAT" and NewCVLedgEntryBuf.Prepayment)
-        then
-            if (IsNotPayment(NewCVLedgEntryBuf."Document Type") or
-               IsPrepayment(NewCVLedgEntryBuf."Document Type", NewCVLedgEntryBuf.Prepayment)) and
-               (NewRemainingAmtBeforeAppln - NewCVLedgEntryBuf."Remaining Amount" <> 0) or
-               (IsVATAgentVATPayment(GenJnlLine))
-            then begin
-                if GLSetup."Enable Russian Accounting" then begin
-                    GenJnlLine."Posting Date" := UnrealVATDate;
-                    GenJnlCheckLine.CheckDateAllowed(GenJnlLine);
+        IsHandled := false;
+        OnApplyVendLedgEntryOnBeforeUnrealizedVAT(GenJnlLine, NewCVLedgEntryBuf, NewVendLedgEntry, IsHandled);
+        if not IsHandled then
+            if GLSetup."Unrealized VAT" or
+               (GLSetup."Prepayment Unrealized VAT" and NewCVLedgEntryBuf.Prepayment)
+            then
+                if (IsNotPayment(NewCVLedgEntryBuf."Document Type") or
+                   IsPrepayment(NewCVLedgEntryBuf."Document Type", NewCVLedgEntryBuf.Prepayment)) and
+                   (NewRemainingAmtBeforeAppln - NewCVLedgEntryBuf."Remaining Amount" <> 0) or
+                   (IsVATAgentVATPayment(GenJnlLine))
+                then begin
+                    if GLSetup."Enable Russian Accounting" then begin
+                        GenJnlLine."Posting Date" := UnrealVATDate;
+                        GenJnlCheckLine.CheckDateAllowed(GenJnlLine);
+                    end;
+                    NewVendLedgEntry.CopyFromCVLedgEntryBuffer(NewCVLedgEntryBuf);
+                    CheckUnrealizedVend := true;
+                    UnrealizedVendLedgEntry := NewVendLedgEntry;
+                    UnrealizedVendLedgEntry.CalcFields("Amount (LCY)", "Original Amt. (LCY)");
+                    UnrealizedRemainingAmountVend := -(NewRemainingAmtBeforeAppln - NewVendLedgEntry."Remaining Amount");
                 end;
-                NewVendLedgEntry.CopyFromCVLedgEntryBuffer(NewCVLedgEntryBuf);
-                CheckUnrealizedVend := true;
-                UnrealizedVendLedgEntry := NewVendLedgEntry;
-                UnrealizedVendLedgEntry.CalcFields("Amount (LCY)", "Original Amt. (LCY)");
-                UnrealizedRemainingAmountVend := -(NewRemainingAmtBeforeAppln - NewVendLedgEntry."Remaining Amount");
-            end;
         if GLSetup."Enable Russian Accounting" then
             GenJnlLine."Posting Date" := SavedPostingDate;
 
@@ -6168,7 +6170,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure GetDtldVendLedgEntryAccNo(GenJnlLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; VendPostingGr: Record "Vendor Posting Group"; OriginalTransactionNo: BigInteger; Unapply: Boolean) AccountNo: Code[20]
+    local procedure GetDtldVendLedgEntryAccNo(GenJnlLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; VendPostingGr: Record "Vendor Posting Group"; OriginalTransactionNo: BigInteger; Unapply: Boolean; var BalAccNo: Code[20]) AccountNo: Code[20]
     var
         Currency: Record Currency;
         GenPostingSetup: Record "General Posting Setup";
@@ -6749,6 +6751,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PurchReverseAccount: Code[20];
         PurchReverseUnrealAccount: Code[20];
         LastConnectionNo: Integer;
+        InitialVATFactor: Decimal;
         GLEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
@@ -6995,6 +6998,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="VATBaseAddCurr">VAT base amount in additional currency</param>
     /// <param name="GLEntryNo">Associated G/L entry number for cross-reference</param>
     procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: Integer)
+    var
+        InitialVATEntry: Record "VAT Entry";
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
         if not GLSetup.UseConcurrentPosting() then

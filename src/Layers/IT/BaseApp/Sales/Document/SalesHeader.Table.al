@@ -2717,9 +2717,11 @@ table 36 "Sales Header"
                             Validate("Prepayment Due Date", "Document Date");
                         Validate("Prepmt. Pmt. Discount Date", 0D);
                         Validate("Prepmt. Payment Discount %", 0);
-                    end else begin
 #if not CLEAN30
+                    end else
                         if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+#else
+                    end else begin
 #endif
                             IsHandled := false;
                             OnValidatePaymentTermsCodeOnBeforeCalcDueDate(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, IsHandled);
@@ -2750,8 +2752,9 @@ table 36 "Sales Header"
                                 if not UpdateDocumentDate then
                                     Validate("Prepmt. Payment Discount %", PaymentTermsLine."Discount %");
                             end;
-#endif
+#else
                     end;
+#endif
                 end else begin
                     IsHandled := false;
                     OnPrepmtPaymentTermsCodeOnCaseElseOnBeforeValidatePrepaymentDueDate(Rec, xRec, CurrFieldNo, IsHandled);
@@ -4181,9 +4184,8 @@ table 36 "Sales Header"
         EnableAggregateTableUpdate(DisableAggregateTableUpdate);
 
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             PaymentLines.DeletePaymentLines(Rec);
-        end;
 #endif
         ShowPostedDocsToPrint := (SalesShptHeader."No." <> '') or
            (SalesInvHeader."No." <> '') or
@@ -5358,7 +5360,7 @@ table 36 "Sales Header"
             if "Payment Terms Code" = '' then
                 "Payment Terms Code" := PaymentMethod."Direct Debit Pmt. Terms Code";
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 if (Rec."Direct Debit Mandate ID" = '') and (Rec."Due Date" = 0D) then begin
                     PaymentLines.SetRange("Sales/Purchase", PaymentLines."Sales/Purchase"::Sales);
                     PaymentLines.SetRange(Type, Rec."Document Type");
@@ -5367,7 +5369,6 @@ table 36 "Sales Header"
                     if PaymentLines.FindFirst() then
                         Rec."Direct Debit Mandate ID" := SEPADirectDebitMandate.GetDefaultMandate(Rec."Bill-to Customer No.", PaymentLines."Due Date");
                 end;
-            end;
 #endif
         end else
             "Direct Debit Mandate ID" := '';

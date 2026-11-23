@@ -459,9 +459,8 @@ report 12120 "VAT Register - Print"
                                     SetDetailsForVendor("VAT Book Entry");
                                     VendLedgEntry.Reset();
 #if not CLEAN30
-                                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                                         VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
-                                    end;
 #endif
                                     VendLedgEntry.SetRange("Document Type", "Document Type");
                                     VendLedgEntry.SetRange("External Document No.", "External Document No.");
@@ -481,9 +480,8 @@ report 12120 "VAT Register - Print"
                                         SetDetailsForVendor("VAT Book Entry");
                                         VendLedgEntry.Reset();
 #if not CLEAN30
-                                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                                             VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
-                                        end;
 #endif
                                         VendLedgEntry.SetRange("Document Type", "Document Type");
                                         VendLedgEntry.SetRange("External Document No.", "External Document No.");
