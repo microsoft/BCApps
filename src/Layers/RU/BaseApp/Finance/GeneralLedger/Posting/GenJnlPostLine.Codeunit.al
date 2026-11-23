@@ -9788,6 +9788,722 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure CreateGLEntriesForTotalAmounts(GenJnlLine: Record "Gen. Journal Line"; var TempDimPostingBuffer: Record "Dimension Posting Buffer" temporary; AdjAmountBuf: array[4] of Decimal; SavedEntryNo: BigInteger; GLAccNo: Code[20]; LedgEntryInserted: Boolean)
     var
+        DimMgt: Codeunit DimensionManagement;
+        GLEntryInserted: Boolean;
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeCreateGLEntriesForTotalAmountsV19(TempDimPostingBuffer, GenJnlLine, GLAccNo, IsHandled, AdjAmountBuf, SavedEntryNo, LedgEntryInserted);
+        if IsHandled then
+            exit;
+
+        GLEntryInserted := false;
+
+        TempDimPostingBuffer.Reset();
+        if TempDimPostingBuffer.FindSet() then
+            repeat
+                if (TempDimPostingBuffer.Amount <> 0) or (TempDimPostingBuffer."Amount (ACY)" <> 0) and (AddCurrencyCode <> '') then begin
+                    IsHandled := false;
+                    OnCreateGLEntriesForTotalAmountsOnBeforeUpdateGenJnlLineDim(IsHandled);
+                    if not IsHandled then
+                        DimMgt.UpdateGenJnlLineDim(GenJnlLine, TempDimPostingBuffer."Dimension Set ID");
+                    OnBeforeCreateGLEntryForTotalAmountsForDimPostBuf(GenJnlLine, TempDimPostingBuffer, GLAccNo);
+                    CreateGLEntryForTotalAmounts(GenJnlLine, TempDimPostingBuffer.Amount, TempDimPostingBuffer."Amount (ACY)", AdjAmountBuf, SavedEntryNo, GLAccNo);
+                    GLEntryInserted := true;
+                end;
+            until TempDimPostingBuffer.Next() = 0;
+        if not GLEntryInserted and LedgEntryInserted then
+            CreateGLEntryForTotalAmounts(GenJnlLine, 0, 0, AdjAmountBuf, SavedEntryNo, GLAccNo);
+    end;
+
+    local procedure CreateGLEntryForTotalAmounts(GenJnlLine: Record "Gen. Journal Line"; Amount: Decimal; AmountACY: Decimal; AdjAmountBuf: array[4] of Decimal; var SavedEntryNo: BigInteger; GLAccNo: Code[20])
+    var
+        GLEntry: Record "G/L Entry";
+        IsHandled: Boolean;
+    begin
+        HandleDtldAdjustment(GenJnlLine, GLEntry, AdjAmountBuf, Amount, AmountACY, GLAccNo);
+        GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
+        GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
+        UpdateGLEntryNo(GLEntry."Entry No.", SavedEntryNo);
+        IsHandled := false;
+        OnCreateGLEntryForTotalAmountsOnBeforeInsertGLEntry(GenJnlLine, GLEntry, IsHandled, TempGLEntryVATEntryLink);
+        if IsHandled then
+            exit;
+
+        InsertGLEntry(GenJnlLine, GLEntry, true);
+    end;
+
+    /// <summary>
+    /// Posts the extra derogatory depreciation created when acquisition cost is depreciated.
+    /// FAJnlPostLine.PostDerogatoryCounterpart() copies the acquisition cost to the linked derogatory book.
+    /// This extra amount must be calculated because the acquisition line contains cost, not depreciation.
+    /// </summary>
+    /// <param name="SourceGenJournalLine">The acquisition-cost general journal line used to prepare the adjustment.</param>
+    local procedure CreateAndPostDerogEntry(SourceGenJournalLine: Record "Gen. Journal Line")
+    var
+        GenJnlLine: Record "Gen. Journal Line";
+        FAJnlLine: Record "FA Journal Line";
+        DerogFALedgerEntry: Record "FA Ledger Entry";
+        DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
+        IntegrationGLDerogatory: Boolean;
+    begin
+        if not DerogatoryPostingMgt.PrepareAcquisitionCostAdjustment(
+             GenJnlLine, SourceGenJournalLine, IntegrationGLDerogatory)
+        then
+            exit;
+
+        // Post through the general journal so the adjustment creates G/L entries in the current transaction.
+        if IntegrationGLDerogatory then begin
+            FAJnlPostLine.GenJnlPostLineContinue(
+              GenJnlLine, GenJnlLine.Amount, GenJnlLine."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            DerogFALedgerEntry := FAJnlPostLine.GetLastSourceFALedgerEntry();
+            DerogFALedgerEntry.TestField("Entry No.");
+            DerogFALedgerEntry."Automatic Entry" := true;
+            FAJnlPostLine.InsertBalAcc(DerogFALedgerEntry);
+        end else begin
+            DerogatoryPostingMgt.MakeDerogatoryJournalLine(FAJnlLine, GenJnlLine, Enum::"Derogatory Posting Role"::Source);
+            FAJnlLine.Validate("Depreciation Book Code", SourceGenJournalLine."Depreciation Book Code");
+            FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
+        end;
+    end;
+
+    /// <summary>
+    /// Updates additional-currency amount on buffer table DtldCVLedgEntryBuf when un-application of customer/vendor ledger entries is posted.
+    /// </summary>
+    /// <remarks>
+    /// Amount is only updated for buffer table entry with type other than application, unrealized/realized gain/loss or correction of remaining amount
+    /// </remarks>
+    /// <param name="DtldCVLedgEntryBuf">Buffer table for detailed customer/vendor ledger entries to be posted.</param>
+    procedure SetAddCurrForUnapplication(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer")
+    begin
+        if not (DtldCVLedgEntryBuf."Entry Type" in
+                [DtldCVLedgEntryBuf."Entry Type"::Application, DtldCVLedgEntryBuf."Entry Type"::"Unrealized Loss",
+                 DtldCVLedgEntryBuf."Entry Type"::"Unrealized Gain", DtldCVLedgEntryBuf."Entry Type"::"Realized Loss",
+                 DtldCVLedgEntryBuf."Entry Type"::"Realized Gain", DtldCVLedgEntryBuf."Entry Type"::"Correction of Remaining Amount"])
+        then
+            if (DtldCVLedgEntryBuf."Entry Type" = DtldCVLedgEntryBuf."Entry Type"::"Appln. Rounding") or
+               ((AddCurrencyCode <> '') and (AddCurrencyCode = DtldCVLedgEntryBuf."Currency Code"))
+            then
+                DtldCVLedgEntryBuf."Additional-Currency Amount" := DtldCVLedgEntryBuf.Amount
+            else
+                DtldCVLedgEntryBuf."Additional-Currency Amount" := CalcAddCurrForUnapplication(DtldCVLedgEntryBuf."Posting Date", DtldCVLedgEntryBuf."Amount (LCY)");
+    end;
+
+    /// <summary>
+    /// Checks if multiple customer posting groups exists on customer ledger entries that relate to detailed entries being created.
+    /// </summary>
+    /// <remarks>
+    /// The check is only performed when customer ledger entries are being applied.
+    /// </remarks>
+    /// <param name="DetailedCVLedgEntryBuffer">Buffer table for detailed customer ledger entries to be posted.</param>
+    /// <returns>Returns true if multiple customer posting groups exists for customer ledger entries being applied</returns>
+    procedure CheckCustMultiplePostingGroups(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"): Boolean
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        PostingGroup: Code[20];
+        IsHandled: Boolean;
+        IsMultiplePostingGroups: Boolean;
+    begin
+        OnBeforeCheckCustMultiplePostingGroups(DetailedCVLedgEntryBuffer, IsMultiplePostingGroups, IsHandled);
+        if IsHandled then
+            exit(IsMultiplePostingGroups);
+        PostingGroup := '';
+        DetailedCVLedgEntryBuffer.Reset();
+        DetailedCVLedgEntryBuffer.SetRange("Entry Type", DetailedCVLedgEntryBuffer."Entry Type"::Application);
+        if DetailedCVLedgEntryBuffer.FindSet() then
+            repeat
+                CustLedgerEntry.Get(DetailedCVLedgEntryBuffer."CV Ledger Entry No.");
+                if (PostingGroup <> '') and (PostingGroup <> CustLedgerEntry."Customer Posting Group") then
+                    exit(true);
+                PostingGroup := CustLedgerEntry."Customer Posting Group";
+            until DetailedCVLedgEntryBuffer.Next() = 0;
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Checks if multiple vendor posting groups exists on vendor ledger entries that relate to detailed entries being created.
+    /// </summary>
+    /// <remarks>
+    /// The check is only performed when vendor ledger entries are being applied.
+    /// </remarks>
+    /// <param name="DetailedCVLedgEntryBuffer">Buffer table for detailed vendor ledger entries to be posted.</param>
+    /// <returns>Returns true if multiple vendor posting groups exists for vendor ledger entries being applied</returns>
+    procedure CheckVendMultiplePostingGroups(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"): Boolean
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PostingGroup: Code[20];
+        IsHandled: Boolean;
+        IsMultiplePostingGroups: Boolean;
+    begin
+        OnBeforeCheckVendMultiplePostingGroups(DetailedCVLedgEntryBuffer, IsMultiplePostingGroups, IsHandled);
+        if IsHandled then
+            exit(IsMultiplePostingGroups);
+        PostingGroup := '';
+        DetailedCVLedgEntryBuffer.Reset();
+        DetailedCVLedgEntryBuffer.SetRange("Entry Type", DetailedCVLedgEntryBuffer."Entry Type"::Application);
+        if DetailedCVLedgEntryBuffer.FindSet() then
+            repeat
+                VendorLedgerEntry.Get(DetailedCVLedgEntryBuffer."CV Ledger Entry No.");
+                if (PostingGroup <> '') and (PostingGroup <> VendorLedgerEntry."Vendor Posting Group") then
+                    exit(true);
+                PostingGroup := VendorLedgerEntry."Vendor Posting Group";
+            until DetailedCVLedgEntryBuffer.Next() = 0;
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Checks if multiple employee posting groups exists on employee ledger entries that relate to detailed entries being created.
+    /// </summary>
+    /// <remarks>
+    /// The check is only performed when employee ledger entries are being applied.
+    /// </remarks>
+    /// <param name="DetailedCVLedgEntryBuffer">Buffer table for detailed employee ledger entries to be posted.</param>
+    /// <returns>Returns true if multiple employee posting groups exists for employee ledger entries being applied</returns>
+    procedure CheckEmplMultiplePostingGroups(var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"): Boolean
+    var
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        PostingGroup: Code[20];
+    begin
+        PostingGroup := '';
+        DetailedCVLedgEntryBuffer.Reset();
+        DetailedCVLedgEntryBuffer.SetRange("Entry Type", DetailedCVLedgEntryBuffer."Entry Type"::Application);
+        if DetailedCVLedgEntryBuffer.FindSet() then
+            repeat
+                EmployeeLedgerEntry.Get(DetailedCVLedgEntryBuffer."CV Ledger Entry No.");
+                if (PostingGroup <> '') and (PostingGroup <> EmployeeLedgerEntry."Employee Posting Group") then
+                    exit(true);
+                PostingGroup := EmployeeLedgerEntry."Employee Posting Group";
+            until DetailedCVLedgEntryBuffer.Next() = 0;
+        exit(false);
+    end;
+
+    local procedure CheckDetCustLedgEntryMultiplePostingGrOnBeforeUnapply(var DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"): Boolean
+    var
+        IsHandled: Boolean;
+        MultiplePostingGroupsDetected: Boolean;
+    begin
+        OnBeforeCheckDetCustLedgEntryMultiplePostingGrOnBeforeUnapply(DetailedCustLedgEntry2, DetailedCustLedgEntry, MultiplePostingGroupsDetected, IsHandled);
+        if IsHandled then
+            exit(MultiplePostingGroupsDetected);
+
+        DetailedCustLedgEntry2.SetRange("Entry Type", DetailedCustLedgEntry2."Entry Type"::Application);
+        DetailedCustLedgEntry2.FindSet();
+        repeat
+            if DetailedCustLedgEntry2."Posting Group" <> DetailedCustLedgEntry."Posting Group" then
+                exit(true);
+        until DetailedCustLedgEntry2.Next() = 0;
+        exit(false);
+    end;
+
+    local procedure CheckDetVendLedgEntryMultiplePostingGrOnBeforeUnapply(var DetailedVendorLedgEntry2: Record "Detailed Vendor Ledg. Entry"; var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"): Boolean
+    var
+        IsHandled: Boolean;
+        MultiplePostingGroupsDetected: Boolean;
+    begin
+        OnBeforeCheckDetVendLedgEntryMultiplePostingGrOnBeforeUnapply(DetailedVendorLedgEntry2, DetailedVendorLedgEntry, MultiplePostingGroupsDetected, IsHandled);
+        if IsHandled then
+            exit(MultiplePostingGroupsDetected);
+
+        DetailedVendorLedgEntry2.SetRange("Entry Type", DetailedVendorLedgEntry2."Entry Type"::Application);
+        DetailedVendorLedgEntry2.FindSet();
+        repeat
+            if DetailedVendorLedgEntry2."Posting Group" <> DetailedVendorLedgEntry."Posting Group" then
+                exit(true);
+        until DetailedVendorLedgEntry2.Next() = 0;
+        exit(false);
+    end;
+
+    local procedure CheckDetEmplLedgEntryMultiplePostingGrOnBeforeUnapply(var DetailedEmployeeLedgerEntry2: Record "Detailed Employee Ledger Entry"; var DetailedEmployeeLedgerEntry: Record "Detailed Employee Ledger Entry"): Boolean
+    begin
+        DetailedEmployeeLedgerEntry2.SetRange("Entry Type", DetailedEmployeeLedgerEntry2."Entry Type"::Application);
+        DetailedEmployeeLedgerEntry2.FindSet();
+        repeat
+            if DetailedEmployeeLedgerEntry2."Posting Group" <> DetailedEmployeeLedgerEntry."Posting Group" then
+                exit(true);
+        until DetailedEmployeeLedgerEntry2.Next() = 0;
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure CalcAppliedAmounts(var EntryBuf1: Record "CV Ledger Entry Buffer"; var EntryBuf2: Record "CV Ledger Entry Buffer"; var AppliedAmount1: Decimal; var AppliedAmountLCY: Decimal; var AppliedAmount2: Decimal; ApplnRoundingPrecision: Decimal; Factor: Decimal)
+    var
+        UseOrigCurrencyFactor: Boolean;
+        RemainingAmt: Decimal;
+        RemAmt1: Decimal;
+        RemAmt2: Decimal;
+    begin
+        RemAmt1 := GetRemAmount(EntryBuf1, ApplnRoundingPrecision);
+        RemAmt2 := GetRemAmount(EntryBuf2, ApplnRoundingPrecision);
+        UseOrigCurrencyFactor := EntryBuf1."Original Currency Factor" <>
+          RoundCurrencyFactor(CurrExchRate.ExchangeRate(EntryBuf1."Posting Date", EntryBuf1."Currency Code"));
+        if UseOrigCurrencyFactor then
+            RemainingAmt := Round(RemAmt2 * EntryBuf1."Original Currency Factor")
+        else
+            RemainingAmt :=
+              CurrExchRate.ExchangeAmount(RemAmt2, EntryBuf2."Currency Code", EntryBuf1."Currency Code", EntryBuf2."Posting Date");
+        if Abs(RemAmt1) < Abs(RemainingAmt) then begin
+            AppliedAmount1 := Factor * RemAmt1;
+            if UseOrigCurrencyFactor then
+                AppliedAmount2 := Round(AppliedAmount1 / EntryBuf1."Original Currency Factor")
+            else
+                AppliedAmount2 :=
+                  CurrExchRate.ExchangeAmount(AppliedAmount1, EntryBuf1."Currency Code", EntryBuf2."Currency Code", EntryBuf2."Posting Date");
+        end else begin
+            AppliedAmount1 := Factor * -RemainingAmt;
+            AppliedAmount2 := Factor * -RemAmt2;
+        end;
+        AppliedAmountLCY := AppliedAmount2;
+    end;
+
+    local procedure RoundCurrencyFactor(CurrencyFactor: Decimal) RoundedCurrencyFactor: Decimal
+    var
+        CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer";
+    begin
+        if CVLedgerEntryBuffer.FindLast() then;
+        CVLedgerEntryBuffer."Entry No." += 1;
+        CVLedgerEntryBuffer."Original Currency Factor" := CurrencyFactor;
+        CVLedgerEntryBuffer.Insert();
+        CVLedgerEntryBuffer.Find();
+        RoundedCurrencyFactor := CVLedgerEntryBuffer."Original Currency Factor";
+        CVLedgerEntryBuffer.Delete();
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetRemAmount(EntryBuf: Record "CV Ledger Entry Buffer"; ApplnRoundingPrecision: Decimal) RemainingAmount: Decimal
+    begin
+        if EntryBuf."Amount to Apply" = 0 then
+            RemainingAmount := EntryBuf."Remaining Amount"
+        else begin
+            if Abs(EntryBuf."Remaining Amount") < Abs(EntryBuf."Amount to Apply") then
+                RemainingAmount := EntryBuf."Remaining Amount"
+            else
+                RemainingAmount := EntryBuf."Amount to Apply";
+            if (Abs(EntryBuf."Remaining Amount" - EntryBuf."Amount to Apply") < ApplnRoundingPrecision) and
+               (ApplnRoundingPrecision <> 0)
+            then
+                RemainingAmount := RemainingAmount - (EntryBuf."Remaining Amount" - EntryBuf."Amount to Apply");
+        end;
+    end;
+
+    local procedure InsertRUGLEntry(GenJnlLine: Record "Gen. Journal Line"; GLEntry: Record "G/L Entry"; BalAccountNo: Code[20]; IgnoreGLSetup: Boolean; CalcAddCurrResiduals: Boolean; RUCorrection: Boolean): Boolean
+    var
+        GLEntrySrc: Record "G/L Entry";
+        SavedCorrection: Boolean;
+    begin
+        SavedCorrection := GenJnlLine.Correction;
+        if RUCorrection then
+            GenJnlLine.Correction := true;
+        GLEntrySrc := GLEntry;
+        GLEntry."Bal. Account No." := BalAccountNo;
+        InsertGLEntry(GenJnlLine, GLEntry, CalcAddCurrResiduals);
+        if (BalAccountNo <> '') and (IgnoreGLSetup or GLSetup."Enable Russian Accounting") then begin
+            GLEntry := GLEntrySrc;
+            GLEntry."Entry No." := NextEntryNo;
+            GLEntry."Bal. Account No." := GLEntry."G/L Account No.";
+            GLEntry."G/L Account No." := BalAccountNo;
+            GLEntry.Amount := -GLEntry.Amount;
+            GLEntry."Additional-Currency Amount" := -GLEntry."Additional-Currency Amount";
+            GLEntry."Source Currency Amount" := -GLEntry."Source Currency Amount";
+            GLEntry."VAT Amount" := -GLEntry."VAT Amount";
+            InsertGLEntry(GenJnlLine, GLEntry, CalcAddCurrResiduals);
+            GenJnlLine.Correction := SavedCorrection;
+            exit(true);
+        end;
+        GenJnlLine.Correction := SavedCorrection;
+    end;
+
+    [Scope('OnPrem')]
+    procedure SpecialRunWithCheck(var GenJnlLine2: Record "Gen. Journal Line"): BigInteger
+    begin
+        ThisIsSpecialRun := true;
+        RunWithCheck(GenJnlLine2);
+        ThisIsSpecialRun := false;
+        exit(GLEntryNo);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AdjustVATAmount(var VATEntry: Record "VAT Entry"; VATPart: Decimal; var VATBase: Decimal; VATAmount: Decimal; var VATBaseAddCurr: Decimal; VATAmountAddCurr: Decimal; Remaining: Boolean)
+    var
+        TotalVAT: Decimal;
+    begin
+        if Remaining then
+            TotalVAT := Round((VATEntry."Remaining Unrealized Amount" + VATEntry."Remaining Unrealized Base") * VATPart)
+        else
+            TotalVAT := Round((VATEntry."Unrealized Amount" + VATEntry."Unrealized Base") * VATPart);
+        if TotalVAT <> VATBase + VATAmount then
+            VATBase := TotalVAT - VATAmount;
+        if Remaining then
+            TotalVAT := Round((VATEntry."Add.-Curr. Rem. Unreal. Amount" + VATEntry."Add.-Curr. Rem. Unreal. Base") * VATPart,
+                AddCurrency."Amount Rounding Precision")
+        else
+            TotalVAT := Round((VATEntry."Add.-Currency Unrealized Amt." + VATEntry."Add.-Currency Unrealized Base") * VATPart,
+                AddCurrency."Amount Rounding Precision");
+        if TotalVAT <> VATAmountAddCurr + VATBaseAddCurr then
+            VATBaseAddCurr := TotalVAT - VATAmountAddCurr;
+    end;
+
+    [Scope('OnPrem')]
+    procedure SummarizeGainLoss(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var CorrDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; Unapply: Boolean)
+    var
+        Currency: Record Currency;
+        DtldCVLedgEntryBuf2: Record "Detailed CV Ledg. Entry Buffer" temporary;
+        RealizedForCustEntryNo: List of [BigInteger];
+        AmountLCY: Decimal;
+        EntryNo: BigInteger;
+        CurrencyCode: Code[20];
+        CanBeSummarized: Boolean;
+        DeleteEntry: Boolean;
+        Completed: Boolean;
+        DtldCVLedgEntryNo: BigInteger;
+    begin
+        GLSetup.Get();
+        if not GLSetup."Summarize Gains/Losses" then
+            exit;
+
+        CorrDtldCVLedgEntryBuf.DeleteAll();
+        DtldCVLedgEntryBuf.Reset();
+        DtldCVLedgEntryBuf.SetCurrentKey("CV Ledger Entry No.", "Entry Type");
+        DtldCVLedgEntryBuf.SetRange(
+          "Entry Type",
+          DtldCVLedgEntryBuf."Entry Type"::"Realized Loss",
+          DtldCVLedgEntryBuf."Entry Type"::"Realized Gain");
+        if DtldCVLedgEntryBuf.FindSet() then
+            repeat
+                DtldCVLedgEntryBuf2 := DtldCVLedgEntryBuf;
+                DtldCVLedgEntryBuf2.Insert();
+            until DtldCVLedgEntryBuf.Next() = 0;
+        DtldCVLedgEntryBuf2.SetCurrentKey("CV Ledger Entry No.");
+        DtldCVLedgEntryBuf.SetFilter(
+          "Entry Type", '%1|%2|%3|%4',
+          DtldCVLedgEntryBuf."Entry Type"::"Unrealized Loss",
+          DtldCVLedgEntryBuf."Entry Type"::"Unrealized Gain",
+          DtldCVLedgEntryBuf."Entry Type"::"Realized Loss",
+          DtldCVLedgEntryBuf."Entry Type"::"Realized Gain");
+        CurrencyCode := '';
+        if DtldCVLedgEntryBuf.Find('+') then
+            repeat
+                if not DtldCVLedgEntryBuf."Prepmt. Diff." then
+                    if EntryNo <> DtldCVLedgEntryBuf."CV Ledger Entry No." then begin
+                        if CurrencyCode <> DtldCVLedgEntryBuf."Currency Code" then begin
+                            CurrencyCode := DtldCVLedgEntryBuf."Currency Code";
+                            Currency.Get(CurrencyCode);
+                            CanBeSummarized :=
+                              (Currency."Unrealized Gains Acc." = Currency."Realized Gains Acc.") and
+                              (Currency."Unrealized Losses Acc." = Currency."Realized Losses Acc.");
+                        end;
+                        if CanBeSummarized then begin
+                            CorrDtldCVLedgEntryBuf := DtldCVLedgEntryBuf;
+                            CorrDtldCVLedgEntryBuf.Insert();
+                            if DtldCVLedgEntryBuf."Entry Type" in [DtldCVLedgEntryBuf."Entry Type"::"Realized Loss",
+                                                                   DtldCVLedgEntryBuf."Entry Type"::"Realized Gain"]
+                            then begin
+                                if not RealizedForCustEntryNo.Contains(DtldCVLedgEntryBuf."CV Ledger Entry No.") then
+                                    RealizedForCustEntryNo.Add(DtldCVLedgEntryBuf."CV Ledger Entry No.");
+                            end else begin
+                                DtldCVLedgEntryBuf2.SetRange("CV Ledger Entry No.", DtldCVLedgEntryBuf."CV Ledger Entry No.");
+                                if not DtldCVLedgEntryBuf2.FindFirst() then begin
+                                    CorrDtldCVLedgEntryBuf."Entry Type" := CorrDtldCVLedgEntryBuf."Entry Type"::"Realized Gain";
+                                    CorrDtldCVLedgEntryBuf.Modify();
+                                end;
+                            end;
+                        end;
+                    end;
+            until DtldCVLedgEntryBuf.Next(-1) = 0;
+
+        CorrDtldCVLedgEntryBuf.SetCurrentKey("CV Ledger Entry No.", "Entry Type");
+        if CorrDtldCVLedgEntryBuf.FindSet() then begin
+            Completed := false;
+            AmountLCY := 0;
+            EntryNo := CorrDtldCVLedgEntryBuf."CV Ledger Entry No.";
+            DtldCVLedgEntryNo := CorrDtldCVLedgEntryBuf."Entry No.";
+
+            DtldCVLedgEntryBuf2.Reset();
+            DtldCVLedgEntryBuf2.DeleteAll();
+            repeat
+                DeleteEntry := false;
+                if EntryNo <> CorrDtldCVLedgEntryBuf."CV Ledger Entry No." then begin
+                    DtldCVLedgEntryBuf.Get(DtldCVLedgEntryNo);
+                    DtldCVLedgEntryBuf2 := DtldCVLedgEntryBuf;
+                    DtldCVLedgEntryBuf2."Amount (LCY)" := AmountLCY;
+                    DtldCVLedgEntryBuf2.Insert();
+
+                    AmountLCY := 0;
+                    EntryNo := CorrDtldCVLedgEntryBuf."CV Ledger Entry No.";
+                end;
+                AmountLCY := AmountLCY + CorrDtldCVLedgEntryBuf."Amount (LCY)";
+                CorrDtldCVLedgEntryBuf."Amount (LCY)" := 0;
+                if CorrDtldCVLedgEntryBuf."Entry Type" in
+                   [CorrDtldCVLedgEntryBuf."Entry Type"::"Unrealized Loss",
+                    CorrDtldCVLedgEntryBuf."Entry Type"::"Unrealized Gain"]
+                then
+                    DeleteEntry := not RealizedForCustEntryNo.Contains(CorrDtldCVLedgEntryBuf."CV Ledger Entry No.");
+                if DeleteEntry then
+                    CorrDtldCVLedgEntryBuf.Delete()
+                else
+                    CorrDtldCVLedgEntryBuf.Modify();
+
+                DtldCVLedgEntryNo := CorrDtldCVLedgEntryBuf."Entry No.";
+                Completed := CorrDtldCVLedgEntryBuf.Next() = 0;
+                if Completed then begin
+                    DtldCVLedgEntryBuf.Get(DtldCVLedgEntryNo);
+                    DtldCVLedgEntryBuf2 := DtldCVLedgEntryBuf;
+                    DtldCVLedgEntryBuf2."Amount (LCY)" := AmountLCY;
+                    DtldCVLedgEntryBuf2.Insert();
+                end;
+            until Completed;
+            if DtldCVLedgEntryBuf2.FindSet() then
+                repeat
+                    CorrDtldCVLedgEntryBuf.Get(DtldCVLedgEntryBuf2."Entry No.");
+                    CorrDtldCVLedgEntryBuf."Amount (LCY)" := DtldCVLedgEntryBuf2."Amount (LCY)";
+                    if not GLSetup."Currency Adjmt with Correction" then
+                        if (CorrDtldCVLedgEntryBuf."Amount (LCY)" > 0) xor Unapply then
+                            CorrDtldCVLedgEntryBuf."Entry Type" := CorrDtldCVLedgEntryBuf."Entry Type"::"Realized Gain"
+                        else
+                            CorrDtldCVLedgEntryBuf."Entry Type" := CorrDtldCVLedgEntryBuf."Entry Type"::"Realized Loss";
+                    CorrDtldCVLedgEntryBuf.Modify();
+                until DtldCVLedgEntryBuf2.Next() = 0;
+        end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure UpdateGainLoss(var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var CorrDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer")
+    begin
+        if CorrDtldCVLedgEntryBuf.Get(DtldCVLedgEntryBuf."Entry No.") then begin
+            DtldCVLedgEntryBuf."Entry Type" := CorrDtldCVLedgEntryBuf."Entry Type";
+            DtldCVLedgEntryBuf."Amount (LCY)" := CorrDtldCVLedgEntryBuf."Amount (LCY)";
+        end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure CreateCustUnapplyBuffer(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; NextDtldLedgEntryNo: BigInteger)
+    begin
+        if DtldCustLedgEntry.FindSet() then
+            repeat
+                DtldCVLedgEntryBuf.TransferFields(DtldCustLedgEntry);
+                DtldCVLedgEntryBuf."Entry No." := NextDtldLedgEntryNo;
+                DtldCVLedgEntryBuf."Amount (LCY)" := -DtldCVLedgEntryBuf."Amount (LCY)";
+                DtldCVLedgEntryBuf.Insert();
+                NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+            until DtldCustLedgEntry.Next() = 0;
+    end;
+
+    [Scope('OnPrem')]
+    procedure CreateVendUnapplyBuffer(var DtldCustLedgEntry: Record "Detailed Vendor Ledg. Entry"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; NextDtldLedgEntryNo: BigInteger)
+    begin
+        if DtldCustLedgEntry.FindSet() then
+            repeat
+                DtldCVLedgEntryBuf.TransferFields(DtldCustLedgEntry);
+                DtldCVLedgEntryBuf."Entry No." := NextDtldLedgEntryNo;
+                DtldCVLedgEntryBuf."Amount (LCY)" := -DtldCVLedgEntryBuf."Amount (LCY)";
+                DtldCVLedgEntryBuf.Insert();
+                NextDtldLedgEntryNo := NextDtldLedgEntryNo + 1;
+            until DtldCustLedgEntry.Next() = 0;
+    end;
+
+    [Scope('OnPrem')]
+    procedure FindAdjustingVATEntry(var VATEntry: Record "VAT Entry"; CorrDocDate: Date)
+    var
+        AdjustingVATEntry: Record "VAT Entry";
+    begin
+        AdjustingVATEntry.SetCurrentKey("Unrealized VAT Entry No.");
+        AdjustingVATEntry.SetRange("Unrealized VAT Entry No.", VATEntry."Unrealized VAT Entry No.");
+        AdjustingVATEntry.SetRange("Corrected Document Date", CalcDate('<-CM>', CorrDocDate), CalcDate('<CM>', CorrDocDate));
+        if AdjustingVATEntry.FindFirst() then
+            VATEntry."Adjusted VAT Entry No." := AdjustingVATEntry."Entry No.";
+    end;
+
+    [Scope('OnPrem')]
+    procedure UpdateTaxDiff(GenJnlLine: Record "Gen. Journal Line")
+    var
+        DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        case GenJnlLine."Object Type" of
+            GenJnlLine."Object Type"::Customer:
+                begin
+                    DtldCustLedgEntry.Get(GenJnlLine."Tax. Diff. Dtld. Entry No.");
+                    if DtldCustLedgEntry."Tax Diff. Transaction No." <> 0 then
+                        Error(PostedTaxDiffAlreadyExistErr, DtldCustLedgEntry."Tax Diff. Transaction No.");
+                    DtldCustLedgEntry."Tax Diff. Transaction No." := NextTransactionNo;
+                    DtldCustLedgEntry.Modify();
+                end;
+            GenJnlLine."Object Type"::Vendor:
+                begin
+                    DtldVendLedgEntry.Get(GenJnlLine."Tax. Diff. Dtld. Entry No.");
+                    if DtldVendLedgEntry."Tax Diff. Transaction No." <> 0 then
+                        Error(PostedTaxDiffAlreadyExistErr, DtldVendLedgEntry."Tax Diff. Transaction No.");
+                    DtldVendLedgEntry."Tax Diff. Transaction No." := NextTransactionNo;
+                    DtldVendLedgEntry.Modify();
+                end;
+        end;
+    end;
+
+    local procedure CalcTaxAccRealizedGainLossAmt(var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary; GenJnlLine: Record "Gen. Journal Line"; RealizedGainLossAmount: Decimal; AppliedAmount: Decimal; AppliedAmountLCY: Decimal)
+    var
+        TaxAccRealizedGainLossAmt: Decimal;
+    begin
+        if GLSetup."Cancel Prepmt. Adjmt. in TA" or (CVLedgEntryBuf."Currency Code" = '') or not CVLedgEntryBuf.Prepayment then
+            exit;
+
+        TaxAccRealizedGainLossAmt :=
+          Round(AppliedAmountLCY - AppliedAmount / CVLedgEntryBuf."Adjusted Currency Factor");
+
+        TaxAccRealizedGainLossAmt := -TaxAccRealizedGainLossAmt + RealizedGainLossAmount;
+        if TaxAccRealizedGainLossAmt = 0 then
+            exit;
+
+        DtldCVLedgEntryBuf.InitFromGenJnlLine(GenJnlLine);
+        DtldCVLedgEntryBuf.CopyFromCVLedgEntryBuf(CVLedgEntryBuf);
+        DtldCVLedgEntryBuf."Prepmt. Diff. in TA" := true;
+        if TaxAccRealizedGainLossAmt < 0 then begin
+            DtldCVLedgEntryBuf."Entry Type" := DtldCVLedgEntryBuf."Entry Type"::"Realized Loss";
+            DtldCVLedgEntryBuf."Amount (LCY)" := TaxAccRealizedGainLossAmt;
+            DtldCVLedgEntryBuf.InsertDtldCVLedgEntry(DtldCVLedgEntryBuf, CVLedgEntryBuf, false);
+        end else begin
+            DtldCVLedgEntryBuf."Entry Type" := DtldCVLedgEntryBuf."Entry Type"::"Realized Gain";
+            DtldCVLedgEntryBuf."Amount (LCY)" := TaxAccRealizedGainLossAmt;
+            DtldCVLedgEntryBuf.InsertDtldCVLedgEntry(DtldCVLedgEntryBuf, CVLedgEntryBuf, false);
+        end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure PostPrepmtDiffRealizedVAT(GenJnlLine: Record "Gen. Journal Line"; UnrealizedVATEntry: Record "VAT Entry")
+    var
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        VATSettlementMgt: Codeunit "VAT Settlement Management";
+    begin
+        if VATSettlementMgt.VATIsPostponed(UnrealizedVATEntry, 0, GenJnlLine."Posting Date") then
+            exit;
+        case GenJnlLine."Source Type" of
+            GenJnlLine."Source Type"::Vendor:
+                begin
+                    VendLedgEntry.Init();
+                    VendLedgEntry."Transaction No." := NextTransactionNo;
+                    VendLedgEntry."Remaining Amt. (LCY)" := 0;
+                    VendLedgEntry."Amount (LCY)" := UnrealizedVATEntry."Unrealized Base" + UnrealizedVATEntry."Unrealized Amount";
+                    VendLedgEntry.Open := false;
+                    VendUnrealizedVAT(
+                      GenJnlLine, VendLedgEntry, GenJnlLine.Amount, UnrealizedVATEntry."Entry No.", 1, GenJnlLine."VAT Transaction No.", 0);
+                end;
+            GenJnlLine."Source Type"::Customer:
+                begin
+                    CustLedgEntry.Init();
+                    CustLedgEntry."Transaction No." := NextTransactionNo;
+                    CustLedgEntry."Remaining Amt. (LCY)" := 0;
+                    CustLedgEntry."Amount (LCY)" := UnrealizedVATEntry."Unrealized Base" + UnrealizedVATEntry."Unrealized Amount";
+                    CustLedgEntry.Open := false;
+                    CustUnrealizedVAT(GenJnlLine, CustLedgEntry, GenJnlLine.Amount, UnrealizedVATEntry."Entry No.", 1, 0);
+                end;
+        end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure TransferCVLedgerEntryBuf(CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
+    begin
+        InitialCVLedgEntryBuf := CVLedgEntryBuf;
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetCVLedgEntryForVAT(TransactionNo: Integer; CVLedgEntryNo: BigInteger)
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        VATEntry.Reset();
+        VATEntry.SetCurrentKey("Transaction No.", "CV Ledg. Entry No.");
+        VATEntry.SetRange("Transaction No.", TransactionNo);
+        VATEntry.SetRange("CV Ledg. Entry No.", 0);
+        VATEntry.ModifyAll("CV Ledg. Entry No.", CVLedgEntryNo);
+    end;
+
+    [Scope('OnPrem')]
+    procedure IsCheckFinVoided(GenJnlLine: Record "Gen. Journal Line"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"): Boolean
+    var
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        BankAccLedgEntry2: Record "Bank Account Ledger Entry";
+        CheckLedgEntry3: Record "Check Ledger Entry";
+        TransactionNo: Integer;
+    begin
+        DtldCVLedgEntryBuf.Reset();
+        DtldCVLedgEntryBuf.SetCurrentKey("CV Ledger Entry No.", "Entry Type");
+        DtldCVLedgEntryBuf.SetRange("Entry Type", DtldCVLedgEntryBuf."Entry Type"::Application);
+        DtldCVLedgEntryBuf.SetRange(Prepayment, true);
+        if DtldCVLedgEntryBuf.FindSet() then
+            repeat
+                case GenJnlLine."Account Type" of
+                    GenJnlLine."Account Type"::Customer:
+                        begin
+                            CustLedgEntry.Get(DtldCVLedgEntryBuf."CV Ledger Entry No.");
+                            TransactionNo := CustLedgEntry."Transaction No.";
+                        end;
+                    GenJnlLine."Account Type"::Vendor:
+                        begin
+                            VendLedgEntry.Get(DtldCVLedgEntryBuf."CV Ledger Entry No.");
+                            TransactionNo := VendLedgEntry."Transaction No.";
+                        end;
+                end;
+                BankAccLedgEntry2.Reset();
+                BankAccLedgEntry2.SetCurrentKey("Transaction No.");
+                BankAccLedgEntry2.SetRange("Transaction No.", TransactionNo);
+                if BankAccLedgEntry2.FindSet() then
+                    repeat
+                        CheckLedgEntry3.Reset();
+                        CheckLedgEntry3.SetCurrentKey("Bank Account Ledger Entry No.");
+                        CheckLedgEntry3.SetRange("Bank Account Ledger Entry No.", BankAccLedgEntry2."Entry No.");
+                        CheckLedgEntry3.SetRange("Entry Status", CheckLedgEntry3."Entry Status"::"Financially Voided");
+                        if not CheckLedgEntry3.IsEmpty() then
+                            exit(true);
+                    until BankAccLedgEntry2.Next() = 0;
+            until DtldCVLedgEntryBuf.Next() = 0;
+
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetPreviewMode(NewPreviewMode: Boolean)
+    begin
+        PreviewMode := NewPreviewMode;
+    end;
+
+    [Scope('OnPrem')]
+    procedure IsVATAgentVATPayment(GenJnlLine: Record "Gen. Journal Line"): Boolean
+    var
+        Vend: Record Vendor;
+    begin
+        if (GenJnlLine."Document Type" = GenJnlLine."Document Type"::Payment) and
+           (GenJnlLine."Account Type" = GenJnlLine."Account Type"::Vendor)
+        then begin
+            Vend.Get(GenJnlLine."Account No.");
+            exit(Vend."VAT Agent");
+        end;
+
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure UpdateVATAgentVendLedgEntry(var VendLedgEntry: Record "Vendor Ledger Entry")
+    begin
+        VendLedgEntry."Entry No." := NextEntryNo;
+        VendLedgEntry."Currency Code" := '';
+        VendLedgEntry."Applies-to Doc. Type" := VendLedgEntry."Applies-to Doc. Type"::" ";
+        VendLedgEntry."Applies-to Doc. No." := '';
+        VendLedgEntry."Applies-to ID" := '';
+        VendLedgEntry.Open := true;
+        VendLedgEntry."Closed by Entry No." := 0;
+        VendLedgEntry."Closed at Date" := 0D;
+        VendLedgEntry."Closed by Amount" := 0;
+        VendLedgEntry."Closed by Amount (LCY)" := 0;
+        VendLedgEntry."Closed by Currency Code" := '';
+        VendLedgEntry."Closed by Currency Amount" := 0;
+        VendLedgEntry."Adjusted Currency Factor" := 1;
+        VendLedgEntry."Original Currency Factor" := 1;
+        VendLedgEntry."Amount to Apply" := 0;
+        VendLedgEntry."Prepmt. Diff. Appln. Entry No." := 0;
+    end;
+
+    local procedure InsertVATAgentVATPmtGLEntry(GenJnlLine: Record "Gen. Journal Line"; PmtAmount: Decimal)
+    var
         LCYCurrency: Record Currency;
         FCYCurrency: Record Currency;
         VendAgrmt: Record "Vendor Agreement";
@@ -9832,25 +10548,50 @@ codeunit 12 "Gen. Jnl.-Post Line"
             GenJnlLine."VAT Base Amount" := GenJnlLine.Amount;
             VATPrepmtPost.InsertVATAgentPurchInvoice(GenJnlLine, VATAgentVATPmtAmount, VATAgentVATPmtAmtFCY);
 
-        TempDimPostingBuffer.Reset();
-        if TempDimPostingBuffer.FindSet() then
-            repeat
-                if (TempDimPostingBuffer.Amount <> 0) or (TempDimPostingBuffer."Amount (ACY)" <> 0) and (AddCurrencyCode <> '') then begin
-                    IsHandled := false;
-                    OnCreateGLEntriesForTotalAmountsOnBeforeUpdateGenJnlLineDim(IsHandled);
-                    if not IsHandled then
-                        DimMgt.UpdateGenJnlLineDim(GenJnlLine, TempDimPostingBuffer."Dimension Set ID");
-                    OnBeforeCreateGLEntryForTotalAmountsForDimPostBuf(GenJnlLine, TempDimPostingBuffer, GLAccNo);
-                    CreateGLEntryForTotalAmounts(GenJnlLine, TempDimPostingBuffer.Amount, TempDimPostingBuffer."Amount (ACY)", AdjAmountBuf, SavedEntryNo, GLAccNo);
-                    GLEntryInserted := true;
-                end;
-            until TempDimPostingBuffer.Next() = 0;
-
-        if not GLEntryInserted and LedgEntryInserted then
-            CreateGLEntryForTotalAmounts(GenJnlLine, 0, 0, AdjAmountBuf, SavedEntryNo, GLAccNo);
+            InitVAT(GenJnlLine, GLEntry, VATPostingSetup);
+            PostVAT(GenJnlLine, GLEntry, VATPostingSetup);
+        end;
     end;
 
-    local procedure CreateGLEntryForTotalAmounts(GenJnlLine: Record "Gen. Journal Line"; Amount: Decimal; AmountACY: Decimal; AdjAmountBuf: array[4] of Decimal; var SavedEntryNo: BigInteger; GLAccNo: Code[20])
+    [Scope('OnPrem')]
+    procedure InitVATAgentDtldVendLedgEntry(GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    var
+        DtldVendLedgEntryNo: BigInteger;
+    begin
+        DtldVendLedgEntry.Reset();
+        if DtldVendLedgEntry.FindLast() then
+            DtldVendLedgEntryNo := DtldVendLedgEntry."Entry No." + 1
+        else
+            DtldVendLedgEntryNo := 1;
+
+        DtldVendLedgEntry.Init();
+        DtldVendLedgEntry."Entry No." := DtldVendLedgEntryNo;
+        DtldVendLedgEntry."Vendor Ledger Entry No." := VendLedgEntry."Entry No.";
+        DtldVendLedgEntry."Entry Type" := DtldVendLedgEntry."Entry Type"::"Initial Entry";
+        DtldVendLedgEntry."Posting Date" := VendLedgEntry."Posting Date";
+        DtldVendLedgEntry."Document Type" := VendLedgEntry."Document Type";
+        DtldVendLedgEntry."Document No." := VendLedgEntry."Document No.";
+        DtldVendLedgEntry.Amount := VATAgentVATPmtAmount;
+        DtldVendLedgEntry."Amount (LCY)" := VATAgentVATPmtAmount;
+        DtldVendLedgEntry."Vendor No." := VendLedgEntry."Vendor No.";
+        DtldVendLedgEntry."Currency Code" := VendLedgEntry."Currency Code";
+        DtldVendLedgEntry."User ID" := VendLedgEntry."User ID";
+        DtldVendLedgEntry."Initial Entry Due Date" := VendLedgEntry."Due Date";
+        DtldVendLedgEntry."Initial Entry Posting Date" := VendLedgEntry."Posting Date";
+        DtldVendLedgEntry."Initial Entry Global Dim. 1" := VendLedgEntry."Global Dimension 1 Code";
+        DtldVendLedgEntry."Initial Entry Global Dim. 2" := VendLedgEntry."Global Dimension 2 Code";
+        DtldVendLedgEntry."Initial Document Type" := VendLedgEntry."Document Type";
+        DtldVendLedgEntry."Initial Entry Positive" := VATAgentVATPmtAmount > 0;
+        DtldVendLedgEntry."Agreement No." := VendLedgEntry."Agreement No.";
+        DtldVendLedgEntry."Journal Batch Name" := GenJnlLine."Journal Batch Name";
+        DtldVendLedgEntry."Reason Code" := GenJnlLine."Reason Code";
+        DtldVendLedgEntry."Source Code" := GenJnlLine."Source Code";
+        DtldVendLedgEntry."Transaction No." := VendLedgEntry."Transaction No.";
+        DtldVendLedgEntry."Vendor Posting Group" := GenJnlLine."Posting Group";
+    end;
+
+    [Scope('OnPrem')]
+    procedure PostVATAllocDepreciation(GenJnlLine: Record "Gen. Journal Line"; VATAllocLine: Record "VAT Allocation Line"; DeprAmount: Decimal; DeprBookCode: Code[10])
     var
         FA: Record "Fixed Asset";
         FADeprBook: Record "FA Depreciation Book";

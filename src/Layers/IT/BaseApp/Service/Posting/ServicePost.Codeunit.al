@@ -495,7 +495,7 @@ codeunit 5980 "Service-Post"
             PassedServiceHeader.TestField("Activity Code", ErrorInfo.Create());
 
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             if PassedServiceHeader."Applies-to Doc. No." <> '' then
                 if PassedServiceHeader."Applies-to Occurrence No." = 0 then
                     Error(
@@ -503,7 +503,6 @@ codeunit 5980 "Service-Post"
                             StrSubstNo(Text1130004, PassedServiceHeader.FieldCaption(PassedServiceHeader."Applies-to Occurrence No.")),
                             true,
                             PassedServiceHeader));
-        end;
 #endif
 
         PassedServiceHeader.TestMandatoryFields(PassedServiceLine);

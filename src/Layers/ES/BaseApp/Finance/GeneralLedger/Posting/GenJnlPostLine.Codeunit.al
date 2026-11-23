@@ -8071,6 +8071,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(NonAddCurrCodeOccured);
     end;
 
+    local procedure TotalVATAmountOnJnlLines(GenJnlLine: Record "Gen. Journal Line") TotalVATAmount: Decimal
+    var
+        GenJnlLine2: Record "Gen. Journal Line";
+    begin
+        GenJnlLine2.SetRange("Source Code", GenJnlLine."Source Code");
+        GenJnlLine2.SetRange("Document No.", GenJnlLine."Document No.");
+        GenJnlLine2.SetRange("Posting Date", GenJnlLine."Posting Date");
+        GenJnlLine2.CalcSums(GenJnlLine2."VAT Amount (LCY)", GenJnlLine2."Bal. VAT Amount (LCY)");
+        TotalVATAmount := GenJnlLine2."VAT Amount (LCY)" - GenJnlLine2."Bal. VAT Amount (LCY)";
+        exit(TotalVATAmount);
+    end;
+
     /// <summary>
     /// Sets parameter ReverseGLReg to the same value as global variable GLReg with reversed set to true.
     /// </summary>
@@ -10641,6 +10653,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckCarteraCustUnrealizedVAT(var VATEntry: Record "VAT Entry"; var CustLedgerEntry4: Record "Cust. Ledger Entry"; var CustLedgerEntry3: Record "Cust. Ledger Entry"; var CustLedgerEntry2: Record "Cust. Ledger Entry" temporary; CarteraDoc: Record "Cartera Doc."; PostedCarteraDoc: Record "Posted Cartera Doc."; ClosedCarteraDoc: Record "Closed Cartera Doc."; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckCarteraVendUnrealizedVAT(var VATEntry: Record "VAT Entry"; var VendLedgerEntry4: Record "Vendor Ledger Entry"; var VendLedgerEntry3: Record "Vendor Ledger Entry"; var VendLedgerEntry2: Record "Vendor Ledger Entry" temporary; CarteraDoc: Record "Cartera Doc."; PostedCarteraDoc: Record "Posted Cartera Doc."; ClosedCarteraDoc: Record "Closed Cartera Doc."; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccDimError(var GenJournalLine: Record "Gen. Journal Line"; GLAccNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
@@ -11318,6 +11340,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcPmtDiscount(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; var GenJnlLine: Record "Gen. Journal Line"; var PmtTolAmtToBeApplied: Decimal; var PmtDisc: Decimal; var PmtDiscLCY: Decimal; var PmtDiscAddCurr: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcPmtDiscPossible(GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
     begin
     end;
 
@@ -13169,12 +13196,20 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
-    [Obsolete('The event is never raised', '27.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIncrNextEntryNo(var NextEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
-#pragma warning restore AS0105
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalcPmtDiscPossible(var GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var IsHandled: Boolean; RoundingPrecision: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcPmtDiscPossibleOnBeforeOriginalPmtDiscPossible(GenJnlLine: Record "Gen. Journal Line"; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer"; AmountRoundingPrecision: Decimal)
+    begin
+    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnPostApplyOnAfterFindAmtForApplnOnBeforeCalcCurrencyUnrealizedGainLoss(var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var OldCVLedgEntryBuf2: Record "CV Ledger Entry Buffer"; var AppliedAmount: Decimal; var AppliedAmountLCY: Decimal; var OldAppliedAmount: Decimal; var ApplnRoundingPrecision: Decimal; var VATEntry: Record "VAT Entry")
@@ -13208,6 +13243,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(true, false)]
     local procedure OnStartPostingOnAfterSetNextTaxEntryNo(var NextTaxEntryNo: BigInteger)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSendDocToCartera(var GenJnlLine: Record "Gen. Journal Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; var CustLedgEntry: Record "Cust. Ledger Entry"; DocType: Option Sale,Purchase; var CVLedgEntryBuf: Record "CV Ledger Entry Buffer")
     begin
     end;
 

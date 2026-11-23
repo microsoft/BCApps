@@ -714,9 +714,8 @@ table 38 "Purchase Header"
                     PaymentLines.CreatePaymentLiensPurchases(Rec);
 
                     CalcFields("Payment %");
-                end else
+                end else begin
 #endif
-                begin
                     IsHandled := false;
                     OnBeforeValidatePaymentTermsCode(Rec, UpdateDocumentDate, IsHandled);
                     if IsHandled then
@@ -756,7 +755,9 @@ table 38 "Purchase Header"
                     end;
                     if xRec."Payment Terms Code" = "Prepmt. Payment Terms Code" then
                         Validate("Prepmt. Payment Terms Code", "Payment Terms Code");
+#if not CLEAN30
                 end;
+#endif
             end;
         }
         field(24; "Due Date"; Date)

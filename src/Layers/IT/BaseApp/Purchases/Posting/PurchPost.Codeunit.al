@@ -840,9 +840,9 @@ codeunit 90 "Purch.-Post"
 
         IsHandled := false;
         OnCheckAndUpdateOnBeforePaymentsInsert(PurchHeader, IsHandled);
-        if not IsHandled then
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not IsHandled then
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 if PurchHeader.Invoice then begin
                     PaymentTermsLine.Reset();
                     PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
@@ -885,7 +885,6 @@ codeunit 90 "Purch.-Post"
                         if PurchHeader."Payment Terms Code" <> '' then
                             Error(Text1130003, PurchHeader.FieldCaption("Payment Terms Code"), PurchHeader."Payment Terms Code");
                 end;
-            end;
 #endif
 
         IsHandled := false;
@@ -946,11 +945,10 @@ codeunit 90 "Purch.-Post"
                 Error(Text12100);
 
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             if PurchHeader."Applies-to Doc. No." <> '' then
                 if PurchHeader."Applies-to Occurrence No." = 0 then
                     Error(ErrorInfo.Create(StrSubstNo(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."))));
-        end;
 #endif
 
         CheckPostingDate(PurchHeader);

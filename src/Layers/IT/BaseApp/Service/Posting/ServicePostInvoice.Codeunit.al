@@ -407,9 +407,8 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 
         ServiceHeader.CopyToGenJournalLineApplyTo(GenJnlLine);
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
-        end;
 #endif
         ServiceHeader.CopyToGenJournalLinePayment(GenJnlLine);
 
@@ -502,9 +501,8 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             GenJnlLine."Applies-to Occurrence No." := 1;
-        end;
 #endif
     end;
 

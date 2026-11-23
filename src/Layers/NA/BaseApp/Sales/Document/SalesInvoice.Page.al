@@ -1275,6 +1275,18 @@ page 43 "Sales Invoice"
                     RunObject = Page "Sales Statistics";
                     RunPageOnRec = true;
                 }
+                action(SalesOrderStats)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Statistics';
+                    Enabled = Rec."No." <> '';
+                    Image = Statistics;
+                    ShortCutKey = 'F7';
+                    Visible = SalesTaxStatisticsVisible;
+                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
+                    RunObject = Page "Sales Order Stats.";
+                    RunPageOnRec = true;
+                }
                 action(InstallmentSchedule)
                 {
                     Visible = PaymentInstallmentsEnabled;

@@ -767,9 +767,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         GenJnlLine.CopyFromPurchHeaderApplyTo(PurchHeader);
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             GenJnlLine."Applies-to Occurrence No." := PurchHeader."Applies-to Occurrence No.";
-        end;
 #endif
         GenJnlLine.CopyFromPurchHeaderPayment(PurchHeader);
 
@@ -904,9 +903,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             GenJnlLine."Applies-to Occurrence No." := 0;
-        end;
 #endif
 
         PurchPostInvoiceEvents.RunOnAfterSetApplyToDocNo(GenJnlLine, PurchHeader);

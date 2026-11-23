@@ -1009,6 +1009,9 @@ page 143 "Posted Sales Invoices"
         HasPostedSalesInvoices: Boolean;
         HasInstallmentPlan: Boolean;
 
+    protected var
+        SalesInvoiceStatsVisible: Boolean;
+
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnAfterSetFilters(var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
