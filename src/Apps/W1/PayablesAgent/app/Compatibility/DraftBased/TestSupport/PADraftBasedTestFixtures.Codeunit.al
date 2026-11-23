@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 
 // Version-specific setup and user actions used by the version-neutral Payables Agent test fixture.
@@ -91,6 +92,58 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         exit(true);
     end;
 
+    internal procedure GetWorkItemInfotipSources(WorkItemId: Guid; var Sources: JsonArray)
+    var
+        EDocument: Record "E-Document";
+        DraftHeader: Record "E-Document Purchase Header";
+        DraftLine: Record "E-Document Purchase Line";
+        Vendor: Record Vendor;
+        PurchaseLine: Record "Purchase Line";
+        TempMatchedLine: Record "Purchase Line" temporary;
+        TempTarget: Record "Purchase Line" temporary;
+        EDocPOMatching: Codeunit "E-Doc. PO Matching";
+    begin
+        EDocument.GetBySystemId(WorkItemId);
+        DraftHeader.Get(EDocument."Entry No");
+        AddInfotipSource(DraftHeader, DraftHeader."Sales Invoice No.", Sources);
+        if DraftHeader."[BC] Vendor No." <> '' then begin
+            Vendor.Get(DraftHeader."[BC] Vendor No.");
+            AddInfotipSource(Vendor, Vendor.Name, Sources);
+        end;
+        DraftLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        if not DraftLine.FindSet() then
+            Error(DraftLinesNotFoundErr, EDocument."Entry No");
+        repeat
+            AddInfotipSource(DraftLine, DraftLine.Description, Sources);
+            EDocPOMatching.LoadPOLinesMatchedToEDocumentLine(DraftLine, TempMatchedLine);
+            if TempMatchedLine.FindSet() then
+                repeat
+                    if PurchaseLine.Get(TempMatchedLine."Document Type", TempMatchedLine."Document No.", TempMatchedLine."Line No.") then
+                        if not TempTarget.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.") then begin
+                            TempTarget := PurchaseLine;
+                            TempTarget.Insert(false, true);
+                        end;
+                until TempMatchedLine.Next() = 0;
+        until DraftLine.Next() = 0;
+        if TempTarget.FindSet() then
+            repeat
+                PurchaseLine.Get(TempTarget."Document Type", TempTarget."Document No.", TempTarget."Line No.");
+                AddInfotipSource(PurchaseLine, PurchaseLine.Description, Sources);
+            until TempTarget.Next() = 0;
+    end;
+
+    local procedure AddInfotipSource(SourceRecord: RecordRef; DescriptionText: Text; var Sources: JsonArray)
+    var
+        Descriptor: JsonObject;
+        SourceSystemId: Guid;
+    begin
+        SourceSystemId := SourceRecord.Field(SourceRecord.SystemIdNo()).Value;
+        Descriptor.Add('tableId', SourceRecord.Number());
+        Descriptor.Add('systemId', SourceSystemId);
+        Descriptor.Add('description', DescriptionText);
+        Sources.Add(Descriptor);
+    end;
+
     internal procedure SelectVendor(AgentTaskId: BigInteger; VendorName: Text; var ErrorText: Text): Boolean
     var
         EDocument: Record "E-Document";
@@ -151,6 +204,63 @@ codeunit 3347 "PA Draft Based Test Fixtures"
         TempEDocImportParameters."Step to Run" := Enum::"Import E-Document Steps"::"Prepare draft";
         EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
         exit(true);
+    end;
+
+    internal procedure CreateMatchedDraftForTest(VendorNo: Code[20]; PurchaseLineSystemId: Guid): Guid
+    var
+        EDocument: Record "E-Document";
+        DraftHeader: Record "E-Document Purchase Header";
+        DraftLine: Record "E-Document Purchase Line";
+        WorkingMatch: Record "E-Doc. Purchase Line PO Match";
+        DraftBasedSetupStore: Codeunit "PA Draft Based Setup Store";
+        LineNo: Integer;
+    begin
+        EDocument.Service := DraftBasedSetupStore.GetOrCreateService().Code;
+        EDocument.Insert();
+        DraftHeader."E-Document Entry No." := EDocument."Entry No";
+        DraftHeader."[BC] Vendor No." := VendorNo;
+        DraftHeader."Sales Invoice No." := 'SOURCE-INVOICE';
+        DraftHeader.Insert();
+        for LineNo := 1 to 2 do begin
+            DraftLine.Init();
+            DraftLine."E-Document Entry No." := EDocument."Entry No";
+            DraftLine."Line No." := LineNo * 10000;
+            DraftLine.Description := 'Actual draft source';
+            DraftLine.Insert();
+            Clear(WorkingMatch);
+            WorkingMatch."E-Doc. Purchase Line SystemId" := DraftLine.SystemId;
+            WorkingMatch."Purchase Line SystemId" := PurchaseLineSystemId;
+            WorkingMatch.Insert();
+            WorkingMatch."Receipt Line SystemId" := CreateGuid();
+            WorkingMatch.Insert();
+        end;
+        exit(EDocument.SystemId);
+    end;
+
+    internal procedure FinalizeDraftMatchesForTest(WorkItemId: Guid)
+    var
+        EDocument: Record "E-Document";
+        DraftLine: Record "E-Document Purchase Line";
+        WorkingMatch: Record "E-Doc. Purchase Line PO Match";
+        FinalizedMatch: Record "E-Doc. Finalized PO Match";
+    begin
+        EDocument.GetBySystemId(WorkItemId);
+        DraftLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        DraftLine.FindSet();
+        repeat
+            WorkingMatch.SetRange("E-Doc. Purchase Line SystemId", DraftLine.SystemId);
+            if WorkingMatch.FindSet() then
+                repeat
+                    FinalizedMatch.Init();
+                    FinalizedMatch."E-Doc. Purchase Line SystemId" := WorkingMatch."E-Doc. Purchase Line SystemId";
+                    FinalizedMatch."Purchase Line SystemId" := WorkingMatch."Purchase Line SystemId";
+                    FinalizedMatch."Receipt Line SystemId" := WorkingMatch."Receipt Line SystemId";
+                    FinalizedMatch.Insert();
+                until WorkingMatch.Next() = 0;
+            WorkingMatch.DeleteAll();
+        until DraftLine.Next() = 0;
+        EDocument.Status := EDocument.Status::Processed;
+        EDocument.Modify();
     end;
 
     local procedure BuildProposedLine(EDocumentPurchaseLine: Record "E-Document Purchase Line"): JsonObject

@@ -523,8 +523,8 @@ codeunit 4400 "SOA Setup"
         if not CurrentSOASetup.Get(SOASetup.RecordId) then
             exit;
 
-        CurrentSOASetup."Instructions Last Sync At" := SOASetup."Instructions Last Sync At";
-        CurrentSOASetup.Modify();
+        // Keep the caller's row version current for the later scheduling update.
+        SOASetup.Modify();
     end;
 
     local procedure GetSOAInstructionsSyncPeriod(): Integer

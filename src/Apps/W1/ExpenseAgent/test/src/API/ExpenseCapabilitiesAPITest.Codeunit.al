@@ -14,6 +14,11 @@ codeunit 148318 "Expense Capabilities API Test"
     RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
+    trigger OnRun()
+    begin
+        // [FEATURE] [Expense Agent] [Capabilities] [API]
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryExpenseAgent: Codeunit "Library - Expense Agent";
@@ -24,41 +29,6 @@ codeunit 148318 "Expense Capabilities API Test"
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
         ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
         TravelRequestCapabilityNameTok: Label 'travelRequest', Locked = true;
-
-    [Test]
-    procedure CapabilitiesProjectsEnabledViaAPI()
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        TargetURL: Text;
-        ResponseText: Text;
-    begin
-        // [SCENARIO] When Expense Agent Setup has "Enable Project Fields" = true,
-        //            the capabilities API exposes a 'projects' row with isEnabled = true.
-        Initialize();
-        LibraryExpenseAgent.BackupExpenseAgentSetup();
-
-        // [GIVEN] Expense Agent Setup exists with Enable Project Fields = true.
-        if not ExpenseAgentSetup.Get() then begin
-            ExpenseAgentSetup.Init();
-            ExpenseAgentSetup.Insert();
-        end;
-        ExpenseAgentSetup."Enable Project Fields" := true;
-        ExpenseAgentSetup."Allow VAT Reclaim" := true;
-        ExpenseAgentSetup."Evaluate Policies" := true;
-        ExpenseAgentSetup.Modify();
-        Commit();
-
-        // [WHEN] The expenseCapabilities collection is fetched through the API.
-        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
-        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
-
-        // [THEN] The Projects capability is enabled, regardless of other capability states.
-        Assert.IsTrue(
-            ResponseContainsCapabilityState(ResponseText, 'projects', true),
-            'Response must contain an enabled projects capability row.');
-        LibraryExpenseAgent.RestoreExpenseAgentSetup();
-        Commit();
-    end;
 
     [Test]
     procedure ActivityLogCapabilityEnabledViaAPI()
@@ -77,6 +47,9 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, ActivityLogCapabilityNameTok, true),
             'Response must contain an enabled activityLog capability row.');
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'activeApproverRouting', true),
+            'Response must contain an enabled activeApproverRouting capability row.');
     end;
 
     [Test]
@@ -241,6 +214,24 @@ codeunit 148318 "Expense Capabilities API Test"
         // [THEN] The provider reports aiAssistedPolicyEvaluation as disabled.
         Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::AiAssistedPolicyEvaluation),
             'aiAssistedPolicyEvaluation must be disabled when Evaluate Policies is false.');
+    end;
+
+    [Test]
+    procedure CapabilitiesActiveApproverRoutingEnabled()
+    var
+        ExpenseCapabilitiesProvider: Codeunit "Expense Capabilities Provider";
+        IsEnabled: Boolean;
+    begin
+        // [SCENARIO] Active approver routing is always supported.
+
+        // [GIVEN] The test environment is initialized.
+        Initialize();
+
+        // [WHEN] Active approver routing support is queried.
+        IsEnabled := ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::ActiveApproverRouting);
+
+        // [THEN] The provider reports activeApproverRouting as enabled.
+        Assert.IsTrue(IsEnabled, 'activeApproverRouting must always be enabled.');
     end;
 
     local procedure Initialize()

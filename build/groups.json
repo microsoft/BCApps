@@ -183,6 +183,26 @@
     ]
   },
   {
+    "name": "Business Skills Test Library",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "TestLibraries"
+      }
+    ]
+  },
+  {
     "name": "Application Test Library",
     "groups": [
       {
@@ -4845,6 +4865,27 @@
       },
       {
         "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Demo Data Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },

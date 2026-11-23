@@ -123,12 +123,14 @@
                        "../../../src/Tools/Test Framework/Test Libraries/Any",
                        "../../../src/Tools/Test Framework/Test Libraries/Assert",
                        "../../../src/Tools/Test Framework/Test Libraries/LibraryAgent",
+                       "../../../src/Tools/Test Framework/Test Libraries/LibraryBusinessSkill",
                        "../../../src/Tools/Test Framework/Test Libraries/Permissions Mock",
                        "../../../src/Tools/Test Framework/Test Libraries/Variable Storage",
                        "../../../src/Tools/Test Framework/Test Runner",
                        "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
                    ],
     "testFolders":  [
+                        "../../../src/Apps/FI/DepreciationDifferencesFI/demo data test",
                         "../../../src/Apps/FI/DepreciationDifferencesFI/test",
                         "../../../src/Apps/FI/FICore/test",
                         "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
