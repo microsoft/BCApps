@@ -429,7 +429,7 @@ codeunit 13916 "Export XRechnung Document"
         RootXMLNode.Add(XmlElement.Create('ProfileID', XmlNamespaceCBC, 'urn:fdc:peppol.eu:2017:poacc:billing:01:1.0'));
         RootXMLNode.Add(XmlElement.Create('ID', XmlNamespaceCBC, SalesInvoiceHeader."No."));
         RootXMLNode.Add(XmlElement.Create('IssueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Document Date")));
-        if SalesInvoiceHeader."Due Date" <> CalcDate('<0D>') then
+        if SalesInvoiceHeader."Due Date" <> 0D then
             RootXMLNode.Add(XmlElement.Create('DueDate', XmlNamespaceCBC, FormatDate(SalesInvoiceHeader."Due Date")));
         RootXMLNode.Add(XmlElement.Create('InvoiceTypeCode', XmlNamespaceCBC, '380'));
         RootXMLNode.Add(XmlElement.Create('DocumentCurrencyCode', XmlNamespaceCBC, CurrencyCode));

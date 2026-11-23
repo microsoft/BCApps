@@ -94,6 +94,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreditMemoCustomerLegalEntityIdTok: Label '/ns0:CreditNote/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Locked = true;
         CreditMemoDeliveryLocationIdTok: Label '/ns0:CreditNote/cac:Delivery/cac:DeliveryLocation/cbc:ID', Locked = true;
         InvoiceDeliveryTok: Label '/ubl:Invoice/cac:Delivery', Locked = true;
+        InvoiceDueDateTok: Label '/ubl:Invoice/cbc:DueDate', Locked = true;
         InvoiceDeliveryAddressTok: Label '/ubl:Invoice/cac:Delivery/cac:DeliveryLocation/cac:Address', Locked = true;
         CreditMemoDeliveryTok: Label '/ns0:CreditNote/cac:Delivery', Locked = true;
         IsInitialized: Boolean;
@@ -1030,6 +1031,70 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.AreEqual(
             FormatDate(WorkDate()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
             StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithDueDateTodayExportsDueDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] A due date on the current date is exported as the payment due date (BT-9)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Due Date" = today
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Due Date" := Today();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] DueDate = today
+        Assert.AreEqual(FormatDate(Today()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDueDateTok), StrSubstNo(IncorrectValueErr, InvoiceDueDateTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithDueDateWorkDateExportsDueDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] A due date on the work date is exported as the payment due date (BT-9)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Due Date" = work date
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Due Date" := WorkDate();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] DueDate = work date
+        Assert.AreEqual(FormatDate(WorkDate()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDueDateTok), StrSubstNo(IncorrectValueErr, InvoiceDueDateTok));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatWithoutDueDateOmitsDueDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] An empty due date is not exported as a payment due date (BT-9)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice without a "Due Date"
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Due Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No DueDate is exported, and the invoice type code is still exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDueDateTok);
+        Assert.AreEqual('380', GetNodeByPathWithError(TempXMLBuffer, '/ubl:Invoice/cbc:InvoiceTypeCode'), StrSubstNo(IncorrectValueErr, '/ubl:Invoice/cbc:InvoiceTypeCode'));
     end;
 
     #endregion

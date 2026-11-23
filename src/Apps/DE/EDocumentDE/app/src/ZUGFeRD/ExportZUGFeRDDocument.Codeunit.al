@@ -1294,14 +1294,17 @@ codeunit 13917 "Export ZUGFeRD Document"
                 PaymentTermsElement.Add(PaymentTermsDescriptionElement);
             end;
 
-        DueDateElement := XmlElement.Create('DueDateDateTime', XmlNamespaceRAM);
-        DueDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(DueDate)));
-        PaymentTermsElement.Add(DueDateElement);
+        if DueDate <> 0D then begin
+            DueDateElement := XmlElement.Create('DueDateDateTime', XmlNamespaceRAM);
+            DueDateElement.Add(XmlElement.Create('DateTimeString', XmlNamespaceUDT, XmlAttribute.Create('format', '102'), FormatDate(DueDate)));
+            PaymentTermsElement.Add(DueDateElement);
+        end;
         // BT-89 Mandate reference identifier. The CII TradePaymentTerms sequence puts DirectDebitMandateID
         // after DueDateDateTime, so it is added last.
         if DirectDebitMandateID <> '' then
             PaymentTermsElement.Add(XmlElement.Create('DirectDebitMandateID', XmlNamespaceRAM, DirectDebitMandateID));
-        RootXMLNode.Add(PaymentTermsElement);
+        if PaymentTermsElement.HasElements() then
+            RootXMLNode.Add(PaymentTermsElement);
     end;
 
     local procedure InsertPaymentMethod(var RootXMLNode: XmlElement; PaymentMethodCode: Code[10]; CompanyBankAccountCode: Code[20]; DirectDebitMandateID: Code[35]; RecordVariant: Variant)
