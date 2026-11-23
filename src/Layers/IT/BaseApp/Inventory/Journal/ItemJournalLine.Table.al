@@ -3647,6 +3647,8 @@ table 83 "Item Journal Line"
     /// </summary>
     /// <remarks>
     /// It checks the filters applied to the journal batch name and journal template name fields.
+    /// If no batch filter is applied, the journal batch name and journal template name of the current record are used,
+    /// e.g. when the page is opened from a URL link to a specific journal line.
     /// </remarks>
     /// <returns>True if the current item journal line record was opened from a batch, otherwise false.</returns>
     procedure IsOpenedFromBatch(): Boolean
@@ -3654,10 +3656,21 @@ table 83 "Item Journal Line"
         ItemJournalBatch: Record "Item Journal Batch";
         TemplateFilter: Text;
         BatchFilter: Text;
+        SpecialSymbolsTok: Label '=|&@()<>', Locked = true;
     begin
         BatchFilter := GetFilter("Journal Batch Name");
+        if (BatchFilter = '') and ("Journal Batch Name" <> '') then begin
+            BatchFilter := "Journal Batch Name";
+            if DelChr(BatchFilter, '=', SpecialSymbolsTok) <> BatchFilter then
+                BatchFilter := '''' + BatchFilter + '''';
+        end;
+
         if BatchFilter <> '' then begin
             TemplateFilter := GetFilter("Journal Template Name");
+            if (TemplateFilter = '') and ("Journal Template Name" <> '') then begin
+                SetRange("Journal Template Name", "Journal Template Name");
+                TemplateFilter := GetFilter("Journal Template Name");
+            end;
             if TemplateFilter <> '' then
                 ItemJournalBatch.SetFilter("Journal Template Name", TemplateFilter);
             ItemJournalBatch.SetFilter(Name, BatchFilter);
