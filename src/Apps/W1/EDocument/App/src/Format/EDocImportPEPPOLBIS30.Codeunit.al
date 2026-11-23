@@ -605,13 +605,14 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         ParentPath: Text;
         NodeName: Text;
     begin
-        if TempXMLBuffer.Type = TempXMLBuffer.Type::Element then
-            NodeName := GetCanonicalElementName(TempXMLBuffer)
-        else
-            if TempXMLBuffer.Type = TempXMLBuffer.Type::Attribute then
-                NodeName := '@' + TempXMLBuffer.Name
+        case TempXMLBuffer.Type of
+            TempXMLBuffer.Type::Element:
+                NodeName := GetCanonicalElementName(TempXMLBuffer);
+            TempXMLBuffer.Type::Attribute:
+                NodeName := '@' + TempXMLBuffer.Name;
             else
                 exit(TempXMLBuffer.Path);
+        end;
 
         if TempXMLBuffer."Parent Entry No." = 0 then
             exit('/' + NodeName);

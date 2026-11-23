@@ -1610,8 +1610,8 @@ codeunit 139628 "E-Doc. Receive Test"
     local procedure VerifyCompletePEPPOLImport(Document: Text; IsCreditNote: Boolean; ExpectedAttachmentCount: Integer)
     var
         EDocument: Record "E-Document";
-        PurchaseHeader: Record "Purchase Header" temporary;
-        PurchaseLine: Record "Purchase Line" temporary;
+        TempPurchaseHeader: Record "Purchase Header" temporary;
+        TempPurchaseLine: Record "Purchase Line" temporary;
         DocumentAttachment: Record "Document Attachment";
         VATPostingSetup: Record "VAT Posting Setup";
         TempBlob: Codeunit "Temp Blob";
@@ -1635,7 +1635,7 @@ codeunit 139628 "E-Doc. Receive Test"
         OutStream.WriteText(Document);
 
         ImportPEPPOL.ParseBasicInfo(EDocument, TempBlob);
-        ImportPEPPOL.ParseCompleteInfo(EDocument, PurchaseHeader, PurchaseLine, TempBlob);
+        ImportPEPPOL.ParseCompleteInfo(EDocument, TempPurchaseHeader, TempPurchaseLine, TempBlob);
 
         Assert.AreEqual('8712345000004', EDocument."Receiving Company GLN", 'schemeID did not identify the receiving-company GLN.');
         Assert.AreEqual('9932:789456278', EDocument."Receiving Company Id", 'schemeID was not preserved in the receiving company ID.');
@@ -1645,52 +1645,52 @@ codeunit 139628 "E-Doc. Receive Test"
             Assert.AreEqual('CN-5001', EDocument."Incoming E-Document No.", 'Credit-note ID was not extracted.');
             Assert.AreEqual(2000, EDocument."Amount Excl. VAT", 'Credit-note tax-exclusive amount was not extracted.');
             Assert.AreEqual(2500, EDocument."Amount Incl. VAT", 'Credit-note payable amount was not extracted.');
-            Assert.AreEqual('CN-5001', PurchaseHeader."Vendor Invoice No.", 'Credit-note header ID was not extracted.');
-            Assert.AreEqual('5', PurchaseHeader."Vendor Order No.", 'Credit-note order reference was not extracted.');
-            Assert.AreEqual('103033', PurchaseHeader."Applies-to Doc. No.", 'Credit-note billing reference was not extracted.');
-            Assert.AreEqual(20260215D, PurchaseHeader."Document Date", 'Credit-note document date was not extracted.');
-            Assert.AreEqual(20260315D, PurchaseHeader."Due Date", 'Credit-note due date was not extracted.');
-            Assert.AreEqual(2000, PurchaseHeader.Amount, 'Credit-note header amount was not extracted.');
-            Assert.AreEqual(2500, PurchaseHeader."Amount Including VAT", 'Credit-note header amount including VAT was not extracted.');
+            Assert.AreEqual('CN-5001', TempPurchaseHeader."Vendor Invoice No.", 'Credit-note header ID was not extracted.');
+            Assert.AreEqual('5', TempPurchaseHeader."Vendor Order No.", 'Credit-note order reference was not extracted.');
+            Assert.AreEqual('103033', TempPurchaseHeader."Applies-to Doc. No.", 'Credit-note billing reference was not extracted.');
+            Assert.AreEqual(20260215D, TempPurchaseHeader."Document Date", 'Credit-note document date was not extracted.');
+            Assert.AreEqual(20260315D, TempPurchaseHeader."Due Date", 'Credit-note due date was not extracted.');
+            Assert.AreEqual(2000, TempPurchaseHeader.Amount, 'Credit-note header amount was not extracted.');
+            Assert.AreEqual(2500, TempPurchaseHeader."Amount Including VAT", 'Credit-note header amount including VAT was not extracted.');
         end else begin
             Assert.AreEqual(EDocument."Document Type"::"Purchase Invoice", EDocument."Document Type", 'Unexpected document type.');
             Assert.AreEqual('103033', EDocument."Incoming E-Document No.", 'Invoice ID was not extracted.');
             Assert.AreEqual(4000, EDocument."Amount Excl. VAT", 'Invoice tax-exclusive amount was not extracted.');
             Assert.AreEqual(5000, EDocument."Amount Incl. VAT", 'Invoice payable amount was not extracted.');
-            Assert.AreEqual('103033', PurchaseHeader."Vendor Invoice No.", 'Invoice header ID was not extracted.');
-            Assert.AreEqual('2', PurchaseHeader."Vendor Order No.", 'Invoice order reference was not extracted.');
-            Assert.AreEqual(20260122D, PurchaseHeader."Document Date", 'Invoice document date was not extracted.');
-            Assert.AreEqual(20260222D, PurchaseHeader."Due Date", 'Invoice due date was not extracted.');
-            Assert.AreEqual(4000, PurchaseHeader.Amount, 'Invoice header amount was not extracted.');
-            Assert.AreEqual(5000, PurchaseHeader."Amount Including VAT", 'Invoice header amount including VAT was not extracted.');
+            Assert.AreEqual('103033', TempPurchaseHeader."Vendor Invoice No.", 'Invoice header ID was not extracted.');
+            Assert.AreEqual('2', TempPurchaseHeader."Vendor Order No.", 'Invoice order reference was not extracted.');
+            Assert.AreEqual(20260122D, TempPurchaseHeader."Document Date", 'Invoice document date was not extracted.');
+            Assert.AreEqual(20260222D, TempPurchaseHeader."Due Date", 'Invoice due date was not extracted.');
+            Assert.AreEqual(4000, TempPurchaseHeader.Amount, 'Invoice header amount was not extracted.');
+            Assert.AreEqual(5000, TempPurchaseHeader."Amount Including VAT", 'Invoice header amount including VAT was not extracted.');
         end;
 
-        Assert.AreEqual('Main Street, 14', PurchaseHeader."Buy-from Address", 'Supplier address was not extracted.');
+        Assert.AreEqual('Main Street, 14', TempPurchaseHeader."Buy-from Address", 'Supplier address was not extracted.');
 
-        PurchaseLine.Reset();
-        Assert.AreEqual(2, PurchaseLine.Count(), 'Expected the document line and document charge line.');
-        PurchaseLine.FindFirst();
-        Assert.AreEqual('PCS', PurchaseLine."Unit of Measure Code", 'The line unitCode attribute was not extracted.');
-        Assert.AreEqual(1, PurchaseLine.Quantity, 'The line quantity was not extracted.');
-        Assert.AreEqual(1, PurchaseLine."Quantity (Base)", 'The BaseQuantity attribute was not extracted.');
-        Assert.AreEqual(25, PurchaseLine."VAT %", 'The line VAT percentage was not extracted.');
-        Assert.AreEqual('1000', PurchaseLine."No.", 'The standard item identification was not extracted.');
+        TempPurchaseLine.Reset();
+        Assert.AreEqual(2, TempPurchaseLine.Count(), 'Expected the document line and document charge line.');
+        TempPurchaseLine.FindSet();
+        Assert.AreEqual('PCS', TempPurchaseLine."Unit of Measure Code", 'The line unitCode attribute was not extracted.');
+        Assert.AreEqual(1, TempPurchaseLine.Quantity, 'The line quantity was not extracted.');
+        Assert.AreEqual(1, TempPurchaseLine."Quantity (Base)", 'The BaseQuantity attribute was not extracted.');
+        Assert.AreEqual(25, TempPurchaseLine."VAT %", 'The line VAT percentage was not extracted.');
+        Assert.AreEqual('1000', TempPurchaseLine."No.", 'The standard item identification was not extracted.');
         if IsCreditNote then begin
-            Assert.AreEqual('Bicycle - Return', PurchaseLine.Description, 'Credit-note line description was not extracted.');
-            Assert.AreEqual(2000, PurchaseLine.Amount, 'Credit-note line amount was not extracted.');
-            Assert.AreEqual(2000, PurchaseLine."Direct Unit Cost", 'Credit-note line price was not extracted.');
+            Assert.AreEqual('Bicycle - Return', TempPurchaseLine.Description, 'Credit-note line description was not extracted.');
+            Assert.AreEqual(2000, TempPurchaseLine.Amount, 'Credit-note line amount was not extracted.');
+            Assert.AreEqual(2000, TempPurchaseLine."Direct Unit Cost", 'Credit-note line price was not extracted.');
         end else begin
-            Assert.AreEqual('Bicycle', PurchaseLine.Description, 'Invoice line description was not extracted.');
-            Assert.AreEqual('1000', PurchaseLine."Item Reference No.", 'Invoice seller item identification was not extracted.');
-            Assert.AreEqual(4000, PurchaseLine.Amount, 'Invoice line amount was not extracted.');
-            Assert.AreEqual(4000, PurchaseLine."Direct Unit Cost", 'Invoice line price was not extracted.');
+            Assert.AreEqual('Bicycle', TempPurchaseLine.Description, 'Invoice line description was not extracted.');
+            Assert.AreEqual('1000', TempPurchaseLine."Item Reference No.", 'Invoice seller item identification was not extracted.');
+            Assert.AreEqual(4000, TempPurchaseLine.Amount, 'Invoice line amount was not extracted.');
+            Assert.AreEqual(4000, TempPurchaseLine."Direct Unit Cost", 'Invoice line price was not extracted.');
         end;
-        PurchaseLine.Next();
-        Assert.AreEqual(PurchaseLine.Type::"G/L Account", PurchaseLine.Type, 'The document charge was not created as a G/L line.');
-        Assert.AreEqual(1, PurchaseLine.Quantity, 'The document charge quantity was not initialized.');
-        Assert.AreEqual(25, PurchaseLine."Direct Unit Cost", 'The document charge amount was not extracted.');
-        Assert.AreEqual(25, PurchaseLine.Amount, 'The document charge total was not extracted.');
-        Assert.AreEqual('Handling charge', PurchaseLine.Description, 'The document charge description was not extracted.');
+        TempPurchaseLine.Next();
+        Assert.AreEqual(TempPurchaseLine.Type::"G/L Account", TempPurchaseLine.Type, 'The document charge was not created as a G/L line.');
+        Assert.AreEqual(1, TempPurchaseLine.Quantity, 'The document charge quantity was not initialized.');
+        Assert.AreEqual(25, TempPurchaseLine."Direct Unit Cost", 'The document charge amount was not extracted.');
+        Assert.AreEqual(25, TempPurchaseLine.Amount, 'The document charge total was not extracted.');
+        Assert.AreEqual('Handling charge', TempPurchaseLine.Description, 'The document charge description was not extracted.');
 
         DocumentAttachment.SetRange("Table ID", Database::"E-Document");
         DocumentAttachment.SetRange("No.", Format(EDocument."Entry No"));
