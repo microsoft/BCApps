@@ -8,9 +8,9 @@ Otherwise, reuse a buyer already selected by the runtime for an unchanged reques
 
 Use any available email, name, company, or phone number; do not require all of them. If no buyer information exists, request assistance.
 
-1. Open Contacts (page 5052). If only one eligible record is displayed, select it. Otherwise search one available detail at a time, starting with email, then name, company, and phone.
+1. Open Contacts. If only one record is displayed and it is eligible, select it directly without searching. If multiple records are displayed, search before selecting, using one available detail at a time, starting with email, then name, company, and phone.
 2. When contacts share the email, check their BC "Type", opening their cards if needed. Always choose an eligible Person contact rather than a Company contact, without asking which type to use or requiring a verified company association. Use a Company contact only when no eligible Person matches.
-3. If no contact matches, open Customers (page 22) and apply the same single-record or search procedure.
+3. If no contact matches, open Customers and apply the same single-record or search procedure.
 4. Request assistance only if no eligible record is found or multiple equally preferred matches remain unresolved, such as two Person contacts. One matching Person plus Company contacts is not an unresolved conflict.
 
 Return the selected record's number, type, and matching information. Respect existing record filters and permissions; do not create a quote here.

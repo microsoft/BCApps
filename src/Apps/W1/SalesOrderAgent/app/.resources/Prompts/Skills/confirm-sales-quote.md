@@ -1,13 +1,10 @@
-# Confirm Sales Quote
+# Send Sales Quote for Customer Confirmation
 
-Send the current sales quote for customer confirmation when quote sending is enabled, attaching its latest PDF and requesting acceptance before order conversion.
+Prepare and send a sales quote confirmation with the current quote details and latest PDF. Ask whether the customer wants to proceed with an order and retain the message and response state.
 
-Use the current quote, established recipient, and existing request/workflow for authorization and communication settings. Do not ask for separate sending-authorization, document-review-status, or signature inputs. Honor any explicit no-send instruction.
+1. Read the current quote. Summarize every line's item number, description, quantity, unit, and price, including "Variant Code" only when nonblank. Current BC data overrides the original request.
+2. Use "Download as PDF" and retain the actual returned file identifier. After any later quote change, obtain a fresh PDF. Request assistance if the download fails.
+3. Ask the customer to confirm whether to proceed with an order. Explain ignored past delivery dates and invite a new date if needed without withholding the quote. For multiple dates, state those found and which latest non-past date was used, or that all were past. Include any recalculated shipment dates.
+4. Submit the customer reply, attaching the current PDF using its actual returned file identifier and marking the message as requiring a customer response. Retain the returned message identifier and actual delivery or pending state.
 
-1. Complete any configured quote review, then resolve outstanding inventory warnings under the active availability rules. Wait for required review or assistance to be resolved before proceeding.
-2. Read the current quote after any issue handling. Summarize every line's item number, description, quantity, unit, and price, including "Variant Code" only when nonblank. Current BC data overrides the original request.
-3. Use "Download as PDF" and retain the actual returned file identifier. After any later quote change, obtain a fresh PDF. Request assistance if the download fails.
-4. Ask the customer to confirm whether to proceed with an order. Explain ignored past delivery dates and invite a new date if needed without withholding the quote. For multiple dates, state those found and which latest non-past date was used, or that all were past. Include any recalculated shipment dates.
-5. Submit the customer reply through the normal outgoing-email review flow, attaching the current PDF using its actual returned file identifier and marking the message as requiring a customer response. Wait for its review/delivery outcome; document review and outgoing-email review are separate requirements.
-
-Record the quote/PDF/message identifiers and actual outgoing-email review, delivery, or customer-response state. Do not claim delivery while email review is pending, resend an existing confirmation, bypass mandatory approvals, or convert the quote here.
+Record the quote/PDF/message identifiers and actual delivery or customer-response state. Do not claim delivery while the message is pending, resend an existing confirmation, or convert the quote here.

@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.Agents;
+using System.AI.BusinessSkills;
 using System.Azure.Identity;
 using System.Email;
 using System.Environment;
@@ -111,6 +112,11 @@ codeunit 4400 "SOA Setup"
     internal procedure GetAgentSummary(): Text
     begin
         exit(SOASummaryLbl);
+    end;
+
+    internal procedure OpenBusinessSkills(BusinessSkillsNotification: Notification)
+    begin
+        Page.Run(Page::"Business Skills");
     end;
 
     internal procedure AllowCreateNewSOAgent(): Boolean

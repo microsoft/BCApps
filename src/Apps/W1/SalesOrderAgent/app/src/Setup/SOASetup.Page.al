@@ -469,6 +469,7 @@ page 4400 "SOA Setup"
                     trigger OnValidate()
                     begin
                         ConfigUpdated();
+                        NotifyBusinessSkillsModeChange();
                     end;
                 }
             }
@@ -689,6 +690,24 @@ page 4400 "SOA Setup"
         ArchivedNotification.Message(AgentArchivedNotificationMsg);
         ArchivedNotification.Scope(NotificationScope::LocalScope);
         ArchivedNotification.Send();
+    end;
+
+    local procedure NotifyBusinessSkillsModeChange()
+    var
+        BusinessSkillsNotification: Notification;
+        BusinessSkillsNotificationIdTok: Label '790c9bc8-09c2-42f8-b724-018b5c7d8ac2', Locked = true;
+        BusinessSkillsActivationMsg: Label 'Business Skills will replace standard SOA instructions. Choose Update to apply.';
+        OpenBusinessSkillsLbl: Label 'Open Business Skills';
+    begin
+        BusinessSkillsNotification.Id(BusinessSkillsNotificationIdTok);
+        if BusinessSkillsNotification.Recall() then;
+        if not Rec."Use Business IQ" then
+            exit;
+
+        BusinessSkillsNotification.Message(BusinessSkillsActivationMsg);
+        BusinessSkillsNotification.Scope(NotificationScope::LocalScope);
+        BusinessSkillsNotification.AddAction(OpenBusinessSkillsLbl, Codeunit::"SOA Setup", 'OpenBusinessSkills');
+        BusinessSkillsNotification.Send();
     end;
 
     local procedure UpdateControls()

@@ -5,8 +5,8 @@
 
 namespace Microsoft.Agent.SalesOrderAgent;
 
-using Microsoft.BusinessSkill;
 using System.Agents;
+using System.AI.BusinessSkills;
 using System.Azure.KeyVault;
 using System.Globalization;
 using System.Telemetry;
@@ -18,7 +18,7 @@ codeunit 4598 "SOA Instructions"
     InherentPermissions = X;
 
     /// <summary>
-    /// Creates the packaged SOA skills for the current company, or refreshes existing skills without changing their company or domain links.
+    /// Creates or refreshes tenant-wide packaged skills owned by SOA, identified by their resource paths.
     /// Each Markdown resource supplies its title in the first heading and its description in the opening paragraph.
     /// </summary>
     internal procedure UpdateBusinessSkills()
@@ -35,48 +35,58 @@ codeunit 4598 "SOA Instructions"
             UpdateBusinessSkill(ResourceName);
     end;
 
+    [NonDebuggable]
     local procedure UpdateBusinessSkill(ResourceName: Text)
     var
         BusinessSkill: Record "Business Skill";
-        TempBusinessSkill: Record "Business Skill" temporary;
+        BusinessSkillManagement: Codeunit "Business Skill";
         BusinessSkillBuilder: Codeunit "Business Skill Builder";
+        SkillCode: Code[100];
         SkillTitle: Text[250];
         SkillDescription: Text[2048];
-        SkillText: Text;
-        SkillTextChanged: Boolean;
-        DuplicateSkillTitleErr: Label 'More than one business skill has the title "%1". Keep one matching skill before updating Sales Order Agent setup.', Comment = '%1 = Business skill title.';
+        SkillContent: SecretText;
+        NormalizedSkillContent: SecretText;
+        StoredSkillContent: SecretText;
+        NextVersion: Text;
+        InitialVersionTok: Label 'v1.0', Locked = true;
     begin
         ReadBusinessSkillMetadata(ResourceName, SkillTitle, SkillDescription);
-        SkillText := NavApp.GetResourceAsText(ResourceName, TextEncoding::UTF8);
+        SkillContent := NavApp.GetResourceAsText(ResourceName, TextEncoding::UTF8);
+        ReadResourcePrompt(ResourceName, NormalizedSkillContent);
+        SkillCode := CopyStr(ResourceName, 1, MaxStrLen(SkillCode));
 
-        BusinessSkill.LockTable();
-        BusinessSkill.SetRange(Title, SkillTitle);
-        if BusinessSkill.Count() > 1 then
-            Error(DuplicateSkillTitleErr, SkillTitle);
-
-        if BusinessSkill.FindFirst() then begin
-            // Compare through the skill reader so newline normalization cannot cause a version-only update.
-            TempBusinessSkill.SetText(SkillText);
-            SkillTextChanged := BusinessSkill.GetText() <> TempBusinessSkill.GetText(false);
-            if (BusinessSkill.Description = SkillDescription) and
-               not SkillTextChanged and
-               (BusinessSkill.Status = BusinessSkill.Status::Active)
-            then
-                exit;
-
-            BusinessSkill.Description := SkillDescription;
-            if SkillTextChanged then
-                BusinessSkill.SetText(SkillText);
-            BusinessSkill.Status := BusinessSkill.Status::Active;
-            BusinessSkill.Modify(true);
+        if FindOwnedBusinessSkill(SkillCode, BusinessSkill) then begin
+            // Compare normalized content, but store the original resource so trailing line breaks are not normalized twice.
+            StoredSkillContent := BusinessSkillManagement.GetContent(BusinessSkill);
+            if StoredSkillContent.Unwrap() <> NormalizedSkillContent.Unwrap() then begin
+                NextVersion := IncStr(BusinessSkill.Version);
+                if (NextVersion = '') or (StrLen(NextVersion) > MaxStrLen(BusinessSkill.Version)) then
+                    NextVersion := InitialVersionTok;
+                BusinessSkillManagement.SetNewContentAndUpdateVersion(SkillCode, SkillContent, CopyStr(NextVersion, 1, MaxStrLen(BusinessSkill.Version)));
+            end;
+            BusinessSkillManagement.UpdateMetadata(SkillCode, SkillTitle, SkillDescription);
+            if BusinessSkill.Status <> BusinessSkill.Status::Active then
+                BusinessSkillManagement.Activate(BusinessSkill.ID);
         end else begin
-            BusinessSkillBuilder.Initialize(CopyStr(ResourceName, 1, MaxStrLen(BusinessSkill."Skill ID")), SkillTitle, SkillText);
-            BusinessSkillBuilder.SetReadOnly(false);
+            BusinessSkillBuilder.Initialize(SkillCode, SkillTitle, SkillContent);
+            BusinessSkillBuilder.SetContentLocked(false);
+            BusinessSkillBuilder.SetContentVersion(InitialVersionTok);
             BusinessSkillBuilder.SetDescription(SkillDescription);
             BusinessSkillBuilder.SetActive(true);
-            BusinessSkillBuilder.AddCompany(CompanyName());
             BusinessSkillBuilder.Create();
         end;
+    end;
+
+    local procedure FindOwnedBusinessSkill(SkillCode: Code[100]; var BusinessSkill: Record "Business Skill"): Boolean
+    var
+        CurrentModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        BusinessSkill.LockTable();
+        BusinessSkill.SetRange("Owning App ID", CurrentModuleInfo.Id);
+        BusinessSkill.SetRange("Skill ID", SkillCode);
+        BusinessSkill.SetRange(Manual, false);
+        exit(BusinessSkill.FindFirst());
     end;
 
     local procedure ReadBusinessSkillMetadata(ResourceName: Text; var SkillTitle: Text[250]; var SkillDescription: Text[2048])

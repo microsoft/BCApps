@@ -1,15 +1,11 @@
 # Handle Quote Inventory Warnings
 
-Handle low-inventory warnings on the current sales quote using the active availability and capable-to-promise rules.
+Resolve low-inventory warnings by finding earliest shipment dates and updating the affected sales quote lines. Return the confirmed date changes and any warnings that remain unresolved.
 
-If availability checking is disabled or no low-inventory warning exists, return Not applicable without changing dates or requesting stock-related assistance.
+Inspect the current quote and identify the affected items and lines. If no low-inventory warning exists, return Not applicable without changing dates.
 
-Honor any configured quote review before handling inventory warnings. Beyond configured or runtime-enforced reviews, use assistance or document review only when an actual issue cannot be resolved using the rules below.
-
-When availability checking is enabled but capable-to-promise is disabled, request assistance for the warning and wait.
-
-When both are enabled, use the affected item's previously returned earliest shipment date, or recalculate it if none was returned. A known earliest date makes the item available; the warning alone is not a reason for assistance. If no date can be determined, request assistance naming the item and adding: "Please check the requested unit of measure and order promising setup."
+Read each affected line's current item, Variant Code, quantity, unit, location, and requested-delivery-date context. Reuse a previously returned earliest shipment date only when it was calculated for that same context. If any value has changed, the original calculation context cannot be verified, or no date was returned, recalculate using the current line values. If no date can be determined, return the affected item and unresolved warning without inventing a date.
 
 Set each affected line's "Shipment Date" to the later of its earliest shipment date and valid requested delivery date. Use the earliest date when the requested date is blank or past. Apply this change before proceeding, including when resuming after assistance.
 
-Return the quote, affected lines, confirmed changes, and shipment-date disclosures for the next customer email, or any pending issue-based assistance/review. Resume unfinished handling without repeating completed changes. Do not send or convert the quote here.
+Return the quote, affected lines, confirmed changes, shipment-date disclosures, and any unresolved warnings. Resume unfinished handling without repeating completed changes. Do not send or convert the quote here.
