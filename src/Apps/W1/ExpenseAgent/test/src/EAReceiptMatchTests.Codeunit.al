@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching]
-codeunit 148368 EAReceiptMatchTests
+codeunit 148370 EAReceiptMatchTests
 {
     Subtype = Test;
     TestType = IntegrationTest;
