@@ -14,6 +14,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
@@ -33,6 +34,7 @@ using Microsoft.Service.History;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using System.IO;
+using System.Text;
 using System.Utilities;
 
 codeunit 13922 "ZUGFeRD XML Document Tests"
@@ -89,6 +91,13 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ShipToTradePartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty', Locked = true;
         ApplicableHeaderTradeDeliveryTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery', Locked = true;
         ActualDeliveryDateTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ActualDeliverySupplyChainEvent/ram:OccurrenceDateTime/udt:DateTimeString', Locked = true;
+        AdditionalReferencedDocumentTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:AdditionalReferencedDocument', Locked = true;
+        AdditionalDocumentTypeCodeTok: Label '916', Locked = true;
+        CSVMimeCodeTok: Label 'text/csv', Locked = true;
+        XLSXMimeCodeTok: Label 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', Locked = true;
+        ODSMimeCodeTok: Label 'application/vnd.oasis.opendocument.spreadsheet', Locked = true;
+        AdditionalReferencedDocumentNotFoundErr: Label 'AdditionalReferencedDocument with IssuerAssignedID %1 not found', Locked = true, Comment = '%1 = file name';
+        ChildNodeNotFoundErr: Label 'Node %1 not found under %2', Locked = true, Comment = '%1 = node name, %2 = entry number of the parent node';
         IsInitialized: Boolean;
         OriginalCompanyGLN: Code[13];
         OriginalCompanyUsesGLN: Boolean;
@@ -1358,6 +1367,213 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(FormatDate(SalesInvoiceHeader."Shipment Date"), GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
 
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyDocumentAttachments()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CSVText1: Text;
+        CSVText2: Text;
+    begin
+        // [SCENARIO] Export posted sales invoice in ZUGFeRD format embeds the document attachments as additional supporting documents
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with two CSV document attachments
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CSVText1 := CreateCSVDocumentAttachment(SalesInvoiceHeader, 'attachment.csv');
+        CSVText2 := CreateCSVDocumentAttachment(SalesInvoiceHeader, 'document.csv');
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The header trade agreement holds one AdditionalReferencedDocument per attachment with ID, type code 916, name and the Base64 content
+        Assert.AreEqual(2, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'attachment.csv', CSVText1);
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'document.csv', CSVText2);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyUnsupportedAttachmentIsSkipped()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RecRef: RecordRef;
+        CSVText: Text;
+    begin
+        // [SCENARIO] Attachments with unsupported MIME types are not exported in ZUGFeRD format
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with one supported CSV attachment and one unsupported TXT attachment
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CSVText := CreateCSVDocumentAttachment(SalesInvoiceHeader, 'data.csv');
+        RecRef.GetTable(SalesInvoiceHeader);
+        CreateDocumentAttachment(RecRef, 'report.txt', 'Some text content');
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Only the CSV attachment is exported
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'data.csv', CSVText);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatExportsOnlyAttachmentsOfTheDocument()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        OtherSalesInvoiceHeader: Record "Sales Invoice Header";
+        DocumentAttachment: Record "Document Attachment";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CSVText: Text;
+    begin
+        // [SCENARIO] Export posted sales invoice in ZUGFeRD format does not embed attachments of other documents
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "A" with a CSV attachment
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CSVText := CreateCSVDocumentAttachment(SalesInvoiceHeader, 'own.csv');
+
+        // [GIVEN] Posted sales invoice "B" with a CSV attachment
+        OtherSalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CreateCSVDocumentAttachment(OtherSalesInvoiceHeader, 'otherinvoice.csv');
+
+        // [GIVEN] A CSV attachment on a posted sales credit memo with the same number as "A"
+        CreateCSVDocumentAttachment(SalesInvoiceHeader, 'othertable.csv');
+        DocumentAttachment.SetRange("Table ID", Database::"Sales Invoice Header");
+        DocumentAttachment.SetRange("No.", SalesInvoiceHeader."No.");
+        DocumentAttachment.SetRange("File Name", 'othertable');
+        DocumentAttachment.FindFirst();
+        DocumentAttachment.Rename(Database::"Sales Cr.Memo Header", DocumentAttachment."No.", DocumentAttachment."Document Type", DocumentAttachment."Line No.", DocumentAttachment.ID);
+
+        // [WHEN] Export ZUGFeRD Electronic Document for "A"
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Only the attachment of "A" is exported
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'own.csv', CSVText);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatSubscriberCanFilterAttachments()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        FilteringLibraryEDocDE: Codeunit "Library - E-Doc DE";
+        CSVText: Text;
+    begin
+        // [SCENARIO] A subscriber to OnInsertAttachmentOnAfterSetFilters can exclude attachments from the ZUGFeRD export
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with the CSV attachments "kept" and "excluded"
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CSVText := CreateCSVDocumentAttachment(SalesInvoiceHeader, 'kept.csv');
+        CreateCSVDocumentAttachment(SalesInvoiceHeader, 'excluded.csv');
+
+        // [GIVEN] A subscriber that filters out the attachment "excluded"
+        FilteringLibraryEDocDE.SetExcludedAttachmentFileName('excluded');
+        BindSubscription(FilteringLibraryEDocDE);
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(FilteringLibraryEDocDE);
+
+        // [THEN] Only the attachment "kept" is exported
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'kept.csv', CSVText);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatExportsXlsxButSkipsXlsAttachment()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] An .xlsx attachment is exported with the Office Open XML spreadsheet MIME code, an .xls attachment is skipped
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with the attachments "sheet.xlsx" and "legacy.xls"
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CreateDocumentAttachmentWithExtension(SalesInvoiceHeader, 'sheet', 'xlsx', 'xlsx content');
+        CreateDocumentAttachmentWithExtension(SalesInvoiceHeader, 'legacy', 'xls', 'xls content');
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Only "sheet.xlsx" is exported, with the Office Open XML spreadsheet MIME code
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'sheet.xlsx', 'xlsx content', XLSXMimeCodeTok);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatExportsOdsButSkipsOtsAttachment()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO] An .ods attachment is exported with the OpenDocument spreadsheet MIME code, an .ots template attachment is skipped
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with the attachments "sheet.ods" and "template.ots"
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        RecRef.GetTable(SalesInvoiceHeader);
+        CreateDocumentAttachment(RecRef, 'sheet.ods', 'ods content');
+        CreateDocumentAttachment(RecRef, 'template.ots', 'ots content');
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Only "sheet.ods" is exported, with the OpenDocument spreadsheet MIME code
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'sheet.ods', 'ods content', ODSMimeCodeTok);
+    end;
+
+    [Test]
+    procedure DirectInsertSupplyChainTradeTransactionExportsDocumentAttachments()
+    var
+        FirstSalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempSalesInvoiceLine: Record "Sales Invoice Line" temporary;
+        Currency: Record Currency;
+        DirectExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        TempBlob: Codeunit "Temp Blob";
+        RootXMLNode: XmlElement;
+        XmlOutStream: OutStream;
+        AdditionalReferencedDocumentNodes: XmlNodeList;
+        AdditionalReferencedDocumentNode: XmlNode;
+        IssuerAssignedIDNode: XmlNode;
+        LineAmount: Dictionary of [Decimal, Decimal];
+        LineVATAmount: Dictionary of [Decimal, Decimal];
+        LineAmounts: Dictionary of [Text, Decimal];
+        LineDiscAmount: Dictionary of [Decimal, Decimal];
+    begin
+        // [SCENARIO] Building the trade transaction directly, without CreateXML, embeds the attachments of the passed posted sales invoice
+        Initialize();
+
+        // [GIVEN] Posted sales invoice "A" without attachments and posted sales invoice "B" with a CSV attachment
+        FirstSalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CreateCSVDocumentAttachment(SalesInvoiceHeader, 'direct.csv');
+
+        // [GIVEN] A first export of "A" on the instance, which loads its setup
+        TempBlob.CreateOutStream(XmlOutStream);
+        DirectExportZUGFeRDDocument.CreateXML(FirstSalesInvoiceHeader, XmlOutStream);
+
+        // [WHEN] The same instance builds the trade transaction for "B" by a direct InsertSupplyChainTradeTransaction call
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName(Amount), 0);
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName("Inv. Discount Amount"), 0);
+        LineAmounts.Add(TempSalesInvoiceLine.FieldName("Amount Including VAT"), 0);
+        RootXMLNode := XmlElement.Create('Root');
+        DirectExportZUGFeRDDocument.InsertSupplyChainTradeTransaction(RootXMLNode, SalesInvoiceHeader, TempSalesInvoiceLine, '', Currency, LineAmount, LineVATAmount, LineAmounts, LineDiscAmount);
+
+        // [THEN] The header trade agreement holds one AdditionalReferencedDocument for "direct.csv"
+        RootXMLNode.SelectNodes('//*[local-name()="ApplicableHeaderTradeAgreement"]/*[local-name()="AdditionalReferencedDocument"]', AdditionalReferencedDocumentNodes);
+        Assert.AreEqual(1, AdditionalReferencedDocumentNodes.Count(), StrSubstNo(IncorrectValueErr, 'AdditionalReferencedDocument'));
+        AdditionalReferencedDocumentNodes.Get(1, AdditionalReferencedDocumentNode);
+        AdditionalReferencedDocumentNode.SelectSingleNode('*[local-name()="IssuerAssignedID"]', IssuerAssignedIDNode);
+        Assert.AreEqual('direct.csv', IssuerAssignedIDNode.AsXmlElement().InnerText(), StrSubstNo(IncorrectValueErr, 'IssuerAssignedID'));
+    end;
+
     #endregion
 
     #region SalesCreditMemo
@@ -1983,6 +2199,28 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         VerifyShipToData(ShipToAddress, TempXMLBuffer);
     end;
 
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatVerifyDocumentAttachments()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CSVText: Text;
+    begin
+        // [SCENARIO] Export posted sales cr. memo in ZUGFeRD format embeds the document attachments as additional supporting documents
+        Initialize();
+
+        // [GIVEN] Posted sales cr. memo with a CSV document attachment
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        CSVText := CreateCSVDocumentAttachment(SalesCrMemoHeader, 'attachment.csv');
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The attachment is exported as AdditionalReferencedDocument
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'attachment.csv', CSVText);
+    end;
+
     #endregion
 
     #region ServiceInvoice
@@ -2371,6 +2609,28 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         VerifyNodeDoesNotExist(TempXMLBuffer, ApplicableHeaderTradeDeliveryTok + '/ram:ActualDeliverySupplyChainEvent');
         VerifyHeaderData(ServiceInvoiceHeader, TempXMLBuffer);
     end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatVerifyDocumentAttachments()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CSVText: Text;
+    begin
+        // [SCENARIO] Export posted service invoice in ZUGFeRD format embeds the document attachments as additional supporting documents
+        Initialize();
+
+        // [GIVEN] Posted service invoice with a CSV document attachment
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocument());
+        CSVText := CreateCSVDocumentAttachment(ServiceInvoiceHeader, 'attachment.csv');
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The attachment is exported as AdditionalReferencedDocument
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'attachment.csv', CSVText);
+    end;
     #endregion
 
     #region ServiceCreditMemo
@@ -2668,6 +2928,28 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ShipToTradeParty contains the Ship-to name and address
         VerifyShipToData(ShipToAddress, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedServiceCrMemoInZUGFeRDFormatVerifyDocumentAttachments()
+    var
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CSVText: Text;
+    begin
+        // [SCENARIO] Export posted service cr. memo in ZUGFeRD format embeds the document attachments as additional supporting documents
+        Initialize();
+
+        // [GIVEN] Posted service cr. memo with a CSV document attachment
+        ServiceCrMemoHeader.Get(CreateAndPostServiceCrMemoDocument());
+        CSVText := CreateCSVDocumentAttachment(ServiceCrMemoHeader, 'attachment.csv');
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportServiceCreditMemo(ServiceCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] The attachment is exported as AdditionalReferencedDocument
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, AdditionalReferencedDocumentTok), StrSubstNo(IncorrectValueErr, AdditionalReferencedDocumentTok));
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, 'attachment.csv', CSVText);
     end;
     #endregion
     #region InvoiceDiscount
@@ -6013,6 +6295,96 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if TempXMLBuffer.FindFirst() then
             exit(TempXMLBuffer.GetValue());
         Error('Node not found: %1', XPath);
+    end;
+
+    local procedure CreateCSVDocumentAttachment(RecordVariant: Variant; FileName: Text) CSVText: Text
+    var
+        RecRef: RecordRef;
+        TextBuilder: TextBuilder;
+    begin
+        TextBuilder.AppendLine('Name,Value');
+        TextBuilder.Append(LibraryUtility.GenerateGUID() + ',100');
+        CSVText := TextBuilder.ToText();
+        RecRef.GetTable(RecordVariant);
+        CreateDocumentAttachment(RecRef, FileName, CSVText);
+    end;
+
+    local procedure CreateDocumentAttachment(RecRef: RecordRef; FileName: Text; ContentText: Text)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(ContentText);
+        DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
+    end;
+
+    local procedure CreateDocumentAttachmentWithExtension(SalesInvoiceHeader: Record "Sales Invoice Header"; FileName: Text[250]; FileExtension: Text[30]; ContentText: Text)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        RecRef: RecordRef;
+    begin
+        // Microsoft Office content is validated on import, so the content is saved with a neutral extension that is replaced afterwards.
+        RecRef.GetTable(SalesInvoiceHeader);
+        CreateDocumentAttachment(RecRef, FileName + '.txt', ContentText);
+        DocumentAttachment.SetRange("Table ID", Database::"Sales Invoice Header");
+        DocumentAttachment.SetRange("No.", SalesInvoiceHeader."No.");
+        DocumentAttachment.SetRange("File Name", FileName);
+        DocumentAttachment.FindFirst();
+        DocumentAttachment.Validate("File Extension", FileExtension);
+        DocumentAttachment.Modify(true);
+    end;
+
+    local procedure VerifyAdditionalReferencedDocument(var TempXMLBuffer: Record "XML Buffer" temporary; FileName: Text; ExpectedContent: Text)
+    begin
+        VerifyAdditionalReferencedDocument(TempXMLBuffer, FileName, ExpectedContent, CSVMimeCodeTok);
+    end;
+
+    local procedure VerifyAdditionalReferencedDocument(var TempXMLBuffer: Record "XML Buffer" temporary; FileName: Text; ExpectedContent: Text; ExpectedMimeCode: Text)
+    var
+        TempXMLBufferBinaryObject: Record "XML Buffer" temporary;
+        Base64Convert: Codeunit "Base64 Convert";
+        DocumentEntryNo: Integer;
+    begin
+        DocumentEntryNo := FindAdditionalReferencedDocument(TempXMLBuffer, FileName);
+        Assert.AreEqual(AdditionalDocumentTypeCodeTok, GetChildNodeValue(TempXMLBuffer, DocumentEntryNo, 'TypeCode'), StrSubstNo(IncorrectValueErr, 'TypeCode'));
+        Assert.AreEqual(CopyStr(FileName, 1, StrPos(FileName, '.') - 1), GetChildNodeValue(TempXMLBuffer, DocumentEntryNo, 'Name'), StrSubstNo(IncorrectValueErr, 'Name'));
+        GetChildNode(TempXMLBuffer, DocumentEntryNo, 'AttachmentBinaryObject', TempXMLBufferBinaryObject);
+        Assert.AreEqual(Base64Convert.ToBase64(ExpectedContent), TempXMLBufferBinaryObject.GetValue(), StrSubstNo(IncorrectValueErr, 'AttachmentBinaryObject'));
+        Assert.AreEqual(ExpectedMimeCode, GetChildNodeValue(TempXMLBuffer, TempXMLBufferBinaryObject."Entry No.", 'mimeCode'), StrSubstNo(IncorrectValueErr, 'mimeCode'));
+        Assert.AreEqual(FileName, GetChildNodeValue(TempXMLBuffer, TempXMLBufferBinaryObject."Entry No.", 'filename'), StrSubstNo(IncorrectValueErr, 'filename'));
+    end;
+
+    local procedure FindAdditionalReferencedDocument(var TempXMLBuffer: Record "XML Buffer" temporary; FileName: Text): Integer
+    begin
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, AdditionalReferencedDocumentTok);
+        if TempXMLBuffer.FindSet() then
+            repeat
+                if GetChildNodeValue(TempXMLBuffer, TempXMLBuffer."Entry No.", 'IssuerAssignedID') = FileName then
+                    exit(TempXMLBuffer."Entry No.");
+            until TempXMLBuffer.Next() = 0;
+        Error(AdditionalReferencedDocumentNotFoundErr, FileName);
+    end;
+
+    local procedure GetChildNodeValue(var TempXMLBuffer: Record "XML Buffer" temporary; ParentEntryNo: Integer; NodeName: Text): Text
+    var
+        TempXMLBufferChild: Record "XML Buffer" temporary;
+    begin
+        GetChildNode(TempXMLBuffer, ParentEntryNo, NodeName, TempXMLBufferChild);
+        exit(TempXMLBufferChild.GetValue());
+    end;
+
+    local procedure GetChildNode(var TempXMLBuffer: Record "XML Buffer" temporary; ParentEntryNo: Integer; NodeName: Text; var TempXMLBufferChild: Record "XML Buffer" temporary)
+    begin
+        TempXMLBufferChild.Copy(TempXMLBuffer, true);
+        TempXMLBufferChild.Reset();
+        TempXMLBufferChild.SetRange("Parent Entry No.", ParentEntryNo);
+        TempXMLBufferChild.SetRange(Name, NodeName);
+        if not TempXMLBufferChild.FindFirst() then
+            Error(ChildNodeNotFoundErr, NodeName, ParentEntryNo);
     end;
 
     local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean

@@ -2709,6 +2709,35 @@ codeunit 13918 "XRechnung XML Document Tests"
         VerifyCSVAttachmentInXML(TempXMLBuffer, 'data.csv', 'text/csv', CSVText);
     end;
 
+    [Test]
+    procedure ExportPostedSalesInvoiceInXRechnungFormatExportsOdsButSkipsXlsAndOtsAttachments();
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Base64Convert: Codeunit "Base64 Convert";
+        RecRef: RecordRef;
+    begin
+        // [SCENARIO] An .ods attachment is exported with the OpenDocument spreadsheet MIME code; .xls and .ots attachments are skipped
+        Initialize();
+
+        // [GIVEN] No PDF of the invoice is embedded in the export
+        SetEdocumentServiceEmbedPDFInExport(false);
+
+        // [GIVEN] Posted sales invoice with the attachments "sheet.ods", "legacy.xls" and "template.ots"
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, "Sales Line Type"::Item, false));
+        RecRef.GetTable(SalesInvoiceHeader);
+        CreateDocumentAttachment(RecRef, 'sheet.ods', 'ods content');
+        CreateDocumentAttachmentWithExtension(SalesInvoiceHeader, 'legacy', 'xls', 'xls content');
+        CreateDocumentAttachment(RecRef, 'template.ots', 'ots content');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] Only "sheet.ods" is present, with the OpenDocument spreadsheet MIME code
+        VerifyAdditionalDocumentReferenceCount(TempXMLBuffer, 1);
+        VerifyAttachmentInXML(TempXMLBuffer, 'sheet.ods', 'application/vnd.oasis.opendocument.spreadsheet', Base64Convert.ToBase64('ods content'));
+    end;
+
     #region TwoDecimalPlaces
     [Test]
     procedure FormatDecimalWithTwoDecimalPlacesFlagReturnsTrailingZero();
@@ -6213,6 +6242,22 @@ codeunit 13918 "XRechnung XML Document Tests"
         TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.WriteText(ContentText);
         DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
+    end;
+
+    local procedure CreateDocumentAttachmentWithExtension(SalesInvoiceHeader: Record "Sales Invoice Header"; FileName: Text[250]; FileExtension: Text[30]; ContentText: Text)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        RecRef: RecordRef;
+    begin
+        // Microsoft Office content is validated on import, so the content is saved with a neutral extension that is replaced afterwards.
+        RecRef.GetTable(SalesInvoiceHeader);
+        CreateDocumentAttachment(RecRef, FileName + '.txt', ContentText);
+        DocumentAttachment.SetRange("Table ID", Database::"Sales Invoice Header");
+        DocumentAttachment.SetRange("No.", SalesInvoiceHeader."No.");
+        DocumentAttachment.SetRange("File Name", FileName);
+        DocumentAttachment.FindFirst();
+        DocumentAttachment.Validate("File Extension", FileExtension);
+        DocumentAttachment.Modify(true);
     end;
 
     local procedure GetCurrencyCode(DocumentCurrencyCode: Code[10]; var Currency: Record Currency): Code[10]

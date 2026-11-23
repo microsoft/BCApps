@@ -12,6 +12,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
@@ -25,6 +26,7 @@ using Microsoft.Service.History;
 using System.IO;
 using System.Reflection;
 using System.Telemetry;
+using System.Text;
 using System.Utilities;
 
 codeunit 13917 "Export ZUGFeRD Document"
@@ -50,6 +52,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
         EndEventNameTok: Label 'E-document ZUGFeRD export completed', Locked = true;
         GLNSchemeIDTok: Label '0088', Locked = true;
+        AdditionalDocumentTypeCodeTok: Label '916', Locked = true;
         XmlNamespaceRSM: Text;
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
@@ -576,6 +579,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SellerOrderReferencedDocumentElement, BuyerOrderReferencedDocumentElement : XmlElement;
         PostalTradeAddressElement, ContactElement, BuyerLegalOrganizationElement : XmlElement;
         SellerIDAttr, BuyerIDAttr : XmlAttribute;
+        DocumentNo: Code[20];
         CustomerNo: Code[20];
         CustomerGLN: Code[13];
         CustomerName: Text[100];
@@ -608,6 +612,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             Database::"Sales Invoice Header":
                 begin
                     HeaderRecordRef.SetTable(SalesInvoiceHeader);
+                    DocumentNo := SalesInvoiceHeader."No.";
                     CustomerNo := SalesInvoiceHeader."Bill-to Customer No.";
                     CustomerName := SalesInvoiceHeader."Bill-to Name";
                     Address := SalesInvoiceHeader."Bill-to Address";
@@ -629,6 +634,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             Database::"Sales Cr.Memo Header":
                 begin
                     HeaderRecordRef.SetTable(SalesCrMemoHeader);
+                    DocumentNo := SalesCrMemoHeader."No.";
                     CustomerNo := SalesCrMemoHeader."Bill-to Customer No.";
                     CustomerName := SalesCrMemoHeader."Bill-to Name";
                     Address := SalesCrMemoHeader."Bill-to Address";
@@ -766,8 +772,58 @@ codeunit 13917 "Export ZUGFeRD Document"
             HeaderTradeAgreementElement.Add(BuyerOrderReferencedDocumentElement);
         end;
 
+        // The posted service documents are exported through their sales counterparts, so the attachments are read from the source document.
+        // The passed header is only used when InsertSupplyChainTradeTransaction is called directly, without CreateXML.
+        if SourceDocumentRecordRef.Number() <> 0 then
+            InsertAttachment(HeaderTradeAgreementElement, SourceDocumentRecordRef.Number(), DocumentNo)
+        else
+            InsertAttachment(HeaderTradeAgreementElement, HeaderRecordRef.Number(), DocumentNo);
+
         OnAfterInsertApplicableHeaderTradeAgreement(HeaderTradeAgreementElement, HeaderRecordRef);
         RootXMLNode.Add(HeaderTradeAgreementElement);
+    end;
+
+    local procedure InsertAttachment(var HeaderTradeAgreementElement: XmlElement; TableNo: Integer; DocumentNo: Code[20])
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange("Table ID", TableNo);
+        DocumentAttachment.SetRange("No.", DocumentNo);
+        OnInsertAttachmentOnAfterSetFilters(TableNo, DocumentNo, DocumentAttachment);
+        if DocumentAttachment.FindSet() then
+            repeat
+                AddAttachment(HeaderTradeAgreementElement, DocumentAttachment);
+            until DocumentAttachment.Next() = 0;
+    end;
+
+    local procedure AddAttachment(var HeaderTradeAgreementElement: XmlElement; var DocumentAttachment: Record "Document Attachment")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        AdditionalReferencedDocumentElement: XmlElement;
+        OutStream: OutStream;
+        InStream: InStream;
+        MimeCode: Text;
+        FileName: Text;
+    begin
+        MimeCode := EDocumentDEHelper.GetAttachmentMimeCode(DocumentAttachment);
+        if not EDocumentDEHelper.IsSupportedAttachmentMimeCode(MimeCode) then
+            exit;
+
+        TempBlob.CreateOutStream(OutStream);
+        DocumentAttachment.ExportToStream(OutStream);
+        TempBlob.CreateInStream(InStream);
+
+        FileName := DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension";
+        AdditionalReferencedDocumentElement := XmlElement.Create('AdditionalReferencedDocument', XmlNamespaceRAM);
+        AdditionalReferencedDocumentElement.Add(XmlElement.Create('IssuerAssignedID', XmlNamespaceRAM, FileName));
+        AdditionalReferencedDocumentElement.Add(XmlElement.Create('TypeCode', XmlNamespaceRAM, AdditionalDocumentTypeCodeTok));
+        AdditionalReferencedDocumentElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, DocumentAttachment."File Name"));
+        AdditionalReferencedDocumentElement.Add(XmlElement.Create('AttachmentBinaryObject', XmlNamespaceRAM,
+            XmlAttribute.Create('mimeCode', MimeCode),
+            XmlAttribute.Create('filename', FileName),
+            Base64Convert.ToBase64(InStream)));
+        HeaderTradeAgreementElement.Add(AdditionalReferencedDocumentElement);
     end;
 
     local procedure InsertApplicableHeaderTradeDelivery(var RootXMLNode: XmlElement; SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -2283,6 +2339,17 @@ codeunit 13917 "Export ZUGFeRD Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertApplicableHeaderTradeAgreement(var HeaderTradeAgreementElement: XmlElement; HeaderRecordRef: RecordRef)
+    begin
+    end;
+
+    /// <summary>
+    /// Allows subscribers to add additional filters on the Document Attachment record after the default filters are set.
+    /// </summary>
+    /// <param name="TableNo">The table ID being filtered.</param>
+    /// <param name="DocumentNo">The document number being filtered.</param>
+    /// <param name="DocumentAttachment">The Document Attachment record to filter.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertAttachmentOnAfterSetFilters(TableNo: Integer; DocumentNo: Code[20]; var DocumentAttachment: Record "Document Attachment")
     begin
     end;
 
