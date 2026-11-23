@@ -1,0 +1,90 @@
+{
+  "@odata.count": 2,
+  "value": [
+    {
+      "id": "test-message-id-mixed-recipients-001",
+      "conversationId": "test-conversation-id-mixed-recipients-001",
+      "subject": "Test Email With Mixed Recipients",
+      "receivedDateTime": "2026-04-21T10:00:00Z",
+      "sentDateTime": "2026-04-21T09:55:00Z",
+      "sender": {
+        "emailAddress": {
+          "name": "Test Sender",
+          "address": "sender@test.com"
+        }
+      },
+      "toRecipients": [
+        {
+          "emailAddress": {
+            "name": "Valid To",
+            "address": "valid.to@test.com"
+          }
+        },
+        {
+          "emailAddress": {
+            "name": "Null Address",
+            "address": null
+          }
+        },
+        {
+          "emailAddress": {
+            "name": "Empty Address",
+            "address": ""
+          }
+        },
+        {
+          "emailAddress": {
+            "name": "Missing Address"
+          }
+        },
+        {
+          "emailAddress": null
+        },
+        {},
+        "not-an-object"
+      ],
+      "ccRecipients": [
+        {
+          "emailAddress": {
+            "name": "Missing Address"
+          }
+        },
+        {
+          "emailAddress": {
+            "name": "Valid Cc",
+            "address": "valid.cc@test.com"
+          }
+        }
+      ],
+      "body": {
+        "contentType": "HTML",
+        "content": "<p>Body</p>"
+      },
+      "hasAttachments": false,
+      "isRead": false,
+      "isDraft": false
+    },
+    {
+      "id": "test-message-id-no-recipients-001",
+      "conversationId": "test-conversation-id-no-recipients-001",
+      "subject": "Test Email Without Recipients",
+      "receivedDateTime": "2026-04-21T11:00:00Z",
+      "sentDateTime": "2026-04-21T10:55:00Z",
+      "sender": {
+        "emailAddress": {
+          "name": "Test Sender",
+          "address": "sender@test.com"
+        }
+      },
+      "toRecipients": [],
+      "ccRecipients": null,
+      "body": {
+        "contentType": "HTML",
+        "content": "<p>Body</p>"
+      },
+      "hasAttachments": false,
+      "isRead": false,
+      "isDraft": false
+    }
+  ]
+}
