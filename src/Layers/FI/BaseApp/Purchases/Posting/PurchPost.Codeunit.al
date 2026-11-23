@@ -1665,10 +1665,7 @@ codeunit 90 "Purch.-Post"
         if IsHandled then
             exit;
 
-        if (QtyToBeInvoicedBase <> 0) and (PurchaseLine.Type = PurchaseLine.Type::Item) then
-            Factor := QtyToBeInvoicedBase / PurchaseLine."Qty. to Invoice (Base)"
-        else
-            Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
+        Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
         OnPostItemJnlLineOnAfterSetFactor(PurchaseLine, Factor, GenJnlLineExtDocNo, ItemJnlLine);
         ItemJnlLine.Amount := PurchaseLine.Amount * Factor + RemAmt;
         if not PurchaseLine."Item Charge Has Non.Ded. VAT" then
@@ -6371,7 +6368,7 @@ codeunit 90 "Purch.-Post"
                 QtyToBeInvoiced := RemQtyToBeInvoiced - PurchLine."Qty. to Receive";
                 QtyToBeInvoicedBase := RemQtyToBeInvoicedBase - PurchLine."Qty. to Receive (Base)";
             end;
-        if Abs(QtyToBeInvoiced) > Abs(PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced") then begin
+        if Abs(QtyToBeInvoiced) >= Abs(PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced") then begin
             QtyToBeInvoiced := PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced";
             QtyToBeInvoicedBase := PurchRcptLine."Quantity (Base)" - PurchRcptLine."Qty. Invoiced (Base)";
         end;
