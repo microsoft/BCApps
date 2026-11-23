@@ -228,7 +228,11 @@ codeunit 8003 "Sub. Contract Renewal Mgt."
         ServiceCommitmentVend.SetFilter("Subscription Line End Date", '<>%1', 0D);
     end;
 
-    internal procedure SetAddVendorServices(NewAddVendorServices: Boolean)
+    /// <summary>
+    /// Sets whether the vendor subscription lines that are linked to the customer contract lines are added to the contract renewal when the codeunit is run.
+    /// </summary>
+    /// <param name="NewAddVendorServices">True to add the linked vendor subscription lines.</param>
+    procedure SetAddVendorServices(NewAddVendorServices: Boolean)
     begin
         AddVendorServices := NewAddVendorServices;
     end;

@@ -178,6 +178,121 @@ codeunit 139692 "Contract Renewal Test"
         Assert.AreEqual(3, NoOfSalesQuotes[2] - NoOfSalesQuotes[1], 'Expected one Sales Quote per Contract (3)');
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CreateContractRenewalQuotesFromCodeReturnsOneQuotePerContract()
+    var
+        ContractRenewalLine: Record "Sub. Contract Renewal Line";
+        SalesHeader: Record "Sales Header";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+        SelectContractRenewal: Report "Select Contract Renewal";
+        CreateContractRenewal: Codeunit "Create Sub. Contract Renewal";
+        CreatedSalesQuoteNos: List of [Code[20]];
+        SalesQuoteNo: Code[20];
+    begin
+        // [SCENARIO] Contract renewal quotes can be created from code for several contracts without any dialogs, and the created quote numbers are returned
+        Initialize();
+        DeleteAllContracts();
+
+        // [GIVEN] Two customer contracts with renewable customer subscription lines and a linked vendor subscription line each
+        CreateBaseData();
+        CreateBaseData(true);
+        Commit(); // close transaction before report is called
+
+        // [GIVEN] Contract renewal lines for both contracts, including the linked vendor lines
+        AddVendorServices := true;
+        SelectContractRenewal.Run();
+
+        // [WHEN] The renewal quotes are created from code
+        ContractRenewalLine.Reset();
+        CreateContractRenewal.CreateContractRenewalQuotes(ContractRenewalLine, CreatedSalesQuoteNos);
+
+        // [THEN] One sales quote per contract is returned, and no confirm dialog or page is opened (no ConfirmHandler or PageHandler is registered)
+        Assert.AreEqual(2, CreatedSalesQuoteNos.Count(), 'Expected one Sales Quote per Contract.');
+        foreach SalesQuoteNo in CreatedSalesQuoteNos do begin
+            SalesHeader.Get(SalesHeader."Document Type"::Quote, SalesQuoteNo);
+
+            // [THEN] Each quote contains the linked vendor subscription line
+            SalesServiceCommitment.Reset();
+            SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type", SalesHeader."No.");
+            SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Vendor);
+            Assert.RecordIsNotEmpty(SalesServiceCommitment);
+        end;
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CreateContractRenewalQuotesFromCodeWritesErrorAndContinues()
+    var
+        ContractRenewalLine: Record "Sub. Contract Renewal Line";
+        SelectContractRenewal: Report "Select Contract Renewal";
+        CreateContractRenewal: Codeunit "Create Sub. Contract Renewal";
+        EmptyDateFormula: DateFormula;
+        CreatedSalesQuoteNos: List of [Code[20]];
+        FailingContractNo: Code[20];
+    begin
+        // [SCENARIO] When a contract cannot be renewed, the error is written to its renewal lines and the next contract is still processed
+        Initialize();
+        DeleteAllContracts();
+
+        // [GIVEN] Two customer contracts with renewable subscription lines
+        CreateBaseData();
+        FailingContractNo := CustomerContract."No.";
+        CreateBaseData(true);
+        Commit(); // close transaction before report is called
+
+        AddVendorServices := false;
+        SelectContractRenewal.Run();
+
+        // [GIVEN] The renewal lines of the first contract have no Renewal Term
+        ContractRenewalLine.SetRange("Subscription Contract No.", FailingContractNo);
+        ContractRenewalLine.ModifyAll("Renewal Term", EmptyDateFormula, false);
+
+        // [WHEN] The renewal quotes are created from code
+        ContractRenewalLine.Reset();
+        CreateContractRenewal.CreateContractRenewalQuotes(ContractRenewalLine, CreatedSalesQuoteNos);
+
+        // [THEN] Only the quote for the second contract is created
+        Assert.AreEqual(1, CreatedSalesQuoteNos.Count(), 'Expected a Sales Quote only for the Contract without errors.');
+
+        // [THEN] The renewal lines of the first contract contain an error message
+        ContractRenewalLine.SetRange("Subscription Contract No.", FailingContractNo);
+        ContractRenewalLine.FindSet();
+        repeat
+            Assert.AreNotEqual('', ContractRenewalLine."Error Message", 'The Error Message should be filled for the Contract that failed.');
+        until ContractRenewalLine.Next() = 0;
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    [Test]
+    procedure RunContractRenewalMgtWithAddVendorServicesIncludesVendorLines()
+    var
+        CustomerContractLine: Record "Cust. Sub. Contract Line";
+        SalesHeader: Record "Sales Header";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+        CreateContractRenewal: Codeunit "Create Sub. Contract Renewal";
+    begin
+        // [SCENARIO] Codeunit "Sub. Contract Renewal Mgt." renews the linked vendor subscription lines when SetAddVendorServices(true) is called before running it
+        Initialize();
+
+        // [GIVEN] A customer contract with renewable customer subscription lines and a linked vendor subscription line
+        CreateBaseData();
+        Commit();
+
+        // [WHEN] The codeunit is run on the contract lines with SetAddVendorServices(true)
+        CustomerContractLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        CustomerContractLine.SetRange("Contract Line Type", Enum::"Contract Line Type"::Item);
+        Clear(ContractRenewalMgt);
+        ContractRenewalMgt.SetAddVendorServices(true);
+        ContractRenewalMgt.Run(CustomerContractLine);
+
+        // [THEN] The created quote contains the linked vendor subscription line
+        SalesHeader.Get(SalesHeader."Document Type"::Quote, CreateContractRenewal.GetSalesQuoteNo());
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type", SalesHeader."No.");
+        SalesServiceCommitment.SetRange(Partner, Enum::"Service Partner"::Vendor);
+        Assert.RecordIsNotEmpty(SalesServiceCommitment);
+    end;
+
     [Test]
     procedure CheckDisallowChangesToContractRenewalQuote()
     var

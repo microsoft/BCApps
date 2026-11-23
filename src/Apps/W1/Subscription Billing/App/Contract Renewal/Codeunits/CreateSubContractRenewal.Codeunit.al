@@ -64,8 +64,38 @@ codeunit 8002 "Create Sub. Contract Renewal"
     end;
 
     internal procedure BatchCreateContractRenewal(var ContractRenewalLine: Record "Sub. Contract Renewal Line")
+    begin
+        CreateContractRenewalQuotesPerContract(ContractRenewalLine, true);
+        OpenSalesQuotes();
+    end;
+
+    /// <summary>
+    /// Creates one contract renewal sales quote per customer subscription contract in the given contract renewal lines, without showing any dialogs, messages or pages.
+    /// Vendor contract renewal lines that are linked to the customer lines are included in the same quote.
+    /// If a quote cannot be created for a contract, the error is written to the "Error Message" field of that contract's renewal lines and the next contract is processed.
+    /// </summary>
+    /// <remarks>
+    /// The transaction is committed before each contract is processed.
+    /// </remarks>
+    /// <param name="SubContractRenewalLine">The contract renewal lines to process. The filters on the record are applied; the record itself is not changed.</param>
+    /// <param name="CreatedSalesQuoteNos">Returns the numbers of the sales quotes that were created.</param>
+    procedure CreateContractRenewalQuotes(var SubContractRenewalLine: Record "Sub. Contract Renewal Line"; var CreatedSalesQuoteNos: List of [Code[20]])
+    begin
+        Clear(CreatedSalesQuoteNos);
+        CreateContractRenewalQuotesPerContract(SubContractRenewalLine, false);
+
+        CurrentSalesHeader.MarkedOnly(true);
+        if CurrentSalesHeader.FindSet() then
+            repeat
+                CreatedSalesQuoteNos.Add(CurrentSalesHeader."No.");
+            until CurrentSalesHeader.Next() = 0;
+        CurrentSalesHeader.MarkedOnly(false);
+    end;
+
+    local procedure CreateContractRenewalQuotesPerContract(var ContractRenewalLine: Record "Sub. Contract Renewal Line"; ShowProgress: Boolean)
     var
-        ContractRenewalLine2: Record "Sub. Contract Renewal Line";
+        CustomerContractRenewalLine: Record "Sub. Contract Renewal Line";
+        LinkedContractRenewalLine: Record "Sub. Contract Renewal Line";
         TempContractRenewalLine: Record "Sub. Contract Renewal Line" temporary;
         ContractNo: Code[20];
         Window: Dialog;
@@ -75,40 +105,41 @@ codeunit 8002 "Create Sub. Contract Renewal"
         Clear(CurrentSalesHeader);
 
         ContractNo := '';
-        ContractRenewalLine2.Copy(ContractRenewalLine);
-        ContractRenewalLine.SetCurrentKey("Linked to Sub. Contract No.", "Linked to Sub. Contr. Line No.");
-        ContractRenewalLine.SetRange(Partner, ContractRenewalLine.Partner::Customer);
-        if ContractRenewalLine.FindSet() then begin
-            Window.Open(ProgressTxt);
+        LinkedContractRenewalLine.Copy(ContractRenewalLine);
+        CustomerContractRenewalLine.Copy(ContractRenewalLine);
+        CustomerContractRenewalLine.SetCurrentKey("Linked to Sub. Contract No.", "Linked to Sub. Contr. Line No.");
+        CustomerContractRenewalLine.SetRange(Partner, CustomerContractRenewalLine.Partner::Customer);
+        if CustomerContractRenewalLine.FindSet() then begin
+            if ShowProgress then
+                Window.Open(ProgressTxt);
             repeat
-                ContractRenewalLine.TestField("Subscription Contract No.");
-                ContractRenewalLine.TestField("Subscription Header No.");
-                ContractRenewalLine.TestField("Subscription Line Entry No.");
+                CustomerContractRenewalLine.TestField("Subscription Contract No.");
+                CustomerContractRenewalLine.TestField("Subscription Header No.");
+                CustomerContractRenewalLine.TestField("Subscription Line Entry No.");
                 if ContractNo = '' then
-                    ContractNo := ContractRenewalLine."Subscription Contract No.";
-                if ContractNo <> ContractRenewalLine."Subscription Contract No." then begin
+                    ContractNo := CustomerContractRenewalLine."Subscription Contract No.";
+                if ContractNo <> CustomerContractRenewalLine."Subscription Contract No." then begin
                     CallCreateSingleContractRenewalFromBatch(TempContractRenewalLine);
                     TempContractRenewalLine.Reset();
                     TempContractRenewalLine.DeleteAll(false);
-                    ContractNo := ContractRenewalLine."Subscription Contract No.";
+                    ContractNo := CustomerContractRenewalLine."Subscription Contract No.";
                 end;
-                TempContractRenewalLine := ContractRenewalLine;
+                TempContractRenewalLine := CustomerContractRenewalLine;
                 TempContractRenewalLine.Insert(false);
-                ContractRenewalLine2.SetRange("Subscription Header No.", ContractRenewalLine."Subscription Header No.");
-                ContractRenewalLine2.SetRange("Linked to Sub. Line Entry No.", ContractRenewalLine."Subscription Line Entry No.");
-                if ContractRenewalLine2.FindSet() then
+                LinkedContractRenewalLine.SetRange("Subscription Header No.", CustomerContractRenewalLine."Subscription Header No.");
+                LinkedContractRenewalLine.SetRange("Linked to Sub. Line Entry No.", CustomerContractRenewalLine."Subscription Line Entry No.");
+                if LinkedContractRenewalLine.FindSet() then
                     repeat
-                        TempContractRenewalLine := ContractRenewalLine2;
+                        TempContractRenewalLine := LinkedContractRenewalLine;
                         TempContractRenewalLine.Insert(false);
-                    until ContractRenewalLine2.Next() = 0;
-            until ContractRenewalLine.Next() = 0;
+                    until LinkedContractRenewalLine.Next() = 0;
+            until CustomerContractRenewalLine.Next() = 0;
             CallCreateSingleContractRenewalFromBatch(TempContractRenewalLine);
             TempContractRenewalLine.Reset();
             TempContractRenewalLine.DeleteAll(false);
-            Window.Close();
+            if ShowProgress then
+                Window.Close();
         end;
-
-        OpenSalesQuotes();
     end;
 
     internal procedure OpenSalesQuotes()
