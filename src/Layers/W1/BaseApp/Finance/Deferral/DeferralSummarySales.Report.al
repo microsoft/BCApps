@@ -344,12 +344,26 @@ report 1701 "Deferral Summary - Sales"
             LayoutFile = './Finance/Deferral/DeferralSummarySales.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Deferral Summary Sales Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummarySales.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Finance/Deferral/DeferralSummarySalesBody.docx';
+            Caption = 'Body-only: Deferral Summary Sales Word';
+            Summary = 'Landscape orientated. Shows posting date, document, line type, description, deferral account, start date, and number of periods for each customer, with the amount recognized, the remaining amount, and the total deferred. Includes totals.';
         }
     }
 
