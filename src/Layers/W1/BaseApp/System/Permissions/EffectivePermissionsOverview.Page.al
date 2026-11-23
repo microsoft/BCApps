@@ -41,7 +41,10 @@ page 9886 "Effective Permissions Overview"
                     ToolTip = 'Specifies the company for which effective permissions for the chosen user will be shown.';
                     TableRelation = Company;
                     trigger OnValidate()
+                    var
+                        Company: Record Company;
                     begin
+                        Company.Get(CompanyFilter);
                         ApplyFilters();
                     end;
                 }
