@@ -13,12 +13,11 @@ using System.Test.Agents.Designer;
 using System.TestLibraries.Utilities;
 
 codeunit 133754 "Custom Agent Test"
+// [FEATURE] [Custom Agent]
 {
     Subtype = Test;
     TestType = UnitTest;
     TestPermissions = Disabled;
-
-    // [FEATURE] [Custom Agent]
 
     var
         AgentDesignerTestLib: Codeunit "Agent Designer Test Lib.";

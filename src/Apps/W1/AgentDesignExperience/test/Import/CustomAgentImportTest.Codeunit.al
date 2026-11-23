@@ -14,12 +14,11 @@ using System.Test.Agents.Designer;
 using System.Utilities;
 
 codeunit 133753 "Custom Agent Import Test"
+// [FEATURE] [Custom Agent Import]
 {
     Subtype = Test;
     TestType = UnitTest;
     TestPermissions = Disabled;
-
-    // [FEATURE] [Custom Agent Import]
 
     local procedure Initialize()
     var
