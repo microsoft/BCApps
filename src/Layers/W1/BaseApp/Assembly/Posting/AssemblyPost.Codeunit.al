@@ -1832,7 +1832,7 @@ codeunit 900 "Assembly-Post"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostItemConsumptionProcedure(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger; var Result: Integer; var IsHandled: Boolean)
+    local procedure OnBeforePostItemConsumptionProcedure(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger; var Result: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

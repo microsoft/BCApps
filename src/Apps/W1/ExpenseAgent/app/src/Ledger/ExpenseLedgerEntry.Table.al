@@ -176,7 +176,7 @@ table 6912 "Expense Ledger Entry"
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
         }

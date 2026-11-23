@@ -330,7 +330,7 @@ table 6916 "Posted Expense Report Line"
             TableRelation = "Expense Vehicle Type";
             ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
         }
-        field(51; "Credit Card Feed No."; Integer)
+        field(51; "Credit Card Feed No."; BigInteger)
         {
             Access = Internal;
             Caption = 'Credit Card Feed No.';

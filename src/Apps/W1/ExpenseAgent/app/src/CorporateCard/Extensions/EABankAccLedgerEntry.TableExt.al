@@ -10,7 +10,7 @@ tableextension 7442 "EA Bank Acc. Ledger Entry" extends "Bank Account Ledger Ent
 {
     fields
     {
-        field(7420; "EA Corp Card Trans Entry No."; Integer)
+        field(7420; "EA Corp Card Trans Entry No."; BigInteger)
         {
             Access = Internal;
             Caption = 'Corp Card Transaction Entry No.';
@@ -18,7 +18,7 @@ tableextension 7442 "EA Bank Acc. Ledger Entry" extends "Bank Account Ledger Ent
             Editable = false;
             TableRelation = "EA Corp Card Trans"."Entry No.";
         }
-        field(7421; "EA Corp Card Settle Entry No."; Integer)
+        field(7421; "EA Corp Card Settle Entry No."; BigInteger)
         {
             Access = Internal;
             Caption = 'Corp Card Settlement Entry No.';
