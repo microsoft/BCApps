@@ -145,6 +145,9 @@ codeunit 4586 "SOA Dispatcher"
         InactivityPeriodStart: DateTime;
         NoRecentUserLogin: Boolean;
     begin
+        if not SOASetupCU.IsAgentActive(Setup."User Security ID") then
+            exit(false);
+
         InactivityPeriodStart := CurrentDateTime() - SOASetupCU.GetUnattendedPeriodDays() * 24 * 60 * 60 * 1000 / (14 * 24 * 60) * 5;
 
         // Only interactive (user and device) sessions update the login information of the company.
