@@ -418,6 +418,21 @@ page 6980 "Manager Expense Report"
                     RunPageLink = "No." = field("No.");
                     ToolTip = 'View statistical information, such as VAT amounts, for the expense report.';
                 }
+                action(ChangeHistory)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Change History';
+                    Image = ChangeLog;
+                    ToolTip = 'View the changes to dimensions, accounts, billing, purchase invoice, merchant, project, and VAT information that were made after the expense report was submitted, including who made each change.';
+                    Enabled = Rec."No." <> '';
+
+                    trigger OnAction()
+                    var
+                        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
+                    begin
+                        ExpReportChangeLogMgt.ShowChangeLog(Rec);
+                    end;
+                }
             }
         }
         area(Promoted)
@@ -487,6 +502,9 @@ page 6980 "Manager Expense Report"
                 {
                 }
                 actionref(Statistics_Promoted; Statistics)
+                {
+                }
+                actionref(ChangeHistory_Promoted; ChangeHistory)
                 {
                 }
             }

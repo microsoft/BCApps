@@ -167,8 +167,6 @@ table 6907 "Expense Report Line"
             var
                 ExpenseBillingInformation: Page "Expense Billing Information";
             begin
-                TestStatusOpen();
-
                 if Rec."VAT Liable" then begin
                     Rec.TestField("Non-Refundable Amount", 0);
                     Rec.TestField(Refundable, true);
@@ -286,10 +284,8 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                if xRec."Merchant Name" <> Rec."Merchant Name" then begin
-                    TestStatusOpen();
-                    ApplyRule(false, true);
-                end;
+                if xRec."Merchant Name" <> Rec."Merchant Name" then
+                    ValidateAgainstRule();
             end;
         }
         field(17; "Reimbursement Type"; Enum "Expense Reimbursement Type")
@@ -329,8 +325,6 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 if Rec."Account Type" <> xRec."Account Type" then
                     if Rec."Account No." <> '' then
                         Rec.Validate("Account No.", '');
@@ -358,8 +352,6 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 GetExpenseReportHeader();
                 InitHeaderDefaults(ExpenseReportHeader);
 
@@ -391,8 +383,6 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
             end;
         }
@@ -405,8 +395,6 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
@@ -464,8 +452,6 @@ table 6907 "Expense Report Line"
                     Rec.Validate("Vendor No.", '');
                     Rec.Validate("Posted Purch. Invoice No.", '');
                 end;
-
-                TestStatusOpen();
             end;
         }
         field(27; "Posted Purch. Invoice No."; Code[20])
@@ -479,8 +465,6 @@ table 6907 "Expense Report Line"
                     Rec.TestField("Vendor No.");
                     Rec.TestField("Purchase Invoice", true);
                 end;
-
-                TestStatusOpen();
             end;
         }
         field(28; "Vendor No."; Code[20])
@@ -490,8 +474,6 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 if Rec."Vendor No." = '' then
                     Rec.TestField("VAT Liable", false);
             end;
@@ -513,8 +495,6 @@ table 6907 "Expense Report Line"
             begin
                 if xRec.Billable <> Rec.Billable then
                     Rec.Validate("Billable to Customer", '');
-
-                TestStatusOpen();
             end;
         }
         field(31; "Billable to Customer"; Code[20])
@@ -524,8 +504,6 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 if (Rec."Billable to Customer" <> '') and (Rec."Job No." <> '') then
                     Error(BillableCustomerAndProjectErr, Rec.FieldCaption("Billable to Customer"), Rec.FieldCaption("Job No."));
 
@@ -925,7 +903,6 @@ table 6907 "Expense Report Line"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
                 GetExpenseReportHeader();
 
                 if (Rec."Job No." <> '') and (Rec."Billable to Customer" <> '') then
@@ -941,11 +918,6 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Project Task No.';
             TableRelation = "Job Task"."Job Task No." where("Job No." = field("Job No."));
-
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-            end;
         }
         field(58; "VAT %"; Decimal)
         {
@@ -1049,10 +1021,8 @@ table 6907 "Expense Report Line"
             Caption = 'Merchant VAT Registration No.';
             trigger OnValidate()
             begin
-                if xRec."Merchant VAT Registration No." <> Rec."Merchant VAT Registration No." then begin
-                    TestStatusOpen();
-                    ApplyRule(false, true);
-                end;
+                if xRec."Merchant VAT Registration No." <> Rec."Merchant VAT Registration No." then
+                    ValidateAgainstRule();
             end;
         }
         field(90; "Created By Exp. User Id"; Guid)
@@ -1182,6 +1152,7 @@ table 6907 "Expense Report Line"
     var
         StoredExpenseReportLine: Record "Expense Report Line";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
         RelevantFieldChanged: Boolean;
     begin
         StoredExpenseReportLine := xRec;
@@ -1201,6 +1172,7 @@ table 6907 "Expense Report Line"
             "Policy Eval Version" := StoredExpenseReportLine."Policy Eval Version";
             "Evaluated Policy Version" := StoredExpenseReportLine."Evaluated Policy Version";
             "Policies Evaluated At" := StoredExpenseReportLine."Policies Evaluated At";
+            ExpReportChangeLogMgt.LogLineChanges(StoredExpenseReportLine, Rec);
         end;
         if RelevantFieldChanged or PolicyInvalidationPending then
             "Policy Eval Version" += 1;
@@ -1213,11 +1185,14 @@ table 6907 "Expense Report Line"
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
         ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
     begin
         CorpCardSelectionMgt.CheckReportLineCanBeDeleted(Rec);
         DeleteAssociatedRecords();
 
         RemoveExpenseReportNoInExpense();
+
+        ExpReportChangeLogMgt.DeleteEntriesForLine(Rec);
 
         ExpensePolicyEvaluation.SetRange("Subject System Id", Rec.SystemId);
         ExpensePolicyEvaluation.SetRange("Subject Type", ExpensePolicyEvaluation."Subject Type"::"Expense Report Line");
@@ -1563,6 +1538,14 @@ table 6907 "Expense Report Line"
                 exit(true);
         end;
         exit(false);
+    end;
+
+    local procedure ValidateAgainstRule()
+    var
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // Only re-check the rule, without auto-populating the line, so the field can also be corrected after submission.
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(Rec);
     end;
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)
