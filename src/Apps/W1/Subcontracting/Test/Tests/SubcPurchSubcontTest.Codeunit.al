@@ -5,7 +5,9 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
@@ -21,9 +23,13 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Structure;
 using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+using System.Security.AccessControl;
 
 codeunit 139991 "Subc. Purch. Subcont. Test"
 {
@@ -56,6 +62,711 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         IsInitialized: Boolean;
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
+        NavigatedReceiptNo: Code[20];
+        NavigatedReceiptLineNo: Integer;
+        NavigatedPostingDate: Date;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder,ReceiptWIPEntries')]
+    procedure FindEntriesNavigatesOriginalReceiptSecurely()
+    var
+        ProductionOrder: Record "Production Order";
+        Header: Record "Purchase Header";
+        Line: Record "Purchase Line";
+        Receipt: Record "Purch. Rcpt. Line";
+        OtherReceipt: Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+        NavigatePage: TestPage Navigate;
+        PermissionsMock: Codeunit "Permissions Mock";
+        FilteredRoleID: Code[20];
+        EmptyGuid: Guid;
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, Header, Line, 1, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(Header, Line, 7, Receipt);
+        CreateReceivedStateFixture(ProductionOrder, Header, Line, 1, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(Header, Line, 2, OtherReceipt);
+        Assert.AreNotEqual(Receipt."Document No.", OtherReceipt."Document No.", 'The unrelated receipt must have distinct actual provenance.');
+        NavigatedReceiptNo := Receipt."Document No.";
+        NavigatedReceiptLineNo := Receipt."Line No.";
+        NavigatedPostingDate := Receipt."Posting Date";
+        OpenReceiptNavigate(NavigatePage, NavigatedPostingDate, NavigatedReceiptNo);
+        Assert.IsTrue(FindWIPNavigateRow(NavigatePage), 'The original posted receipt must locate its paired state movements.');
+        NavigatePage."No. of Records".AssertEquals(2);
+        NavigatePage.Show.Invoke();
+        NavigatePage.Close();
+
+        OpenReceiptNavigate(NavigatePage, CalcDate('<+1D>', NavigatedPostingDate), NavigatedReceiptNo);
+        Assert.IsFalse(FindWIPNavigateRow(NavigatePage), 'Receipt identity cannot bypass the actual posting-date filter.');
+        NavigatePage.Close();
+        FilteredRoleID := CreateReceiptFilteredRole(NavigatedReceiptNo);
+        PermissionsMock.Start();
+        PermissionsMock.Set(FilteredRoleID);
+        PermissionsMock.Assign('Subc WIP Nav Test');
+        Assert.IsTrue(Entry.ReadPermission(), 'The restricted fixture must grant real table read permission.');
+        Entry.SecurityFiltering(SecurityFilter::Filtered);
+        Entry.SetRange("Purchase Receipt No.", OtherReceipt."Document No.");
+        Assert.RecordIsEmpty(Entry);
+        OpenReceiptNavigate(NavigatePage, NavigatedPostingDate, NavigatedReceiptNo);
+        Assert.IsTrue(FindWIPNavigateRow(NavigatePage), 'A row-security filter must retain the permitted original receipt.');
+        NavigatePage."No. of Records".AssertEquals(2);
+        NavigatePage.Show.Invoke();
+        NavigatePage.Close();
+        OpenReceiptNavigate(NavigatePage, OtherReceipt."Posting Date", OtherReceipt."Document No.");
+        Assert.IsFalse(FindWIPNavigateRow(NavigatePage), 'A different original receipt must not escape the real row-security filter.');
+        NavigatePage.Close();
+        OpenReceiptNavigate(NavigatePage, NavigatedPostingDate, '***');
+        Assert.IsFalse(FindWIPNavigateRow(NavigatePage), 'Masked preview receipt navigation cannot expose persistent source entries.');
+        NavigatePage.Close();
+        PermissionsMock.Stop();
+        TenantPermission.SetRange("App ID", EmptyGuid);
+        TenantPermission.SetRange("Role ID", FilteredRoleID);
+        TenantPermission.DeleteAll();
+        TenantPermissionSet.Get(EmptyGuid, FilteredRoleID);
+        TenantPermissionSet.Delete();
+        PermissionsMock.Start();
+        PermissionsMock.Set('Subc WIP Nav Test');
+        Assert.IsFalse(Entry.ReadPermission(), 'The fixture must really remove WIP read permission, not silently run as SUPER.');
+        OpenReceiptNavigate(NavigatePage, NavigatedPostingDate, NavigatedReceiptNo);
+        Assert.IsFalse(FindWIPNavigateRow(NavigatePage), 'A no-read user must see neither a count nor a drilldown target.');
+        NavigatePage.Close();
+        PermissionsMock.Stop();
+    end;
+
+    local procedure CreateReceiptFilteredRole(ReceiptNo: Code[20]): Code[20]
+    var
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermission: Record "Tenant Permission";
+    begin
+        TenantPermissionSet."Role ID" := CopyStr(Format(CreateGuid(), 0, 4), 1, MaxStrLen(TenantPermissionSet."Role ID"));
+        TenantPermissionSet.Name := 'Isolated WIP receipt filter';
+        TenantPermissionSet.Insert();
+        TenantPermission."Role ID" := TenantPermissionSet."Role ID";
+        TenantPermission."Object Type" := TenantPermission."Object Type"::"Table Data";
+        TenantPermission."Object ID" := Database::"Subcontractor WIP Ledger Entry";
+        TenantPermission."Read Permission" := TenantPermission."Read Permission"::Yes;
+        Evaluate(TenantPermission."Security Filter",
+            StrSubstNo('%1: %2=%3', Entry.TableCaption(), Entry.FieldCaption("Purchase Receipt No."), ReceiptNo));
+        TenantPermission.Insert();
+        exit(TenantPermissionSet."Role ID");
+    end;
+
+    local procedure OpenReceiptNavigate(var NavigatePage: TestPage Navigate; PostingDate: Date; ReceiptNo: Code[20])
+    var
+        Navigate: Page Navigate;
+    begin
+        Clear(NavigatePage);
+        Navigate.SetDoc(PostingDate, ReceiptNo);
+        NavigatePage.Trap();
+        Navigate.Run();
+    end;
+
+    local procedure FindWIPNavigateRow(var NavigatePage: TestPage Navigate): Boolean
+    begin
+        if NavigatePage.First() then
+            repeat
+                if NavigatePage."Table ID".AsInteger() = Database::"Subcontractor WIP Ledger Entry" then
+                    exit(true);
+            until not NavigatePage.Next();
+        exit(false);
+    end;
+
+    [PageHandler]
+    procedure ReceiptWIPEntries(var Entries: TestPage "Subc. WIP Ledger Entries")
+    var
+        Count: Integer;
+    begin
+        Assert.IsTrue(Entries.First(), 'Navigation must show the original receipt pair.');
+        repeat
+            Entries."Purchase Receipt No.".AssertEquals(NavigatedReceiptNo);
+            Entries."Purchase Receipt Line No.".AssertEquals(NavigatedReceiptLineNo);
+            Entries."Posting Date".AssertEquals(NavigatedPostingDate);
+            Count += 1;
+        until not Entries.Next();
+        Assert.AreEqual(2, Count, 'Drilldown must reapply the same secure receipt filter as the count.');
+        Entries.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,LifecycleWIPConfirm,HandleTransferOrder')]
+    procedure LegacyAndNewEndToEndAfterStatusReplacement()
+    var
+        Orders: array[2] of Record "Production Order";
+        Headers: array[2] of Record "Purchase Header";
+        Lines: array[2] of Record "Purchase Line";
+        Receipts: array[2] of Record "Purch. Rcpt. Line";
+        ReplacementReceipts: array[2] of Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        Activation: Record "Subc. WIP Activation";
+        Application: Record "Subc. WIP Receipt Appl.";
+        StatusManagement: Codeunit "Prod. Order Status Management";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        Lineages: array[2] of Guid;
+        MarkerID: Guid;
+        FinishedNo: Code[20];
+        I: Integer;
+    begin
+        Initialize();
+        SubcWarehouseLibrary.CreateLegacyWIPPurchaseOrder(Orders[1], Headers[1], Lines[1], 10);
+        SubcWarehouseLibrary.CreateStateWIPPurchaseOrder(Orders[2], Headers[2], Lines[2], 10, 1, true);
+        Activation.Get('');
+        MarkerID := Activation.SystemId;
+        for I := 1 to 2 do begin
+            Lineages[I] := Orders[I]."Subc. WIP Lineage ID";
+            SubcWarehouseLibrary.PostStateWIPSupply(Headers[I]);
+            SubcWarehouseLibrary.ReceiveStateWIP(Headers[I], Lines[I], 7, Receipts[I]);
+            if I = 2 then
+                SubcWarehouseLibrary.AssertStateWIP(Lines[I], 10, 3, 7, 0);
+            Receipts[I].SetRecFilter();
+            Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", Receipts[I]);
+            if I = 2 then
+                SubcWarehouseLibrary.AssertStateWIP(Lines[I], 10, 10, 0, 0);
+            SubcWarehouseLibrary.ReceiveStateWIP(Headers[I], Lines[I], 7, ReplacementReceipts[I]);
+            SubcWarehouseLibrary.CompleteStateWIPProduction(Orders[I]);
+            LibraryManufacturing.ChangeProdOrderStatus(Orders[I], Orders[I].Status::Finished, WorkDate(), false);
+            Orders[I].Reset();
+            Orders[I].SetRange(Status, Orders[I].Status::Finished);
+            Orders[I].SetRange("Subc. WIP Lineage ID", Lineages[I]);
+            Orders[I].FindFirst();
+            FinishedNo := Orders[I]."No.";
+            StatusManagement.ReopenFinishedProdOrder(Orders[I]);
+            Orders[I].Reset();
+            Orders[I].SetRange(Status, Orders[I].Status::Released);
+            Orders[I].SetRange("Subc. WIP Lineage ID", Lineages[I]);
+            Orders[I].FindFirst();
+            Assert.AreEqual(Lineages[I], CohortMgt.GetLineage(Orders[I].Status::Finished, FinishedNo), 'Deleted status keys must remain resolvable through stored lineage.');
+        end;
+        Assert.AreEqual(Orders[1]."Subc. WIP Cohort"::Legacy, Orders[1]."Subc. WIP Cohort", 'Finishing and reopening cannot promote a legacy root.');
+        Assert.AreEqual(Orders[2]."Subc. WIP Cohort"::StateV1, Orders[2]."Subc. WIP Cohort", 'The new root must retain its state model.');
+        for I := 1 to 2 do begin
+            Orders[I].Get(Orders[I].Status, Orders[I]."No.");
+            Assert.AreEqual(Lineages[I], Orders[I]."Subc. WIP Lineage ID", 'An inverse after native header replacement retains original business identity.');
+        end;
+        Entry.SetRange("Lineage ID", Lineages[1]);
+        Entry.SetRange("State Tracked", true);
+        Assert.RecordIsEmpty(Entry);
+        Application.SetRange("Receipt No.", Receipts[1]."Document No.");
+        Assert.RecordIsEmpty(Application);
+        Application.SetRange("Receipt No.", Receipts[2]."Document No.");
+        Application.FindFirst();
+        Assert.IsTrue(Application.Reversed, 'Native status replacement must preserve the stored original inverse application.');
+        SubcWarehouseLibrary.AssertStateWIP(Lines[2], 0, 0, 0, 0);
+        ReplacementReceipts[2].SetRecFilter();
+        asserterror Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReplacementReceipts[2]);
+        Assert.ExpectedError('original processed WIP');
+        Application.SetRange("Receipt No.", ReplacementReceipts[2]."Document No.");
+        Application.FindFirst();
+        Assert.IsFalse(Application.Reversed, 'Reopening cannot recreate processed custody already cleared on finish or partially reverse its receipt.');
+        Activation.Get('');
+        Assert.AreEqual(MarkerID, Activation.SystemId, 'Receipt, finish, reopen and inverse cannot reset activation.');
+        Assert.AreEqual(1, Activation.Version, 'Status replacement cannot change the approved cohort version.');
+    end;
+
+    [ConfirmHandler]
+    procedure LifecycleWIPConfirm(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := not Question.ToLower().Contains('view') and not Question.ToLower().Contains('open');
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPConfirm')]
+    procedure LegacyReceiptAndUndoStayNative()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        Application: Record "Subc. WIP Receipt Appl.";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        OriginalLineage: Guid;
+    begin
+        Initialize();
+        SubcWarehouseLibrary.CreateLegacyWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10);
+        OriginalLineage := ProductionOrder."Subc. WIP Lineage ID";
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        Assert.AreEqual(7, ReceiptLine."Quantity (Base)", 'Legacy receipt must not acquire the new custody shortfall gate.');
+        Application.SetRange("Receipt No.", ReceiptLine."Document No.");
+        Assert.RecordIsEmpty(Application);
+        ReceiptLine.SetRecFilter();
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReceiptLine);
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        Assert.AreEqual(0, PurchaseLine."Quantity Received", 'Native undo must restore the purchase quantity.');
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        Assert.AreEqual(ProductionOrder."Subc. WIP Cohort"::Legacy, ProductionOrder."Subc. WIP Cohort", 'Correction cannot promote a legacy order.');
+        Assert.AreEqual(OriginalLineage, ProductionOrder."Subc. WIP Lineage ID", 'Correction must preserve business identity.');
+        Assert.RecordIsEmpty(Application);
+        Entry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Entry.SetRange("State Tracked", true);
+        Assert.RecordIsEmpty(Entry);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure ReceiptSevenChangesStateNotCustody()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        ReceivingAtHome: Boolean;
+        I: Integer;
+    begin
+        Initialize();
+        for I := 1 to 2 do begin
+            ReceivingAtHome := I = 1;
+            CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 1, ReceivingAtHome);
+            SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+            SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+            AssertReceiptStatePair(ReceiptLine, PurchaseLine, 7);
+        end;
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure ReceiptAlternativeUomUsesActualBase()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 10, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 0.7, ReceiptLine);
+        Assert.AreEqual(7, ReceiptLine."Quantity (Base)", 'The actual receipt must be seven base units.');
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+        AssertReceiptStatePair(ReceiptLine, PurchaseLine, 7);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure InvoiceAndChargeDoNotRepeatReceipt()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        InvoiceHeader: Record "Purchase Header";
+        ChargeLine: Record "Purchase Line";
+        ItemCharge: Record "Item Charge";
+        Assignment: Record "Item Charge Assignment (Purch)";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        Application: Record "Subc. WIP Receipt Appl.";
+        AssignItemCharge: Codeunit "Item Charge Assgnt. (Purch.)";
+        EntryCount: Integer;
+        ApplicationCount: Integer;
+        NextLineNo: Integer;
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 1, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        Entry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        EntryCount := Entry.Count();
+        Application.SetRange("Receipt No.", ReceiptLine."Document No.");
+        ApplicationCount := Application.Count();
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Invoice", 7);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+        Assert.AreEqual(EntryCount, Entry.Count(), 'Invoicing must not repeat a posted receipt state effect.');
+        Assert.AreEqual(ApplicationCount, Application.Count(), 'Invoicing must not create another receipt application.');
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+
+        LibraryInventory.CreateItemCharge(ItemCharge);
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, PurchaseHeader."Buy-from Vendor No.");
+        LibraryPurchase.CreatePurchaseLine(ChargeLine, InvoiceHeader, ChargeLine.Type::"Charge (Item)", ItemCharge."No.", 7);
+        ChargeLine.Validate("Direct Unit Cost", 2);
+        ChargeLine.Modify(true);
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(ChargeLine."Gen. Bus. Posting Group", ChargeLine."Gen. Prod. Posting Group");
+        Assignment."Document Type" := ChargeLine."Document Type";
+        Assignment."Document No." := ChargeLine."Document No.";
+        Assignment."Document Line No." := ChargeLine."Line No.";
+        Assignment."Item Charge No." := ChargeLine."No.";
+        Assignment."Unit Cost" := ChargeLine."Direct Unit Cost";
+        NextLineNo := 10000;
+        AssignItemCharge.InsertItemChargeAssignmentWithValues(
+            Assignment, "Purchase Applies-to Document Type"::Receipt, ReceiptLine."Document No.",
+            ReceiptLine."Line No.", ReceiptLine."No.", ReceiptLine.Description, 7, 14, NextLineNo);
+        LibraryPurchase.PostPurchaseDocument(InvoiceHeader, false, true);
+        Assert.AreEqual(EntryCount, Entry.Count(), 'Item charges must not repeat physical or processing-state movements.');
+        Assert.AreEqual(ApplicationCount, Application.Count(), 'Item charges must not create receipt applications.');
+        AssertReceiptStatePair(ReceiptLine, PurchaseLine, 7);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 0.3, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 1, ReceiptLine);
+        Assert.AreEqual(0.3, ReceiptLine."Quantity (Base)", 'Fractional purchase UOM must use native base conversion.');
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 9.7, 0.3, 0);
+        AssertReceiptStatePair(ReceiptLine, PurchaseLine, 0.3);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder,StateWIPPostingPreview')]
+    procedure ReceiptPreviewShowsPairedStateAndRollsBack()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        TempEntry: Record "Subcontractor WIP Ledger Entry" temporary;
+        Application: Record "Subc. WIP Receipt Appl.";
+        GLSetup: Record "General Ledger Setup";
+        PreviewHandler: Codeunit "Subc. Pst. Prev. Event Handler";
+        PurchPostYesNo: Codeunit "Purch.-Post (Yes/No)";
+        EntryCount: Integer;
+        ApplicationCount: Integer;
+        ReceiptCount: Integer;
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 1, true);
+        Entry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        EntryCount := Entry.Count();
+        Application.SetRange("Purchase Order No.", PurchaseHeader."No.");
+        ApplicationCount := Application.Count();
+        ReceiptLine.SetRange("Order No.", PurchaseHeader."No.");
+        ReceiptCount := ReceiptLine.Count();
+        GLSetup.Get();
+        GLSetup."Posting Preview Type" := GLSetup."Posting Preview Type"::Standard;
+        GLSetup.Modify();
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", 7);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseHeader.Receive := true;
+        PurchaseHeader.Invoice := false;
+        PurchPostYesNo.Preview(PurchaseHeader);
+        PreviewHandler.GetTempSubcontractorWIPLedgerEntry(TempEntry);
+        TempEntry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.RecordCount(TempEntry, 2);
+        TempEntry.SetRange("WIP State", TempEntry."WIP State"::Unprocessed);
+        TempEntry.FindFirst();
+        Assert.AreEqual(-7, TempEntry."Quantity (Base)", 'Preview must show the exact unprocessed donor.');
+        Assert.AreEqual('***', TempEntry."Document No.", 'Preview document identity must stay masked.');
+        Assert.AreEqual('***', TempEntry."Purchase Receipt No.", 'Preview receipt navigation must stay masked.');
+        Assert.IsFalse(IsNullGuid(TempEntry."Receipt Application ID"), 'Preview must retain the paired source relation.');
+        TempEntry.SetRange("WIP State", TempEntry."WIP State"::Processed);
+        TempEntry.FindFirst();
+        Assert.AreEqual(7, TempEntry."Quantity (Base)", 'Preview must show the exact processed recipient.');
+        Assert.AreEqual(EntryCount, Entry.Count(), 'Preview must roll back durable WIP entries.');
+        Assert.AreEqual(ApplicationCount, Application.Count(), 'Preview must roll back durable receipt applications.');
+        Assert.AreEqual(ReceiptCount, ReceiptLine.Count(), 'Preview must not leave a posted purchase receipt.');
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 10, 0, 0);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        Assert.AreEqual(EntryCount + 2, Entry.Count(), 'Actual posting after preview must create exactly one pair.');
+        AssertReceiptStatePair(ReceiptLine, PurchaseLine, 7);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+    end;
+
+    [PageHandler]
+    procedure StateWIPPostingPreview(var Preview: TestPage "G/L Posting Preview")
+    begin
+        Preview.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure UndoReceiptUsesOriginalStoredEffect()
+    var
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        RoutingLine: Record "Prod. Order Routing Line";
+        OriginalEntryNo: Integer;
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 10, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 0.7, ReceiptLine);
+        SubcWarehouseLibrary.FindStateWIPEntry(Entry, PurchaseLine, Entry."WIP State"::Processed);
+        OriginalEntryNo := Entry."Entry No.";
+        RoutingLine.Get(ProductionOrder.Status, ProductionOrder."No.", PurchaseLine."Routing Reference No.",
+            PurchaseLine."Routing No.", PurchaseLine."Operation No.");
+        RoutingLine.Validate("Transfer WIP Item", false);
+        RoutingLine.Modify(true);
+
+        ReceiptLine.SetRecFilter();
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReceiptLine);
+
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 10, 0, 0);
+        Entry.Reset();
+        Entry.SetRange("Reversed Entry No.", OriginalEntryNo);
+        Assert.RecordCount(Entry, 1);
+        Entry.FindFirst();
+        Assert.AreEqual(-7, Entry."Quantity (Base)", 'Inverse must use the original received base, not current flags.');
+        Assert.AreEqual(ReceiptLine."Document No.", Entry."Purchase Receipt No.", 'Inverse must retain original receipt.');
+        asserterror Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReceiptLine);
+        Assert.ExpectedError('already been reversed');
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure ReceiptApplicationsStayDistinctAndAtomic()
+    var
+        FirstReceipt: Record "Purch. Rcpt. Line";
+        SecondReceipt: Record "Purch. Rcpt. Line";
+        FirstApplication: Record "Subc. WIP Receipt Appl.";
+        SecondApplication: Record "Subc. WIP Receipt Appl.";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 1, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 4, FirstReceipt);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 3, SecondReceipt);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+        AssertReceiptStatePair(FirstReceipt, PurchaseLine, 4);
+        AssertReceiptStatePair(SecondReceipt, PurchaseLine, 3);
+        FirstApplication.SetRange("Receipt No.", FirstReceipt."Document No.");
+        FirstApplication.FindFirst();
+        SecondApplication.SetRange("Receipt No.", SecondReceipt."Document No.");
+        SecondApplication.FindFirst();
+        Assert.AreNotEqual(FirstApplication."Application ID", SecondApplication."Application ID", 'Separate actual receipts need separate applications.');
+        SecondReceipt.SetRecFilter();
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", SecondReceipt);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 6, 4, 0);
+        FirstApplication.Get(FirstApplication."Capacity Entry No.");
+        Assert.IsFalse(FirstApplication.Reversed, 'Undo of the second receipt must not reverse the first.');
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure TrackedReceiptUsesOwnOperationAndCohort()
+    var
+        Application: Record "Subc. WIP Receipt Appl.";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        RoutingLine: Record "Prod. Order Routing Line";
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 1, true);
+        // A stale purchase flag must not disable the linked operation's receipt transition.
+        PurchaseLine.Validate("Transfer WIP Item", false);
+        PurchaseLine.Modify(true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        AssertReceiptStatePair(ReceiptLine, PurchaseLine, 7);
+
+        SubcWarehouseLibrary.CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10, 1, false);
+        RoutingLine.Get(ProductionOrder.Status, ProductionOrder."No.", PurchaseLine."Routing Reference No.",
+            PurchaseLine."Routing No.", PurchaseLine."Operation No.");
+        Assert.IsFalse(RoutingLine."Transfer WIP Item", 'The ordinary receipt operation must be unflagged.');
+        PurchaseLine.Validate("Transfer WIP Item", true);
+        PurchaseLine.Modify(true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        Application.SetRange("Receipt No.", ReceiptLine."Document No.");
+        Assert.RecordIsEmpty(Application);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure ReceiptShortfallCannotBorrowOtherSource()
+    var
+        DecoyOrder: Record "Production Order";
+        DecoyHeader: Record "Purchase Header";
+        DecoyLine: Record "Purchase Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Application: Record "Subc. WIP Receipt Appl.";
+    begin
+        Initialize();
+        CreateReceivedStateFixture(DecoyOrder, DecoyHeader, DecoyLine, 1, true);
+        SubcWarehouseLibrary.CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10, 1, true);
+        SubcWarehouseLibrary.CreateStateWIPSupply(PurchaseHeader, TransferHeader, TransferLine);
+        TransferLine.Validate(Quantity, 3);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 3, 3, 0, 0);
+        PurchaseLine.Validate("Qty. to Receive", 7);
+        PurchaseLine.Modify(true);
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        Assert.ExpectedError('insufficient matching unprocessed WIP');
+        ReceiptLine.SetRange("Order No.", PurchaseHeader."No.");
+        Assert.RecordIsEmpty(ReceiptLine);
+        Application.SetRange("Purchase Order No.", PurchaseHeader."No.");
+        Assert.RecordIsEmpty(Application);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 3, 3, 0, 0);
+        SubcWarehouseLibrary.AssertStateWIP(DecoyLine, 10, 10, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure UndoReceiptProtectsUnshippedClaims()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        Initialize();
+        CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 1, true);
+        SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        SubcWarehouseLibrary.FindStateWIPEntry(Entry, PurchaseLine, Entry."WIP State"::Processed);
+        SubcWarehouseLibrary.CreateStateWIPClaim(PurchaseLine, Entry, 2, TransferHeader, TransferLine);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+        ReceiptLine.SetRecFilter();
+        asserterror Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReceiptLine);
+        Assert.ExpectedError('moved or allocated');
+        ReceiptLine.Get(ReceiptLine."Document No.", ReceiptLine."Line No.");
+        Assert.IsFalse(ReceiptLine.Correction, 'A rejected inverse must roll back the native correction.');
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.Delete(true);
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReceiptLine);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 10, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure UndoWaitsForDependentMovements()
+    begin
+        Initialize();
+        RunStateWIPDependentUndo(false);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,HandleTransferOrder')]
+    procedure IntegratedTenSevenTwoAndUndoWorkflow()
+    begin
+        Initialize();
+        RunStateWIPDependentUndo(true);
+    end;
+
+    local procedure RunStateWIPDependentUndo(AlternativeUOM: Boolean)
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ShipmentLine: Record "Transfer Shipment Line";
+        Availability: Codeunit "Subc. WIP Availability";
+    begin
+        if AlternativeUOM then begin
+            CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 10, true);
+            SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 0.7, ReceiptLine);
+        end else begin
+            CreateReceivedStateFixture(ProductionOrder, PurchaseHeader, PurchaseLine, 1, true);
+            SubcWarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        end;
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+        SubcWarehouseLibrary.FindStateWIPEntry(Entry, PurchaseLine, Entry."WIP State"::Processed);
+        SubcWarehouseLibrary.CreateStateWIPClaim(PurchaseLine, Entry, 2, TransferHeader, TransferLine);
+        Assert.AreEqual(5, Availability.Available(Entry."Source Position No.", Entry."WIP State", Entry."Supply Lot ID", '', 0), 'Creation allocates but does not relieve custody.');
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 8, 3, 5, 2);
+        Assert.AreEqual(5, Availability.Available(Entry."Source Position No.", Entry."WIP State", Entry."Supply Lot ID", '', 0), 'Shipped allocation must not be subtracted twice.');
+        ReceiptLine.SetRecFilter();
+        asserterror Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReceiptLine);
+        Assert.ExpectedError('moved or allocated');
+        ShipmentLine.SetRange("Transfer Order No.", TransferHeader."No.");
+        ShipmentLine.SetRange("Trans. Order Line No.", TransferLine."Line No.");
+        ShipmentLine.FindFirst();
+        ShipmentLine.SetRecFilter();
+        Codeunit.Run(Codeunit::"Undo Transfer Shipment", ShipmentLine);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+        Assert.AreEqual(5, Availability.Available(Entry."Source Position No.", Entry."WIP State", Entry."Supply Lot ID", '', 0), 'Undo shipment restores its unshipped claim.');
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.Delete(true);
+        Assert.AreEqual(7, Availability.Available(Entry."Source Position No.", Entry."WIP State", Entry."Supply Lot ID", '', 0), 'Deleting the restored claim releases availability.');
+        ReceiptLine.Get(ReceiptLine."Document No.", ReceiptLine."Line No.");
+        Codeunit.Run(Codeunit::"Undo Purchase Receipt Line", ReceiptLine);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 10, 0, 0);
+    end;
+
+    local procedure CreateReceivedStateFixture(var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; UOMFactor: Decimal; ReceiveAtHome: Boolean)
+    var
+        Vendor: Record Vendor;
+    begin
+        SubcWarehouseLibrary.CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10, UOMFactor, true);
+        SubcWarehouseLibrary.PostStateWIPSupply(PurchaseHeader);
+        SubcWarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 10, 0, 0);
+        if ReceiveAtHome then
+            PurchaseLine.Validate("Location Code", ProductionOrder."Location Code")
+        else begin
+            Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
+            PurchaseLine.Validate("Location Code", Vendor."Subc. Location Code");
+        end;
+        PurchaseLine.Modify(true);
+    end;
+
+    local procedure AssertReceiptStatePair(ReceiptLine: Record "Purch. Rcpt. Line"; PurchaseLine: Record "Purchase Line"; QuantityBase: Decimal)
+    var
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        Application: Record "Subc. WIP Receipt Appl.";
+        ApplicationID: Guid;
+    begin
+        Application.SetRange("Receipt No.", ReceiptLine."Document No.");
+        Application.SetRange("Receipt Line No.", ReceiptLine."Line No.");
+        Assert.RecordCount(Application, 1);
+        Application.FindFirst();
+        Assert.IsTrue(Application.Finalized, 'Receipt application must be finalized within native posting.');
+        Assert.AreEqual(QuantityBase, Application."Quantity (Base)", 'Application must store actual received base.');
+        ApplicationID := Application."Application ID";
+        Entry.SetRange("Purchase Receipt No.", ReceiptLine."Document No.");
+        Entry.SetRange("Purchase Receipt Line No.", ReceiptLine."Line No.");
+        Entry.SetRange("Receipt Application ID", ApplicationID);
+        Assert.RecordCount(Entry, 2);
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(0, Entry."Quantity (Base)", 'Receipt pair must not relieve physical custody.');
+        Entry.SetRange("WIP State", Entry."WIP State"::Unprocessed);
+        Entry.FindFirst();
+        Assert.AreEqual(-QuantityBase, Entry."Quantity (Base)", 'Receipt consumes matching unprocessed WIP.');
+        Assert.AreEqual(PurchaseLine."Prod. Order Line No.", Entry."Prod. Order Line No.", 'Production line and routing reference must remain separate.');
+        Entry.SetRange("WIP State", Entry."WIP State"::Processed);
+        Entry.FindFirst();
+        Assert.AreEqual(QuantityBase, Entry."Quantity (Base)", 'Receipt creates processed WIP.');
+        Assert.AreEqual(ApplicationID, Entry."Supply Lot ID", 'Processed lot must identify its original receipt application.');
+    end;
+
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure StateWIPReturnRequest(var Request: TestRequestPage "Subc. Create SubCReturnOrder")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure StateWIPMessage(Message: Text[1024])
+    begin
+        Assert.IsTrue(
+            (Message = '1 transfer order(s) with 1 line(s) were created.') or
+            Message.StartsWith('No available quantity was found for: '),
+            'Unexpected state WIP creation message: ' + Message);
+    end;
+
+    [ConfirmHandler]
+    procedure StateWIPConfirm(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := Question.Contains('undo');
+    end;
 
     [Test]
     procedure VendorLocationWithBinMandatoryThrowsError()
@@ -320,7 +1031,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CannotModifySubcPurchLineWhenTransferOrderExists()
     var
         Item: Record Item;
@@ -358,7 +1069,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure ModifySubcPurchLineAllowedAfterFullConsumptionAtSubcLocation()
     var
         Item: Record Item;
@@ -422,7 +1133,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder,ExpectedPostedTransferMessageHandler')]
+    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder,ExpectedPostedTransferMessageHandler,StateWIPRequest,StateWIPProposal')]
     procedure SubcTransferPreservesManuallyChangedComponentFlushingMethod()
     var
         ComponentItem: Record Item;
@@ -479,7 +1190,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder,ExpectedPostedTransferMessageHandler')]
+    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder,ExpectedPostedTransferMessageHandler,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure SubcReturnTransferPreservesManuallyChangedComponentFlushingMethod()
     var
         ComponentItem: Record Item;
@@ -571,7 +1282,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder')]
+    [HandlerFunctions('ConfirmViewCreatedDocumentHandler,HandleExpectedSubcTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure SubcDirectPostPreservesComponentBinForManualFlushingMethod()
     var
         ComponentItem: Record Item;
@@ -640,7 +1351,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure SubcTransferPartialConsumptionAndReturnFlow()
     var
         ComponentItem: Record Item;
@@ -733,7 +1444,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure SecondReturnTransferSucceedsAfterPartialReceiptAndReturn()
     var
         Item: Record Item;
@@ -822,7 +1533,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CannotModifyOrDeleteRoutingLineWhenTransferOrderExistsWithTransferToVendor()
     var
         Item: Record Item;
@@ -878,7 +1589,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CannotModifyOrDeleteRoutingLineWhenTransferOrderExistsWithVendorSupplied()
     var
         Item: Record Item;
@@ -1249,13 +1960,13 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     local procedure CreateTransferOrderForPurchaseOrder(var PurchaseHeader: Record "Purchase Header")
     begin
         PurchaseHeader.SetRecFilter();
-        Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
+        Report.Run(Report::"Subc. Create Transf. Order", true, false, PurchaseHeader);
     end;
 
     local procedure CreateReturnTransferOrderForPurchaseOrder(var PurchaseHeader: Record "Purchase Header")
     begin
         PurchaseHeader.SetRecFilter();
-        Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchaseHeader);
+        Report.Run(Report::"Subc. Create SubCReturnOrder", true, false, PurchaseHeader);
     end;
 
     local procedure SetupSubContractingProdOrder(var Item: Record Item; var Location: Record Location; var WorkCenter: array[2] of Record "Work Center"; var MachineCenter: array[2] of Record "Machine Center"; var ProductionOrder: Record "Production Order"; ComponentSupplyMethod: Enum "Component Supply Method"; ProductionQty: Decimal)

@@ -78,6 +78,13 @@ page 20561 "Subc. WIP Adjustment"
             {
                 Caption = 'General';
                 Visible = LineCount = 1;
+                field(SingleWIPStatus; Rec.ProcessingStateCaption())
+                {
+                    Caption = 'WIP Status';
+                    ApplicationArea = Subcontracting;
+                    Editable = false;
+                    ToolTip = 'Specifies the processing state whose quantity is adjusted.';
+                }
                 field("Location Code"; Rec."Location Code")
                 {
                     Editable = false;
@@ -201,6 +208,8 @@ page 20561 "Subc. WIP Adjustment"
                     DecimalPlaces = 0 : 5;
                     Editable = false;
                 }
+                field("WIP Status"; Rec.ProcessingStateCaption()) { Caption = 'WIP Status'; Editable = false; ToolTip = 'Specifies the processing state being adjusted. Legacy WIP is not classified.'; }
+                field("Supply Lot ID"; Rec."Supply Lot ID") { Editable = false; Visible = false; }
                 field("New Quantity Line"; NewQuantityBase)
                 {
                     AutoFormatType = 0;
@@ -334,6 +343,11 @@ page 20561 "Subc. WIP Adjustment"
             Rec.SetRange("In Transit", WIPLedgerEntry."In Transit");
             Rec.SetRange("Item No.", WIPLedgerEntry."Item No.");
             Rec.SetRange("Variant Code", WIPLedgerEntry."Variant Code");
+            Rec.SetRange("State Tracked", WIPLedgerEntry."State Tracked");
+            Rec.SetRange("Lineage ID", WIPLedgerEntry."Lineage ID");
+            Rec.SetRange("WIP State", WIPLedgerEntry."WIP State");
+            Rec.SetRange("Source Position No.", WIPLedgerEntry."Source Position No.");
+            Rec.SetRange("Supply Lot ID", WIPLedgerEntry."Supply Lot ID");
             if Rec.FindFirst() then begin
                 Rec."Quantity (Base)" += WIPLedgerEntry."Quantity (Base)";
                 Rec.Modify();
@@ -352,11 +366,7 @@ page 20561 "Subc. WIP Adjustment"
             end;
         until WIPLedgerEntry.Next() = 0;
 
-        Rec.SetRange("Location Code");
-        Rec.SetRange("In Transit");
-        Rec.SetRange("Item No.");
-        Rec.SetRange("Variant Code");
-        Rec.SetRange("Prod. Order Line No.");
+        Rec.Reset();
 
         LineCount := Rec.Count();
         if Rec.FindFirst() then;
@@ -379,14 +389,48 @@ page 20561 "Subc. WIP Adjustment"
         TempWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry" temporary;
         AdjEntryType: Enum "WIP Ledger Entry Type";
         TargetQty: Decimal;
+        Availability: Codeunit "Subc. WIP Availability";
+        CurrentEntry: Record "Subcontractor WIP Ledger Entry";
+        ProductionLine: Record "Prod. Order Line";
+        Pass: Integer;
+        CurrentTotal: Decimal;
+        StaleErr: Label 'The WIP balance has changed. Close the adjustment and calculate it again.';
+        AllocatedErr: Label 'The new WIP quantity cannot be less than the quantity already allocated to open transfers.';
     begin
         TempWIPLedgerEntry.Copy(Rec, true);
+        TempWIPLedgerEntry.SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.");
+        if TempWIPLedgerEntry.FindSet() then
+            repeat
+                if TempWIPLedgerEntry."State Tracked" then begin
+                    ProductionLine.LockTable();
+                    ProductionLine.Get(TempWIPLedgerEntry."Prod. Order Status", TempWIPLedgerEntry."Prod. Order No.", TempWIPLedgerEntry."Prod. Order Line No.");
+                end;
+            until TempWIPLedgerEntry.Next() = 0;
 
-        TempWIPLedgerEntry.FindSet();
-
-        repeat
+        for Pass := 1 to 2 do begin
+            TempWIPLedgerEntry.FindSet();
+            repeat
             NewQuantities.Get(TempWIPLedgerEntry."Entry No.", TargetQty);
-            if TargetQty <> TempWIPLedgerEntry."Quantity (Base)" then begin
+            if ((Pass = 1) and (TargetQty < TempWIPLedgerEntry."Quantity (Base)")) or
+               ((Pass = 2) and (TargetQty > TempWIPLedgerEntry."Quantity (Base)"))
+            then begin
+                if TempWIPLedgerEntry."State Tracked" then begin
+                    Availability.LockPosition(TempWIPLedgerEntry."Source Position No.");
+                    CurrentEntry.Reset();
+                    CurrentEntry.SetRange("Source Position No.", TempWIPLedgerEntry."Source Position No.");
+                    CurrentEntry.CalcSums("Quantity (Base)");
+                    CurrentTotal := CurrentEntry."Quantity (Base)";
+                    CurrentEntry.SetRange("WIP State", TempWIPLedgerEntry."WIP State");
+                    CurrentEntry.SetRange("Supply Lot ID", TempWIPLedgerEntry."Supply Lot ID");
+                    CurrentEntry.CalcSums("Quantity (Base)");
+                    if CurrentEntry."Quantity (Base)" <> TempWIPLedgerEntry."Quantity (Base)" then
+                        Error(StaleErr);
+                    ProductionLine.Get(TempWIPLedgerEntry."Prod. Order Status", TempWIPLedgerEntry."Prod. Order No.", TempWIPLedgerEntry."Prod. Order Line No.");
+                    if CurrentTotal - CurrentEntry."Quantity (Base)" + TargetQty > ProductionLine."Quantity (Base)" then
+                        Error(NewQuantityExceedsProdOrderQtyErr, ProductionLine."Quantity (Base)");
+                    if TargetQty < Availability.OpenClaim(TempWIPLedgerEntry."Source Position No.", TempWIPLedgerEntry."WIP State", TempWIPLedgerEntry."Supply Lot ID", '', 0) then
+                        Error(AllocatedErr);
+                end;
                 WIPLedgerEntry.Init();
                 WIPLedgerEntry.TransferFields(TempWIPLedgerEntry);
                 WIPLedgerEntry."Entry No." := WIPLedgerEntry.GetNextEntryNo();
@@ -401,7 +445,8 @@ page 20561 "Subc. WIP Adjustment"
                     WIPLedgerEntry."Entry Type" := AdjEntryType::"Negative Adjustment";
                 WIPLedgerEntry.Insert(true);
             end;
-        until TempWIPLedgerEntry.Next() = 0;
+            until TempWIPLedgerEntry.Next() = 0;
+        end;
     end;
 
     local procedure UpdateQuantityStyle()

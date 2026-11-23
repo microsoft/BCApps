@@ -13,6 +13,12 @@ permissionset 20502 "Subcontract. - Read"
     IncludedPermissionSets = "Subcontract. - Objs";
 
     Permissions =
+        tabledata "Subc. WIP Activation" = R,
+        tabledata "Subc. WIP Lineage" = R,
+        tabledata "Subc. WIP Order Alias" = R,
+        tabledata "Subc. WIP Source Position" = R,
+        tabledata "Subc. WIP Receipt Appl." = R,
+        tabledata "Subc. WIP Receipt Detail" = R,
         tabledata "Subc. Standard Task Comment" = R,
         tabledata "Subc. Routing Comment Line" = R,
         tabledata "Subc. Prod. Rtng. Comment" = R,

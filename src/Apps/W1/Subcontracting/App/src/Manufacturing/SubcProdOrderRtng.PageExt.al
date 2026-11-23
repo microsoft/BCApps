@@ -60,6 +60,8 @@ pageextension 20503 "Subc. Prod. Order Rtng." extends "Prod. Order Routing"
                 ApplicationArea = Subcontracting;
                 Visible = false;
             }
+            field("Unprocessed WIP Qty. (Base)"; Rec."Unprocessed WIP Qty. (Base)") { ApplicationArea = Subcontracting; }
+            field("Processed WIP Qty. (Base)"; Rec."Processed WIP Qty. (Base)") { ApplicationArea = Subcontracting; }
             field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
             {
                 ApplicationArea = Subcontracting;

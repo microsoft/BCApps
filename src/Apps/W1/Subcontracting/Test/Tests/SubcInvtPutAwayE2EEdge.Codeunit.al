@@ -35,6 +35,18 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
         IsInitialized := false;
     end;
 
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -308,7 +320,7 @@ codeunit 149921 "Subc. Invt. Put-away E2E Edge"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure WipTransferPickAndPutAwayWriteBinsBackToTransferLine()
     var
         BinContent: Record "Bin Content";

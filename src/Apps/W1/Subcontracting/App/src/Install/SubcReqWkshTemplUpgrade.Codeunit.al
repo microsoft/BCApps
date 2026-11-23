@@ -12,7 +12,10 @@ codeunit 20572 "Subc. Req Wksh Templ Upgrade"
     Subtype = Upgrade;
 
     trigger OnUpgradePerCompany()
+    var
+        SubcWIPCohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
     begin
+        SubcWIPCohortMgt.InitializeCompany();
         UpgradeReqWkshTemplateType();
         UpgradeReqWkshTemplatePage();
     end;

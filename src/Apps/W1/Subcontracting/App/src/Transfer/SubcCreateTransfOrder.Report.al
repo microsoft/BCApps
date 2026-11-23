@@ -64,6 +64,133 @@ report 20501 "Subc. Create Transf. Order"
             end;
         }
     }
+    requestpage
+    {
+        SaveValues = false;
+        layout
+        {
+            area(Content)
+            {
+                group(Context)
+                {
+                    Caption = 'Subcontracting Order';
+                    field(PurchaseOrderNo; PurchOrderNo) { ApplicationArea = Subcontracting; Caption = 'Purchase Order No.'; Editable = false; ToolTip = 'Specifies the purchase order used to calculate the transfer.'; }
+                    field(VendorNo; ContextVendorNo) { ApplicationArea = Subcontracting; Caption = 'Vendor No.'; Editable = false; ToolTip = 'Specifies the subcontracting vendor on the purchase order.'; }
+                    field(SubcontractorLocation; ContextLocation) { ApplicationArea = Subcontracting; Caption = 'Subcontractor Location Code'; Editable = false; ToolTip = 'Specifies the subcontractor location used by the transfer.'; }
+                }
+                group(Options)
+                {
+                    Caption = 'Include';
+                    field(IncludeComponents; IncludeComponents) { ApplicationArea = Subcontracting; Caption = 'Include Components'; ToolTip = 'Specifies whether to include component quantities that must be sent to the subcontractor.'; }
+                    field(IncludeWIP; IncludeWIP) { ApplicationArea = Subcontracting; Caption = 'Include WIP'; ToolTip = 'Specifies whether to include WIP quantity that must be sent or moved to the subcontractor.'; }
+                }
+                group(Filters)
+                {
+                    Caption = 'Filters';
+                    field(ProductionOrderNo; OrderFilter) { ApplicationArea = Subcontracting; Caption = 'Production Order No.'; ToolTip = 'Specifies a filter on the production order number.'; }
+                    field(ProductionOrderLineNo; LineFilter) { ApplicationArea = Subcontracting; Caption = 'Production Order Line No.'; ToolTip = 'Specifies a filter on the production order line number.'; }
+                    field(OperationNo; OperationFilter) { ApplicationArea = Subcontracting; Caption = 'Operation No.'; ToolTip = 'Specifies a filter on the operation number.'; }
+                    field(WorkCenterNo; WorkCenterFilter) { ApplicationArea = Subcontracting; Caption = 'Work Center No.'; ToolTip = 'Specifies a filter on the work center number.'; }
+                    field(ItemNo; ItemFilter) { ApplicationArea = Subcontracting; Caption = 'Item No.'; ToolTip = 'Specifies a filter on the item being transferred.'; }
+                    field(VariantCode; VariantFilter) { ApplicationArea = Subcontracting; Caption = 'Variant Code'; ToolTip = 'Specifies a filter on the transferred item variant.'; }
+                }
+            }
+        }
+        trigger OnOpenPage()
+        begin
+            LoadProposalContext();
+            IncludeComponents := true;
+            IncludeWIP := true;
+            RequestShown := true;
+        end;
+    }
+
+    trigger OnPreReport()
+    var
+        ProductionLine: Record "Prod. Order Line";
+        RoutingLine: Record "Prod. Order Routing Line";
+        CreatedLines: Integer;
+        PreviousLineID: Guid;
+    begin
+        CreatedOrders := 0;
+        if not RequestShown then
+            Error(RequestRequiredErr);
+        LoadProposalContext();
+        ProposalMgt.Configure(false, IncludeComponents, IncludeWIP, false, OrderFilter, LineFilter, OperationFilter, WorkCenterFilter, ItemFilter, VariantFilter);
+        CollectProposal();
+        if not ProposalMgt.SelectRows(CurrentProposal) then
+            CurrReport.Quit();
+        "Purchase Header".LockTable();
+        LoadProposalContext();
+        ProposalMgt.LockSources(CurrentProposal);
+        ProposalMgt.ClearRows();
+        CollectProposal();
+        ProposalMgt.Revalidate(CurrentProposal);
+        if CurrentProposal.IsEmpty() then
+            CurrReport.Quit();
+        ApplyingProposal := true;
+        if CurrentProposal.FindSet() then
+            repeat
+                "Purchase Line".Get("Purchase Line"."Document Type"::Order, PurchOrderNo, CurrentProposal."Purchase Line No.");
+                PreviousLineID := TransferLine.SystemId;
+                if CurrentProposal."WIP Item" then begin
+                    ProductionLine.Get(ProductionLine.Status::Released, CurrentProposal."Production Order No.", CurrentProposal."Production Order Line No.");
+                    RoutingLine.Get(RoutingLine.Status::Released, CurrentProposal."Production Order No.", CurrentProposal."Routing Reference No.", CurrentProposal."Routing No.", CurrentProposal."Operation No.");
+                    InsertTransferHeader(CurrentProposal."Transfer-from Code");
+                    InsertWIPTransferLine("Purchase Line", ProductionLine, RoutingLine, CurrentProposal."Quantity to Transfer", CurrentProposal."Previous Operation No.");
+                end else
+                    HandleComponentsForPurchLine("Purchase Line", true);
+                if TransferLine.SystemId <> PreviousLineID then begin
+                    CreatedLines += 1;
+                end else
+                    Error(QuantityChangedErr);
+            until CurrentProposal.Next() = 0;
+        ProposalMgt.ShowResult(CreatedOrders, CreatedLines);
+        ShowDocument();
+        CurrReport.Quit();
+    end;
+
+    local procedure LoadProposalContext()
+    var
+        CurrentLocation: Code[10];
+    begin
+        if ("Purchase Header".GetRangeMin("Document Type") <> "Purchase Header"."Document Type"::Order) or
+           ("Purchase Header".GetRangeMax("Document Type") <> "Purchase Header"."Document Type"::Order)
+        then
+            Error(WarningToSpecifyPurchOrderErr);
+        PurchOrderNo := "Purchase Header".GetRangeMin("No.");
+        if (PurchOrderNo = '') or (PurchOrderNo <> "Purchase Header".GetRangeMax("No.")) then
+            Error(WarningToSpecifyPurchOrderErr);
+        "Purchase Header".Get("Purchase Header"."Document Type"::Order, PurchOrderNo);
+        "Purchase Header".CalcFields("Subc. Order");
+        if not "Purchase Header"."Subc. Order" then
+            Error(OrderNoIsNotSubcontractorErr, PurchOrderNo);
+        Vendor.Get("Purchase Header"."Buy-from Vendor No.");
+        GetTransferToLocationCode(CurrentLocation);
+        if RequestShown and ((ContextVendorNo <> Vendor."No.") or (ContextLocation <> CurrentLocation)) then
+            Error(ContextChangedErr);
+        ContextVendorNo := Vendor."No.";
+        ContextLocation := CurrentLocation;
+    end;
+
+    local procedure CollectProposal()
+    var
+        Line: Record "Purchase Line";
+    begin
+        CollectingProposal := true;
+        Line.SetRange("Document Type", Line."Document Type"::Order);
+        Line.SetRange("Document No.", PurchOrderNo);
+        Line.SetFilter("Prod. Order No.", '<>%1', '');
+        Line.SetFilter("Operation No.", '<>%1', '');
+        OnCheckTransferCreatedOnAfterPurchaseLineSetFilters(Line, "Purchase Header");
+        if Line.FindSet() then
+            repeat
+                HandleComponentsForPurchLine(Line, false);
+                HandleWIPTransferForPurchLine(Line, false);
+            until Line.Next() = 0;
+        CollectingProposal := false;
+    end;
+
 #if not CLEAN28
     trigger OnInitReport()
     var
@@ -79,6 +206,26 @@ report 20501 "Subc. Create Transf. Order"
 #endif
 
     var
+        CurrentProposal: Record "Subc. Transfer Proposal" temporary;
+        ProposalMgt: Codeunit "Subc. Transfer Proposal Mgt.";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        CollectingProposal: Boolean;
+        ApplyingProposal: Boolean;
+        CreatedOrders: Integer;
+        IncludeComponents: Boolean;
+        IncludeWIP: Boolean;
+        RequestShown: Boolean;
+        ContextVendorNo: Code[20];
+        ContextLocation: Code[10];
+        OrderFilter: Text;
+        LineFilter: Text;
+        OperationFilter: Text;
+        WorkCenterFilter: Text;
+        ItemFilter: Text;
+        VariantFilter: Text;
+        RequestRequiredErr: Label 'Open the request page before creating a subcontracting transfer.';
+        ContextChangedErr: Label 'The subcontracting order context has changed. Close the proposal and calculate it again.';
+        QuantityChangedErr: Label 'The available quantity has changed. Close the proposal and calculate it again.';
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
@@ -127,6 +274,7 @@ report 20501 "Subc. Create Transf. Order"
             TransferHeader.Init();
             TransferHeader."No." := '';
             TransferHeader.Insert(true);
+            CreatedOrders += 1;
             TransferHeader.Validate("Transfer-from Code", TransferFromLocation);
             TransferHeader.Validate("Transfer-to Code", TransferToLocationCode);
             TransferRouteExists := TransferRoute.Get(TransferFromLocation, TransferToLocationCode);
@@ -220,12 +368,22 @@ report 20501 "Subc. Create Transf. Order"
         ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
         OnHandleComponentsForPurchLineOnAfterProdOrderComponentSetFilters(ProdOrderComponent, PurchaseLine);
+        if ApplyingProposal then
+            ProdOrderComponent.SetRange("Line No.", CurrentProposal."Component Line No.");
         if ProdOrderComponent.FindSet() then
             repeat
                 Item.SetLoadFields("Rounding Precision", "Order Tracking Policy");
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent, Round(PurchaseLine.Quantity * QtyPerUom, UnitofMeasureManagement.QtyRndPrecision()));
                 ProdOrderComponent.CalcFields("Subc. Qty.on TransOrder (Base)", "Subc. Qty. in Transit (Base)", "Subc. Qty. transf. to Subcontr");
+                if ApplyingProposal then
+                    if CurrentProposal."Quantity to Transfer" >
+                       Round((QtyToPost - ProdOrderComponent."Subc. Qty.on TransOrder (Base)" -
+                           ProdOrderComponent."Subc. Qty. in Transit (Base)" -
+                           Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr")) /
+                           ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>')
+                    then
+                        Error(QuantityChangedErr);
                 if (QtyToPost > 0) and
                    (QtyToPost <= (ProdOrderComponent."Subc. Qty.on TransOrder (Base)" +
                                  ProdOrderComponent."Subc. Qty. in Transit (Base)" +
@@ -259,7 +417,10 @@ report 20501 "Subc. Create Transf. Order"
                              ProdOrderComponent."Subc. Qty. in Transit (Base)" +
                              Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr"));
 
-                        TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
+                        if ApplyingProposal then
+                            TransferLine.Validate(Quantity, CurrentProposal."Quantity to Transfer")
+                        else
+                            TransferLine.Validate(Quantity, Round(QtyToPost / ProdOrderComponent."Qty. per Unit of Measure", Item."Rounding Precision", '>'));
 
                         if ProdOrderComponent."Due Date" <> 0D then
                             TransferLine.Validate("Receipt Date", SubcTransferManagement.CalcReceiptDateFromProdCompDueDateWithCompTransferLeadTime(ProdOrderComponent));
@@ -298,7 +459,13 @@ report 20501 "Subc. Create Transf. Order"
 
                         OnAfterInsertTransferLine(TransferHeader, TransferLine, PurchaseLine, ProdOrderComponent);
                     end else
-                        exit(true);
+                        if CollectingProposal then begin
+                            TransferFromLocationCode := GetTransferFromLocationForComponent(ProdOrderComponent);
+                            ProposalMgt.AddComponent(PurchaseLine, ProdOrderComponent, TransferFromLocationCode, ContextLocation,
+                                QtyToPost - ProdOrderComponent."Subc. Qty.on TransOrder (Base)" - ProdOrderComponent."Subc. Qty. in Transit (Base)" -
+                                Abs(ProdOrderComponent."Subc. Qty. transf. to Subcontr"), ProdOrderComponent."Subc. Qty.on TransOrder (Base)");
+                        end else
+                            exit(true);
             until ProdOrderComponent.Next() = 0;
 
         exit(false);
@@ -383,12 +550,16 @@ report 20501 "Subc. Create Transf. Order"
 
         PurchLineQtyBase := CalcPurchLineQtyBase(PurchaseLine, ProdOrderLine);
 
+        if CollectingProposal and (ProdOrderRoutingLine."Previous Operation No." <> '') then
+            if CollectPreviousWIPSources(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine, PurchLineQtyBase, OpenWIPLineQtyBase) then
+                exit(false);
+
         GetWIPTransferFromLocations(ProdOrderLine, ProdOrderRoutingLine, WIPSourceLocationList, WIPSourceQtyDict, WIPPreviousOperationNoDict, PurchLineQtyBase);
 
         if WIPSourceLocationList.Count() = 0 then
             exit(false);
 
-        if not InsertLine then
+        if not InsertLine and not CollectingProposal then
             exit(true);
 
         if WIPSourceLocationList.Count() = 1 then begin
@@ -410,7 +581,9 @@ report 20501 "Subc. Create Transf. Order"
                 WIPQtyInUOM := Round(WIPQtyBase / QtyPerPurchUom, UOMManagement.QtyRndPrecision())
             else
                 WIPQtyInUOM := Round(WIPQtyBase, UOMManagement.QtyRndPrecision());
-            if WIPQtyInUOM > 0 then begin
+            if (WIPQtyInUOM > 0) and CollectingProposal then
+                ProposalMgt.AddWIP(PurchaseLine, ProdOrderLine, TransferFromLoc, ContextLocation, WIPPreviousOperationNo, WIPQtyBase, PurchaseLine."Unit of Measure Code");
+            if (WIPQtyInUOM > 0) and InsertLine then begin
                 InsertTransferHeader(TransferFromLoc);
                 InsertWIPTransferLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine, WIPQtyInUOM, WIPPreviousOperationNo);
             end;
@@ -450,10 +623,45 @@ report 20501 "Subc. Create Transf. Order"
         TransferLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
         TransferLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
         TransferLine."Prev. Operation No." := WIPPreviousOperationNo;
+        if ApplyingProposal then begin
+            TransferLine."Subc. WIP State" := CurrentProposal."WIP State";
+            TransferLine."Subc. Source Position No." := CurrentProposal."Source Position No.";
+            TransferLine."Subc. Supply Lot ID" := CurrentProposal."Supply Lot ID";
+        end;
 
         TransferLine.Modify();
 
         OnAfterInsertWIPTransferLine(TransferHeader, TransferLine, PurchaseLine, ProdOrderLine, ProdOrderRoutingLine);
+    end;
+
+    local procedure CollectPreviousWIPSources(PurchaseLine: Record "Purchase Line"; ProductionLine: Record "Prod. Order Line"; RoutingLine: Record "Prod. Order Routing Line"; QuantityBase: Decimal; OpenQuantityBase: Decimal): Boolean
+    var
+        PreviousRouting: Record "Prod. Order Routing Line";
+        FromLocation: Code[10];
+        ToLocation: Code[10];
+        SourceQuantityBase: Decimal;
+        RemainingBase: Decimal;
+        BeforeBase: Decimal;
+    begin
+        PreviousRouting.SetRange(Status, RoutingLine.Status);
+        PreviousRouting.SetRange("Prod. Order No.", RoutingLine."Prod. Order No.");
+        PreviousRouting.SetRange("Routing Reference No.", RoutingLine."Routing Reference No.");
+        PreviousRouting.SetRange("Routing No.", RoutingLine."Routing No.");
+        PreviousRouting.SetFilter("Operation No.", RoutingLine."Previous Operation No.");
+        if not PreviousRouting.FindSet() then
+            exit(false);
+        GetTransferToLocationCodeForPurchaseHeader("Purchase Header", Vendor, ToLocation);
+        RemainingBase := QuantityBase - GetWIPQtyBase(PurchaseLine, ToLocation) - OpenQuantityBase;
+        repeat
+            GetWIPLocationAndQtyForPreviousOp(ProductionLine, PreviousRouting, RoutingLine.IsSerial(), QuantityBase, FromLocation, SourceQuantityBase);
+            if SourceQuantityBase > RemainingBase then
+                SourceQuantityBase := RemainingBase;
+            BeforeBase := ProposalMgt.ProposedWIPBase(PurchaseLine);
+            ProposalMgt.AddWIP(PurchaseLine, ProductionLine, FromLocation, ToLocation,
+                PreviousRouting."Operation No.", SourceQuantityBase, PurchaseLine."Unit of Measure Code");
+            RemainingBase -= ProposalMgt.ProposedWIPBase(PurchaseLine) - BeforeBase;
+        until (PreviousRouting.Next() = 0) or (RemainingBase <= 0);
+        exit(true);
     end;
 
     local procedure GetWIPTransferFromLocations(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WIPSourceLocationList: List of [Code[10]]; var WIPSourceQtyDict: Dictionary of [Code[10], Decimal]; var WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]]; PurchLineQtyBase: Decimal)
@@ -542,6 +750,7 @@ report 20501 "Subc. Create Transf. Order"
                 WIPLedgerEntry.SetRange("Operation No.", PrevProdOrderRoutingLine."Operation No.");
                 WIPLedgerEntry.SetRange("Location Code", LocationCode);
                 WIPLedgerEntry.SetRange("In Transit", false);
+                CohortMgt.FilterLedger(WIPLedgerEntry, ProdOrderLine.Status, ProdOrderLine."Prod. Order No.");
                 WIPLedgerEntry.CalcSums("Quantity (Base)");
             end;
         end;
@@ -610,32 +819,24 @@ report 20501 "Subc. Create Transf. Order"
     local procedure GetOpenWIPTransferLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal
     var
         TransferLineToCheck: Record "Transfer Line";
-        Item: Record Item;
-        UOMManagement: Codeunit "Unit of Measure Management";
-        QtyPerUom: Decimal;
+        OpenQuantityBase: Decimal;
     begin
         TransferLineToCheck.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
-        TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLineToCheck.SetRange("Subc. Routing Reference No.", PurchaseLine."Routing Reference No.");
+        TransferLineToCheck.SetRange("Subc. Routing No.", PurchaseLine."Routing No.");
         TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
         TransferLineToCheck.SetRange("Derived From Line No.", 0);
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
         TransferLineToCheck.SetRange("Subc. Return Order", false);
-        TransferLineToCheck.CalcSums(Quantity);
-        if TransferLineToCheck.Quantity = 0 then
-            exit(0);
-
-        // "Quantity (Base)" cannot be used here: "Qty. per Unit of Measure" is forced to 0
-        // for WIP transfer lines (see "Subc. Transfer Line".OnValidate("Transfer WIP Item")),
-        // which makes "Quantity (Base)" always evaluate to 0 for these lines. Convert the
-        // open (unposted) Quantity to the item's base UOM ourselves, using the same
-        // Purchase Line unit of measure that was used to convert it in the first place
-        // (see InsertWIPTransferLine / CalcPurchLineQtyBase).
-        Item.SetLoadFields("Base Unit of Measure");
-        Item.Get(ProdOrderLine."Item No.");
-        QtyPerUom := UOMManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
-        exit(UOMManagement.CalcBaseQty(TransferLineToCheck.Quantity, QtyPerUom));
+        CohortMgt.FilterTransfers(TransferLineToCheck, ProdOrderLine.Status, ProdOrderLine."Prod. Order No.");
+        if TransferLineToCheck.FindSet() then
+            repeat
+                if TransferLineToCheck.Quantity > TransferLineToCheck."Quantity Shipped" then
+                    OpenQuantityBase += TransferLineToCheck.CalcBaseQty(TransferLineToCheck.Quantity - TransferLineToCheck."Quantity Shipped");
+            until TransferLineToCheck.Next() = 0;
+        exit(OpenQuantityBase);
     end;
 
     local procedure CalcPurchLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal
@@ -662,6 +863,7 @@ report 20501 "Subc. Create Transf. Order"
         SubcontractorWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Operation No.");
         SubcontractorWIPLedgerEntry.SetRange("Location Code", LocationCode);
         SubcontractorWIPLedgerEntry.SetRange("In Transit", false);
+        CohortMgt.FilterLedger(SubcontractorWIPLedgerEntry, "Production Order Status"::Released, PurchaseLine."Prod. Order No.");
         SubcontractorWIPLedgerEntry.CalcSums("Quantity (Base)");
         exit(SubcontractorWIPLedgerEntry."Quantity (Base)");
     end;

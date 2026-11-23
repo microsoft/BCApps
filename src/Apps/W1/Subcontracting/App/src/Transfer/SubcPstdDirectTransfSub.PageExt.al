@@ -12,6 +12,13 @@ pageextension 20532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transfer 
     {
         addlast(Control1)
         {
+            field(SubcWIPStatus; WIPStatus)
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'WIP Status';
+                Editable = false;
+                ToolTip = 'Specifies the processing state carried by the posted WIP movement.';
+            }
             field("Subcontr. Purch. Order No."; Rec."Subcontr. Purch. Order No.")
             {
                 ApplicationArea = Subcontracting;
@@ -127,7 +134,15 @@ pageextension 20532 "Subc. PstdDirectTransfSub" extends "Posted Direct Transfer 
             }
         }
     }
+    trigger OnAfterGetRecord()
+    begin
+        Clear(WIPStatus);
+        if Rec."Subc. State Tracked" and Rec."Transfer WIP Item" then
+            WIPStatus := Format(Rec."Subc. WIP State");
+    end;
+
     var
+        WIPStatus: Text;
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
 

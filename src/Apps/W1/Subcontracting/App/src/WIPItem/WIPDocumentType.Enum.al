@@ -7,6 +7,10 @@ namespace Microsoft.Manufacturing.Subcontracting;
 enum 20509 "WIP Document Type"
 {
     Extensible = true;
+    value(3; "Purchase Receipt")
+    {
+        Caption = 'Purchase Receipt';
+    }
     value(0; "Transfer Order")
     {
         Caption = 'Transfer Order';

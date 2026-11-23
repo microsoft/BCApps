@@ -44,8 +44,26 @@ codeunit 139989 "Subc. Subcontracting Test"
         IsInitialized := false;
     end;
 
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure StateWIPReturnRequest(var Request: TestRequestPage "Subc. Create SubCReturnOrder")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     [Scope('OnPrem')]
     procedure CoveredComponentsExplainWhyNoTransferIsCreated()
     var
@@ -181,7 +199,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     [Scope('OnPrem')]
     procedure ZeroComponentDemandRetainsGenericError()
     var
@@ -229,7 +247,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     [Scope('OnPrem')]
     procedure IneligibleComponentsRetainGenericError()
     var
@@ -272,7 +290,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg,StateWIPRequest,StateWIPProposal')]
     procedure DirectTransferPostingWithWIPItemDoesNotErrorOnQuantity()
     var
         Bin: Record Bin;
@@ -347,7 +365,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CreateTransferOrderFromSecondSubcontractingOrderOpensReusedTransferOrder()
     var
         Item: Record Item;
@@ -462,7 +480,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleSubcTransferOrdersList')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleSubcTransferOrdersList,StateWIPRequest,StateWIPProposal')]
     procedure SubcTransferOrdersActionOnProductionOrderOpensRelatedTransferOrder()
     var
         Item: Record Item;
@@ -495,7 +513,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleSubcTransferOrdersList')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleSubcTransferOrdersList,StateWIPRequest,StateWIPProposal')]
     procedure SubcTransferOrdersActionOnProductionOrdersListOpensRelatedTransferOrder()
     var
         Item: Record Item;
@@ -528,7 +546,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CannotDeleteSubcontractingOrderWithAssociatedTransferOrder()
     var
         Item: Record Item;
@@ -915,7 +933,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure TestCreationOfSubcontrTransferOrderFromSubcontrPurchOrder()
     var
         Item: Record Item;
@@ -989,7 +1007,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure TestLocationInSubContractorTransferOrderAndComponentLine()
     var
         Item: Record Item;
@@ -1074,7 +1092,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure TestLocationInSubContractorTransferOrderAndComponentLineWithChangeCompLineLocation()
     var
         Item: Record Item;
@@ -1164,7 +1182,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure CheckTransferOrderFromSubcontrAndReturnTransferOrderFromSubcontractorPurchOrder()
     var
         Bin: Record Bin;
@@ -1539,7 +1557,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure TestExpectedErrorOnChangingLocationCodeInProdOrderCompWithTransferOrderFromSubcontrPurchOrder()
     var
         Item: Record Item;
@@ -1621,7 +1639,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure TestReceiptDateFromTransferOrderLineFromSubcontrPurchOrderIsEquallyToProdOrderCompDueDate()
     var
         Item: Record Item;
@@ -1709,7 +1727,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure TestLocationAndBinCodeIsSetFromOriginBinCodeAfterDeletingTransferOrder()
     var
         Item: Record Item;
@@ -1801,7 +1819,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CheckBtnTrackingSpecificationOnProdOrderCompOnExistingReserveInTransferLine()
     var
         Item: Record Item;
@@ -2174,7 +2192,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrderReopen')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrderReopen,StateWIPRequest,StateWIPProposal')]
     procedure FactboxDrilldownTransferOrderReopenPersists()
     var
         Item: Record Item;
@@ -2856,7 +2874,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,HandleCreateTransferOrderMsg,StateWIPRequest,StateWIPProposal')]
     procedure PostingDirectSubcontractingTransferSetsSourceFieldsOnDirectTransHeader()
     var
         Bin: Record Bin;
@@ -2938,7 +2956,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure PostingSubcontractingTransferSetsSourceFieldsOnPostedHeaders()
     var
         Bin: Record Bin;
@@ -3033,7 +3051,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     [Scope('OnPrem')]
     procedure OutboundSubcontractingTransferUsesVendorCountryOnTransferTo()
     var
@@ -3181,7 +3199,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure CreateReturnTransferOrderAfterPartialShipOfOutbound()
     var
         Item: Record Item;
@@ -3274,7 +3292,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure CreateReturnTransferOrderAfterPartialShipOfOutboundDirectTransfer()
     var
         Bin: Record Bin;
@@ -4115,7 +4133,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure PurchLineFactboxTransferOrderCountExcludesReturnOrder()
     var
         Bin: Record Bin;
@@ -4211,7 +4229,7 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
+    [HandlerFunctions('ConfirmHandler,HandleTransferOrder,StateWIPRequest,StateWIPReturnRequest,StateWIPProposal')]
     procedure PurchLineFactboxTransferOrderCountIsZeroWhenOnlyReturnExists()
     var
         Bin: Record Bin;

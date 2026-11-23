@@ -93,6 +93,8 @@ page 20502 "Subc. Routing Info Factbox"
             field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
             {
             }
+            field("Unprocessed WIP Qty. (Base)"; Rec."Unprocessed WIP Qty. (Base)") { }
+            field("Processed WIP Qty. (Base)"; Rec."Processed WIP Qty. (Base)") { }
             field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
             {
             }

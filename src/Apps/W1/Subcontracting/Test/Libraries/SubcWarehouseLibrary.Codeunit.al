@@ -8,6 +8,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
@@ -22,6 +23,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
@@ -47,6 +49,400 @@ codeunit 149908 "Subc. Warehouse Library"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcLibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
+
+    procedure CreateStateWIPPurchaseOrder(var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QuantityBase: Decimal; PurchaseUOMFactor: Decimal; TransferWIP: Boolean)
+    begin
+        CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, QuantityBase, PurchaseUOMFactor, TransferWIP, false);
+    end;
+
+    procedure CreateStateWIPPurchaseOrder(var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QuantityBase: Decimal; PurchaseUOMFactor: Decimal; TransferWIP: Boolean; WithComponents: Boolean)
+    begin
+        CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, QuantityBase, PurchaseUOMFactor, TransferWIP, WithComponents, false);
+    end;
+
+    internal procedure CreateStateWIPPurchaseOrder(var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QuantityBase: Decimal; PurchaseUOMFactor: Decimal; TransferWIP: Boolean; WithComponents: Boolean; Background: Boolean)
+    var
+        Item: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        WorkCenter: array[2] of Record "Work Center";
+        Component: Record "Prod. Order Component";
+        JournalLine: Record "Item Journal Line";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        ManagementLibrary: Codeunit "Subc. Management Library";
+        SetupLibrary: Codeunit "Subc. Setup Library";
+    begin
+        Clear(ProductionOrder);
+        Clear(PurchaseHeader);
+        Clear(PurchaseLine);
+        CohortMgt.InitializeCompany();
+        ManagementLibrary.UpdateManufacturingSetupWithSubcontractingLocation();
+        ManagementLibrary.SetupInventorySetup();
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        if WithComponents then
+            ConfigureStateComponentBOM(Item, WorkCenter[1]."No.")
+        else begin
+            Item.Validate("Production BOM No.", '');
+            Item.Modify(true);
+        end;
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+        RoutingLine.SetRange("Routing No.", Item."Routing No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenter[1]."No.");
+        RoutingLine.FindFirst();
+        RoutingLine.Validate("Transfer WIP Item", TransferWIP);
+        RoutingLine.Modify(true);
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ManagementLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item,
+            Item."No.", QuantityBase, Location.Code);
+        if WithComponents then begin
+            Component.SetRange(Status, ProductionOrder.Status);
+            Component.SetRange("Prod. Order No.", ProductionOrder."No.");
+            Component.FindSet();
+            repeat
+                LibraryInventory.CreateItemJournalLineInItemTemplate(JournalLine, Component."Item No.",
+                    Component."Location Code", '', Component."Expected Qty. (Base)");
+                JournalLine.Validate("Variant Code", Component."Variant Code");
+                JournalLine.Modify(true);
+                LibraryInventory.PostItemJournalLine(JournalLine."Journal Template Name", JournalLine."Journal Batch Name");
+            until Component.Next() = 0;
+        end;
+        if Background then
+            CreateBackgroundSubcontractingOrder(ProductionOrder, WorkCenter[1]."No.")
+        else
+            ManagementLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[1]."No.");
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[1]."No.");
+        PurchaseLine.FindFirst();
+        if PurchaseUOMFactor <> 1 then begin
+            LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, Item."No.", PurchaseUOMFactor);
+            PurchaseLine.Validate("Unit of Measure Code", ItemUOM.Code);
+            PurchaseLine.Validate(Quantity, QuantityBase / PurchaseUOMFactor);
+            PurchaseLine.Modify(true);
+        end;
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+    end;
+
+    local procedure CreateBackgroundSubcontractingOrder(ProductionOrder: Record "Production Order"; WorkCenterNo: Code[20])
+    var
+        RoutingLine: Record "Prod. Order Routing Line";
+        OrderCreator: Codeunit "Subc. Purchase Order Creator";
+    begin
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.SetRange("Work Center No.", WorkCenterNo);
+        OrderCreator.CreateSubcontractingOrdersForRoutingLineSelection(RoutingLine);
+    end;
+
+    internal procedure PostBackgroundStateWIPSupply(ProductionOrder: Record "Production Order"; PurchaseLine: Record "Purchase Line")
+    var
+        Vendor: Record Vendor;
+        Transit: Record Location;
+        Header: Record "Transfer Header";
+        Line: Record "Transfer Line";
+    begin
+        Vendor.Get(PurchaseLine."Buy-from Vendor No.");
+        LibraryWarehouse.CreateInTransitLocation(Transit);
+        LibraryWarehouse.CreateTransferHeader(Header, ProductionOrder."Location Code", Vendor."Subc. Location Code", Transit.Code);
+        Header.Validate("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        Header.Modify(true);
+        LibraryWarehouse.CreateTransferLine(Header, Line, PurchaseLine."No.", 0);
+        Line.Validate("Transfer WIP Item", true);
+        Line.Validate("Unit of Measure Code", PurchaseLine."Unit of Measure Code");
+        Line."Subc. Purch. Order No." := PurchaseLine."Document No.";
+        Line."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
+        Line."Subc. Prod. Order No." := PurchaseLine."Prod. Order No.";
+        Line."Subc. Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
+        Line."Subc. Routing Reference No." := PurchaseLine."Routing Reference No.";
+        Line."Subc. Routing No." := PurchaseLine."Routing No.";
+        Line."Subc. Work Center No." := PurchaseLine."Work Center No.";
+        Line."Subc. Operation No." := PurchaseLine."Operation No.";
+        Line.Validate(Quantity, PurchaseLine.Quantity);
+        Line.Modify(true);
+        LibraryWarehouse.PostTransferOrder(Header, true, true);
+    end;
+
+    local procedure ConfigureStateComponentBOM(var ParentItem: Record Item; WorkCenterNo: Code[20])
+    var
+        ComponentItem: Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        ItemVariant: Record "Item Variant";
+        BOM: Record "Production BOM Header";
+        BOMLine: Record "Production BOM Line";
+        I: Integer;
+    begin
+        LibraryManufacturing.CreateProductionBOMHeader(BOM, ParentItem."Base Unit of Measure");
+        for I := 1 to 2 do begin
+            LibraryInventory.CreateItem(ComponentItem);
+            ComponentItem.Validate("Flushing Method", ComponentItem."Flushing Method"::Backward);
+            ComponentItem.Modify(true);
+            LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, ComponentItem."No.", I + 1);
+            LibraryManufacturing.CreateProductionBOMLine(BOM, BOMLine, '', BOMLine.Type::Item, ComponentItem."No.", 1);
+            BOMLine.Validate("Unit of Measure Code", ItemUOM.Code);
+            if I = 1 then begin
+                LibraryInventory.CreateItemVariant(ItemVariant, ComponentItem."No.");
+                BOMLine.Validate("Variant Code", ItemVariant.Code);
+                BOMLine.Validate("Scrap %", 10);
+            end;
+            BOMLine.Validate("Component Supply Method", BOMLine."Component Supply Method"::"Transfer to Vendor");
+            BOMLine.Modify(true);
+        end;
+        BOM.Validate(Status, BOM.Status::Certified);
+        BOM.Modify(true);
+        ParentItem.Validate("Production BOM No.", BOM."No.");
+        ParentItem.Modify(true);
+        UpdateProdBomAndRoutingWithRoutingLink(ParentItem, WorkCenterNo);
+    end;
+
+    procedure CreateAdditionalStateWIPPurchaseOrder(SourcePurchaseLine: Record "Purchase Line"; var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QuantityBase: Decimal)
+    var
+        SourceOrder: Record "Production Order";
+        RoutingLine: Record "Prod. Order Routing Line";
+        ManagementLibrary: Codeunit "Subc. Management Library";
+        RoutingPage: TestPage "Prod. Order Routing";
+    begin
+        Clear(ProductionOrder);
+        Clear(PurchaseHeader);
+        Clear(PurchaseLine);
+        SourceOrder.Get(SourceOrder.Status::Released, SourcePurchaseLine."Prod. Order No.");
+        ManagementLibrary.CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released,
+            ProductionOrder."Source Type"::Item, SourceOrder."Source No.", QuantityBase, SourceOrder."Location Code");
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.SetRange("Work Center No.", SourcePurchaseLine."Work Center No.");
+        RoutingLine.FindFirst();
+        RoutingPage.OpenView();
+        RoutingPage.GoToRecord(RoutingLine);
+        RoutingPage.CreateSubcontracting.Invoke();
+        RoutingPage.Close();
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", SourcePurchaseLine."Work Center No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+    end;
+
+    procedure CreateNextStateWIPPurchaseOrder(SourcePurchaseLine: Record "Purchase Line"; var Header: Record "Purchase Header"; var Line: Record "Purchase Line")
+    begin
+        CreateNextStateWIPPurchaseOrder(SourcePurchaseLine, Header, Line, false);
+    end;
+
+    internal procedure CreateNextStateWIPPurchaseOrder(SourcePurchaseLine: Record "Purchase Line"; var Header: Record "Purchase Header"; var Line: Record "Purchase Line"; Background: Boolean)
+    var
+        RoutingLine: Record "Prod. Order Routing Line";
+        OrderCreator: Codeunit "Subc. Purchase Order Creator";
+        RoutingPage: TestPage "Prod. Order Routing";
+    begin
+        RoutingLine.SetRange(Status, RoutingLine.Status::Released);
+        RoutingLine.SetRange("Prod. Order No.", SourcePurchaseLine."Prod. Order No.");
+        RoutingLine.SetRange("Routing Reference No.", SourcePurchaseLine."Routing Reference No.");
+        RoutingLine.SetRange("Routing No.", SourcePurchaseLine."Routing No.");
+        RoutingLine.SetFilter("Operation No.", '>%1', SourcePurchaseLine."Operation No.");
+        RoutingLine.FindLast();
+        RoutingLine.Validate("Transfer WIP Item", true);
+        RoutingLine.Modify(true);
+        if Background then begin
+            RoutingLine.SetRecFilter();
+            OrderCreator.CreateSubcontractingOrdersForRoutingLineSelection(RoutingLine);
+        end else begin
+            RoutingPage.OpenView();
+            RoutingPage.GoToRecord(RoutingLine);
+            RoutingPage.CreateSubcontracting.Invoke();
+            RoutingPage.Close();
+        end;
+        Line.Reset();
+        Line.SetRange("Document Type", Line."Document Type"::Order);
+        Line.SetRange("Prod. Order No.", SourcePurchaseLine."Prod. Order No.");
+        Line.SetRange("Prod. Order Line No.", SourcePurchaseLine."Prod. Order Line No.");
+        Line.SetRange("Operation No.", RoutingLine."Operation No.");
+        Line.FindFirst();
+        Header.Get(Line."Document Type", Line."Document No.");
+    end;
+
+    procedure CreateLegacyWIPPurchaseOrder(var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QuantityBase: Decimal)
+    var
+        UpgradeFixture: Codeunit "Subc. WIP Upgrade Fixture";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+    begin
+        CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, QuantityBase, 1, true);
+        UpgradeFixture.RestorePreactivationColumns();
+        CohortMgt.InitializeCompany();
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+    end;
+
+    procedure CreateStateWIPSupply(PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        PurchaseLine: Record "Purchase Line";
+        TransferRoute: Record "Transfer Route";
+        Vendor: Record Vendor;
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter("Prod. Order No.", '<>%1', '');
+        PurchaseLine.FindFirst();
+        ProductionOrder.Get(ProductionOrder.Status::Released, PurchaseLine."Prod. Order No.");
+        Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
+        LibraryWarehouse.CreateInTransitLocation(Location);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(
+            TransferRoute, ProductionOrder."Location Code", Vendor."Subc. Location Code", Location.Code, '', '');
+        PurchaseHeader.SetRecFilter();
+        Report.Run(Report::"Subc. Create Transf. Order", true, false, PurchaseHeader);
+        TransferLine.Reset();
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader."No.");
+        TransferLine.SetRange("Transfer WIP Item", true);
+        TransferLine.SetRange("Subc. Return Order", false);
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.FindFirst();
+        TransferHeader.Get(TransferLine."Document No.");
+    end;
+
+    procedure PostStateWIPSupply(PurchaseHeader: Record "Purchase Header")
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        CreateStateWIPSupply(PurchaseHeader, TransferHeader, TransferLine);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+    end;
+
+    procedure ReceiveStateWIP(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal; var ReceiptLine: Record "Purch. Rcpt. Line")
+    var
+        OtherLine: Record "Purchase Line";
+        ReceiptNo: Code[20];
+    begin
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        OtherLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        OtherLine.SetRange("Document No.", PurchaseHeader."No.");
+        OtherLine.SetFilter("Line No.", '<>%1', PurchaseLine."Line No.");
+        OtherLine.SetFilter("Qty. to Receive", '<>0');
+        if OtherLine.FindSet() then
+            repeat
+                OtherLine.Validate("Qty. to Receive", 0);
+                OtherLine.Modify(true);
+            until OtherLine.Next() = 0;
+        PurchaseLine.Validate("Qty. to Receive", Quantity);
+        PurchaseLine.Modify(true);
+        ReceiptNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        ReceiptLine.Get(ReceiptNo, PurchaseLine."Line No.");
+    end;
+
+    procedure CompleteStateWIPProduction(ProductionOrder: Record "Production Order")
+    var
+        Item: Record Item;
+        RoutingLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ManagementLibrary: Codeunit "Subc. Management Library";
+        SetupLibrary: Codeunit "Subc. Setup Library";
+    begin
+        Item.Get(ProductionOrder."Source No.");
+        RoutingLine.SetRange(Status, ProductionOrder.Status);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("Next Operation No.", '');
+        RoutingLine.FindFirst();
+        RoutingLine.TestField("Transfer WIP Item", false);
+        ManagementLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", RoutingLine."No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Operation No.", RoutingLine."Operation No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+    end;
+
+    procedure FindStateWIPEntry(var Entry: Record "Subcontractor WIP Ledger Entry"; PurchaseLine: Record "Purchase Line"; State: Enum "Subc. WIP Processing State")
+    begin
+        Entry.Reset();
+        Entry.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        Entry.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        Entry.SetRange("Routing Reference No.", PurchaseLine."Routing Reference No.");
+        Entry.SetRange("Routing No.", PurchaseLine."Routing No.");
+        Entry.SetRange("Operation No.", PurchaseLine."Operation No.");
+        Entry.SetRange("State Tracked", true);
+        Entry.SetRange("In Transit", false);
+        Entry.SetRange("WIP State", State);
+        Entry.SetFilter("Quantity (Base)", '>0');
+        Entry.FindFirst();
+        Entry.SetRange("Quantity (Base)");
+    end;
+
+    procedure AssertStateWIP(PurchaseLine: Record "Purchase Line"; Total: Decimal; Unprocessed: Decimal; Processed: Decimal; Transit: Decimal)
+    var
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        ProductionOrder: Record "Production Order";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        Assert: Codeunit Assert;
+        LineageID: Guid;
+    begin
+        LineageID := CohortMgt.GetLineage(ProductionOrder.Status::Released, PurchaseLine."Prod. Order No.");
+        Assert.IsFalse(IsNullGuid(LineageID), 'State assertions must resolve the actual business root, including historical status aliases.');
+        Entry.SetRange("Lineage ID", LineageID);
+        Entry.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        Entry.SetRange("Routing Reference No.", PurchaseLine."Routing Reference No.");
+        Entry.SetRange("Routing No.", PurchaseLine."Routing No.");
+        Entry.SetRange("Operation No.", PurchaseLine."Operation No.");
+        Entry.SetRange("State Tracked", true);
+        Entry.SetRange("In Transit", false);
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(Total, Entry."Quantity (Base)", 'Physical WIP custody must not be changed by processing.');
+        Entry.SetRange("WIP State", Entry."WIP State"::Unprocessed);
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(Unprocessed, Entry."Quantity (Base)", 'Incorrect unprocessed custody.');
+        Entry.SetRange("WIP State", Entry."WIP State"::Processed);
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(Processed, Entry."Quantity (Base)", 'Incorrect processed custody.');
+        Entry.SetRange("WIP State");
+        Entry.SetRange("In Transit", true);
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(Transit, Entry."Quantity (Base)", 'Transit must be separate from custody.');
+    end;
+
+    procedure CreateStateWIPClaim(PurchaseLine: Record "Purchase Line"; Entry: Record "Subcontractor WIP Ledger Entry"; Quantity: Decimal; var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    var
+        InTransitLocation: Record Location;
+        ProductionOrder: Record "Production Order";
+    begin
+        ProductionOrder.Get(ProductionOrder.Status::Released, PurchaseLine."Prod. Order No.");
+        LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        LibraryWarehouse.CreateTransferHeader(TransferHeader, Entry."Location Code", ProductionOrder."Location Code", InTransitLocation.Code);
+        TransferHeader.Validate("Subcontr. Purch. Order No.", PurchaseLine."Document No.");
+        TransferHeader.Modify(true);
+        LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Entry."Item No.", 0);
+        TransferLine.Validate("Transfer WIP Item", true);
+        TransferLine.Validate("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLine.Validate("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        TransferLine.Validate("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLine.Validate("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLine.Validate("Subc. Routing Reference No.", PurchaseLine."Routing Reference No.");
+        TransferLine.Validate("Subc. Routing No.", PurchaseLine."Routing No.");
+        TransferLine.Validate("Subc. Work Center No.", PurchaseLine."Work Center No.");
+        TransferLine.Validate("Subc. Operation No.", PurchaseLine."Operation No.");
+        TransferLine.Validate("Subc. Return Order", true);
+        TransferLine.Validate("Subc. WIP State", Entry."WIP State");
+        TransferLine.Validate("Subc. Source Position No.", Entry."Source Position No.");
+        TransferLine.Validate("Subc. Supply Lot ID", Entry."Supply Lot ID");
+        TransferLine.Validate(Quantity, Quantity);
+        TransferLine.Modify(true);
+    end;
 
     /// <summary>
     /// Creates and calculates needed work and machine centers.
@@ -1420,14 +1816,14 @@ codeunit 149908 "Subc. Warehouse Library"
 
     /// <summary>
     /// Creates a subcontracting forward Transfer Order from the purchase order by running
-    /// "Subc. Create Transf. Order" without the request page.
-    /// The caller must register a page handler for the Transfer Order page that is opened
-    /// by the report's ShowDocument() procedure.
+    /// "Subc. Create Transf. Order" with its mandatory request and proposal pages.
+    /// The caller must register request-page and proposal handlers and a handler for
+    /// the Transfer Order page opened by the report.
     /// </summary>
     procedure CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader: Record "Purchase Header")
     begin
         PurchaseHeader.SetRecFilter();
-        Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
+        Report.Run(Report::"Subc. Create Transf. Order", true, false, PurchaseHeader);
     end;
 
     /// <summary>
