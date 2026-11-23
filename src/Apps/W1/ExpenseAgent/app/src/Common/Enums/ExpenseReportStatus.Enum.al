@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies the status of an expense report through its release, approval, and payment process.
+/// </summary>
 enum 6910 "Expense Report Status"
 {
-    Access = Internal;
     Caption = 'Expense Report Status';
 
     value(0; Open) { Caption = 'Open'; }
