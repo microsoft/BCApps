@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using System.Environment.Configuration;
-
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 
 report 12117 "Customer Bills List"
 {

@@ -4,14 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 
 codeunit 12101 "Withholding - Contribution"
 {

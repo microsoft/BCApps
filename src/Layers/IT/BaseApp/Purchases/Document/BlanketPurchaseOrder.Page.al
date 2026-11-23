@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -18,6 +16,7 @@ using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Automation;
+using System.Environment.Configuration;
 using System.Security.User;
 
 page 509 "Blanket Purchase Order"

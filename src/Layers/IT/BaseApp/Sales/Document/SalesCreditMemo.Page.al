@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
@@ -27,6 +25,7 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Privacy;
 using System.Security.User;
 using System.Threading;

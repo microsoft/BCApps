@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
@@ -15,6 +13,7 @@ using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Reports;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 
 page 146 "Posted Purchase Invoices"
 {

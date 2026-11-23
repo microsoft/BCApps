@@ -8,8 +8,8 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.History;
-using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Posting;
 using System.Environment.Configuration;
 
 codeunit 8846 "Purchase Installment Mgt."

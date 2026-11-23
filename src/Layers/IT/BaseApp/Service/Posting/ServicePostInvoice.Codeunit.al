@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Posting;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.Currency;
@@ -19,6 +17,7 @@ using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.Pricing;
 using Microsoft.Service.Setup;
+using System.Environment.Configuration;
 
 codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 {

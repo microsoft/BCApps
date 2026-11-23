@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -14,6 +12,7 @@ using Microsoft.Finance.WithholdingTax;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 codeunit 12173 "Vendor Bill List - Post"
 {

@@ -5,8 +5,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
@@ -19,6 +17,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Request;
+using System.Environment.Configuration;
 using System.Security.User;
 
 page 12152 "Subcontracting Order"

@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
@@ -16,6 +14,7 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Telemetry;
 
 /// <summary>

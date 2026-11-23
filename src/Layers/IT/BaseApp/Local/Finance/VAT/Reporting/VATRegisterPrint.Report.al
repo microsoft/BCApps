@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
@@ -19,6 +17,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Utilities;
 
 report 12120 "VAT Register - Print"

@@ -4,13 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 report 12180 "Issuing Customer Bill"
 {

@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
-using System.Environment.Configuration;
-
 using Microsoft.EServices.EDocument;
 using Microsoft.Integration.Dataverse;
+using System.Environment.Configuration;
 using System.Globalization;
 
 table 3 "Payment Terms"

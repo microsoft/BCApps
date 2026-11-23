@@ -4,11 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-using System.Environment.Configuration;
-
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Purchases.Payables;
+using System.Environment.Configuration;
 
 report 12195 "Datifattura Suggest Lines"
 {

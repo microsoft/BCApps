@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.Setup;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
@@ -21,6 +19,7 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.Automation;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Displays a single posted sales invoice document with header and line details.

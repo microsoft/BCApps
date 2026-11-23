@@ -5,11 +5,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
-using System.Environment.Configuration;
-
 using Microsoft.Finance.Currency;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using System.Environment.Configuration;
 
 codeunit 12192 "Serv. Payment Lines Mgt."
 {

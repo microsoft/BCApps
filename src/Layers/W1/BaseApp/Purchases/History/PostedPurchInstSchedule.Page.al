@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.Purchases.Payables;
+using System.Environment.Configuration;
 
 page 8844 "Posted Purch. Inst. Schedule"
 {

@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.Assembly.History;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -39,6 +37,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Structure;
+using System.Environment.Configuration;
 using System.IO;
 using System.Reflection;
 using System.Security.User;

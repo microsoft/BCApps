@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 page 8842 "Posted Installment Schedule"
 {

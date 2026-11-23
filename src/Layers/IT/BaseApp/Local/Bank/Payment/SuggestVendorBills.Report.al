@@ -4,12 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Dimension;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 
 report 12177 "Suggest Vendor Bills"
 {

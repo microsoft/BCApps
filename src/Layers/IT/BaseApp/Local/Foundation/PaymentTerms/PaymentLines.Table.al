@@ -4,12 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
-using System.Environment.Configuration;
-
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
+using System.Environment.Configuration;
 
 table 12170 "Payment Lines"
 {

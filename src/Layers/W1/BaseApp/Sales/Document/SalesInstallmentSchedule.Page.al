@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 page 8841 "Sales Installment Schedule"
 {

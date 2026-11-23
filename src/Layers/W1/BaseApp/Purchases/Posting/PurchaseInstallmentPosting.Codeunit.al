@@ -11,11 +11,11 @@ using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.PaymentTerms;
-using Microsoft.Purchases.Vendor;
-using System.Environment.Configuration;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 
 codeunit 8847 "Purchase Installment Posting"
 {

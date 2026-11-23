@@ -5,11 +5,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
-using System.Environment.Configuration;
-
 using Microsoft.Finance.Currency;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.History;
+using System.Environment.Configuration;
 
 page 12172 "Posted Payments"
 {

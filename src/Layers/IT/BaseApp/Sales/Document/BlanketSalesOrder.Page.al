@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Contact;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -20,6 +18,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
 using System.Automation;
+using System.Environment.Configuration;
 using System.Security.User;
 
 /// <summary>

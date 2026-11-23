@@ -4,13 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 
 codeunit 12170 "Recall Customer Bill"
 {

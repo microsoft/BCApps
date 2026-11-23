@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
@@ -17,6 +15,7 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Service.Contract;
 using Microsoft.Service.History;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 codeunit 12140 "Serv. Document Mgt. IT"
 {

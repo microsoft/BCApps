@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
 using Microsoft.EServices.EDocument;
@@ -18,6 +16,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Vendor;
 using System.Automation;
+using System.Environment.Configuration;
 
 page 140 "Posted Purchase Credit Memo"
 {

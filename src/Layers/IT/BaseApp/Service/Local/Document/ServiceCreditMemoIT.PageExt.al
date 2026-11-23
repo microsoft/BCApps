@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.Foundation.PaymentTerms;
+using System.Environment.Configuration;
 
 pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
 {

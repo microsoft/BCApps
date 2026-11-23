@@ -4,13 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 report 12176 "Suggest Customer Bills"
 {

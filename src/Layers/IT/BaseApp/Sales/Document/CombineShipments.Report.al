@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.NoSeries;
@@ -15,6 +13,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Globalization;
 
 /// <summary>

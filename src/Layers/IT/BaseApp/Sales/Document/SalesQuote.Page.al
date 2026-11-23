@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.Setup;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
@@ -27,6 +25,7 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Privacy;
 using System.Security.User;
 

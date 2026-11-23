@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Document;
 
-using System.Environment.Configuration;
-
 using Microsoft.Purchases.Payables;
+using System.Environment.Configuration;
 
 page 8843 "Purchase Installment Schedule"
 {

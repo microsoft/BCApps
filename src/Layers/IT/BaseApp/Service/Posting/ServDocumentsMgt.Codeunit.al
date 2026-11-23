@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Posting;
 
-using System.Environment.Configuration;
-
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Dimension;
@@ -35,6 +33,7 @@ using Microsoft.Service.Ledger;
 using Microsoft.Service.Pricing;
 using Microsoft.Service.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Utilities;
 
 codeunit 5988 "Serv-Documents Mgt."

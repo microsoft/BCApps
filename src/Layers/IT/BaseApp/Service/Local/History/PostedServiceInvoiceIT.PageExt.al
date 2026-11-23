@@ -4,9 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.History;
 
-using System.Environment.Configuration;
-
 using Microsoft.Foundation.PaymentTerms;
+using System.Environment.Configuration;
 
 pageextension 12456 "Posted Service Invoice IT" extends "Posted Service Invoice"
 {

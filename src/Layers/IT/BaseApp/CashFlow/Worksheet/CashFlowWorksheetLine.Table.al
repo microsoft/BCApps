@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.CashFlow.Worksheet;
 
-using System.Environment.Configuration;
-
 using Microsoft.CashFlow.Account;
 using Microsoft.CashFlow.Forecast;
 using Microsoft.CashFlow.Setup;
@@ -21,6 +19,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 table 846 "Cash Flow Worksheet Line"
 {

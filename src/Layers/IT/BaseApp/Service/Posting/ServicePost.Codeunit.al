@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Posting;
 
-using System.Environment.Configuration;
-
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -24,6 +22,7 @@ using Microsoft.Service.Setup;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
+using System.Environment.Configuration;
 
 codeunit 5980 "Service-Post"
 {

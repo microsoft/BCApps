@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Utilities;
 
-using System.Environment.Configuration;
-
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
 using Microsoft.CRM.Team;
@@ -42,6 +40,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 using System.IO;
 using System.Utilities;
 

@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Posting;
 
-using System.Environment.Configuration;
-
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.Currency;
@@ -21,6 +19,7 @@ using Microsoft.Projects.Project.Posting;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Implements the invoice posting interface to create general ledger entries, customer ledger entries, and deferral schedules for sales invoices.
