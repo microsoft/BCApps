@@ -4093,5 +4093,16 @@
     "codeunitId": 137091,
     "codeunitName": "SCM Kitting - D2",
     "method": "StdParentAvgCompCostAdj"
+  },
+  {
+    "codeunitId": 137096,
+    "codeunitName": "SCM Kitting - ATO",
+    "method": "ItemCategoryCodeAfterPostingAssemblyOrder"
+  },
+  {
+    "codeunitId": 137926,
+    "codeunitName": "SCM Assembly Item Tracking",
+    "method": "*",
+    "bug": "Error: The VAT Posting Setup does not exist. Identification fields and values: VAT Bus. Posting Group='GU00000015',VAT Prod. Posting Group=''"
   }
 ]

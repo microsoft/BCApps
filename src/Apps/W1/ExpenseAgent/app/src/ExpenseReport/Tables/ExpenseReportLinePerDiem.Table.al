@@ -7,9 +7,11 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using System.Environment.Configuration;
 
+/// <summary>
+/// Stores the daily per diem lines of an expense report line.
+/// </summary>
 table 6909 "Expense Report Line Per Diem"
 {
-    Access = Internal;
     Caption = 'Expense Report Line Per Diem';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Report Line Per Diems";
@@ -296,7 +298,7 @@ table 6909 "Expense Report Line Per Diem"
             ExpenseCurrency.Get(ExpenseReportLine."Expense Currency Code");
     end;
 
-    procedure SendMissingExpenseLocationNotification(ExpReportLine: Record "Expense Report Line")
+    internal procedure SendMissingExpenseLocationNotification(ExpReportLine: Record "Expense Report Line")
     var
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         NotificationToSend: Notification;

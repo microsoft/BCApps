@@ -139,10 +139,9 @@ codeunit 240 ItemJnlManagement
                     TemplateSelection(0, ItemJnlTemplate.Type.AsInteger(), false, ItemJnlLine, JnlSelected);
                 if ItemJnlTemplate.FindFirst() then
                     CheckTemplateName(ItemJnlTemplate.Name, ItemJnlBatch.Name);
-                if ItemJnlTemplate.Type in [ItemJnlTemplate.Type::Item,
-                                            ItemJnlTemplate.GetConsumptionTemplateType(),
-                                            ItemJnlTemplate.GetOutputTemplateType(),
-                                            ItemJnlTemplate.GetCapacityTemplateType()]
+                if (ItemJnlTemplate.Type = ItemJnlTemplate.Type::Item) or
+                   ItemJnlTemplate.IsConsumptionTemplateType() or ItemJnlTemplate.IsOutputTemplateType() or
+                   ItemJnlTemplate.IsCapacityTemplateType()
                 then begin
                     ItemJnlTemplate.SetRange(Recurring, true);
                     if not ItemJnlTemplate.FindFirst() then

@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 enum 7433 "EA Corp Card Match Type"
 {
+    Access = Internal;
     Caption = 'Corp Card Match Type';
 
     value(0; None)

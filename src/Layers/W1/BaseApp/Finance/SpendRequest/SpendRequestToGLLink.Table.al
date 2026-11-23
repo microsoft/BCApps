@@ -7,6 +7,9 @@ namespace Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Links spend requests and their detail lines to the posted G/L entries that consumed them.
+/// </summary>
 table 6845 "Spend Request To G/L Link"
 {
     Caption = 'Spend Request To G/L Link';
@@ -29,7 +32,7 @@ table 6845 "Spend Request To G/L Link"
             Caption = 'Spend Request Detail No.';
             ToolTip = 'Specifies the spend request line no. that this link points to.';
         }
-        field(3; "G/L Entry No."; Integer)
+        field(3; "G/L Entry No."; BigInteger)
         {
             Caption = 'G/L Entry No.';
             ToolTip = 'Specifies the spend g/l entry no. that this link points to.';

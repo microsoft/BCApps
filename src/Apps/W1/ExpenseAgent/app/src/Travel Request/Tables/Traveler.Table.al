@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.SpendRequest;
 
+/// <summary>
+/// Stores the expense users who travel as part of a spend request.
+/// </summary>
 table 6938 Traveler
 {
-    Access = Internal;
     Caption = 'Traveler';
     ReplicateData = false;
     LookupPageId = "Travelers";

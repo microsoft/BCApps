@@ -747,6 +747,27 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure SourceClientCertificateWithoutPasswordIsRejected()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        NoPassword: SecretText;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
+        // [SCENARIO] A password-protected certificate cannot be stored without its password.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [WHEN] the password-protected certificate is stored with an empty password
+        asserterror LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), NoPassword);
+
+        // [THEN] an actionable error is raised and no credential is stored
+        Assert.ExpectedError('The certificate could not be read');
+        Assert.IsFalse(LibraryMasterDataMgt.UsesSourceClientCertificate(), 'A password-protected certificate should not be stored without its password');
+
+        CleanUp();
+    end;
+
+    [Test]
     procedure SourceClientCertificateWithoutPrivateKeyIsRejected()
     var
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
@@ -902,7 +923,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         ConnectionDetails.AuthenticationType.SetValue('Certificate');
 
         // [THEN] the deleted certificate is no longer shown and Next stays disabled until a new certificate is uploaded
-        Assert.AreEqual('', ConnectionDetails.CertificateThumbprint.Value(), 'The thumbprint of the replaced certificate should no longer be shown');
+        Assert.IsFalse(ConnectionDetails.CertificateThumbprint.Visible(), 'The thumbprint of the replaced certificate should no longer be shown');
         Assert.IsFalse(ConnectionDetails.ActionNext.Enabled(), 'Next should be disabled until a new certificate is uploaded');
         ConnectionDetails.Close();
 

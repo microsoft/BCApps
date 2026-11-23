@@ -14,11 +14,11 @@ codeunit 134418 "Inc Doc Attachment Overview UT"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SupportingAttachmentsTxt: Label 'Supporting Attachments';
         IncomingDocMustBeFoundErr: Label 'Incoming Document must be found.';
         ViewIncoDocIsNotEnabledErr: Label 'View Incoming Document action is not enabled';
@@ -686,13 +686,20 @@ codeunit 134418 "Inc Doc Attachment Overview UT"
     begin
         Assert.AreEqual(FieldRef1.Name, FieldRef2.Name, ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'names'));
         Assert.AreEqual(FieldRef1.Caption, FieldRef2.Caption, ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'captions'));
-        Assert.IsTrue(FieldRef1.Type = FieldRef2.Type, ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'types'));
+        Assert.IsTrue(FieldHaveCompatibleType(FieldRef1, FieldRef2), ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'types'));
         Assert.AreEqual(FieldRef1.Length, FieldRef2.Length, ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'lengths'));
         Assert.AreEqual(
           FieldRef1.OptionMembers, FieldRef2.OptionMembers, ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'option string'));
         Assert.AreEqual(
           FieldRef1.OptionCaption, FieldRef2.OptionCaption, ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'option caption'));
         Assert.AreEqual(FieldRef1.Relation, FieldRef2.Relation, ErrorMessageForFieldComparison(FieldRef1, FieldRef2, 'table relation'));
+    end;
+
+    local procedure FieldHaveCompatibleType(FieldRef1: FieldRef; FieldRef2: FieldRef): Boolean
+    begin
+        if FieldRef1.Type = FieldRef2.Type then
+            exit(true);
+        exit((FieldRef1.Type in [FieldRef1.Type::Integer, FieldRef1.Type::BigInteger]) and (FieldRef2.Type in [FieldRef2.Type::Integer, FieldRef2.Type::BigInteger]))
     end;
 
     local procedure VerifyLineMatchesIncomingDocumentAttachment(TempIncDocAttachmentOverview: Record "Inc. Doc. Attachment Overview" temporary; IncomingDocumentAttachment: Record "Incoming Document Attachment"; SortingOrder: Integer; Indentation: Integer)

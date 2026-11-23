@@ -724,6 +724,160 @@ codeunit 133513 "Search Item Test"
         CheckSalesLineContent(SalesHeader."No.");
     end;
 
+    [Test]
+    procedure TestExtractionStructuredContracts()
+    var
+        PromptTest: Codeunit "SLS Prompt Test";
+        ExpectedItems: JsonArray;
+        ActualItems: JsonArray;
+        Mapping: JsonArray;
+        IdentifierTerms: JsonArray;
+        ActualItem: JsonToken;
+    begin
+        ExpectedItems.ReadFrom('[{"split_name_terms":["bike"],"quantity":2,"unit_of_measure":"BOX"},{"split_name_terms":["987651"],"quantity":1}]');
+        ActualItems.ReadFrom('[{"name":"987651","split_name_terms":["987651"],"quantity":1},{"name":"bicycle","split_name_terms":["bicycle"],"quantity":2,"unit_of_measure":"box"}]');
+        Mapping.ReadFrom('[1,0]');
+        PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+
+        ActualItems.Get(1, ActualItem);
+        ActualItem.AsObject().Replace('quantity', 3);
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('"quantity" property is incorrect');
+        ActualItem.AsObject().Replace('quantity', 2);
+
+        ActualItem.AsObject().Replace('unit_of_measure', 'PCS');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('"unit_of_measure" property is incorrect');
+        ActualItem.AsObject().Replace('unit_of_measure', 'BOX');
+
+        ActualItems.Get(0, ActualItem);
+        ActualItem.AsObject().Replace('name', '987652');
+        IdentifierTerms.Add('987652');
+        ActualItem.AsObject().Replace('split_name_terms', IdentifierTerms);
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Item identifier is incorrect.');
+    end;
+
+    [Test]
+    procedure TestExtractionMappingMustBeOneToOne()
+    var
+        PromptTest: Codeunit "SLS Prompt Test";
+        ExpectedItems: JsonArray;
+        ActualItems: JsonArray;
+        Mapping: JsonArray;
+    begin
+        ExpectedItems.ReadFrom('[{"quantity":1},{"quantity":1}]');
+        ActualItems.ReadFrom('[{"name":"chair","split_name_terms":["chair"],"quantity":1},{"name":"desk","split_name_terms":["desk"],"quantity":1}]');
+        Mapping.ReadFrom('[0,0]');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Semantic evaluator returned a duplicate item mapping.');
+
+        Mapping.ReadFrom('[0]');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Semantic evaluator item mapping is incomplete.');
+    end;
+
+    [Test]
+    procedure TestExtractionRequiresQuantity()
+    var
+        PromptTest: Codeunit "SLS Prompt Test";
+        ExpectedItems: JsonArray;
+        ActualItems: JsonArray;
+        Mapping: JsonArray;
+    begin
+        ExpectedItems.ReadFrom('[{"quantity":1}]');
+        ActualItems.ReadFrom('[{"name":"chair","split_name_terms":["chair"]}]');
+        Mapping.ReadFrom('[0]');
+        asserterror PromptTest.AssertSearchItemContracts(ExpectedItems, ActualItems, Mapping);
+        Assert.ExpectedError('Search item quantity is missing.');
+    end;
+
+    [Test]
+    procedure TestSearchItemQuantityDefaults()
+    var
+        Item: Record Item;
+        TempSalesLineAISuggestion: Record "Sales Line AI Suggestions" temporary;
+        SLSSearch: Codeunit Search;
+        ItemResults: JsonArray;
+        NameTerms: JsonArray;
+        MissingQuantityItem: JsonObject;
+        ZeroQuantityItem: JsonObject;
+        ExplicitQuantityItem: JsonObject;
+    begin
+        Initialize();
+        LibraryInventory.CreateItem(Item);
+        NameTerms.Add(Item."No.");
+
+        MissingQuantityItem.Add('name', Item."No.");
+        MissingQuantityItem.Add('split_name_terms', NameTerms);
+        ItemResults.Add(MissingQuantityItem);
+
+        ZeroQuantityItem.Add('name', Item."No.");
+        ZeroQuantityItem.Add('split_name_terms', NameTerms);
+        ZeroQuantityItem.Add('quantity', 0);
+        ItemResults.Add(ZeroQuantityItem);
+
+        ExplicitQuantityItem.Add('name', Item."No.");
+        ExplicitQuantityItem.Add('split_name_terms', NameTerms);
+        ExplicitQuantityItem.Add('quantity', 2.5);
+        ItemResults.Add(ExplicitQuantityItem);
+        ItemResults.Add(MissingQuantityItem);
+
+        Assert.IsTrue(SLSSearch.SearchMultiple(ItemResults, Enum::"Search Style"::Balanced, '', '', 1, 25, false, false, TempSalesLineAISuggestion, ''), 'Item search failed.');
+
+        Assert.RecordCount(TempSalesLineAISuggestion, 4);
+        TempSalesLineAISuggestion.FindSet();
+        Assert.AreEqual(1, TempSalesLineAISuggestion.Quantity, 'Missing quantity must default to one.');
+        TempSalesLineAISuggestion.Next();
+        Assert.AreEqual(0, TempSalesLineAISuggestion.Quantity, 'Explicit zero quantity must be preserved.');
+        TempSalesLineAISuggestion.Next();
+        Assert.AreEqual(2.5, TempSalesLineAISuggestion.Quantity, 'Explicit fractional quantity must be preserved.');
+        TempSalesLineAISuggestion.Next();
+        Assert.AreEqual(1, TempSalesLineAISuggestion.Quantity, 'Missing quantity must not inherit the previous quantity.');
+    end;
+
+    [Test]
+    procedure TestMinimumSearchConfidence()
+    var
+        ItemEntitySearch: Codeunit "Item Entity Search";
+        ExpectedItem: JsonObject;
+    begin
+        ExpectedItem.ReadFrom('{"Minimum Confidence":"Medium"}');
+
+        ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::Medium);
+        ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::High);
+
+        asserterror ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::Low);
+        Assert.ExpectedError('Confidence is below the minimum.');
+    end;
+
+    [Test]
+    procedure TestExactSearchConfidence()
+    var
+        ItemEntitySearch: Codeunit "Item Entity Search";
+        ExpectedItem: JsonObject;
+    begin
+        ExpectedItem.ReadFrom('{"Confidence":"High"}');
+
+        ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::High);
+
+        asserterror ItemEntitySearch.AssertConfidence(ExpectedItem, Enum::"Search Confidence"::Medium);
+        Assert.ExpectedError('Confidence does not match');
+    end;
+
+    [Test]
+    procedure TestSearchConfidenceBoundaries()
+    var
+        SLSSearch: Codeunit Search;
+    begin
+        Assert.AreEqual(Enum::"Search Confidence"::None, SLSSearch.GetConfidence(0.2499), 'Score below 0.25 must have no confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Low, SLSSearch.GetConfidence(0.25), 'Score 0.25 must have Low confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Low, SLSSearch.GetConfidence(0.4499), 'Score below 0.45 must have Low confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Medium, SLSSearch.GetConfidence(0.45), 'Score 0.45 must have Medium confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::Medium, SLSSearch.GetConfidence(0.5499), 'Score below 0.55 must have Medium confidence.');
+        Assert.AreEqual(Enum::"Search Confidence"::High, SLSSearch.GetConfidence(0.55), 'Score 0.55 must have High confidence.');
+    end;
+
     local procedure CreateSalesOrderWithSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     var
         Customer: Record Customer;

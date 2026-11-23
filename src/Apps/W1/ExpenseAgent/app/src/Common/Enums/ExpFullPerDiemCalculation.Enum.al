@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies how a full per diem day is calculated.
+/// </summary>
 enum 6913 "Exp. Full Per Diem Calculation"
 {
-    Access = Internal;
     Caption = 'Full Per-Diem Calculation';
 
     value(0; None)

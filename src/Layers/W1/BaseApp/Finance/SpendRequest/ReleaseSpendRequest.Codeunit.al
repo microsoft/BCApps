@@ -6,6 +6,9 @@ namespace Microsoft.Finance.SpendRequest;
 
 using System.Utilities;
 
+/// <summary>
+/// Manages the status lifecycle of spend requests, including releasing, reopening, and closing them.
+/// </summary>
 codeunit 6840 "Release Spend Request"
 {
     TableNo = "Spend Request";
