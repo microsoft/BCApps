@@ -9800,6 +9800,16 @@ table 37 "Sales Line"
         SkipDefaultItemQuantity := DefaultItemQuantity;
     end;
 
+    /// <summary>
+    /// Determines whether the sales line is excluded from the document totals.
+    /// </summary>
+    /// <returns>True if the line must not be included in the document totals.</returns>
+    procedure IsExcludedFromDocumentTotals() Result: Boolean
+    begin
+        Result := "Quote Variant" = "Quote Variant"::Variant;
+        OnAfterIsExcludedFromDocumentTotals(Rec, Result);
+    end;
+
     local procedure ReduceInvoiceDiscValueOnHeader(InvDiscountAmount: Decimal)
     var
         IsHandled: Boolean;
@@ -15538,6 +15548,11 @@ table 37 "Sales Line"
     /// <param name="IsHandled">Set to true to skip the default processing.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateVariantCodeBeforeCheckBlocked(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsExcludedFromDocumentTotals(SalesLine: Record "Sales Line"; var Result: Boolean)
     begin
     end;
 
