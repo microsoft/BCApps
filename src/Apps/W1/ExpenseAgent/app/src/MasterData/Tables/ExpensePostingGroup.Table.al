@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Stores the posting groups that specify the G/L accounts used when posting expenses.
+/// </summary>
 table 6928 "Expense Posting Group"
 {
-    Access = Internal;
     Caption = 'Expense Posting Group';
     LookupPageId = "Expense Posting Groups";
     DataClassification = CustomerContent;
