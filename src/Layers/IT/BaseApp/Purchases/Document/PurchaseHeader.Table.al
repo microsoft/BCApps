@@ -3583,9 +3583,7 @@ table 38 "Purchase Header"
         xPurchLine: Record "Purchase Line";
         VendLedgEntry: Record "Vendor Ledger Entry";
         Vend: Record Vendor;
-#if CLEAN30
         PaymentTerms: Record "Payment Terms";
-#endif
         PaymentMethod: Record "Payment Method";
         CurrExchRate: Record "Currency Exchange Rate";
         Cust: Record Customer;

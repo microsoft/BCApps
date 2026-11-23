@@ -8651,16 +8651,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterUpdateVATEntryTaxDetails(VATEntry, TaxDetail);
     end;
 
-    /// <summary>
-    /// Parameter GLEntryNo is updated with value of parameter SavedEntryNo.
-    /// Global variable NextEntryNo is decreased by 1 (one).
-    /// </summary>
-    /// <remarks>
-    /// Variable NextEntryNo is used as entry no. when creating ledger entries
-    /// </remarks>
-    /// <param name="ExistingGLEntryNo">Existing value for g/l entry no.</param>
-    /// <param name="SavedEntryNo">New value for g/l entry no.</param>
-    procedure UpdateGLEntryNo(var ExistingGLEntryNo: Integer; var SavedEntryNo: Integer)
+    [Scope('OnPrem')]
+    procedure GetSellToBuyFrom(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry")
+    var
+        GenJnlLine2: Record "Gen. Journal Line";
     begin
         if GenJnlLine."Bill-to/Pay-to No." <> '' then begin
             VATEntry."Bill-to/Pay-to No." := GenJnlLine."Bill-to/Pay-to No.";

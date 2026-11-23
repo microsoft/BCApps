@@ -175,14 +175,13 @@ codeunit 134496 "ERM Installment Correction"
     end;
 
     [Test]
-    procedure NativeCancellationAndCorrectionStillRejectPartlyAndFullyPaidInvoices()
+    procedure NativeCancellationRejectsPartlyPaidInvoice()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesLine: Record "Sales Line";
-        ReplacementHeader: Record "Sales Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
-        // [SCENARIO] Installments do not bypass native restrictions on cancelling or correcting paid invoices.
+        // [SCENARIO] Installments do not bypass native restrictions on cancelling partly paid invoices.
         // [GIVEN] An invoice with a partial payment on its final installment.
         CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 10);
@@ -194,12 +193,25 @@ codeunit 134496 "ERM Installment Correction"
         // [THEN] Cancellation is rejected without changing the remaining balance.
         Assert.ExpectedError('fully or partially paid');
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 3, 31.66);
+    end;
+
+    [Test]
+    procedure NativeCorrectionRejectsFullyPaidInvoice()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        ReplacementHeader: Record "Sales Header";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+    begin
+        // [SCENARIO] Installments do not bypass native restrictions on correcting fully paid invoices.
+        // [GIVEN] An invoice with every installment fully paid.
+        CreatePostedInvoice(SalesInvoiceHeader, SalesLine, true);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);
         LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 2, 41.67);
-        LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 31.66);
+        LibraryInstallments.PayInstallment(SalesInvoiceHeader."Installment Plan ID", 3, 41.66);
         Commit();
 
-        // [WHEN] All installments have been settled and native correction is requested.
+        // [WHEN] Native correction is requested.
         asserterror CorrectPostedSalesInvoice.CancelPostedInvoiceCreateNewInvoice(SalesInvoiceHeader, ReplacementHeader);
 
         // [THEN] Correction is still rejected and all installments remain settled.

@@ -71,24 +71,25 @@ codeunit 134498 "ERM Installment Forecast"
     end;
 
     [Test]
-    procedure ForecastExcludesSettledAndReducesPartlyPaidInstallments()
+    procedure ForecastSettlementRefreshFlow()
     var
         Invoice: Record "Sales Invoice Header";
         Forecast: Record "Cash Flow Forecast";
     begin
-        // [SCENARIO] Cash flow forecasts omit settled installments and use only unpaid portions of open installments.
+        // [SCENARIO] A forecast flow starts with unpaid installment balances and removes every invoice obligation after settlement and refresh.
         // [GIVEN] The first installment is settled and the final installment is partly paid.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 10);
         ConfigureForecast(Forecast);
 
-        // [WHEN] Receivable forecast lines are suggested.
+        // [WHEN] Flow step 1: Receivable forecast lines are suggested for the partly settled invoice.
         FillForecast(Forecast, false);
 
         // [THEN] Only two obligations remain, totaling 73.33.
         VerifyOpenInstallments(Forecast, Invoice, 2, 73.33);
-        // [WHEN] All remaining obligations are paid and the forecast is refreshed.
+
+        // [WHEN] Flow step 2: All remaining obligations in the existing forecast are paid and the forecast is refreshed.
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 2, 41.67);
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 31.66);
 

@@ -20,26 +20,36 @@ codeunit 8844 "Installment Ledger Upgrade"
 
     trigger OnUpgradePerCompany()
     begin
-        UpgradeInvoiceGroups();
+        UpgradeCustomerInvoiceGroups();
+        UpgradeVendorInvoiceGroups();
     end;
 
-    internal procedure UpgradeInvoiceGroups()
+    internal procedure UpgradeCustomerInvoiceGroups()
     var
         SalesInstallmentHistory: Codeunit "Sales Installment History";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag()) then
+            exit;
+
+        InitializeCustomerInvoiceGroups();
+        if SalesInstallmentHistory.BackfillInvoiceGroups() then
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag());
+    end;
+
+    internal procedure UpgradeVendorInvoiceGroups()
+    var
         PurchaseInstallmentHistory: Codeunit "Purchase Installment History";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
     begin
-        if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag()) then begin
-            InitializeCustomerInvoiceGroups();
-            if SalesInstallmentHistory.BackfillInvoiceGroups() then
-                UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag());
-        end;
-        if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag()) then begin
-            InitializeVendorInvoiceGroups();
-            if PurchaseInstallmentHistory.BackfillInvoiceGroups() then
-                UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag());
-        end;
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag()) then
+            exit;
+
+        InitializeVendorInvoiceGroups();
+        if PurchaseInstallmentHistory.BackfillInvoiceGroups() then
+            UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag());
     end;
 
     local procedure InitializeCustomerInvoiceGroups()

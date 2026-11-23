@@ -41,14 +41,17 @@ page 8840 "Payment Term Installments"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = Rec."Allocation Type" = Rec."Allocation Type"::Percentage;
+                    ShowMandatory = Rec."Allocation Type" = Rec."Allocation Type"::Percentage;
                 }
                 field("Due Date Calculation"; Rec."Due Date Calculation")
                 {
                     ApplicationArea = Basic, Suite;
+                    ShowMandatory = true;
                 }
                 field("Discount Date Calculation"; Rec."Discount Date Calculation")
                 {
                     ApplicationArea = Basic, Suite;
+                    ShowMandatory = Rec."Discount %" <> 0;
                 }
                 field("Discount %"; Rec."Discount %")
                 {

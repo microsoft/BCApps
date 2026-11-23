@@ -25,11 +25,11 @@ codeunit 134494 "ERM Installments UI"
         SalesInstallmentHistory: Codeunit "Sales Installment History";
 
     [Test]
-    procedure FeatureSwitchControlsGlobalPaymentTermsVisibility()
+    procedure DisabledFeatureHidesGlobalPaymentTermsInstallments()
     var
         PaymentTerms: TestPage "Payment Terms";
     begin
-        // [SCENARIO] Global installment setup is visible only while its feature is enabled.
+        // [SCENARIO] Global installment setup is hidden while its feature is disabled.
         // [GIVEN] The global Payment Installments feature is disabled.
         LibraryInstallments.SetFeatureEnabled(false);
 
@@ -40,10 +40,20 @@ codeunit 134494 "ERM Installments UI"
         Assert.IsFalse(PaymentTerms."Has Installments".Visible(), 'Global installment setup must be hidden when the feature is disabled.');
         Assert.IsFalse(PaymentTerms.InstallmentLines.Visible(), 'Global installment rules must be hidden when the feature is disabled.');
         PaymentTerms.Close();
+    end;
 
+    [Test]
+    procedure EnabledFeatureShowsGlobalPaymentTermsInstallments()
+    var
+        PaymentTerms: TestPage "Payment Terms";
+    begin
+        // [SCENARIO] Global installment setup is visible while its feature is enabled.
+        // [GIVEN] The global Payment Installments feature is enabled.
         LibraryInstallments.SetFeatureEnabled(true);
-        // [WHEN] Payment terms are reopened with the feature enabled.
+
+        // [WHEN] Payment terms are opened.
         PaymentTerms.OpenView();
+
         // [THEN] Installment indicators and rule actions are visible.
         Assert.IsTrue(PaymentTerms."Has Installments".Visible(), 'Global installment setup must be visible when the feature is enabled.');
         Assert.IsTrue(PaymentTerms.InstallmentLines.Visible(), 'Global installment rules must be visible when the feature is enabled.');

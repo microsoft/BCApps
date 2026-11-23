@@ -397,11 +397,7 @@ table 846 "Cash Flow Worksheet Line"
                 CFDiscountDate := CalcDate(GeneralLedgerSetup."Payment Discount Grace Period", CFDiscountDate);
 
             IsHandled := false;
-#if CLEAN30
-            OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate, PaymentTerms, IsHandled);
-#else
             OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentTermsDiscount(CFDiscountDate, PaymentTerms, IsHandled);
-#endif
             if not IsHandled then
                 if CFDiscountDate >= WorkDate() then begin
                     "Cash Flow Date" := CFDiscountDate;
@@ -623,11 +619,7 @@ table 846 "Cash Flow Worksheet Line"
     end;
 
     [IntegrationEvent(true, false)]
-#if CLEAN30
-    local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate: Date; PaymentTerms: record "Payment Terms"; var IsHandled: boolean)
-#else
     local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentTermsDiscount(CFDiscountDate: Date; PaymentTerms: record "Payment Terms"; var IsHandled: boolean)
-#endif
     begin
     end;
 #if not CLEAN30

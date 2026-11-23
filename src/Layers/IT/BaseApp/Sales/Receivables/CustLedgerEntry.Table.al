@@ -358,9 +358,6 @@ table 21 "Cust. Ledger Entry"
             var
                 ReminderEntry: Record "Reminder/Fin. Charge Entry";
                 ReminderIssue: Codeunit "Reminder-Issue";
-#if not CLEAN30
-                PostedPaymentLines: Record "Posted Payment Lines";
-#endif
             begin
                 TestField(Open, true);
                 if "Due Date" <> xRec."Due Date" then begin
@@ -372,19 +369,6 @@ table 21 "Cust. Ledger Entry"
                         ReminderIssue.ChangeDueDate(ReminderEntry, "Due Date", xRec."Due Date");
                 end;
 
-#if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
-                    if PostedPaymentLines.Get(
-                      PostedPaymentLines."Sales/Purchase"::Sales,
-                      "Document Type",
-                      "Document No.",
-                      "Document Occurrence" * 10000)
-                    then begin
-                        PostedPaymentLines."Due Date" := "Due Date";
-                        PostedPaymentLines.Modify();
-                    end;
-                end;
-#endif
             end;
         }
         /// <summary>

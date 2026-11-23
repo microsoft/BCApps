@@ -13811,6 +13811,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
+    [IntegrationEvent(true, false)]
+    local procedure OnBeforeUnApplyWHTEntry(GenJnlLine: Record "Gen. Journal Line"; TransactionType: Option; CVNo: Code[20]; TransactionNo: Integer; VoidCheck: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnPostUnapplyOnBeforeInsertTempVATEntry(var VATEntry: Record "VAT Entry"; var UnapplyVATEntries: Boolean)
     begin

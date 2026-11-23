@@ -62,7 +62,7 @@ codeunit 134497 "ERM Installment Collections"
     end;
 
     [Test]
-    procedure InformationalFutureLinesDoNotAdvanceInstallmentReminderLevels()
+    procedure InstallmentReminderProgressionFlow()
     var
         Invoice: Record "Sales Invoice Header";
         ReminderHeader: Record "Reminder Header";
@@ -70,12 +70,14 @@ codeunit 134497 "ERM Installment Collections"
         Entry: Record "Cust. Ledger Entry";
         ReminderIssue: Codeunit "Reminder-Issue";
     begin
-        // [SCENARIO] Informational future balances do not incur fees or advance installment reminder levels.
+        // [SCENARIO] An installment reminder flow preserves informational future balances, advances only overdue levels, and excludes settled installments.
         // [GIVEN] An unpaid invoice with only its first installment overdue.
         CreatePostedInvoice(Invoice, '', false);
         ConfigureReminders(Invoice."Bill-to Customer No.");
-        // [WHEN] Reminder suggestion includes installments not yet due.
+
+        // [WHEN] Flow step 1: Reminder suggestion includes installments not yet due.
         SuggestReminder(ReminderHeader, Invoice, CalcDate('<45D>', Invoice."Document Date"), false);
+
         // [THEN] Future installments appear only as informational balances with no fee or reminder level.
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"Not Due");
@@ -88,7 +90,7 @@ codeunit 134497 "ERM Installment Collections"
             ReminderLine.TestField(Amount, 0);
         until ReminderLine.Next() = 0;
 
-        // [WHEN] The reminder is issued.
+        // [WHEN] Flow step 2: The suggested reminder is issued.
         ReminderIssue.Set(ReminderHeader, false, ReminderHeader."Document Date");
         LibraryERM.RunReminderIssue(ReminderIssue);
 
@@ -99,8 +101,10 @@ codeunit 134497 "ERM Installment Collections"
         Entry.TestField("Last Issued Reminder Level", 0);
         GetInstallment(Entry, Invoice."Installment Plan ID", 3);
         Entry.TestField("Last Issued Reminder Level", 0);
-        // [WHEN] Reminders are suggested after the second installment becomes overdue.
+
+        // [WHEN] Flow step 3: After issuing the first reminder, another is suggested when the second installment becomes overdue.
         SuggestReminder(ReminderHeader, Invoice, CalcDate('<75D>', Invoice."Document Date"), true);
+
         // [THEN] The first and second installments have independent reminder levels.
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         Assert.AreEqual(2, ReminderLine.Count(), 'Only the first two installments are overdue.');
@@ -113,9 +117,11 @@ codeunit 134497 "ERM Installment Collections"
         ReminderLine.FindFirst();
         ReminderLine.TestField("No. of Reminders", 1);
         VerifyRemaining(Invoice."Installment Plan ID", 3, 41.66);
-        // [WHEN] The first installment is settled and reminders are suggested again.
+
+        // [WHEN] Flow step 4: The previously reminded first installment is settled and reminders are suggested again.
         LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67);
         SuggestReminder(ReminderHeader, Invoice, CalcDate('<80D>', Invoice."Document Date"), true);
+
         // [THEN] Only the second installment is still demanded.
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         Assert.AreEqual(1, ReminderLine.Count(), 'A settled installment must no longer be collected.');

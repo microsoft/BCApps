@@ -847,18 +847,16 @@ codeunit 134493 "ERM Installment Posting"
     end;
 
     [Test]
-    procedure CustomerEntryEditsPreserveInvoiceSummaryAndRejectConditionChanges()
+    procedure CustomerEntryEditsPreserveInvoiceSummary()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         CustEntryEdit: Codeunit "Cust. Entry-Edit";
         SummaryDueDate: Date;
-        EntryDueDate: Date;
     begin
-        // [SCENARIO] Harmless customer entry edits preserve invoice summary dates while posted payment condition changes are rejected.
+        // [SCENARIO] Harmless customer entry edits preserve invoice summary dates.
         // [GIVEN] A posted installment invoice and a middle entry with changed hold and application selections.
         LibraryInstallments.CreateInvoice(SalesHeader, SalesLine, '');
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
@@ -866,7 +864,6 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry.SetRange("Installment Plan ID", SalesInvoiceHeader."Installment Plan ID");
         CustLedgerEntry.SetRange("Installment No.", 2);
         CustLedgerEntry.FindFirst();
-        EntryDueDate := CustLedgerEntry."Due Date";
         CustLedgerEntry."On Hold" := 'X';
         CustLedgerEntry."Applies-to ID" := LibraryUtility.GenerateGUID();
         CustLedgerEntry."Amount to Apply" := 10;
@@ -877,18 +874,51 @@ codeunit 134493 "ERM Installment Posting"
         // [THEN] The logical invoice summary due date is preserved.
         SalesInvoiceHeader.Get(SalesInvoiceHeader."No.");
         Assert.AreEqual(SummaryDueDate, SalesInvoiceHeader."Due Date", 'Entry edits must not replace the invoice summary date.');
+    end;
+
+    [Test]
+    procedure CustomerEntryEditRejectsInstallmentDueDateChange()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        CustEntryEdit: Codeunit "Cust. Entry-Edit";
+        EntryDueDate: Date;
+    begin
+        // [SCENARIO] The customer entry edit codeunit rejects changes to posted installment due dates.
+        // [GIVEN] A posted installment invoice and a middle entry with a changed due date.
+        LibraryInstallments.CreatePostedInvoice(SalesInvoiceHeader, '', true);
+        LibraryInstallments.GetInstallment(CustLedgerEntry, SalesInvoiceHeader."Installment Plan ID", 2);
+        EntryDueDate := CustLedgerEntry."Due Date";
         CustLedgerEntry."Due Date" := EntryDueDate + 1;
+
         // [WHEN] A posted installment due date is changed through the edit codeunit.
         asserterror CustEntryEdit.Run(CustLedgerEntry);
+
         // [THEN] The change is rejected before detailed entry dates are altered.
         Assert.ExpectedError('Changing posted installment payment conditions is not supported');
         DetailedCustLedgEntry.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
         DetailedCustLedgEntry.FindFirst();
         Assert.AreEqual(EntryDueDate, DetailedCustLedgEntry."Initial Entry Due Date", 'The edit must fail before changing detailed entries.');
-        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
-        // [WHEN] Direct due-date validation is attempted instead.
+    end;
+
+    [Test]
+    procedure CustomerEntryValidationRejectsInstallmentDueDateChange()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        EntryDueDate: Date;
+    begin
+        // [SCENARIO] Direct field validation rejects changes to posted installment due dates.
+        // [GIVEN] A posted installment invoice and its middle customer entry.
+        LibraryInstallments.CreatePostedInvoice(SalesInvoiceHeader, '', true);
+        LibraryInstallments.GetInstallment(CustLedgerEntry, SalesInvoiceHeader."Installment Plan ID", 2);
+        EntryDueDate := CustLedgerEntry."Due Date";
+
+        // [WHEN] Direct due-date validation is attempted.
         asserterror CustLedgerEntry.Validate("Due Date", EntryDueDate + 1);
-        // [THEN] The same posted-condition restriction applies.
+
+        // [THEN] The posted-condition restriction rejects the change.
         Assert.ExpectedError('Changing posted installment payment conditions is not supported');
     end;
 

@@ -144,10 +144,12 @@ report 295 "Combine Shipments"
                                         then begin
                                             NoOfskippedShiment := NoOfskippedShiment + 1;
                                             CurrReport.Skip();
+                                            exit;
                                         end;
                                     end else begin
                                         NoOfskippedShiment := NoOfskippedShiment + 1;
                                         CurrReport.Skip();
+                                        exit;
                                     end;
                                 until PaymentTermsLine.Next() = 0;
                         end else
@@ -164,10 +166,12 @@ report 295 "Combine Shipments"
                                 then begin
                                     NoOfskippedShiment := NoOfskippedShiment + 1;
                                     CurrReport.Skip();
+                                    exit;
                                 end;
                             end else begin
                                 NoOfskippedShiment := NoOfskippedShiment + 1;
                                 CurrReport.Skip();
+                                exit;
                             end;
                         end;
                     end;

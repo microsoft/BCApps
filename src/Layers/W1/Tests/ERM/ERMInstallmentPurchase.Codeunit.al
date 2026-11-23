@@ -146,8 +146,8 @@ codeunit 134501 "ERM Installment Purchase"
         PrepareVendorUpgradeAfterCustomerUpgrade();
 
         // [WHEN] The vendor upgrade runs after the customer upgrade has already completed.
-        InstallmentLedgerUpgrade.UpgradeInvoiceGroups();
-        InstallmentLedgerUpgrade.UpgradeInvoiceGroups();
+        InstallmentLedgerUpgrade.UpgradeVendorInvoiceGroups();
+        InstallmentLedgerUpgrade.UpgradeVendorInvoiceGroups();
 
         // [THEN] Ordinary entries use their own ledger anchor without changing amounts or audit timestamps.
         VendorLedgerEntry.Get(VendorLedgerEntry."Entry No.");
@@ -187,7 +187,7 @@ codeunit 134501 "ERM Installment Purchase"
         PrepareVendorUpgradeAfterCustomerUpgrade();
 
         // [WHEN] The vendor upgrade encounters the inconsistent plan.
-        InstallmentLedgerUpgrade.UpgradeInvoiceGroups();
+        InstallmentLedgerUpgrade.UpgradeVendorInvoiceGroups();
 
         // [THEN] The valid plan is grouped, but the incomplete upgrade remains retryable.
         Assert.IsFalse(UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag()), 'An incomplete vendor backfill must not set its upgrade tag.');
@@ -201,8 +201,8 @@ codeunit 134501 "ERM Installment Purchase"
         // [WHEN] The invoice identity is repaired and the upgrade is repeated.
         Plan."Posted Invoice SystemId" := PurchInvHeader.SystemId;
         Plan.Modify();
-        InstallmentLedgerUpgrade.UpgradeInvoiceGroups();
-        InstallmentLedgerUpgrade.UpgradeInvoiceGroups();
+        InstallmentLedgerUpgrade.UpgradeVendorInvoiceGroups();
+        InstallmentLedgerUpgrade.UpgradeVendorInvoiceGroups();
 
         // [THEN] Both groups retain their correct anchors and the vendor upgrade completes independently.
         Assert.IsTrue(UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag()), 'A successful vendor backfill must set its own upgrade tag.');
