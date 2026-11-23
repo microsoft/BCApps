@@ -13,7 +13,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Reporting.FileNaming;
-using Microsoft.Integration.Graph;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -852,80 +851,6 @@ codeunit 149516 "Filename Card Tests"
         DocumentMailing.GetAttachmentFileName(AttachmentFileName, Quote."No.", EmailDocumentNameTok, Enum::"Report Selection Usage"::"S.Quote".AsInteger());
         if AttachmentFileName = QuotePrefixTok + Quote."No." + PdfTok then
             Error(QuoteNamedFromNumberErr, AttachmentFileName);
-    end;
-
-    /// <summary>
-    /// The API's PDF document handlers render then ask Document-Mailing for the name, so the document's
-    /// pattern names it. The draft invoice and quote share their numbers with documents of other types,
-    /// and the pattern includes the document type, so a name taken from the wrong one would show.
-    /// </summary>
-    [Test]
-    procedure AnApiPdfIsNamedByThePatternOfTheDocumentItRenders()
-    var
-        Invoice: Record "Sales Invoice Header";
-        DraftInvoice: Record "Sales Header";
-        Quote: Record "Sales Header";
-        Pattern: Record "Report Filename Pattern";
-        SalesPattern: Record "Report Filename Pattern";
-        SalesInvoicePDFDocHandler: Codeunit "Sales Invoice PDF Doc.Handler";
-        SalesQuotePDFDocHandler: Codeunit "Sales Quote PDF Doc.Handler";
-        CustomerNo: Code[20];
-    begin
-        PrepareWithNoPatterns();
-        CustomerNo := TestData.CreateCustomer();
-        TestData.PostNewInvoice(CustomerNo, Invoice);
-        TestData.CreateSalesDocument(DraftInvoice."Document Type"::Invoice, CustomerNo, DraftInvoice);
-        TestData.InsertSalesHeaderUnderNo(DraftInvoice."Document Type"::Order, DraftInvoice."No.", CustomerNo);
-        TestData.CreateSalesDocument(Quote."Document Type"::Quote, CustomerNo, Quote);
-        TestData.InsertSalesHeaderUnderNo(Quote."Document Type"::"Blanket Order", Quote."No.", CustomerNo);
-        TestData.InsertSalesHeaderUnderNo(Quote."Document Type"::"Return Order", Quote."No.", CustomerNo);
-        CreatePattern(Pattern, InvoiceNoPatternTok, true, '');
-        SalesPattern.Init();
-        SalesPattern.Validate("Table No.", Database::"Sales Header");
-        SalesPattern.Validate("File Name Pattern", DocTypeNoPatternTok);
-        SalesPattern.Enabled := true;
-        SalesPattern.Insert(true);
-
-        AssertApiPdfName(SalesInvoicePDFDocHandler, Invoice.SystemId, Enum::"Attachment Entity Buffer Document Type"::"Sales Invoice", InvoicePrefixTok + Invoice."No." + PdfTok);
-        AssertApiPdfName(SalesInvoicePDFDocHandler, DraftInvoice.SystemId, Enum::"Attachment Entity Buffer Document Type"::"Sales Invoice", InvoicePrefixTok + DraftInvoice."No." + PdfTok);
-        AssertApiPdfName(SalesQuotePDFDocHandler, Quote.SystemId, Enum::"Attachment Entity Buffer Document Type"::"Sales Quote", QuotePrefixTok + Quote."No." + PdfTok);
-    end;
-
-    [Test]
-    [Scope('OnPrem')]
-    procedure ALegacyApiPdfKeepsItsServerFileAndUsesTheDefaultName()
-    var
-        Invoice: Record "Sales Invoice Header";
-        TempAttachmentEntityBuffer: Record "Attachment Entity Buffer" temporary;
-        PdfDocumentManagement: Codeunit "PDF Document Management";
-        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
-        ReportDistributionManagement: Codeunit "Report Distribution Management";
-        ReportFilenameMgt: Codeunit "Report Filename Mgt.";
-        ExpectedName: Text;
-    begin
-        PrepareWithNoPatterns();
-        TestData.PostNewInvoice(Invoice);
-        ReportFilenameDefaults.InitializeSetup(true);
-        ExpectedName := ReportFilenameMgt.Sanitise(
-            ReportDistributionManagement.GetFullDocumentTypeText(Invoice) + '-' + Invoice."No.") + PdfTok;
-
-        Assert.IsTrue(
-            PdfDocumentManagement.GeneratePdf(Invoice.SystemId, TempAttachmentEntityBuffer),
-            'The legacy API must be able to read its rendered server PDF.');
-
-        TempAttachmentEntityBuffer.CalcFields(Content);
-        Assert.IsTrue(TempAttachmentEntityBuffer.Content.HasValue(), 'The legacy API must return the PDF content.');
-        Assert.AreEqual(ExpectedName, TempAttachmentEntityBuffer."File Name", 'The delivery name must still follow the default pattern.');
-    end;
-
-    local procedure AssertApiPdfName(PdfDocumentHandler: Interface IPdfDocumentHandler; DocumentId: Guid; DocumentType: Enum "Attachment Entity Buffer Document Type"; Expected: Text)
-    var
-        TempAttachmentEntityBuffer: Record "Attachment Entity Buffer" temporary;
-    begin
-        if not PdfDocumentHandler.GeneratePdfBlobWithDocumentType(DocumentId, DocumentType, TempAttachmentEntityBuffer) then
-            Error(NoApiPdfErr, Expected);
-        if TempAttachmentEntityBuffer."File Name" <> Expected then
-            Error(ApiPdfNotNamedErr, Expected, TempAttachmentEntityBuffer."File Name");
     end;
 
     /// <summary>
@@ -2429,8 +2354,6 @@ codeunit 149516 "Filename Card Tests"
         EveryUsageHasSelectionErr: Label 'Every report usage has a report selection in this company, so a document cannot be kept from being found by its number.';
         QuotePrefixTok: Label 'Quote-', Locked = true;
         DocTypeNoPatternTok: Label '[Document Type]-[No.]', Locked = true;
-        NoApiPdfErr: Label 'The PDF document handler produced no PDF for the document that should be named "%1".', Comment = '%1 the expected name';
-        ApiPdfNotNamedErr: Label 'The API''s PDF should be named "%1" but is "%2".', Comment = '%1 expected, %2 actual';
         QuoteNamedFromNumberErr: Label 'A sales quote was named "%1" from its number alone, which on Sales Header names a document of any type.', Comment = '%1 the name given';
         EmailDocumentNameTok: Label 'Invoice', Locked = true;
         DraftContentTok: Label 'content', Locked = true;

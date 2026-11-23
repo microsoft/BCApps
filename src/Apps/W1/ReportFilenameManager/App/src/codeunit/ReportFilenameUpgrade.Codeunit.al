@@ -21,23 +21,15 @@ codeunit 8145 "Report Filename Upgrade"
     internal procedure UpgradeDefaults()
     var
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
-        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        if UpgradeTag.HasUpgradeTag(GetDefaultPatternsUpgradeTag()) then
-            exit;
-
-        ReportFilenameDefaults.InitializeSetup(false);
-        UpgradeTag.SetUpgradeTag(GetDefaultPatternsUpgradeTag());
-    end;
-
-    internal procedure GetDefaultPatternsUpgradeTag(): Code[250]
-    begin
-        exit('MS-658065-ReportFilenameDefaults-20261105');
+        ReportFilenameDefaults.InitializeExistingCompany();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    var
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
     begin
-        PerCompanyUpgradeTags.Add(GetDefaultPatternsUpgradeTag());
+        PerCompanyUpgradeTags.Add(ReportFilenameDefaults.GetDefaultPatternsUpgradeTag());
     end;
 }

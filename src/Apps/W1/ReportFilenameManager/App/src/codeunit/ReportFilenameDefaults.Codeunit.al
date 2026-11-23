@@ -27,6 +27,7 @@ using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Reports;
 using Microsoft.Warehouse.Reports;
+using System.Upgrade;
 
 codeunit 8143 "Report Filename Defaults"
 {
@@ -70,9 +71,20 @@ codeunit 8143 "Report Filename Defaults"
     end;
 
     internal procedure InitializeExistingCompany()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
-        // Installation only visits companies that already exist, including empty ones.
+        // Both install and upgrade must leave subsequent user deletions intact.
+        if UpgradeTag.HasUpgradeTag(GetDefaultPatternsUpgradeTag()) then
+            exit;
+
         InitializeSetup(false);
+        UpgradeTag.SetUpgradeTag(GetDefaultPatternsUpgradeTag());
+    end;
+
+    internal procedure GetDefaultPatternsUpgradeTag(): Code[250]
+    begin
+        exit('MS-658065-ReportFilenameDefaults-20261105');
     end;
 
     local procedure InsertDefaultPattern(TableNo: Integer)
@@ -222,6 +234,8 @@ codeunit 8143 "Report Filename Defaults"
         // Copied settings and subsequent initialization must retain the user's choices.
         if ReportFilenameSetup.Get() then
             exit;
+        // Company-Initialize has already set all upgrade tags before this event.
+        // New-company seeding must not use the install/upgrade completion guard.
         InitializeSetup(EnableForNewCompany);
     end;
 }

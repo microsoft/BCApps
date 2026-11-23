@@ -20,6 +20,7 @@ using System.Utilities;
 
 codeunit 149550 "Filename Defaults Tests"
 {
+    // [FEATURE] [Report Filename Manager] [Default Patterns] [Company Initialization]
     Subtype = Test;
     TestType = UnitTest;
     TestPermissions = Disabled;
@@ -36,19 +37,25 @@ codeunit 149550 "Filename Defaults Tests"
         MultipleRecordReportErr: Label 'Report %1 must name a multi-record run.', Locked = true, Comment = '%1 = Report ID.';
 
     [Test]
-    procedure NewCompanyGetsEnabledDefaults()
+    procedure NewCompanyGetsEnabledDefaultsAfterUpgradeTagsAreSet()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        UpgradeTag: Codeunit "Upgrade Tag";
     begin
+        // [SCENARIO] A new company gets enabled defaults even though Company-Initialize sets upgrade tags first.
+        // [GIVEN] No previous company setup or filename configuration.
         Initialize();
         GeneralLedgerSetup.DeleteAll();
 
+        // [WHEN] The company initializes, setting the registered tag before OnCompanyInitialize.
         ReportFilenameDefaults.OnBeforeCompanyInitialize();
         GeneralLedgerSetup.Init();
         GeneralLedgerSetup.Insert();
+        UpgradeTag.SetUpgradeTag(ReportFilenameDefaults.GetDefaultPatternsUpgradeTag());
         ReportFilenameDefaults.OnCompanyInitialize();
 
+        // [THEN] The completion tag must not prevent new-company seeding and enablement.
         AssertSetup(true, 100);
         AssertDefaults();
     end;
@@ -56,16 +63,21 @@ codeunit 149550 "Filename Defaults Tests"
     [Test]
     procedure ExistingCompanyWithoutSetupIsNotEnabledByUpgrade()
     var
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
         ReportFilenameUpgrade: Codeunit "Report Filename Upgrade";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
+        // [SCENARIO] Upgrading a company without filename setup supplies defaults without opting it in.
+        // [GIVEN] An existing company has never configured filenames.
         Initialize();
 
+        // [WHEN] The filename defaults migration runs.
         ReportFilenameUpgrade.UpgradeDefaults();
 
+        // [THEN] Disabled setup and the complete catalogue are created and the migration is recorded.
         AssertSetup(false, 100);
         AssertDefaults();
-        Assert.IsTrue(UpgradeTag.HasUpgradeTag(ReportFilenameUpgrade.GetDefaultPatternsUpgradeTag()), 'Upgrade must be recorded.');
+        Assert.IsTrue(UpgradeTag.HasUpgradeTag(ReportFilenameDefaults.GetDefaultPatternsUpgradeTag()), 'Upgrade must be recorded.');
     end;
 
     [Test]
@@ -78,11 +90,15 @@ codeunit 149550 "Filename Defaults Tests"
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
         DocumentRecRef: RecordRef;
     begin
+        // [SCENARIO] Each generic posted-document default resolves the actual document kind and number.
+        // [GIVEN] Enabled defaults and an isolated temporary header for each of the four document tables.
         Initialize();
         ReportFilenameDefaults.InitializeSetup(true);
         TempSalesInvoiceHeader."No." := 'DEFAULT-100';
         TempSalesInvoiceHeader.Insert();
         DocumentRecRef.GetTable(TempSalesInvoiceHeader);
+        // [WHEN] Each temporary document is named with the default rule.
+        // [THEN] Its own document kind and number form the filename, as checked by AssertDefaultName.
         AssertDefaultName(DocumentRecRef);
         DocumentRecRef.Close();
 
@@ -117,6 +133,8 @@ codeunit 149550 "Filename Defaults Tests"
         ServerPath: Text;
         Success: Boolean;
     begin
+        // [SCENARIO] Preserving an intermediate server path must not suppress the next client filename.
+        // [GIVEN] An enabled default and the same document, subscriber and success state for both calls.
         Initialize();
         ReportFilenameDefaults.InitializeSetup(true);
         TempSalesInvoiceHeader."No." := 'DEFAULT-100';
@@ -126,9 +144,12 @@ codeunit 149550 "Filename Defaults Tests"
         ServerPath := 'C:\Temp\report-filename-defaults.pdf';
         FileName := ServerPath;
 
+        // [WHEN] One render-to-client flow first requests a server path and then a client filename.
+        // Keep these calls in order: separate tests would miss state leaking from the first to the second.
         ReportFilenameSubscribers.NameFromPlatformEvent(
             Report::"Standard Sales - Invoice", Payload, '.pdf', DocumentRecRef, FileName, Success);
 
+        // [THEN] The server path remains caller-owned and the next output is still named.
         Assert.AreEqual(ServerPath, FileName, 'The caller must be able to reopen its explicit server output path.');
         Assert.IsFalse(Success, 'Preserving a server path must leave platform naming unhandled.');
 
@@ -153,10 +174,14 @@ codeunit 149550 "Filename Defaults Tests"
         ReportId: Integer;
         FileName: Text;
     begin
+        // [SCENARIO] All 69 requested reports get a valid default for both single- and multi-record output.
+        // [GIVEN] The complete enabled catalogue and isolated temporary subjects.
         Initialize();
         ReportFilenameDefaults.InitializeSetup(true);
         RequestedReportIds(ReportIds);
 
+        // [WHEN] Each report is resolved, first for one subject and then for multiple subjects where applicable.
+        // [THEN] Its enabled rule uses the actual subject identifiers or record-independent placeholders.
         foreach ReportId in ReportIds do begin
             Pattern.Reset();
             Pattern.SetRange("Report ID", ReportId);
@@ -199,15 +224,19 @@ codeunit 149550 "Filename Defaults Tests"
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
         EntryNo: Integer;
     begin
+        // [SCENARIO] A disabled table-level custom choice must not be shadowed by report defaults.
+        // [GIVEN] A disabled Sales Header pattern exists.
         Initialize();
         Pattern.Validate("Table No.", Database::"Sales Header");
         Pattern.Validate("File Name Pattern", 'Custom-[No.]');
         Pattern.Insert(true);
         EntryNo := Pattern."Entry No.";
 
+        // [WHEN] Default initialization is repeated.
         ReportFilenameDefaults.InitializeSetup(false);
         ReportFilenameDefaults.InitializeSetup(false);
 
+        // [THEN] Only the original disabled table-level choice remains for that table.
         Pattern.SetRange("Table No.", Database::"Sales Header");
         Assert.AreEqual(1, Pattern.Count(), 'No report default may shadow an existing disabled table choice.');
         Pattern.FindFirst();
@@ -222,15 +251,19 @@ codeunit 149550 "Filename Defaults Tests"
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
         EntryNo: Integer;
     begin
+        // [SCENARIO] An existing report choice suppresses only its own default, not sibling reports.
+        // [GIVEN] A disabled custom sales quote pattern exists.
         Initialize();
         Pattern.Validate("Report ID", Report::"Standard Sales - Quote");
         Pattern.Validate("File Name Pattern", 'Custom-[No.]');
         Pattern.Insert(true);
         EntryNo := Pattern."Entry No.";
 
+        // [WHEN] Default initialization is repeated.
         ReportFilenameDefaults.InitializeSetup(true);
         ReportFilenameDefaults.InitializeSetup(true);
 
+        // [THEN] The quote choice is preserved and the sales order confirmation still receives its default.
         Pattern.SetRange("Report ID", Report::"Standard Sales - Quote");
         Assert.AreEqual(1, Pattern.Count(), 'An existing report choice must not get a competing default.');
         Pattern.FindFirst();
@@ -250,6 +283,8 @@ codeunit 149550 "Filename Defaults Tests"
         ContactName: Text;
         SegmentName: Text;
     begin
+        // [SCENARIO] Contact Cover Sheet uses the same record-independent name for either supported source.
+        // [GIVEN] Enabled defaults and two temporary contacts.
         Initialize();
         ReportFilenameDefaults.InitializeSetup(true);
         TempContact."No." := 'CONTACT-100';
@@ -258,6 +293,7 @@ codeunit 149550 "Filename Defaults Tests"
         TempContact.Insert();
         Subject.GetTable(TempContact);
 
+        // [WHEN] The report is resolved first from contacts and then from temporary segment subjects.
         Assert.IsTrue(ReportFilenameMgt.TryResolve(Report::"Contact Cover Sheet", "Report Filename Output Route"::Save, Subject, '', ContactName),
             'The contact-driven cover sheet must resolve for multiple contacts.');
         Subject.Close();
@@ -267,6 +303,7 @@ codeunit 149550 "Filename Defaults Tests"
         Assert.IsTrue(ReportFilenameMgt.TryResolve(Report::"Contact Cover Sheet", "Report Filename Output Route"::Save, Subject, '', SegmentName),
             'The segment-driven cover sheet must resolve for multiple segments.');
 
+        // [THEN] Neither source invents document identifiers from the other table.
         Assert.AreEqual(ContactName, SegmentName, 'Both sources use the report caption and run date, not the wrong table number.');
         Assert.IsFalse(ContactName.Contains('CONTACT-'), 'A record-independent pattern must not invent a segment number for contacts.');
         Subject.Close();
@@ -283,10 +320,14 @@ codeunit 149550 "Filename Defaults Tests"
         FileName: Text;
         Success: Boolean;
     begin
+        // [SCENARIO] Tracking reports use report-level placeholders without fabricating a document from Integer loops.
+        // [GIVEN] Enabled defaults and no persistent source records.
         Initialize();
         ReportFilenameDefaults.InitializeSetup(true);
         Payload.Add('intent', 'Save');
 
+        // [WHEN] Tracing has no record and tracking has a multi-row virtual loop.
+        // [THEN] Both are named without treating loop counters as document identifiers.
         ReportFilenameSubscribers.NameFromPlatformEvent(Report::"Item Tracing Specification", Payload, '.pdf', Subject, FileName, Success);
         Assert.IsTrue(Success, 'An Integer-only tracing report must be named without a source record.');
         Assert.IsTrue(FileName.EndsWith('.pdf'), 'The output route must preserve the format extension.');
@@ -307,11 +348,15 @@ codeunit 149550 "Filename Defaults Tests"
     var
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
     begin
+        // [SCENARIO] Installation into an existing initialized company does not opt it in.
+        // [GIVEN] General ledger setup exists but filename setup does not.
         Initialize();
         EnsureGeneralLedgerSetup();
 
+        // [WHEN] The install initialization runs.
         ReportFilenameDefaults.InitializeExistingCompany();
 
+        // [THEN] The complete catalogue is created with the company feature disabled.
         AssertSetup(false, 100);
         AssertDefaults();
     end;
@@ -322,15 +367,19 @@ codeunit 149550 "Filename Defaults Tests"
         GeneralLedgerSetup: Record "General Ledger Setup";
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
     begin
+        // [SCENARIO] Installation must not mistake an empty existing company for a newly created company.
+        // [GIVEN] An existing company has neither general ledger nor filename setup.
         Initialize();
         GeneralLedgerSetup.DeleteAll();
 
+        // [WHEN] Installation supplies defaults and company initialization subsequently runs.
         ReportFilenameDefaults.InitializeExistingCompany();
         AssertSetup(false, 100);
         AssertDefaults();
         ReportFilenameDefaults.OnBeforeCompanyInitialize();
         ReportFilenameDefaults.OnCompanyInitialize();
 
+        // [THEN] The install-time disabled choice is preserved.
         AssertSetup(false, 100);
         AssertDefaults();
     end;
@@ -340,12 +389,16 @@ codeunit 149550 "Filename Defaults Tests"
     var
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
     begin
+        // [SCENARIO] Manually rerunning company initialization must not enable an existing company.
+        // [GIVEN] General ledger setup exists but filename setup is absent.
         Initialize();
         EnsureGeneralLedgerSetup();
 
+        // [WHEN] Company initialization runs again.
         ReportFilenameDefaults.OnBeforeCompanyInitialize();
         ReportFilenameDefaults.OnCompanyInitialize();
 
+        // [THEN] Defaults are supplied without enabling the feature.
         AssertSetup(false, 100);
         AssertDefaults();
     end;
@@ -353,13 +406,41 @@ codeunit 149550 "Filename Defaults Tests"
     [Test]
     procedure UpgradePreservesEnabledSetupAndCustomPattern()
     begin
-        VerifyUpgradePreservesConfiguration(true);
+        // [SCENARIO] Upgrade and repeated installation preserve an enabled company and its custom report rule.
+        // [GIVEN] Enabled customized setup, as arranged by the shared verification.
+        // [WHEN] Upgrade and install initialization are repeated.
+        // [THEN] The enabled state and custom rule are unchanged.
+        VerifyExistingCompanyPreservesConfiguration(true, false);
     end;
 
     [Test]
     procedure UpgradePreservesDisabledSetupAndCustomPattern()
     begin
-        VerifyUpgradePreservesConfiguration(false);
+        // [SCENARIO] Upgrade and repeated installation preserve a disabled company and its custom report rule.
+        // [GIVEN] Disabled customized setup, as arranged by the shared verification.
+        // [WHEN] Upgrade and install initialization are repeated.
+        // [THEN] The disabled state and custom rule are unchanged.
+        VerifyExistingCompanyPreservesConfiguration(false, false);
+    end;
+
+    [Test]
+    procedure InstallationPreservesEnabledSetupAndCustomPattern()
+    begin
+        // [SCENARIO] First installation preserves an already enabled company and its custom report rule.
+        // [GIVEN] Enabled customized setup without a completion tag.
+        // [WHEN] Installation runs before the first upgrade.
+        // [THEN] The enabled state and custom rule are unchanged.
+        VerifyExistingCompanyPreservesConfiguration(true, true);
+    end;
+
+    [Test]
+    procedure InstallationPreservesDisabledSetupAndCustomPattern()
+    begin
+        // [SCENARIO] First installation preserves an already disabled company and its custom report rule.
+        // [GIVEN] Disabled customized setup without a completion tag.
+        // [WHEN] Installation runs before the first upgrade.
+        // [THEN] The disabled state and custom rule are unchanged.
+        VerifyExistingCompanyPreservesConfiguration(false, true);
     end;
 
     [Test]
@@ -370,6 +451,8 @@ codeunit 149550 "Filename Defaults Tests"
         EntryNo: Integer;
         AppId: Guid;
     begin
+        // [SCENARIO] Upgrade preserves all customized fields on an enabled table pattern.
+        // [GIVEN] An enabled company with a customized separator, aggregation limit and owning app.
         Initialize();
         CreateSetup(true);
         AppId := CreateGuid();
@@ -383,8 +466,10 @@ codeunit 149550 "Filename Defaults Tests"
         Pattern.Insert(true);
         EntryNo := Pattern."Entry No.";
 
+        // [WHEN] Default migration runs.
         ReportFilenameUpgrade.UpgradeDefaults();
 
+        // [THEN] Every customized field remains intact and no competing table default is added.
         Pattern.Get(EntryNo);
         Assert.IsTrue(Pattern.Enabled, 'Enabled custom patterns must remain enabled.');
         Assert.AreEqual('Custom-[No.]', Pattern."File Name Pattern", 'Custom naming must not be overwritten.');
@@ -401,12 +486,16 @@ codeunit 149550 "Filename Defaults Tests"
         ReportFilenameUpgrade: Codeunit "Report Filename Upgrade";
         EntryNo: Integer;
     begin
+        // [SCENARIO] Existing custom patterns without a setup row do not identify a new company.
+        // [GIVEN] A custom report rule exists but filename setup does not.
         Initialize();
         CreateCustomPattern(Pattern);
         EntryNo := Pattern."Entry No.";
 
+        // [WHEN] Upgrade supplies the missing setup and defaults.
         ReportFilenameUpgrade.UpgradeDefaults();
 
+        // [THEN] The company remains disabled and the custom rule is preserved.
         AssertSetup(false, 100);
         AssertCustomPattern(EntryNo);
         Assert.AreEqual(69, Pattern.Count(), 'The custom pattern replaces its table default without preventing other defaults.');
@@ -420,6 +509,8 @@ codeunit 149550 "Filename Defaults Tests"
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
         EntryNo: Integer;
     begin
+        // [SCENARIO] Reinitialization neither duplicates rules nor reenables a user's disabled choices.
+        // [GIVEN] Initialized defaults with the feature and one default manually disabled.
         Initialize();
         ReportFilenameDefaults.InitializeSetup(true);
         Setup.Get();
@@ -431,11 +522,13 @@ codeunit 149550 "Filename Defaults Tests"
         Pattern.Validate(Enabled, false);
         Pattern.Modify(true);
 
+        // [WHEN] Default and company initialization are repeated.
         ReportFilenameDefaults.InitializeSetup(true);
         ReportFilenameDefaults.InitializeSetup(false);
         ReportFilenameDefaults.OnBeforeCompanyInitialize();
         ReportFilenameDefaults.OnCompanyInitialize();
 
+        // [THEN] Both disabled choices remain unchanged and the catalogue has no duplicates.
         AssertSetup(false, 100);
         Pattern.Get(EntryNo);
         Assert.IsFalse(Pattern.Enabled, 'Initialization must not reenable a disabled default.');
@@ -449,31 +542,92 @@ codeunit 149550 "Filename Defaults Tests"
         Pattern: Record "Report Filename Pattern";
         ReportFilenameUpgrade: Codeunit "Report Filename Upgrade";
     begin
+        // [SCENARIO] A completed upgrade must not restore a subsequently deleted default.
+        // [GIVEN] Default migration has completed and the sales invoice default is then deleted.
         Initialize();
         ReportFilenameUpgrade.UpgradeDefaults();
         Pattern.SetRange("Table No.", Database::"Sales Invoice Header");
         Pattern.DeleteAll();
 
+        // [WHEN] Upgrade initialization is repeated.
         ReportFilenameUpgrade.UpgradeDefaults();
 
+        // [THEN] The deleted default stays absent.
         Assert.IsTrue(Pattern.IsEmpty(), 'A completed upgrade must not undo a subsequent deletion.');
         Pattern.Reset();
         Assert.AreEqual(68, Pattern.Count(), 'Upgrade must run only once.');
     end;
 
     [Test]
+    procedure UpgradeDoesNotRestoreDefaultsDeletedAfterInstallation()
+    var
+        Pattern: Record "Report Filename Pattern";
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+        ReportFilenameUpgrade: Codeunit "Report Filename Upgrade";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        // [SCENARIO] The first upgrade after installation respects a user's deleted default.
+        // [GIVEN] Installation seeded an existing company and the sales invoice default was deleted.
+        Initialize();
+        ReportFilenameDefaults.InitializeExistingCompany();
+        Assert.IsTrue(UpgradeTag.HasUpgradeTag(ReportFilenameDefaults.GetDefaultPatternsUpgradeTag()), 'Installation must record completion.');
+        Pattern.SetRange("Table No.", Database::"Sales Invoice Header");
+        Pattern.DeleteAll();
+
+        // [WHEN] The company reaches the upgrade callback for the first time.
+        ReportFilenameUpgrade.UpgradeDefaults();
+
+        // [THEN] Upgrade does not restore the deleted rule or change the feature state.
+        AssertSetup(false, 100);
+        Assert.IsTrue(Pattern.IsEmpty(), 'Upgrade must not restore a default deleted after installation.');
+        Pattern.Reset();
+        Assert.AreEqual(68, Pattern.Count(), 'Upgrade must reuse the install completion tag.');
+    end;
+
+    [Test]
+    procedure ReinstallationDoesNotRestoreDeletedDefaults()
+    var
+        Pattern: Record "Report Filename Pattern";
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
+    begin
+        // [SCENARIO] Reinstalling the app respects a default deleted after the initial installation.
+        // [GIVEN] Installation seeded an existing company and the sales invoice default was deleted.
+        Initialize();
+        ReportFilenameDefaults.InitializeExistingCompany();
+        Pattern.SetRange("Table No.", Database::"Sales Invoice Header");
+        Pattern.DeleteAll();
+
+        // [WHEN] Install initialization runs again.
+        ReportFilenameDefaults.InitializeExistingCompany();
+
+        // [THEN] Reinstallation does not restore the deleted rule or change the feature state.
+        AssertSetup(false, 100);
+        Assert.IsTrue(Pattern.IsEmpty(), 'Reinstallation must not restore a deleted default.');
+        Pattern.Reset();
+        Assert.AreEqual(68, Pattern.Count(), 'Reinstallation must not repeat the completed migration.');
+    end;
+
+    [Test]
     procedure CompanyInitializePreservesCopiedDisabledConfiguration()
     begin
+        // [SCENARIO] Company initialization retains a copied disabled configuration.
+        // [GIVEN] A disabled source configuration and custom rule have already been copied.
+        // [WHEN] Company initialization runs repeatedly.
+        // [THEN] The copied feature state and custom rule remain unchanged.
         VerifyCompanyInitializePreservesConfiguration(false);
     end;
 
     [Test]
     procedure CompanyInitializePreservesCopiedEnabledConfiguration()
     begin
+        // [SCENARIO] Company initialization retains a copied enabled configuration.
+        // [GIVEN] An enabled source configuration and custom rule have already been copied.
+        // [WHEN] Company initialization runs repeatedly.
+        // [THEN] The copied feature state and custom rule remain unchanged.
         VerifyCompanyInitializePreservesConfiguration(true);
     end;
 
-    local procedure VerifyUpgradePreservesConfiguration(Enabled: Boolean)
+    local procedure VerifyExistingCompanyPreservesConfiguration(Enabled: Boolean; InstallFirst: Boolean)
     var
         Pattern: Record "Report Filename Pattern";
         ReportFilenameDefaults: Codeunit "Report Filename Defaults";
@@ -485,6 +639,8 @@ codeunit 149550 "Filename Defaults Tests"
         CreateCustomPattern(Pattern);
         EntryNo := Pattern."Entry No.";
 
+        if InstallFirst then
+            ReportFilenameDefaults.InitializeExistingCompany();
         ReportFilenameUpgrade.UpgradeDefaults();
         ReportFilenameUpgrade.UpgradeDefaults();
         ReportFilenameDefaults.InitializeExistingCompany();
@@ -522,15 +678,15 @@ codeunit 149550 "Filename Defaults Tests"
         Setup: Record "Report Filename Setup";
         Pattern: Record "Report Filename Pattern";
         FilenameProofGuard: Codeunit "Filename Proof Guard";
-        ReportFilenameUpgrade: Codeunit "Report Filename Upgrade";
+        ReportFilenameDefaults: Codeunit "Report Filename Defaults";
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagLibrary: Codeunit "Upgrade Tag Library";
     begin
         FilenameProofGuard.AssertSafeEnvironment();
         Setup.DeleteAll();
         Pattern.DeleteAll();
-        if UpgradeTag.HasUpgradeTag(ReportFilenameUpgrade.GetDefaultPatternsUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(ReportFilenameUpgrade.GetDefaultPatternsUpgradeTag(), CopyStr(CompanyName(), 1, 30));
+        if UpgradeTag.HasUpgradeTag(ReportFilenameDefaults.GetDefaultPatternsUpgradeTag()) then
+            UpgradeTagLibrary.DeleteUpgradeTag(ReportFilenameDefaults.GetDefaultPatternsUpgradeTag(), CopyStr(CompanyName(), 1, 30));
     end;
 
     local procedure EnsureGeneralLedgerSetup()
