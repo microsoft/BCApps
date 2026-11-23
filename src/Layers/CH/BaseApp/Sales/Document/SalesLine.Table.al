@@ -212,7 +212,8 @@ table 37 "Sales Line"
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
             ValidateTableRelation = false;
-            TableRelation = if (Type = const(" ")) "Standard Text"
+            TableRelation =
+            if (Type = const(" ")) "Standard Text"
             else
             if (Type = const("G/L Account"), "System-Created Entry" = const(false)) "G/L Account" where("Direct Posting" = const(true), "Account Type" = const(Posting), Blocked = const(false))
             else
@@ -484,7 +485,8 @@ table 37 "Sales Line"
         {
             Caption = 'Posting Group';
             Editable = false;
-            TableRelation = if (Type = const(Item)) "Inventory Posting Group"
+            TableRelation =
+            if (Type = const(Item)) "Inventory Posting Group"
             else
             if (Type = const("Fixed Asset")) "FA Posting Group";
         }
@@ -554,7 +556,8 @@ table 37 "Sales Line"
         {
             Caption = 'Description';
             ToolTip = 'Specifies a description of the entry of the product to be sold. To add a non-transactional text line, fill in the Description field only.';
-            TableRelation = if (Type = const("G/L Account"), "System-Created Entry" = const(false)) "G/L Account".Name where("Direct Posting" = const(true), "Account Type" = const(Posting), Blocked = const(false))
+            TableRelation =
+            if (Type = const("G/L Account"), "System-Created Entry" = const(false)) "G/L Account".Name where("Direct Posting" = const(true), "Account Type" = const(Posting), Blocked = const(false))
             else
             if (Type = const("G/L Account"), "System-Created Entry" = const(true)) "G/L Account".Name
             else
@@ -675,7 +678,8 @@ table 37 "Sales Line"
         {
             Caption = 'Unit of Measure';
             ToolTip = 'Specifies the unit of measure for the item or resource on the sales line.';
-            TableRelation = if (Type = filter(<> " ")) "Unit of Measure".Description;
+            TableRelation =
+            if (Type = filter(<> " ")) "Unit of Measure".Description;
             ValidateTableRelation = false;
 
             trigger OnValidate()
@@ -1534,7 +1538,8 @@ table 37 "Sales Line"
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Purchase Order No.';
             Editable = false;
-            TableRelation = if ("Drop Shipment" = const(true)) "Purchase Header"."No." where("Document Type" = const(Order));
+            TableRelation =
+            if ("Drop Shipment" = const(true)) "Purchase Header"."No." where("Document Type" = const(Order));
 
             trigger OnValidate()
             begin
@@ -1552,7 +1557,8 @@ table 37 "Sales Line"
             AccessByPermission = TableData "Sales Shipment Header" = R;
             Caption = 'Purch. Order Line No.';
             Editable = false;
-            TableRelation = if ("Drop Shipment" = const(true)) "Purchase Line"."Line No." where("Document Type" = const(Order),
+            TableRelation =
+            if ("Drop Shipment" = const(true)) "Purchase Line"."Line No." where("Document Type" = const(Order),
                                                                                                "Document No." = field("Purchase Order No."));
 
             trigger OnValidate()
@@ -2839,7 +2845,8 @@ table 37 "Sales Line"
         {
             Caption = 'Variant Code';
             ToolTip = 'Specifies the variant of the item on the line.';
-            TableRelation = if (Type = const(Item), "Document Type" = filter(<> "Credit Memo" & <> "Return Order")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false), "Sales Blocked" = const(false))
+            TableRelation =
+            if (Type = const(Item), "Document Type" = filter(<> "Credit Memo" & <> "Return Order")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false), "Sales Blocked" = const(false))
             else
             if (Type = const(Item), "Document Type" = filter("Credit Memo" | "Return Order")) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
 
@@ -2908,7 +2915,8 @@ table 37 "Sales Line"
         {
             Caption = 'Bin Code';
             ToolTip = 'Specifies the bin where the items are picked or put away.';
-            TableRelation = if ("Document Type" = filter(Order | Invoice),
+            TableRelation =
+            if ("Document Type" = filter(Order | Invoice),
                                 Quantity = filter(>= 0),
                                 "Qty. to Asm. to Order (Base)" = const(0)) "Bin Content"."Bin Code" where("Location Code" = field("Location Code"),
                                                                                                          "Item No." = field("No."),
@@ -3019,7 +3027,8 @@ table 37 "Sales Line"
         {
             Caption = 'Unit of Measure Code';
             ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
-            TableRelation = if (Type = const(Item),
+            TableRelation =
+            if (Type = const(Item),
                                 "No." = filter(<> '')) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource),
@@ -3339,7 +3348,8 @@ table 37 "Sales Line"
         {
             AccessByPermission = TableData "Item Substitution" = R;
             Caption = 'Originally Ordered No.';
-            TableRelation = if (Type = const(Item)) Item;
+            TableRelation =
+            if (Type = const(Item)) Item;
         }
         /// <summary>
         /// Specifies the original variant code before substitution occurred.
@@ -3348,7 +3358,8 @@ table 37 "Sales Line"
         {
             AccessByPermission = TableData "Item Substitution" = R;
             Caption = 'Originally Ordered Var. Code';
-            TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("Originally Ordered No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Variant".Code where("Item No." = field("Originally Ordered No."));
         }
         /// <summary>
         /// Specifies the item category code for classification purposes.
@@ -3459,7 +3470,8 @@ table 37 "Sales Line"
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Special Order Purchase No.';
-            TableRelation = if ("Special Order" = const(true)) "Purchase Header"."No." where("Document Type" = const(Order));
+            TableRelation =
+            if ("Special Order" = const(true)) "Purchase Header"."No." where("Document Type" = const(Order));
         }
         /// <summary>
         /// Specifies the purchase order line number linked to this special order line.
@@ -3468,7 +3480,8 @@ table 37 "Sales Line"
         {
             AccessByPermission = TableData "Drop Shpt. Post. Buffer" = R;
             Caption = 'Special Order Purch. Line No.';
-            TableRelation = if ("Special Order" = const(true)) "Purchase Line"."Line No." where("Document Type" = const(Order),
+            TableRelation =
+            if ("Special Order" = const(true)) "Purchase Line"."Line No." where("Document Type" = const(Order),
                                                                                                "Document No." = field("Special Order Purchase No."));
         }
         /// <summary>
@@ -3503,7 +3516,8 @@ table 37 "Sales Line"
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'Reference Unit of Measure';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."));
         }
         /// <summary>
         /// Specifies the type of item reference such as customer, vendor, or barcode.
@@ -5500,7 +5514,8 @@ table 37 "Sales Line"
         if IsHandled then
             exit(Result);
 
-        if "Blanket Order Line No." = 0 then exit;
+        if "Blanket Order Line No." = 0 then
+            exit;
         BlanketOrderSalesLine.SetLoadFields("Unit Price", "Line Discount %");
         OnBlanketOrderIsRelatedOnAfterSetLoadFields(BlanketOrderSalesLine);
         if BlanketOrderSalesLine.Get("Document Type"::"Blanket Order", "Blanket Order No.", "Blanket Order Line No.") then
