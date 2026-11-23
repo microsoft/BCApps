@@ -28,7 +28,7 @@ codeunit 12195 "Periodic VAT Settlement"
     var
         BusinessActivity: Record "Business Activity";
 #if not CLEAN30
-        ActivityCode: Record "Activity Code";
+        ActivityCode: Record Microsoft.Utilities."Activity Code";
         BusinessActivityFeature: Codeunit "Business Activity Feature IT";
 #endif
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
