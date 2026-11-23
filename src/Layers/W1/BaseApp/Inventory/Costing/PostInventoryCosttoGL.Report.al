@@ -872,7 +872,7 @@ report 1002 "Post Inventory Cost to G/L"
         exit(PostValueEntryToGLCheck.IsFullyPostedToGL(ValueEntry, InvtSetup."Expected Cost Posting to G/L"));
     end;
 
-    local procedure AddPostValueEntryToDelete(ValueEntryNo: Integer)
+    local procedure AddPostValueEntryToDelete(ValueEntryNo: BigInteger)
     begin
         if TempPostValueEntryToGLToDelete.Get(ValueEntryNo) then
             exit;
