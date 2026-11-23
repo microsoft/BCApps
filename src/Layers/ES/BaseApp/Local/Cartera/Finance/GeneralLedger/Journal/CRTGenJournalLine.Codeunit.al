@@ -23,7 +23,7 @@ codeunit 17700 "CRT Gen. Journal Line"
         then
             if PaymentTerms.Get(GenJournalLine."Payment Terms Code") then
                 PaymentTerms.VerifyMaxNoDaysTillDueDate(
-                    GenJournalLine."Due Date", GenJournalLine."Document Date", GenJournalLine.FieldCaption("Due Date"));
+                    GenJournalLine."Due Date", GenJournalLine."Document Date", CopyStr(GenJournalLine.FieldCaption("Due Date"), 1, 50));
 
         if ((GenJournalLine."Document Type" in [GenJournalLine."Document Type"::Bill, GenJournalLine."Document Type"::Invoice, GenJournalLine."Document Type"::"Credit Memo"]) or
             (GenJournalLine."Applies-to Doc. Type" in [GenJournalLine."Applies-to Doc. Type"::Bill, GenJournalLine."Applies-to Doc. Type"::Invoice])) and
