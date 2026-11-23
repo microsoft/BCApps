@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Calculates per diem amounts for the days of a trip.
+/// </summary>
 codeunit 6911 "Expense Per Diem Calculation"
 {
     var
@@ -14,6 +17,14 @@ codeunit 6911 "Expense Per Diem Calculation"
         ExpenseAgentSetup := NewExpenseAgentSetup;
     end;
 
+    /// <summary>
+    /// Calculates the per diem amount for a single day of a trip, based on the full per diem calculation method in the setup and the start and end of the trip.
+    /// </summary>
+    /// <param name="CurrentDate">The day to calculate the per diem amount for.</param>
+    /// <param name="BaseRate">The full daily per diem rate.</param>
+    /// <param name="TripStartDateTime">The date and time when the trip starts.</param>
+    /// <param name="TripEndDateTime">The date and time when the trip ends.</param>
+    /// <returns>The per diem amount for the day.</returns>
     procedure CalculatePerDiemForSingleDay(
         CurrentDate: Date;
         BaseRate: Decimal;

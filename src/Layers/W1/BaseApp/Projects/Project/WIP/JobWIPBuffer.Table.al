@@ -63,7 +63,7 @@ table 1018 "Job WIP Buffer"
             Caption = 'Project Complete';
             DataClassification = SystemMetadata;
         }
-        field(9; "Job WIP Total Entry No."; Integer)
+        field(9; "Job WIP Total Entry No."; BigInteger)
         {
             Caption = 'Project WIP Total Entry No.';
             DataClassification = SystemMetadata;

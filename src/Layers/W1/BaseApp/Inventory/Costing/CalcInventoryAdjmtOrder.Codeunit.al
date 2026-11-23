@@ -152,7 +152,9 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     begin
         OnBeforeUpdateOutputAdjmtBuf(InventoryAdjmtEntryOrder, ItemLedgerEntry, InventoryAdjustmentBuffer);
 
-        if HasNewCost(InventoryAdjmtEntryOrder."Direct Cost", InventoryAdjmtEntryOrder."Direct Cost (ACY)") or not InventoryAdjmtEntryOrder."Completely Invoiced" then
+        if HasNewCost(InventoryAdjmtEntryOrder."Direct Cost", InventoryAdjmtEntryOrder."Direct Cost (ACY)") or
+           not InventoryAdjmtEntryOrder."Completely Invoiced" or not ItemLedgerEntry."Completely Invoiced"
+        then
             InventoryAdjustmentBuffer.AddCost(
               ItemLedgerEntry."Entry No.", InventoryAdjustmentBuffer."Entry Type"::"Direct Cost", "Cost Variance Type"::" ", InventoryAdjmtEntryOrder."Direct Cost", InventoryAdjmtEntryOrder."Direct Cost (ACY)");
         if HasNewCost(InventoryAdjmtEntryOrder."Indirect Cost", InventoryAdjmtEntryOrder."Indirect Cost (ACY)") then
@@ -229,7 +231,7 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
         end;
     end;
 
-    local procedure CalcActualOutputCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: Integer)
+    local procedure CalcActualOutputCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: BigInteger)
     var
         OutputValueEntry: Record "Value Entry";
         IsHandled: Boolean;
@@ -327,7 +329,7 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
             end;
     end;
 
-    procedure AdjustForRevNegCon(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgEntryNo: Integer)
+    procedure AdjustForRevNegCon(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin
@@ -444,7 +446,7 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: Integer; var isHandled: Boolean)
+    local procedure OnBeforeAddCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: BigInteger; var isHandled: Boolean)
     begin
     end;
 

@@ -13,10 +13,12 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores the expense ledger entries that are created when expense reports are posted.
+/// </summary>
 table 6912 "Expense Ledger Entry"
 {
     Caption = 'Expense Ledger Entry';
-    Access = Internal;
     ReplicateData = false;
     DrillDownPageID = "Expense Ledger Entries";
     LookupPageID = "Expense Ledger Entries";
@@ -310,7 +312,7 @@ table 6912 "Expense Ledger Entry"
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
 
-    procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
+    internal procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
     begin
         "Posting Date" := GenJnlLine."Posting Date";
         "Document Type" := GenJnlLine."Document Type";
@@ -333,7 +335,7 @@ table 6912 "Expense Ledger Entry"
         "Expense Subcategory Code" := GenJnlLine."Expense Subcategory Code";
     end;
 
-    procedure CopyFromPostedExpenseReportLine(PostedExpenseReportLine: Record "Posted Expense Report Line")
+    internal procedure CopyFromPostedExpenseReportLine(PostedExpenseReportLine: Record "Posted Expense Report Line")
     begin
         "Document No." := PostedExpenseReportLine."Document No.";
         Description := PostedExpenseReportLine.Description;
@@ -360,7 +362,7 @@ table 6912 "Expense Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    internal procedure GetNextEntryNo(): Integer
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -373,6 +375,9 @@ table 6912 "Expense Ledger Entry"
             exit(PostedExpenseReportHeader."Reimbursement Currency Code");
     end;
 
+    /// <summary>
+    /// Shows the dimension set of the expense ledger entry.
+    /// </summary>
     procedure ShowDimensions()
     var
         DimMgt: Codeunit DimensionManagement;

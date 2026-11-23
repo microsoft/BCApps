@@ -1145,6 +1145,7 @@ codeunit 137504 "SCM Warehouse Unit Tests"
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Warehouse Unit Tests");
         LibraryVariableStorage.Clear();
+        LibraryERMCountryData.CreateVATData();
     end;
 
     local procedure CreateItemWithLotTracking(): Code[20]

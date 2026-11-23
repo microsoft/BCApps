@@ -721,9 +721,19 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not TryGetTableName(TableID, TableName) then
             TableName := 'Table_' + Format(TableID);
 
+        exit(SanitizeTableNameFolder(TableName, TableID));
+    end;
+
+    internal procedure SanitizeTableNameFolder(TableName: Text; TableID: Integer): Text[100]
+    begin
         // Replace invalid characters for folder names
         TableName := DelChr(TableName, '=', '<>:"''/\|?*');
         TableName := ConvertStr(TableName, ' ', '_');
+
+        // Truncation can expose another trailing period.
+        TableName := DelChr(CopyStr(TableName, 1, 100), '>', '.');
+        if TableName = '' then
+            TableName := 'Table_' + Format(TableID);
 
         exit(CopyStr(TableName, 1, 100));
     end;

@@ -39,6 +39,11 @@
       "id": "9c32d4af-77d5-4fba-a3de-361805163a00",
       "name": "Quality Management Test Library",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "40bf2bab-2a57-4c34-9002-c11d23fcbff6",
+      "name": "Quality Management Contoso Coffee Demo Dataset",
+      "publisher": "Microsoft"
     }
   ]
 }

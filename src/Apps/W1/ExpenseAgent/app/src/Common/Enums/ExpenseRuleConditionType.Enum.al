@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies the type of condition in an expense rule, such as a fixed, maximum, or minimum amount, a daily rate, or a justification requirement.
+/// </summary>
 enum 6911 "Expense Rule Condition Type"
 {
-    Access = Internal;
     Caption = 'Condition Type';
 
     value(0; " ") { Caption = 'None'; }
