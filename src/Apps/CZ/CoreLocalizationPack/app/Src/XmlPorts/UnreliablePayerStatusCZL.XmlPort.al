@@ -139,11 +139,10 @@ xmlport 11759 "Unreliable Payer Status CZL"
                 UnreliablePayerEntryCZL.Reset();
                 UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
                 UnreliablePayerEntryCZL.SetRange("VAT Registration No.", Temp1UnreliablePayerEntryCZL."VAT Registration No.");
-                UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::Payer);
+                UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::Payer);
                 if not UnreliablePayerEntryCZL.FindLast() then
                     Clear(UnreliablePayerEntryCZL);
-
-                if (UnreliablePayerEntryCZL."Unreliable Payer" <> Temp1UnreliablePayerEntryCZL."Unreliable Payer") or
+                if (UnreliablePayerEntryCZL.Status <> Temp1UnreliablePayerEntryCZL.Status) or
                    (UnreliablePayerEntryCZL."Tax Office Number" <> Temp1UnreliablePayerEntryCZL."Tax Office Number")
                 then
                     UnreliablePayerEntryCZL."Entry No." := 0;  // new entry
@@ -151,11 +150,12 @@ xmlport 11759 "Unreliable Payer Status CZL"
                 UnreliablePayerEntryCZL.Init();
                 UnreliablePayerEntryCZL."Check Date" := Temp1UnreliablePayerEntryCZL."Check Date";
                 UnreliablePayerEntryCZL."Public Date" := Temp1UnreliablePayerEntryCZL."Public Date";
-                UnreliablePayerEntryCZL."Unreliable Payer" := Temp1UnreliablePayerEntryCZL."Unreliable Payer";
+                UnreliablePayerEntryCZL.Status := Temp1UnreliablePayerEntryCZL.Status;
                 UnreliablePayerEntryCZL."VAT Registration No." := Temp1UnreliablePayerEntryCZL."VAT Registration No.";
                 UnreliablePayerEntryCZL."Tax Office Number" := Temp1UnreliablePayerEntryCZL."Tax Office Number";
-                UnreliablePayerEntryCZL."Entry Type" := UnreliablePayerEntryCZL."Entry Type"::Payer;
+                UnreliablePayerEntryCZL.Type := UnreliablePayerEntryCZL.Type::Payer;
                 UnreliablePayerEntryCZL."Vendor No." := UnreliablePayerMgtCZL.GetVendFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
+                UnreliablePayerEntryCZL."Customer No." := UnreliablePayerMgtCZL.GetCustFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
                 if UnreliablePayerEntryCZL."Entry No." > 0 then
                     UnreliablePayerEntryCZL.Modify()
                 else begin
@@ -172,12 +172,11 @@ xmlport 11759 "Unreliable Payer Status CZL"
                         UnreliablePayerEntryCZL.Reset();
                         UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
                         UnreliablePayerEntryCZL.SetRange("VAT Registration No.", Temp2UnreliablePayerEntryCZL."VAT Registration No.");
-                        UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::"Bank Account");
+                        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::"Bank Account");
                         UnreliablePayerEntryCZL.SetRange("Full Bank Account No.", Temp2UnreliablePayerEntryCZL."Full Bank Account No.");
                         if not UnreliablePayerEntryCZL.FindLast() then
                             Clear(UnreliablePayerEntryCZL);
-
-                        if UnreliablePayerEntryCZL."Bank Account No. Type" <> Temp2UnreliablePayerEntryCZL."Bank Account No. Type" then
+                        if UnreliablePayerEntryCZL."Bank Account Type" <> Temp2UnreliablePayerEntryCZL."Bank Account Type" then
                             UnreliablePayerEntryCZL."Entry No." := 0;  // new entry
 
                         UnreliablePayerEntryCZL.Init();
@@ -186,9 +185,10 @@ xmlport 11759 "Unreliable Payer Status CZL"
                         UnreliablePayerEntryCZL."End Public Date" := Temp2UnreliablePayerEntryCZL."End Public Date";
                         UnreliablePayerEntryCZL."VAT Registration No." := Temp2UnreliablePayerEntryCZL."VAT Registration No.";
                         UnreliablePayerEntryCZL."Full Bank Account No." := Temp2UnreliablePayerEntryCZL."Full Bank Account No.";
-                        UnreliablePayerEntryCZL."Bank Account No. Type" := Temp2UnreliablePayerEntryCZL."Bank Account No. Type";
-                        UnreliablePayerEntryCZL."Entry Type" := UnreliablePayerEntryCZL."Entry Type"::"Bank Account";
+                        UnreliablePayerEntryCZL."Bank Account Type" := Temp2UnreliablePayerEntryCZL."Bank Account Type";
+                        UnreliablePayerEntryCZL.Type := UnreliablePayerEntryCZL.Type::"Bank Account";
                         UnreliablePayerEntryCZL."Vendor No." := UnreliablePayerMgtCZL.GetVendFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
+                        UnreliablePayerEntryCZL."Customer No." := UnreliablePayerMgtCZL.GetCustFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
                         if UnreliablePayerEntryCZL."Entry No." > 0 then
                             UnreliablePayerEntryCZL.Modify()
                         else begin
@@ -198,7 +198,6 @@ xmlport 11759 "Unreliable Payer Status CZL"
                             TotalInsertedEntries += 1;
                         end;
                     until Temp2UnreliablePayerEntryCZL.Next() = 0;
-
                 if not TempDimensionBuffer.Get(0, 0, Temp1UnreliablePayerEntryCZL."VAT Registration No.") then begin
                     TempDimensionBuffer.Init();
                     TempDimensionBuffer."Table ID" := 0;
@@ -214,7 +213,7 @@ xmlport 11759 "Unreliable Payer Status CZL"
                     UnreliablePayerEntryCZL.Reset();
                     UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
                     UnreliablePayerEntryCZL.SetRange("VAT Registration No.", TempDimensionBuffer."Dimension Code");
-                    UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::"Bank Account");
+                    UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::"Bank Account");
                     UnreliablePayerEntryCZL.SetFilter("Check Date", '<>%1', TextISOToDate(odpovedGenerovana));
                     if UnreliablePayerEntryCZL.FindSet() then
                         repeat
@@ -244,8 +243,8 @@ xmlport 11759 "Unreliable Payer Status CZL"
             Temp1UnreliablePayerEntryCZL."Entry No." += 1;
             Temp1UnreliablePayerEntryCZL."Check Date" := TextISOToDate(odpovedGenerovana);
             Temp1UnreliablePayerEntryCZL."Public Date" := TextISOToDate(datumZverejneniNespolehlivosti);
-            Temp1UnreliablePayerEntryCZL."Unreliable Payer" := UnrPayerElementToOption(nespolehlivyPlatce);
-            Temp1UnreliablePayerEntryCZL."Entry Type" := Temp1UnreliablePayerEntryCZL."Entry Type"::Payer;
+            Temp1UnreliablePayerEntryCZL.Status := UnrPayerElementToOption(nespolehlivyPlatce);
+            Temp1UnreliablePayerEntryCZL.Type := Temp1UnreliablePayerEntryCZL.Type::Payer;
             Temp1UnreliablePayerEntryCZL."VAT Registration No." := UnreliablePayerMgtCZL.GetLongVATRegNo(dic);
             Temp1UnreliablePayerEntryCZL."Tax Office Number" := cisloFu;
             Temp1UnreliablePayerEntryCZL.Insert();
@@ -260,7 +259,7 @@ xmlport 11759 "Unreliable Payer Status CZL"
             Temp2UnreliablePayerEntryCZL."Check Date" := TextISOToDate(odpovedGenerovana);
             Temp2UnreliablePayerEntryCZL."Public Date" := TextISOToDate(datumZverejneni);
             Temp2UnreliablePayerEntryCZL."End Public Date" := TextISOToDate(datumZverejneniUkonceni);
-            Temp2UnreliablePayerEntryCZL."Entry Type" := Temp1UnreliablePayerEntryCZL."Entry Type"::"Bank Account";
+            Temp2UnreliablePayerEntryCZL.Type := Temp1UnreliablePayerEntryCZL.Type::"Bank Account";
             Temp2UnreliablePayerEntryCZL."VAT Registration No." := UnreliablePayerMgtCZL.GetLongVATRegNo(dic);
             if cisloStandardBA <> '' then begin
                 if predcisli <> '' then
@@ -270,7 +269,7 @@ xmlport 11759 "Unreliable Payer Status CZL"
             end;
             if cisloNoStandardBA <> '' then begin
                 Temp2UnreliablePayerEntryCZL."Full Bank Account No." := cisloNoStandardBA;
-                Temp2UnreliablePayerEntryCZL."Bank Account No. Type" := Temp2UnreliablePayerEntryCZL."Bank Account No. Type"::"Not Standard";
+                Temp2UnreliablePayerEntryCZL."Bank Account Type" := Temp2UnreliablePayerEntryCZL."Bank Account Type"::"Not Standard";
             end;
             Temp2UnreliablePayerEntryCZL.Insert();
         end;
@@ -294,15 +293,15 @@ xmlport 11759 "Unreliable Payer Status CZL"
                         exit(DMY2Date(DD, MM, YY));
     end;
 
-    local procedure UnrPayerElementToOption(UnrPayerElementValue: Text[30]) ReturnValue: Integer
+    local procedure UnrPayerElementToOption(UnrPayerElementValue: Text[30]) ReturnValue: Enum "Unreliable Payer Status CZL"
     begin
         case UpperCase(UnrPayerElementValue) of
             'NE':
-                ReturnValue := 1;
+                ReturnValue := ReturnValue::NO;
             'ANO':
-                ReturnValue := 2;
+                ReturnValue := ReturnValue::YES;
             'NENALEZEN':
-                ReturnValue := 3;
+                ReturnValue := ReturnValue::NOTFOUND;
             else
                 Error(UnrPayerElementErr, UnrPayerElementValue);
         end;

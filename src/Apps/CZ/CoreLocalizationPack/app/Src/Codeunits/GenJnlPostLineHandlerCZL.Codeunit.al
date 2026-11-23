@@ -254,7 +254,7 @@ codeunit 31315 "Gen.Jnl. Post Line Handler CZL"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInsertVATEntry', '', false, false)]
-    local procedure DeleteSettlementReverseVATEntryOnAfterInsertVATEntry(VATEntry: Record "VAT Entry"; GLEntryNo: BigInteger; var NextEntryNo: BigInteger; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
+    local procedure DeleteSettlementReverseVATEntryOnAfterInsertVATEntry(VATEntry: Record "VAT Entry"; GLEntryNo: Integer; var NextEntryNo: Integer; var TempGLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link" temporary)
     begin
         if (VATEntry.Type = VATEntry.Type::Settlement) and
            (VATEntry."VAT Calculation Type" = VATEntry."VAT Calculation Type"::"Reverse Charge VAT") and
@@ -330,7 +330,6 @@ codeunit 31315 "Gen.Jnl. Post Line Handler CZL"
         OnBeforeUpdateVATAmountOnAfterInitVAT(GenJournalLine, GLEntry, IsHandled);
         if IsHandled then
             exit;
-
         if (GenJournalLine."Gen. Posting Type" = GenJournalLine."Gen. Posting Type"::" ") or
            (GenJournalLine."VAT Posting" <> GenJournalLine."VAT Posting"::"Automatic VAT Entry") or
            (GenJournalLine."VAT Calculation Type" <> GenJournalLine."VAT Calculation Type"::"Normal VAT") or
@@ -365,7 +364,6 @@ codeunit 31315 "Gen.Jnl. Post Line Handler CZL"
     begin
         if IsHandled then
             exit;
-
         if MultiplePostingGroups and
            (DetailedCVLedgEntryBuffer."Entry Type" = DetailedCVLedgEntryBuffer."Entry Type"::Application)
         then begin
@@ -388,7 +386,6 @@ codeunit 31315 "Gen.Jnl. Post Line Handler CZL"
                 else
                     exit;
             end;
-
             if AccNo = PostingGroupAccountNo then begin
                 AmountAddCurr := sender.GLCalcAddCurrency(
                     DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer.Amount, 0,

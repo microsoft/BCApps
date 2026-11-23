@@ -50,8 +50,8 @@ table 11753 "Unreliable Payer Entry CZL"
             OptionCaption = ' ,NO,YES,NOTFOUND';
             OptionMembers = " ",NO,YES,NOTFOUND;
 #if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';
@@ -70,8 +70,8 @@ table 11753 "Unreliable Payer Entry CZL"
             OptionCaption = 'Payer,Bank Account';
             OptionMembers = Payer,"Bank Account";
 #if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';
@@ -103,8 +103,8 @@ table 11753 "Unreliable Payer Entry CZL"
             OptionCaption = 'Standard,Nonstandard';
             OptionMembers = Standard,"Not Standard";
 #if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';

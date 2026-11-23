@@ -42,7 +42,7 @@ report 11759 "Unreliable Payer List CZL"
             column(CheckDate_Vendor_var; Format(FirstUnreliablePayerEntryCZL."Check Date"))
             {
             }
-            column(UncertPayer_Vendor_var; Format(FirstUnreliablePayerEntryCZL."Unreliable Payer"))
+            column(UncertPayer_Vendor_var; Format(FirstUnreliablePayerEntryCZL.Status))
             {
             }
             column(TaxOfficeNo_Vendor_var; FirstUnreliablePayerEntryCZL."Tax Office Number")
@@ -64,7 +64,7 @@ report 11759 "Unreliable Payer List CZL"
                 column(PublicBA_VBA_var; Format(PublicBankAccount))
                 {
                 }
-                column(BankAccType_VBA_var; Format(SecondUnreliablePayerEntryCZL."Bank Account No. Type"))
+                column(BankAccType_VBA_var; Format(SecondUnreliablePayerEntryCZL."Bank Account Type"))
                 {
                 }
                 column(PublicDate_VBA_var; Format(SecondUnreliablePayerEntryCZL."Public Date"))
@@ -84,7 +84,6 @@ report 11759 "Unreliable Payer List CZL"
                     SecondUnreliablePayerEntryCZL.SetFilter("Full Bank Account No.", '%1|%2', "Bank Account No.", IBAN);
                     if not SecondUnreliablePayerEntryCZL.FindLast() then
                         Clear(SecondUnreliablePayerEntryCZL);
-
                     if OnlyErrors and PublicBankAccount then
                         CurrReport.Skip();
 
@@ -98,7 +97,7 @@ report 11759 "Unreliable Payer List CZL"
 
                     SecondUnreliablePayerEntryCZL.Reset();
                     SecondUnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
-                    SecondUnreliablePayerEntryCZL.SetRange("Entry Type", SecondUnreliablePayerEntryCZL."Entry Type"::"Bank Account");
+                    SecondUnreliablePayerEntryCZL.SetRange(Type, SecondUnreliablePayerEntryCZL.Type::"Bank Account");
                 end;
             }
             trigger OnAfterGetRecord()
@@ -119,18 +118,17 @@ report 11759 "Unreliable Payer List CZL"
                 Clear(FirstUnreliablePayerEntryCZL);
                 if WarningText = '' then begin
                     FirstUnreliablePayerEntryCZL.SetRange("VAT Registration No.", "VAT Registration No.");
-                    FirstUnreliablePayerEntryCZL.SetRange("Entry Type", FirstUnreliablePayerEntryCZL."Entry Type"::Payer);
+                    FirstUnreliablePayerEntryCZL.SetRange(Type, FirstUnreliablePayerEntryCZL.Type::Payer);
                     if not FirstUnreliablePayerEntryCZL.FindLast() then
                         WarningText := NotCheckLbl
                     else
-                        case FirstUnreliablePayerEntryCZL."Unreliable Payer" of
-                            FirstUnreliablePayerEntryCZL."Unreliable Payer"::YES:
+                        case FirstUnreliablePayerEntryCZL.Status of
+                            FirstUnreliablePayerEntryCZL.Status::YES:
                                 WarningText := UnreliableLbl;
-                            FirstUnreliablePayerEntryCZL."Unreliable Payer"::NOTFOUND:
+                            FirstUnreliablePayerEntryCZL.Status::NOTFOUND:
                                 WarningText := NotCheckLbl;
                         end;
                 end;
-
                 if OnlyErrors and (WarningText = '') then begin
                     VendorBankAccount.SetRange("Vendor No.", "No.");
                     if VendorBankAccount.FindSet() then

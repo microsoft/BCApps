@@ -145,7 +145,6 @@ tableextension 11702 "Vendor CZL" extends Vendor
     end;
 
     var
-        UnrelPayerServiceSetupCZL: Record "Unrel. Payer Service Setup CZL";
         UnreliablePayerMgtCZL: Codeunit "Unreliable Payer Mgt. CZL";
         RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
         RegistrationNoMgtCZL: Codeunit "Registration No. Mgt. CZL";
@@ -172,23 +171,28 @@ tableextension 11702 "Vendor CZL" extends Vendor
     begin
         if "Disable Unreliab. Check CZL" then
             exit(false);
-        if not UnrelPayerServiceSetupCZL.Get() then
-            exit(false);
-        if not UnrelPayerServiceSetupCZL.Enabled then
+        if not UnreliablePayerMgtCZL.IsUnreliablePayerServiceEnabled() then
             exit(false);
         exit(UnreliablePayerMgtCZL.IsVATRegNoExportPossible("VAT Registration No.", "Country/Region Code"));
     end;
-
+#if not CLEAN30
+    [Obsolete('Replaced by GetUnreliablePayerStatusCZL function with Enum "Unreliable Payer Status CZL".')]
     procedure GetUnreliablePayerStatusCZL(): Integer
     var
         UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
     begin
         UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
         UnreliablePayerEntryCZL.SetRange("VAT Registration No.", "VAT Registration No.");
-        UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::Payer);
+        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::Payer);
         if not UnreliablePayerEntryCZL.FindLast() then
-            exit(UnreliablePayerEntryCZL."Unreliable Payer"::NOTFOUND);
-        exit(UnreliablePayerEntryCZL."Unreliable Payer");
+            exit(UnreliablePayerEntryCZL.Status::NOTFOUND);
+        exit(UnreliablePayerEntryCZL.Status);
+    end;
+#endif
+
+    procedure GetUnreliablePayerStatusCZL(): Enum "Unreliable Payer Status CZL"
+    begin
+        exit(UnreliablePayerMgtCZL.GetUnreliablePayerStatusCZL("VAT Registration No."));
     end;
 
     procedure ShowUnreliableEntriesCZL()

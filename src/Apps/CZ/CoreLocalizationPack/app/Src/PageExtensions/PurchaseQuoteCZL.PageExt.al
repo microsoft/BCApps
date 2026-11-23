@@ -24,7 +24,7 @@ pageextension 11737 "Purchase Quote CZL" extends "Purchase Quote"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the date of the last check of unreliability.';
             }
-            field("VAT Unreliable Payer CZL"; Rec."VAT Unreliable Payer CZL")
+            field("VAT Unreliable Payer CZL"; Rec."Unreliable Payer Status CZL")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies if the vendor is unreliabe payer.';

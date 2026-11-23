@@ -9,6 +9,7 @@ using Microsoft.Bank.Setup;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Purchases.Vendor;
@@ -235,21 +236,35 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         field(11767; "Last Unreliab. Check Date CZL"; Date)
         {
             CalcFormula = max("Unreliable Payer Entry CZL"."Check Date" where("VAT Registration No." = field("VAT Registration No."),
-                                                                            "Entry Type" = const(Payer)));
+                                                                            Type = const(Payer)));
             Caption = 'Last Unreliability Check Date';
             Editable = false;
             FieldClass = FlowField;
         }
+#if not CLEAN30
         field(11768; "VAT Unreliable Payer CZL"; Option)
         {
-            CalcFormula = lookup("Unreliable Payer Entry CZL"."Unreliable Payer" where("VAT Registration No." = field("VAT Registration No."),
-                                                                                        "Entry Type" = const(Payer),
+            CalcFormula = lookup("Unreliable Payer Entry CZL".Status where("VAT Registration No." = field("VAT Registration No."),
+                                                                                        Type = const(Payer),
                                                                                         "Check Date" = field("Last Unreliab. Check Date CZL")));
             Caption = 'VAT Unreliable Payer';
             Editable = false;
             FieldClass = FlowField;
             OptionCaption = ' ,NO,YES,NOTFOUND';
             OptionMembers = " ",NO,YES,NOTFOUND;
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Replaced by "Unreliable Payer Status CZL" field.';
+        }
+#endif
+        field(117689; "Unreliable Payer Status CZL"; Enum "Unreliable Payer Status CZL")
+        {
+            CalcFormula = lookup("Unreliable Payer Entry CZL".Status where("VAT Registration No." = field("VAT Registration No."),
+                                                                                        Type = const(Payer),
+                                                                                        "Check Date" = field("Last Unreliab. Check Date CZL")));
+            Caption = 'Unreliable Payer Status';
+            Editable = false;
+            FieldClass = FlowField;
         }
         field(11779; "Third Party Bank Account CZL"; Boolean)
         {
@@ -346,17 +361,24 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         OnBeforeIsUnreliablePayerCheckPossibleCZL(Rec, CheckPossible);
         exit(CheckPossible);
     end;
-
+#if not CLEAN30
+    [Obsolete('Replaced by GetUnreliablePayerStatusCZL function with Enum "Unreliable Payer Status CZL".')]
     procedure GetUnreliablePayerStatusCZL(): Integer
     var
         UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
     begin
         UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
         UnreliablePayerEntryCZL.SetRange("VAT Registration No.", "VAT Registration No.");
-        UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::Payer);
+        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::Payer);
         if not UnreliablePayerEntryCZL.FindLast() then
-            exit(UnreliablePayerEntryCZL."Unreliable Payer"::NOTFOUND);
-        exit(UnreliablePayerEntryCZL."Unreliable Payer");
+            exit(UnreliablePayerEntryCZL.Status::NOTFOUND);
+        exit(UnreliablePayerEntryCZL.Status);
+    end;
+#endif
+
+    procedure GetUnreliablePayerStatusCZL(): Enum "Unreliable Payer Status CZL"
+    begin
+        exit(UnreliablePayerMgtCZL.GetUnreliablePayerStatusCZL("VAT Registration No."));
     end;
 
     procedure IsPublicBankAccountCZL(): Boolean

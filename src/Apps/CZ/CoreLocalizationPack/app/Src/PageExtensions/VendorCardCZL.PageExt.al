@@ -38,7 +38,7 @@ pageextension 11705 "Vendor Card CZL" extends "Vendor Card"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the date of the last check of unreliability.';
             }
-            field("VAT Unreliable Payer CZL"; Rec."VAT Unreliable Payer CZL")
+            field("VAT Unreliable Payer CZL"; Rec."Unreliable Payer Status CZL")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies if the Vendor is VAT Unreliable Payer.';
@@ -78,15 +78,9 @@ pageextension 11705 "Vendor Card CZL" extends "Vendor Card"
 
                 trigger OnAction()
                 var
-                    UnrelPayerServiceSetupCZL: Record "Unrel. Payer Service Setup CZL";
                     UnreliablePayerMgtCZL: Codeunit "Unreliable Payer Mgt. CZL";
-                    UnrelPayerServiceNotSet: Boolean;
                 begin
-                    if not UnrelPayerServiceSetupCZL.Get() then
-                        UnrelPayerServiceNotSet := true
-                    else
-                        UnrelPayerServiceNotSet := not UnrelPayerServiceSetupCZL.Enabled;
-                    if UnrelPayerServiceNotSet then
+                    if not UnreliablePayerMgtCZL.IsUnreliablePayerServiceEnabled() then
                         UnreliablePayerMgtCZL.CreateUnrelPayerServiceNotSetNotification();
 
                     Rec.ImportUnrPayerStatusCZL();

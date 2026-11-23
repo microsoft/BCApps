@@ -62,4 +62,9 @@ table 11754 "Unrel. Payer Service Setup CZL"
             Clustered = true;
         }
     }
+
+    procedure IsEnabled(): Boolean
+    begin
+        exit(Get() ? Enabled : false);
+    end;
 }

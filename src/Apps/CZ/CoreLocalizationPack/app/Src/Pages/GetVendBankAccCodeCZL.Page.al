@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+// TODO: obsolete and create a new general dialog for vendor and customer bank account informations
 page 11752 "Get Vend. Bank Acc. Code CZL"
 {
     Caption = 'Get Vendor Bank Account Code';

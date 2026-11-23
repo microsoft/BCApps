@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
@@ -240,6 +241,38 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         end;
     end;
 
+
+    // procedure GetCustFromVATRegNo(VATRegNo: Code[20]): Code[20]
+    // var
+    //     Customer: Record Customer;
+    // begin
+    //     if VATRegNo = '' then
+    //         exit('');
+
+    //     VATRegNo := GetLongVATRegNo(VATRegNo);
+    //     Customer.SetCurrentKey("VAT Registration No.");
+    //     Customer.SetRange("VAT Registration No.", VATRegNo);
+    //     Customer.SetRange(Blocked, Customer.Blocked::" ");
+    //     case true of
+    //         Customer.FindFirst() and (Customer.Count = 1):
+    //             exit(Customer."No.");
+    //         else
+    //             exit('');
+    //     end;
+    // end;
+
+    procedure GetUnreliablePayerStatusCZL(VATRegistrationNo: Code[20]): Enum "Unreliable Payer Status CZL"
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+    begin
+        UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
+        UnreliablePayerEntryCZL.SetRange("VAT Registration No.", VATRegistrationNo);
+        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::Payer);
+        if not UnreliablePayerEntryCZL.FindLast() then
+            exit(UnreliablePayerEntryCZL.Status::NOTFOUND);
+        exit(UnreliablePayerEntryCZL.Status);
+    end;
+
     procedure IsPublicBankAccount(VendNo: Code[20]; VATRegNo: Code[20]; BankAccountNo: Code[30]; IBAN: Code[50]) ReturnValue: Boolean
     var
         Vendor: Record Vendor;
@@ -255,7 +288,7 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
 
         UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
         UnreliablePayerEntryCZL.SetRange("VAT Registration No.", VATRegNo);
-        UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::"Bank Account");
+        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::"Bank Account");
         UnreliablePayerEntryCZL.SetRange("End Public Date", 0D);
         if BankAccountNo <> '' then begin
             UnreliablePayerEntryCZL.SetRange("Full Bank Account No.", BankAccountNo);
@@ -327,9 +360,9 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         PurchPost.SumPurchLinesTemp(PurchaseHeader, TempPurchaseLine, 0, TotalPurchaseLine, TotalLCYPurchaseLine, VATAmount, VATAmountText);
         if PurchaseHeader.IsUnreliablePayerCheckPossibleCZL() then begin
             case PurchaseHeader.GetUnreliablePayerStatusCZL() of
-                UnreliablePayerEntryCZL."Unreliable Payer"::YES:
+                UnreliablePayerEntryCZL.Status::YES:
                     ConfirmProcess(StrSubstNo(VendUnrVATPayerQst, PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No."));
-                UnreliablePayerEntryCZL."Unreliable Payer"::NOTFOUND:
+                UnreliablePayerEntryCZL.Status::NOTFOUND:
                     ConfirmProcess(StrSubstNo(VendUnrVATPayerStatusNotCheckedQst, PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No."));
             end;
             if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::"Credit Memo", PurchaseHeader."Document Type"::"Return Order"]) then begin
@@ -426,6 +459,13 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
                 end else
                     UnreliablePayerEntryCZL.Delete(true);
             until UnreliablePayerEntryCZL.Next() = 0;
+    end;
+
+    procedure IsUnreliablePayerServiceEnabled(): Boolean
+    var
+        UnrelPayerServiceSetup: Record "Unrel. Payer Service Setup CZL";
+    begin
+        exit(UnrelPayerServiceSetup.IsEnabled());
     end;
 
     [IntegrationEvent(false, false)]

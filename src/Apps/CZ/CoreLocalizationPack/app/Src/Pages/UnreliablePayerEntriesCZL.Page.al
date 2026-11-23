@@ -35,7 +35,7 @@ page 11753 "Unreliable Payer Entries CZL"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the VAT registration number. The field will be used when you do business with partners from EU countries/regions.';
                 }
-                field("Unreliable Payer"; Rec."Unreliable Payer")
+                field("Unreliable Payer"; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if vendor is unreliable payer.';
@@ -45,7 +45,7 @@ page 11753 "Unreliable Payer Entries CZL"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the date when unreliable payer report was checked.';
                 }
-                field("Entry Type"; Rec."Entry Type")
+                field("Entry Type"; Rec.Type)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the type of the entry.';
@@ -65,7 +65,7 @@ page 11753 "Unreliable Payer Entries CZL"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the full bank account number.';
                 }
-                field("Bank Account No. Type"; Rec."Bank Account No. Type")
+                field("Bank Account No. Type"; Rec."Bank Account Type")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies type of bank account. Option: standard (if bank account number is standard account) or No standard (if bank account is IBAN).';

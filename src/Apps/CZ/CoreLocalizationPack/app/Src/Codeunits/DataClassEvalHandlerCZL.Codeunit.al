@@ -356,7 +356,10 @@ codeunit 11710 "Data Class. Eval. Handler CZL"
         DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("VAT Currency Factor CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("VAT Currency Code CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("Last Unreliab. Check Date CZL"));
+#if not CLEAN30
         DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("VAT Unreliable Payer CZL"));
+#endif
+        DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("Unreliable Payer Status CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("Third Party Bank Account CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("Registration No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Purchase Header", PurchaseHeader.FieldNo("Tax Registration No. CZL"));
@@ -532,7 +535,10 @@ codeunit 11710 "Data Class. Eval. Handler CZL"
         DataClassificationMgt.SetFieldToNormal(Database::Vendor, Vendor.FieldNo("Tax Registration No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::Vendor, Vendor.FieldNo("Validate Registration No. CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::Vendor, Vendor.FieldNo("Last Unreliab. Check Date CZL"));
+#if not CLEAN30
         DataClassificationMgt.SetFieldToNormal(Database::Vendor, Vendor.FieldNo("VAT Unreliable Payer CZL"));
+#endif
+        DataClassificationMgt.SetFieldToNormal(Database::Vendor, Vendor.FieldNo("Unreliable Payer Status CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::Vendor, Vendor.FieldNo("Disable Unreliab. Check CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Vendor Bank Account", VendorBankAccount.FieldNo("Third Party Bank Account CZL"));
         DataClassificationMgt.SetFieldToNormal(Database::"Vendor Ledger Entry", VendorLedgerEntry.FieldNo("VAT Date CZL"));

@@ -84,11 +84,10 @@ xmlport 11760 "Unreliable Payer List CZL"
                 UnreliablePayerEntryCZL.Reset();
                 UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
                 UnreliablePayerEntryCZL.SetRange("VAT Registration No.", TempUnreliablePayerEntryCZL."VAT Registration No.");
-                UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::Payer);
+                UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::Payer);
                 if not UnreliablePayerEntryCZL.FindLast() then
                     Clear(UnreliablePayerEntryCZL);
-
-                if (UnreliablePayerEntryCZL."Unreliable Payer" <> TempUnreliablePayerEntryCZL."Unreliable Payer") or
+                if (UnreliablePayerEntryCZL.Status <> TempUnreliablePayerEntryCZL.Status) or
                    (UnreliablePayerEntryCZL."Tax Office Number" <> TempUnreliablePayerEntryCZL."Tax Office Number")
                 then
                     UnreliablePayerEntryCZL."Entry No." := 0;  // new entry
@@ -96,11 +95,12 @@ xmlport 11760 "Unreliable Payer List CZL"
                 UnreliablePayerEntryCZL.Init();
                 UnreliablePayerEntryCZL."Check Date" := TempUnreliablePayerEntryCZL."Check Date";
                 UnreliablePayerEntryCZL."Public Date" := TempUnreliablePayerEntryCZL."Public Date";
-                UnreliablePayerEntryCZL."Unreliable Payer" := TempUnreliablePayerEntryCZL."Unreliable Payer";
+                UnreliablePayerEntryCZL.Status := TempUnreliablePayerEntryCZL.Status;
                 UnreliablePayerEntryCZL."VAT Registration No." := TempUnreliablePayerEntryCZL."VAT Registration No.";
                 UnreliablePayerEntryCZL."Tax Office Number" := TempUnreliablePayerEntryCZL."Tax Office Number";
-                UnreliablePayerEntryCZL."Entry Type" := UnreliablePayerEntryCZL."Entry Type"::Payer;
+                UnreliablePayerEntryCZL.Type := UnreliablePayerEntryCZL.Type::Payer;
                 UnreliablePayerEntryCZL."Vendor No." := UnreliablePayerMgtCZL.GetVendFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
+                UnreliablePayerEntryCZL."Customer No." := UnreliablePayerMgtCZL.GetCustFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
                 if UnreliablePayerEntryCZL."Entry No." > 0 then
                     UnreliablePayerEntryCZL.Modify()
                 else begin
@@ -128,8 +128,8 @@ xmlport 11760 "Unreliable Payer List CZL"
             TempUnreliablePayerEntryCZL."Entry No." += 1;
             TempUnreliablePayerEntryCZL."Check Date" := TextISOToDate(odpovedGenerovana);
             TempUnreliablePayerEntryCZL."Public Date" := TextISOToDate(datumZverejneniNespolehlivosti);
-            TempUnreliablePayerEntryCZL."Unreliable Payer" := UnrPayerElementToOption(nespolehlivyPlatce);
-            TempUnreliablePayerEntryCZL."Entry Type" := TempUnreliablePayerEntryCZL."Entry Type"::Payer;
+            TempUnreliablePayerEntryCZL.Status := UnrPayerElementToOption(nespolehlivyPlatce);
+            TempUnreliablePayerEntryCZL.Type := TempUnreliablePayerEntryCZL.Type::Payer;
             TempUnreliablePayerEntryCZL."VAT Registration No." := UnreliablePayerMgtCZL.GetLongVATRegNo(dic);
             TempUnreliablePayerEntryCZL."Tax Office Number" := cisloFu;
             TempUnreliablePayerEntryCZL.Insert();
@@ -154,15 +154,15 @@ xmlport 11760 "Unreliable Payer List CZL"
                         exit(DMY2Date(DD, MM, YY));
     end;
 
-    local procedure UnrPayerElementToOption(UnrPayerElementValue: Text[30]) ReturnValue: Integer
+    local procedure UnrPayerElementToOption(UnrPayerElementValue: Text[30]) ReturnValue: Enum "Unreliable Payer Status CZL"
     begin
         case UpperCase(UnrPayerElementValue) of
             'NE':
-                ReturnValue := 1;
+                ReturnValue := ReturnValue::NO;
             'ANO':
-                ReturnValue := 2;
+                ReturnValue := ReturnValue::YES;
             'NENALEZEN':
-                ReturnValue := 3;
+                ReturnValue := ReturnValue::NOTFOUND;
             else
                 Error(UnrPayerElementErr, UnrPayerElementValue);
         end;
