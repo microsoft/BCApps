@@ -367,33 +367,6 @@ table 334 "Column Layout"
         Text12402: Label '1,5,,Dimension 2 Corr. Totaling';
 #pragma warning restore AA0074
 
-#if not CLEAN27
-    /// <summary>
-    /// Parses period formula expression into component values for period calculation processing.
-    /// </summary>
-    /// <param name="FormulaExpression">Period formula code to parse into components</param>
-    /// <param name="Steps">Number of period steps calculated from formula</param>
-    /// <param name="Type">Period type determined from formula expression</param>
-    /// <param name="RangeFromType">Starting range type for period calculation</param>
-    /// <param name="RangeToType">Ending range type for period calculation</param>
-    /// <param name="RangeFromInt">Starting range integer value</param>
-    /// <param name="RangeToInt">Ending range integer value</param>
-    [Obsolete('Moved to codeunit Period Formula Parser', '27.0')]
-    procedure ParsePeriodFormula(FormulaExpression: Code[20]; var Steps: Integer; var Type: Enum "Period Type"; var RangeFromType: Enum "Period Formula Range"; var RangeToType: Enum "Period Formula Range"; var RangeFromInt: Integer; var RangeToInt: Integer)
-    var
-        PeriodFormulaParser: Codeunit "Period Formula Parser";
-    begin
-        PeriodFormulaParser.ParsePeriodFormula(
-            FormulaExpression,
-            Steps,
-            Type,
-            RangeFromType,
-            RangeToType,
-            RangeFromInt,
-            RangeToInt,
-            "Comparison Period Formula LCID");
-    end;
-#endif
 
     /// <summary>
     /// Opens dimension value lookup dialog and returns selected dimension filter expression.
@@ -571,19 +544,6 @@ table 334 "Column Layout"
             Validate("G/L Account Totaling", GLAccountList.GetSelectionFilter());
     end;
 
-#if not CLEAN27
-    /// <summary>
-    /// Retrieves current period name for display purposes in financial reporting.
-    /// </summary>
-    /// <returns>Period name code for current period identification</returns>
-    [Obsolete('Moved to codeunit Period Formula Parser', '27.0')]
-    procedure GetPeriodName(): Code[10]
-    var
-        PeriodFormulaParser: Codeunit "Period Formula Parser";
-    begin
-        exit(PeriodFormulaParser.GetPeriodName());
-    end;
-#endif
 
     /// <summary>
     /// Integration event raised before retrieving caption class for dimension field display.

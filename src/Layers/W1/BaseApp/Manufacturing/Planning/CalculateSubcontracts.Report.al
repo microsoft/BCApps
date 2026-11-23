@@ -231,15 +231,14 @@ report 99001015 "Calculate Subcontracts"
             ReqLine."Accept Action Message" := true;
         end else begin
             ReqLine."Replenishment System" := ReqLine."Replenishment System"::"Prod. Order";
-            ReqLine."Ref. Order No." := ProdOrderLine."Prod. Order No.";
-            ReqLine."Ref. Order Type" := ReqLine."Ref. Order Type"::"Prod. Order";
-            ReqLine."Ref. Order Status" := ProdOrderLine.Status;
-            ReqLine."Ref. Line No." := ProdOrderLine."Line No.";
+            ReqLine."Ref. Order Type" := ReqLine."Ref. Order Type"::Purchase;
             ReqLine."Action Message" := ReqLine."Action Message"::New;
             ReqLine."Accept Action Message" := true;
         end;
 
-        if ReqLine."Ref. Order No." <> '' then
+        if ReqLine."Action Message" = ReqLine."Action Message"::New then
+            ReqLine.GetDimFromProdOrderLine(ProdOrderLine, true)
+        else
             ReqLine.GetDimFromRefOrderLine(true);
 
 #pragma warning disable AL0432

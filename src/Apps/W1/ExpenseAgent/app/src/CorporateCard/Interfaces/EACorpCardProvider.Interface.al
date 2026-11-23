@@ -6,6 +6,8 @@ namespace Microsoft.ExpenseAgent;
 
 interface "EA Corp Card Provider"
 {
+    Access = Internal;
+
     procedure Download(var CorpCardStatement: Record "EA Corp Card Statement");
     procedure ParseToStaging(StatementEntryNo: Integer);
     procedure Ack(StatementEntryNo: Integer);

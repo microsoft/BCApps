@@ -2218,7 +2218,7 @@ xmlport 5801 "Export Item Data"
         until InventoryPostingSetup.Next() = 0;
     end;
 
-    procedure CollectItemApplnEntry(ItemLedgEntryNo: Integer)
+    procedure CollectItemApplnEntry(ItemLedgEntryNo: BigInteger)
     var
         ItemApplnEntry: Record "Item Application Entry";
     begin
@@ -2231,7 +2231,7 @@ xmlport 5801 "Export Item Data"
             until ItemApplnEntry.Next() = 0;
     end;
 
-    procedure CollectItemApplnEntryHist(ItemLedgEntryNo: Integer)
+    procedure CollectItemApplnEntryHist(ItemLedgEntryNo: BigInteger)
     var
         ItemApplnEntryHistory: Record "Item Application Entry History";
     begin
@@ -2243,7 +2243,16 @@ xmlport 5801 "Export Item Data"
             until ItemApplnEntryHistory.Next() = 0;
     end;
 
-    procedure CollectCapValueEntry(CapEntryNo: Integer)
+#if not CLEAN27
+    [Obsolete('Use xml port MfgExportItemData instead', '27.0')]
+    procedure CollectProdOrder(ProdOrderNo: Code[20])
+    begin
+        if ProdOrderNo = '' then
+            exit;
+    end;
+#endif
+
+    procedure CollectCapValueEntry(CapEntryNo: BigInteger)
     var
         ValueEntry: Record "Value Entry";
     begin

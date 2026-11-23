@@ -22,6 +22,7 @@ using Microsoft.Warehouse.InternalDocument;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Worksheet;
 using System.TestLibraries.Utilities;
 
 codeunit 137298 "SCM Prod. Whse. Handling"
@@ -182,6 +183,297 @@ codeunit 137298 "SCM Prod. Whse. Handling"
           Location.Code, WarehouseActivityLine."Action Type"::Place);
 
         VerifyPickLines(WarehouseActivityLine, Location.Code, 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WhsePickForSuppliedSubassemblyAfterOutputPutAway()
+    begin
+        // [SCENARIO 651757] A refreshed MTO subassembly can be picked after its output put-away is registered.
+        VerifyWhsePickForSuppliedSubassembly(2, true, false, 0, 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WhsePickForPartiallySuppliedSubassemblyAfterOutputPutAway()
+    begin
+        // [SCENARIO 651757] Partial MTO output can be picked without completing the request before the remaining output is put away and picked.
+        VerifyWhsePickForSuppliedSubassembly(1, true, false, 0, 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WhsePickWorksheetForSuppliedSubassemblyAfterOutputPutAway()
+    begin
+        // [SCENARIO 651757] The pick worksheet includes an MTO subassembly after its output put-away is registered.
+        VerifyWhsePickForSuppliedSubassembly(2, true, true, 0, 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WhsePickSkipsSuppliedSubassemblyWithoutOutputPutAway()
+    begin
+        // [SCENARIO 651757] MTO output without warehouse put-away remains excluded even when its output bin contains inventory.
+        VerifyWhsePickForSuppliedSubassembly(2, false, false, 0, 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WhsePickForMixedStockAndStagedSubassemblyOutput()
+    begin
+        // [SCENARIO 651757] Demand 10 with reserved stock 3 and MTO output 4 + 3 is picked as 7 + 3.
+        VerifyWhsePickForSuppliedSubassembly(4, true, false, 3, 10);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure WhsePickWorksheetForMixedStockAndStagedSubassemblyOutput()
+    begin
+        // [SCENARIO 651757] The worksheet picks the final MTO output even when prior picks include existing stock.
+        VerifyWhsePickForSuppliedSubassembly(4, true, true, 3, 10);
+    end;
+
+    local procedure VerifyWhsePickForSuppliedSubassembly(OutputQuantity: Decimal; WarehousePutAway: Boolean; PickFromWorksheet: Boolean; StockQuantity: Decimal; DemandQuantity: Decimal)
+    var
+        ParentItem: Record Item;
+        SubassemblyItem: Record Item;
+        RawMaterialItem: Record Item;
+        Location: Record Location;
+        Bin: Record Bin;
+        StorageBin: Record Bin;
+        BinContent: Record "Bin Content";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionItemJournalTemplate: Record "Item Journal Template";
+        ProductionItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WhsePickRequest: Record "Whse. Pick Request";
+        WhseWorksheetTemplate: Record "Whse. Worksheet Template";
+        WhseWorksheetName: Record "Whse. Worksheet Name";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        ProductionJournalMgt: Codeunit "Production Journal Mgt";
+        QuantityToPost: Decimal;
+        QuantityToPick: Decimal;
+        TotalPickedQuantity: Decimal;
+    begin
+        Initialize();
+
+        // [GIVEN] A location with optional warehouse picks and separate production and storage bins.
+        CreateLocationSetupWithBins(Location, true, true, false, false, true, 3, false);
+        LibraryWarehouse.FindBin(StorageBin, Location.Code, '', 1);
+        LibraryWarehouse.FindBin(Bin, Location.Code, '', 2);
+        Location.Validate("To-Production Bin Code", Bin.Code);
+        LibraryWarehouse.FindBin(Bin, Location.Code, '', 3);
+        Location.Validate("From-Production Bin Code", Bin.Code);
+        Location.Validate("Prod. Consump. Whse. Handling", Location."Prod. Consump. Whse. Handling"::"Warehouse Pick (optional)");
+        if WarehousePutAway then
+            Location.Validate("Prod. Output Whse. Handling", Location."Prod. Output Whse. Handling"::"Warehouse Put-away")
+        else
+            Location.Validate("Prod. Output Whse. Handling", Location."Prod. Output Whse. Handling"::"No Warehouse Handling");
+        Location.Validate("Put-away Bin Policy", Location."Put-away Bin Policy"::"Default Bin");
+        Location.Modify(true);
+        LibraryManufacturing.SetComponentsAtLocation(Location.Code);
+
+        // [GIVEN] A make-to-order parent requires a make-to-order subassembly, which requires a pickable raw material.
+        CreateProdItemWithOneComponentAndSpecificFlushing(SubassemblyItem, RawMaterialItem, "Flushing Method"::"Pick + Manual");
+        SubassemblyItem.Validate("Replenishment System", SubassemblyItem."Replenishment System"::"Prod. Order");
+        SubassemblyItem.Validate("Manufacturing Policy", SubassemblyItem."Manufacturing Policy"::"Make-to-Order");
+        if StockQuantity > 0 then
+            SubassemblyItem.Validate(Reserve, SubassemblyItem.Reserve::Always);
+        SubassemblyItem.Modify(true);
+        LibraryInventory.CreateItem(ParentItem);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::"Prod. Order");
+        ParentItem.Validate("Manufacturing Policy", ParentItem."Manufacturing Policy"::"Make-to-Order");
+        ParentItem.Modify(true);
+        LibraryManufacturing.CreateProductionBOM(ProductionBOMHeader, ParentItem, SubassemblyItem, 1, '');
+
+        // [GIVEN] Raw material and any existing subassembly stock are in the default storage bin.
+        CreateAndPostItemJournalLine(
+            RawMaterialItem."No.", "Item Ledger Entry Type"::"Positive Adjmt.", DemandQuantity - StockQuantity, Location.Code, StorageBin.Code, '');
+        LibraryWarehouse.CreateBinContent(
+            BinContent, Location.Code, '', StorageBin.Code, SubassemblyItem."No.", '', SubassemblyItem."Base Unit of Measure");
+        BinContent.Validate(Fixed, true);
+        BinContent.Validate(Default, true);
+        BinContent.Modify(true);
+        if StockQuantity > 0 then
+            CreateAndPostItemJournalLine(
+                SubassemblyItem."No.", "Item Ledger Entry Type"::"Positive Adjmt.", StockQuantity, Location.Code, StorageBin.Code, '');
+        CreateAndRefreshProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, ParentItem."No.", DemandQuantity, Location.Code);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.SetRange("Item No.", SubassemblyItem."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.TestField(Quantity, DemandQuantity - StockQuantity);
+        if WarehousePutAway then
+            ProdOrderLine.Validate("Bin Code", Location."From-Production Bin Code")
+        else
+            ProdOrderLine.Validate("Bin Code", StorageBin.Code);
+        ProdOrderLine.Modify(true);
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", SubassemblyItem."No.");
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.TestField("Supplied-by Line No.", ProdOrderLine."Line No.");
+        ProdOrderComponent.TestField("Planning Level Code", 1);
+        ProdOrderComponent.TestField("Expected Quantity", DemandQuantity);
+
+        // [WHEN] The initial warehouse pick for the raw material is created and registered.
+        ProductionOrder.SetHideValidationDialog(true);
+        ProductionOrder.CreatePick(CopyStr(UserId(), 1, 50), 0, false, false, false);
+        FindWarehouseActivityLine(
+            WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
+            Location.Code, WarehouseActivityLine."Action Type"::Take);
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.TestField("Item No.", RawMaterialItem."No.");
+        WarehouseActivityLine.TestField("Qty. to Handle", DemandQuantity - StockQuantity);
+        WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] The production order and its pick request remain incomplete while the supplied subassembly is unpicked.
+        ProductionOrder.CalcFields("Completely Picked");
+        ProductionOrder.TestField("Completely Picked", false);
+        WhsePickRequest.Get(
+            WhsePickRequest."Document Type"::Production, ProductionOrder.Status.AsInteger(), ProductionOrder."No.", Location.Code);
+        WhsePickRequest.TestField("Completely Picked", false);
+
+        // [GIVEN] An isolated production journal template and batch.
+        LibraryInventory.CreateItemJournalTemplateByType(ProductionItemJournalTemplate, ProductionItemJournalTemplate.Type::"Prod. Order");
+        LibraryInventory.CreateItemJournalBatch(ProductionItemJournalBatch, ProductionItemJournalTemplate.Name);
+        ProductionJournalMgt.InitSetupValues();
+        ProductionJournalMgt.SetJnlTemplateAndBatchName(ProductionItemJournalTemplate.Name, ProductionItemJournalBatch.Name);
+        QuantityToPost := OutputQuantity;
+        TotalPickedQuantity := 0;
+        repeat
+            // [WHEN] The production journal posts consumption and all or part of the subassembly output.
+            ProductionJournalMgt.CreateJnlLines(ProductionOrder, ProdOrderLine."Line No.");
+            ItemJournalLine.Reset();
+            ItemJournalLine.SetRange("Journal Template Name", ProductionItemJournalTemplate.Name);
+            ItemJournalLine.SetRange("Journal Batch Name", ProductionItemJournalBatch.Name);
+            // SetJnlTemplateAndBatchName selects names only; initialize the generated lines' source code from the isolated template.
+            ItemJournalLine.ModifyAll("Source Code", ProductionItemJournalTemplate."Source Code");
+            ItemJournalLine.SetRange("Entry Type", ItemJournalLine."Entry Type"::Consumption);
+            ItemJournalLine.FindFirst();
+            ItemJournalLine.TestField("Item No.", RawMaterialItem."No.");
+            ItemJournalLine.TestField("Bin Code", Location."To-Production Bin Code");
+            ItemJournalLine.Validate(Quantity, QuantityToPost);
+            ItemJournalLine.Modify(true);
+            ItemJournalLine.SetRange("Entry Type", ItemJournalLine."Entry Type"::Output);
+            ItemJournalLine.FindFirst();
+            ItemJournalLine.Validate("Output Quantity", QuantityToPost);
+            ItemJournalLine.Modify(true);
+            ItemJournalLine.SetRange("Entry Type");
+            ItemJournalLine.FindFirst();
+            Codeunit.Run(Codeunit::"Item Jnl.-Post Batch", ItemJournalLine);
+
+            // [THEN] No warehouse pick is created while the output put-away remains unregistered.
+            VerifyNoWhsePickBeforeOutputPutAway(ProductionOrder);
+            WarehouseActivityLine.Reset();
+            WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+            WarehouseActivityLine.SetRange("Source No.", ProductionOrder."No.");
+            Assert.RecordIsEmpty(WarehouseActivityLine);
+            if not WarehousePutAway then begin
+                BinContent.CalcFields(Quantity);
+                BinContent.TestField(Quantity, DemandQuantity);
+                exit;
+            end;
+
+            // [WHEN] The output put-away moves the produced quantity from production into storage.
+            FindWarehouseActivityLine(
+                WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::"Put-away",
+                Location.Code, WarehouseActivityLine."Action Type"::Take);
+            WarehouseActivityLine.TestField("Item No.", SubassemblyItem."No.");
+            WarehouseActivityLine.TestField("Bin Code", Location."From-Production Bin Code");
+            WarehouseActivityLine.TestField("Qty. to Handle", QuantityToPost);
+            FindWarehouseActivityLine(
+                WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::"Put-away",
+                Location.Code, WarehouseActivityLine."Action Type"::Place);
+            WarehouseActivityLine.TestField("Bin Code", StorageBin.Code);
+            WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+            LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+            QuantityToPick := QuantityToPost;
+            if TotalPickedQuantity = 0 then
+                QuantityToPick += StockQuantity;
+            BinContent.CalcFields(Quantity);
+            BinContent.TestField(Quantity, QuantityToPick);
+
+            // [WHEN] A follow-up pick is created from the order or the pick worksheet.
+            if PickFromWorksheet then begin
+                LibraryWarehouse.SelectWhseWorksheetTemplate(WhseWorksheetTemplate, WhseWorksheetTemplate.Type::Pick);
+                LibraryWarehouse.CreateWhseWorksheetName(WhseWorksheetName, WhseWorksheetTemplate.Name, Location.Code);
+                WhsePickRequest.SetRecFilter();
+                LibraryWarehouse.GetOutboundSourceDocuments(WhsePickRequest, WhseWorksheetName, Location.Code);
+                WhseWorksheetLine.Reset();
+                WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetName."Worksheet Template Name");
+                WhseWorksheetLine.SetRange(Name, WhseWorksheetName.Name);
+                WhseWorksheetLine.SetRange("Location Code", Location.Code);
+                WhseWorksheetLine.FindFirst();
+                Assert.RecordCount(WhseWorksheetLine, 1);
+                WhseWorksheetLine.TestField("Item No.", SubassemblyItem."No.");
+                LibraryWarehouse.CreatePickFromPickWorksheet(
+                    WhseWorksheetLine, 0, WhseWorksheetName."Worksheet Template Name", WhseWorksheetName.Name, Location.Code,
+                    '', 0, 0, "Whse. Activity Sorting Method"::None, false, false, false, false, false, false, false);
+            end else
+                ProductionOrder.CreatePick(CopyStr(UserId(), 1, 50), 0, false, false, false);
+
+            // [THEN] The produced quantity and any existing stock are picked from storage to the parent's production bin.
+            FindWarehouseActivityLine(
+                WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
+                Location.Code, WarehouseActivityLine."Action Type"::Take);
+            Assert.RecordCount(WarehouseActivityLine, 1);
+            WarehouseActivityLine.TestField("Item No.", SubassemblyItem."No.");
+            WarehouseActivityLine.TestField("Source Line No.", ProdOrderComponent."Prod. Order Line No.");
+            WarehouseActivityLine.TestField("Source Subline No.", ProdOrderComponent."Line No.");
+            WarehouseActivityLine.TestField("Bin Code", StorageBin.Code);
+            WarehouseActivityLine.TestField("Qty. to Handle", QuantityToPick);
+            FindWarehouseActivityLine(
+                WarehouseActivityLine, ProductionOrder."No.", WarehouseActivityLine."Activity Type"::Pick,
+                Location.Code, WarehouseActivityLine."Action Type"::Place);
+            WarehouseActivityLine.TestField("Bin Code", Location."To-Production Bin Code");
+            WarehouseActivityLine.TestField("Qty. to Handle", QuantityToPick);
+
+            // [WHEN] The follow-up warehouse pick is registered.
+            WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+            LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+            TotalPickedQuantity += QuantityToPick;
+
+            if PickFromWorksheet then begin
+                // Rebuild source selection for the next output stage instead of reusing a partial worksheet line.
+                WhseWorksheetLine.Reset();
+                WhseWorksheetLine.SetRange("Worksheet Template Name", WhseWorksheetName."Worksheet Template Name");
+                WhseWorksheetLine.SetRange(Name, WhseWorksheetName.Name);
+                WhseWorksheetLine.SetRange("Location Code", Location.Code);
+                WhseWorksheetLine.DeleteAll(true);
+            end;
+
+            // [THEN] Planning is unchanged, and completion waits for the full component demand to be picked.
+            ProdOrderComponent.FindFirst();
+            ProdOrderComponent.TestField("Planning Level Code", 1);
+            ProdOrderComponent.TestField("Supplied-by Line No.", ProdOrderLine."Line No.");
+            ProdOrderComponent.TestField("Qty. Picked", TotalPickedQuantity);
+            ProdOrderComponent.TestField("Completely Picked", TotalPickedQuantity = DemandQuantity);
+            ProductionOrder.CalcFields("Completely Picked");
+            ProductionOrder.TestField("Completely Picked", TotalPickedQuantity = DemandQuantity);
+            WhsePickRequest.Get(
+                WhsePickRequest."Document Type"::Production, ProductionOrder.Status.AsInteger(), ProductionOrder."No.", Location.Code);
+            WhsePickRequest.TestField("Completely Picked", TotalPickedQuantity = DemandQuantity);
+            QuantityToPost := DemandQuantity - TotalPickedQuantity;
+        until TotalPickedQuantity = DemandQuantity;
+    end;
+
+    local procedure VerifyNoWhsePickBeforeOutputPutAway(ProductionOrder: Record "Production Order")
+    begin
+        // CreatePick commits tracking setup; preserve the fixture before catching its expected no-work error.
+        Commit();
+        ClearLastError();
+        Assert.IsFalse(
+            Codeunit.Run(Codeunit::"SCM Prod. Whse. Pick Runner", ProductionOrder),
+            'A warehouse pick must not be created before output put-away is registered.');
+        Assert.ExpectedError('Nothing to handle.');
     end;
 
     [Test]
@@ -1716,6 +2008,7 @@ codeunit 137298 "SCM Prod. Whse. Handling"
         LibraryERMCountryData.CreateVATData();
 
         LibrarySetupStorage.SavePurchasesSetup();
+        LibrarySetupStorage.SaveManufacturingSetup();
 
         NoSeriesSetup();
         ItemJournalSetup(ItemJournalTemplate, ItemJournalBatch, ItemJournalTemplate.Type::Item);

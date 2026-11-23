@@ -12,7 +12,7 @@ codeunit 931 "Asm. Calculate BOM Tree"
 {
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate BOM Tree", 'OnGenerateTreeForSource', '', false, false)]
-    local procedure AssemblyHeaderOnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum Microsoft.Inventory.BOM."BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: Integer; var sender: Codeunit "Calculate BOM Tree")
+    local procedure AssemblyHeaderOnGenerateTreeForSource(SourceRecordVar: Variant; var BOMBuffer: Record "BOM Buffer"; BOMTreeType: Enum "BOM Tree Type"; ShowBy: Enum Microsoft.Inventory.BOM."BOM Structure Show By"; DemandDate: Date; var ItemFilter: Record Item; var EntryNo: BigInteger; var sender: Codeunit "Calculate BOM Tree")
     var
         AssemblyHeader: Record "Assembly Header";
     begin
@@ -26,7 +26,7 @@ codeunit 931 "Asm. Calculate BOM Tree"
         end;
     end;
 
-    procedure GenerateTreeForAssemblyHeader(AsmHeader: Record "Assembly Header"; var BOMBuffer: Record "BOM Buffer"; TreeType: Enum "BOM Tree Type"; var ItemFilter: Record Item; var EntryNo: Integer; var sender: Codeunit "Calculate BOM Tree")
+    procedure GenerateTreeForAssemblyHeader(AsmHeader: Record "Assembly Header"; var BOMBuffer: Record "BOM Buffer"; TreeType: Enum "BOM Tree Type"; var ItemFilter: Record Item; var EntryNo: BigInteger; var sender: Codeunit "Calculate BOM Tree")
     begin
         sender.InitBOMBuffer(BOMBuffer);
         sender.InitTreeType(TreeType);
@@ -42,7 +42,7 @@ codeunit 931 "Asm. Calculate BOM Tree"
         sender.CalculateTreeType(BOMBuffer, sender.GetShowTotalAvailability(), TreeType);
     end;
 
-    local procedure GenerateAsmHeaderSubTree(AsmHeader: Record "Assembly Header"; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: Integer; var sender: Codeunit "Calculate BOM Tree"): Boolean
+    local procedure GenerateAsmHeaderSubTree(AsmHeader: Record "Assembly Header"; var BOMBuffer: Record "BOM Buffer"; var ItemFilter: Record Item; var EntryNo: BigInteger; var sender: Codeunit "Calculate BOM Tree"): Boolean
     var
         AsmLine: Record "Assembly Line";
         OldAsmHeader: Record "Assembly Header";

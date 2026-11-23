@@ -31,6 +31,7 @@ codeunit 148337 "Expense Vendor Matching Test"
         ExpenseVendorNoShouldNotBeEmptyErr: Label 'Expense Vendor No. should not be empty.';
         StatusShouldBeErr: Label 'Expense Vendor Status should be %1, but was %2.', Comment = '%1 = Expected, %2 = Actual';
         VendorNoShouldBeErr: Label 'Expense Vendor.Vendor No. should be %1, but was %2.', Comment = '%1 = Expected, %2 = Actual';
+        CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1 = No. Series Code';
 
     // =========================================================================
     // FindOrCreateExpenseVendor
@@ -165,6 +166,132 @@ codeunit 148337 "Expense Vendor Matching Test"
             ExpenseVendor.Status,
             StrSubstNo(StatusShouldBeErr, ExpenseVendor.Status::Unmatched, ExpenseVendor.Status));
         Assert.AreEqual(MerchantName, ExpenseVendor.Name, 'Expense Vendor Name should match the Merchant Name.');
+    end;
+
+    [Test]
+    procedure ExpenseInsert_UnmatchedVendor_SkipsOccupiedNumbers()
+    var
+        Expense: Record Expense;
+        ExpenseVendor: Record "Expense Vendor";
+        NoSeriesLine: Record "No. Series Line";
+        ExpectedVendorNo: Code[20];
+    begin
+        // [SCENARIO 659559] An unmatched merchant expense skips existing vendor numbers in a normal number series.
+        Initialize();
+
+        // [GIVEN] The next two numbers belong to existing expense vendors.
+        SetupExpenseVendorNoSeries(NoSeriesLine, NoSeriesLine.Implementation::Normal);
+        ExpenseVendor."No." := NoSeriesLine."Starting No.";
+        ExpenseVendor.Name := 'Existing expense vendor';
+        ExpenseVendor.Insert(false);
+        ExpenseVendor."No." := IncStr(ExpenseVendor."No.");
+        ExpenseVendor.Insert(false);
+        ExpectedVendorNo := IncStr(ExpenseVendor."No.");
+
+        // [WHEN] An expense for a new merchant is inserted.
+        Expense."No." := LibraryUtility.GenerateRandomCode(Expense.FieldNo("No."), Database::Expense);
+        Expense."Merchant Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."Merchant Name"));
+        Expense.Insert(true);
+
+        // [THEN] The expense is persisted and linked to a new vendor with the first unused number.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Vendor No.", ExpectedVendorNo);
+        ExpenseVendor.Get(ExpectedVendorNo);
+        ExpenseVendor.TestField(Name, Expense."Merchant Name");
+        ExpenseVendor.TestField(Status, ExpenseVendor.Status::Unmatched);
+        ExpenseVendor.TestField("No. Series", NoSeriesLine."Series Code");
+        ExpenseVendor.Get(NoSeriesLine."Starting No.");
+        ExpenseVendor.TestField(Name, 'Existing expense vendor');
+        ExpenseVendor.Get(IncStr(NoSeriesLine."Starting No."));
+        ExpenseVendor.TestField(Name, 'Existing expense vendor');
+    end;
+
+    [Test]
+    procedure ExpenseInsert_MatchedVendor_SkipsOccupiedNumber()
+    var
+        Expense: Record Expense;
+        ExpenseVendor: Record "Expense Vendor";
+        NoSeriesLine: Record "No. Series Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 659559] A matched merchant expense skips an occupied number in a sequence number series.
+        Initialize();
+
+        // [GIVEN] A BC vendor matches the merchant, but the next expense vendor number is already taken.
+        LibraryPurchase.CreateVendor(Vendor);
+        SetupExpenseVendorNoSeries(NoSeriesLine, NoSeriesLine.Implementation::Sequence);
+        ExpenseVendor."No." := NoSeriesLine."Starting No.";
+        ExpenseVendor.Name := 'Existing expense vendor';
+        ExpenseVendor.Insert(false);
+
+        // [WHEN] An expense matching the BC vendor is inserted.
+        Expense."No." := LibraryUtility.GenerateRandomCode(Expense.FieldNo("No."), Database::Expense);
+        Expense."Merchant Name" := Vendor.Name;
+        Expense.Insert(true);
+
+        // [THEN] The expense is persisted and linked to the matched vendor under an unused number.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Vendor No.", IncStr(NoSeriesLine."Starting No."));
+        ExpenseVendor.Get(Expense."Expense Vendor No.");
+        ExpenseVendor.TestField(Status, ExpenseVendor.Status::Matched);
+        ExpenseVendor.TestField("Vendor No.", Vendor."No.");
+        ExpenseVendor.TestField("No. Series", NoSeriesLine."Series Code");
+        ExpenseVendor.Get(NoSeriesLine."Starting No.");
+        ExpenseVendor.TestField(Name, 'Existing expense vendor');
+        ExpenseVendor.TestField("Vendor No.", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure ExpenseInsert_VendorNumberSeriesWarning_CreatesNumberedVendor()
+    var
+        Expense: Record Expense;
+        ExpenseVendor: Record "Expense Vendor";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        // [SCENARIO 659559] Reaching a number series warning does not create an expense vendor with a blank key.
+        Initialize();
+
+        // [GIVEN] The expense vendor number series warns from its first number.
+        SetupExpenseVendorNoSeries(NoSeriesLine, NoSeriesLine.Implementation::Normal);
+        NoSeriesLine.Validate("Warning No.", NoSeriesLine."Starting No.");
+        NoSeriesLine.Modify(true);
+
+        // [WHEN] An expense for a new merchant is inserted.
+        Expense."No." := LibraryUtility.GenerateRandomCode(Expense.FieldNo("No."), Database::Expense);
+        Expense."Merchant Name" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Expense."Merchant Name"));
+        Expense.Insert(true);
+
+        // [THEN] The expense is linked to a vendor with a valid number despite the warning.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Vendor No.", NoSeriesLine."Starting No.");
+        ExpenseVendor.Get(Expense."Expense Vendor No.");
+        ExpenseVendor.TestField(Name, Expense."Merchant Name");
+    end;
+
+    [Test]
+    procedure ExpenseInsert_ExhaustedVendorNumberSeries_ShowsNumberSeriesError()
+    var
+        Expense: Record Expense;
+        NoSeriesLine: Record "No. Series Line";
+        Vendor: Record Vendor;
+    begin
+        // [SCENARIO 659559] An exhausted series reports the numbering problem instead of inserting a blank vendor key.
+        Initialize();
+
+        // [GIVEN] A matching BC vendor and an exhausted expense vendor number series.
+        LibraryPurchase.CreateVendor(Vendor);
+        SetupExpenseVendorNoSeries(NoSeriesLine, NoSeriesLine.Implementation::Normal);
+        NoSeriesLine.Validate("Last No. Used", NoSeriesLine."Ending No.");
+        NoSeriesLine.Modify(true);
+        Expense."No." := LibraryUtility.GenerateRandomCode(Expense.FieldNo("No."), Database::Expense);
+        Expense."Merchant Name" := Vendor.Name;
+
+        // [WHEN] The expense is inserted.
+        asserterror Expense.Insert(true);
+
+        // [THEN] The error identifies the number series that must be corrected.
+        Assert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesLine."Series Code"));
     end;
 
     [Test]
@@ -538,12 +665,17 @@ codeunit 148337 "Expense Vendor Matching Test"
     // =========================================================================
 
     local procedure Initialize()
+    var
+        ExpenseVendor: Record "Expense Vendor";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Vendor Matching Test");
+        ExpenseVendor.DeleteAll();
         LibraryExpense.UpdateEnableAgentInAgentSetup(false);
         LibraryExpense.UpdateUseRulesInAgentSetup(false);
-        if IsInitialized then
+        if IsInitialized then begin
+            SetupExpenseVendorNos();
             exit;
+        end;
 
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
         SetupExpenseVendorNos();
@@ -554,9 +686,27 @@ codeunit 148337 "Expense Vendor Matching Test"
     local procedure SetupExpenseVendorNos()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        NoSeriesLine: Record "No. Series Line";
     begin
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup.Validate("Expense Vendor Nos.", LibraryUtility.GetGlobalNoSeriesCode());
+        ExpenseAgentSetup.Modify(true);
+        NoSeriesLine.SetRange("Series Code", ExpenseAgentSetup."Expense Vendor Nos.");
+        NoSeriesLine.ModifyAll("Warning No.", '');
+    end;
+
+    local procedure SetupExpenseVendorNoSeries(var NoSeriesLine: Record "No. Series Line"; Implementation: Enum "No. Series Implementation")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        NoSeries: Record "No. Series";
+    begin
+        LibraryUtility.CreateNoSeries(NoSeries, true, true, false);
+        LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, '', '');
+        NoSeriesLine.Validate("Starting No.", IncStr(NoSeriesLine."Starting No."));
+        NoSeriesLine.Validate(Implementation, Implementation);
+        NoSeriesLine.Modify(true);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Expense Vendor Nos.", NoSeries.Code);
         ExpenseAgentSetup.Modify(true);
     end;
 

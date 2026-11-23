@@ -26,4 +26,31 @@ codeunit 36959 "Power BI Subscribers"
         RecRef.Field(ReportSetup.GetSetupReportNameFieldNo()).Value := ReportName;
         RecRef.Modify();
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PBI Deployment Events", OnAfterDeleteDeploymentRecord, '', false, false)]
+    local procedure OnAfterDeleteDeploymentRecord(PowerBIDeployment: Record "Power BI Deployment")
+    var
+        PowerBIReportsSetup: Record "PowerBI Reports Setup";
+        SetupHelper: Codeunit "Power BI Report Setup";
+        RecRef: RecordRef;
+        ReportSetup: Interface "PBI Report Setup";
+        EmptyGuid: Guid;
+        LinkedReportId: Guid;
+    begin
+        if IsNullGuid(PowerBIDeployment."Uploaded Report ID") then
+            exit;
+        if not SetupHelper.FindReportSetup(PowerBIDeployment."Report Id", ReportSetup) then
+            exit;
+        if not PowerBIReportsSetup.Get() then
+            exit;
+
+        RecRef.GetTable(PowerBIReportsSetup);
+        LinkedReportId := RecRef.Field(ReportSetup.GetSetupReportIdFieldNo()).Value();
+        if LinkedReportId <> PowerBIDeployment."Uploaded Report ID" then
+            exit;
+
+        RecRef.Field(ReportSetup.GetSetupReportIdFieldNo()).Value := EmptyGuid;
+        RecRef.Field(ReportSetup.GetSetupReportNameFieldNo()).Value := '';
+        RecRef.Modify();
+    end;
 }
