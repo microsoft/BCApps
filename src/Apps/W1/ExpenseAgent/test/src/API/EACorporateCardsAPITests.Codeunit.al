@@ -21,6 +21,7 @@ codeunit 148372 "EA Corporate Cards API Tests"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         CorporateCardsServiceNameTok: Label 'corporateCards', Locked = true;
+        ExpenseUserNumberFilterTok: Label '$filter=expenseUserNumber eq ''%1''', Locked = true, Comment = '%1 = expense user number';
         FirstCardIdTok: Label 'CORPCARD-0001', Locked = true;
         SecondCardIdTok: Label 'CORPCARD-0002', Locked = true;
 
@@ -95,7 +96,7 @@ codeunit 148372 "EA Corporate Cards API Tests"
         GetCardIds(
             LibraryGraphMgt.AppendQueryParameterToTargetURL(
                 LibraryGraphMgt.CreateTargetURL('', Page::"Expense Corporate Cards API", CorporateCardsServiceNameTok),
-                StrSubstNo('$filter=expenseUserNumber eq ''%1''', FirstCard."Expense User No.")),
+                StrSubstNo(ExpenseUserNumberFilterTok, FirstCard."Expense User No.")),
             CardIds);
 
         // [THEN] Only the card of that expense user is returned.
