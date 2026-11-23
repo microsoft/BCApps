@@ -1,5 +1,4 @@
 // ------------------------------------------------------------------------------------------------
-﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -3166,5 +3165,4 @@ table 23 Vendor
     local procedure OnBeforeValidateEnterpriseNo(var Vendor: Record Vendor; xVendor: Record Vendor; CurrFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
-}
 }

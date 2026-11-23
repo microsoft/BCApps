@@ -1,5 +1,4 @@
 // ------------------------------------------------------------------------------------------------
-﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -3099,6 +3098,4 @@ table 23 Vendor
     local procedure OnOpenVendorLedgerEntriesOnBeforeDrillDownEntries(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; FilterOnDueEntries: Boolean; var IsHandled: Boolean)
     begin
     end;
-}
-
 }
