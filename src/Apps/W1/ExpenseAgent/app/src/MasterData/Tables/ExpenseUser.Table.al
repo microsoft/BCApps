@@ -10,9 +10,11 @@ using System.Security.AccessControl;
 using System.Security.User;
 using System.Utilities;
 
+/// <summary>
+/// Stores the users who can submit or approve expenses, including the related employee and approval settings.
+/// </summary>
 table 6923 "Expense User"
 {
-    Access = Internal;
     Caption = 'Expense User';
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", "Employee No.", Name;
@@ -86,11 +88,13 @@ table 6923 "Expense User"
         }
         field(9; "Expense Team Code"; Code[20])
         {
+            Access = Internal;
             Caption = 'Expense Team Code';
             TableRelation = "Expense Team"."Code";
         }
         field(10; "Team Manager"; Boolean)
         {
+            Access = Internal;
             Caption = 'Team Manager';
 
             trigger OnValidate()
@@ -101,6 +105,7 @@ table 6923 "Expense User"
         }
         field(15; "Entra Id"; Guid)
         {
+            Access = Internal;
             Caption = 'Entra Id';
             ToolTip = 'Specifies the Entra Id of the agent.';
             DataClassification = SystemMetadata;
@@ -179,6 +184,7 @@ table 6923 "Expense User"
 #if not CLEANSCHEMA29
         field(54; "Welcome Email Sent"; Boolean)
         {
+            Access = Internal;
             Caption = 'Welcome Email Sent';
             Editable = false;
 #if CLEAN29
@@ -194,11 +200,13 @@ table 6923 "Expense User"
 #endif
         field(55; "Welcome Email Sent At"; DateTime)
         {
+            Access = Internal;
             Caption = 'Welcome Email Sent At';
             Editable = false;
         }
         field(56; "Welcome Email Status"; Option)
         {
+            Access = Internal;
             Caption = 'Welcome Email Status';
             Editable = false;
             OptionMembers = None,Queued,"In Outbox",Sent,Failed;
@@ -206,6 +214,7 @@ table 6923 "Expense User"
         }
         field(57; "Welcome Correlation Id"; Guid)
         {
+            Access = Internal;
             Caption = 'Welcome Correlation Id';
             Editable = false;
             ToolTip = 'Specifies the identifier used to correlate the welcome email with its delivery from the outbox.';

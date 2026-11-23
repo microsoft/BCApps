@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 enum 7437 "EA Corp Card Settle Status"
 {
+    Access = Internal;
     Caption = 'Corp Card Settlement Status';
 
     value(0; Open)
