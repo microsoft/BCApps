@@ -5,7 +5,8 @@
 `userConsumptions` exposes `LogAIConsumptionV2`. The request contains a `model`
 object with model usage and a `v1` object with `usage` and `usageType`.
 The action submits both consumption pipelines; the platform selects which one
-records the event.
+records the event. The V2 platform payload retains the top-level `model` object
+and excludes the `v1` object.
 
 One environment consumption record identifies the event by source type, source
 system ID, and operation. V1 uses its text consumption key; V2 uses its

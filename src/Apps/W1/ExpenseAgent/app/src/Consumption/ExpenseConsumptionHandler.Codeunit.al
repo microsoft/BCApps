@@ -90,13 +90,15 @@ codeunit 6969 "Expense Consumption Handler"
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ModelJson: JsonObject;
+        ConsumptionUsageJson: JsonObject;
         ConsumptionUsagePayload: Text;
         Usage: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
     begin
         ReadV1Usage(AiConsumptionRequestJson, Usage, CopilotQuotaUsageType);
         ModelJson := AiConsumptionRequestJson.GetObject('model');
-        ModelJson.WriteTo(ConsumptionUsagePayload);
+        ConsumptionUsageJson.Add('model', ModelJson);
+        ConsumptionUsageJson.WriteTo(ConsumptionUsagePayload);
         GetOrCreateConsumption(ExpenseAgentEnvConsumption, Usage, CopilotQuotaUsageType,
             ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo);
 

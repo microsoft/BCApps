@@ -369,6 +369,8 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
         RequestJson: JsonObject;
         ModelJson: JsonObject;
+        ActualUsageJson: JsonObject;
+        ActualModelJson: JsonObject;
         ConsumptionId: Guid;
         SessionId: Guid;
         InteractionId: Guid;
@@ -378,6 +380,7 @@ codeunit 148299 "Expense Consumption Test"
         ActualPrincipalId: Guid;
         ExpectedPayload: Text;
         ActualPayload: Text;
+        ActualModelPayload: Text;
         ActualDisplayName: Text;
         ActualDescription: Text;
         IsFeatureTrial: Boolean;
@@ -416,7 +419,12 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(InteractionId, ActualInteractionId, 'V2 must receive the turn interaction ID.');
         Assert.AreEqual(PrincipalId, ActualPrincipalId, 'V2 must receive the expense user principal ID.');
         Assert.AreEqual('Expense user', ActualDisplayName, 'V2 must receive the principal display name.');
-        Assert.AreEqual(ExpectedPayload, ActualPayload, 'V2 must receive the model payload without V1 quantities.');
+        Assert.IsTrue(ActualUsageJson.ReadFrom(ActualPayload), 'V2 must receive a JSON usage object.');
+        Assert.IsTrue(ActualUsageJson.Contains('model'), 'V2 must retain the top-level model member.');
+        Assert.IsFalse(ActualUsageJson.Contains('v1'), 'V2 must not receive V1 quantities.');
+        ActualModelJson := ActualUsageJson.GetObject('model');
+        ActualModelJson.WriteTo(ActualModelPayload);
+        Assert.AreEqual(ExpectedPayload, ActualModelPayload, 'V2 must preserve all model usage dimensions.');
         Assert.AreEqual('Processed expense', ActualDescription, 'V2 must receive the full description.');
         Assert.IsFalse(IsFeatureTrial, 'Paid consumption must not be marked as a trial.');
         Assert.IsFalse(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Paid V1 consumption must not be excluded from billing.');
