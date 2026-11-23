@@ -1942,7 +1942,7 @@ codeunit 148330 "Expense Posting VAT Test"
         asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
         // [THEN] The allocation error blocks posting instead of posting the difference to a rounding account.
-        Assert.ExpectedError(StrSubstNo(FinancialItemizationTotalMismatchErr, ExpenseReportLine."Line No.", ItemizedAmount, 150));
+        Assert.ExpectedError(StrSubstNo(FinancialItemizationTotalMismatchErr, ExpenseReportLine."Line No.", ExpenseReportLineItem.Amount, ExpenseReportLine.Amount));
         LibraryVariableStorage.AssertEmpty();
         Assert.AreEqual(GLEntryCount, GLEntry.Count(), 'Invalid financial itemizations must not create G/L entries.');
         PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
