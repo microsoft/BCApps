@@ -90,18 +90,13 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         PermissionsMock: Codeunit "Permissions Mock";
         SourceApi: Codeunit "MDM Cross-Env Source API";
         Response: JsonObject;
-        ItemEntry: JsonObject;
-        CustomerEntry: JsonObject;
-        TableIds: JsonArray;
-        TableIdsText: Text;
     begin
         // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
         // [SCENARIO 656413] A table outside the registered app's permission set is reported as readPermission:false instead
-        //                   of failing the call, and in a change-detection batch it doesn't stop the other tables.
+        //                   of failing the call, even when the table is empty and no read would raise a permission error.
         ApproveSourceConsent();
-        TableIds.Add(Database::Item);
-        TableIds.Add(Database::Customer);
-        TableIds.WriteTo(TableIdsText);
+        // [GIVEN] an empty Item table, so the answer can't depend on a read failing
+        Item.DeleteAll(false);
 
         // [GIVEN] the session has only the permission set the source admin assigns to the registered app (no Item read)
         // Don't call PermissionsMock.Stop(): the test runner toggles the mock around every test, and stopping it here
@@ -116,6 +111,34 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Assert.IsTrue(GetBoolean(Response, 'tableAvailable'), 'The table exists on the source');
         Assert.IsFalse(GetBoolean(Response, 'readPermission'), 'The missing read permission should be reported');
         Assert.AreEqual(0, RecordCount(Response), 'No records should be returned for an unreadable table');
+    end;
+
+    [Test]
+    procedure ChangeDetectionFlagsOnlyTheTableTheAppCannotRead()
+    var
+        Item: Record Item;
+        PermissionsMock: Codeunit "Permissions Mock";
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+        ItemEntry: JsonObject;
+        CustomerEntry: JsonObject;
+        TableIds: JsonArray;
+        TableIdsText: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 656413] In a change-detection batch, a table the registered app can't read is flagged and doesn't
+        //                   stop the source from answering for the other tables.
+        ApproveSourceConsent();
+        // [GIVEN] an Item record, so the unreadable table isn't empty
+        Item.Init();
+        Item."No." := CopyStr(LibraryRandom.RandText(MaxStrLen(Item."No.")), 1, MaxStrLen(Item."No."));
+        Item.Insert(false);
+        TableIds.Add(Database::Item);
+        TableIds.Add(Database::Customer);
+        TableIds.WriteTo(TableIdsText);
+
+        // [GIVEN] the session has only the permission set the source admin assigns to the registered app (no Item read)
+        PermissionsMock.Set('MDM Cross-Env Read');
 
         // [WHEN] change detection probes the unreadable table together with a readable one
         Response.ReadFrom(SourceApi.LastModifiedAtPerTable(TableIdsText));

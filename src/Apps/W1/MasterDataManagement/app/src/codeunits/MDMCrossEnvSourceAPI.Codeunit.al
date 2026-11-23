@@ -82,7 +82,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         if not TryOpenTable(TableId, RecRef) then
             exit(WriteResponse(Response, false, Records, false));
         Response.Add('tableAvailable', true);
-        if not CanRead(RecRef) then begin
+        if not CanRead(TableId) then begin
             Response.Add('readPermission', false);
             exit(WriteResponse(Response, true, Records, false));
         end;
@@ -169,19 +169,16 @@ codeunit 7241 "MDM Cross-Env Source API"
         RecRef.ReadIsolation := IsolationLevel::ReadCommitted;
     end;
 
-    // Without filters ReadPermission() tests for FULL read access, so a grant restricted by a security filter fails it
-    // even though the caller can read its rows. Confirm a "no" with an actual read before reporting the table unreadable.
-    local procedure CanRead(var RecRef: RecordRef): Boolean
+    // Without filters ReadPermission() tests for FULL read access, so a grant restricted by a security filter would fail it
+    // even though the caller can read its rows. Applying the caller's security filter first makes the check ask "can the
+    // caller read within its allowed range", which doesn't depend on whether the table holds any rows.
+    local procedure CanRead(TableId: Integer): Boolean
+    var
+        ProbeRecRef: RecordRef;
     begin
-        if RecRef.ReadPermission() then
-            exit(true);
-        exit(TryReadTable(RecRef));
-    end;
-
-    [TryFunction]
-    local procedure TryReadTable(var RecRef: RecordRef)
-    begin
-        if RecRef.IsEmpty() then;
+        ProbeRecRef.Open(TableId);
+        ProbeRecRef.SetPermissionFilter();
+        exit(ProbeRecRef.ReadPermission());
     end;
 
     // Media/infrastructure tables are only reachable inline (BuildMediaValue, tied to a record's media field). Never
@@ -681,7 +678,7 @@ codeunit 7241 "MDM Cross-Env Source API"
         end;
         Entry.Add('tableAvailable', true);
         // One unreadable table must not fail the whole batch, or change detection stops for every table.
-        if not CanRead(RecRef) then begin
+        if not CanRead(TableId) then begin
             Entry.Add('readPermission', false);
             exit(Entry);
         end;
