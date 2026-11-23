@@ -3073,7 +3073,7 @@ codeunit 134982 "ERM Financial Reports"
         CloseIncomeStatement.GenJournalTemplate.SetValue(LibraryVariableStorage.DequeueText());
         CloseIncomeStatement.GenJournalBatch.SetValue(LibraryVariableStorage.DequeueText());
         CloseIncomeStatement.DocumentNo.SetValue(LibraryVariableStorage.DequeueText());
-        BalancingAccountNo := LibraryVariableStorage.DequeueText();
+        BalancingAccountNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(BalancingAccountNo));
         CloseIncomeStatement.BalancingAccountNo.SetValue(BalancingAccountNo);
         CloseIncomeStatement.NetProfitAccountNo.SetValue(BalancingAccountNo);
         CloseIncomeStatement.NetLossAccountNo.SetValue(BalancingAccountNo);
