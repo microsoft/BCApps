@@ -5357,19 +5357,14 @@ codeunit 136302 "Job Consumption Purchase"
         PurchaseLine.Validate("Direct Unit Cost", 1);
         PurchaseLine.Validate("Job No.", JobTask."Job No.");
         PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+        PurchaseLine.Validate("Job Unit Price", 2);
+        PurchaseLine.Validate("Job Line Discount %", 10);
         PurchaseLine.Validate("Qty. to Receive", 1);
         PurchaseLine.Modify(true);
         GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
         UpdateAdjustmentAccounts(
           PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group", LibraryERM.CreateGLAccountNo());
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
-        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
-
-        PurchaseLine.Find();
-        PurchaseLine.Validate("Job Unit Price", 2);
-        PurchaseLine.Validate("Job Line Discount %", 10);
-        PurchaseLine.Modify(true);
-        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
         LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
 
         // [GIVEN] The direct unit cost is increased and saved before another release/reopen.
