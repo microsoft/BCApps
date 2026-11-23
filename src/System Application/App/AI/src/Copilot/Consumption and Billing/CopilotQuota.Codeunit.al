@@ -19,6 +19,7 @@ codeunit 7785 "Copilot Quota"
 
     var
         CopilotQuotaImpl: Codeunit "Copilot Quota Impl.";
+        V1ConsumptionReportingTelemetryMsg: Label 'Capability %1 is still using V1 consumption quota reporting', Locked = true;
 
 #if not CLEAN30
     /// <summary>
@@ -35,6 +36,7 @@ codeunit 7785 "Copilot Quota"
     var
         CallerModuleInfo: ModuleInfo;
     begin
+        LogV1ConsumptionReportingWarning(CopilotCapability);
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
 #pragma warning disable AL0432
         CopilotQuotaImpl.LogQuotaUsage(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo);
@@ -59,6 +61,7 @@ codeunit 7785 "Copilot Quota"
     var
         CallerModuleInfo: ModuleInfo;
     begin
+        LogV1ConsumptionReportingWarning(CopilotCapability);
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         CopilotQuotaImpl.LogAgentUserAIConsumption(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo, AgentTaskID, ActionsCharged, Description, UniqueID, false);
     end;
@@ -81,6 +84,7 @@ codeunit 7785 "Copilot Quota"
     var
         CallerModuleInfo: ModuleInfo;
     begin
+        LogV1ConsumptionReportingWarning(CopilotCapability);
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         CopilotQuotaImpl.LogAgentUserAIConsumption(CopilotCapability, Usage, CopilotQuotaUsageType, CallerModuleInfo, AgentTaskID, ActionsCharged, Description, UniqueID, ExcludeFromBilling);
     end;
@@ -145,5 +149,12 @@ codeunit 7785 "Copilot Quota"
     procedure CanConsume(): Boolean
     begin
         exit(CopilotQuotaImpl.CanConsume());
+    end;
+
+    local procedure LogV1ConsumptionReportingWarning(CopilotCapability: Enum "Copilot Capability")
+    var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+    begin
+        Session.LogMessage('0000WUL', StrSubstNo(V1ConsumptionReportingTelemetryMsg, CopilotCapability), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
     end;
 }
