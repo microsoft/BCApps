@@ -38,6 +38,30 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
+    procedure CustomerCurrencyAmountsUseLCYPerFCYExchangeRate()
+    begin
+        // [SCENARIO 659500] Customer currency amounts use LCY per FCY for both the receivables and balancing lines.
+        Initialize();
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.40", true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure VendorCurrencyAmountsUseLCYPerFCYExchangeRate()
+    begin
+        // [SCENARIO 659500] Vendor currency amounts use LCY per FCY for both the payables and balancing lines.
+        Initialize();
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.40", false);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure DebitCurrencyAmountsUseLongMonetaryPrecision()
     begin
         // [SCENARIO] Debit CurrencyAmount and ExchangeRate retain 18 decimal places, including calculated currency amounts.

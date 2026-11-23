@@ -26,6 +26,30 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         GenerateSAFTFileImmediatelyQst: Label 'Since you did not schedule the SAF-T file generation, it will be generated immediately which can take a while. Do you want to continue?';
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure CustomerCurrencyAmountsUseLCYPerFCYExchangeRate()
+    begin
+        // [SCENARIO 659500] Customer currency amounts use LCY per FCY for both the receivables and balancing lines.
+        Initialize();
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.30", true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure VendorCurrencyAmountsUseLCYPerFCYExchangeRate()
+    begin
+        // [SCENARIO 659500] Vendor currency amounts use LCY per FCY for both the payables and balancing lines.
+        Initialize();
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+        SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.30", false);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure MasterFile()
     var

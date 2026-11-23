@@ -158,6 +158,108 @@ codeunit 148099 "SAF-T Test Helper"
         SAFTSourceCode.Modify(true);
     end;
 
+    procedure VerifyCustomerVendorCurrencyAmounts(Version: Enum "SAF-T Version"; IsCustomer: Boolean)
+    var
+        SAFTMappingRange: Record "SAF-T Mapping Range";
+        SAFTExportHeader: Record "SAF-T Export Header";
+        SAFTExportLine: Record "SAF-T Export Line";
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+        Currency: Record Currency;
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        TempAmountXMLBuffer: Record "XML Buffer" temporary;
+        TempChildXMLBuffer: Record "XML Buffer" temporary;
+        SourceType: Enum "Gen. Journal Source Type";
+        SourceNo: Code[20];
+        DocumentNo: Code[20];
+        EntryNo: Integer;
+        TransactionNo: Integer;
+    begin
+        // [GIVEN] A foreign-currency invoice for 1,000 FCY = 8,000 LCY, with the BC factor stored as 0.125.
+        SetupSAFT(SAFTMappingRange, "SAF-T Mapping Type"::"Four Digit Standard Account", 1);
+        MatchGLAccountsFourDigit(SAFTMappingRange.Code);
+        IncludesNoSourceCodeToTheFirstSAFTSourceCode();
+        CreateSAFTExportHeader(SAFTExportHeader, SAFTMappingRange.Code, Version);
+        SAFTExportHeader.Validate("Export Currency Information", true);
+        SAFTExportHeader.Validate("Split By Month", false);
+        SAFTExportHeader.Modify(true);
+        LibraryERM.CreateCurrency(Currency);
+        if IsCustomer then begin
+            Customer.FindFirst();
+            SourceNo := Customer."No.";
+            SourceType := SourceType::Customer;
+        end else begin
+            Vendor.FindFirst();
+            SourceNo := Vendor."No.";
+            SourceType := SourceType::Vendor;
+        end;
+        GLEntry.SetCurrentKey("Transaction No.");
+        if GLEntry.FindLast() then
+            TransactionNo := GLEntry."Transaction No." + 1
+        else
+            TransactionNo := 1;
+        DocumentNo := LibraryUtility.GenerateGUID();
+        GLAccount.FindSet();
+        EntryNo := MockGLEntry(
+            SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '',
+            SourceType.AsInteger(), SourceNo, '', IsCustomer ? 8000 : 0, IsCustomer ? 0 : -8000);
+        if IsCustomer then
+            MockCustLedgEntry(
+                EntryNo, SAFTExportHeader."Ending Date", SourceNo, TransactionNo, Currency.Code,
+                1000, 1000, 8000, 0.125, "Gen. Journal Document Type"::Invoice)
+        else
+            MockVendLedgEntry(
+                EntryNo, SAFTExportHeader."Ending Date", SourceNo, TransactionNo, Currency.Code,
+                -1000, -1000, -8000, 0.125, "Gen. Journal Document Type"::Invoice);
+
+        // [GIVEN] A balancing G/L line with a different entry number must calculate its foreign amount.
+        GLAccount.Next();
+        MockGLEntry(
+            SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '',
+            SourceType.AsInteger(), SourceNo, '', IsCustomer ? 0 : 8000, IsCustomer ? -8000 : 0);
+
+        // [WHEN] The transaction is exported with currency information enabled.
+        RunSAFTExport(SAFTExportHeader);
+        SAFTExportHeader.Find();
+        SAFTExportHeader.TestField(Status, SAFTExportHeader.Status::Completed);
+        SAFTExportLine.SetRange("Master Data", false);
+        FindSAFTExportLine(SAFTExportLine, SAFTExportHeader.ID);
+        Assert.RecordCount(SAFTExportLine, 1);
+        SAFTExportLine.TestField(Status, SAFTExportLine.Status::Completed);
+        LoadXMLBufferFromSAFTExportLine(TempXMLBuffer, SAFTExportLine);
+
+        // [THEN] Both debit and credit amounts are 1,000 FCY at 8 LCY per FCY, including the calculated amount.
+        Assert.IsTrue(
+            TempXMLBuffer.FindNodesByXPath(
+                TempAmountXMLBuffer,
+                '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:DebitAmount'),
+            'The debit amount was not exported.');
+        Assert.RecordCount(TempAmountXMLBuffer, 1);
+        VerifyTransactionCurrencyAmount(TempAmountXMLBuffer, TempChildXMLBuffer, Currency.Code);
+        Assert.IsTrue(
+            TempXMLBuffer.FindNodesByXPath(
+                TempAmountXMLBuffer,
+                '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:CreditAmount'),
+            'The credit amount was not exported.');
+        Assert.RecordCount(TempAmountXMLBuffer, 1);
+        VerifyTransactionCurrencyAmount(TempAmountXMLBuffer, TempChildXMLBuffer, Currency.Code);
+    end;
+
+    local procedure VerifyTransactionCurrencyAmount(var TempAmountXMLBuffer: Record "XML Buffer" temporary; var TempChildXMLBuffer: Record "XML Buffer" temporary; CurrencyCode: Code[10])
+    begin
+        TempAmountXMLBuffer.FindChildElements(TempChildXMLBuffer);
+        Assert.RecordCount(TempChildXMLBuffer, 4);
+        AssertCurrentElementValue(TempChildXMLBuffer, 'n1:Amount', '8000');
+        TempChildXMLBuffer.Next();
+        AssertCurrentElementValue(TempChildXMLBuffer, 'n1:CurrencyCode', CurrencyCode);
+        TempChildXMLBuffer.Next();
+        AssertCurrentElementValue(TempChildXMLBuffer, 'n1:CurrencyAmount', '1000');
+        TempChildXMLBuffer.Next();
+        AssertCurrentElementValue(TempChildXMLBuffer, 'n1:ExchangeRate', '8');
+    end;
+
     procedure PostRandomAmountForNumberOfMasterDataRecords(PostingDate: Date; NumberOfMasterDataRecords: Integer)
     var
         GLAccount: Record "G/L Account";
