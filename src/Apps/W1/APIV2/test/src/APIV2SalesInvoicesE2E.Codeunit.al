@@ -593,7 +593,7 @@ codeunit 139809 "APIV2 - Sales Invoices E2E"
         // [SCENARIO 184721] Create an invoice both through the client UI and through the API
         // [SCENARIO] and compare them. They should be the same and have the same fields autocompleted wherever needed.
         // [GIVEN] An unposted invoice
-        LibraryGraphMgt.SetLicenseSafeWorkDate();
+        LibraryGraphMgt.AlignWorkDateWithApiSession();
         LibraryGraphDocumentTools.InitializeUIPage();
         LibraryApplicationArea.DisableApplicationAreaSetup();
 
