@@ -46,6 +46,8 @@ codeunit 148090 "Compensations CZC"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Compensations CZC");
 
+        LibraryERM.SetInvRoundingPrecisionLCY(0.01);
+
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup."Invoice Nos." := LibraryERM.CreateNoSeriesCode();
         SalesReceivablesSetup."Credit Memo Nos." := LibraryERM.CreateNoSeriesCode();
@@ -469,6 +471,8 @@ codeunit 148090 "Compensations CZC"
                                            DocumentType: Enum "Purchase Document Type"; VendorNo: Code[20])
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
+        PurchaseHeader.Validate("Original Doc. VAT Date CZL", PurchaseHeader."VAT Reporting Date");
+        PurchaseHeader.Modify(true);
         LibraryPurchase.CreatePurchaseLine(
           PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GetNewGLAccountNo(true), 1);
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(10000, 2));
