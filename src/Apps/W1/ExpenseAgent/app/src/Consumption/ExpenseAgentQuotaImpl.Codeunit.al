@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.AI;
 
-codeunit 6913 "Expense Agent Quota Impl." implements "Expense Agent Quota"
+codeunit 6923 "Expense Agent Quota Impl." implements "Expense Agent Quota"
 {
     Access = Internal;
 
