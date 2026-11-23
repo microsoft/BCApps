@@ -145,6 +145,122 @@ codeunit 3326 "PA Test Fixtures"
         exit('');
     end;
 
+    internal procedure GetTaskInfotipSources(AgentTaskId: BigInteger; var Sources: JsonArray)
+    var
+        WorkItem: Codeunit "PA Work Item";
+    begin
+        Clear(Sources);
+        if not WorkItem.LoadByAgentTaskId(AgentTaskId) then
+            Error(TaskNotFoundErr, AgentTaskId);
+        GetWorkItemInfotipSources(WorkItem.GetId(), Sources);
+    end;
+
+    // Source discovery uses stored identity; task ownership is checked by the task facade.
+    internal procedure GetWorkItemInfotipSources(WorkItemId: Guid; var Sources: JsonArray)
+    var
+        WorkItem: Codeunit "PA Work Item";
+        DraftBasedFixtures: Codeunit "PA Draft Based Test Fixtures";
+        DiscoveredSources: JsonArray;
+        Source: JsonToken;
+        Descriptor: JsonObject;
+        TableId, SystemId: JsonToken;
+        SourceKey: Text;
+        SeenSources: List of [Text];
+        WorkItemNotFoundErr: Label 'Payables Agent work item %1 does not exist.', Locked = true;
+    begin
+        Clear(Sources);
+        case Versions.GetVersion(WorkItemId) of
+            1:
+                DraftBasedFixtures.GetWorkItemInfotipSources(WorkItemId, DiscoveredSources);
+            2:
+                begin
+                    if not WorkItem.Load(WorkItemId) then
+                        Error(WorkItemNotFoundErr, WorkItemId);
+                    GetNativeInfotipSources(WorkItem, DiscoveredSources);
+                end;
+            else
+                Error(WorkItemNotFoundErr, WorkItemId);
+        end;
+
+        foreach Source in DiscoveredSources do begin
+            Descriptor := Source.AsObject();
+            Descriptor.Get('tableId', TableId);
+            Descriptor.Get('systemId', SystemId);
+            SourceKey := Format(TableId.AsValue().AsInteger(), 0, 9) + ':' + SystemId.AsValue().AsText();
+            if not SeenSources.Contains(SourceKey) then begin
+                SeenSources.Add(SourceKey);
+                Sources.Add(Source);
+            end;
+        end;
+    end;
+
+    local procedure GetNativeInfotipSources(WorkItem: Codeunit "PA Work Item"; var Sources: JsonArray)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        MatchedLine: Record "Purchase Line";
+        TempMatchedLine: Record "Purchase Line" temporary;
+        Vendor: Record Vendor;
+        Outcome: RecordId;
+        MissingOutcomeErr: Label 'Cannot collect infotips: agent task %1 has no existing unposted purchase outcome.', Locked = true;
+        MissingLinesErr: Label 'Cannot collect infotips: purchase document %1 has no lines.', Locked = true;
+    begin
+        Outcome := WorkItem.GetOutcome();
+        if Outcome.TableNo() <> Database::"Purchase Header" then
+            Error(MissingOutcomeErr, WorkItem.GetAgentTaskId());
+        if not PurchaseHeader.Get(Outcome) then
+            Error(MissingOutcomeErr, WorkItem.GetAgentTaskId());
+        if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::Invoice, PurchaseHeader."Document Type"::"Credit Memo", PurchaseHeader."Document Type"::Order]) then
+            Error(MissingOutcomeErr, WorkItem.GetAgentTaskId());
+        AddInfotipSource(PurchaseHeader, PurchaseHeader."Vendor Invoice No.", Sources);
+        if PurchaseHeader."Buy-from Vendor No." <> '' then begin
+            Vendor.Get(PurchaseHeader."Buy-from Vendor No.");
+            AddInfotipSource(Vendor, Vendor.Name, Sources);
+        end;
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        if not PurchaseLine.FindSet() then
+            Error(MissingLinesErr, PurchaseHeader."No.");
+        repeat
+            AddInfotipSource(PurchaseLine, PurchaseLine.Description, Sources);
+            if TryGetNativeMatchedOrderLine(PurchaseLine, MatchedLine) then
+                if not TempMatchedLine.Get(MatchedLine."Document Type", MatchedLine."Document No.", MatchedLine."Line No.") then begin
+                    TempMatchedLine := MatchedLine;
+                    TempMatchedLine.Insert(false, true);
+                end;
+        until PurchaseLine.Next() = 0;
+        if TempMatchedLine.FindSet() then
+            repeat
+                MatchedLine.Get(TempMatchedLine."Document Type", TempMatchedLine."Document No.", TempMatchedLine."Line No.");
+                AddInfotipSource(MatchedLine, MatchedLine.Description, Sources);
+            until TempMatchedLine.Next() = 0;
+    end;
+
+    local procedure TryGetNativeMatchedOrderLine(PurchaseLine: Record "Purchase Line"; var MatchedLine: Record "Purchase Line"): Boolean
+    var
+        ReceiptLine: Record "Purch. Rcpt. Line";
+    begin
+        if PurchaseLine."Order No." <> '' then
+            exit(MatchedLine.Get(MatchedLine."Document Type"::Order, PurchaseLine."Order No.", PurchaseLine."Order Line No."));
+        if PurchaseLine."Receipt No." <> '' then
+            if ReceiptLine.Get(PurchaseLine."Receipt No.", PurchaseLine."Receipt Line No.") then
+                exit(MatchedLine.Get(MatchedLine."Document Type"::Order, ReceiptLine."Order No.", ReceiptLine."Order Line No."));
+        exit(false);
+    end;
+
+    local procedure AddInfotipSource(SourceRecord: RecordRef; DescriptionText: Text; var Sources: JsonArray)
+    var
+        Descriptor: JsonObject;
+        SourceSystemId: Guid;
+    begin
+        SourceSystemId := SourceRecord.Field(SourceRecord.SystemIdNo()).Value;
+        Descriptor.Add('tableId', SourceRecord.Number());
+        Descriptor.Add('systemId', SourceSystemId);
+        Descriptor.Add('description', DescriptionText);
+        Sources.Add(Descriptor);
+    end;
+
     local procedure TryGetOutcomePurchaseInvoice(WorkItem: Codeunit "PA Work Item"; var PurchaseHeader: Record "Purchase Header"; var ErrorText: Text): Boolean
     var
         Outcome: RecordId;
@@ -460,6 +576,16 @@ codeunit 3326 "PA Test Fixtures"
         StoredWorkItem."Admission Status" := "PA Work Item Admission Status"::Received;
         StoredWorkItem.Insert();
         exit(WorkItem.Load(StoredWorkItem.SystemId));
+    end;
+
+    // Arrange persisted source data without exercising runtime outcome registration.
+    internal procedure SetWorkItemOutcomeForTest(WorkItemId: Guid; OutcomeId: RecordId)
+    var
+        StoredWorkItem: Record "Payables Agent Work Item";
+    begin
+        StoredWorkItem.GetBySystemId(WorkItemId);
+        StoredWorkItem.Outcome := OutcomeId;
+        StoredWorkItem.Modify();
     end;
 
     internal procedure LoadConfiguration(var PASetupUpdateParameters: Codeunit "PA Setup Update Parameters"; CreateAgentUser: Boolean)
