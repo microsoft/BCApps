@@ -353,7 +353,7 @@ codeunit 10035 "Helper IRIS"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogError('', GetIRISFeatureName(), 'SchemaConfiguration', SchemaFailureTxt);
+        FeatureTelemetry.LogError('0000WUO', GetIRISFeatureName(), 'SchemaConfiguration', SchemaFailureTxt);
         Error(UnsupportedSchemaErr);
     end;
     #endregion XML Schema

@@ -265,11 +265,8 @@ page 10058 "Transmission IRIS"
                 trigger OnAction()
                 var
                     TransmissionLog: Record "Transmission Log IRIS";
-                    TempErrorInfo: Record "Error Information IRIS" temporary;
                     ProcessDialog: Dialog;
-                    TransmissionStatus: Text;
                     UniqueTransmissionId: Text[100];
-                    SubmissionsStatus: Dictionary of [Text, Text];
                 begin
                     if Rec."Receipt ID" = '' then
                         Error(ReceiptIDNotAssignedErr);
@@ -277,12 +274,15 @@ page 10058 "Transmission IRIS"
                     ProcessDialog.Open(RequestingStatusMsg);
 
                     if TransmissionLog.FindLastRecByReceiptID(Rec."Receipt ID") then
-                        UniqueTransmissionId := TransmissionLog."Unique Transmission ID";
+                        UniqueTransmissionId := TransmissionLog."Unique Transmission ID"
+                    else begin
+                        TransmissionLog.Reset();
+                        TransmissionLog.SetRange("Transmission Document ID", Rec."Document ID");
+                        if TransmissionLog.FindLast() then
+                            UniqueTransmissionId := TransmissionLog."Unique Transmission ID";
+                    end;
 
-                    ProcessTransmission.RequestAcknowledgement(Rec."Receipt ID", UniqueTransmissionId, TransmissionStatus, SubmissionsStatus, TempErrorInfo);
-                    ProcessTransmission.SetTransmissionErrors(Rec."Document ID", UniqueTransmissionId, SubmissionsStatus, TempErrorInfo);
-                    if not ProcessResponse.PreReceiptValidationFailed(TempErrorInfo) then
-                        ProcessTransmission.UpadateTransmissionStatus(Rec, TransmissionStatus, SubmissionsStatus);
+                    ProcessTransmission.RequestAcknowledgementAndUpdateTransmission(Rec, Rec."Receipt ID", UniqueTransmissionId);
 
                     Sleep(500);
                     ProcessDialog.Close();
@@ -297,11 +297,8 @@ page 10058 "Transmission IRIS"
                 trigger OnAction()
                 var
                     TransmissionLog: Record "Transmission Log IRIS";
-                    TempErrorInfo: Record "Error Information IRIS" temporary;
                     ProcessDialog: Dialog;
-                    TransmissionStatus: Text;
                     UniqueTransmissionId: Text[100];
-                    SubmissionsStatus: Dictionary of [Text, Text];
                 begin
                     ProcessDialog.Open(RequestingStatusMsg);
 
@@ -310,10 +307,7 @@ page 10058 "Transmission IRIS"
                         Error(UTIDNotFoundErr);
                     UniqueTransmissionId := TransmissionLog."Unique Transmission ID";
 
-                    ProcessTransmission.RequestAcknowledgement('', UniqueTransmissionId, TransmissionStatus, SubmissionsStatus, TempErrorInfo);
-                    ProcessTransmission.SetTransmissionErrors(Rec."Document ID", UniqueTransmissionId, SubmissionsStatus, TempErrorInfo);
-                    if not ProcessResponse.PreReceiptValidationFailed(TempErrorInfo) then
-                        ProcessTransmission.UpadateTransmissionStatus(Rec, TransmissionStatus, SubmissionsStatus);
+                    ProcessTransmission.RequestAcknowledgementAndUpdateTransmission(Rec, '', UniqueTransmissionId);
 
                     Sleep(500);
                     ProcessDialog.Close();
@@ -419,7 +413,6 @@ page 10058 "Transmission IRIS"
 
     var
         ProcessTransmission: Codeunit "Process Transmission IRIS";
-        ProcessResponse: Codeunit "Process Response IRIS";
         ConfirmMgt: Codeunit "Confirm Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Helper: Codeunit "Helper IRIS";

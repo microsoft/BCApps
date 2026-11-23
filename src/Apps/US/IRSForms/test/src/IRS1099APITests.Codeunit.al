@@ -32,6 +32,7 @@ codeunit 148018 "IRS 1099 API Tests"
     procedure IRS1099DocumentsAPISunshine()
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        OtherIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
         IRS1099FormReport: Record "IRS 1099 Form Report";
         ResponseText: Text;
@@ -39,6 +40,7 @@ codeunit 148018 "IRS 1099 API Tests"
         // [SCENARIO 497835]
         Initialize();
         Commit();
+        CreateAPIDocument(OtherIRS1099FormDocHeader);
         CreateAPIDocument(IRS1099FormDocHeader);
         // [GIVEN]
         MockIRS1099FormDocWithLineAndFormReport(IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
@@ -343,7 +345,7 @@ codeunit 148018 "IRS 1099 API Tests"
 
     local procedure GetIRS1099DocumentAPIWithExpands(DocHeader: Record "IRS 1099 Form Doc. Header") Url: Text
     begin
-        Url := LibraryGraphMgt.CreateTargetURL('', Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
+        Url := LibraryGraphMgt.CreateTargetURL(Format(DocHeader.SystemId), Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
         Url := LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099formreports');
         exit(Url);
     end;
@@ -378,8 +380,7 @@ codeunit 148018 "IRS 1099 API Tests"
     var
         IRS1099FormHeaderJson, IRS1099DocumentLinesSet, IRS1099FormReportsSet : Text;
     begin
-        Assert.IsTrue(
-            LibraryGraphMgt.GetObjectFromJSONResponse(ResponseText, IRS1099FormHeaderJson, 1), 'No Json response from IRS1099FormDocHeader.SystemId');
+        IRS1099FormHeaderJson := ResponseText;
         LibraryGraphMgt.VerifyIDInJson(IRS1099FormHeaderJson);
         LibraryGraphMgt.VerifyPropertyInJSON(IRS1099FormHeaderJson, 'vendorNo', IRS1099FormDocHeader."Vendor No.");
         IRS1099FormDocHeader.CalcFields("Vendor Name");

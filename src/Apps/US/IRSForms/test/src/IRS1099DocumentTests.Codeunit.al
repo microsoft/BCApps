@@ -2395,7 +2395,7 @@ codeunit 148010 "IRS 1099 Document Tests"
     end;
 
     [Test]
-    [HandlerFunctions('InspectWithholdingUpdateHandler,IgnoreLifecycleMessageHandler')]
+    [HandlerFunctions('InspectWithholdingUpdateHandler,AcceptDependentEligibilityHandler,IgnoreLifecycleMessageHandler')]
     procedure SupplementalWithholdingRemovalRefreshesEligibility()
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
@@ -2403,23 +2403,18 @@ codeunit 148010 "IRS 1099 Document Tests"
         TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Removing backup withholding offers unchanged compensation's inclusion-only update.
+        // [SCENARIO 653992] Removing backup withholding requires confirmation of the unselected income eligibility change.
         Initialize();
 
         // [GIVEN] Released D has compensation 500 qualified by withholding 50.
-        CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 500, 100);
-        CreateFormBoxAndDocLine(IRS1099FormDocHeader, 'NEC-04', 50, 0);
-        SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 50);
-        LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
-        SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 0);
-        InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
+        CreateWithholdingRemovalCandidate(IRS1099FormDocHeader, Transmission);
         Commit();
 
         // [WHEN] The explicitly selected recalculation removes withholding.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Income remains 500, but its saved tips no longer qualify for filing.
-        VerifyEligibilityPageRow(true, 500, 2000, true, 500, 2000, false, true);
+        VerifyDependentEligibilityConfirmation(IRS1099FormDocHeader.ID);
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 500, false);
         VerifySavedTips(IRS1099FormDocHeader.ID, 100);
         TipsSupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01B');
@@ -3536,6 +3531,32 @@ codeunit 148010 "IRS 1099 Document Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('InspectWithholdingUpdateHandler,DeclineDependentEligibilityHandler')]
+    procedure DecliningDependentEligibilityChangesPreservesAllLines()
+    var
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        Transmission: Record "Transmission IRIS";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Declining dependent eligibility changes rolls back the selected withholding update.
+        Initialize();
+
+        // [GIVEN] D has income qualified by withholding, and only withholding is selected for removal.
+        CreateWithholdingRemovalCandidate(IRS1099FormDocHeader, Transmission);
+        Commit();
+
+        // [WHEN] The dependent change to the unselected income line is declined.
+        asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
+
+        // [THEN] Neither the selected withholding nor its dependent income and disclosures change.
+        Assert.ExpectedError('');
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyDependentEligibilityConfirmation(IRS1099FormDocHeader.ID);
+        VerifyUnchangedWithholdingDocument(IRS1099FormDocHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
@@ -3742,6 +3763,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         IRSFormsSetup.InitSetup();
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         InitializeSupplementalUpdateDocument(IRS1099FormDocHeader, ParentAmount, TipsAmount);
+    end;
+
+    local procedure CreateWithholdingRemovalCandidate(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; var Transmission: Record "Transmission IRIS")
+    begin
+        CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 500, 100);
+        CreateFormBoxAndDocLine(IRS1099FormDocHeader, 'NEC-04', 50, 0);
+        SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 50);
+        LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
+        SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 0);
+        InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
     end;
 
     procedure DeleteDocuments()
@@ -4108,6 +4139,30 @@ codeunit 148010 "IRS 1099 Document Tests"
         Assert.AreEqual(not ExpectedVisible, IRS1099FormDocument.ShowSupplementalLines.Visible(), 'The reveal action must be shown only when the part is hidden.');
     end;
 
+    local procedure VerifyDependentEligibilityConfirmation(DocumentID: Integer)
+    var
+        Question: Text;
+    begin
+        Question := LibraryVariableStorage.DequeueText();
+        Assert.IsTrue(Question.Contains('unselected lines'), 'Dependent eligibility changes require an explicit confirmation.');
+        Assert.IsTrue(Question.Contains(Format(DocumentID)), 'The confirmation must identify the affected document.');
+        Assert.IsTrue(Question.Contains('NEC-01'), 'The confirmation must identify the unselected income box.');
+    end;
+
+    local procedure VerifyUnchangedWithholdingDocument(IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        DocLine: Record "IRS 1099 Form Doc. Line";
+    begin
+        VerifyParentDocLineState(IRS1099FormDocHeader.ID, 500, true);
+        VerifySavedTips(IRS1099FormDocHeader.ID, 100);
+        VerifyDocumentLink(IRS1099FormDocHeader.ID, IRS1099FormDocHeader."IRIS Transmission Document ID");
+        DocLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
+        DocLine.SetRange("Form Box No.", 'NEC-04');
+        Assert.IsTrue(DocLine.FindFirst(), 'The cancelled update must preserve the withholding line.');
+        Assert.AreEqual(50, DocLine.Amount, 'Declining dependent changes must roll back the selected amount.');
+        Assert.IsTrue(DocLine."Include In 1099", 'Declining dependent changes must preserve withholding eligibility.');
+    end;
+
     [ModalPageHandler]
     procedure InspectEligibilityDeclineUpdateHandler(var UpdatePage: TestPage "IRS 1099 Form Doc. Update")
     begin
@@ -4137,11 +4192,10 @@ codeunit 148010 "IRS 1099 Document Tests"
     begin
         UpdatePage.Filter.SetFilter("Form Box No.", 'NEC-01');
         UpdatePage.First();
-        CaptureEligibilityPageRow(UpdatePage);
         UpdatePage.Filter.SetFilter("Form Box No.", '');
         UpdatePage.First();
         repeat
-            UpdatePage."Process Line".SetValue(true);
+            UpdatePage."Process Line".SetValue(UpdatePage."Form Box No.".Value = 'NEC-04');
         until not UpdatePage.Next();
         UpdatePage.OK().Invoke();
     end;
@@ -4178,6 +4232,20 @@ codeunit 148010 "IRS 1099 Document Tests"
             UpdatePage."Process Line".SetValue(UpdatePage."Vendor No.".Value = VendorNo);
         until not UpdatePage.Next();
         UpdatePage.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure AcceptDependentEligibilityHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure DeclineDependentEligibilityHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := false;
     end;
 
     [ConfirmHandler]

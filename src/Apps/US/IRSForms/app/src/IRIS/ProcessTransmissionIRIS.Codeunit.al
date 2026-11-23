@@ -52,6 +52,10 @@ codeunit 10056 "Process Transmission IRIS"
         DocCannotBeRemovedFromTransmErr: Label 'Document %1 cannot be reopened and removed from the transmission because it has submission or correction information, or a recorded send attempt. Check its IRS status before taking further action. If an accepted form should not have been filed, use Send Zero Amounts Correction.', Comment = '%1 = document ID';
         AmbiguousSourceErr: Label 'More than one document with a status other than Abandoned exists for period %1, vendor %2, form %3. Select the source document before creating replacement lines.', Comment = '%1 = period, %2 = vendor, %3 = form';
         AbandonedSourceErr: Label 'Document %1 has status Abandoned and cannot be used to create replacement lines.', Comment = '%1 = document ID';
+        AcknowledgmentAttemptNotFoundErr: Label 'The transmission attempt %1 could not be found. Open Transmission History and check the unique transmission ID before requesting its status again.', Comment = '%1 = unique transmission ID';
+        AcknowledgmentIdentityMismatchErr: Label 'The acknowledgment does not match the requested transmission attempt. Check its unique transmission ID and receipt ID in Transmission History.';
+        DependentEligibilityChangesQst: Label 'The selected updates also change Include in 1099 on these unselected lines:%1\\Their amounts and minimum reportable amounts will not change. Do you want to apply these dependent changes?', Comment = '%1 = list of affected document lines';
+        DependentEligibilityChangeTxt: Label '\Document %1, form box %2: %3 -> %4', Comment = '%1 = document ID, %2 = form box, %3 = current Include in 1099, %4 = new Include in 1099';
 
     procedure CheckOriginal(var Transmission: Record "Transmission IRIS")
     begin
@@ -267,14 +271,11 @@ codeunit 10056 "Process Transmission IRIS"
     var
         TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary;
         TransmissionLog: Record "Transmission Log IRIS";
-        TempErrorInfo: Record "Error Information IRIS" temporary;
         IRSFormsFacade: Codeunit "IRS Forms Facade";
         TransmissionContentBlob: Codeunit "Temp Blob";
         ResponseContentBlob: Codeunit "Temp Blob";
         UniqueTransmissionId: Text[100];
         ReceiptID: Text[100];
-        TransmissionStatus: Text;
-        SubmissionsStatus: Dictionary of [Text, Text];
         HttpStatusCode: Integer;
     begin
         IRSFormsFacade.CreateTransmissionXmlContent(Transmission, TransmissionType, CorrectionToZeroMode, UniqueTransmissionId, TempIRS1099FormDocHeader, TransmissionContentBlob);
@@ -292,14 +293,7 @@ codeunit 10056 "Process Transmission IRIS"
         Commit();       // save transmission log record before requesting the status
         Sleep(3000);    // wait for IRIS to process the transmission
 
-        RequestAcknowledgement(ReceiptID, UniqueTransmissionId, TransmissionStatus, SubmissionsStatus, TempErrorInfo);
-        SetTransmissionErrors(Transmission."Document ID", UniqueTransmissionId, SubmissionsStatus, TempErrorInfo);
-
-        if ProcessResponse.PreReceiptValidationFailed(TempErrorInfo) then
-            exit;
-
-        UpdateReceiptID(Transmission, TransmissionType, TempIRS1099FormDocHeader, ReceiptID);
-        UpadateTransmissionStatus(Transmission, TransmissionStatus, SubmissionsStatus);
+        RequestAcknowledgementAndUpdateTransmission(Transmission, ReceiptID, UniqueTransmissionId);
     end;
 
     procedure RequestStatus(ReceiptID: Text[100]; UniqueTransmissionId: Text[100]; var TransmissionStatus: Text)
@@ -341,6 +335,56 @@ codeunit 10056 "Process Transmission IRIS"
     procedure RequestAcknowledgement(ReceiptID: Text[100]; UniqueTransmissionId: Text[100]; var TransmissionStatus: Text; var SubmissionsStatus: Dictionary of [Text, Text]; var TempErrorInfo: Record "Error Information IRIS" temporary)
     var
         TransmissionLog: Record "Transmission Log IRIS";
+    begin
+        if GetAcknowledgment(ReceiptID, UniqueTransmissionId, TransmissionLog, TransmissionStatus, SubmissionsStatus, TempErrorInfo) then;
+    end;
+
+    procedure RequestAcknowledgementAndUpdateTransmission(var Transmission: Record "Transmission IRIS"; ReceiptID: Text[100]; UniqueTransmissionId: Text[100])
+    var
+        TransmissionLog: Record "Transmission Log IRIS";
+        LatestTransmissionLog: Record "Transmission Log IRIS";
+        TransmissionLogLine: Record "Transmission Log Line IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary;
+        TempErrorInfo: Record "Error Information IRIS" temporary;
+        TransmissionStatus: Text;
+        SubmissionsStatus: Dictionary of [Text, Text];
+    begin
+        if not GetAcknowledgment(ReceiptID, UniqueTransmissionId, TransmissionLog, TransmissionStatus, SubmissionsStatus, TempErrorInfo) then
+            exit;
+        if TransmissionLog."Line ID" = 0 then
+            Error(AcknowledgmentAttemptNotFoundErr, UniqueTransmissionId);
+        if TransmissionLog."Transmission Document ID" <> Transmission."Document ID" then
+            Error(AcknowledgmentIdentityMismatchErr);
+
+        Transmission.LockTable();
+        Transmission.Get(Transmission."Document ID");
+        LatestTransmissionLog.SetCurrentKey("Transmission Document ID", "Line ID");
+        LatestTransmissionLog.SetRange("Transmission Document ID", Transmission."Document ID");
+        LatestTransmissionLog.FindLast();
+        // An older acknowledgment belongs in history, not in the current document state.
+        if LatestTransmissionLog."Line ID" <> TransmissionLog."Line ID" then
+            exit;
+
+        SetTransmissionErrors(Transmission."Document ID", TransmissionLog."Unique Transmission ID", SubmissionsStatus, TempErrorInfo);
+        if ProcessResponse.PreReceiptValidationFailed(TempErrorInfo) then
+            exit;
+
+        TransmissionLogLine.SetRange("Transmission Log ID", TransmissionLog."Line ID");
+        if TransmissionLogLine.FindSet() then
+            repeat
+                if DocHeader.Get(TransmissionLogLine."IRS 1099 Form Document ID") then
+                    if DocHeader."IRIS Transmission Document ID" = Transmission."Document ID" then begin
+                        TempDocHeader := DocHeader;
+                        TempDocHeader.Insert();
+                    end;
+            until TransmissionLogLine.Next() = 0;
+        UpdateReceiptID(Transmission, TransmissionLog."Transmission Type", TempDocHeader, ReceiptID);
+        UpadateTransmissionStatus(Transmission, TransmissionStatus, SubmissionsStatus, TransmissionLog);
+    end;
+
+    local procedure GetAcknowledgment(var ReceiptID: Text[100]; UniqueTransmissionId: Text[100]; var TransmissionLog: Record "Transmission Log IRIS"; var TransmissionStatus: Text; var SubmissionsStatus: Dictionary of [Text, Text]; var TempErrorInfo: Record "Error Information IRIS" temporary): Boolean
+    var
         IRSFormsFacade: Codeunit "IRS Forms Facade";
         GetStatusRequestContentBlob: Codeunit "Temp Blob";
         AcknowledgContentBlob: Codeunit "Temp Blob";
@@ -354,25 +398,35 @@ codeunit 10056 "Process Transmission IRIS"
 
         OAuthClient.RequestTransmStatusOrAcknowledgement(GetStatusRequestContentBlob, AcknowledgContentBlob, HttpStatusCode);
 
-        if ReceiptID = '' then
-            ReceiptID := ProcessResponse.GetReceiptIDFromAcknowledgXmlResponse(AcknowledgContentBlob);
-        if not TransmissionLog.FindRecordByUTID(UniqueTransmissionId) then
+        Clear(TransmissionLog);
+        if UniqueTransmissionId <> '' then begin
+            if TransmissionLog.FindRecordByUTID(UniqueTransmissionId) then;
+        end else
             if TransmissionLog.FindLastRecByReceiptID(ReceiptID) then;
 
         if not IsNullGuid(TransmissionLog.SystemId) then
             UpdateTransmissionLog(TransmissionLog, AcknowledgContentBlob);
 
         if HttpStatusCode <> 200 then
-            exit;   // the error is shown inside RequestTransmStatusOrAcknowledgement
+            exit(false);   // the error is shown inside RequestTransmStatusOrAcknowledgement
 
         if not ProcessResponse.ParseAcknowledgementXmlResponse(AcknowledgContentBlob, UTIDFromResponse, TransmissionStatus, SubmissionsStatus, TempErrorInfo) then begin
             FeatureTelemetry.LogError('0000PSK', Helper.GetIRISFeatureName(), RequestAcknowledgEventTxt, UnableToParseResponseErr, GetLastErrorCallStack());
             Message(UnableToParseResponseUserErr);
-            exit;
+            exit(false);
         end;
 
-        if not IsNullGuid(TransmissionLog.SystemId) then
+        if (UniqueTransmissionId <> '') and (UTIDFromResponse <> '') and (UTIDFromResponse <> UniqueTransmissionId) then
+            Error(AcknowledgmentIdentityMismatchErr);
+        if ReceiptID = '' then
+            ReceiptID := ProcessResponse.GetReceiptIDFromAcknowledgXmlResponse(AcknowledgContentBlob);
+        if not IsNullGuid(TransmissionLog.SystemId) then begin
+            if (TransmissionLog."Receipt ID" <> '') and (ReceiptID <> '') and (TransmissionLog."Receipt ID" <> ReceiptID) then
+                Error(AcknowledgmentIdentityMismatchErr);
+            UpdateTransmissionLog(TransmissionLog, ReceiptID);
             UpdateTransmissionLog(TransmissionLog, TransmissionStatus, SubmissionsStatus);
+        end;
+        exit(true);
     end;
 
     local procedure CreateTransmissionLog(var TransmissionLog: Record "Transmission Log IRIS"; var Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; CorrectionToZeroMode: Boolean; UniqueTransmissionId: Text[100]; HttpStatusCode: Integer; var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var TransmissionContentBlob: Codeunit "Temp Blob"; var ResponseContentBlob: Codeunit "Temp Blob")
@@ -604,17 +658,14 @@ codeunit 10056 "Process Transmission IRIS"
         if ReceiptID = '' then
             exit;
 
-        if Transmission."Receipt ID" = ReceiptID then
-            exit;
-
-        if TransmissionType = Enum::"Transmission Type IRIS"::"O" then
-            Transmission."Original Receipt ID" := ReceiptID;
-
-        Transmission."Last Type" := TransmissionType;
-        Transmission."Receipt ID" := ReceiptID;
-        Transmission.Modify(true);
-
-        FeatureTelemetry.LogUsage('0000RGZ', Helper.GetIRISFeatureName(), ReceiptIDUpdatedEventTxt);
+        if (Transmission."Receipt ID" <> ReceiptID) or (Transmission."Last Type" <> TransmissionType) then begin
+            if TransmissionType = Enum::"Transmission Type IRIS"::"O" then
+                Transmission."Original Receipt ID" := ReceiptID;
+            Transmission."Last Type" := TransmissionType;
+            Transmission."Receipt ID" := ReceiptID;
+            Transmission.Modify(true);
+            FeatureTelemetry.LogUsage('0000RGZ', Helper.GetIRISFeatureName(), ReceiptIDUpdatedEventTxt);
+        end;
 
         // update Receipt ID in the IRS 1099 Form Documents sent in this transmission
         if TempIRS1099FormDocHeader.FindSet() then
@@ -626,6 +677,14 @@ codeunit 10056 "Process Transmission IRIS"
     end;
 
     procedure UpadateTransmissionStatus(var Transmission: Record "Transmission IRIS"; TransmStatusText: Text; SubmissionsStatus: Dictionary of [Text, Text])
+    var
+        TransmissionLog: Record "Transmission Log IRIS";
+    begin
+        if TransmissionLog.FindLastRecByReceiptID(Transmission."Receipt ID") then;
+        UpadateTransmissionStatus(Transmission, TransmStatusText, SubmissionsStatus, TransmissionLog);
+    end;
+
+    local procedure UpadateTransmissionStatus(var Transmission: Record "Transmission IRIS"; TransmStatusText: Text; SubmissionsStatus: Dictionary of [Text, Text]; TransmissionLog: Record "Transmission Log IRIS")
     var
         TransmissionStatus: Enum "Transmission Status IRIS";
         CustomDimensions: Dictionary of [Text, Text];
@@ -648,8 +707,11 @@ codeunit 10056 "Process Transmission IRIS"
         CustomDimensions.Add('NewTransmissionStatus', TransmStatusText);
         FeatureTelemetry.LogUsage('0000RGM', Helper.GetIRISFeatureName(), 'TransmissionStatusUpdated', CustomDimensions);
 
-        UpdateSubmissionsStatusAndReceiptId(Transmission, SubmissionsStatus);
-        ProcessCorrectedDocuments(Transmission, SubmissionsStatus);
+        if (TransmissionLog."Line ID" = 0) or
+           ((TransmissionLog."Receipt ID" <> '') and (TransmissionLog."Receipt ID" = Transmission."Receipt ID"))
+        then
+            UpdateSubmissionsStatusAndReceiptId(Transmission, SubmissionsStatus);
+        ProcessCorrectedDocuments(Transmission, SubmissionsStatus, TransmissionLog);
     end;
 
     local procedure UpdateSubmissionsStatusAndReceiptId(var Transmission: Record "Transmission IRIS"; SubmissionsStatus: Dictionary of [Text, Text])
@@ -661,7 +723,7 @@ codeunit 10056 "Process Transmission IRIS"
         IRS1099FormDocHeader.SetRange("IRIS Transmission Document ID", Transmission."Document ID");
         IRS1099FormDocHeader.SetRange("IRIS Last Receipt ID", Transmission."Receipt ID");       // update only form documents that were sent in this transmission
 
-        if not IRS1099FormDocHeader.FindSet() then
+        if not IRS1099FormDocHeader.FindSet(true) then
             exit;
 
         repeat
@@ -679,10 +741,11 @@ codeunit 10056 "Process Transmission IRIS"
             if CurrSubmissionStatus in [Enum::"Transmission Status IRIS"::Accepted, Enum::"Transmission Status IRIS"::"Partially Accepted", Enum::"Transmission Status IRIS"::"Accepted with Errors"] then
                 IRS1099FormDocHeader."IRIS Last Accepted Receipt ID" := Transmission."Receipt ID";      // update last accepted receipt ID only if IRS returned accepted status for this submission
 
-            if CurrSubmissionStatus = Enum::"Transmission Status IRIS"::Accepted then
+            if (CurrSubmissionStatus = Enum::"Transmission Status IRIS"::Accepted) and
+               not IRS1099FormDocHeader."IRIS Updated Not Sent" and
+               (IRS1099FormDocHeader.Status <> IRS1099FormDocHeader.Status::Open)
+            then
                 IRS1099FormDocHeader.Validate(Status, Enum::"IRS 1099 Form Doc. Status"::Submitted);
-
-            IRS1099FormDocHeader."IRIS Updated Not Sent" := false;      // reset flag after document was sent
 
             IRS1099FormDocHeader.Validate("IRIS Submission Status", CurrSubmissionStatus);
             IRS1099FormDocHeader.Modify(true);
@@ -751,6 +814,7 @@ codeunit 10056 "Process Transmission IRIS"
         NewDocumentIDs: List of [Integer];
         ChangedDocumentIDs: List of [Integer];
         DocumentID: Integer;
+        DependentEligibilityChanges: Text;
     begin
         TempDocLine.Reset();
         TempDocLine.SetRange("Line Action", "IRS 1099 Form Doc. Line Action"::Update);
@@ -772,7 +836,7 @@ codeunit 10056 "Process Transmission IRIS"
         foreach DocumentID in ChangedDocumentIDs do begin
             DocHeader.Get(DocumentID);
             if DocHeader.Status <> DocHeader.Status::Abandoned then begin
-                Supplemental.RecalculateIncludeIn1099(DocumentID);
+                RecalculateSelectedDocumentEligibility(DocumentID, TempDocLine, DependentEligibilityChanges);
                 Supplemental.ValidateSupplementalLines(DocumentID);
                 if not DocumentHaveLinesToReport(DocHeader) then begin
                     CheckDocumentCanBeRemovedFromTransmission(DocHeader);
@@ -790,7 +854,36 @@ codeunit 10056 "Process Transmission IRIS"
                 TempDocHeaderToAdd.Insert();
             end;
         end;
+        if DependentEligibilityChanges <> '' then
+            if not ConfirmMgt.GetResponseOrDefault(StrSubstNo(DependentEligibilityChangesQst, DependentEligibilityChanges), false) then
+                Error('');
         AddedDocsCount := AddSelectedFormDocsToTransmission(Transmission, TempDocHeaderToAdd);
+    end;
+
+    local procedure RecalculateSelectedDocumentEligibility(DocumentID: Integer; var TempSelectedDocLine: Record "IRS 1099 Form Doc. Line" temporary; var DependentEligibilityChanges: Text)
+    var
+        DocLine: Record "IRS 1099 Form Doc. Line";
+        TempSelectedLine: Record "IRS 1099 Form Doc. Line" temporary;
+        TempUnselectedLine: Record "IRS 1099 Form Doc. Line" temporary;
+    begin
+        TempSelectedLine.Copy(TempSelectedDocLine, true);
+        DocLine.SetRange("Document ID", DocumentID);
+        if DocLine.FindSet() then
+            repeat
+                if not TempSelectedLine.Get(DocLine."Period No.", DocLine."Vendor No.", DocLine."Form No.", DocLine."Document ID", DocLine."Line No.") then begin
+                    TempUnselectedLine := DocLine;
+                    TempUnselectedLine.Insert();
+                end;
+            until DocLine.Next() = 0;
+
+        Supplemental.RecalculateIncludeIn1099(DocumentID);
+        if TempUnselectedLine.FindSet() then
+            repeat
+                DocLine.Get(TempUnselectedLine."Period No.", TempUnselectedLine."Vendor No.", TempUnselectedLine."Form No.", TempUnselectedLine."Document ID", TempUnselectedLine."Line No.");
+                if DocLine."Include In 1099" <> TempUnselectedLine."Include In 1099" then
+                    DependentEligibilityChanges += StrSubstNo(DependentEligibilityChangeTxt, DocumentID, DocLine."Form Box No.",
+                        TempUnselectedLine."Include In 1099", DocLine."Include In 1099");
+            until TempUnselectedLine.Next() = 0;
     end;
 
     local procedure CheckDocumentCanBeRemovedFromTransmission(DocHeader: Record "IRS 1099 Form Doc. Header")
@@ -1160,10 +1253,9 @@ codeunit 10056 "Process Transmission IRIS"
         TempDetails.Copy(TempNewDetails, true);
     end;
 
-    local procedure ProcessCorrectedDocuments(Transmission: Record "Transmission IRIS"; SubmissionsStatus: Dictionary of [Text, Text])
+    local procedure ProcessCorrectedDocuments(Transmission: Record "Transmission IRIS"; SubmissionsStatus: Dictionary of [Text, Text]; TransmissionLog: Record "Transmission Log IRIS")
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        TransmissionLog: Record "Transmission Log IRIS";
         TransmissionLogLine: Record "Transmission Log Line IRIS";
         IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
         SubmissionStatus: Enum "Transmission Status IRIS";
@@ -1171,7 +1263,7 @@ codeunit 10056 "Process Transmission IRIS"
     begin
         if Transmission."Receipt ID" = '' then
             exit;
-        if not TransmissionLog.FindLastRecByReceiptID(Transmission."Receipt ID") then
+        if (TransmissionLog."Line ID" = 0) or (TransmissionLog."Receipt ID" <> Transmission."Receipt ID") then
             exit;
         if (TransmissionLog."Transmission Document ID" <> Transmission."Document ID") or
            (TransmissionLog."Transmission Type" <> Enum::"Transmission Type IRIS"::C)
@@ -1180,6 +1272,7 @@ codeunit 10056 "Process Transmission IRIS"
         TransmissionLogLine.SetRange("Transmission Log ID", TransmissionLog."Line ID");
         if not TransmissionLogLine.FindSet() then
             exit;
+        IRS1099FormDocHeader.LockTable();
         repeat
             // Only acceptance in this acknowledgment can complete a correction, not an earlier accepted status.
             if not SubmissionsStatus.Get(TransmissionLogLine."Submission ID", SubmissionStatusText) then
@@ -1191,7 +1284,9 @@ codeunit 10056 "Process Transmission IRIS"
             if not IRS1099FormDocHeader.Get(TransmissionLogLine."IRS 1099 Form Document ID") then
                 continue;
             if not IRS1099FormDocHeader."IRIS Needs Correction" or
-               (IRS1099FormDocHeader."IRIS Last Receipt ID" <> Transmission."Receipt ID")
+               (IRS1099FormDocHeader."IRIS Last Receipt ID" <> Transmission."Receipt ID") or
+               IRS1099FormDocHeader."IRIS Updated Not Sent" or
+               (IRS1099FormDocHeader.Status = IRS1099FormDocHeader.Status::Open)
             then
                 continue;
             IRS1099FormDocHeader."IRIS Corrected" := true;
@@ -1212,10 +1307,10 @@ codeunit 10056 "Process Transmission IRIS"
         if TempDocHeader.FindSet() then
             repeat
                 IRS1099FormDocHeader.Get(TempDocHeader.ID);
-                if IRS1099FormDocHeader.Status = Enum::"IRS 1099 Form Doc. Status"::Released then begin
+                IRS1099FormDocHeader."IRIS Updated Not Sent" := false;
+                if IRS1099FormDocHeader.Status = Enum::"IRS 1099 Form Doc. Status"::Released then
                     IRS1099FormDocHeader.Status := Enum::"IRS 1099 Form Doc. Status"::"In Progress";
-                    IRS1099FormDocHeader.Modify(true);
-                end;
+                IRS1099FormDocHeader.Modify(true);
             until TempDocHeader.Next() = 0;
     end;
 

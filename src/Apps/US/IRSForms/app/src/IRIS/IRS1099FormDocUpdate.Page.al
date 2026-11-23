@@ -21,7 +21,7 @@ page 10067 "IRS 1099 Form Doc. Update"
         {
             label(UpdateInstruction)
             {
-                Caption = 'Compare the current and new amounts, minimum reportable amounts, and Include in 1099 values. Include in 1099 can change even when the amount stays the same. Select Process Line for each change you want to apply. Lines that are not selected stay unchanged.';
+                Caption = 'Compare the current and new amounts, minimum reportable amounts, and Include in 1099 values. Select Process Line for each change you want to apply. Changing withholding can also change Include in 1099 on unselected lines. You will be asked to confirm those dependent changes; their amounts and minimum reportable amounts stay unchanged.';
                 Style = StandardAccent;
             }
             repeater(General)
@@ -30,7 +30,7 @@ page 10067 "IRS 1099 Form Doc. Update"
                 field("Process Line"; Rec."Process Line")
                 {
                     Caption = 'Process Line';
-                    ToolTip = 'Select this check box to apply the recalculated amount, minimum reportable amount, and Include in 1099 value, or to create a document from current vendor ledger entries. Leave it cleared to keep the existing line unchanged.';
+                    ToolTip = 'Select this check box to apply the recalculated amount, minimum reportable amount, and Include in 1099 value, or to create a document from current vendor ledger entries. Unselected amounts and minimum reportable amounts stay unchanged. Dependent eligibility changes require confirmation.';
                     Visible = true;
                 }
 #pragma warning restore AA0219

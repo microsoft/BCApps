@@ -51,6 +51,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineAcknowledgment: Text;
         OfflinePreReceiptError: Boolean;
         OfflineRecordError: Boolean;
+        OfflineOmitSubmitReceipt: Boolean;
         OfflineSubmitHttpStatus: Integer;
         OfflineTransmissionID: Integer;
 
@@ -2814,6 +2815,83 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler')]
+    procedure RecoveredReceiptCompletesOnlyTheNonzeroRetry()
+    var
+        Transmission: Record "Transmission IRIS";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A receipt recovered from acknowledgment must not complete an older zero-correction attempt.
+        Initialize();
+
+        // [GIVEN] D has a rejected zero correction and a nonzero retry whose receipt is returned only in acknowledgment.
+        CreateRejectedZeroCorrection(Transmission, IRS1099FormDocHeader);
+        OfflineReceiptID := 'ACCEPTED-NONZERO';
+        OfflineOmitSubmitReceipt := true;
+        OfflineStatus := 'Accepted';
+        OfflineSubmissionStatuses.Set('1', 'Accepted');
+
+        // [WHEN] The nonzero retry is sent.
+        LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+
+        // [THEN] Only the retry completes, and its receipt is saved without abandoning D.
+        VerifyRecoveredNonzeroCorrection(Transmission, IRS1099FormDocHeader);
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler')]
+    procedure DelayedAcceptancePreservesReleasedCorrectionEdits()
+    var
+        Transmission: Record "Transmission IRIS";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Acceptance of a pending zero correction cannot discard newer released values.
+        Initialize();
+
+        // [GIVEN] D has a pending zero correction and newer released disclosures.
+        CreatePendingZeroCorrection(Transmission, IRS1099FormDocHeader);
+        ReopenAndEditPendingCorrection(IRS1099FormDocHeader);
+        LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
+
+        // [WHEN] The earlier correction is accepted.
+        RequestAcceptedCorrection(Transmission);
+
+        // [THEN] The released values remain unsent and selected for correction.
+        VerifyPendingCorrectionEdits(Transmission, IRS1099FormDocHeader, IRS1099FormDocHeader.Status::Released);
+        Assert.IsTrue(IRS1099FormDocHeader."IRIS Updated Not Sent", 'Newer released values must remain unsent.');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler')]
+    procedure DelayedAcceptancePreservesOpenCorrectionEdits()
+    var
+        Transmission: Record "Transmission IRIS";
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Acceptance of a pending zero correction cannot close a document being edited.
+        Initialize();
+
+        // [GIVEN] D has a pending zero correction and newer disclosures still Open.
+        CreatePendingZeroCorrection(Transmission, IRS1099FormDocHeader);
+        ReopenAndEditPendingCorrection(IRS1099FormDocHeader);
+
+        // [WHEN] The earlier correction is accepted.
+        RequestAcceptedCorrection(Transmission);
+
+        // [THEN] D stays Open with its newer values selected for correction.
+        VerifyPendingCorrectionEdits(Transmission, IRS1099FormDocHeader, IRS1099FormDocHeader.Status::Open);
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         MockKeyVaultClientIRIS: Codeunit "Mock Key Vault Client IRIS";
@@ -2827,6 +2905,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Clear(OfflinePayload);
         Clear(OfflinePreReceiptError);
         Clear(OfflineRecordError);
+        Clear(OfflineOmitSubmitReceipt);
         OfflineSubmitHttpStatus := 200;
         AzureKeyVaultTestLibrary.ClearSecrets();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
@@ -3073,6 +3152,33 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryIRS1099IRIS.CreateTransmissionXmlContent(Transmission, TransmissionType, ZeroCorrection, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
     end;
 
+    local procedure CreateAcceptedCorrectionSource(var Transmission: Record "Transmission IRIS"; var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    begin
+        CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
+        SetLifecycleReference(IRS1099FormDocHeader, Transmission."Document ID", '1', '2', "Transmission Status IRIS"::Accepted, true);
+        Transmission.Status := Transmission.Status::Accepted;
+        Transmission."Receipt ID" := 'ACCEPTED';
+        Transmission.Modify();
+        InitializeOfflineTransport(Transmission);
+    end;
+
+    local procedure CreatePendingZeroCorrection(var Transmission: Record "Transmission IRIS"; var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    begin
+        CreateAcceptedCorrectionSource(Transmission, IRS1099FormDocHeader);
+        OfflineStatus := 'Processing';
+        OfflineSubmissionStatuses.Add('1', 'Processing');
+        LibraryIRS1099IRIS.SendCorrection(Transmission, true);
+    end;
+
+    local procedure CreateRejectedZeroCorrection(var Transmission: Record "Transmission IRIS"; var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    begin
+        CreateAcceptedCorrectionSource(Transmission, IRS1099FormDocHeader);
+        OfflineReceiptID := 'REJECTED-ZERO';
+        OfflineStatus := 'Rejected';
+        OfflineSubmissionStatuses.Add('1', 'Rejected');
+        LibraryIRS1099IRIS.SendCorrection(Transmission, true);
+    end;
+
     local procedure FindLastAttempt(Transmission: Record "Transmission IRIS"; var TransmissionLog: Record "Transmission Log IRIS")
     begin
         TransmissionLog.Reset();
@@ -3224,6 +3330,30 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AzureKeyVaultTestLibrary.ClearSecrets();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
+    end;
+
+    local procedure ReopenAndEditPendingCorrection(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        DocumentPage: TestPage "IRS 1099 Form Document";
+    begin
+        DocumentPage.OpenEdit();
+        DocumentPage.GoToRecord(IRS1099FormDocHeader);
+        DocumentPage.AllowCorrection.Invoke();
+        DocumentPage.Reopen.Invoke();
+        DocumentPage.Close();
+        IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
+        SetSupplementalValues(IRS1099FormDocHeader, 200, 50, '101', '000');
+    end;
+
+    local procedure RequestAcceptedCorrection(var Transmission: Record "Transmission IRIS")
+    var
+        TransmissionLog: Record "Transmission Log IRIS";
+    begin
+        OfflineStatus := 'Accepted';
+        OfflineSubmissionStatuses.Set('1', 'Accepted');
+        FindLastAttempt(Transmission, TransmissionLog);
+        LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, Transmission."Receipt ID", TransmissionLog."Unique Transmission ID");
+        Transmission.Get(Transmission."Document ID");
     end;
 
     local procedure SetCorrectionReference(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
@@ -3881,7 +4011,6 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Transmission: Record "Transmission IRIS";
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         TransmissionLog: Record "Transmission Log IRIS";
-        TransmissionPage: TestPage "Transmission IRIS";
     begin
         CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
         SetLifecycleReference(IRS1099FormDocHeader, Transmission."Document ID", '1', '2', "Transmission Status IRIS"::Accepted, true);
@@ -3905,17 +4034,44 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         if HttpStatus = 200 then begin
             OfflineStatus := 'Accepted';
             OfflineSubmissionStatuses.Set('1', 'Accepted');
-            TransmissionPage.OpenEdit();
-            TransmissionPage.GoToRecord(Transmission);
-            TransmissionPage.RequestTransmissionStatusByRID.Invoke();
+            LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, Transmission."Receipt ID", TransmissionLog."Unique Transmission ID");
             IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
             Assert.AreEqual(IRS1099FormDocHeader.Status::Abandoned, IRS1099FormDocHeader.Status, 'A later terminal accepted acknowledgment completes the pending zero correction.');
             Assert.IsTrue(IRS1099FormDocHeader."IRIS Corrected to Zeros", 'The attempt history retains its zero mode for later acceptance.');
             Assert.IsFalse(IRS1099FormDocHeader."IRIS Needs Correction", 'Accepted correction is no longer pending.');
             VerifyLifecycleSource(IRS1099FormDocHeader, 2026);
-            TransmissionPage.Close();
         end;
         FinishOfflineTransport();
+    end;
+
+    local procedure VerifyPendingCorrectionEdits(Transmission: Record "Transmission IRIS"; var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ExpectedStatus: Enum "IRS 1099 Form Doc. Status")
+    var
+        TransmissionLog: Record "Transmission Log IRIS";
+    begin
+        IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
+        Assert.AreEqual(ExpectedStatus, IRS1099FormDocHeader.Status, 'Acknowledgment must preserve the newer edit state.');
+        Assert.IsTrue(IRS1099FormDocHeader."IRIS Needs Correction", 'Newer values must remain selected for correction.');
+        Assert.IsFalse(IRS1099FormDocHeader."IRIS Corrected to Zeros", 'Acceptance of older values must not abandon the edited document.');
+        VerifySavedSupplementalValues(IRS1099FormDocHeader, 200, 50, '101', '000');
+        FindLastAttempt(Transmission, TransmissionLog);
+        Assert.AreEqual(TransmissionLog."Transmission Status"::Accepted, TransmissionLog."Transmission Status", 'The sent attempt must still record its acceptance.');
+    end;
+
+    local procedure VerifyRecoveredNonzeroCorrection(Transmission: Record "Transmission IRIS"; var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        TransmissionLog: Record "Transmission Log IRIS";
+    begin
+        Transmission.Get(Transmission."Document ID");
+        IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
+        Assert.AreEqual(OfflineReceiptID, Transmission."Receipt ID", 'The recovered receipt must identify the current attempt.');
+        Assert.AreEqual(OfflineReceiptID, IRS1099FormDocHeader."IRIS Last Receipt ID", 'The sent document must retain the recovered receipt.');
+        Assert.AreEqual(IRS1099FormDocHeader.Status::Submitted, IRS1099FormDocHeader.Status, 'A nonzero correction must not abandon its document.');
+        Assert.IsTrue(IRS1099FormDocHeader."IRIS Corrected", 'The acknowledged nonzero correction must complete.');
+        Assert.IsFalse(IRS1099FormDocHeader."IRIS Needs Correction", 'The accepted retry must no longer be pending.');
+        Assert.IsFalse(IRS1099FormDocHeader."IRIS Corrected to Zeros", 'The rejected attempt must not supply the correction mode.');
+        FindLastAttempt(Transmission, TransmissionLog);
+        Assert.AreEqual(OfflineReceiptID, TransmissionLog."Receipt ID", 'History must persist the recovered receipt on its attempt.');
+        VerifySavedSupplementalValues(IRS1099FormDocHeader, 100, 50, '101', '000');
     end;
 
     local procedure WriteTextBlob(var Payload: Codeunit "Temp Blob"; Content: Text)
@@ -3937,6 +4093,8 @@ codeunit 148022 "IRS 1099 IRIS Tests"
             'https://test.example/submit', 'https://production.example/submit':
                 begin
                     OfflineResponse := '<IntakeA2AResponse><receiptId>' + OfflineReceiptID + '</receiptId></IntakeA2AResponse>';
+                    if OfflineOmitSubmitReceipt then
+                        OfflineResponse := '<IntakeA2AResponse/>';
                     Response.Content.WriteFrom(OfflineResponse);
                     Response.HttpStatusCode := OfflineSubmitHttpStatus;
                 end;

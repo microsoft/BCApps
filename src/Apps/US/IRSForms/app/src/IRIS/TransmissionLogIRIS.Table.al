@@ -130,6 +130,9 @@ table 10047 "Transmission Log IRIS"
         {
             Clustered = true;
         }
+        key(TransmissionDocument; "Transmission Document ID", "Line ID")
+        {
+        }
     }
 
     internal procedure FindRecordByUTID(UniqueTransmissionId: Text[100]): Boolean

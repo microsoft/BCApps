@@ -65,6 +65,13 @@ codeunit 148023 "Library - IRS 1099 IRIS"
         TransmissionLog.SetTransmissionContextInfo(Payload, Source);
     end;
 
+    procedure ClearTokens()
+    var
+        OAuthClient: Codeunit "OAuth Client IRIS";
+    begin
+        OAuthClient.ClearTokens();
+    end;
+
     procedure CreateTransmission(var Transmission: Record "Transmission IRIS"; PeriodNo: Code[20])
     var
         IRSFormsFacade: Codeunit "IRS Forms Facade";
@@ -149,6 +156,13 @@ codeunit 148023 "Library - IRS 1099 IRIS"
         Helper: Codeunit "Helper IRIS";
     begin
         exit(Helper.ParseSchemaVersion(Version));
+    end;
+
+    procedure RequestAcknowledgementAndUpdateTransmission(var Transmission: Record "Transmission IRIS"; ReceiptID: Text[100]; UniqueTransmissionID: Text[100])
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        ProcessTransmission.RequestAcknowledgementAndUpdateTransmission(Transmission, ReceiptID, UniqueTransmissionID);
     end;
 
     procedure RequestStatus(ReceiptID: Text[100]; UniqueTransmissionID: Text[100]; var StatusText: Text)
