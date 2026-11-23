@@ -60,13 +60,17 @@ table 6969 "Expense Agent Env. Consumption"
             Caption = 'Source Company Name';
             DataClassification = OrganizationIdentifiableInformation;
         }
-#if not CLEAN30
+#if not CLEANSCHEMA30
         field(101; "Consumption DateTime"; DateTime)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Consumption DateTime" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Consumption DateTime';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -75,7 +79,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."User Id" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'User Id';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -84,7 +92,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."App Version" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'App Version';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -93,7 +105,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Feature Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Feature Name';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -102,7 +118,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Actions" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Actions';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -111,7 +131,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -121,7 +145,11 @@ table 6969 "Expense Agent Env. Consumption"
             AutoFormatType = 0;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Credits" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Credits';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -130,7 +158,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Company Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Company Name';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -139,7 +171,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Processed For Billing" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Processed For Billing';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -148,7 +184,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature Quantity" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature Quantity';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
@@ -157,7 +197,11 @@ table 6969 "Expense Agent Env. Consumption"
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature Display Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature Display Name';
+#if not CLEAN30
             ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
             ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
             ObsoleteTag = '30.0';
         }
