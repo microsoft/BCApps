@@ -25,6 +25,7 @@ codeunit 134495 "Library - ERM Installments"
 {
     var
         LibraryERM: Codeunit "Library - ERM";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
 
