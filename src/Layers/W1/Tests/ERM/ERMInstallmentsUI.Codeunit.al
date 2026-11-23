@@ -4,6 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
 
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
@@ -20,6 +24,7 @@ codeunit 134494 "ERM Installments UI"
 
     var
         Assert: Codeunit Assert;
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
         LibraryInstallments: Codeunit "Library - ERM Installments";
         SalesInstallmentHistory: Codeunit "Sales Installment History";
@@ -134,5 +139,106 @@ codeunit 134494 "ERM Installments UI"
         PostedSchedule.RemainingAmountLCY.AssertEquals(31.66);
         PostedSchedule.Open.AssertEquals(true);
         PostedSchedule.Close();
+    end;
+
+    [Test]
+    procedure PostedPurchaseScheduleShowsEachInstallmentBalance()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Invoice: Record "Purch. Inv. Header";
+        PurchaseInstallmentHistory: Codeunit "Purchase Installment History";
+        PostedSchedule: TestPage "Posted Purch. Inst. Schedule";
+    begin
+        // [SCENARIO] The posted purchase schedule displays separate settled, unpaid, and partly paid obligations.
+        // [GIVEN] A purchase invoice with its first installment settled and its final installment partly paid.
+        LibraryInstallments.CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, '');
+        Invoice.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+        PayPurchaseInstallment(Invoice."Installment Plan ID", 1, 41.67);
+        PayPurchaseInstallment(Invoice."Installment Plan ID", 3, 10);
+        PostedSchedule.Trap();
+
+        // [WHEN] The posted purchase schedule is opened.
+        PurchaseInstallmentHistory.ShowSchedule(Invoice);
+
+        // [THEN] Each row retains its own payable balances and open status without changing the original allocation.
+        Assert.IsTrue(PostedSchedule.First(), 'The settled installment must remain visible.');
+        PostedSchedule."Installment No.".AssertEquals(1);
+        PostedSchedule.Amount.AssertEquals(41.67);
+        PostedSchedule.RemainingAmount.AssertEquals(0);
+        PostedSchedule.RemainingAmountLCY.AssertEquals(0);
+        PostedSchedule.Open.AssertEquals(false);
+        Assert.IsTrue(PostedSchedule.Next(), 'The unpaid middle installment must remain visible.');
+        PostedSchedule."Installment No.".AssertEquals(2);
+        PostedSchedule.RemainingAmount.AssertEquals(-41.67);
+        PostedSchedule.RemainingAmountLCY.AssertEquals(-41.67);
+        PostedSchedule.Open.AssertEquals(true);
+        Assert.IsTrue(PostedSchedule.Next(), 'The partly paid final installment must remain visible.');
+        PostedSchedule."Installment No.".AssertEquals(3);
+        PostedSchedule.Amount.AssertEquals(41.66);
+        PostedSchedule.RemainingAmount.AssertEquals(-31.66);
+        PostedSchedule.RemainingAmountLCY.AssertEquals(-31.66);
+        PostedSchedule.Open.AssertEquals(true);
+        PostedSchedule.Close();
+    end;
+
+    [Test]
+    procedure PostedPurchaseScheduleRefreshesBalancesWhenRefiltered()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Invoice: Record "Purch. Inv. Header";
+        PurchaseInstallmentHistory: Codeunit "Purchase Installment History";
+        PostedSchedule: TestPage "Posted Purch. Inst. Schedule";
+    begin
+        // [SCENARIO] Refreshing the purchase schedule dataset reloads payable balances changed after its initial display.
+        // [GIVEN] An open purchase schedule whose final installment receives a partial payment after the page is loaded.
+        LibraryInstallments.CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, '');
+        Invoice.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+        PostedSchedule.Trap();
+        PurchaseInstallmentHistory.ShowSchedule(Invoice);
+        Assert.IsTrue(PostedSchedule.Last(), 'The final installment must be visible.');
+        PostedSchedule.RemainingAmount.AssertEquals(-41.66);
+        PayPurchaseInstallment(Invoice."Installment Plan ID", 3, 10);
+
+        // [WHEN] The dataset is refreshed by filtering to the final installment.
+        PostedSchedule.Filter.SetFilter("Installment No.", '3');
+
+        // [THEN] The page displays the new negative payable balances rather than its initial cached values.
+        Assert.IsTrue(PostedSchedule.First(), 'The selected installment must remain visible.');
+        PostedSchedule.RemainingAmount.AssertEquals(-31.66);
+        PostedSchedule.RemainingAmountLCY.AssertEquals(-31.66);
+        PostedSchedule.Open.AssertEquals(true);
+        PostedSchedule.Close();
+    end;
+
+    local procedure PayPurchaseInstallment(PlanID: Guid; Sequence: Integer; Amount: Decimal)
+    var
+        PlanLine: Record "Purchase Installment Plan Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        PlanLine.SetRange("Plan ID", PlanID);
+        PlanLine.SetRange("Installment No.", Sequence);
+        PlanLine.FindFirst();
+        VendorLedgerEntry.Get(PlanLine."Vendor Ledger Entry No.");
+        VendorLedgerEntry."Applies-to ID" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(VendorLedgerEntry."Applies-to ID"));
+        VendorLedgerEntry."Amount to Apply" := -Amount;
+        VendorLedgerEntry.Modify(true);
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Vendor, VendorLedgerEntry."Vendor No.",
+            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), Amount);
+        GenJournalLine.Validate("Posting Date", WorkDate());
+        if VendorLedgerEntry."Currency Code" <> '' then
+            GenJournalLine.Validate("Currency Code", VendorLedgerEntry."Currency Code");
+        GenJournalLine.Validate("Applies-to ID", VendorLedgerEntry."Applies-to ID");
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 }

@@ -32,7 +32,43 @@ codeunit 134498 "ERM Installment Forecast"
         LibraryCashFlow: Codeunit "Library - Cash Flow";
 
     [Test]
-    procedure ForecastAndRegistrationRetainSeparateInstallmentObligations()
+    procedure ForecastRetainsSeparateInstallmentObligations()
+    var
+        Invoice: Record "Sales Invoice Header";
+        Forecast: Record "Cash Flow Forecast";
+    begin
+        // [SCENARIO] Cash flow forecasting retains each installment as a separate dated receivable.
+        // [GIVEN] A posted invoice has three open installments totaling 125 and a configured cash flow forecast.
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+        ConfigureForecast(Forecast);
+
+        // [WHEN] The forecast is filled without grouping by document type.
+        FillForecast(Forecast, false);
+
+        // [THEN] All three installments retain their own due dates and remaining amounts.
+        VerifyOpenInstallments(Forecast, Invoice, 3, 125);
+    end;
+
+    [Test]
+    procedure GroupedForecastRetainsSeparateInstallmentObligations()
+    var
+        Invoice: Record "Sales Invoice Header";
+        Forecast: Record "Cash Flow Forecast";
+    begin
+        // [SCENARIO] Grouping a cash flow forecast by document type does not merge installments of the same invoice.
+        // [GIVEN] A posted invoice has three open installments totaling 125 and a configured cash flow forecast.
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+        ConfigureForecast(Forecast);
+
+        // [WHEN] The forecast is filled with grouping by document type.
+        FillForecast(Forecast, true);
+
+        // [THEN] All three installments retain their own due dates and remaining amounts.
+        VerifyOpenInstallments(Forecast, Invoice, 3, 125);
+    end;
+
+    [Test]
+    procedure RegistrationRetainsSeparateInstallmentObligations()
     var
         Invoice: Record "Sales Invoice Header";
         Forecast: Record "Cash Flow Forecast";
@@ -40,21 +76,14 @@ codeunit 134498 "ERM Installment Forecast"
         ForecastEntry: Record "Cash Flow Forecast Entry";
         Index: Integer;
     begin
-        // [SCENARIO] Cash flow forecasting and registration retain each installment as a separate dated receivable.
-        // [GIVEN] A posted invoice has three open installments totaling 125 and a configured cash flow forecast.
+        // [SCENARIO] Cash flow registration retains each installment as a separate dated receivable.
+        // [GIVEN] Forecast worksheet lines for three open installments totaling 125, grouped by document type.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         ConfigureForecast(Forecast);
-
-        for Index := 1 to 2 do begin
-            // [WHEN] The forecast is filled without and then with grouping by document type.
-            FillForecast(Forecast, Index = 2);
-
-            // [THEN] All three installments retain their own due dates and remaining amounts.
-            VerifyOpenInstallments(Forecast, Invoice, 3, 125);
-        end;
+        FillForecast(Forecast, true);
+        FilterInvoiceLines(Line, Forecast, Invoice);
 
         // [WHEN] The forecast worksheet lines for the invoice are registered.
-        FilterInvoiceLines(Line, Forecast, Invoice);
         LibraryCashFlow.PostJournalLines(Line);
 
         // [THEN] Registration retains three separately dated forecast entries totaling 125.
@@ -201,7 +230,7 @@ codeunit 134498 "ERM Installment Forecast"
     end;
 
     [Test]
-    procedure ForecastPreservesExplicitCustomerPaymentTermOverride()
+    procedure ForecastCustomerPaymentTermOverrideRoundTripFlow()
     var
         Invoice: Record "Sales Invoice Header";
         Forecast: Record "Cash Flow Forecast";
@@ -211,7 +240,7 @@ codeunit 134498 "ERM Installment Forecast"
         Entry: Record "Cust. Ledger Entry";
         Index: Integer;
     begin
-        // [SCENARIO] Customer cash flow terms affect installment forecast dates only when explicitly enabled.
+        // [SCENARIO] Enabling and then disabling customer cash flow terms on the same forecast restores the original installment dates and balances without changing ledger due dates.
         // [GIVEN] An installment invoice and customer cash flow terms specifying 45 days.
         LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
         LibraryERM.CreatePaymentTerms(Terms);
@@ -223,12 +252,13 @@ codeunit 134498 "ERM Installment Forecast"
         Customer.Modify(true);
         ConfigureForecast(Forecast);
 
-        // [WHEN] The forecast is suggested without enabling the customer terms override.
+        // [WHEN] Flow step 1: The forecast is suggested without enabling the customer terms override.
         FillForecast(Forecast, false);
 
         // [THEN] All three obligations retain their individual due dates and original total.
         VerifyOpenInstallments(Forecast, Invoice, 3, 125);
-        // [WHEN] Customer cash flow terms are enabled and the forecast is refreshed.
+
+        // [WHEN] Flow step 2: Customer cash flow terms are enabled and the same forecast is refreshed.
         Forecast.Validate("Consider CF Payment Terms", true);
         Forecast.Modify(true);
 
@@ -244,7 +274,8 @@ codeunit 134498 "ERM Installment Forecast"
             LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", Index);
             Entry.TestField("Due Date", CalcDate(StrSubstNo('<%1D>', Index * 30), Invoice."Document Date"));
         end;
-        // [WHEN] The override is disabled and the forecast is refreshed.
+
+        // [WHEN] Flow step 3: The override is disabled and the same forecast is refreshed.
         Forecast.Validate("Consider CF Payment Terms", false);
         Forecast.Modify(true);
 

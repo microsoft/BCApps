@@ -12,6 +12,8 @@ using Microsoft.Sales.Receivables;
 
 codeunit 8843 "Sales Installment History"
 {
+    Access = Internal;
+
     Permissions = tabledata "Cust. Ledger Entry" = rm,
                   tabledata "Detailed Cust. Ledg. Entry" = rm;
 

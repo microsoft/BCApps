@@ -29,6 +29,10 @@ codeunit 134495 "Library - ERM Installments"
         LibrarySales: Codeunit "Library - Sales";
         LibraryUtility: Codeunit "Library - Utility";
 
+    /// <summary>
+    /// Enables installments and configures sales, purchase, and general ledger setup for installment tests.
+    /// Sets LCY rounding to 0.01 and disables additional reporting currency, invoice rounding, automatic invoice discounts, discount posting, and VAT discount adjustments.
+    /// </summary>
     procedure Initialize()
     var
         GLSetup: Record "General Ledger Setup";
@@ -54,6 +58,10 @@ codeunit 134495 "Library - ERM Installments"
         PurchSetup.Modify();
     end;
 
+    /// <summary>
+    /// Creates or updates the installment feature key and clears its data update status for the current company.
+    /// </summary>
+    /// <param name="Enabled">Specifies whether to enable the feature for all users or disable it.</param>
     procedure SetFeatureEnabled(Enabled: Boolean)
     var
         FeatureKey: Record "Feature Key";
@@ -75,6 +83,13 @@ codeunit 134495 "Library - ERM Installments"
         FeatureDataUpdateStatus.DeleteAll();
     end;
 
+    /// <summary>
+    /// Initializes installment test setup and creates a sales invoice with a new customer, three installments, and one G/L account line for 100 excluding 25 percent VAT.
+    /// Uses the work date for document and posting dates and includes payment discounts on the first two installments.
+    /// </summary>
+    /// <param name="SalesHeader">Returns the saved sales invoice header with its installment plan.</param>
+    /// <param name="SalesLine">Returns the saved invoice line, which allows invoice discounts.</param>
+    /// <param name="CurrencyCode">An existing currency code, or blank for local currency.</param>
     procedure CreateInvoice(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CurrencyCode: Code[10])
     var
         Customer: Record Customer;
@@ -124,6 +139,13 @@ codeunit 134495 "Library - ERM Installments"
         SalesLine.Modify(true);
     end;
 
+    /// <summary>
+    /// Initializes installment test setup and creates a purchase invoice with a new vendor, three installments, and one G/L account line for 100 excluding 25 percent VAT.
+    /// Uses the work date for document and posting dates and includes payment discounts on the first two installments.
+    /// </summary>
+    /// <param name="PurchaseHeader">Returns the saved purchase invoice header with its installment plan.</param>
+    /// <param name="PurchaseLine">Returns the saved invoice line, which allows invoice discounts.</param>
+    /// <param name="CurrencyCode">An existing currency code, or blank for local currency.</param>
     procedure CreatePurchaseInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; CurrencyCode: Code[10])
     var
         Vendor: Record Vendor;
@@ -200,6 +222,11 @@ codeunit 134495 "Library - ERM Installments"
         TempPlanLine.Insert();
     end;
 
+    /// <summary>
+    /// Inserts rules for a new plan with two 33.33333 percent installments and a final remaining-amount installment due after 30, 60, and 90 days.
+    /// The first two installments offer 2 and 1 percent discounts within 10 and 20 days, respectively.
+    /// </summary>
+    /// <param name="TempPlanLine">An empty temporary record that receives the three uncalculated installment rules.</param>
     procedure CreateTemporaryRules(var TempPlanLine: Record "Sales Installment Plan Line" temporary)
     var
         PlanID: Guid;
@@ -227,6 +254,12 @@ codeunit 134495 "Library - ERM Installments"
         TempPlanLine.Insert();
     end;
 
+    /// <summary>
+    /// Creates and posts a three-installment sales invoice using initialized installment test setup and the work date.
+    /// </summary>
+    /// <param name="Invoice">Returns the posted sales invoice header.</param>
+    /// <param name="CurrencyCode">An existing currency code, or blank for local currency.</param>
+    /// <param name="WithDiscounts">Specifies whether to retain the first two installments' payment discount rules.</param>
     procedure CreatePostedInvoice(var Invoice: Record "Sales Invoice Header"; CurrencyCode: Code[10]; WithDiscounts: Boolean)
     var
         Header: Record "Sales Header";
@@ -248,6 +281,12 @@ codeunit 134495 "Library - ERM Installments"
         Invoice.Get(LibrarySales.PostSalesDocument(Header, true, true));
     end;
 
+    /// <summary>
+    /// Retrieves the customer ledger entry linked to an installment in an existing posted sales plan.
+    /// </summary>
+    /// <param name="Entry">Returns the linked customer ledger entry.</param>
+    /// <param name="PlanID">Identifies the posted sales installment plan.</param>
+    /// <param name="Sequence">The installment number within the plan.</param>
     procedure GetInstallment(var Entry: Record "Cust. Ledger Entry"; PlanID: Guid; Sequence: Integer)
     var
         PlanLine: Record "Sales Installment Plan Line";
@@ -258,11 +297,24 @@ codeunit 134495 "Library - ERM Installments"
         Entry.Get(PlanLine."Cust. Ledger Entry No.");
     end;
 
+    /// <summary>
+    /// Posts a customer payment on the work date and applies it to an existing posted sales installment using a new Applies-to ID.
+    /// </summary>
+    /// <param name="PlanID">Identifies the posted sales installment plan.</param>
+    /// <param name="Sequence">The installment number to pay.</param>
+    /// <param name="Amount">The positive payment amount in the installment's document currency.</param>
     procedure PayInstallment(PlanID: Guid; Sequence: Integer; Amount: Decimal)
     begin
         PayInstallment(PlanID, Sequence, Amount, WorkDate());
     end;
 
+    /// <summary>
+    /// Posts a customer payment and applies it to an existing posted sales installment using a new Applies-to ID.
+    /// </summary>
+    /// <param name="PlanID">Identifies the posted sales installment plan.</param>
+    /// <param name="Sequence">The installment number to pay.</param>
+    /// <param name="Amount">The positive payment amount in the installment's document currency.</param>
+    /// <param name="PostingDate">The posting date for the payment.</param>
     procedure PayInstallment(PlanID: Guid; Sequence: Integer; Amount: Decimal; PostingDate: Date)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -290,6 +342,14 @@ codeunit 134495 "Library - ERM Installments"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
+    /// <summary>
+    /// Copies a posted sales invoice to a corrective credit memo, adjusts its first G/L account line, and posts it against the selected installment using a new Applies-to ID.
+    /// </summary>
+    /// <param name="Invoice">The posted sales installment invoice to credit.</param>
+    /// <param name="Sequence">The installment number to apply the credit memo to.</param>
+    /// <param name="Amount">The positive amount including VAT for the copied G/L account line, in document currency.</param>
+    /// <param name="PostingDate">The posting and document date for the credit memo.</param>
+    /// <returns>The posted sales credit memo number.</returns>
     procedure CreditInstallment(Invoice: Record "Sales Invoice Header"; Sequence: Integer; Amount: Decimal; PostingDate: Date): Code[20]
     var
         Header: Record "Sales Header";

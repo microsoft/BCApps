@@ -14,6 +14,8 @@ using System.Environment.Configuration;
 
 codeunit 8841 "Sales Installment Mgt."
 {
+    Access = Internal;
+
     Permissions = tabledata "Sales Installment Plan" = RIMD,
                   tabledata "Sales Installment Plan Line" = RIMD;
 

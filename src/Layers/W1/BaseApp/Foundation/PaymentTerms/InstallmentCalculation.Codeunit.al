@@ -6,6 +6,8 @@ namespace Microsoft.Foundation.PaymentTerms;
 
 codeunit 8840 "Installment Calculation"
 {
+    Access = Internal;
+
     var
         TemporaryRecordErr: Label 'Installment calculation requires a temporary plan line record.';
         PlanIdentityErr: Label 'All installment lines must belong to the same nonempty plan.';
