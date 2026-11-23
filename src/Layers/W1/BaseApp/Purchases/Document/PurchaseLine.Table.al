@@ -9995,6 +9995,10 @@ table 39 "Purchase Line"
     begin
         if not ("Copied From Posted Doc." and IsCreditDocType()) then
             exit;
+
+        if "Return Shipment No." <> '' then
+            exit;
+
         if not IsNonInventoriableItem() then
             exit;
         if Abs("Quantity (Base)") > Abs(xPurchaseLine."Quantity (Base)") then
