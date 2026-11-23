@@ -2892,6 +2892,39 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,SelectIncomeUpdateHandler,UpdateTransmissionMessageHandler')]
+    procedure DelayedAcceptancePreservesTransmissionUpdateEdits()
+    var
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        IRS1099VendorFormBoxAdj: Record "IRS 1099 Vendor Form Box Adj.";
+        Transmission: Record "Transmission IRIS";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A direct transmission update after a zero correction is sent remains unsent when its acknowledgment arrives.
+        Initialize();
+
+        // [GIVEN] D has a pending zero correction and a selected recalculation to 6000.
+        CreatePendingZeroCorrection(Transmission, IRS1099FormDocHeader);
+        IRS1099VendorFormBoxAdj.Validate("Period No.", IRS1099FormDocHeader."Period No.");
+        IRS1099VendorFormBoxAdj.Validate("Vendor No.", IRS1099FormDocHeader."Vendor No.");
+        IRS1099VendorFormBoxAdj.Validate("Form No.", IRS1099FormDocHeader."Form No.");
+        IRS1099VendorFormBoxAdj.Validate("Form Box No.", 'NEC-01');
+        IRS1099VendorFormBoxAdj.Validate(Amount, 6000);
+        IRS1099VendorFormBoxAdj.Insert(true);
+        Commit();
+        LibraryVariableStorage.Enqueue(IRS1099FormDocHeader."Vendor No.");
+        LibraryIRS1099Document.UpdateTransmission(Transmission);
+
+        // [WHEN] The earlier zero correction is accepted.
+        RequestAcceptedCorrection(Transmission);
+
+        // [THEN] The new financial values remain unsent and the source is not abandoned.
+        VerifyPendingTransmissionUpdate(IRS1099FormDocHeader);
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         MockKeyVaultClientIRIS: Codeunit "Mock Key Vault Client IRIS";
@@ -4074,6 +4107,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         VerifySavedSupplementalValues(IRS1099FormDocHeader, 100, 50, '101', '000');
     end;
 
+    local procedure VerifyPendingTransmissionUpdate(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    begin
+        IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
+        Assert.AreEqual(IRS1099FormDocHeader.Status::Submitted, IRS1099FormDocHeader.Status, 'A delayed acknowledgment must not abandon the updated document.');
+        Assert.IsTrue(IRS1099FormDocHeader."IRIS Updated Not Sent", 'Direct recalculation must retain its unsent marker.');
+        Assert.IsTrue(IRS1099FormDocHeader."IRIS Needs Correction", 'Direct recalculation must remain selected for correction.');
+        Assert.IsFalse(IRS1099FormDocHeader."IRIS Corrected", 'The older acknowledgment cannot complete the new values.');
+        Assert.IsFalse(IRS1099FormDocHeader."IRIS Corrected to Zeros", 'The updated source cannot be treated as corrected to zero.');
+        VerifyDocLineAmount(IRS1099FormDocHeader, 'NEC-01', 6000);
+        VerifySavedSupplementalValues(IRS1099FormDocHeader, 100, 50, '101', '000');
+    end;
+
     local procedure WriteTextBlob(var Payload: Codeunit "Temp Blob"; Content: Text)
     var
         Output: OutStream;
@@ -4204,5 +4249,24 @@ codeunit 148022 "IRS 1099 IRIS Tests"
             LibraryVariableStorage.Enqueue(ErrorMessagesPage.Description.Value);
         until not ErrorMessagesPage.Next();
         ErrorMessagesPage.Close();
+    end;
+
+    [ModalPageHandler]
+    procedure SelectIncomeUpdateHandler(var UpdatePage: TestPage "IRS 1099 Form Doc. Update")
+    var
+        VendorNo: Text;
+    begin
+        VendorNo := LibraryVariableStorage.DequeueText();
+        UpdatePage.First();
+        repeat
+            UpdatePage."Process Line".SetValue((UpdatePage."Form Box No.".Value = 'NEC-01') and
+                (UpdatePage."Vendor No.".Value = VendorNo));
+        until not UpdatePage.Next();
+        UpdatePage.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure UpdateTransmissionMessageHandler(MessageText: Text[1024])
+    begin
     end;
 }

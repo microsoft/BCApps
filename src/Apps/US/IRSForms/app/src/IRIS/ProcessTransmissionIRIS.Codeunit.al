@@ -738,9 +738,11 @@ codeunit 10056 "Process Transmission IRIS"
                 CurrSubmissionStatus := Enum::"Transmission Status IRIS"::Unknown;
             end;
 
-            if CurrSubmissionStatus in [Enum::"Transmission Status IRIS"::Accepted, Enum::"Transmission Status IRIS"::"Partially Accepted", Enum::"Transmission Status IRIS"::"Accepted with Errors"] then
+            if CurrSubmissionStatus in [Enum::"Transmission Status IRIS"::Accepted, Enum::"Transmission Status IRIS"::"Partially Accepted", Enum::"Transmission Status IRIS"::"Accepted with Errors"] then begin
                 IRS1099FormDocHeader."IRIS Last Accepted Receipt ID" := Transmission."Receipt ID";      // update last accepted receipt ID only if IRS returned accepted status for this submission
-
+                if IRS1099FormDocHeader."IRIS Updated Not Sent" then
+                    IRS1099FormDocHeader."IRIS Needs Correction" := true;
+            end;
             if (CurrSubmissionStatus = Enum::"Transmission Status IRIS"::Accepted) and
                not IRS1099FormDocHeader."IRIS Updated Not Sent" and
                (IRS1099FormDocHeader.Status <> IRS1099FormDocHeader.Status::Open)
@@ -824,13 +826,18 @@ codeunit 10056 "Process Transmission IRIS"
                     ChangedDocumentIDs.Add(TempDocLine."Document ID");
             until TempDocLine.Next() = 0;
         if not TempDocLine.IsEmpty() then begin
+            DocHeader.LockTable();
+            foreach DocumentID in ChangedDocumentIDs do begin
+                DocHeader.Get(DocumentID);
+                MarkDocumentUpdatedNotSent(DocHeader);
+            end;
             UpdateIRS1099FormDocLineAmounts(TempDocLine, TempDetails);
             FormLinesUpdated := true;
         end;
 
         TempDocLine.SetFilter("Line Action", '%1|%2', "IRS 1099 Form Doc. Line Action"::Create, "IRS 1099 Form Doc. Line Action"::Abandon);
         if not TempDocLine.IsEmpty() then begin
-            NewDocumentIDs := UpdateIRS1099FormDocuments(TempDocLine, TempDetails);
+            NewDocumentIDs := UpdateIRS1099FormDocuments(TempDocLine, TempDetails, DependentEligibilityChanges);
             FormDocsCreated := true;
         end;
         foreach DocumentID in ChangedDocumentIDs do begin
@@ -854,10 +861,31 @@ codeunit 10056 "Process Transmission IRIS"
                 TempDocHeaderToAdd.Insert();
             end;
         end;
+        ConfirmDependentEligibilityChanges(DependentEligibilityChanges);
+        AddedDocsCount := AddSelectedFormDocsToTransmission(Transmission, TempDocHeaderToAdd);
+    end;
+
+    local procedure ConfirmDependentEligibilityChanges(DependentEligibilityChanges: Text)
+    begin
         if DependentEligibilityChanges <> '' then
             if not ConfirmMgt.GetResponseOrDefault(StrSubstNo(DependentEligibilityChangesQst, DependentEligibilityChanges), false) then
                 Error('');
-        AddedDocsCount := AddSelectedFormDocsToTransmission(Transmission, TempDocHeaderToAdd);
+    end;
+
+    local procedure MarkDocumentUpdatedNotSent(var DocHeader: Record "IRS 1099 Form Doc. Header")
+    begin
+        if (DocHeader.Status <> DocHeader.Status::"In Progress") and
+           (DocHeader."IRIS Submission Status" = DocHeader."IRIS Submission Status"::None) and
+           (DocHeader."IRIS Last Receipt ID" = '') and
+           (DocHeader."IRIS Last Accepted Receipt ID" = '') and
+           not DocHeader."IRIS Updated Not Sent"
+        then
+            exit;
+
+        DocHeader."IRIS Updated Not Sent" := true;
+        if DocHeader."IRIS Last Accepted Receipt ID" <> '' then
+            DocHeader."IRIS Needs Correction" := true;
+        DocHeader.Modify(true);
     end;
 
     local procedure RecalculateSelectedDocumentEligibility(DocumentID: Integer; var TempSelectedDocLine: Record "IRS 1099 Form Doc. Line" temporary; var DependentEligibilityChanges: Text)
@@ -1043,6 +1071,15 @@ codeunit 10056 "Process Transmission IRIS"
     [CommitBehavior(CommitBehavior::Error)]
     procedure UpdateIRS1099FormDocuments(var TempFormDocLineToUpdate: Record "IRS 1099 Form Doc. Line" temporary; var TempFormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail" temporary) NewIRS1099FormDocHeaderIDs: List of [Integer]
     var
+        DependentEligibilityChanges: Text;
+    begin
+        NewIRS1099FormDocHeaderIDs := UpdateIRS1099FormDocuments(TempFormDocLineToUpdate, TempFormDocLineDetail, DependentEligibilityChanges);
+        ConfirmDependentEligibilityChanges(DependentEligibilityChanges);
+    end;
+
+    [CommitBehavior(CommitBehavior::Error)]
+    local procedure UpdateIRS1099FormDocuments(var TempFormDocLineToUpdate: Record "IRS 1099 Form Doc. Line" temporary; var TempFormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail" temporary; var DependentEligibilityChanges: Text) NewIRS1099FormDocHeaderIDs: List of [Integer]
+    var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
         TempFormDocHeaderToCreate: Record "IRS 1099 Form Doc. Header" temporary;
@@ -1056,6 +1093,7 @@ codeunit 10056 "Process Transmission IRIS"
         IRS1099FormDocImpl: Codeunit "IRS 1099 Form Docs Impl.";
         IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
         SourceDocumentIDs: Dictionary of [Integer, Integer];
+        DocumentID: Integer;
         LineNo: Integer;
     begin
         if TempFormDocLineToUpdate.IsEmpty() then
@@ -1103,6 +1141,7 @@ codeunit 10056 "Process Transmission IRIS"
                             until IRS1099FormDocLine.Next() = 0;
 
                         // abandon old document
+                        MarkDocumentUpdatedNotSent(IRS1099FormDocHeader);
                         IRS1099FormDocument.Abandon(IRS1099FormDocHeader);
                     end;
             until TempFormDocLineToCreate.Next() = 0;
@@ -1117,15 +1156,55 @@ codeunit 10056 "Process Transmission IRIS"
                 CopyFormLineDetails(OldDetails, TempCreateDetails, TempOldFormDocLine, TempFormDocLineToCreate);
             until TempOldFormDocLine.Next() = 0;
 
+        CollectCopiedEligibilityChanges(TempOldFormDocLine, TempFormDocLineToCreate, TempFormDocLineToUpdate, DependentEligibilityChanges);
         CreateTempFormHeadersFromLines(TempFormDocLineToCreate, TempFormDocHeaderToCreate, TempCreateDetails, SourceDocumentIDs);
 
         NewIRS1099FormDocHeaderIDs := IRS1099FormDocImpl.InsertFormDocsFromTempBuffer(TempFormDocHeaderToCreate, TempFormDocLineToCreate, TempCreateDetails, TempSupplLine, SourceDocumentIDs);
+        foreach DocumentID in NewIRS1099FormDocHeaderIDs do begin
+            IRS1099FormDocHeader.Get(DocumentID);
+            MarkDocumentUpdatedNotSent(IRS1099FormDocHeader);
+        end;
 
         if TempFormDocLineToAbandon.FindSet() then
             repeat
-                if IRS1099FormDocHeader.Get(TempFormDocLineToAbandon."Document ID") then
+                if IRS1099FormDocHeader.Get(TempFormDocLineToAbandon."Document ID") then begin
+                    MarkDocumentUpdatedNotSent(IRS1099FormDocHeader);
                     IRS1099FormDocument.Abandon(IRS1099FormDocHeader);
+                end;
             until TempFormDocLineToAbandon.Next() = 0;
+    end;
+
+    local procedure CollectCopiedEligibilityChanges(var TempOldDocLine: Record "IRS 1099 Form Doc. Line" temporary; var TempNewDocLine: Record "IRS 1099 Form Doc. Line" temporary; var TempSelectedDocLine: Record "IRS 1099 Form Doc. Line" temporary; var DependentEligibilityChanges: Text)
+    var
+        TempSelectedLine: Record "IRS 1099 Form Doc. Line" temporary;
+        TempWithholdingLine: Record "IRS 1099 Form Doc. Line" temporary;
+        IncludeIn1099: Boolean;
+    begin
+        TempSelectedLine.Copy(TempSelectedDocLine, true);
+        TempSelectedLine.Reset();
+        TempWithholdingLine.Copy(TempNewDocLine, true);
+        TempWithholdingLine.Reset();
+        TempWithholdingLine.SetFilter("Form Box No.", '%1|%2', 'NEC-04', 'MISC-04');
+        TempWithholdingLine.SetFilter(Amount, '>0');
+        TempOldDocLine.Reset();
+        if TempOldDocLine.FindSet() then
+            repeat
+                if TempSelectedLine.Get(TempOldDocLine."Period No.", TempOldDocLine."Vendor No.", TempOldDocLine."Form No.",
+                    TempOldDocLine."Document ID", TempOldDocLine."Line No.")
+                then
+                    if TempSelectedLine."Line Action" = TempSelectedLine."Line Action"::Update then
+                        continue;
+
+                TempWithholdingLine.SetRange("Period No.", TempOldDocLine."Period No.");
+                TempWithholdingLine.SetRange("Vendor No.", TempOldDocLine."Vendor No.");
+                TempWithholdingLine.SetRange("Form No.", TempOldDocLine."Form No.");
+                TempWithholdingLine.SetRange("Document ID", TempOldDocLine."Document ID");
+                IncludeIn1099 := Supplemental.IsFormBoxAmountReportable(TempOldDocLine."Form No.", TempOldDocLine."Form Box No.",
+                    TempOldDocLine.Amount, TempOldDocLine."Minimum Reportable Amount", not TempWithholdingLine.IsEmpty());
+                if IncludeIn1099 <> TempOldDocLine."Include In 1099" then
+                    DependentEligibilityChanges += StrSubstNo(DependentEligibilityChangeTxt, TempOldDocLine."Document ID",
+                        TempOldDocLine."Form Box No.", TempOldDocLine."Include In 1099", IncludeIn1099);
+            until TempOldDocLine.Next() = 0;
     end;
 
     local procedure FindAndValidateSourceDocument(var CandidateDocLine: Record "IRS 1099 Form Doc. Line" temporary)
@@ -1240,6 +1319,8 @@ codeunit 10056 "Process Transmission IRIS"
                 TempFormDocHeader."IRIS Record ID" := IRS1099FormDocHeader."IRIS Record ID";
                 TempFormDocHeader."IRIS Last Receipt ID" := IRS1099FormDocHeader."IRIS Last Receipt ID";
                 TempFormDocHeader."IRIS Last Accepted Receipt ID" := IRS1099FormDocHeader."IRIS Last Accepted Receipt ID";
+                TempFormDocHeader."IRIS Updated Not Sent" := IRS1099FormDocHeader."IRIS Updated Not Sent";
+                TempFormDocHeader."IRIS Needs Correction" := IRS1099FormDocHeader."IRIS Needs Correction";
                 TempFormDocHeader.Modify(true);
             end;
 

@@ -3557,6 +3557,58 @@ codeunit 148010 "IRS 1099 Document Tests"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('InspectWithholdingUpdateHandler,AcceptDependentEligibilityHandler,IgnoreLifecycleMessageHandler')]
+    procedure CreatingWithholdingConfirmsCopiedIncomeEligibility()
+    var
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        OriginalIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        Transmission: Record "Transmission IRIS";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Selecting a new withholding line confirms the changed eligibility of copied unselected income.
+        Initialize();
+
+        // [GIVEN] D stores manual excluded income 750 while the proposed financial recalculation is 500.
+        CreateWithholdingCreationCandidate(IRS1099FormDocHeader, Transmission);
+        OriginalIRS1099FormDocHeader := IRS1099FormDocHeader;
+        Commit();
+
+        // [WHEN] Only the new withholding line is selected and its dependent eligibility change is accepted.
+        LibraryIRS1099Document.UpdateTransmission(Transmission);
+
+        // [THEN] The replacement keeps the copied amount and minimum while confirming the inclusion change.
+        VerifyDependentEligibilityConfirmation(OriginalIRS1099FormDocHeader.ID);
+        VerifyWithholdingCreation(IRS1099FormDocHeader, OriginalIRS1099FormDocHeader, Transmission."Document ID");
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('InspectWithholdingUpdateHandler,DeclineDependentEligibilityHandler')]
+    procedure DecliningCopiedIncomeEligibilityPreservesSource()
+    var
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        Transmission: Record "Transmission IRIS";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Declining a copied-line eligibility change rolls back replacement creation and source abandonment.
+        Initialize();
+
+        // [GIVEN] D has saved excluded income and a selected new withholding line.
+        CreateWithholdingCreationCandidate(IRS1099FormDocHeader, Transmission);
+        Commit();
+
+        // [WHEN] The dependent copied-income eligibility change is declined.
+        asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
+
+        // [THEN] The original document and disclosures survive without a replacement.
+        Assert.ExpectedError('');
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyDependentEligibilityConfirmation(IRS1099FormDocHeader.ID);
+        VerifyWithholdingCreationCancellation(IRS1099FormDocHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
@@ -3772,6 +3824,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 50);
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 0);
+        InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
+    end;
+
+    local procedure CreateWithholdingCreationCandidate(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; var Transmission: Record "Transmission IRIS")
+    begin
+        CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 500, 100);
+        SetManualParentDocLineAmount(IRS1099FormDocHeader.ID, 750, 2000);
+        LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
+        CreateFormBox(IRS1099FormDocHeader, 'NEC-04', 0);
+        SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 50);
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
     end;
 
@@ -4161,6 +4223,48 @@ codeunit 148010 "IRS 1099 Document Tests"
         Assert.IsTrue(DocLine.FindFirst(), 'The cancelled update must preserve the withholding line.');
         Assert.AreEqual(50, DocLine.Amount, 'Declining dependent changes must roll back the selected amount.');
         Assert.IsTrue(DocLine."Include In 1099", 'Declining dependent changes must preserve withholding eligibility.');
+    end;
+
+    local procedure VerifyCopiedIncomeState(DocumentID: Integer; ExpectedIncluded: Boolean)
+    var
+        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
+    begin
+        VerifyParentDocLineState(DocumentID, 750, ExpectedIncluded);
+        FindParentDocLine(DocumentID, ParentIRS1099FormDocLine);
+        Assert.AreEqual(2000, ParentIRS1099FormDocLine."Minimum Reportable Amount", 'The unselected copied minimum must remain stored.');
+        Assert.IsTrue(ParentIRS1099FormDocLine."Manually Changed", 'The unselected copied amount must remain manual.');
+        VerifySavedTips(DocumentID, 100);
+    end;
+
+    local procedure VerifyWithholdingCreation(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; OriginalIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; TransmissionID: Integer)
+    begin
+        FindReplacementDocument(IRS1099FormDocHeader);
+        Assert.AreNotEqual(OriginalIRS1099FormDocHeader.ID, IRS1099FormDocHeader.ID, 'The selected new box must create a replacement.');
+        Assert.AreEqual(IRS1099FormDocHeader.Status::Released, IRS1099FormDocHeader.Status, 'The replacement must be released.');
+        Assert.IsFalse(IRS1099FormDocHeader."IRIS Updated Not Sent", 'A first-time filing must not acquire a previously sent marker.');
+        VerifyCopiedIncomeState(IRS1099FormDocHeader.ID, true);
+        VerifyDocumentLink(IRS1099FormDocHeader.ID, TransmissionID);
+        OriginalIRS1099FormDocHeader.Get(OriginalIRS1099FormDocHeader.ID);
+        Assert.AreEqual(OriginalIRS1099FormDocHeader.Status::Abandoned, OriginalIRS1099FormDocHeader.Status, 'The source must be superseded only after confirmation.');
+        VerifyCopiedIncomeState(OriginalIRS1099FormDocHeader.ID, false);
+    end;
+
+    local procedure VerifyWithholdingCreationCancellation(OriginalIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        WithholdingDocumentLine: Record "IRS 1099 Form Doc. Line";
+    begin
+        IRS1099FormDocHeader.Get(OriginalIRS1099FormDocHeader.ID);
+        Assert.AreEqual(OriginalIRS1099FormDocHeader.Status, IRS1099FormDocHeader.Status, 'Declining must roll back source abandonment.');
+        VerifyCopiedIncomeState(IRS1099FormDocHeader.ID, false);
+        VerifyDocumentLink(IRS1099FormDocHeader.ID, OriginalIRS1099FormDocHeader."IRIS Transmission Document ID");
+        IRS1099FormDocHeader.SetRange("Period No.", OriginalIRS1099FormDocHeader."Period No.");
+        IRS1099FormDocHeader.SetRange("Vendor No.", OriginalIRS1099FormDocHeader."Vendor No.");
+        IRS1099FormDocHeader.SetRange("Form No.", OriginalIRS1099FormDocHeader."Form No.");
+        Assert.RecordCount(IRS1099FormDocHeader, 1);
+        WithholdingDocumentLine.SetRange("Document ID", OriginalIRS1099FormDocHeader.ID);
+        WithholdingDocumentLine.SetRange("Form Box No.", 'NEC-04');
+        Assert.RecordIsEmpty(WithholdingDocumentLine);
     end;
 
     [ModalPageHandler]
