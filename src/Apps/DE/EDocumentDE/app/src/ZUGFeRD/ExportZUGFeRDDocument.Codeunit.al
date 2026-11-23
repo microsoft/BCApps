@@ -54,6 +54,8 @@ codeunit 13917 "Export ZUGFeRD Document"
         XmlNamespaceRAM: Text;
         XmlNamespaceUDT: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
+        ActualDeliveryStartDates: Dictionary of [Integer, Date];
+        ActualDeliveryEndDates: Dictionary of [Integer, Date];
 #if not CLEAN30
         EDocumentServiceProvided: Boolean;
 #endif
@@ -782,7 +784,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryAddress."Country/Region Code" := SalesInvoiceHeader."Ship-to Country/Region Code";
 
         InsertApplicableHeaderTradeDelivery(
-            RootXMLNode, SalesInvoiceHeader."Shipment Date", SalesInvoiceHeader."Ship-to Name", DeliveryAddress,
+            RootXMLNode, EDocumentDEHelper.GetDocumentActualDeliveryDate(ActualDeliveryStartDates, ActualDeliveryEndDates, SalesInvoiceHeader."Shipment Date"), SalesInvoiceHeader."Ship-to Name", DeliveryAddress,
             GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code"));
     end;
 
@@ -798,7 +800,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         DeliveryAddress."Country/Region Code" := SalesCrMemoHeader."Ship-to Country/Region Code";
 
         InsertApplicableHeaderTradeDelivery(
-            RootXMLNode, SalesCrMemoHeader."Shipment Date", SalesCrMemoHeader."Ship-to Name", DeliveryAddress,
+            RootXMLNode, EDocumentDEHelper.GetDocumentActualDeliveryDate(ActualDeliveryStartDates, ActualDeliveryEndDates, SalesCrMemoHeader."Shipment Date"), SalesCrMemoHeader."Ship-to Name", DeliveryAddress,
             GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code"));
     end;
 
@@ -1044,6 +1046,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SupplyChainTradeTransactionElement: XmlElement;
     begin
         SupplyChainTradeTransactionElement := XmlElement.Create('SupplyChainTradeTransaction', XmlNamespaceRSM);
+        EDocumentDEHelper.CollectActualDeliveryDates(SalesInvoiceLine, ActualDeliveryStartDates, ActualDeliveryEndDates);
         if SalesInvoiceLine.FindSet() then
             repeat
                 if not IsItemChargeAllowanceCharge(SalesInvoiceLine."Line No.") then
@@ -1054,6 +1057,18 @@ codeunit 13917 "Export ZUGFeRD Document"
         InsertApplicableHeaderTradeSettlement(SupplyChainTradeTransactionElement, SalesInvoiceHeader, SalesInvoiceLine, CurrencyCode, LineAmount, LineVATAmount, LineAmounts, LineDiscAmount);
 
         RootXMLNode.Add(SupplyChainTradeTransactionElement);
+    end;
+
+    local procedure InsertLineBillingSpecifiedPeriod(var LineTradeSettlementElement: XmlElement; LineNo: Integer; ShipmentDate: Date)
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        if EDocumentDEHelper.GetActualDeliveryPeriod(LineNo, ActualDeliveryStartDates, ActualDeliveryEndDates, StartDate, EndDate) then
+            InsertBillingSpecifiedPeriod(LineTradeSettlementElement, StartDate, EndDate)
+        else
+            if ShipmentDate <> 0D then
+                InsertBillingSpecifiedPeriod(LineTradeSettlementElement, ShipmentDate, ShipmentDate);
     end;
 
     local procedure InsertBillingSpecifiedPeriod(var RootElement: XmlElement; StartDate: Date; EndDate: Date);
@@ -1152,8 +1167,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesInvoiceLine."VAT %")));
             SpecifiedLineTradeSettlementElement.Add(ApplicableTradeTaxElement);
 
-            if SalesInvoiceLine."Shipment Date" <> 0D then
-                InsertBillingSpecifiedPeriod(SpecifiedLineTradeSettlementElement, SalesInvoiceLine."Shipment Date", SalesInvoiceLine."Shipment Date");
+            InsertLineBillingSpecifiedPeriod(SpecifiedLineTradeSettlementElement, SalesInvoiceLine."Line No.", SalesInvoiceLine."Shipment Date");
 
             if SalesInvoiceLine."Line Discount Amount" <> 0 then
                 InsertAllowanceCharge(SpecifiedLineTradeSettlementElement, 'Line Discount', GetTaxCategoryID(SalesInvoiceLine."Tax Category", SalesInvoiceLine."VAT Bus. Posting Group",
@@ -1175,6 +1189,7 @@ codeunit 13917 "Export ZUGFeRD Document"
         SupplyChainTradeTransactionElement: XmlElement;
     begin
         SupplyChainTradeTransactionElement := XmlElement.Create('SupplyChainTradeTransaction', XmlNamespaceRSM);
+        EDocumentDEHelper.CollectActualDeliveryDates(SalesCrMemoLine, ActualDeliveryStartDates, ActualDeliveryEndDates);
         if SalesCrMemoLine.FindSet() then
             repeat
                 if not IsItemChargeAllowanceCharge(SalesCrMemoLine."Line No.") then
@@ -1243,8 +1258,7 @@ codeunit 13917 "Export ZUGFeRD Document"
             ApplicableTradeTaxElement.Add(XmlElement.Create('RateApplicablePercent', XmlNamespaceRAM, FormatFiveDecimal(SalesCrMemoLine."VAT %")));
             SpecifiedLineTradeSettlementElement.Add(ApplicableTradeTaxElement);
 
-            if SalesCrMemoLine."Shipment Date" <> 0D then
-                InsertBillingSpecifiedPeriod(SpecifiedLineTradeSettlementElement, SalesCrMemoLine."Shipment Date", SalesCrMemoLine."Shipment Date");
+            InsertLineBillingSpecifiedPeriod(SpecifiedLineTradeSettlementElement, SalesCrMemoLine."Line No.", SalesCrMemoLine."Shipment Date");
 
             if SalesCrMemoLine."Line Discount Amount" <> 0 then
                 InsertAllowanceCharge(SpecifiedLineTradeSettlementElement, 'Line Discount', GetTaxCategoryID(SalesCrMemoLine."Tax Category", SalesCrMemoLine."VAT Bus. Posting Group",
