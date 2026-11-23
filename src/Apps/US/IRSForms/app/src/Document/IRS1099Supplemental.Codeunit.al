@@ -377,10 +377,11 @@ codeunit 10040 "IRS 1099 Supplemental"
             repeat
                 DocLine.SetRange("Document ID", DocumentID);
                 DocLine.SetRange("Form Box No.", SupplBox."Parent Form Box No.");
-                if not DocLine.IsEmpty() and not SupplLine.Get(DocumentID, SupplBox."No.") then begin
-                    ValidateSupplBoxSetup(SupplBox);
-                    SupplBox.Mark(true);
-                end;
+                if not DocLine.IsEmpty() then
+                    if not SupplLine.Get(DocumentID, SupplBox."No.") then begin
+                        ValidateSupplBoxSetup(SupplBox);
+                        SupplBox.Mark(true);
+                    end;
             until SupplBox.Next() = 0;
         SupplBox.MarkedOnly(true);
         if SupplBox.IsEmpty() then
