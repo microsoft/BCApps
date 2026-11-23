@@ -6,11 +6,13 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Stores the expense rule violations that were found for an expense report line.
+/// </summary>
 table 6910 "Expense Report Rule Violation"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
-    Access = Internal;
 
     fields
     {
@@ -47,7 +49,7 @@ table 6910 "Expense Report Rule Violation"
             Rec."Line No." := GetNextLineNo();
     end;
 
-    procedure ClearRuleViolations(ExpenseReportNo: Code[20]; ReportLineNo: Integer)
+    internal procedure ClearRuleViolations(ExpenseReportNo: Code[20]; ReportLineNo: Integer)
     begin
         Rec.SetRange("Expense Report No.", ExpenseReportNo);
         Rec.SetRange("Report Line No.", ReportLineNo);
@@ -55,7 +57,7 @@ table 6910 "Expense Report Rule Violation"
             Rec.DeleteAll(true);
     end;
 
-    procedure AddRuleViolation(ExpenseReportNo: Code[20]; ReportLineNo: Integer; Violation: Text[500])
+    internal procedure AddRuleViolation(ExpenseReportNo: Code[20]; ReportLineNo: Integer; Violation: Text[500])
     begin
         Rec."Expense Report No." := ExpenseReportNo;
         Rec."Report Line No." := ReportLineNo;
