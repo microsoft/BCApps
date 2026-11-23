@@ -5,5 +5,13 @@
         "Category": "Other",
         "HelpURL": "https://aka.ms/editBCwithCopilot",
         "VideoURL": ""
+    },
+    {
+        "FeatureName": "Add subcontracting suggestions to an existing purchase order",
+        "Description": "In the Subcontracting app, open Subcontracting Worksheets. On a new suggestion, choose Assign purchase order and select a compatible open order for the vendor. Accept the suggestion and run Carry Out Action Message, then check the selected order for the new line.",
+        "Category": "Supply chain management",
+        "HelpURL": "",
+        "VideoURL": "",
+        "ADOSliceIds": [634223]
     }
 ]
