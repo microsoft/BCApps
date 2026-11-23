@@ -11,23 +11,22 @@ codeunit 139203 "Library Random Lifecycle Tests"
     var
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit "Library Assert";
-        Any: Codeunit Any;
 
     [Test]
     procedure RandomIsInitializedBeforeFirstUse()
     var
-        ActualText: Text;
+        ActualFirst: Integer;
         ActualValue: Integer;
-        ExpectedText: Text;
+        ExpectedFirst: Integer;
         ExpectedValue: Integer;
     begin
-        ActualText := Any.AlphabeticText(10);
+        ActualFirst := Random(100000);
         ActualValue := LibraryRandom.RandInt(100000);
         LibraryRandom.SetSeed(1);
-        ExpectedText := Any.AlphabeticText(10);
+        ExpectedFirst := Random(100000);
         ExpectedValue := LibraryRandom.RandInt(100000);
 
-        Assert.AreEqual(ExpectedText, ActualText, 'Native procedures must start with the default sequence.');
+        Assert.AreEqual(ExpectedFirst, ActualFirst, 'Native procedures must start with the default sequence.');
         Assert.AreEqual(ExpectedValue, ActualValue, 'First library use must not rewind the shared random sequence.');
         LibraryRandom.SetSeed(8721);
     end;
