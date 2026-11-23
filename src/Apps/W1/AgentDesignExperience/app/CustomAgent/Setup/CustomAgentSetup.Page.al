@@ -207,8 +207,8 @@ page 4350 "Custom Agent Setup"
 
                 group(AgentSkillsGroup)
                 {
-                    ShowCaption = false;
-                    InstructionalText = 'Skills guide the agent on specific business tasks when relevant.';
+                    Caption = 'Business skills';
+                    InstructionalText = 'Business skills guide the agent on specific business tasks when relevant.';
 
                     field(UseBusinessSkills; Rec."Use Business Skills")
                     {
