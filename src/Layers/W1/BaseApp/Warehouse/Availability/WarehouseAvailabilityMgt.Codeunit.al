@@ -79,7 +79,7 @@ codeunit 7314 "Warehouse Availability Mgt."
             // Keep the shipment check item-wide, as lot validation also adds item-wide reserved pick/shipment quantities.
             ValidateQtyPickedInShipmentBin(
                 PickQty, ReservEntry."Location Code", ReservEntry."Item No.", ReservEntry."Variant Code", TempTrackingSpecification,
-                ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.");
+                ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.", false);
             PickQty +=
                 CalcQtyOutstandingPick(
                     ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.", ReservEntry."Source Prod. Order Line", WarehouseActivityLine);
@@ -97,11 +97,18 @@ codeunit 7314 "Warehouse Availability Mgt."
     var
         TempTrackingSpecification: Record "Tracking Specification" temporary;
     begin
+        // Item-level availability deducts Item."Qty. Picked", which only covers open warehouse shipment lines.
         exit(CalcReservQtyOnPicksShipsWithItemTracking(
-            WarehouseActivityLine, TempTrackingSpecification, LocationCode, ItemNo, VariantCode));
+            WarehouseActivityLine, TempTrackingSpecification, LocationCode, ItemNo, VariantCode, true));
     end;
 
-    procedure CalcReservQtyOnPicksShipsWithItemTracking(var WarehouseActivityLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]) Result: Decimal
+    procedure CalcReservQtyOnPicksShipsWithItemTracking(var WarehouseActivityLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]): Decimal
+    begin
+        exit(CalcReservQtyOnPicksShipsWithItemTracking(
+            WarehouseActivityLine, TrackingSpecification, LocationCode, ItemNo, VariantCode, false));
+    end;
+
+    local procedure CalcReservQtyOnPicksShipsWithItemTracking(var WarehouseActivityLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; LimitToOpenShipments: Boolean) Result: Decimal
     var
         TempReservEntryBuffer: Record "Reservation Entry Buffer" temporary;
         CalcRsvQtyOnPicksShipsWithIT: Query CalcRsvQtyOnPicksShipsWithIT;
@@ -157,7 +164,8 @@ codeunit 7314 "Warehouse Availability Mgt."
                     LocationCode, TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line");
                 ValidateQtyPickedInShipmentBin(
                     QtyPicked, LocationCode, ItemNo, VariantCode, TrackingSpecification,
-                    TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.");
+                    TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.",
+                    LimitToOpenShipments);
                 QtyToPick :=
                   CalcQtyOutstandingPick(
                     TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line", WarehouseActivityLine);
@@ -953,10 +961,11 @@ codeunit 7314 "Warehouse Availability Mgt."
         exit(WarehouseShipmentLine."Qty. Picked (Base)" - WarehouseShipmentLine."Qty. Shipped (Base)")
     end;
 
-    local procedure ValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer)
+    local procedure ValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer; LimitToOpenShipments: Boolean)
     var
         Location: Record Location;
         ItemTrackingSetup: Record "Item Tracking Setup";
+        TypeHelper: Codeunit "Type Helper";
         QtyOnShipmentBin: Decimal;
         IsHandled: Boolean;
     begin
@@ -983,6 +992,9 @@ codeunit 7314 "Warehouse Availability Mgt."
         QtyOnShipmentBin :=
             CalcQtyOnRegisteredPickDestinationBins(
                 LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, ItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
+        // Stock staged for a deleted shipment is not in Item."Qty. Picked", so item-level availability must not credit it back.
+        if LimitToOpenShipments then
+            QtyOnShipmentBin := TypeHelper.Minimum(QtyOnShipmentBin, CalcQtyPickedOnWhseShipmentLine(SourceType, SourceSubType, SourceID, SourceRefNo));
         if QtyPicked > QtyOnShipmentBin then
             QtyPicked := QtyOnShipmentBin;
     end;
