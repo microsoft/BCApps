@@ -30,7 +30,11 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         InvalidSourceUrlErr: Label 'The source environment URL is not a valid Business Central endpoint.';
         InvalidSourceUrlAuditTxt: Label 'Blocked a cross-environment request: the configured source environment URL host ''%1'' is not a valid Business Central endpoint.', Comment = '%1 = the rejected host';
         HttpErr: Label 'The source environment returned HTTP %1.', Comment = '%1 = HTTP status code';
-        AccessDeniedErr: Label 'The source environment %1 denied access (HTTP %2). On the source environment, assign the registered app the ''Master Data Mgt. - Cross Environment'' permission set and approve the cross-environment privacy notice, then try again.', Comment = '%1 = source environment name, %2 = HTTP status code';
+        NotAuthenticatedErr: Label 'The source environment %1 did not accept the Microsoft Entra application with client ID %2 (HTTP 401). In the source environment, open the Microsoft Entra Applications page and make sure the application is added and its state is Enabled. Also make sure the application''s app registration has the API.ReadWrite.All application permission with admin consent.', Comment = '%1 = source environment name, %2 = client ID of the Microsoft Entra application';
+        AccessDeniedErr: Label 'The source environment %1 denied access (HTTP 403). In the source environment, open the Microsoft Entra Applications page and assign the ''Master Data Mgt. - Cross Environment'' permission set to the application with client ID %2, then try again.', Comment = '%1 = source environment name, %2 = client ID of the Microsoft Entra application';
+        CompanyNotFoundErr: Label 'The company ''%1'' does not exist in the source environment %2. Check the source company name in the cross-environment connection details.', Comment = '%1 = source company name, %2 = source environment name';
+        SourceApiNotFoundErr: Label 'The source environment %1 does not provide the Master Data Management cross-environment service. Make sure the Master Data Management app is installed and up to date in the source environment.', Comment = '%1 = source environment name';
+        EnvironmentNotFoundErr: Label 'The source environment %1 was not found. Check the source environment name in the cross-environment connection details.', Comment = '%1 = source environment name';
         ServiceNameTok: Label 'MDMCrossEnvSource', Locked = true;
         ScopeTok: Label 'https://api.businesscentral.dynamics.com/.default', Locked = true;
         ScopePPETok: Label 'https://api.businesscentral.dynamics-tie.com/.default', Locked = true;
@@ -46,6 +50,16 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
         AccessDeniedAuditTxt: Label 'Source environment %1 denied the master data request (HTTP %2).', Comment = '%1 = source environment name, %2 = HTTP status code';
         RequestFailedTelemetryTxt: Label 'Cross-environment %1 request failed with HTTP %2.', Locked = true, Comment = '%1 = action name, %2 = HTTP status code';
         TransportFailedTelemetryTxt: Label 'Cross-environment %1 request could not be sent to the source environment.', Locked = true, Comment = '%1 = action name';
+        // OData error codes the source platform returns for a 404 (fixed platform strings, safe to log).
+        CompanyNotFoundCodeTok: Label 'Internal_DataNotFoundFilter', Locked = true;
+        ResourceNotFoundCodeTok: Label 'BadRequest_NotFound', Locked = true;
+        ErrorCodeCharsTok: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_.-', Locked = true;
+        NotAuthenticatedReasonTok: Label 'NotAuthenticated', Locked = true;
+        AccessDeniedReasonTok: Label 'AccessDenied', Locked = true;
+        CompanyNotFoundReasonTok: Label 'CompanyNotFound', Locked = true;
+        SourceApiNotFoundReasonTok: Label 'SourceApiNotFound', Locked = true;
+        EnvironmentNotFoundReasonTok: Label 'EnvironmentNotFound', Locked = true;
+        OtherHttpErrorReasonTok: Label 'HttpError', Locked = true;
 
     procedure GetRecords(TableId: Integer; FieldIds: Text; Selector: Text; PageSize: Integer; Filter: Text): Text
     var
@@ -93,13 +107,12 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
 
         for Attempt := 0 to MaxRetries() do
             if TrySend(MasterDataManagementSetup, ActionName, RequestBody, ResponseMessage) then begin
-                ResponseMessage.Content().ReadAs(ResponseBodyText);
-                if ResponseMessage.IsSuccessStatusCode() then
+                if ResponseMessage.IsSuccessStatusCode() then begin
+                    ResponseMessage.Content().ReadAs(ResponseBodyText);
                     exit(UnwrapODataValue(ResponseBodyText));
-                if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then begin
-                    LogRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
-                    Error(SetupNavigationError(HttpStatusErrorMessage(MasterDataManagementSetup, ResponseMessage.HttpStatusCode())));
                 end;
+                if not ShouldRetry(ResponseMessage, Attempt, RetryAfter) then
+                    RaiseRequestFailure(MasterDataManagementSetup, ActionName, ResponseMessage);
                 Sleep(RetryAfter);
             end else begin
                 // Transport-level failure (dropped connection, timeout): these reads are idempotent, so retry while
@@ -112,29 +125,130 @@ codeunit 7247 "MDM Http Source Transport" implements "IMDM Source Transport"
             end;
     end;
 
-    // 401/403 is an authorization failure on the SOURCE (missing permission set or unapproved privacy notice), so
-    // return a remedy the source admin can act on; other status codes keep the generic message.
-    local procedure HttpStatusErrorMessage(var MasterDataManagementSetup: Record "Master Data Management Setup"; StatusCode: Integer): Text
+    local procedure RaiseRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage)
+    var
+        ResponseBodyText: Text;
+        ODataErrorCode: Text;
+        FailureReason: Text;
+        StatusCode: Integer;
     begin
-        if StatusCode in [401, 403] then
-            exit(StrSubstNo(AccessDeniedErr, MasterDataManagementSetup."Source Environment Name", StatusCode));
+        StatusCode := ResponseMessage.HttpStatusCode();
+        if ResponseMessage.Content().ReadAs(ResponseBodyText) then
+            ODataErrorCode := ReadODataErrorCode(ResponseBodyText);
+        FailureReason := ClassifyFailure(StatusCode, ODataErrorCode);
+        LogRequestFailure(MasterDataManagementSetup, ActionName, StatusCode, ODataErrorCode, FailureReason);
+        Error(FailureError(MasterDataManagementSetup, StatusCode, FailureReason));
+    end;
+
+    // Status code alone can't tell a mistyped company from a missing service or environment (all 404), so the OData
+    // error code in the body decides. Anything else on a 404 - typically no OData body at all, because the request
+    // never reached a running environment - means the environment wasn't found.
+    local procedure ClassifyFailure(StatusCode: Integer; ODataErrorCode: Text): Text
+    begin
+        case StatusCode of
+            401:
+                exit(NotAuthenticatedReasonTok);
+            403:
+                exit(AccessDeniedReasonTok);
+            404:
+                begin
+                    if ODataErrorCode = CompanyNotFoundCodeTok then
+                        exit(CompanyNotFoundReasonTok);
+                    if ODataErrorCode = ResourceNotFoundCodeTok then
+                        exit(SourceApiNotFoundReasonTok);
+                    exit(EnvironmentNotFoundReasonTok);
+                end;
+        end;
+        exit(OtherHttpErrorReasonTok);
+    end;
+
+    local procedure FailureError(var MasterDataManagementSetup: Record "Master Data Management Setup"; StatusCode: Integer; FailureReason: Text): ErrorInfo
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        // These messages name the environment, company or app, so they are kept out of telemetry; the failure is
+        // diagnosable there from the status code, OData error code and reason that LogRequestFailure emits.
+        ErrInfo := SetupNavigationError(FailureMessage(MasterDataManagementSetup, StatusCode, FailureReason));
+        if FailureReason <> OtherHttpErrorReasonTok then
+            ErrInfo.DataClassification := DataClassification::CustomerContent;
+        exit(ErrInfo);
+    end;
+
+    local procedure FailureMessage(var MasterDataManagementSetup: Record "Master Data Management Setup"; StatusCode: Integer; FailureReason: Text): Text
+    begin
+        case FailureReason of
+            NotAuthenticatedReasonTok:
+                exit(StrSubstNo(NotAuthenticatedErr, MasterDataManagementSetup."Source Environment Name", MasterDataManagementSetup."Source OAuth Client Id"));
+            AccessDeniedReasonTok:
+                exit(StrSubstNo(AccessDeniedErr, MasterDataManagementSetup."Source Environment Name", MasterDataManagementSetup."Source OAuth Client Id"));
+            CompanyNotFoundReasonTok:
+                exit(StrSubstNo(CompanyNotFoundErr, MasterDataManagementSetup."Source Company Name", MasterDataManagementSetup."Source Environment Name"));
+            SourceApiNotFoundReasonTok:
+                exit(StrSubstNo(SourceApiNotFoundErr, MasterDataManagementSetup."Source Environment Name"));
+            EnvironmentNotFoundReasonTok:
+                exit(StrSubstNo(EnvironmentNotFoundErr, MasterDataManagementSetup."Source Environment Name"));
+        end;
         exit(StrSubstNo(HttpErr, StatusCode));
     end;
 
-    local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; var ResponseMessage: HttpResponseMessage)
+    // Only the fixed, platform-defined error.code is taken from the body; the message can echo source data.
+    local procedure ReadODataErrorCode(ResponseBodyText: Text): Text
+    var
+        Body: JsonObject;
+        ErrorToken: JsonToken;
+        CodeToken: JsonToken;
+        ErrorCode: Text;
+    begin
+        if not Body.ReadFrom(ResponseBodyText) then
+            exit('');
+        if not Body.Get('error', ErrorToken) then
+            exit('');
+        if not ErrorToken.IsObject() then
+            exit('');
+        if not ErrorToken.AsObject().Get('code', CodeToken) then
+            exit('');
+        if not CodeToken.IsValue() then
+            exit('');
+        if not TryReadText(CodeToken, ErrorCode) then
+            exit('');
+        // Anything that doesn't look like a platform error code is dropped rather than logged.
+        if (ErrorCode = '') or (StrLen(ErrorCode) > 100) or (DelChr(ErrorCode, '=', ErrorCodeCharsTok) <> '') then
+            exit('');
+        exit(ErrorCode);
+    end;
+
+    [TryFunction]
+    local procedure TryReadText(Token: JsonToken; var Value: Text)
+    begin
+        Value := Token.AsValue().AsText();
+    end;
+
+    // Test seam: classify a failed response without a live source.
+    internal procedure DescribeRequestFailureForTest(StatusCode: Integer; ResponseBodyText: Text; var FailureReason: Text): Text
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        if MasterDataManagementSetup.Get() then;
+        FailureReason := ClassifyFailure(StatusCode, ReadODataErrorCode(ResponseBodyText));
+        exit(FailureMessage(MasterDataManagementSetup, StatusCode, FailureReason));
+    end;
+
+    local procedure LogRequestFailure(var MasterDataManagementSetup: Record "Master Data Management Setup"; ActionName: Text; StatusCode: Integer; ODataErrorCode: Text; FailureReason: Text)
     var
         AuditLog: Codeunit "Audit Log";
         Dimensions: Dictionary of [Text, Text];
     begin
         // The response body can echo source-environment record content, so it is never emitted to telemetry; only
-        // the action and HTTP status (non-content diagnostics) are logged.
+        // the action, HTTP status, platform error code and derived reason (non-content diagnostics) are logged.
         Dimensions.Add('Category', TelemetryCategoryTok);
         Dimensions.Add('Action', ActionName);
-        Dimensions.Add('HttpStatusCode', Format(ResponseMessage.HttpStatusCode()));
-        Session.LogMessage('0000VAT', StrSubstNo(RequestFailedTelemetryTxt, ActionName, ResponseMessage.HttpStatusCode()), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+        Dimensions.Add('HttpStatusCode', Format(StatusCode));
+        Dimensions.Add('ODataErrorCode', ODataErrorCode);
+        Dimensions.Add('FailureReason', FailureReason);
+        Session.LogMessage('0000VAT', StrSubstNo(RequestFailedTelemetryTxt, ActionName, StatusCode), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         // Security audit: an authorization failure crossing the environment boundary.
-        if ResponseMessage.HttpStatusCode() in [401, 403] then
-            AuditLog.LogAuditMessage(StrSubstNo(AccessDeniedAuditTxt, MasterDataManagementSetup."Source Environment Name", ResponseMessage.HttpStatusCode()), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
+        if StatusCode in [401, 403] then
+            AuditLog.LogAuditMessage(StrSubstNo(AccessDeniedAuditTxt, MasterDataManagementSetup."Source Environment Name", StatusCode), SecurityOperationResult::Failure, AuditCategory::Authorization, 4, 0);
     end;
 
     local procedure LogTransportFailure(ActionName: Text)
