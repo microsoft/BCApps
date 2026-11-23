@@ -105,7 +105,9 @@ codeunit 21 "Item Jnl.-Check Line"
                 if ShouldCheckLocationCode then
                     ItemJournalLine.TestField("Location Code", ErrorInfo.Create());
                 if (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::Transfer) and
-                   (not ItemJournalLine."Direct Transfer" or (ItemJournalLine."Document Type" = ItemJournalLine."Document Type"::"Transfer Receipt"))
+                   (not ItemJournalLine."Direct Transfer" or
+                    (ItemJournalLine."Document Type" = ItemJournalLine."Document Type"::"Transfer Receipt") or
+                    IsDirectTransferShipmentViaInTransit(ItemJournalLine))
                 then
                     ItemJournalLine.TestField("New Location Code", ErrorInfo.Create())
                 else
@@ -675,6 +677,17 @@ codeunit 21 "Item Jnl.-Check Line"
     begin
         if Location.IsInTransit(LocationCode) then
             Error(ErrorInfo.Create(StrSubstNo(UseInTransitLocationErr, LocationCode), true));
+    end;
+
+    local procedure IsDirectTransferShipmentViaInTransit(ItemJournalLine: Record "Item Journal Line"): Boolean
+    begin
+        if not ItemJournalLine."Direct Transfer" then
+            exit(false);
+        if ItemJournalLine."Document Type" <> ItemJournalLine."Document Type"::"Transfer Shipment" then
+            exit(false);
+        if ItemJournalLine."New Location Code" = '' then
+            exit(false);
+        exit(Location.IsInTransit(ItemJournalLine."New Location Code"));
     end;
 
     local procedure CheckInTransitLocations(var ItemJnlLine: Record "Item Journal Line")
