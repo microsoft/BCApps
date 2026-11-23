@@ -122,15 +122,9 @@ codeunit 7786 "Copilot Quota Impl."
     procedure RecordAIConsumption(CopilotCapability: Enum "Copilot Capability"; ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; CorrelationId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; AgentTaskId: BigInteger; Metadata: Text; Description: Text; IsFeatureTrial: Boolean; CallerModuleInfo: ModuleInfo)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
-        AgentPublisherType: DotNet ALAgentPublisherType;
     begin
         if not CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
             Session.LogMessage('0000QIY', StrSubstNo(CapabilityNotRegisteredTelemetryMsg, CopilotCapability), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetCopilotCategory());
-
-        if CallerModuleInfo.Publisher() = 'Microsoft' then
-            AgentPublisherType := AgentPublisherType::FirstParty
-        else
-            AgentPublisherType := AgentPublisherType::ThirdParty;
 
         ALCopilotFunctions.RecordAIConsumption(
             ConsumptionId,
@@ -138,7 +132,6 @@ codeunit 7786 "Copilot Quota Impl."
             InteractionId,
             CorrelationId,
             CopilotCapabilityImpl.CapabilityToEnumName(CopilotCapability),
-            AgentPublisherType,
             CallerModuleInfo.Id(),
             ConsumptionUsagePayload,
             ConsumptionEntraPrincipalId,

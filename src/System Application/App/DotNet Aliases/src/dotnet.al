@@ -861,15 +861,6 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.Types")
-    {
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
-        type("Microsoft.Dynamics.Nav.Types.AgentPublisherType"; ALAgentPublisherType)
-        {
-        }
-    }
     assembly("Microsoft.Dynamics.Nav.Types.Report")
     {
 
