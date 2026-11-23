@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Stores the conditions of an expense rule, such as amount limits, daily rates, or justification requirements.
+/// </summary>
 table 6926 "Expense Rule Condition"
 {
-    Access = Internal;
     Caption = 'Expense Rule Condition';
     DataClassification = CustomerContent;
     ReplicateData = false;

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+/// <summary>
+/// Displays and edits the detail lines of a spend request.
+/// </summary>
 page 6842 "Spend Request Subform"
 {
     Caption = 'Lines';

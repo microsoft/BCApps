@@ -8525,6 +8525,12 @@ codeunit 137072 "SCM Production Orders II"
         ItemLedgerEntry.TestField("Lot No.");
         LotNo := ItemLedgerEntry."Lot No.";
 
+        // [GIVEN] The alternate unit of measure is changed after posting.
+        ItemUnitOfMeasure.Get(Item."No.", UnitOfMeasure.Code);
+        ItemUnitOfMeasure.Validate("Qty. per Unit of Measure", QtyPerUnitOfMeasure + 100);
+        ItemUnitOfMeasure.Modify(true);
+        ItemUnitOfMeasure.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure + 100);
+
         // [WHEN] The production output entry is reversed.
         ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
         UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
@@ -8539,6 +8545,99 @@ codeunit 137072 "SCM Production Orders II"
         Assert.AreEqual(
             -1, ItemLedgerEntry.Quantity / ItemLedgerEntry."Qty. per Unit of Measure",
             ReversingOutputQuantityErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseSplitLotProductionOutputPostedInNonBaseUnitOfMeasure()
+    begin
+        ReverseSplitLotProductionOutput(1);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandlerNoText')]
+    procedure ReverseSplitLotProductionOutputWithZeroRoundedQuantity()
+    begin
+        ReverseSplitLotProductionOutput(0.001);
+    end;
+
+    local procedure ReverseSplitLotProductionOutput(SmallLotBaseQuantity: Decimal)
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        OriginalItemLedgerEntry: Record "Item Ledger Entry";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProductionOrder: Record "Production Order";
+        ReservationEntry: Record "Reservation Entry";
+        UnitOfMeasure: Record "Unit of Measure";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        LotNo: array[2] of Code[50];
+        BaseQuantity: array[2] of Decimal;
+        QtyPerUnitOfMeasure: Decimal;
+        LotIndex: Integer;
+    begin
+        // [SCENARIO 651623] Split-lot output retains exact base quantities when reversed in a non-base unit of measure.
+        Initialize();
+        QtyPerUnitOfMeasure := 900;
+        BaseQuantity[1] := SmallLotBaseQuantity;
+        BaseQuantity[2] := QtyPerUnitOfMeasure - BaseQuantity[1];
+
+        // [GIVEN] A released production order for one alternate unit representing 900 base units.
+        CreateItemWithItemTrackingCode(Item, CreateItemTrackingCode());
+        LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, Item."No.", UnitOfMeasure.Code, QtyPerUnitOfMeasure);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Modify(true);
+        CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, Item."No.", 1, '', '');
+        FindProductionOrderLine(ProdOrderLine, Item."No.");
+        ProdOrderLine.Validate("Unit of Measure Code", UnitOfMeasure.Code);
+        ProdOrderLine.Modify(true);
+
+        // [GIVEN] One alternate unit is posted with tracking split into two lots.
+        CreateOutputJournalWithExlpodeRouting(ItemJournalLine, ProductionOrder."No.");
+        ItemJournalLine.Validate("Output Quantity", 1);
+        ItemJournalLine.Modify(true);
+        for LotIndex := 1 to ArrayLen(LotNo) do begin
+            LotNo[LotIndex] := LibraryUtility.GenerateGUID();
+            LibraryItemTracking.CreateItemJournalLineItemTracking(
+                ReservationEntry, ItemJournalLine, '', LotNo[LotIndex], BaseQuantity[LotIndex]);
+        end;
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        for LotIndex := 1 to ArrayLen(LotNo) do begin
+            ItemLedgerEntry.Reset();
+            ItemLedgerEntry.SetRange("Item No.", Item."No.");
+            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+            ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+            ItemLedgerEntry.SetRange("Lot No.", LotNo[LotIndex]);
+            ItemLedgerEntry.FindFirst();
+            ItemLedgerEntry.TestField(Quantity, BaseQuantity[LotIndex]);
+            ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+            OriginalItemLedgerEntry := ItemLedgerEntry;
+
+            // [WHEN] Each split output entry is reversed.
+            ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
+            UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+            // [THEN] The reversing entry has the exact opposite base quantity and lot, using the base unit if conversion rounds to zero.
+            ItemLedgerEntry.SetRange("Entry No.");
+            Assert.RecordCount(ItemLedgerEntry, 2);
+            ItemLedgerEntry.FindLast();
+            ItemLedgerEntry.TestField(Quantity, -BaseQuantity[LotIndex]);
+            if Round(BaseQuantity[LotIndex] / QtyPerUnitOfMeasure, 0.00001) = 0 then begin
+                ItemLedgerEntry.TestField("Unit of Measure Code", Item."Base Unit of Measure");
+                ItemLedgerEntry.TestField("Qty. per Unit of Measure", 1);
+            end else begin
+                ItemLedgerEntry.TestField("Unit of Measure Code", UnitOfMeasure.Code);
+                ItemLedgerEntry.TestField("Qty. per Unit of Measure", QtyPerUnitOfMeasure);
+            end;
+            ItemLedgerEntry.TestField("Lot No.", LotNo[LotIndex]);
+            ItemLedgerEntry.TestField("Remaining Quantity", 0);
+            OriginalItemLedgerEntry.Get(OriginalItemLedgerEntry."Entry No.");
+            OriginalItemLedgerEntry.TestField("Remaining Quantity", 0);
+        end;
     end;
 
     local procedure Initialize()
