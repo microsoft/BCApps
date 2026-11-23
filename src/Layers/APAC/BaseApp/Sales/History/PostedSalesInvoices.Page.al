@@ -16,7 +16,6 @@ using Microsoft.Integration.Dataverse;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 
 /// <summary>

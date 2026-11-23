@@ -8,7 +8,6 @@ using Microsoft.API.Upgrade;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Integration.Graph;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;

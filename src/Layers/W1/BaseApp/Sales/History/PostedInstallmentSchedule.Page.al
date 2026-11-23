@@ -6,7 +6,6 @@ namespace Microsoft.Sales.History;
 
 using System.Environment.Configuration;
 
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Receivables;
 
 page 8842 "Posted Installment Schedule"

@@ -6,7 +6,6 @@ namespace Microsoft.Sales.Document;
 
 using System.Environment.Configuration;
 
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Receivables;
 
 page 8841 "Sales Installment Schedule"
