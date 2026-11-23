@@ -94,7 +94,7 @@ codeunit 148364 EACorpCardSelectionTests
         SourceCard.Get('CORPCARD-0001');
         for ProviderIndex := 1 to 2 do begin
             ConfiguredCard := SourceCard;
-            ConfiguredCard."Card Id" := LibraryUtility.GenerateRandomCode20(ConfiguredCard.FieldNo("Card Id"), Database::"EA Corp Card");
+            ConfiguredCard."Card Id" := LibraryUtility.GenerateRandomCode(ConfiguredCard.FieldNo("Card Id"), Database::"EA Corp Card");
             if ProviderIndex = 1 then
                 ConfiguredCard."Provider Code" := 'CORPCARDCSV'
             else
