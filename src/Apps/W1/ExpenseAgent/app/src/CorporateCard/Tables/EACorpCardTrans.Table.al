@@ -185,6 +185,25 @@ table 7428 "EA Corp Card Trans"
             TableRelation = Expense."No.";
             ToolTip = 'Specifies the unique existing expense used to identify the card when no last-four value was supplied. The match is checked again before linking.';
         }
+        field(28; "Liability Bank Entry No."; Integer)
+        {
+            Caption = 'Liability Bank Entry No.';
+            TableRelation = "Bank Account Ledger Entry"."Entry No.";
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(29; "Liability Transaction No."; Integer)
+        {
+            Caption = 'Liability Transaction No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(30; "Liability Reversal Trans. No."; Integer)
+        {
+            Caption = 'Liability Reversal Transaction No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
     }
 
     keys

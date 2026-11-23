@@ -22,7 +22,7 @@ codeunit 6502 "Late Binding Management"
         TempReservEntryInsert: Record "Reservation Entry" temporary;
         TempReservEntryOrderTrackingSurplus: Record "Reservation Entry" temporary;
         ReservMgt: Codeunit "Reservation Management";
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
 
     local procedure CleanUpVariables()
     begin
@@ -248,7 +248,7 @@ codeunit 6502 "Late Binding Management"
 
     local procedure MakeConnection(var SupplySurplusEntry: Record "Reservation Entry"; var DemandReservEntry: Record "Reservation Entry"; QtyToReshuffle: Decimal) RemainingQty: Decimal
     var
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         if SupplySurplusEntry."Quantity (Base)" = 0 then
@@ -316,8 +316,8 @@ codeunit 6502 "Late Binding Management"
     local procedure WriteToDatabase()
     var
         ReservEntry: Record "Reservation Entry";
-        PrevNegEntryNo: Integer;
-        LastInsertedEntryNo: Integer;
+        PrevNegEntryNo: BigInteger;
+        LastInsertedEntryNo: BigInteger;
     begin
         TempReservEntryDelete.Reset();
         TempReservEntryModify.Reset();
@@ -531,7 +531,7 @@ codeunit 6502 "Late Binding Management"
         until ReservEntry.Next() = 0;
     end;
 
-    procedure NonSpecificReservedQtyExceptForSource(ItemLedgerEntryNo: Integer; TempTrackingSpecification: Record "Tracking Specification" temporary) UnspecificQty: Decimal
+    procedure NonSpecificReservedQtyExceptForSource(ItemLedgerEntryNo: BigInteger; TempTrackingSpecification: Record "Tracking Specification" temporary) UnspecificQty: Decimal
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         ReservEntry: Record "Reservation Entry";
@@ -671,7 +671,7 @@ codeunit 6502 "Late Binding Management"
             until TempReservEntry.Next() = 0;
     end;
 
-    local procedure GetReservEntriesForItemLedgEntry(var TempReservationEntry: Record "Reservation Entry" temporary; ItemLedgEntryNo: Integer)
+    local procedure GetReservEntriesForItemLedgEntry(var TempReservationEntry: Record "Reservation Entry" temporary; ItemLedgEntryNo: BigInteger)
     var
         ReservationEntry: Record "Reservation Entry";
     begin
@@ -689,7 +689,7 @@ codeunit 6502 "Late Binding Management"
             until ReservationEntry.Next() = 0;
     end;
 
-    local procedure DeleteOrderTrackingSurplusEntryForItemLedgEntry(ItemLedgEntryNo: Integer)
+    local procedure DeleteOrderTrackingSurplusEntryForItemLedgEntry(ItemLedgEntryNo: BigInteger)
     begin
         TempReservEntryOrderTrackingSurplus.Reset();
         TempReservEntryOrderTrackingSurplus.SetSourceFilter(DATABASE::"Item Ledger Entry", 0, '', ItemLedgEntryNo, true);

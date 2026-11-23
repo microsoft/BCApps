@@ -195,7 +195,7 @@ codeunit 8415 "IC Gen. Jnl.-Post Batch"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", OnPostGenJournalLineOnBeforeCheckDocumentNo, '', true, false)]
-    local procedure OnPostGenJournalLineOnBeforeCheckDocumentNo(var GenJnlLine: Record "Gen. Journal Line"; GLRegNo: Integer)
+    local procedure OnPostGenJournalLineOnBeforeCheckDocumentNo(var GenJnlLine: Record "Gen. Journal Line"; GLRegNo: BigInteger)
     begin
         if CurrentICPartner <> '' then
             GenJnlLine."IC Partner Code" := CurrentICPartner;

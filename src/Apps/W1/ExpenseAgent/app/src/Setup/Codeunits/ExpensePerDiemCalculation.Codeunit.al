@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Calculates per diem amounts for the days of a trip.
+/// </summary>
 codeunit 6911 "Expense Per Diem Calculation"
 {
     var
@@ -14,7 +17,28 @@ codeunit 6911 "Expense Per Diem Calculation"
         ExpenseAgentSetup := NewExpenseAgentSetup;
     end;
 
+    /// <summary>
+    /// Calculates the per diem amount for a single day of a trip, based on the full per diem calculation method in the setup and the start and end of the trip.
+    /// </summary>
+    /// <param name="CurrentDate">The day to calculate the per diem amount for.</param>
+    /// <param name="BaseRate">The full daily per diem rate.</param>
+    /// <param name="TripStartDateTime">The date and time when the trip starts.</param>
+    /// <param name="TripEndDateTime">The date and time when the trip ends.</param>
+    /// <returns>The per diem amount for the day.</returns>
     procedure CalculatePerDiemForSingleDay(
+        CurrentDate: Date;
+        BaseRate: Decimal;
+        TripStartDateTime: DateTime;
+        TripEndDateTime: DateTime): Decimal
+    var
+        PerDiemAmount: Decimal;
+    begin
+        PerDiemAmount := CalculatePerDiemAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime);
+        OnAfterCalculatePerDiemForSingleDay(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime, ExpenseAgentSetup, PerDiemAmount);
+        exit(PerDiemAmount);
+    end;
+
+    local procedure CalculatePerDiemAmount(
         CurrentDate: Date;
         BaseRate: Decimal;
         TripStartDateTime: DateTime;
@@ -215,5 +239,23 @@ codeunit 6911 "Expense Per Diem Calculation"
     begin
         if Hours <> 0 then
             exit(Hours * 0.01); // 1% tolerance to avoid comparison issues ex- 5.98 Hours with 6 Hours
+    end;
+
+    /// <summary>
+    /// Raised after the per diem amount for a single day of a trip is calculated, before meal reductions are applied.
+    /// </summary>
+    /// <remarks>
+    /// Use this event to apply country-specific or company-specific per diem rules, for example a different partial-day rule. The event is raised for every calculation method, including when the method is None.
+    /// </remarks>
+    /// <param name="CurrentDate">The day that the per diem amount is calculated for.</param>
+    /// <param name="BaseRate">The full daily per diem rate.</param>
+    /// <param name="TripStartDateTime">The date and time when the trip starts.</param>
+    /// <param name="TripEndDateTime">The date and time when the trip ends.</param>
+    /// <param name="ExpenseAgentSetup">The expense management setup that holds the per diem calculation settings.</param>
+    /// <param name="PerDiemAmount">The calculated per diem amount for the day. Change this value to override the amount.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculatePerDiemForSingleDay(CurrentDate: Date; BaseRate: Decimal; TripStartDateTime: DateTime; TripEndDateTime: DateTime; ExpenseAgentSetup: Record "Expense Agent Setup"; var PerDiemAmount: Decimal)
+    begin
     end;
 }

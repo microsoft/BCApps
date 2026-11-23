@@ -115,5 +115,6 @@ permissionsetextension 4027 "D365 TEAM MEMBER - HGP" extends "D365 TEAM MEMBER"
                   tabledata "GP PM00203" = RIMD,
                   tabledata "GP PO Validation Buffer" = RIMD,
                   tabledata "GP GL00103" = RIMD,
-                  tabledata "GP GL00104" = RIMD;
+                  tabledata "GP GL00104" = RIMD,
+                  tabledata "GP Item Transactions Buffer" = RIMD;
 }

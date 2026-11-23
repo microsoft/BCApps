@@ -566,7 +566,7 @@ page 2583 "Dim. Correct Ledger Entries"
     /// Sets the dimension correction entry number for filtering and processing G/L entries.
     /// </summary>
     /// <param name="NewDimensionCorrectionEntryNo">The dimension correction entry number to associate with the ledger entries</param>
-    procedure SetDimensionCorrectionEntryNo(NewDimensionCorrectionEntryNo: Integer)
+    procedure SetDimensionCorrectionEntryNo(NewDimensionCorrectionEntryNo: BigInteger)
     begin
         if NewDimensionCorrectionEntryNo <> DimensionCorrectionEntryNo then begin
             DimensionCorrectionEntryNo := NewDimensionCorrectionEntryNo;
@@ -594,7 +594,7 @@ page 2583 "Dim. Correct Ledger Entries"
 
     var
         DimensionCorrectionMgt: Codeunit "Dimension Correction Mgt";
-        DimensionCorrectionEntryNo: Integer;
+        DimensionCorrectionEntryNo: BigInteger;
         RecordCount: Integer;
         RecordsLoaded: Boolean;
         PreviewDisabled: Boolean;
