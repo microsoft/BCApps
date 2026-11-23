@@ -30,11 +30,11 @@ codeunit 2674 "Alloc. Acc. Handle Doc. Post"
             SalesLine."VAT Prod. Posting Group" := VATProdPostingGroupCode;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnBeforeValidateVATProdPostingGroup', '', false, false)]
-    local procedure PurchaseBeforeValidateVATProdPostingGroup(var IsHandled: Boolean; var PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line")
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterAssignGLAccountValues', '', false, false)]
+    local procedure PurchaseAfterAssignGLAccountValues(var PurchLine: Record "Purchase Line")
     begin
         if VATBusPostingGroupCode <> '' then
-            PurchaseLine."VAT Bus. Posting Group" := VATBusPostingGroupCode;
+            PurchLine."VAT Bus. Posting Group" := VATBusPostingGroupCode;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnValidateVATProdPostingGroupOnAfterTestStatusOpen', '', false, false)]

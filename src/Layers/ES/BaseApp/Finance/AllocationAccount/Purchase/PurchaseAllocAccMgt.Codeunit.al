@@ -270,6 +270,7 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
     /// <summary>
     /// Creates individual purchase lines from allocation account distribution lines based on allocation percentages or amounts.
     /// Processes allocation account configuration and generates corresponding G/L account lines with calculated amounts.
+    /// Allocation-account source lines use the destination G/L accounts' VAT posting groups.
     /// </summary>
     /// <param name="AllocationAccountPurchaseLine">Source purchase line containing allocation account to be distributed</param>
     procedure CreateLinesFromAllocationAccountLine(var AllocationAccountPurchaseLine: Record "Purchase Line")
@@ -371,17 +372,24 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
     local procedure CreatePurchaseLine(var AllocationPurchaseLine: Record "Purchase Line"; var AllocationLine: Record "Allocation Line"; var LastLineNo: Integer; Increment: Integer; var AllocationAccount: Record "Allocation Account"; var DescriptionChanged: Boolean; AllocationSourceLineFilter: Text): Guid
     var
         PurchaseLine: Record "Purchase Line";
+        GLAccount: Record "G/L Account";
         AllocAccHandleDocPost: Codeunit "Alloc. Acc. Handle Doc. Post";
     begin
         AllocAccHandleDocPost.SetPurchaseAllocationSourceLineFilter(AllocationSourceLineFilter);
         PurchaseLine.TransferFields(AllocationPurchaseLine, true);
         PurchaseLine."Line No." := LastLineNo + Increment;
         PurchaseLine."Type" := PurchaseLine."Type"::"G/L Account";
-        if AllocationPurchaseLine."VAT Bus. Posting Group" <> '' then
-            AllocAccHandleDocPost.SetVATBusPostingGroupCode(AllocationPurchaseLine."VAT Bus. Posting Group");
+        if AllocationPurchaseLine.Type = AllocationPurchaseLine.Type::"Allocation Account" then begin
+            GLAccount.Get(AllocationLine."Destination Account Number");
+            AllocAccHandleDocPost.SetVATBusPostingGroupCode(GLAccount."VAT Bus. Posting Group");
+            AllocAccHandleDocPost.SetVATProdPostingGroupCode(GLAccount."VAT Prod. Posting Group");
+        end else begin
+            if AllocationPurchaseLine."VAT Bus. Posting Group" <> '' then
+                AllocAccHandleDocPost.SetVATBusPostingGroupCode(AllocationPurchaseLine."VAT Bus. Posting Group");
 
-        if AllocationPurchaseLine."VAT Prod. Posting Group" <> '' then
-            AllocAccHandleDocPost.SetVATProdPostingGroupCode(AllocationPurchaseLine."VAT Prod. Posting Group");
+            if AllocationPurchaseLine."VAT Prod. Posting Group" <> '' then
+                AllocAccHandleDocPost.SetVATProdPostingGroupCode(AllocationPurchaseLine."VAT Prod. Posting Group");
+        end;
 
         BindSubscription(AllocAccHandleDocPost);
         PurchaseLine.Validate("No.", AllocationLine."Destination Account Number");
