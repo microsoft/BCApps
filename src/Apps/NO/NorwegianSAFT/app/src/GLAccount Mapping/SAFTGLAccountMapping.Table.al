@@ -69,6 +69,14 @@ table 10674 "SAF-T G/L Account Mapping"
             FieldClass = FlowField;
             CalcFormula = lookup("G/L Account".Name where("No." = field("G/L Account No.")));
         }
+        field(51; "Category Extended No."; Text[500])
+        {
+            Caption = 'Category Extended No.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("SAF-T Mapping Category"."Extended No." where("Mapping Type" = field("Mapping Type"),
+                                                                            "No." = field("Category No.")));
+            Editable = false;
+        }
     }
 
     keys

@@ -459,6 +459,83 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Assert.IsTrue(RelatedTablesToAdd.Contains(Database::"MDM Test Table B"), IncorrectTablesListErr);
     end;
 
+    [Test]
+    [HandlerFunctions('SynchronizationEnabledMessageHandler')]
+    procedure SavingEnabledSetupAgainDoesNotAskToResetConfiguration()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        MasterDataMgtSetupTests: Codeunit "Master Data Mgt. Setup Tests";
+        MappingCount: Integer;
+    begin
+        // [FEATURE] [Master Data Management] [Setup]
+        // [SCENARIO] Saving an enabled setup again without changing whether it is enabled, as the setup page does after the
+        //            connection wizard enabled synchronization, does not enable it again and does not ask to reset the
+        //            synchronization tables that enabling just created.
+        Initialize();
+        DeleteSynchJobQueueEntries();
+
+        // [GIVEN] an enabled setup, which created the default synchronization tables
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Company Name" := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(MasterDataManagementSetup."Company Name"));
+        MasterDataManagementSetup.Validate("Is Enabled", true);
+        BindSubscription(MasterDataMgtSetupTests);
+        MasterDataManagementSetup.Insert(true);
+        IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
+        MappingCount := IntegrationTableMapping.Count();
+        Assert.IsTrue(MappingCount > 0, 'Precondition: enabling should create the default synchronization tables');
+
+        // [WHEN] the enabled setup is read again and saved
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Modify(true); // an unhandled confirmation fails the test
+
+        // [THEN] the synchronization tables are kept and the setup stays enabled
+        UnbindSubscription(MasterDataMgtSetupTests);
+        Assert.AreEqual(MappingCount, IntegrationTableMapping.Count(), 'The synchronization tables should be kept');
+        MasterDataManagementSetup.Get();
+        Assert.IsTrue(MasterDataManagementSetup."Is Enabled", 'The setup should stay enabled');
+
+        DeleteSynchJobQueueEntries();
+    end;
+
+    [Test]
+    procedure SavingDisabledSetupDoesNotAskToKeepCouplings()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        MasterDataMgtCoupling: Record "Master Data Mgt. Coupling";
+        MasterDataMgtSetupTests: Codeunit "Master Data Mgt. Setup Tests";
+    begin
+        // [FEATURE] [Master Data Management] [Setup]
+        // [SCENARIO] Saving a disabled setup, as the connection wizard does on Test Connection and Finish, does not disable it
+        //            again and does not ask whether to keep the couplings.
+        Initialize();
+
+        // [GIVEN] a disabled setup with an existing coupling
+        BindSubscription(MasterDataMgtSetupTests);
+        MasterDataManagementSetup.Init();
+        MasterDataManagementSetup."Company Name" := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(MasterDataManagementSetup."Company Name"));
+        MasterDataManagementSetup.Insert(true);
+        MasterDataMgtCoupling."Integration System ID" := CreateGuid();
+        MasterDataMgtCoupling."Local System ID" := CreateGuid();
+        MasterDataMgtCoupling.Insert();
+
+        // [WHEN] the disabled setup is saved
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Modify(true); // an unhandled confirmation fails the test
+        UnbindSubscription(MasterDataMgtSetupTests);
+
+        // [THEN] the coupling is kept
+        Assert.AreEqual(1, MasterDataMgtCoupling.Count(), 'The coupling should be kept');
+    end;
+
+    local procedure DeleteSynchJobQueueEntries()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Integration Synch. Job Runner");
+        JobQueueEntry.DeleteAll();
+    end;
+
     local procedure Initialize()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";

@@ -21,6 +21,7 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
         Dependencies.Add(Enum::"Contoso Demo Data Module"::"Human Resources Module");
         Dependencies.Add(Enum::"Contoso Demo Data Module"::"Job Module");
         Dependencies.Add(Enum::"Contoso Demo Data Module"::Finance);
+        Dependencies.Add(Enum::"Contoso Demo Data Module"::Bank);
     end;
 
     procedure CreateSetupData()
@@ -34,9 +35,11 @@ codeunit 8202 "Expense Agent Contoso Module" implements "Contoso Demo Data Modul
 
     procedure CreateMasterData()
     var
+        CreateCorpCardBankAccount: Codeunit "Create Corp Card Bank Account";
         CreateExpenseCountryData: Codeunit "Create Expense Country Data";
     begin
         CreateExpenseCountryData.CreateMasterData();
+        CreateCorpCardBankAccount.Run();
     end;
 
     procedure CreateTransactionalData()
