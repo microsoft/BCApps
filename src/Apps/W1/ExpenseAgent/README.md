@@ -1,5 +1,30 @@
 # Todo: Missing documentation of the expense agent module.
 
+# Expense Agent consumption reporting
+
+`userConsumptions` exposes `LogAIConsumptionV2`. The request contains a `model`
+object with model usage and a `v1` object with `usage` and `usageType`.
+The action submits both consumption pipelines; the platform selects which one
+records the event.
+
+One environment consumption record identifies the event by source type, source
+system ID, and operation. V1 uses its text consumption key; V2 uses its
+`SystemId`. The record and its trial classification are committed before either
+submission because V2 records consumption in a separate system transaction.
+A failed submission can leave a pending companion record. Repeating the request
+reuses both IDs and the original trial classification.
+
+Trial events are reported to both pipelines without billing. Expense processing
+increments the feature-trial counter once per consumption ID; `PE:` policy
+evaluation operations don't increment it. The legacy action retains its existing
+V1 reporting behavior.
+
+The billing overview reads V2 details from `AI Consumption Log Entry` by
+`SystemId`, or V1 details from `User AI Consumption Data` by the text key.
+It doesn't combine credits from the two ledgers. Copilot Studio feature fields
+are blank for V2 events. The expense user's name must be present to supply the
+V2 consumption principal's display name.
+
 # Expense Agent no-receipt API
 
 The `microsoft/expense/beta` API exposes no-receipt support through the

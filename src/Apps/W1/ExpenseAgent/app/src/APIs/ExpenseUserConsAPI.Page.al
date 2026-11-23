@@ -145,6 +145,7 @@ page 6968 "Expense User Cons. API"
             Error(ExpenseEmployeeCodeErr);
         if ConsumptionSourceOperationName = '' then
             Error(EmptyConsumptionOperationErr);
+        Rec.TestField(Name);
         if not IsNullGuid(Rec."Entra Id") then
             if Rec."Entra Id" <> ExpenseUserEntraId then
                 Session.LogMessage('0000W40', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
@@ -161,8 +162,9 @@ page 6968 "Expense User Cons. API"
         Session.LogMessage('0000W41', LogV2QuotaStartedTelemetryMsg,
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
 
-        exit(ExpenseConsumptionHandler.LogAIConsumption(AiConsumptionRequestJson,
-            ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
+        exit(ExpenseConsumptionHandler.LogAIConsumptionV2(AiConsumptionRequestJson,
+            ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No.",
+            AgentConversationSessionId, AgentTurnInteractionId, ExpenseUserEntraId, Rec.Name));
     end;
 
     [ServiceEnabled]

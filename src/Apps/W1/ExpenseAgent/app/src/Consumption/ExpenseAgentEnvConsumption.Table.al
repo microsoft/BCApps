@@ -55,6 +55,11 @@ table 6969 "Expense Agent Env. Consumption"
             Caption = 'Is Feature Trial';
             DataClassification = SystemMetadata;
         }
+        field(8; "Source Company Name"; Text[30])
+        {
+            Caption = 'Source Company Name';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
         field(101; "Consumption DateTime"; DateTime)
         {
             FieldClass = FlowField;
@@ -145,11 +150,18 @@ table 6969 "Expense Agent Env. Consumption"
 
     procedure GetTaskDisplayName(var TaskShortName: Text[30]; var TaskLongName: Text)
     var
+        TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
+    begin
+        GetBillingDetails(TempUserAIConsumptionData);
+        GetTaskDisplayName(TempUserAIConsumptionData."Company Name", TaskShortName, TaskLongName);
+    end;
+
+    procedure GetTaskDisplayName(SourceCompany: Text[30]; var TaskShortName: Text[30]; var TaskLongName: Text)
+    var
         DestinationCompany: Text[30];
     begin
-        Rec.CalcFields("Company Name");
-        if Rec."Company Name" <> CompanyName() then
-            DestinationCompany := Rec."Company Name";
+        if SourceCompany <> CompanyName() then
+            DestinationCompany := SourceCompany;
         case Rec."Consumption Source Type" of
             Rec."Consumption Source Type"::Expense:
                 TaskLongName := GetTaskDisplayNameForExpense(DestinationCompany, Rec."Consumption Source System ID");
@@ -158,6 +170,41 @@ table 6969 "Expense Agent Env. Consumption"
         end;
 
         TaskShortName := CopyStr(TaskLongName, 1, 30);
+    end;
+
+    procedure GetBillingDetails(var TempUserAIConsumptionData: Record "User AI Consumption Data" temporary): Boolean
+    var
+        UserAIConsumptionData: Record "User AI Consumption Data";
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+        DescriptionInStream: InStream;
+        DescriptionOutStream: OutStream;
+    begin
+        Clear(TempUserAIConsumptionData);
+        TempUserAIConsumptionData."Company Name" := Rec."Source Company Name";
+        if AIConsumptionLogEntry.GetBySystemId(Rec.SystemId) then begin
+            TempUserAIConsumptionData."Consumption DateTime" := AIConsumptionLogEntry."Consumption DateTime";
+            TempUserAIConsumptionData."User Id" := AIConsumptionLogEntry."Executing User Security Id";
+            TempUserAIConsumptionData."App Version" := AIConsumptionLogEntry."App Version";
+            TempUserAIConsumptionData."Feature Name" := AIConsumptionLogEntry."Resource Name";
+            TempUserAIConsumptionData."Copilot Credits" := AIConsumptionLogEntry."AI Credits";
+            TempUserAIConsumptionData."Company Name" := AIConsumptionLogEntry."Company Name";
+            TempUserAIConsumptionData."Processed For Billing" := AIConsumptionLogEntry."Reporting State" = Enum::"AI Consumption Reporting State"::Completed;
+            AIConsumptionLogEntry.CalcFields(Description);
+            AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+            TempUserAIConsumptionData.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
+            CopyStream(DescriptionOutStream, DescriptionInStream);
+            AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+            DescriptionInStream.ReadText(TempUserAIConsumptionData.Actions, MaxStrLen(TempUserAIConsumptionData.Actions));
+            exit(true);
+        end;
+
+        UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
+        if not UserAIConsumptionData.FindFirst() then
+            exit(false);
+
+        UserAIConsumptionData.CalcFields(Description);
+        TempUserAIConsumptionData := UserAIConsumptionData;
+        exit(true);
     end;
 
     local procedure GetTaskDisplayNameForExpense(DestinationCompany: Text[30]; SourceSystemId: Guid): Text

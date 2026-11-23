@@ -48,6 +48,11 @@ codeunit 6913 "Expense Agent Quota Impl." implements "Expense Agent Quota"
 
     procedure LogPaidConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024])
     begin
+        LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, UniqueId, false);
+    end;
+
+    procedure LogConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024]; ExcludeFromBilling: Boolean)
+    begin
         CopilotQuota.LogAgentUserAIConsumption(
             Enum::"Copilot Capability"::"Expense Agent",
             Usage,
@@ -55,6 +60,24 @@ codeunit 6913 "Expense Agent Quota Impl." implements "Expense Agent Quota"
             0, // We have no Agent Task ID
             ActionsSummary,
             ActionsDescription,
-            UniqueId);
+            UniqueId,
+            ExcludeFromBilling);
+    end;
+
+    procedure RecordConsumption(ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; Description: Text; IsFeatureTrial: Boolean)
+    begin
+        CopilotQuota.RecordAIConsumption(
+            Enum::"Copilot Capability"::"Expense Agent",
+            ConsumptionId,
+            ConsumptionSessionId,
+            InteractionId,
+            ConsumptionId,
+            ConsumptionUsagePayload,
+            ConsumptionEntraPrincipalId,
+            ConsumptionEntraPrincipalDisplayName,
+            0,
+            '',
+            Description,
+            IsFeatureTrial);
     end;
 }

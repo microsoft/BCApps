@@ -21,6 +21,24 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         PaidReportCount: Integer;
         LastTrialConsumptionId: Guid;
         LastTrialQuota: Integer;
+        V1ReportCount: Integer;
+        V2ReportCount: Integer;
+        LastV1UniqueId: Text[1024];
+        LastV1Usage: Integer;
+        LastV1UsageType: Enum "Copilot Quota Usage Type";
+        LastV1ActionsSummary: Text[1024];
+        LastV1ActionsDescription: Text;
+        LastV1ExcludedFromBilling: Boolean;
+        LastV2ConsumptionId: Guid;
+        LastV2SessionId: Guid;
+        LastV2InteractionId: Guid;
+        LastV2Payload: Text;
+        LastV2PrincipalId: Guid;
+        LastV2PrincipalDisplayName: Text;
+        LastV2Description: Text;
+        LastV2IsFeatureTrial: Boolean;
+        FailV2Reporting: Boolean;
+        V2ReportingFailedErr: Label 'V2 consumption reporting failed.', Locked = true;
 
     procedure IsTrialStarted(): Boolean
     begin
@@ -61,9 +79,88 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
 
     procedure LogPaidConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024])
     begin
+        LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, UniqueId, false);
+    end;
+
+    procedure LogConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024]; ExcludeFromBilling: Boolean)
+    begin
+        V1ReportCount += 1;
+        LastV1UniqueId := UniqueId;
+        LastV1Usage := Usage;
+        LastV1UsageType := CopilotQuotaUsageType;
+        LastV1ActionsSummary := ActionsSummary;
+        LastV1ActionsDescription := ActionsDescription;
+        LastV1ExcludedFromBilling := ExcludeFromBilling;
+        if ExcludeFromBilling then
+            exit;
+
         PaidReportCount += 1;
         if not PaidConsumptionIds.Contains(UniqueId) then
             PaidConsumptionIds.Add(UniqueId);
+    end;
+
+    procedure RecordConsumption(ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; Description: Text; IsFeatureTrial: Boolean)
+    begin
+        V2ReportCount += 1;
+        LastV2ConsumptionId := ConsumptionId;
+        LastV2SessionId := ConsumptionSessionId;
+        LastV2InteractionId := InteractionId;
+        LastV2Payload := ConsumptionUsagePayload;
+        LastV2PrincipalId := ConsumptionEntraPrincipalId;
+        LastV2PrincipalDisplayName := ConsumptionEntraPrincipalDisplayName;
+        LastV2Description := Description;
+        LastV2IsFeatureTrial := IsFeatureTrial;
+        if FailV2Reporting then
+            Error(V2ReportingFailedErr);
+    end;
+
+    internal procedure SetFailV2Reporting(ShouldFail: Boolean)
+    begin
+        FailV2Reporting := ShouldFail;
+    end;
+
+    internal procedure GetV1ReportCount(): Integer
+    begin
+        exit(V1ReportCount);
+    end;
+
+    internal procedure GetV2ReportCount(): Integer
+    begin
+        exit(V2ReportCount);
+    end;
+
+    internal procedure GetLastV1UniqueId(): Text[1024]
+    begin
+        exit(LastV1UniqueId);
+    end;
+
+    internal procedure GetLastV1Usage(var Usage: Integer; var CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; var ActionsSummary: Text[1024]; var ActionsDescription: Text)
+    begin
+        Usage := LastV1Usage;
+        CopilotQuotaUsageType := LastV1UsageType;
+        ActionsSummary := LastV1ActionsSummary;
+        ActionsDescription := LastV1ActionsDescription;
+    end;
+
+    internal procedure GetLastV1ExcludedFromBilling(): Boolean
+    begin
+        exit(LastV1ExcludedFromBilling);
+    end;
+
+    internal procedure GetLastV2ConsumptionId(): Guid
+    begin
+        exit(LastV2ConsumptionId);
+    end;
+
+    internal procedure GetLastV2Context(var ConsumptionSessionId: Guid; var InteractionId: Guid; var ConsumptionUsagePayload: Text; var ConsumptionEntraPrincipalId: Guid; var ConsumptionEntraPrincipalDisplayName: Text; var Description: Text; var IsFeatureTrial: Boolean)
+    begin
+        ConsumptionSessionId := LastV2SessionId;
+        InteractionId := LastV2InteractionId;
+        ConsumptionUsagePayload := LastV2Payload;
+        ConsumptionEntraPrincipalId := LastV2PrincipalId;
+        ConsumptionEntraPrincipalDisplayName := LastV2PrincipalDisplayName;
+        Description := LastV2Description;
+        IsFeatureTrial := LastV2IsFeatureTrial;
     end;
 
     internal procedure SetTrialQuota(Quota: Integer)
