@@ -285,8 +285,31 @@ codeunit 4614 "SMTP Message Impl"
 
         WriteOptions.PreserveWhitespace(true);
         Document.WriteTo(WriteOptions, DocumentSource);
+        RemoveXmlDeclaration(DocumentSource);
         MimeBodyBuilder.HtmlBody := DocumentSource;
         exit(true);
+    end;
+
+    /// <summary>
+    /// Removes a leading XML declaration (e.g. &lt;?xml version="1.0" encoding="utf-16"?&gt;) from the serialized document.
+    /// XmlDocument.WriteTo always emits such a declaration, but the result is used as an HTML MIME part whose charset is
+    /// decided by MimeKit. A declaration in the body would contradict the MIME charset and lets clients like Outlook decode the body incorrectly.
+    /// </summary>
+    /// <param name="DocumentSource">The serialized document from which the XML declaration is removed.</param>
+    local procedure RemoveXmlDeclaration(var DocumentSource: Text)
+    var
+        XmlDeclarationStartTok: Label '<?xml ', Locked = true;
+        XmlDeclarationEndTok: Label '?>', Locked = true;
+        DeclarationEndPos: Integer;
+    begin
+        if not DocumentSource.StartsWith(XmlDeclarationStartTok) then
+            exit;
+
+        DeclarationEndPos := DocumentSource.IndexOf(XmlDeclarationEndTok);
+        if DeclarationEndPos = 0 then
+            exit;
+
+        DocumentSource := DocumentSource.Substring(DeclarationEndPos + StrLen(XmlDeclarationEndTok)).TrimStart();
     end;
 
     /// <summary>
