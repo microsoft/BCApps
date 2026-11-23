@@ -21,7 +21,6 @@ using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Comment;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Archive;

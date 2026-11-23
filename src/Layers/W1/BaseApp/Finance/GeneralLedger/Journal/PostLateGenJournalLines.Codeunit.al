@@ -7,7 +7,6 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Receivables;
 
 /// <summary>
 /// Processes and posts general journal lines for late payment scenarios and document application corrections.

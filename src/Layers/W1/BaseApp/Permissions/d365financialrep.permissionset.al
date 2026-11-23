@@ -24,7 +24,6 @@ using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Integration.Entity;

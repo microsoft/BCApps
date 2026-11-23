@@ -5,7 +5,6 @@
 namespace Microsoft.Sales.History;
 
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Receivables;

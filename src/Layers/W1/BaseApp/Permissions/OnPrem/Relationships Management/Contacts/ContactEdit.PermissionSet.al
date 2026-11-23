@@ -14,7 +14,6 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;

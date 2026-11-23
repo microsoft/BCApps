@@ -10,7 +10,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Analysis;

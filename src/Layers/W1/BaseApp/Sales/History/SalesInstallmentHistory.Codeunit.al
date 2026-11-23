@@ -8,7 +8,6 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Receivables;
 
 codeunit 8843 "Sales Installment History"

@@ -1,6 +1,5 @@
 namespace System.Security.AccessControl;
 
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
