@@ -8,6 +8,13 @@ The action submits both consumption pipelines; the platform selects which one
 records the event. The V2 platform payload retains the top-level `model` object
 and excludes the `v1` object.
 
+The bound `userConsumptions({id})/Microsoft.NAV.canConsume` action keeps its
+empty request body. It evaluates V2 quota for the bound expense user's stored
+`Entra Id`, not the integration session's principal. A missing stored Entra ID
+returns an error. Recording callers must supply that same Entra ID.
+The System Application `Copilot Quota.CanConsume(Guid)` overload is scoped to
+OnPrem; the parameterless overload still resolves the principal from the session.
+
 One environment consumption record identifies the event by source type, source
 system ID, and operation. V1 uses its text consumption key; V2 uses its
 `SystemId`. The record and its trial classification are committed before either

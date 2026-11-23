@@ -17,6 +17,7 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         RemainingTrialQuota: Integer;
         PaidQuotaAvailable: Boolean;
         PaidQuotaCheckCount: Integer;
+        LastPaidQuotaPrincipalId: Guid;
         TrialReportCount: Integer;
         PaidReportCount: Integer;
         LastTrialConsumptionId: Guid;
@@ -59,6 +60,12 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
     begin
         PaidQuotaCheckCount += 1;
         exit(PaidQuotaAvailable);
+    end;
+
+    procedure CanConsumePaidQuota(ConsumptionEntraPrincipalId: Guid): Boolean
+    begin
+        LastPaidQuotaPrincipalId := ConsumptionEntraPrincipalId;
+        exit(CanConsumePaidQuota());
     end;
 
     procedure IsConsumptionLogged(UniqueId: Text[1024]): Boolean
@@ -171,6 +178,11 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
     internal procedure GetPaidQuotaCheckCount(): Integer
     begin
         exit(PaidQuotaCheckCount);
+    end;
+
+    internal procedure GetLastPaidQuotaPrincipalId(): Guid
+    begin
+        exit(LastPaidQuotaPrincipalId);
     end;
 
     internal procedure GetTrialReportCount(): Integer

@@ -250,6 +250,24 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
+    procedure CanConsumeWithoutStoredExpenseUserEntraIdIsRejected()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseUserConsAPI: Page "Expense User Cons. API";
+    begin
+        // [SCENARIO] Quota evaluation never falls back to the integration session when the expense user's Entra ID is missing
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        Clear(ExpenseUser."Entra Id");
+        ExpenseUserConsAPI.SetRecord(ExpenseUser);
+
+        asserterror ExpenseUserConsAPI.CanConsume();
+
+        Assert.ExpectedTestFieldError(ExpenseUser.FieldCaption("Entra Id"), '');
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
     procedure LoggingConsumptionCreatesEnvironmentConsumption()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";

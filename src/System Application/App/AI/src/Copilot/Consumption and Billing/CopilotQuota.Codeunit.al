@@ -151,6 +151,18 @@ codeunit 7785 "Copilot Quota"
         exit(CopilotQuotaImpl.CanConsume());
     end;
 
+    /// <summary>
+    /// Checks if the tenant is allowed to consume Copilot quota for the specified Entra principal.
+    /// </summary>
+    /// <param name="ConsumptionEntraPrincipalId">The Entra principal whose quota is evaluated for V2 consumption.</param>
+    /// <returns>True if allowed, false otherwise.</returns>
+    /// <remarks>Checks both V1 and V2 consumption quota and returns true if either pipeline allows consumption.</remarks>
+    [Scope('OnPrem')]
+    procedure CanConsume(ConsumptionEntraPrincipalId: Guid): Boolean
+    begin
+        exit(CopilotQuotaImpl.CanConsume(ConsumptionEntraPrincipalId));
+    end;
+
     local procedure LogV1ConsumptionReportingWarning(CopilotCapability: Enum "Copilot Capability")
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";

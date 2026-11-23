@@ -40,6 +40,18 @@ codeunit 7786 "Copilot Quota Impl."
 
     procedure CanConsume(): Boolean
     var
+        ConsumptionEntraPrincipalId: Guid;
+    begin
+        exit(CanConsume(ConsumptionEntraPrincipalId, true));
+    end;
+
+    procedure CanConsume(ConsumptionEntraPrincipalId: Guid): Boolean
+    begin
+        exit(CanConsume(ConsumptionEntraPrincipalId, false));
+    end;
+
+    local procedure CanConsume(ConsumptionEntraPrincipalId: Guid; UseSessionPrincipal: Boolean): Boolean
+    var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         AIConsumptionQuotaResult: DotNet ALAIConsumptionQuotaResult;
 #if not CLEAN30
@@ -58,7 +70,10 @@ codeunit 7786 "Copilot Quota Impl."
             CanConsumeQuota := ALCopilotQuotaDetails.CanConsume();
 #endif
 
-        AIConsumptionQuotaResult := ALCopilotFunctions.GetAIConsumptionQuota();
+        if UseSessionPrincipal then
+            AIConsumptionQuotaResult := ALCopilotFunctions.GetAIConsumptionQuota()
+        else
+            AIConsumptionQuotaResult := ALCopilotFunctions.GetAIConsumptionQuota(ConsumptionEntraPrincipalId);
         if IsNull(AIConsumptionQuotaResult) then
             Session.LogMessage('0000P7N', UnableToRetrieveQuotaDetailsLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', CopilotCapabilityImpl.GetCopilotCategory())
         else

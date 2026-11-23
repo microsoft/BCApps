@@ -35,6 +35,11 @@ codeunit 6913 "Expense Agent Quota Impl." implements "Expense Agent Quota"
         exit(CopilotQuota.CanConsume());
     end;
 
+    procedure CanConsumePaidQuota(ConsumptionEntraPrincipalId: Guid): Boolean
+    begin
+        exit(CopilotQuota.CanConsume(ConsumptionEntraPrincipalId));
+    end;
+
     procedure IsConsumptionLogged(UniqueId: Text[1024]): Boolean
     begin
         exit(CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId));

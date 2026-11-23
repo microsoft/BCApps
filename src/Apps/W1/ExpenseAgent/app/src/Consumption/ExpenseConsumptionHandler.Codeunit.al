@@ -216,6 +216,14 @@ codeunit 6969 "Expense Consumption Handler"
         exit(QuotaProvider.CanConsumePaidQuota());
     end;
 
+    internal procedure CanConsume(ConsumptionEntraPrincipalId: Guid): Boolean
+    begin
+        if TrialQuotaAvailable() then
+            exit(true);
+
+        exit(QuotaProvider.CanConsumePaidQuota(ConsumptionEntraPrincipalId));
+    end;
+
     internal procedure SetQuotaProvider(NewQuotaProvider: Interface "Expense Agent Quota")
     begin
         QuotaProvider := NewQuotaProvider;
