@@ -224,7 +224,6 @@ report 18049 "GSTR-1 File Format"
         EndDate: Date;
         Counter: Integer;
         Progress: Dialog;
-        GSTR1AllFormatsTxt: Label 'GSTR-1';
         ProgressMsg: Label 'Processing......#1######################\', Comment = '%1 = progress counter';
         B2BTxt: Label 'b2b';
         B2CTxt: Label 'b2c';
@@ -300,6 +299,7 @@ report 18049 "GSTR-1 File Format"
         InvoiceTypeTxt: Label 'Invoice Type';
         ReceiverTxt: Label 'Receiver Name';
         TaxTxt: Label 'Applicable % of Tax Rate';
+        GSTR1AllFormatsTxt: Label 'GSTR-1';
         ExempIntraRegAmount: Decimal;
         ExempInterRegAmount: Decimal;
         ExpExempInterRegAmt: Decimal;
@@ -312,9 +312,7 @@ report 18049 "GSTR-1 File Format"
         EXempNonGSTIntraRegAmt: Decimal;
         ExempNonGSTInterUnRegAmt: Decimal;
         ExempNonGSTIntraUnRegAmt: Decimal;
-
         ExportAllFormats: Boolean;
-
         HSNNatureOfSupplyFilter: Enum "GST Nature of Supply";
         HSNNatureOfSupplyOption: Option " ",B2B,B2C;
         NatureofSupply: Enum "Nature of Supply";
