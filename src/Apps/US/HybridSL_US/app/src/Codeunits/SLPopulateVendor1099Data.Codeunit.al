@@ -378,6 +378,23 @@ codeunit 47201 "SL Populate Vendor 1099 Data"
         if not SLAPBalances.Get(VendorNo, CompanyName) then
             exit;
 
+        if TaxYear = SLNext1099Yr then begin
+            ProcessBoxAmount(SLAPBalances.NYBox00, '1', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox01, '2', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox02, '3', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox03, '4', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox04, '5', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox05, '6', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox06, '7', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox07, '8', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox09, '10', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox14, '14', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox11, '15', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox13, '13', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox12, '25', TaxYear, VendorYear1099AmountDictionary);
+            exit;
+        end;
+
         ProcessBoxAmount(SLAPBalances.CYBox00, '1', TaxYear, VendorYear1099AmountDictionary);
         ProcessBoxAmount(SLAPBalances.CYBox01, '2', TaxYear, VendorYear1099AmountDictionary);
         ProcessBoxAmount(SLAPBalances.CYBox02, '3', TaxYear, VendorYear1099AmountDictionary);
