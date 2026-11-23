@@ -7,7 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching] [API]
-codeunit 148369 "EA Receipt Match API Tests"
+codeunit 148371 "EA Receipt Match API Tests"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
