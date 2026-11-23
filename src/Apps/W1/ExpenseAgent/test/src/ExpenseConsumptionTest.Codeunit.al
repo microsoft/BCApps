@@ -437,8 +437,8 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseAgentQuotaMock.SetTrialQuota(1);
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
         SourceId := CreateGuid();
-        FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS EXPENSE');
-        SecondId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS EXPENSE');
+        FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+        SecondId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
 
         Assert.AreEqual(FirstId, SecondId, 'Repeated requests must reuse the companion ID.');
         ExpenseAgentEnvConsumption.GetBySystemId(FirstId);
@@ -470,6 +470,29 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Policy evaluations must not increment the trial counter.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Policy evaluations must preserve trial quota.');
         Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Trial policy evaluations must not be billed.');
+        VerifyLastV2Trial(ExpenseAgentQuotaMock);
+    end;
+
+    [Test]
+    procedure V2NonProcessingOperationsDoNotIncrementTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+    begin
+        // [SCENARIO] Only the exact PROCESS operation consumes an expense trial
+        Initialize();
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+
+        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'MATCH');
+        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PROCESS EXPENSE');
+        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), '');
+
+        Assert.AreEqual(3, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive all non-processing operations.');
+        Assert.AreEqual(3, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive all non-processing operations.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Non-processing operations must not increment the trial counter.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Non-processing operations must preserve trial quota.');
+        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Trial non-processing operations must not be billed.');
         VerifyLastV2Trial(ExpenseAgentQuotaMock);
     end;
 

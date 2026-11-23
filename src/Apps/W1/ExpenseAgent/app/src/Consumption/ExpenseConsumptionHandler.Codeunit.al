@@ -15,7 +15,7 @@ codeunit 6969 "Expense Consumption Handler"
         QuotaProvider: Interface "Expense Agent Quota";
         IsQuotaProviderSet: Boolean;
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4. Trial available: %5.', Locked = true;
-        PolicyEvaluationTrialSkippedTelemetryMsg: Label 'Skipped incrementing the Expense Agent feature trial for a policy evaluation operation.', Locked = true;
+        NonProcessingTrialSkippedTelemetryMsg: Label 'Skipped incrementing the Expense Agent feature trial for an operation other than PROCESS.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
 
     internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
@@ -191,14 +191,9 @@ codeunit 6969 "Expense Consumption Handler"
     end;
 
     local procedure IncrementTrial(ConsumptionId: Guid; Operation: Code[50])
-    var
-        OperationText: Text;
     begin
-        // We only count expense processing. If the trial is still active, policy evals are for free.
-
-        OperationText := Operation; // Code types do not support startswith
-        if OperationText.StartsWith('PE:') then begin
-            Session.LogMessage('0000W43', PolicyEvaluationTrialSkippedTelemetryMsg,
+        if Operation <> 'PROCESS' then begin
+            Session.LogMessage('0000W43', NonProcessingTrialSkippedTelemetryMsg,
                 Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
             exit;
         end;

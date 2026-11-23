@@ -14,10 +14,10 @@ submission because V2 records consumption in a separate system transaction.
 A failed submission can leave a pending companion record. Repeating the request
 reuses both IDs and the original trial classification.
 
-Trial events are reported to both pipelines without billing. Expense processing
-increments the feature-trial counter once per consumption ID; `PE:` policy
-evaluation operations don't increment it. The legacy action retains its existing
-V1 reporting behavior.
+Trial events are reported to both pipelines without billing. Only the `PROCESS`
+operation increments the feature-trial counter, once per consumption ID.
+All other operations, including report matching and policy evaluation, don't
+increment it. This trial-counting rule applies to both the legacy and V2 actions.
 
 The billing overview reads V2 details from `AI Consumption Log Entry` by
 `SystemId`, or V1 details from `User AI Consumption Data` by the text key.
