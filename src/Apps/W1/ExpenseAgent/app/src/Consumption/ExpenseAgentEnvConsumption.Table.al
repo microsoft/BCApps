@@ -180,6 +180,9 @@ table 6969 "Expense Agent Env. Consumption"
         DescriptionOutStream: OutStream;
     begin
         Clear(TempUserAIConsumptionData);
+        if not AIConsumptionLogEntry.ReadPermission() then
+            exit(false);
+
         TempUserAIConsumptionData."Company Name" := Rec."Source Company Name";
         if AIConsumptionLogEntry.GetBySystemId(Rec.SystemId) then begin
             TempUserAIConsumptionData."Consumption DateTime" := AIConsumptionLogEntry."Consumption DateTime";

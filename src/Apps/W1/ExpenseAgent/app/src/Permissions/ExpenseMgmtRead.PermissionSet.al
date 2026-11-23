@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using System.Environment.Consumption;
-
 permissionset 6907 "Expense Mgmt. Read"
 {
     Caption = 'Expense Management - Read';
@@ -35,7 +33,6 @@ permissionset 6907 "Expense Mgmt. Read"
 #pragma warning restore AL0432
 #endif
         tabledata "Expense Agent Env. Consumption" = R,
-        tabledata "AI Consumption Log Entry" = r,
         tabledata "Expense Participant" = R,
         tabledata "Expense Rule Condition" = R,
         tabledata "Expense Rule Header" = R,

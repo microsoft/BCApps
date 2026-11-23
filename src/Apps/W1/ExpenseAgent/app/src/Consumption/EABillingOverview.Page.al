@@ -114,6 +114,14 @@ page 7079 "EA Billing Overview"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+    begin
+        if not AIConsumptionLogEntry.ReadPermission() then
+            Message(BillingDetailsUnavailableLbl);
+    end;
+
     trigger OnAfterGetRecord()
     var
         TaskShortName: Text[30];
@@ -132,6 +140,7 @@ page 7079 "EA Billing Overview"
         TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
         ViewDescriptionLbl: Label 'View full description';
         NoDescriptionAvailableLbl: Label 'No description available.';
+        BillingDetailsUnavailableLbl: Label 'Billing details are unavailable because you do not have permission to read AI consumption log entries.';
         SourceDisplayTxt: Text;
         CSFeatureQuantityTxt: Text;
 }

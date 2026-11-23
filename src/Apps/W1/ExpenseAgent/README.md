@@ -25,6 +25,10 @@ It doesn't combine credits from the two ledgers. Copilot Studio feature fields
 are blank for V2 events. The expense user's name must be present to supply the
 V2 consumption principal's display name.
 
+If the user can't read `AI Consumption Log Entry`, the billing overview shows
+a message when opened and leaves billing details empty. It doesn't fall back
+to V1 when V2 read permission is missing.
+
 # Expense Agent no-receipt API
 
 The `microsoft/expense/beta` API exposes no-receipt support through the
