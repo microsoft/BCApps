@@ -732,7 +732,7 @@ codeunit 1004 "Job Transfer Line"
 
         if (JobJnlLine."Currency Code" = '') and (PurchLine."Currency Code" <> '') then begin
             // Validating "Unit Cost (LCY)" above calculated "Total Cost" from the rounded unit cost, so recalculate it from the unrounded one.
-            if UsePreciseUnitCostForTotals(PurchLine) then
+            if UsePreciseUnitCostForTotals(PurchHeader, PurchLine) then
                 JobJnlLine."Total Cost" :=
                     Round((PurchLine."Unit Cost (LCY)" + NondeductibleVATAmtPrUnitLCY) * JobJnlLine.Quantity, Currency."Amount Rounding Precision");
             JobJnlLine."Total Cost" += Round(
@@ -755,7 +755,7 @@ codeunit 1004 "Job Transfer Line"
 
         // For a project in LCY with a purchase in foreign currency, the totals are already calculated above from the precise "Unit Cost (LCY)"
         // together with the invoiced non-deductible VAT.
-        if UsePreciseUnitCostForTotals(PurchLine) and not ((JobJnlLine."Currency Code" = '') and (PurchLine."Currency Code" <> '')) then begin
+        if UsePreciseUnitCostForTotals(PurchHeader, PurchLine) and not ((JobJnlLine."Currency Code" = '') and (PurchLine."Currency Code" <> '')) then begin
             JobJnlLine."Total Cost (LCY)" := Round(PreciseUnitCostLCY * JobJnlLine.Quantity, LCYCurrency."Amount Rounding Precision");
             // When the project currency is the purchase currency, "Total Cost" is already calculated from the unrounded "Unit Cost".
             if JobJnlLine."Currency Code" = '' then
@@ -890,13 +890,22 @@ codeunit 1004 "Job Transfer Line"
         LCYCurrency.InitRoundingPrecision();
     end;
 
-    local procedure UsePreciseUnitCostForTotals(PurchLine: Record "Purchase Line"): Boolean
+    local procedure UsePreciseUnitCostForTotals(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"): Boolean
     begin
-        // Purchase posting keeps the unit cost of a G/L account line unrounded when the invoiced invoice discount differs
+        // Purchase posting calculates the unit cost of a G/L account line from the invoiced amount when the invoiced invoice discount differs
         // from its proportional share, so the totals must be calculated from it to match the invoiced amount.
         if PurchLine.Type <> PurchLine.Type::"G/L Account" then
             exit(false);
-        exit(PurchLine."Unit Cost (LCY)" <> Round(PurchLine."Unit Cost (LCY)", LCYCurrency."Unit-Amount Rounding Precision"));
+        if PurchLine."Unit Cost (LCY)" <> Round(PurchLine."Unit Cost (LCY)", LCYCurrency."Unit-Amount Rounding Precision") then
+            exit(true);
+        if PurchLine."Currency Code" = '' then
+            exit(false);
+        // A rounded unit cost in LCY that is not converted from the unit cost in the purchase currency is calculated from the LCY amount
+        // balanced against the document total, which converting the amount in the purchase currency again would not preserve.
+        exit(
+            PurchLine."Unit Cost (LCY)" <>
+            CurrencyExchRate.ExchangeAmtFCYToLCY(
+                PurchHeader."Posting Date", PurchLine."Currency Code", PurchLine."Unit Cost", PurchHeader."Currency Factor"));
     end;
 
     local procedure DoUpdateUnitCost(SalesLine: Record "Sales Line"): Boolean
