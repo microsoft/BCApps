@@ -527,10 +527,15 @@ Corporate-card events use `Feature Telemetry` under the existing Expense Agent f
 
 ### Agent API Card Selection
 
-The read-only `corporateCards` entity set is published by `microsoft/expense/beta`. It requires agent access and exactly one nonblank expense user, either from the `expenseUsers({id})/corporateCards` navigation or from an equality filter on `expenseUserNumber`, for example:
+The read-only `corporateCards` entity set is published by `microsoft/expense/beta`. It requires agent access and exactly one nonblank expense user. Read it through the expense user:
 
 ```http
 GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/corporateCards
+```
+
+The top-level route with an equality filter on `expenseUserNumber` is **deprecated** and will be removed in a future release. It still works for existing clients; new clients should use the route above. Both routes reject requests that do not resolve to a single expense user.
+
+```http
 GET .../api/microsoft/expense/beta/companies({companyId})/corporateCards?$filter=expenseUserNumber eq 'EU0001'
 ```
 

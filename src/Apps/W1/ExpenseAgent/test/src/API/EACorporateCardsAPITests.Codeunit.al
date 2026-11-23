@@ -25,7 +25,7 @@ codeunit 148372 "EA Corporate Cards API Tests"
         SecondCardIdTok: Label 'CORPCARD-0002', Locked = true;
 
     [Test]
-    procedure ExpenseUsersAPIReturnsOnlyCorporateCardsOfThatExpenseUser()
+    procedure ExpenseUsersAPIReturnsOnlyUnblockedCardsOfFirstExpenseUser()
     var
         FirstCard: Record "EA Corp Card";
         FirstUserBlockedCard: Record "EA Corp Card";
@@ -50,6 +50,24 @@ codeunit 148372 "EA Corporate Cards API Tests"
         // [THEN] Only the unblocked card of the first expense user is returned.
         Assert.AreEqual(1, CardIds.Count(), 'Only the unblocked card of the first expense user must be returned.');
         Assert.IsTrue(CardIds.Contains(FirstCard.SystemId), 'The card of the first expense user must be returned.');
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure ExpenseUsersAPIReturnsOnlyCardsOfSecondExpenseUser()
+    var
+        FirstCard: Record "EA Corp Card";
+        SecondCard: Record "EA Corp Card";
+        CardIds: List of [Guid];
+    begin
+        // [SCENARIO] expenseUsers({id})/corporateCards does not return the cards of another expense user.
+        Initialize();
+
+        // [GIVEN] Two expense users with a card each.
+        FirstCard.Get(FirstCardIdTok);
+        SecondCard.Get(SecondCardIdTok);
+        Assert.AreNotEqual(FirstCard."Expense User No.", SecondCard."Expense User No.", 'The cards must belong to different expense users.');
+        Commit();
 
         // [WHEN] The corporate cards of the second expense user are read through the expense user.
         GetCardIds(GetUserScopedURL(SecondCard."Expense User No."), CardIds);
@@ -66,7 +84,7 @@ codeunit 148372 "EA Corporate Cards API Tests"
         FirstCard: Record "EA Corp Card";
         CardIds: List of [Guid];
     begin
-        // [SCENARIO] corporateCards filtered on expenseUserNumber still returns the cards of that expense user.
+        // [SCENARIO] The deprecated corporateCards route filtered on expenseUserNumber still returns the cards of that expense user.
         Initialize();
 
         // [GIVEN] An expense user with a card.
@@ -101,7 +119,7 @@ codeunit 148372 "EA Corporate Cards API Tests"
 
         // [THEN] The request fails because the expense user filter is required.
         Assert.ExpectedError('Response code is 400 (BadRequest)');
-        Assert.ExpectedError('Filter corporate cards by a single expenseUserNumber.');
+        Assert.ExpectedError('Read corporate cards through a single expense user.');
     end;
 
     local procedure Initialize()
