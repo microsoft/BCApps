@@ -287,6 +287,14 @@ page 6928 "Expense Reports API"
                     SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
                                   "Source Record System ID" = field(SystemId);
                 }
+                part(changeLogEntries; "Exp. Report Change Log API")
+                {
+                    Caption = 'Change Log Entries';
+                    EntityName = 'expenseReportChangeLogEntry';
+                    EntitySetName = 'expenseReportChangeLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                                  "Source Record System ID" = field(SystemId);
+                }
             }
         }
     }
