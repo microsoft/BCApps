@@ -37,6 +37,7 @@ codeunit 148330 "Expense Posting VAT Test"
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
         ModifyOrDeleteAgentVATSpecErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
         RoundingDifferenceTooLargeErr: Label 'exceeds the currency rounding precision';
+        FinancialItemizationTotalMismatchErr: Label 'The financial itemization total %2 for expense report line %1 must match the expense amount %3 within the currency rounding precision.', Comment = '%1 = Expense report line number, %2 = Financial itemization total in expense currency, %3 = Expense amount in expense currency';
 
     [Test]
     procedure ExpenseCategoryCardCanEditVATDefaultsWhenReclaimEnabled()
@@ -212,6 +213,22 @@ codeunit 148330 "Expense Posting VAT Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UnderallocatedFinancialItemizationsBlockPostingWithoutRules()
+    begin
+        // [SCENARIO] With rules disabled, a 150 LCY expense cannot post only 100 LCY of financial itemizations.
+        VerifyFinancialItemizationDifferenceBlocksPosting(100);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure OverallocatedFinancialItemizationsBlockPostingWithoutRules()
+    begin
+        // [SCENARIO] With rules disabled, a 150 LCY expense cannot post 200 LCY of financial itemizations.
+        VerifyFinancialItemizationDifferenceBlocksPosting(200);
+    end;
+
+    [Test]
     procedure AgentVATReceiptSubmitsWithoutDefaultVATSetup()
     var
         Expense: Record Expense;
@@ -317,7 +334,7 @@ codeunit 148330 "Expense Posting VAT Test"
         // [SCENARIO] Policy-only itemizations do not replace the parent report line's financial allocation.
         Initialize();
 
-        // [GIVEN] A report line of 150 includes 30 non-refundable, a subcategory account override, and a policy-only itemization of 150.
+        // [GIVEN] A report line of 150 includes 30 non-refundable, a subcategory account override, and a policy-only itemization of 100.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
         LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
@@ -335,7 +352,7 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseReportLine.Validate("Non-Refundable Amount", 30);
         ExpenseReportLine.Modify(true);
         LibraryExpense.CreateExpenseReportLineItemization(
-            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, '', WorkDate(), 150, 1);
+            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, '', WorkDate(), 100, 1);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         LibraryExpense.CreateExpensePolicyEvaluation(
             ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'The expense is itemized as required.', true);
@@ -1882,6 +1899,56 @@ codeunit 148330 "Expense Posting VAT Test"
         LibraryExpense.CreateExpensePostingGroup(ExpensePostingGroup);
         ExpenseSubcategory.Validate("Posting Group", ExpensePostingGroup.Code);
         ExpenseSubcategory.Modify(true);
+    end;
+
+    local procedure VerifyFinancialItemizationDifferenceBlocksPosting(ItemizedAmount: Decimal)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        GLEntry: Record "G/L Entry";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+        GLEntryCount: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] Rules are disabled and a 150 LCY report line has a subcategory posting-group override and an invalid financial itemization total.
+        LibraryExpense.UpdateUseRulesInAgentSetup(false);
+        CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        SetSubcategoryPostingGroup(ExpenseSubcategory, ExpensePostingGroup);
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        ExpenseReportLine.Validate("Expense Subcategory Code", ExpenseSubcategory.Code);
+        ExpenseReportLine.Validate(Refundable, true);
+        ExpenseReportLine.Validate(Amount, 150);
+        ExpenseReportLine.Modify(true);
+        LibraryExpense.CreateExpenseReportLineItemization(
+            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubcategory.Code, WorkDate(), ItemizedAmount, 1);
+        ExpenseReportHeader.PerformManualRelease();
+        GLEntryCount := GLEntry.Count();
+
+        // [WHEN] Posting is attempted.
+        asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
+
+        // [THEN] The allocation error blocks posting instead of posting the difference to a rounding account.
+        Assert.ExpectedError(StrSubstNo(FinancialItemizationTotalMismatchErr, ExpenseReportLine."Line No.", ItemizedAmount, 150));
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(GLEntryCount, GLEntry.Count(), 'Invalid financial itemizations must not create G/L entries.');
+        PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(PostedExpenseReportHeader, 0);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
     end;
 
     local procedure VerifySubcategoryPostingWithoutVAT(Refundable: Boolean; Itemized: Boolean)

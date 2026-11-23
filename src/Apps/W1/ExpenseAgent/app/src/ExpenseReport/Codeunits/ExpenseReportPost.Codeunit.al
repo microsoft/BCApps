@@ -94,6 +94,7 @@ codeunit 6987 "Expense Report-Post"
         PendingVATSpecTitleErr: Label 'VAT reclaim status is pending';
         PendingVATSpecDetailedErr: Label 'Open the VAT specification line and approve or reject the reclaim, and then retry posting the expense report.';
         RoundingDifferenceTooLargeErr: Label 'The difference between expense report line %1 and its posted amounts exceeds the currency rounding precision. The difference is %2 in reimbursement currency and %3 in local currency.', Comment = '%1 = Expense report line number, %2 = Difference in reimbursement currency, %3 = Difference in local currency';
+        FinancialItemizationTotalMismatchErr: Label 'The financial itemization total %2 for expense report line %1 must match the expense amount %3 within the currency rounding precision.', Comment = '%1 = Expense report line number, %2 = Financial itemization total in expense currency, %3 = Expense amount in expense currency';
         NoReceiptMustBeApprovedErr: Label 'An expense report containing a no receipt declaration must be approved before it can be posted.';
         AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
         ShowItLbl: Label 'Show it';
@@ -318,6 +319,7 @@ codeunit 6987 "Expense Report-Post"
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
                 CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
+                ValidateFinancialItemizationsForPosting(ExpenseReportLine);
                 ValidateVATSpecLinesForPosting(ExpenseReportLine, ExpenseReportHeader);
                 if not LinkedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
                     CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
@@ -326,6 +328,25 @@ codeunit 6987 "Expense Report-Post"
             until ExpenseReportLine.Next() = 0
         else
             Error(NothingToPostErr);
+    end;
+
+    local procedure ValidateFinancialItemizationsForPosting(ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        ExpenseCurrency: Record Currency;
+    begin
+        if ExpenseReportLine.IsEnforcedItemizationRequired() then
+            exit;
+
+        ExpenseReportLineItem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineItem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        if ExpenseReportLineItem.IsEmpty() then
+            exit;
+
+        ExpenseReportLineItem.CalcSums(Amount);
+        ExpenseCurrency.Initialize(ExpenseReportLine."Expense Currency Code");
+        if Abs(ExpenseReportLineItem.Amount - ExpenseReportLine.Amount) > ExpenseCurrency."Amount Rounding Precision" then
+            Error(FinancialItemizationTotalMismatchErr, ExpenseReportLine."Line No.", ExpenseReportLineItem.Amount, ExpenseReportLine.Amount);
     end;
 
     local procedure CheckSpendRequestStatusForPosting(ExpenseReportNo: Code[20]; SpendRequestNo: Code[20])
