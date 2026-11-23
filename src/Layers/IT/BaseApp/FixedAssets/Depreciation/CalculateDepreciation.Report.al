@@ -199,7 +199,7 @@ report 5692 "Calculate Depreciation"
                         else
                             FAJnlLine."Document No." := TempFAJnlLine."Document No.";
                         FAJnlLine."Posting No. Series" := NoSeries;
-                        FAJnlLine.Description := PostingDescriptionTxt;
+                        FAJnlLine.Description := PostingDescription;
                         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 1" then
                             FAJnlLine.Description := PostingDescriptionTxt2;
                         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 2" then
@@ -246,7 +246,7 @@ report 5692 "Calculate Depreciation"
                         GenJnlLine."FA Posting Type" := TempGenJnlLine."FA Posting Type";
                         GenJnlLine."Account Type" := GenJnlLine."Account Type"::"Fixed Asset";
                         GenJnlLine.Validate("Account No.", TempGenJnlLine."Account No.");
-                        GenJnlLine.Description := PostingDescriptionTxt;
+                        GenJnlLine.Description := PostingDescription;
                         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 1" then
                             GenJnlLine.Description := PostingDescriptionTxt2;
                         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 2" then
@@ -374,7 +374,7 @@ report 5692 "Calculate Depreciation"
                             Caption = 'Document No.';
                             ToolTip = 'Specifies, if you leave the field empty, the next available number on the resulting journal line. If a number series is not set up, enter the document number that you want assigned to the resulting journal line.';
                         }
-                        field(PostingDescription; PostingDescriptionTxt)
+                        field(PostingDescription; PostingDescription)
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Posting Description';
@@ -632,7 +632,7 @@ report 5692 "Calculate Depreciation"
         PostingDate: Date;
 #pragma warning disable AS0108
         DocumentNo: Code[20];
-        PostingDescriptionTxt: Text[100];
+        PostingDescription: Text[100];
 #pragma warning restore AS0108
         BalAccount: Boolean;
 
@@ -644,7 +644,7 @@ report 5692 "Calculate Depreciation"
         DaysInPeriod := DaysInPeriodFrom;
         PostingDate := PostingDateFrom;
         DocumentNo := DocumentNoFrom;
-        PostingDescriptionTxt := PostingDescriptionFrom;
+        PostingDescription := PostingDescriptionFrom;
         BalAccount := BalAccountFrom;
     end;
 
@@ -737,7 +737,7 @@ report 5692 "Calculate Depreciation"
         else
             FAJnlLine."Document No." := TempFAJnlLine."Document No.";
         FAJnlLine."Posting No. Series" := NoSeries;
-        FAJnlLine.Description := PostingDescriptionTxt;
+        FAJnlLine.Description := PostingDescription;
         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 1" then
             FAJnlLine.Description := PostingDescriptionTxt2;
         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 2" then
@@ -813,7 +813,7 @@ report 5692 "Calculate Depreciation"
         GenJnlLine."Account Type" := GenJnlLine."Account Type"::"Fixed Asset";
         GenJnlLine.Validate("Account No.", TempGenJnlLine."Account No.");
         GenJnlLine."Posting No. Series" := NoSeries;
-        GenJnlLine.Description := PostingDescriptionTxt;
+        GenJnlLine.Description := PostingDescription;
         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 1" then
             GenJnlLine.Description := PostingDescriptionTxt2;
         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 2" then
