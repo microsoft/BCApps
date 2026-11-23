@@ -71,7 +71,7 @@ codeunit 6969 "Expense Consumption Handler"
         if IsTrial then
             IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation)
         else
-            QuotaProvider.LogPaidConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, ExpenseAgentEnvConsumption."Consumption Unique ID");
+            QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, ExpenseAgentEnvConsumption."Consumption Unique ID", false);
 
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;

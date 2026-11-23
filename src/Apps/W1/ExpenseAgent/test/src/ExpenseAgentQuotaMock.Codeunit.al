@@ -77,11 +77,6 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         end;
     end;
 
-    procedure LogPaidConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024])
-    begin
-        LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, UniqueId, false);
-    end;
-
     procedure LogConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024]; ExcludeFromBilling: Boolean)
     begin
         V1ReportCount += 1;
