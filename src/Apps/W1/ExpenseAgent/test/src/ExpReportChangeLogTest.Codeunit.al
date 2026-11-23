@@ -11,7 +11,7 @@ using Microsoft.HumanResources.Employee;
 using System.Automation;
 using System.TestLibraries.Utilities;
 
-codeunit 148350 "Exp. Report Change Log Test"
+codeunit 148368 "Exp. Report Change Log Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
