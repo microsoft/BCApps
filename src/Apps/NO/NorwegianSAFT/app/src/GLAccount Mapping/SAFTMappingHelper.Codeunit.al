@@ -220,8 +220,8 @@ codeunit 10672 "SAF-T Mapping Helper"
             GLAccount.SetRange("Date Filter", StartingDate, EndingDate)
         else
             GLAccount.SetRange("Date Filter", 0D, ClosingDate(EndingDate));
-        GLAccount.CalcFields("Net Change");
-        exit(GLAccount."Net Change" <> 0);
+        GLAccount.CalcFields("Debit Amount", "Credit Amount");
+        exit((abs(GLAccount."Debit Amount") + abs(GLAccount."Credit Amount")) <> 0)
     end;
 
     procedure UpdateMasterDataWithNoSeries()
@@ -407,7 +407,9 @@ codeunit 10672 "SAF-T Mapping Helper"
         SAFTMappingHelper.UpdateGLEntriesExistStateForGLAccMapping(MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Mapping Range Code", MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Category No.", '');
+        SAFTGLAccountMapping.Setrange("G/L Entries Exists", true);
         if not SAFTGLAccountMapping.IsEmpty() then begin
+            SAFTGLAccountMapping.findfirst();
             SAFTMappingRange.Get(MappingRangeCode);
             LogError(SAFTMappingRange, Mapping13NotDoneErr);
             exit;
