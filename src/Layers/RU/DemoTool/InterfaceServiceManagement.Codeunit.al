@@ -39,7 +39,7 @@ codeunit 117000 "Interface Service Management"
         Window.Update(3, XServiceManagement);
 
         Steps := 0;
-        MaxSteps := 53; // Number of calls to RunCodeunit
+        MaxSteps := 52; // Number of calls to RunCodeunit
 
         RunCodeunit(CODEUNIT::"Add Source Code Setup");
         RunCodeunit(CODEUNIT::"Add No. Series");
@@ -49,7 +49,6 @@ codeunit 117000 "Interface Service Management"
         if not DemoDataSetup."Skip creation of master data" then begin
             RunCodeunit(CODEUNIT::"Add Resource");
             RunCodeunit(CODEUNIT::"Add Res. Capacity Entry");
-            RunCodeunit(CODEUNIT::"Add Employee");
             RunCodeunit(CODEUNIT::"Add Salesperson/Purchaser");
         end;
         RunCodeunit(CODEUNIT::"Create Service Zone");
@@ -417,4 +416,3 @@ codeunit 117000 "Interface Service Management"
             until ServContrHeader.Next() = 0;
     end;
 }
-

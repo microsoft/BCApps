@@ -66,8 +66,8 @@ codeunit 1012 "Job Jnl.-Post Line"
         GLSetupRead: Boolean;
         CalledFromInvtPutawayPick: Boolean;
         CalledFromPurchase: Boolean;
-        NextEntryNo: Integer;
-        GLEntryNo: Integer;
+        NextEntryNo: BigInteger;
+        GLEntryNo: BigInteger;
         AssemblyPostProgressMsg: Label '#1#################################\\Posting Assembly #2###########', Comment = '%1 = Text, %2 = Progress bar';
         Format4Lbl: Label '%1 %2 %3 %4', Comment = '%1 = Job No., %2 = Job Task No., %3 = Job Planning Line No., %4 = Line No.';
         Format2Lbl: Label '%1 %2', Comment = 'Assemble %1 = Document Type, %2 = No.';
@@ -75,7 +75,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     procedure RunWithCheck(var JobJnlLine2: Record "Job Journal Line"): Integer
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
-        JobLedgEntryNo: Integer;
+        JobLedgEntryNo: BigInteger;
     begin
         OnBeforeRunWithCheck(JobJnlLine2);
 
@@ -90,9 +90,9 @@ codeunit 1012 "Job Jnl.-Post Line"
     local procedure "Code"(CheckLine: Boolean): Integer
     var
         SourceCurrencyTotalCost: Decimal;
-        JobLedgEntryNo: Integer;
+        JobLedgEntryNo: BigInteger;
         ShouldPostUsage: Boolean;
-        xNextEntryNo: Integer;
+        xNextEntryNo: BigInteger;
     begin
         OnBeforeCode(JobJnlLine);
 
@@ -173,7 +173,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         OnAfterGetNextEntryNo(JobLedgerEntry, NextEntryNo);
     end;
 
-    local procedure InsertRegister(JobLedgEntryNo: Integer)
+    local procedure InsertRegister(JobLedgEntryNo: BigInteger)
     begin
         if JobReg."No." = 0 then begin
             JobReg."No." := JobReg.GetNextEntryNo(JobsSetup.UseLegacyPosting());
@@ -199,7 +199,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Res. Ledger Entry", 'r')]
-    local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
+    local procedure ValidateSequenceNo(LedgEntryNo: BigInteger; xLedgEntryNo: BigInteger; TableNo: Integer)
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -261,7 +261,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         GLSetupRead := true;
     end;
 
-    procedure CreateJobLedgEntry(JobJnlLine2: Record "Job Journal Line"): Integer
+    procedure CreateJobLedgEntry(JobJnlLine2: Record "Job Journal Line"): BigInteger
     var
         ResLedgEntry: Record "Res. Ledger Entry";
         JobLedgEntry: Record "Job Ledger Entry";
@@ -269,7 +269,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         Job: Record Job;
         JobTransferLine: Codeunit "Job Transfer Line";
         JobLinkUsage: Codeunit "Job Link Usage";
-        JobLedgEntryNo: Integer;
+        JobLedgEntryNo: BigInteger;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -384,7 +384,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         exit(JobLedgEntryNo);
     end;
 
-    local procedure CreateJobLedgEntryFromPostItem(JobJournalLine: Record "Job Journal Line"; ValueEntry: Record "Value Entry"): Integer
+    local procedure CreateJobLedgEntryFromPostItem(JobJournalLine: Record "Job Journal Line"; ValueEntry: Record "Value Entry"): BigInteger
     var
         IsHandled: Boolean;
     begin
@@ -408,7 +408,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         end;
     end;
 
-    local procedure PostItem(var JobJnlLine: Record "Job Journal Line") JobLedgEntryNo: Integer
+    local procedure PostItem(var JobJnlLine: Record "Job Journal Line") JobLedgEntryNo: BigInteger
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         ValueEntry: Record "Value Entry";
@@ -516,7 +516,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         ValueEntry.Modify(true);
     end;
 
-    local procedure PostResource(var JobJnlLine2: Record "Job Journal Line") EntryNo: Integer
+    local procedure PostResource(var JobJnlLine2: Record "Job Journal Line") EntryNo: BigInteger
     var
         ResJnlLine: Record "Res. Journal Line";
         IsHandled: Boolean;
@@ -814,17 +814,17 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterPostItem(var JobJournalLine2: Record "Job Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var JobLedgEntryNo: Integer)
+    local procedure OnAfterPostItem(var JobJournalLine2: Record "Job Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var JobLedgEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnAfterRunCode(var JobJournalLine: Record "Job Journal Line"; var JobLedgEntryNo: Integer; var JobRegister: Record "Job Register"; var NextEntryNo: Integer)
+    local procedure OnAfterRunCode(var JobJournalLine: Record "Job Journal Line"; var JobLedgEntryNo: BigInteger; var JobRegister: Record "Job Register"; var NextEntryNo: BigInteger)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckJob(var JobJournalLine: Record "Job Journal Line"; Job: Record Job; var IsHandled: Boolean; var JobRegister: Record "Job Register"; var NextEntryNo: Integer)
+    local procedure OnBeforeCheckJob(var JobJournalLine: Record "Job Journal Line"; Job: Record Job; var IsHandled: Boolean; var JobRegister: Record "Job Register"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -844,7 +844,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateJobLedgEntry(var JobJournalLine: Record "Job Journal Line"; var IsHandled: Boolean; var JobLedgEntryNo: Integer)
+    local procedure OnBeforeCreateJobLedgEntry(var JobJournalLine: Record "Job Journal Line"; var IsHandled: Boolean; var JobLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -869,7 +869,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeItemPosting(var JobJournalLine: Record "Job Journal Line"; var NextEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeItemPosting(var JobJournalLine: Record "Job Journal Line"; var NextEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -879,7 +879,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforePostResource(var JobJournalLine: Record "Job Journal Line"; var JobJnlLine2: Record "Job Journal Line"; var EntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforePostResource(var JobJournalLine: Record "Job Journal Line"; var JobJnlLine2: Record "Job Journal Line"; var EntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -909,7 +909,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnAfterCalcShouldPostUsage(var JobJournalLine2: Record "Job Journal Line"; var ShouldPostUsage: Boolean; var JobLedgEntryNo: Integer)
+    local procedure OnCodeOnAfterCalcShouldPostUsage(var JobJournalLine2: Record "Job Journal Line"; var ShouldPostUsage: Boolean; var JobLedgEntryNo: BigInteger)
     begin
     end;
 
@@ -919,7 +919,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCreateJobLedgerEntryOnAfterAssignLedgerEntryTypeAndNo(var JobLedgEntry: Record "Job Ledger Entry"; JobJournalLine: Record "Job Journal Line"; GLEntryNo: Integer)
+    local procedure OnCreateJobLedgerEntryOnAfterAssignLedgerEntryTypeAndNo(var JobLedgEntry: Record "Job Ledger Entry"; JobJournalLine: Record "Job Journal Line"; GLEntryNo: BigInteger)
     begin
     end;
 
@@ -939,7 +939,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPostItemOnBeforeGetJobConsumptionValueEntry(var JobJournalLine: Record "Job Journal Line"; var NextEntryNo: Integer)
+    local procedure OnPostItemOnBeforeGetJobConsumptionValueEntry(var JobJournalLine: Record "Job Journal Line"; var NextEntryNo: BigInteger)
     begin
     end;
 
@@ -969,7 +969,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetNextEntryNo(var JobJournalLine: Record "Job Journal Line"; var NextEntryNo: Integer; var IsHandled: Boolean; var JobLedgerEntry: Record "Job Ledger Entry")
+    local procedure OnBeforeGetNextEntryNo(var JobJournalLine: Record "Job Journal Line"; var NextEntryNo: BigInteger; var IsHandled: Boolean; var JobLedgerEntry: Record "Job Ledger Entry")
     begin
     end;
 
@@ -979,7 +979,7 @@ codeunit 1012 "Job Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetNextEntryNo(var JobLedgerEntry: Record "Job Ledger Entry"; var NextEntryNo: Integer)
+    local procedure OnAfterGetNextEntryNo(var JobLedgerEntry: Record "Job Ledger Entry"; var NextEntryNo: BigInteger)
     begin
     end;
 

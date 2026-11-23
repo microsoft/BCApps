@@ -415,6 +415,13 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
         OrderType := "Inventory Order Type"::Production;
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsOrderTypeProduction', '', true, false)]
+    local procedure OnAfterIsOrderTypeProduction(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
+    begin
+        if ItemJournalLine."Order Type" = ItemJournalLine."Order Type"::Production then
+            Result := true;
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsEntryTypeOutput', '', true, false)]
     local procedure OnAfterIsEntryTypeOutput(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
@@ -508,6 +515,34 @@ codeunit 99000762 "Mfg. Item Journal Mgt."
     end;
 
     // Table Item Journal Template
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterIsCapacityTemplateType', '', true, false)]
+    local procedure OnAfterIsCapacityTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+        if ItemJournalTemplate.Type = ItemJournalTemplate.Type::Capacity then
+            Result := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterIsConsumptionTemplateType', '', true, false)]
+    local procedure OnAfterIsConsumptionTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+        if ItemJournalTemplate.Type = ItemJournalTemplate.Type::Consumption then
+            Result := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterIsOutputTemplateType', '', true, false)]
+    local procedure OnAfterIsOutputTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+        if ItemJournalTemplate.Type = ItemJournalTemplate.Type::Output then
+            Result := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterIsProdOrderTemplateType', '', true, false)]
+    local procedure OnAfterIsProdOrderTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+        if ItemJournalTemplate.Type = ItemJournalTemplate.Type::"Prod. Order" then
+            Result := true;
+    end;
 
     [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnGetConsumptionTemplateType', '', true, false)]
     local procedure OnGetConsumptionTemplateType(var Type: Enum "Item Journal Template Type")
