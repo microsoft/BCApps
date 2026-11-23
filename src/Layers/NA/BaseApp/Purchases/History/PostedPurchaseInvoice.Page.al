@@ -730,7 +730,7 @@ page 138 "Posted Purchase Invoice"
                         PurchaseInstallmentHistory.ShowSchedule(Rec);
                     end;
                 }
-                action(Statistics)
+                action(PurchaseInvoiceStatistics)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Statistics';

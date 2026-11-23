@@ -1637,6 +1637,10 @@ page 132 "Posted Sales Invoice"
         IsSellToCountyVisible: Boolean;
         IsShipToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
+        SATCertInLocationEnabled: Boolean;
+        SATCertificateCode: Text;
+        SATCertificateName: Text;
+        SATCertificateSource: Text;
         HasInstallmentPlan: Boolean;
 
     protected var

@@ -313,7 +313,7 @@ page 146 "Posted Purchase Invoices"
                         PurchaseInstallmentHistory.ShowSchedule(Rec);
                     end;
                 }
-                action(Statistics)
+                action(PurchaseInvoiceStatistics)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Statistics';
@@ -674,4 +674,7 @@ page 146 "Posted Purchase Invoices"
         FeatureKeyManagement: Codeunit "Feature Key Management";
         IsOfficeAddin: Boolean;
         HasInstallmentPlan: Boolean;
+
+    protected var
+        PurchaseInvoiceStatsVisible: Boolean;
 }

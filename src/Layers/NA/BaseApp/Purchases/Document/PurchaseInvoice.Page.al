@@ -1136,6 +1136,18 @@ page 51 "Purchase Invoice"
                     RunObject = Page "Purchase Statistics";
                     RunPageOnRec = true;
                 }
+                action(PurchaseStats)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Statistics';
+                    Enabled = Rec."No." <> '';
+                    Image = Statistics;
+                    ShortCutKey = 'F7';
+                    Visible = SalesTaxStatisticsVisible;
+                    ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
+                    RunObject = Page "Purchase Stats.";
+                    RunPageOnRec = true;
+                }
                 action(InstallmentSchedule)
                 {
                     Visible = PaymentInstallmentsEnabled;

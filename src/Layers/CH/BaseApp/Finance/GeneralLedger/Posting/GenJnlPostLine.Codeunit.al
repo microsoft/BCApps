@@ -1461,6 +1461,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempPlanLine: Record "Purchase Installment Plan Line" temporary;
         InstallmentGenJournalLine: Record "Gen. Journal Line";
         PurchSetup: Record "Purchases & Payables Setup";
+        DTASetup: Record "DTA Setup";
+        DTAMgt: Codeunit DtaMgt;
         PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         PayablesAccount: Code[20];
         TaxAmount: Decimal;

@@ -11187,10 +11187,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         BASCalculationSheet: Record "BAS Calculation Sheet";
     begin
+        if not (BASCalculationSheet.Get(BASDocNo, BASVersion) and BASCalculationSheet.Updated) then begin
+            VATEntry."BAS Adjustment" := BASAdjustment;
+            VATEntry."BAS Doc. No." := BASDocNo;
+            VATEntry."BAS Version" := BASVersion;
+        end;
+    end;
+
+    local procedure CalcSourceCurrVATBaseAmount(GenJnlLine: Record "Gen. Journal Line"; WHTAmountLCY: Decimal): Decimal
+    begin
         if GenJnlLine."System-Created Entry" then
             exit(GenJnlLine."Source Currency Amount");
 
-        if GenJnlLine."Source Currency Code" <> '' then begin
+        if GenJnlLine."Source Currency Code" <> '' then
             if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
                 exit(GenJnlLine."Source Curr. VAT Base Amount" + CalcAmountSrcCurr(GenJnlLine, WHTAmountLCY))
             else

@@ -253,7 +253,7 @@ codeunit 5988 "Serv-Documents Mgt."
             if Check then
                 Error(Text12100);
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             if Invoice then begin
                 PaymentTermsLine.Reset();
                 PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Service);
@@ -297,7 +297,6 @@ codeunit 5988 "Serv-Documents Mgt."
                           ServHeader.FieldCaption(ServHeader."Payment Terms Code"),
                           ServHeader."Payment Terms Code");
             end;
-        end;
 #endif
         LineCount := 0;
 
@@ -2403,7 +2402,7 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
 #if not CLEAN30
-    [Obsolete('Replaced by global Payment Installments feature.')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [Scope('OnPrem')]
     procedure FinalizeDeletePmtTermLines()
     begin

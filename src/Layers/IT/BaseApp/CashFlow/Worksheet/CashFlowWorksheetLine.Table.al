@@ -622,7 +622,7 @@ table 846 "Cash Flow Worksheet Line"
     begin
     end;
 #if not CLEAN30
-    [Obsolete('Replaced by global Payment Installments feature.')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(true, false)]
     local procedure OnCalculateCFAmountAndCFDateOnBeforeCalcPaymentDiscount(CFDiscountDate: Date; PaymentLines: record "Payment Lines"; var IsHandled: boolean)
     begin
@@ -630,7 +630,7 @@ table 846 "Cash Flow Worksheet Line"
 #endif
 
 #if not CLEAN30
-    [Obsolete('Replaced by global Payment Installments feature.')]
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnInsertNewLinesForUnpostedDocumentsOnBeforeInsert(var CashFlowWorksheetLine: Record "Cash Flow Worksheet Line"; PaymentLines: Record "Payment Lines")
     begin

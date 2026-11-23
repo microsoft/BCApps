@@ -25,7 +25,6 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
 using Microsoft.Utilities;
-using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Utilities;
 
@@ -1327,9 +1326,6 @@ table 21 "Cust. Ledger Entry"
     }
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'must have the same sign as %1';
