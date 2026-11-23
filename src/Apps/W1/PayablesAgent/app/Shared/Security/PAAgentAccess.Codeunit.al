@@ -76,7 +76,7 @@ codeunit 3350 "PA Agent Access"
             exit(false);
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
-        if not PASetup.TryFindAgent(Agent) then
+        if not PASetup.TryGetStoredAgent(Agent) then
             exit(AllowCreateNewAgent());
 
         // Payables Agent is created. It has to be enabled and user has to have permissions to use it in order to show the agent actions.
@@ -98,7 +98,7 @@ codeunit 3350 "PA Agent Access"
             exit(false);
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
-        if PASetup.TryFindAgent(Agent) then
+        if PASetup.TryGetStoredAgent(Agent) then
             exit(false);
 
         // No payables agent exists
