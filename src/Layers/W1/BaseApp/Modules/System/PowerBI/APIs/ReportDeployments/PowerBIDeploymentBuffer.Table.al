@@ -70,6 +70,9 @@ table 6318 "Power BI Deployment Buffer"
         {
             Clustered = true;
         }
+        key(Key2; "Deployment Status")
+        {
+        }
     }
 
     procedure LoadReports()

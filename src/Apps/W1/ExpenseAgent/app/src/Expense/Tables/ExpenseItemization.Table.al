@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Stores the itemized lines that break down the amount of an expense.
+/// </summary>
 table 6902 "Expense Itemization"
 {
-    Access = Internal;
     Caption = 'Expense Itemization';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Itemizations";

@@ -152,7 +152,9 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
     begin
         OnBeforeUpdateOutputAdjmtBuf(InventoryAdjmtEntryOrder, ItemLedgerEntry, InventoryAdjustmentBuffer);
 
-        if HasNewCost(InventoryAdjmtEntryOrder."Direct Cost", InventoryAdjmtEntryOrder."Direct Cost (ACY)") or not InventoryAdjmtEntryOrder."Completely Invoiced" then
+        if HasNewCost(InventoryAdjmtEntryOrder."Direct Cost", InventoryAdjmtEntryOrder."Direct Cost (ACY)") or
+           not InventoryAdjmtEntryOrder."Completely Invoiced" or not ItemLedgerEntry."Completely Invoiced"
+        then
             InventoryAdjustmentBuffer.AddCost(
               ItemLedgerEntry."Entry No.", InventoryAdjustmentBuffer."Entry Type"::"Direct Cost", "Cost Variance Type"::" ", InventoryAdjmtEntryOrder."Direct Cost", InventoryAdjmtEntryOrder."Direct Cost (ACY)");
         if HasNewCost(InventoryAdjmtEntryOrder."Indirect Cost", InventoryAdjmtEntryOrder."Indirect Cost (ACY)") then

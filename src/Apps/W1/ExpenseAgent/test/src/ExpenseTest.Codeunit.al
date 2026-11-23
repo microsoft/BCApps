@@ -4000,6 +4000,7 @@ codeunit 148305 "Expense Test"
     procedure ExpenseItemizationQuantityValueShouldBeDefaultOne()
     var
         Expense: Record Expense;
+        ExpectedExpense: Record Expense;
         PostCode: Record "Post Code";
         Currency: Record Currency;
         ExpenseRuleHeader: Record "Expense Rule Header";
@@ -4032,7 +4033,9 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
+        ExpectedExpense := Expense;
+        ExpectedExpense.Amount := 0;  // to force same type of formatting
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedExpense.Amount, Expense.Amount));
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();

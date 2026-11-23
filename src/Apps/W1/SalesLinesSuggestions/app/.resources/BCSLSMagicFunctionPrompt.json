@@ -1,0 +1,16 @@
+{
+  "type": "function",
+  "function": {
+    "name": "magic_function",
+    "description": "Call this function for requests outside item inquiries or retrieval of items from documents. If the date or any day of the date range is specified in the future, call this function. Unsupported outcomes include document status checks, creating, modifying or emailing documents, preparing a quotation, shipment investigation, arranging delivery or installation services, instructions not to copy document lines, and sales analytics such as finding the most popular products. If any independent unsupported outcome or unrelated business communication is combined with a supported request, call only this function for the whole message, never search_items_with_filters as well. An independent unrelated notice or announcement is unsupported even without a question. Greetings, signatures, brief personal background and reasons for needing the items are not independent outcomes: items for a report or event do not imply creating the report or organising the event. Related product-information questions, including prices, discounts, comparisons, warranty, delivery times or options, payment options and return policy, remain supported, as do requests to reply with that information. Physical products such as home security systems are not services merely because their names contain system. Classify the requested outcome, not isolated words such as review or report.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "intent": {
+          "type": "string",
+          "description": "The intent of the customer request."
+        }
+      }
+    }
+  }
+}
