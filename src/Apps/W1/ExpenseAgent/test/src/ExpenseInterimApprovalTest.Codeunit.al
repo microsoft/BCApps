@@ -151,6 +151,7 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader.TestField("Final Approver No.", FinalApprover."No.");
         ExpenseReportHeader.TestField("Submitter Expense User No.", Submitter."No.");
         Assert.AreEqual('Please review these expenses.', ExpenseReportHeader.GetSubmitterComment(), 'The submission comment must be preserved.');
+        VerifyInterimAssignmentBeforeSubmission(ExpenseReportHeader);
     end;
 
     [Test]
@@ -179,6 +180,7 @@ codeunit 148346 "Expense Interim Approval Test"
         VerifyInterimApprover(ExpenseReportHeader, AlternateApprover."No.");
         VerifyActiveApprover(ExpenseReportHeader, AlternateApprover);
         ExpenseReportHeader.TestField("Primary Interim Approver No.", InterimApprover."No.");
+        VerifyInterimAssignmentBeforeSubmission(ExpenseReportHeader);
     end;
 
     [Test]
@@ -209,6 +211,45 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader.TestField("Submission DateTime", 0DT);
         ExpenseReportHeader.TestField("Interim Approver No.", '');
         Assert.AreEqual('', ExpenseReportHeader.GetSubmitterComment(), 'A failed assignment must not save the submission comment.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitAndAssignInterimApproverRollsBackOnSubmissionFailure()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
+        ActivityEntryCountBefore: Integer;
+    begin
+        // [SCENARIO] Failed submission rolls back release, interim assignment, and its activity entry.
+        Initialize();
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ReleaseExpenseReportDocument.Reopen(ExpenseReportHeader);
+        FinalApprover."User Id For Approvals" := '';
+        FinalApprover.Modify();
+        ExpenseActivityLogEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ActivityEntryCountBefore := ExpenseActivityLogEntry.Count();
+        Commit();
+
+        // [WHEN] A valid interim approver is assigned, but submission cannot resolve the final approver's identity.
+        asserterror ExpenseReportHeader.SubmitAndAssignInterimApprover(Submitter."No.", 'This comment must not be saved.', InterimApprover."No.");
+
+        // [THEN] The report and its activity history remain unchanged.
+        Assert.ExpectedTestFieldError(FinalApprover.FieldCaption("User Id For Approvals"), '');
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);
+        ExpenseReportHeader.TestField("Submission DateTime", 0DT);
+        ExpenseReportHeader.TestField("Interim Approver No.", '');
+        ExpenseReportHeader.TestField("Primary Interim Approver No.", '');
+        Assert.AreEqual('', ExpenseReportHeader.GetSubmitterComment(), 'A failed submission must not save the submission comment.');
+        Assert.RecordCount(ExpenseActivityLogEntry, ActivityEntryCountBefore);
     end;
 
     [Test]
@@ -3176,6 +3217,25 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseAgentSetup.GetRecordOnce();
         ExpenseAgentSetup."Allow Interim Approvers" := Allow;
         ExpenseAgentSetup.Modify();
+    end;
+
+    local procedure VerifyInterimAssignmentBeforeSubmission(ExpenseReportHeader: Record "Expense Report Header")
+    var
+        AssignmentEntry: Record "Expense Activity Log Entry";
+        SubmissionEntry: Record "Expense Activity Log Entry";
+    begin
+        AssignmentEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        AssignmentEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        AssignmentEntry.SetRange("Event Type", AssignmentEntry."Event Type"::InterimApproverAssigned);
+        Assert.RecordCount(AssignmentEntry, 1);
+        AssignmentEntry.FindFirst();
+
+        SubmissionEntry.CopyFilters(AssignmentEntry);
+        SubmissionEntry.SetRange("Event Type", SubmissionEntry."Event Type"::Submitted);
+        Assert.RecordCount(SubmissionEntry, 1);
+        SubmissionEntry.FindFirst();
+
+        Assert.IsTrue(AssignmentEntry."Entry No." < SubmissionEntry."Entry No.", 'The interim approver must be assigned before submission.');
     end;
 
     local procedure VerifyStatus(var ExpenseReportHeader: Record "Expense Report Header"; ExpectedStatus: Enum "Expense Report Status")

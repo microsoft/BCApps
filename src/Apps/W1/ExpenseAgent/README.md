@@ -119,7 +119,9 @@ The `expenseCapabilities` entry `interimApprover` uses capability ordinal 12
 and reports this setting.
 
 Assignments are allowed while a report is Released or Pending Approval.
-`submitAndAssignInterimApprover` submits and assigns in one transaction.
+`submitAndAssignInterimApprover` releases the report, assigns the selected
+interim approver, and then submits in one transaction. Submission routes
+directly to the interim approver or their active alternate.
 Disabling the setting preserves existing approvals and alternate coverage.
 Resubmitting a report while the setting is disabled clears stale interim
 assignments.
