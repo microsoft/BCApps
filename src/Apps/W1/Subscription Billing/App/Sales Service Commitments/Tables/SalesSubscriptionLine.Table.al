@@ -689,11 +689,11 @@ table 8068 "Sales Subscription Line"
 
     local procedure IsSalesLineExcludedFromDocumentTotals(SalesSubscriptionLine: Record "Sales Subscription Line"): Boolean
     var
-        SalesLine: Record "Sales Line";
+        DocumentSalesLine: Record "Sales Line";
     begin
-        if not SalesLine.Get(SalesSubscriptionLine."Document Type", SalesSubscriptionLine."Document No.", SalesSubscriptionLine."Document Line No.") then
+        if not DocumentSalesLine.Get(SalesSubscriptionLine."Document Type", SalesSubscriptionLine."Document No.", SalesSubscriptionLine."Document Line No.") then
             exit(false);
-        exit(SalesLine.IsExcludedFromDocumentTotals());
+        exit(DocumentSalesLine.IsExcludedFromDocumentTotals());
     end;
 
     local procedure CreateTempSalesServiceCommitmentBuffForSalesServiceCommitment(SalesServiceCommitment: Record "Sales Subscription Line";
