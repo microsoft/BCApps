@@ -117,7 +117,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AddCurrency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
         VATEntry: Record "VAT Entry";
-        SalesTaxJournalVATEntry: Record "VAT Entry" temporary;
+        TempSalesTaxJournalVATEntry: Record "VAT Entry" temporary;
         TaxDetail: Record "Tax Detail";
         UnrealizedCustLedgEntry: Record "Cust. Ledger Entry";
         UnrealizedVendLedgEntry: Record "Vendor Ledger Entry";
@@ -994,7 +994,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     internal procedure SetSalesTaxJournalVATEntry(NewVATEntry: Record "VAT Entry")
     begin
-        SalesTaxJournalVATEntry := NewVATEntry;
+        TempSalesTaxJournalVATEntry := NewVATEntry;
         SalesTaxJournalVATPending := true;
     end;
 
@@ -1003,7 +1003,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if not SalesTaxJournalVATPending then
             exit;
 
-        VATEntry := SalesTaxJournalVATEntry;
+        VATEntry := TempSalesTaxJournalVATEntry;
         VATEntry."Entry No." := NextVATEntryNo;
         VATEntry."Posting Date" := GenJnlLine."Posting Date";
         VATEntry."Document No." := GenJnlLine."Document No.";
