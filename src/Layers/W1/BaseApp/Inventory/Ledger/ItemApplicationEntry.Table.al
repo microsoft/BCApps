@@ -185,11 +185,11 @@ table 339 "Item Application Entry"
         TrackChain: Boolean;
         MaxValuationDate: Date;
         CheckCyclicalLoopDepth: Integer;
-        FwdToAppliedOutbndsCache: Dictionary of [Integer, Boolean];
-        FwdToAppliedInbndsCache: Dictionary of [Integer, Boolean];
-        FwdToInbndTransfersCache: Dictionary of [Integer, Boolean];
-        NegativeToPositiveChain: Dictionary of [Integer, Boolean];
-        PositiveToNegativeChain: Dictionary of [Integer, Boolean];
+        FwdToAppliedOutbndsCache: Dictionary of [BigInteger, Boolean];
+        FwdToAppliedInbndsCache: Dictionary of [BigInteger, Boolean];
+        FwdToInbndTransfersCache: Dictionary of [BigInteger, Boolean];
+        NegativeToPositiveChain: Dictionary of [BigInteger, Boolean];
+        PositiveToNegativeChain: Dictionary of [BigInteger, Boolean];
         CheckCyclicProdCyclicalLoopCache: Dictionary of [Text, Boolean];
         CheckCyclicAsmCyclicalLoopCache: Dictionary of [Text, Boolean];
         AppliedFromEntryToAdjustErr: Label 'You have to run the %1 batch job, before you can revalue %2 %3.', Comment = '%1 = Report::"Adjust Cost - Item Entries", %2 = Item Ledger Entry table caption, %3 = Inbound Item Ledger Entry No.';

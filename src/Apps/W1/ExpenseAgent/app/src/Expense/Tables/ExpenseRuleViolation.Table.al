@@ -5,11 +5,13 @@
 namespace Microsoft.ExpenseAgent;
 using Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Stores the expense rule violations that were found for an expense.
+/// </summary>
 table 6903 "Expense Rule Violation"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
-    Access = Internal;
 
     fields
     {
@@ -42,14 +44,14 @@ table 6903 "Expense Rule Violation"
             Rec."Line No." := GetNextLineNo();
     end;
 
-    procedure ClearRuleViolations(ExpenseNo: Code[20])
+    internal procedure ClearRuleViolations(ExpenseNo: Code[20])
     begin
         Rec.SetRange("Expense No.", ExpenseNo);
         if not Rec.IsEmpty() then
             Rec.DeleteAll(true);
     end;
 
-    procedure AddRuleViolation(ExpenseNo: Code[20]; Violation: Text[500])
+    internal procedure AddRuleViolation(ExpenseNo: Code[20]; Violation: Text[500])
     begin
         Rec."Expense No." := ExpenseNo;
         Rec."Line No." := GetNextLineNo();

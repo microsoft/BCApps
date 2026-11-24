@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.ExpenseAgent;
 
+using Microsoft.CRM.Team;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.HumanResources.Employee;
@@ -31,7 +32,6 @@ codeunit 148346 "Expense Interim Approval Test"
         LibraryJobQueue: Codeunit "Library - Job Queue";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
         IsInitialized: Boolean;
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
@@ -2130,6 +2130,214 @@ codeunit 148346 "Expense Interim Approval Test"
     end;
 
     [Test]
+    procedure FixtureCreatesIndependentApproversAndCoverage()
+    var
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        Fixture: JsonObject;
+        PrimaryApprover: JsonObject;
+        InterimApprover: JsonObject;
+        AlternateApprover: JsonObject;
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] The fixture creates independently valid approvers and explicit coverage dates.
+        Initialize();
+
+        // [GIVEN] An enabled agent with the standard approval workflow disabled.
+        EnableAgent(true);
+
+        // [WHEN] An interim and alternate approver fixture is created.
+        Fixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate() - 1, WorkDate() + 1));
+
+        // [THEN] All identities are valid, independently bound, and covered by the requested dates.
+        VerifyApproverFixture(Fixture, WorkDate() - 1, WorkDate() + 1);
+        PrimaryApprover := Fixture.GetObject('primaryApprover');
+        InterimApprover := Fixture.GetObject('interimApprover');
+        AlternateApprover := Fixture.GetObject('alternateApprover');
+        Assert.AreNotEqual(GetFixtureGuid(PrimaryApprover, 'userId'), GetFixtureGuid(InterimApprover, 'userId'), 'Primary and interim approvers must have different BC users.');
+        Assert.AreNotEqual(GetFixtureGuid(PrimaryApprover, 'userId'), GetFixtureGuid(AlternateApprover, 'userId'), 'Primary and alternate approvers must have different BC users.');
+        Assert.AreNotEqual(GetFixtureGuid(InterimApprover, 'userId'), GetFixtureGuid(AlternateApprover, 'userId'), 'Interim and alternate approvers must have different BC users.');
+    end;
+
+    [Test]
+    procedure SecondFixturePreservesExistingApprovers()
+    var
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        FirstFixture: JsonObject;
+        SecondFixture: JsonObject;
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] Creating another fixture doesn't invalidate previously configured approvers.
+        Initialize();
+
+        // [GIVEN] An enabled agent and an existing approver fixture.
+        EnableAgent(true);
+        FirstFixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate() - 1, WorkDate() + 1));
+
+        // [WHEN] A second approver fixture with open-ended coverage is created.
+        SecondFixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate(), 0D));
+
+        // [THEN] Both fixtures retain their valid bindings and independent coverage.
+        VerifyApproverFixture(FirstFixture, WorkDate() - 1, WorkDate() + 1);
+        VerifyApproverFixture(SecondFixture, WorkDate(), 0D);
+    end;
+
+    [Test]
+    procedure FixtureCleanupPreservesOtherFixturesAndUsers()
+    var
+        UnrelatedApprover: Record "Expense User";
+        CurrentUser: Record User;
+        UserBeforeCleanup: Record User;
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        FirstFixture: JsonObject;
+        SecondFixture: JsonObject;
+        FirstFixtureText: Text;
+        UnrelatedApprovalUserId: Code[50];
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] Cleanup deletes only the fixture's records, not other fixtures or the caller.
+        Initialize();
+
+        // [GIVEN] Two approver fixtures, an unrelated approver, and the current service user.
+        EnableAgent(true);
+        FirstFixtureText := ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate() - 1, WorkDate() + 1);
+        FirstFixture.ReadFrom(FirstFixtureText);
+        SecondFixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate(), 0D));
+        CreateApproverExpenseUser(UnrelatedApprover);
+        UnrelatedApprovalUserId := UnrelatedApprover."User Id For Approvals";
+        UserBeforeCleanup.Get(UserSecurityId());
+
+        // [WHEN] The first fixture is deleted.
+        ExpenseTestHandlerAPI.DeleteInterimAndAlternateApproverFixture(FirstFixtureText);
+
+        // [THEN] Its records are removed and the other identities remain unchanged.
+        VerifyApproverFixtureDeleted(FirstFixture);
+        VerifyApproverFixture(SecondFixture, WorkDate(), 0D);
+        UnrelatedApprover.Get(UnrelatedApprover."No.");
+        UnrelatedApprover.TestField("Can Approve", true);
+        UnrelatedApprover.TestField("User Id For Approvals", UnrelatedApprovalUserId);
+        CurrentUser.Get(UserSecurityId());
+        CurrentUser.TestField("User Name", UserBeforeCleanup."User Name");
+        CurrentUser.TestField("Authentication Email", UserBeforeCleanup."Authentication Email");
+    end;
+
+    [Test]
+    procedure FixtureCleanupCanBeRepeated()
+    var
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        Fixture: JsonObject;
+        FixtureText: Text;
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] Repeating cleanup for the same fixture succeeds without deleting other records.
+        Initialize();
+
+        // [GIVEN] An approver fixture that has already been deleted.
+        EnableAgent(true);
+        FixtureText := ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate(), 0D);
+        Fixture.ReadFrom(FixtureText);
+        ExpenseTestHandlerAPI.DeleteInterimAndAlternateApproverFixture(FixtureText);
+
+        // [WHEN] The fixture is deleted again.
+        ExpenseTestHandlerAPI.DeleteInterimAndAlternateApproverFixture(FixtureText);
+
+        // [THEN] All fixture records remain absent.
+        VerifyApproverFixtureDeleted(Fixture);
+    end;
+
+    local procedure VerifyApproverFixture(Fixture: JsonObject; StartDate: Date; EndDate: Date)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseAlternateApprover: Record "Expense Alternate Approver";
+        Submitter: JsonObject;
+        PrimaryApprover: JsonObject;
+        AlternateApprover: JsonObject;
+    begin
+        Submitter := Fixture.GetObject('submitter');
+        PrimaryApprover := Fixture.GetObject('primaryApprover');
+        AlternateApprover := Fixture.GetObject('alternateApprover');
+        VerifyApproverFixtureIdentity(Submitter, false);
+        VerifyApproverFixtureIdentity(PrimaryApprover, true);
+        VerifyApproverFixtureIdentity(Fixture.GetObject('interimApprover'), true);
+        VerifyApproverFixtureIdentity(AlternateApprover, true);
+        ExpenseApprovalSetup.Get(Submitter.GetText('number'));
+        ExpenseApprovalSetup.TestField("Approver No.", PrimaryApprover.GetText('number'));
+        ExpenseAlternateApprover.GetBySystemId(GetFixtureGuid(Fixture, 'coverageId'));
+        ExpenseAlternateApprover.TestField("Primary Approver No.", PrimaryApprover.GetText('number'));
+        ExpenseAlternateApprover.TestField("Alternate Approver No.", AlternateApprover.GetText('number'));
+        ExpenseAlternateApprover.TestField("Effective Start Date", StartDate);
+        ExpenseAlternateApprover.TestField("Effective End Date", EndDate);
+        Assert.AreEqual(CompanyName(), Fixture.GetText('companyName'), 'The fixture must identify its company.');
+        Assert.AreEqual(WorkDate(), Fixture.GetDate('workDate'), 'The fixture must return the BC work date.');
+        Assert.AreEqual(StartDate, Fixture.GetDate('coverageStartDate'), 'The fixture must return the requested start date.');
+        Assert.AreEqual(EndDate, Fixture.GetDate('coverageEndDate'), 'The fixture must return the requested end date.');
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Enable Agent", true);
+        ExpenseAgentSetup.TestField("Enable Approval Workflow", false);
+    end;
+
+    local procedure VerifyApproverFixtureIdentity(Identity: JsonObject; CanApprove: Boolean)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        User: Record User;
+        UserSetup: Record "User Setup";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        ExpenseUser.GetBySystemId(GetFixtureGuid(Identity, 'id'));
+        ExpenseUser.TestField("No.", Identity.GetText('number'));
+        ExpenseUser.TestField("E-mail", Identity.GetText('email'));
+        ExpenseUser.TestField("Can Approve", CanApprove);
+        Employee.GetBySystemId(GetFixtureGuid(Identity, 'employeeId'));
+        ExpenseUser.TestField("Employee No.", Employee."No.");
+        User.Get(GetFixtureGuid(Identity, 'userId'));
+        User.TestField("Authentication Email", ExpenseUser."E-mail");
+        UserSetup.GetBySystemId(GetFixtureGuid(Identity, 'userSetupId'));
+        UserSetup.TestField("User ID", User."User Name");
+        SalespersonPurchaser.GetBySystemId(GetFixtureGuid(Identity, 'salespersonId'));
+        UserSetup.TestField("Salespers./Purch. Code", SalespersonPurchaser.Code);
+        if CanApprove then begin
+            ExpenseUser.TestField("Unlimited Approval", true);
+            ExpenseUser.TestField("User Id For Approvals", User."User Name");
+        end;
+    end;
+
+    local procedure VerifyApproverFixtureDeleted(Fixture: JsonObject)
+    var
+        ExpenseAlternateApprover: Record "Expense Alternate Approver";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        Submitter: JsonObject;
+    begin
+        Assert.IsFalse(ExpenseAlternateApprover.GetBySystemId(GetFixtureGuid(Fixture, 'coverageId')), 'Fixture coverage must be deleted.');
+        Submitter := Fixture.GetObject('submitter');
+        Assert.IsFalse(ExpenseApprovalSetup.Get(Submitter.GetText('number')), 'The fixture approval setup must be deleted.');
+        VerifyApproverFixtureIdentityDeleted(Submitter);
+        VerifyApproverFixtureIdentityDeleted(Fixture.GetObject('primaryApprover'));
+        VerifyApproverFixtureIdentityDeleted(Fixture.GetObject('interimApprover'));
+        VerifyApproverFixtureIdentityDeleted(Fixture.GetObject('alternateApprover'));
+    end;
+
+    local procedure VerifyApproverFixtureIdentityDeleted(Identity: JsonObject)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        User: Record User;
+        UserSetup: Record "User Setup";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        Assert.IsFalse(ExpenseUser.GetBySystemId(GetFixtureGuid(Identity, 'id')), 'The fixture expense user must be deleted.');
+        Assert.IsFalse(Employee.GetBySystemId(GetFixtureGuid(Identity, 'employeeId')), 'The fixture employee must be deleted.');
+        Assert.IsFalse(User.Get(GetFixtureGuid(Identity, 'userId')), 'The fixture BC user must be deleted.');
+        Assert.IsFalse(UserSetup.GetBySystemId(GetFixtureGuid(Identity, 'userSetupId')), 'The fixture user setup must be deleted.');
+        Assert.IsFalse(SalespersonPurchaser.GetBySystemId(GetFixtureGuid(Identity, 'salespersonId')), 'The fixture salesperson must be deleted.');
+    end;
+
+    local procedure GetFixtureGuid(Fixture: JsonObject; PropertyName: Text) Value: Guid
+    begin
+        Evaluate(Value, Fixture.GetText(PropertyName));
+    end;
+
+    [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
     procedure OwnerCanSelfApproveReportBelowOwnApprovalLimit()
     var
@@ -2503,35 +2711,13 @@ codeunit 148346 "Expense Interim Approval Test"
     end;
 
     local procedure CreateSubmitterExpenseUser(var ExpenseUser: Record "Expense User")
-    var
-        UserSetup: Record "User Setup";
-        UserEmail: Text[80];
     begin
-        LibraryDocumentApprovals.CreateMockupUserSetup(UserSetup);
-        UserEmail := GenerateUniqueEmail();
-        CreateAndUpdateUserWithEmail(UserSetup."User ID", UserEmail);
-
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        ExpenseUser.Validate("E-mail", UserEmail);
-        ExpenseUser.Validate("Entra Id", CreateGuid());
-        ExpenseUser.Modify();
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ExpenseUser, false);
     end;
 
     local procedure CreateApproverExpenseUser(var ExpenseUser: Record "Expense User")
-    var
-        UserSetup: Record "User Setup";
-        UserEmail: Text[80];
     begin
-        LibraryDocumentApprovals.CreateMockupUserSetup(UserSetup);
-        UserEmail := GenerateUniqueEmail();
-        CreateAndUpdateUserWithEmail(UserSetup."User ID", UserEmail);
-
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        ExpenseUser.Validate("E-mail", UserEmail);
-        ExpenseUser.Validate("Can Approve", true);
-        ExpenseUser.Validate("Unlimited Approval", true);
-        ExpenseUser.Validate("Entra Id", CreateGuid());
-        ExpenseUser.Modify();
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ExpenseUser, true);
     end;
 
     local procedure CreateSubmittedExpenseReport(Submitter: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header")
@@ -2553,15 +2739,8 @@ codeunit 148346 "Expense Interim Approval Test"
     end;
 
     local procedure CreateAlternateApproverCoverage(PrimaryApproverNo: Code[20]; AlternateApproverNo: Code[20]; StartDate: Date; EndDate: Date)
-    var
-        ExpenseAlternateApprover: Record "Expense Alternate Approver";
     begin
-        ExpenseAlternateApprover.Init();
-        ExpenseAlternateApprover.Validate("Primary Approver No.", PrimaryApproverNo);
-        ExpenseAlternateApprover.Validate("Alternate Approver No.", AlternateApproverNo);
-        ExpenseAlternateApprover.Validate("Effective Start Date", StartDate);
-        ExpenseAlternateApprover.Validate("Effective End Date", EndDate);
-        ExpenseAlternateApprover.Insert(true);
+        LibraryExpense.CreateAlternateApproverCoverage(PrimaryApproverNo, AlternateApproverNo, StartDate, EndDate);
     end;
 
     local procedure RunDelegationReport(ExpenseReportNo: Code[20])
@@ -2684,29 +2863,6 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseAgentSetup.GetRecordOnce();
         ExpenseAgentSetup."Enable Agent" := Enable;
         ExpenseAgentSetup.Modify(true);
-    end;
-
-    local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])
-    var
-        User: Record User;
-    begin
-        User.SetRange("User Name", UserName);
-        if User.FindFirst() then begin
-            User."Authentication Email" := UserEmail;
-            User.Modify();
-        end else begin
-            User.Init();
-            User."User Security ID" := CreateGuid();
-            User."User Name" := UserName;
-            User."Authentication Email" := UserEmail;
-            User.Insert(true);
-        end;
-    end;
-
-    local procedure GenerateUniqueEmail(): Text[80]
-    begin
-        // A globally unique authentication email to avoid duplicate authentication email collisions across tests.
-        exit(CopyStr(DelChr(LowerCase(Format(CreateGuid())), '=', '{}-') + '@test.local', 1, 80));
     end;
 
     local procedure VerifyStatus(var ExpenseReportHeader: Record "Expense Report Header"; ExpectedStatus: Enum "Expense Report Status")
