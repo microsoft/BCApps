@@ -126,35 +126,66 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
-    procedure SourceEnvironmentNameMustBeAPlainEnvironmentName()
+    procedure InvalidSourceEnvironmentNamesAreRejected()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        InvalidNames: List of [Text];
+        InvalidName: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660386] The source environment name becomes a path segment of the request URL, so a name that would
+        //                   change the URL path, doesn't start with a letter, or is longer than 30 characters is rejected.
+        Initialize();
+        MasterDataManagementSetup.Get();
+        InvalidNames.Add('PROD/../../00000000-0000-0000-0000-0000000000aa/OTHER');
+        InvalidNames.Add('PROD?company=x');
+        InvalidNames.Add('1PROD');
+        InvalidNames.Add(PadStr('PROD', 31, 'X'));
+        Commit(); // asserterror rolls back; keep the setup row that Initialize may have inserted
+
+        // [WHEN] each invalid name is entered [THEN] it is rejected
+        foreach InvalidName in InvalidNames do begin
+            asserterror MasterDataManagementSetup.Validate("Source Environment Name", CopyStr(InvalidName, 1, MaxStrLen(MasterDataManagementSetup."Source Environment Name")));
+            Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+        end;
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure ValidSourceEnvironmentNameIsAccepted()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660386] A name with letters, digits, hyphens and underscores is a valid environment name.
+        Initialize();
+        MasterDataManagementSetup.Get();
+
+        // [WHEN] a valid environment name is entered
+        MasterDataManagementSetup.Validate("Source Environment Name", 'Contoso_Prod-2');
+
+        // [THEN] it is accepted
+        Assert.AreEqual('Contoso_Prod-2', MasterDataManagementSetup."Source Environment Name", 'A valid environment name should be accepted');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportRefusesInvalidStoredEnvironmentName()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
     begin
         // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
-        // [SCENARIO 660386] The source environment name becomes a path segment of the request URL, so only a plain
-        //                   environment name is accepted; a name that would change the URL path is rejected.
+        // [SCENARIO 660386] A name stored without validation, for example by a configuration package, is checked again
+        //                   when the request URL is built, so it can't change which tenant the request addresses.
         Initialize();
-        MasterDataManagementSetup.Get();
-
-        // [WHEN] a name with URL path characters is entered [THEN] it is rejected
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", 'PROD/../../00000000-0000-0000-0000-0000000000aa/OTHER');
-        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", 'PROD?company=x');
-        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
-        // [WHEN] a name that doesn't start with a letter or is longer than 30 characters is entered [THEN] it is rejected
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", '1PROD');
-        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", PadStr('PROD', 31, 'X'));
-        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
-
-        // [WHEN] a valid environment name is entered [THEN] it is accepted
-        MasterDataManagementSetup.Validate("Source Environment Name", 'Contoso_Prod-2');
-
-        // [GIVEN] an invalid name stored without validation, for example by a configuration package
+        // [GIVEN] an invalid name stored without validation
         MasterDataManagementSetup.Get();
         MasterDataManagementSetup."Source Environment Name" := 'PROD/../../OTHER';
         MasterDataManagementSetup.Modify(false);
+        Commit(); // asserterror rolls back; keep the setup row that Initialize may have inserted
 
         // [WHEN] the transport builds the source URL [THEN] it refuses
         asserterror LibraryMasterDataMgt.GetHttpTransportSourceApiBaseUrl();
