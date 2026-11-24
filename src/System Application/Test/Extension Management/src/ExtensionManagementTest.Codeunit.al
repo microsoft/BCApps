@@ -64,6 +64,7 @@ codeunit 133100 "Extension Management Test"
         // [SCENARIO] SaaS users receive the migration notification only while legacy PTE upload is available.
         // [GIVEN] Extension management permissions and a SaaS environment.
         PermissionsMock.Set('Exten. Mgt. - Admin');
+        PermissionsMock.Assign('User Settings View');
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         LibraryVariableStorage.Clear();
 #if not CLEAN30
@@ -89,6 +90,7 @@ codeunit 133100 "Extension Management Test"
         // [SCENARIO] On-premises users do not receive the PTE upload migration notification.
         // [GIVEN] Extension management permissions and an on-premises environment.
         PermissionsMock.Set('Exten. Mgt. - Admin');
+        PermissionsMock.Assign('User Settings View');
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         LibraryVariableStorage.Clear();
 
@@ -763,8 +765,8 @@ codeunit 133100 "Extension Management Test"
     begin
         Assert.AreEqual(LibraryVariableStorage.DequeueText(), Notification.Message, 'Unexpected Extension Management notification.');
         ExpectedNotificationId := '3be91c11-8195-4c65-be23-20fddbea9bb7';
-        Assert.AreEqual(ExpectedNotificationId, Notification.Id, 'Unexpected notification ID.');
-        Assert.AreEqual(NotificationScope::LocalScope, Notification.Scope, 'The notification should be local to the page.');
+        Assert.IsTrue(ExpectedNotificationId = Notification.Id, 'Unexpected notification ID.');
+        Assert.IsTrue(Notification.Scope = NotificationScope::LocalScope, 'The notification should be local to the page.');
 
         exit(true);
     end;
