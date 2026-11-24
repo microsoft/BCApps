@@ -521,6 +521,36 @@ codeunit 148373 "EA Card Report Line Tests"
         VerifyCardLine(ExpenseReportLine, Expense);
     end;
 
+    [Test]
+    procedure DeletingReportWithCardLineReturnsExpenseToOpen()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        FeedNo: Integer;
+    begin
+        // [SCENARIO] B7: Deleting a whole draft report keeps its card expenses and puts them back in the pending list,
+        // so no card transaction points to a deleted expense.
+        Initialize();
+
+        // [GIVEN] A card line on an open report.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        FeedNo := Expense."Credit Card Feed No.";
+
+        // [WHEN] The report is deleted.
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.Delete(true);
+
+        // [THEN] The expense is open, off the report and still linked to its transaction.
+        Assert.IsTrue(Expense.Get(Expense."No."), 'The card expense must not be deleted with its report.');
+        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField("Expense Report No.", '');
+        Expense.TestField("Credit Card Feed No.", FeedNo);
+        CorpCardTrans.Get(FeedNo);
+        CorpCardTrans.TestField("Expense No.", Expense."No.");
+    end;
+
     // ---------------------------------------------------------------------------------------------
     // Expense rules on card lines (Use Rules on, credit card feed on)
     // Kept as is: attachment enforcement, merchant name mandatory, justification conditions, and duplicate
