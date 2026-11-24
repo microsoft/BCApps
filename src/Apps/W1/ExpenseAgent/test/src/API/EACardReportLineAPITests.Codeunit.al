@@ -9,9 +9,9 @@ using Microsoft.Foundation.Attachment;
 using System.Text;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines] [API]
-// API-level tests for corporate card transactions as expense report lines. The awaitingCardReport field,
-// the expenseReportLineId response property and the attachCardReceipt action are PLACEHOLDERS for APIs that do
-// not exist yet. Their names and payload are defined once in the labels and request
+// API-level tests for corporate card transactions as expense report lines. The cardExpenseAwaitingReport field
+// (replaces pendingCardExpense), the expenseReportLineId response property and the attachCardReceipt action are
+// PLACEHOLDERS for APIs that do not exist yet. Their names and payload are defined once in the labels and request
 // builders below, so they can be aligned with the final API in one place. Tests that need an unimplemented change
 // fail until the change lands; they are intentionally not disabled.
 codeunit 148374 "EA Card Report Line API Tests"
@@ -37,7 +37,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ReleaseExpenseActionTok: Label 'Microsoft.NAV.releaseExpense', Locked = true;
         // Placeholders for APIs that do not exist yet.
         AttachCardReceiptActionTok: Label 'Microsoft.NAV.attachCardReceipt', Locked = true;
-        AwaitingCardReportFieldTok: Label 'awaitingCardReport', Locked = true;
+        CardExpenseAwaitingReportFieldTok: Label 'cardExpenseAwaitingReport', Locked = true;
         ExpenseReportLineIdPropertyTok: Label 'expenseReportLineId', Locked = true;
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
@@ -82,7 +82,7 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     [Test]
-    procedure ExpensesAPIAwaitingCardReportListsOnlyCardExpensesNotOnReport()
+    procedure ExpensesAPICardExpenseAwaitingReportListsOnlyCardExpensesNotOnReport()
     var
         AwaitingExpense: Record Expense;
         ReleasedAwaitingExpense: Record Expense;
@@ -94,7 +94,8 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] The pending page lists card expenses (Source = CorporateCard) that are not on a report yet.
+        // [SCENARIO] cardExpenseAwaitingReport, which the pending page filters on, is true only for card expenses
+        // (Source = CorporateCard) that are not on a report, open or released.
         Initialize();
 
         // [GIVEN] An open and a released card expense not on a report, a card expense on a report and a manual expense
@@ -109,11 +110,11 @@ codeunit 148374 "EA Card Report Line API Tests"
         CreateLinkedManualExpense(LinkedManualExpense);
         Commit();
 
-        // [WHEN] The expenses of the expense user are filtered on awaitingCardReport eq true.
+        // [WHEN] The expenses of the expense user are filtered on cardExpenseAwaitingReport eq true.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
             ResponseText,
             LibraryGraphMgt.AppendQueryParameterToTargetURL(
-                GetUserScopedURL(AwaitingExpense, ExpensesServiceNameTok), '$filter=' + AwaitingCardReportFieldTok + ' eq true'),
+                GetUserScopedURL(AwaitingExpense, ExpensesServiceNameTok), '$filter=' + CardExpenseAwaitingReportFieldTok + ' eq true'),
             200);
 
         // [THEN] Only the card expenses that are not on a report are returned, open or released.
