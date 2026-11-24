@@ -12,7 +12,7 @@ codeunit 7246 "MDM Source Capabilities"
 
     var
         Negotiated: Boolean;
-        NegotiatedForUrl: Text;
+        NegotiatedForSource: Text;
         ContractVersion: Integer;
         SupportedFeatures: List of [Text];
         UnsupportedFeatureErr: Label 'The source environment does not support the required ''%1'' capability. Update the Master Data Management app on the source environment.', Comment = '%1 = capability name';
@@ -41,7 +41,7 @@ codeunit 7246 "MDM Source Capabilities"
     procedure Reset()
     begin
         Negotiated := false;
-        NegotiatedForUrl := '';
+        NegotiatedForSource := '';
         ContractVersion := 0;
         Clear(SupportedFeatures);
     end;
@@ -68,10 +68,10 @@ codeunit 7246 "MDM Source Capabilities"
         CurrentSource: Text;
     begin
         if MasterDataManagementSetup.Get() then
-            CurrentSource := MasterDataManagementSetup."Source Environment URL";
+            CurrentSource := MasterDataManagementSetup."Source Environment Name";
         // Re-negotiate when the configured source changes so a switched environment can't reuse the previous
         // source's cached feature/version data.
-        if Negotiated and (NegotiatedForUrl = CurrentSource) then
+        if Negotiated and (NegotiatedForSource = CurrentSource) then
             exit;
         Negotiated := false;
         ContractVersion := 0;
@@ -95,7 +95,7 @@ codeunit 7246 "MDM Source Capabilities"
             end;
         end;
         Negotiated := true;
-        NegotiatedForUrl := CurrentSource;
+        NegotiatedForSource := CurrentSource;
     end;
 
     local procedure RaiseCapabilitiesParseError(MasterDataManagement: Codeunit "Master Data Management")
