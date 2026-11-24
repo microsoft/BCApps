@@ -122,6 +122,72 @@ codeunit 133754 "Custom Agent Test"
     end;
 
     [Test]
+    procedure TestGetDescriptionReturnsEachAgentsCurrentSavedText()
+    var
+        CustomAgentSetup: Record "Custom Agent Setup";
+        AgentMetadata: Interface IAgentMetadata;
+    begin
+        Initialize();
+        AgentMetadata := Enum::"Agent Metadata Provider"::"Custom Agent";
+
+        CustomAgentSetup.Get(TestAgentId1);
+        Assert.AreEqual(CustomAgentSetup.Description, AgentMetadata.GetDescription(TestAgentId1), 'The first agent should return its own description.');
+        CustomAgentSetup.Get(TestAgentId2);
+        Assert.AreEqual(CustomAgentSetup.Description, AgentMetadata.GetDescription(TestAgentId2), 'The second agent should return its own description.');
+
+        CustomAgentSetup.Description := 'Updated description';
+        CustomAgentSetup.Modify(true);
+        Assert.AreEqual(CustomAgentSetup.Description, AgentMetadata.GetDescription(TestAgentId2), 'The next read should return the saved edit.');
+    end;
+
+    [Test]
+    procedure TestGetDescriptionReturnsEmptyForMissingOrClearedData()
+    var
+        CustomAgentSetup: Record "Custom Agent Setup";
+        AgentMetadata: Interface IAgentMetadata;
+        EmptyGuid: Guid;
+    begin
+        Initialize();
+        AgentMetadata := Enum::"Agent Metadata Provider"::"Custom Agent";
+        Assert.AreEqual('', AgentMetadata.GetDescription(EmptyGuid), 'A null agent ID should have no description.');
+        Assert.AreEqual('', AgentMetadata.GetDescription(CreateGuid()), 'An unknown agent should have no description.');
+
+        CustomAgentSetup.Get(TestAgentId1);
+        Clear(CustomAgentSetup.Description);
+        CustomAgentSetup.Modify(true);
+        Assert.AreEqual('', AgentMetadata.GetDescription(TestAgentId1), 'A cleared description should remain empty.');
+
+        CustomAgentSetup.Get(TestAgentId2);
+        CustomAgentSetup.Delete();
+        Initialized := false;
+        Assert.AreEqual('', AgentMetadata.GetDescription(TestAgentId2), 'An agent without a setup record should have no description.');
+    end;
+
+    [Test]
+    procedure TestGetDescriptionRequiresAgentAccessToCurrentCompany()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        CustomAgentSetup: Record "Custom Agent Setup";
+        Agent: Codeunit Agent;
+        AgentMetadata: Interface IAgentMetadata;
+        AgentUserName: Code[50];
+    begin
+        // The creator can use the agent, but no permission set gives the agent access to this company.
+        AgentUserName := CopyStr(Any.AlphanumericText(MaxStrLen(AgentUserName)), 1, MaxStrLen(AgentUserName));
+        CustomAgentSetup."User Security ID" := Agent.Create(Enum::"Agent Metadata Provider"::"Custom Agent", AgentUserName, 'Agent without company access', TempAgentAccessControl);
+        CustomAgentSetup.Description := 'Description outside the current company';
+        CustomAgentSetup.Insert(true);
+
+        AgentRecord.Get(CustomAgentSetup."User Security ID");
+        Assert.IsTrue(AgentRecord."Can Current User Use Agent", 'The caller should have use access to the agent.');
+        Assert.IsFalse(AgentRecord."Can Access Current Company", 'The agent should have no access to the current company.');
+
+        AgentMetadata := AgentRecord."Agent Metadata Provider";
+        Assert.AreEqual('', AgentMetadata.GetDescription(AgentRecord."User Security ID"), 'A direct metadata call must not disclose a description across companies.');
+    end;
+
+    [Test]
     procedure TestGetCustomAgents_ReturnsAllAgents()
     var
         TempAgentInfo: Record "Custom Agent Info" temporary;
