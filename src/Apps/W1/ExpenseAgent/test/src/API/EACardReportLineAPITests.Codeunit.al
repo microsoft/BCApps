@@ -35,13 +35,13 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseReportLinesServiceNameTok: Label 'expenseReportLines', Locked = true;
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
-        ReleaseExpenseActionTok: Label 'Microsoft.NAV.releaseExpense', Locked = true;
         // Placeholders for APIs that do not exist yet.
         AddCardExpenseToReportActionTok: Label 'Microsoft.NAV.addCardExpenseToReport', Locked = true;
         AttachCardReceiptActionTok: Label 'Microsoft.NAV.attachCardReceipt', Locked = true;
         CardExpenseAwaitingReportFieldTok: Label 'cardExpenseAwaitingReport', Locked = true;
         ExpenseReportLineIdPropertyTok: Label 'expenseReportLineId', Locked = true;
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
+        OtherCardIdTok: Label 'CORPCARD-0002', Locked = true;
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
         ReceiptFileNameTok: Label 'receipt.png', Locked = true;
         OtherReceiptFileNameTok: Label 'other-receipt.jpg', Locked = true;
@@ -121,24 +121,23 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     [Test]
-    procedure AddCardExpenseToReportAPIRejectsManualExpense()
+    procedure AddCardExpenseToReportAPIRejectsLinkedManualExpense()
     var
         Expense: Record Expense;
-        CorpCard: Record "EA Corp Card";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] The Expense Agent action is only for card expenses; a manual expense follows the standard flow.
+        // [SCENARIO] The Expense Agent action is only for expenses created from a card transaction. A manual expense that
+        // is linked to a transaction follows the standard flow.
         Initialize();
 
-        // [GIVEN] An open manual expense paid with the card and an open report.
-        CorpCard.Get(CardIdTok);
-        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        // [GIVEN] An open manual expense linked to a card transaction and an open report.
+        CreateLinkedManualExpense(Expense);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
         Commit();
 
-        // [WHEN] addCardExpenseToReport is called with the manual expense.
+        // [WHEN] addCardExpenseToReport is called with the linked manual expense.
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
 
@@ -151,26 +150,32 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     [Test]
-    procedure ReleaseExpenseAPIStillRequiresCategoryForCardExpense()
+    procedure AddCardExpenseToReportAPIRejectsOtherUsersCardExpense()
     var
         Expense: Record Expense;
+        OtherExpense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] Regression: The standard releaseExpense action keeps the existing rules for card expenses; only the
-        // Expense Agent action relaxes the category.
+        // [SCENARIO] The Expense Agent action only adds card expenses of the report's expense user.
         Initialize();
 
-        // [GIVEN] An open card expense without a category.
+        // [GIVEN] A report of the first expense user and an open card expense of another expense user.
         CreateCardExpense(Expense);
-        ClearCategory(Expense);
+        CreateCardExpense(OtherExpense, OtherCardIdTok);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
         Commit();
 
-        // [WHEN] releaseExpense is called.
-        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(GetExpenseActionURL(Expense, ReleaseExpenseActionTok), '', ResponseText, 200);
+        // [WHEN] addCardExpenseToReport is called with the other user's expense.
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(OtherExpense), ResponseText, 200);
 
-        // [THEN] The expense stays open.
-        Expense.Get(Expense."No.");
-        Expense.TestField(Status, Expense.Status::Open);
+        // [THEN] The expense is not added and stays open.
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        Assert.RecordIsEmpty(ExpenseReportLine);
+        OtherExpense.Get(OtherExpense."No.");
+        OtherExpense.TestField(Status, OtherExpense.Status::Open);
         CompleteTest();
     end;
 
@@ -701,13 +706,18 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     local procedure CreateCardExpense(var Expense: Record Expense)
+    begin
+        CreateCardExpense(Expense, CardIdTok);
+    end;
+
+    local procedure CreateCardExpense(var Expense: Record Expense; CardId: Code[50])
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
         ExpenseWriter: Codeunit "EA Corp Card Expense Writer";
         ExpenseNo: Code[20];
     begin
-        CorpCard.Get(CardIdTok);
+        CorpCard.Get(CardId);
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         ExpenseWriter.CreateDraftFromTrans(CorpCardTrans, ExpenseNo);
         CorpCardTrans.Modify(true);
@@ -963,11 +973,6 @@ codeunit 148374 "EA Card Report Line API Tests"
     begin
         exit(LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ExpenseReportHeader.SystemId), Page::"Expense Reports API", ExpenseReportsServiceNameTok, ActionName));
-    end;
-
-    local procedure GetExpenseActionURL(Expense: Record Expense; ActionName: Text): Text
-    begin
-        exit(LibraryGraphMgt.CreateTargetURLWithSubpage(Format(Expense.SystemId), Page::"Expenses API", ExpensesServiceNameTok, ActionName));
     end;
 
     local procedure GetUserScopedURL(Expense: Record Expense; SubpageServiceName: Text): Text
