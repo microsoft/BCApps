@@ -9,6 +9,7 @@ using System.AI;
 using System.Environment.Consumption;
 using System.TestLibraries.Environment;
 
+// [FEATURE] [Expense Agent] [Consumption]
 codeunit 148299 "Expense Consumption Test"
 {
     Subtype = Test;
@@ -257,12 +258,16 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] Quota evaluation never falls back to the integration session when the expense user's Entra ID is missing
         Initialize();
+
+        // [GIVEN] An expense user without a stored Entra ID
         LibraryExpense.CreateExpenseUser(ExpenseUser);
         Clear(ExpenseUser."Entra Id");
         ExpenseUserConsAPI.SetRecord(ExpenseUser);
 
+        // [WHEN] The bound action checks consumption quota
         asserterror ExpenseUserConsAPI.CanConsume();
 
+        // [THEN] The missing Entra ID is rejected
         Assert.ExpectedTestFieldError(ExpenseUser.FieldCaption("Entra Id"), '');
         Assert.ExpectedErrorCode('TestField');
     end;
@@ -409,6 +414,8 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] V2 requests submit both pipelines with the companion row's stable identity and request context
         Initialize();
+
+        // [GIVEN] A paid consumption request with model usage and explicit session and principal identities
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
         RequestJson := CreateValidConsumptionJson();
         ModelJson := RequestJson.GetObject('model');
@@ -417,10 +424,12 @@ codeunit 148299 "Expense Consumption Test"
         InteractionId := CreateGuid();
         PrincipalId := CreateGuid();
 
+        // [WHEN] The request is reported
         ConsumptionId := ExpenseConsumptionHandler.LogAIConsumptionV2(RequestJson, 'Processed expense',
             Enum::"Expense Agent Cons. Source"::Expense, CreateGuid(), 'PROCESS EXPENSE', 'CONSUMPTION TEST',
             SessionId, InteractionId, PrincipalId, 'Expense user');
 
+        // [THEN] Both pipelines receive the companion identity and their respective usage payloads
         ExpenseAgentEnvConsumption.GetBySystemId(ConsumptionId);
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must be submitted once.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must be submitted once.');
@@ -452,6 +461,9 @@ codeunit 148299 "Expense Consumption Test"
     procedure V1ProcessReplayAfterCutoverDoesNotRecordV2()
     begin
         // [SCENARIO] A paid PROCESS recorded in V1 is not recorded again in V2 after cutover
+        // [GIVEN] A paid PROCESS event is recorded before cutover
+        // [WHEN] The event is retried after cutover
+        // [THEN] V2 records only new consumption, not the completed V1 event
         VerifyV1ReplayAfterCutover('PROCESS');
     end;
 
@@ -459,6 +471,9 @@ codeunit 148299 "Expense Consumption Test"
     procedure V1PolicyReplayAfterCutoverDoesNotRecordV2()
     begin
         // [SCENARIO] A paid policy evaluation recorded in V1 is not recorded again in V2 after cutover
+        // [GIVEN] A paid policy evaluation is recorded before cutover
+        // [WHEN] The event is retried after cutover
+        // [THEN] V2 records only new consumption, not the completed V1 event
         VerifyV1ReplayAfterCutover('PE:EVALUATE');
     end;
 
@@ -474,12 +489,17 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] Repeating the final trial consumption submits both pipelines without consuming another trial
         Initialize();
+
+        // [GIVEN] The last available trial expense has been reported
         ExpenseAgentQuotaMock.SetTrialQuota(1);
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
         SourceId := CreateGuid();
         FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        // [WHEN] The same consumption is reported after trial exhaustion
         SecondId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
 
+        // [THEN] Both submissions retain the original trial identity without another quota decrement
         Assert.AreEqual(FirstId, SecondId, 'Repeated requests must reuse the companion ID.');
         ExpenseAgentEnvConsumption.GetBySystemId(FirstId);
         Assert.IsTrue(ExpenseAgentEnvConsumption."Is Feature Trial", 'The original trial classification must survive exhaustion.');
@@ -500,11 +520,15 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] Trial policy evaluations report both pipelines without consuming an expense trial
         Initialize();
+
+        // [GIVEN] One expense remains in the feature trial
         ExpenseAgentQuotaMock.SetTrialQuota(1);
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
 
+        // [WHEN] A policy evaluation is reported
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PE:EVALUATE');
 
+        // [THEN] Both pipelines receive trial usage without consuming an expense allowance
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive the policy evaluation.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive the policy evaluation.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Policy evaluations must not increment the trial counter.');
@@ -521,13 +545,17 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] Only the exact PROCESS operation consumes an expense trial
         Initialize();
+
+        // [GIVEN] One expense remains in the feature trial
         ExpenseAgentQuotaMock.SetTrialQuota(1);
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
 
+        // [WHEN] Matching, a nonexact processing name, and a blank operation are reported
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'MATCH');
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PROCESS EXPENSE');
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), '');
 
+        // [THEN] Both pipelines receive all operations without incrementing the trial counter
         Assert.AreEqual(3, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive all non-processing operations.');
         Assert.AreEqual(3, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive all non-processing operations.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Non-processing operations must not increment the trial counter.');
@@ -548,6 +576,8 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] A failure after the companion commit leaves the same ID available for a repeated request
         Initialize();
+
+        // [GIVEN] Reporting failed after the companion ID was committed
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
         ExpenseAgentQuotaMock.SetFailV2Reporting(true);
         SourceId := CreateGuid();
@@ -560,9 +590,11 @@ codeunit 148299 "Expense Consumption Test"
         OriginalId := ExpenseAgentEnvConsumption.SystemId;
         Assert.AreEqual(OriginalId, ExpenseAgentQuotaMock.GetLastV2ConsumptionId(), 'The failed attempt must have used the committed ID.');
 
+        // [WHEN] The same consumption is retried with reporting available
         ExpenseAgentQuotaMock.SetFailV2Reporting(false);
         RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS EXPENSE');
 
+        // [THEN] The committed ID is reused without creating another companion
         Assert.AreEqual(OriginalId, RepeatedId, 'A repeated request must reuse the committed ID.');
         Assert.AreEqual(1, ExpenseAgentEnvConsumption.Count(), 'A repeated request must not create another companion.');
         Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must be resubmitted after a failure.');
@@ -581,6 +613,8 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] A V2 request for an existing legacy event keeps its original companion
         Initialize();
+
+        // [GIVEN] A paid legacy companion exists before new trial quota becomes available
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
         SourceId := CreateGuid();
         LegacyId := ExpenseConsumptionHandler.LogAIConsumption(1, Enum::"Copilot Quota Usage Type"::"Autonomous Action",
@@ -588,8 +622,10 @@ codeunit 148299 "Expense Consumption Test"
             SourceId, 'PROCESS EXPENSE', 'CONSUMPTION TEST');
         ExpenseAgentQuotaMock.SetTrialQuota(1);
 
+        // [WHEN] V2 reports the same consumption
         V2Id := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS EXPENSE');
 
+        // [THEN] The existing companion and its paid classification are preserved
         Assert.AreEqual(LegacyId, V2Id, 'V2 must reuse the legacy companion SystemId.');
         ExpenseAgentEnvConsumption.GetBySystemId(V2Id);
         Assert.IsFalse(ExpenseAgentEnvConsumption."Is Feature Trial", 'V2 must preserve the legacy paid classification.');
@@ -607,10 +643,15 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] A companion without a platform entry has no billing details yet
         Initialize();
+
+        // [GIVEN] Neither ledger contains the companion and the display buffer has previous credits
         CreateBillingCompanion(ExpenseAgentEnvConsumption);
         TempUserAIConsumptionData."Copilot Credits" := 99;
 
+        // [WHEN] Billing details are requested
         Assert.IsFalse(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'Neither ledger means pending consumption.');
+
+        // [THEN] The pending summary clears previous values and has no description
         Assert.AreEqual(0, TempUserAIConsumptionData."Copilot Credits", 'Pending consumption must not retain a previous row''s credits.');
         Assert.IsFalse(TempUserAIConsumptionData."Processed For Billing", 'Pending consumption must not appear processed.');
         Assert.AreEqual(CompanyName(), TempUserAIConsumptionData."Company Name", 'Pending consumption must retain the source company.');
@@ -627,6 +668,8 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] Existing V1 ledger details and descriptions remain available
         Initialize();
+
+        // [GIVEN] The companion has a completed V1 ledger entry
         CreateBillingCompanion(ExpenseAgentEnvConsumption);
         UserAIConsumptionData."Unique Id" := ExpenseAgentEnvConsumption."Consumption Unique ID";
         UserAIConsumptionData."Consumption DateTime" := CurrentDateTime();
@@ -640,14 +683,21 @@ codeunit 148299 "Expense Consumption Test"
         DescriptionOutStream.WriteText('Legacy description');
         UserAIConsumptionData.Insert();
 
+        // [WHEN] The list requests billing details
         Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'V1 details must be found by the text key.');
+
+        // [THEN] The V1 summary retains its existing values
         Assert.AreEqual(7, TempUserAIConsumptionData."Copilot Credits", 'V1 credits must remain unchanged.');
         Assert.AreEqual('Legacy action', TempUserAIConsumptionData.Actions, 'V1 actions must remain unchanged.');
         Assert.AreEqual(2, TempUserAIConsumptionData."Copilot Studio Feature Quantity", 'V1 quantities must remain unchanged.');
         Assert.IsTrue(TempUserAIConsumptionData."Processed For Billing", 'V1 processing state must remain unchanged.');
+
+        // [GIVEN] The description changes after the summary is loaded
         UserAIConsumptionData.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
         DescriptionOutStream.WriteText('Updated legacy description');
         UserAIConsumptionData.Modify();
+
+        // [WHEN] [THEN] Drilldown loads the updated description
         VerifyBillingDescription(ExpenseAgentEnvConsumption, 'Updated legacy description');
     end;
 
@@ -661,6 +711,8 @@ codeunit 148299 "Expense Consumption Test"
     begin
         // [SCENARIO] V2 details resolve by companion SystemId without inventing V1 feature quantities
         Initialize();
+
+        // [GIVEN] The companion has a pending V2 ledger entry and the buffer has previous action text
         CreateBillingCompanion(ExpenseAgentEnvConsumption);
         AIConsumptionLogEntry.SystemId := ExpenseAgentEnvConsumption.SystemId;
         AIConsumptionLogEntry."Consumption DateTime" := CurrentDateTime();
@@ -672,7 +724,10 @@ codeunit 148299 "Expense Consumption Test"
         AIConsumptionLogEntry.Insert(false, true);
         TempUserAIConsumptionData.Actions := 'Previous action';
 
+        // [WHEN] The list requests billing details
         Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'V2 details must be found by SystemId.');
+
+        // [THEN] The summary uses V2 credits without loading action text or V1 feature quantities
         Assert.AreEqual(3.5, TempUserAIConsumptionData."Copilot Credits", 'The overview must use V2 AI credits.');
         Assert.AreEqual('', TempUserAIConsumptionData.Actions, 'V2 actions must remain empty without retaining a previous row''s value.');
         Assert.IsFalse(TempUserAIConsumptionData.Description.HasValue(), 'V2 list details must not load the description.');
@@ -680,9 +735,14 @@ codeunit 148299 "Expense Consumption Test"
         Assert.IsFalse(TempUserAIConsumptionData."Processed For Billing", 'Pending V2 reporting is not completed.');
         VerifyBillingDescription(ExpenseAgentEnvConsumption, 'Model action');
 
+        // [GIVEN] Platform reporting completes
         AIConsumptionLogEntry."Reporting State" := Enum::"AI Consumption Reporting State"::Completed;
         AIConsumptionLogEntry.Modify();
+
+        // [WHEN] The list refreshes the same summary
         ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData);
+
+        // [THEN] The completed reporting state is displayed
         Assert.IsTrue(TempUserAIConsumptionData."Processed For Billing", 'Completed V2 reporting must appear processed.');
     end;
 
