@@ -40,10 +40,9 @@ codeunit 131034 "Permissions Mock Test Handler" implements ITestHandler
 
     procedure OnBeforeTestCaseRun(Context: TestHandlerContext)
     begin
+        // Skipped cases can omit their after hook.
+        StopOwnedScope();
         StartScope();
-        // Also clears assignments left by a skipped case without an after hook.
-        if OwnsScope then
-            PermissionsMock.ClearAssignments();
     end;
 
     procedure OnAfterTestCaseRun(Context: TestHandlerContext)
