@@ -24,6 +24,7 @@ codeunit 148364 EACorpCardSelectionTests
         LibraryExpense: Codeunit "Library - Expense";
         LinkedReportLineCannotDeleteErr: Label 'Expense report %1 line %2 cannot be deleted because it is linked to corporate card transaction %3.', Comment = '%1 = expense report number, %2 = report line number, %3 = corporate card transaction entry number';
         CannotDeleteFeedLinkedExpenseErr: Label 'You cannot delete expense %1 because it is linked to corporate card transaction %2.', Comment = '%1 = expense number, %2 = corporate card transaction entry number';
+        CannotDeleteWithExpenseReportErr: Label 'You cannot delete expense %1 because it is associated with expense report %2.', Comment = '%1 = Expense No., %2 = Expense Report No.';
 
     [Test]
     procedure DefaultProviderSetupUsesNeutralShortNames()
@@ -134,18 +135,24 @@ codeunit 148364 EACorpCardSelectionTests
         ConfiguredCard: Record "EA Corp Card";
         Expense: Record Expense;
         CreateCorpCardSetup: Codeunit "EA Create Corp Card Setup";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
+        // [SCENARIO] Repeating default setup preserves a configured card referenced by a manually created expense.
         Initialize();
         InitializeDefaultBankAccount();
+
+        // [GIVEN] A configured card selected on a manually created expense.
         CreateCorpCardSetup.CreateDefaults();
         ConfiguredCard.Get('CORPCARD-0001');
-        ConfiguredCard."Card Id" := 'CONFIGURED-EXPENSE-CARD';
+        ConfiguredCard."Card Id" := LibraryUtility.GenerateRandomCodeWithLength(ConfiguredCard.FieldNo("Card Id"), Database::"EA Corp Card", 10);
         ConfiguredCard."Masked Card No." := '****5588';
         ConfiguredCard.Insert(true);
         CorpCardTestLib.InsertExpense(Expense, ConfiguredCard);
 
+        // [WHEN] Default corporate card setup is repeated.
         CreateCorpCardSetup.CreateDefaults();
 
+        // [THEN] The card, expense selection, and employee mapping are retained.
         Assert.IsTrue(ConfiguredCard.Get(ConfiguredCard."Card Id"), 'Default setup must retain a configured card already selected on an expense.');
         Expense.Get(Expense."No.");
         Assert.AreEqual(ConfiguredCard."Card Id", Expense."Corporate Card Id", 'The manual expense must retain its selected card.');
@@ -572,6 +579,35 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTrans.Get(CorpCardTrans."Entry No.");
         CorpCardTrans.TestField("Expense No.", Expense."No.");
         CorpCardTrans.TestField(Status, CorpCardTrans.Status::Matched);
+    end;
+
+    [Test]
+    procedure ClearingReportLinkInDeleteBufferCannotDeleteManualExpense()
+    var
+        CorpCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO] Clearing only the deletion buffer's report link cannot bypass protection of a stored manual expense.
+        Initialize();
+
+        // [GIVEN] A manual expense assigned to a report without a linked corporate-card transaction.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        Expense.TestField("Credit Card Feed No.", 0);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', '');
+        Expense."Expense Report No." := ExpenseReportHeader."No.";
+        Expense.Modify();
+        Commit();
+
+        // [WHEN] The report link is cleared only in the record buffer and deletion is attempted with triggers.
+        Expense."Expense Report No." := '';
+        asserterror Expense.Delete(true);
+
+        // [THEN] Deletion is rejected using the stored report link, and the expense retains that link.
+        Assert.ExpectedError(StrSubstNo(CannotDeleteWithExpenseReportErr, Expense."No.", ExpenseReportHeader."No."));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Report No.", ExpenseReportHeader."No.");
     end;
 
     [Test]

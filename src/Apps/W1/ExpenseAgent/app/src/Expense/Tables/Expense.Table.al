@@ -886,6 +886,8 @@ table 6900 Expense
         if not Rec.IsTemporary() then begin
             StoredExpense.ReadIsolation := IsolationLevel::UpdLock;
             StoredExpense.Get(Rec."No.");
+            if StoredExpense."Expense Report No." <> '' then
+                Error(CannotDeleteWithExpenseReportErr, StoredExpense."No.", StoredExpense."Expense Report No.");
             if StoredExpense."Credit Card Feed No." <> 0 then
                 Error(CannotDeleteFeedLinkedExpenseErr, StoredExpense."No.", StoredExpense."Credit Card Feed No.");
         end;
