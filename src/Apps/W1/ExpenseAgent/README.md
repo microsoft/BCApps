@@ -134,6 +134,16 @@ Use these additive bound actions when the caller needs the approval result:
 - `Microsoft.NAV.approvedExpenseReportWithPolicyOverrideAndOutcome`, with
   `approverExpenseUserNo` and `skipPolicyValidation`.
 
+Before calling either action, query `expenseCapabilities` and check that
+`ApprovalsWithOutcome` is present with `isEnabled: true`. This capability
+always reports true when the outcome actions are supported, independently
+of the **Allow Interim Approvers** setting. If it's absent or false, use the
+existing actions without an outcome; don't infer completion from a later 404.
+
+`InterimApprover` remains tied to **Allow Interim Approvers** and controls
+new interim assignments, not whether outcome actions are available. Compare
+capability names case-insensitively because they're stored as BC Code values.
+
 POST the action under `expenseReports({reportId})` using the existing
 `microsoft/expense/beta` API. The existing actions without an outcome remain
 unchanged. The new actions use the same approval permissions, active-approver

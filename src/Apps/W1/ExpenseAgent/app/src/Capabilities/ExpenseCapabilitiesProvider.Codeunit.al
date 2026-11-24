@@ -43,7 +43,8 @@ codeunit 6906 "Expense Capabilities Provider"
             Capability::ApprovalConversation,
             Capability::TravelRequest,
             Capability::CreditCardFeed,
-            Capability::ActiveApproverRouting:
+            Capability::ActiveApproverRouting,
+            Capability::ApprovalsWithOutcome:
                 exit(true);
         end;
         exit(false);

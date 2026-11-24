@@ -50,6 +50,9 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, 'activeApproverRouting', true),
             'Response must contain an enabled activeApproverRouting capability row.');
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'approvalsWithOutcome', true),
+            'Response must contain an enabled approvalsWithOutcome capability row.');
     end;
 
     [Test]
@@ -237,6 +240,8 @@ codeunit 148318 "Expense Capabilities API Test"
         // [THEN] Interim approvers are enabled.
         Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::InterimApprover),
             'interimApprover must be enabled when Allow Interim Approvers is true.');
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::ApprovalsWithOutcome),
+            'approvalsWithOutcome must be enabled when Allow Interim Approvers is true.');
     end;
 
     [Test]
@@ -260,6 +265,8 @@ codeunit 148318 "Expense Capabilities API Test"
         // [THEN] Interim approvers are disabled.
         Assert.IsFalse(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::InterimApprover),
             'interimApprover must be disabled when Allow Interim Approvers is false.');
+        Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::ApprovalsWithOutcome),
+            'approvalsWithOutcome must remain enabled when Allow Interim Approvers is false.');
     end;
 
     [Test]

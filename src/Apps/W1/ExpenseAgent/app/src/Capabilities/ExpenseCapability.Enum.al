@@ -129,4 +129,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Interim Approver', Locked = true;
     }
+
+    /// <summary>
+    /// Approval actions return an explicit outcome, independently of interim approver setup.
+    /// </summary>
+    value(13; ApprovalsWithOutcome)
+    {
+        Caption = 'Approvals With Outcome', Locked = true;
+    }
 }
