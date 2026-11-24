@@ -11,7 +11,7 @@ using System.Text;
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines] [API]
 // API-level tests for corporate card transactions as expense report lines. The awaitingCardReport field,
 // the expenseReportLineId response property and the attachCardReceipt action are PLACEHOLDERS for APIs that do
-// not exist yet (changes B2, B5 and B6). Their names and payload are defined once in the labels and request
+// not exist yet. Their names and payload are defined once in the labels and request
 // builders below, so they can be aligned with the final API in one place. Tests that need an unimplemented change
 // fail until the change lands; they are intentionally not disabled.
 codeunit 148374 "EA Card Report Line API Tests"
@@ -44,7 +44,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ReceiptFileContentTok: Label 'PDF-1.4 card receipt', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
-    // B1 / B2: adding card expenses to reports and listing card expenses that wait for a report
+    // Adding card expenses to reports and listing card expenses that wait for a report
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -55,7 +55,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] B1: addExpenseToReport adds an open card expense without a category, which "Create reports" relies on.
+        // [SCENARIO] addExpenseToReport adds an open card expense without a category, which "Create reports" relies on.
         Initialize();
 
         // [GIVEN] An open card expense without a category and an open report.
@@ -88,7 +88,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] B2: The pending page lists card expenses (Source = CorporateCard) that are not on a report yet.
+        // [SCENARIO] The pending page lists card expenses (Source = CorporateCard) that are not on a report yet.
         Initialize();
 
         // [GIVEN] A card expense not on a report, a card expense on a report and a manual expense linked to a transaction.
@@ -112,7 +112,7 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // B5: cardExpenseMatches finds card lines on open reports
+    // cardExpenseMatches finds card lines on open reports
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -122,7 +122,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] B5: A receipt from the general upload flow is matched to the card line that is already on an open report.
+        // [SCENARIO] A receipt from the general upload flow is matched to the card line that is already on an open report.
         Initialize();
 
         // [GIVEN] A card line of 20 without a receipt on an open report.
@@ -141,7 +141,7 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // B6: attachCardReceipt and the OCR sync rule (OS scenarios)
+    // attachCardReceipt: OCR fills only empty fields and never changes card values
     // Rule: OCR fills empty fields on the expense (so BC user edits on the expense win), then copies to the line only
     // the fields that are empty on the line (so web user edits win). Card fields never change.
     // ---------------------------------------------------------------------------------------------
@@ -152,7 +152,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B6 / OS11: The receipt is attached to the submitted expense and to its line.
+        // [SCENARIO] The receipt is attached to the submitted expense and to its line.
         Initialize();
 
         // [GIVEN] A card line without a receipt; its expense is submitted.
@@ -175,7 +175,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseCategory: Record "Expense Category";
         ReceiptDetails: JsonObject;
     begin
-        // [SCENARIO] OS1: On an untouched card line, OCR fills the empty category and participants on the expense and the line.
+        // [SCENARIO] On an untouched card line, OCR fills the empty category and participants on the expense and the line.
         Initialize();
 
         // [GIVEN] A card line without a category, added through "Create reports".
@@ -209,7 +209,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         UserCategory: Record "Expense Category";
         OcrCategory: Record "Expense Category";
     begin
-        // [SCENARIO] OS2: A category the web user set on the line wins; the expense keeps the OCR category as the agent trace.
+        // [SCENARIO] A category the web user set on the line wins; the expense keeps the OCR category as the agent trace.
         Initialize();
 
         // [GIVEN] A card line without a category on which the user sets a category.
@@ -240,7 +240,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         BCUserCategory: Record "Expense Category";
         OcrCategory: Record "Expense Category";
     begin
-        // [SCENARIO] OS3: A category a BC user set on the expense before it was added to a report is not overwritten by OCR.
+        // [SCENARIO] A category a BC user set on the expense before it was added to a report is not overwritten by OCR.
         Initialize();
 
         // [GIVEN] A card expense whose category a BC user set, added to a report.
@@ -271,7 +271,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ReceiptDetails: JsonObject;
     begin
-        // [SCENARIO] OS4: Participants the user added on the line are kept; OCR participants go to the expense only.
+        // [SCENARIO] Participants the user added on the line are kept; OCR participants go to the expense only.
         Initialize();
 
         // [GIVEN] A card line with one participant added by the user.
@@ -299,7 +299,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseDate: Date;
         MerchantName: Text[100];
     begin
-        // [SCENARIO] OS8: OCR values for amount, date, currency and merchant never change the card values.
+        // [SCENARIO] OCR values for amount, date, currency and merchant never change the card values.
         Initialize();
 
         // [GIVEN] A card line of 20.
@@ -332,7 +332,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         CategoryCode: Code[20];
         Description: Text[100];
     begin
-        // [SCENARIO] OS9: Empty OCR values never clear existing values on the expense or the line.
+        // [SCENARIO] Empty OCR values never clear existing values on the expense or the line.
         Initialize();
 
         // [GIVEN] A card line with a category and description.
@@ -362,7 +362,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] B6: The action is only for lines linked to a card transaction.
+        // [SCENARIO] The action is only for lines linked to a card transaction.
         Initialize();
 
         // [GIVEN] A standalone line that is not linked to a card transaction.
@@ -390,7 +390,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] B6: Receipts cannot be attached to card lines of a submitted report.
+        // [SCENARIO] Receipts cannot be attached to card lines of a submitted report.
         Initialize();
 
         // [GIVEN] A card line on a released report.
@@ -417,7 +417,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] B6 / OS12: Retrying the same receipt does not create a second attachment.
+        // [SCENARIO] Retrying the same receipt does not create a second attachment.
         Initialize();
 
         // [GIVEN] A card line with a receipt attached through the action.
@@ -436,7 +436,7 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // B7: the service's delete of a line and its expense cannot orphan the card transaction
+    // The service's delete of a line and its expense cannot orphan the card transaction
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -447,7 +447,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         CorpCardTrans: Record "EA Corp Card Trans";
         ResponseText: Text;
     begin
-        // [SCENARIO] B7: The service deletes a line and then its expense. The line delete works, the expense delete is
+        // [SCENARIO] The service deletes a line and then its expense. The line delete works, the expense delete is
         // refused, so the card transaction never points to a deleted expense.
         Initialize();
 
@@ -501,7 +501,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Expense.Modify();
     end;
 
-    // Card line through the existing released path; works without change B1.
+    // Card line through the existing released path; works with the current add-to-report rules.
     local procedure CreateCardLine(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
     var
         ExpenseCategory: Record "Expense Category";
@@ -518,7 +518,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Expense.Get(Expense."No.");
     end;
 
-    // Card line without a category, as "Create reports" creates it (needs change B1).
+    // Card line without a category, as "Create reports" creates it (needs open card expenses to be addable to a report).
     local procedure CreateCardLineWithoutCategory(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
     var
         ExpenseReportHeader: Record "Expense Report Header";
@@ -632,7 +632,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine.TestField("Receipt Attached", true);
     end;
 
-    // PLACEHOLDER contract for the attachCardReceipt action (change B6).
+    // PLACEHOLDER contract for the attachCardReceipt action.
     local procedure AttachCardReceipt(ExpenseReportLine: Record "Expense Report Line"; ReceiptDetails: JsonObject)
     var
         ResponseText: Text;
