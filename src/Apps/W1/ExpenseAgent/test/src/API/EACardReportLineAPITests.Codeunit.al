@@ -7,11 +7,13 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
 using System.Text;
+using System.Utilities;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines] [API]
 // API-level tests for corporate card transactions as expense report lines. The cardExpenseAwaitingReport field
-// (replaces pendingCardExpense), the expenseReportLineId response property and the attachCardReceipt action are
-// PLACEHOLDERS for APIs that do not exist yet. Their names and payload are defined once in the labels and request
+// (replaces pendingCardExpense), the expenseReportLineId response property and the addCardExpenseToReport and
+// attachCardReceipt actions are PLACEHOLDERS for APIs that do not exist yet. Both actions are Expense Agent entry
+// points; without the Expense Agent, card expenses follow the standard BC flow. Their names and payload are defined once in the labels and request
 // builders below, so they can be aligned with the final API in one place. Tests that need an unimplemented change
 // fail until the change lands; they are intentionally not disabled.
 codeunit 148374 "EA Card Report Line API Tests"
@@ -33,31 +35,32 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseReportLinesServiceNameTok: Label 'expenseReportLines', Locked = true;
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
-        AddExpenseToReportActionTok: Label 'Microsoft.NAV.addExpenseToReport', Locked = true;
         ReleaseExpenseActionTok: Label 'Microsoft.NAV.releaseExpense', Locked = true;
         // Placeholders for APIs that do not exist yet.
+        AddCardExpenseToReportActionTok: Label 'Microsoft.NAV.addCardExpenseToReport', Locked = true;
         AttachCardReceiptActionTok: Label 'Microsoft.NAV.attachCardReceipt', Locked = true;
         CardExpenseAwaitingReportFieldTok: Label 'cardExpenseAwaitingReport', Locked = true;
         ExpenseReportLineIdPropertyTok: Label 'expenseReportLineId', Locked = true;
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
-        ReceiptFileNameTok: Label 'receipt.pdf', Locked = true;
-        ReceiptFileContentTok: Label 'PDF-1.4 card receipt', Locked = true;
+        ReceiptFileNameTok: Label 'receipt.png', Locked = true;
+        OtherReceiptFileNameTok: Label 'other-receipt.jpg', Locked = true;
+        OnePixelPngBase64Tok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
     // Adding card expenses to reports and listing card expenses that wait for a report
     // ---------------------------------------------------------------------------------------------
 
     [Test]
-    procedure ReleaseAndAddExpenseToReportAPIAcceptCardExpenseWithoutCategory()
+    procedure AddCardExpenseToReportAPIAddsOpenCardExpenseWithoutCategory()
     var
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] "Create reports" releases a card expense without a category through releaseExpense and then adds it
-        // to a report through addExpenseToReport.
+        // [SCENARIO] "Create reports" adds an open card expense without a category through the Expense Agent action, which
+        // releases it with the relaxed category rule and adds it to the report in one call.
         Initialize();
 
         // [GIVEN] An open card expense without a category and an open report.
@@ -66,21 +69,134 @@ codeunit 148374 "EA Card Report Line API Tests"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
         Commit();
 
-        // [WHEN] releaseExpense and then addExpenseToReport are called.
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(GetExpenseActionURL(Expense, ReleaseExpenseActionTok), '', ResponseText, 200);
+        // [WHEN] addCardExpenseToReport is called with the expense id.
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            GetReportActionURL(ExpenseReportHeader, AddExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
+            GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
 
-        // [THEN] The report has a card line for the expense.
+        // [THEN] The report has a card line without a category and the expense is submitted on the report.
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLine.SetRange("Expense No.", Expense."No.");
         Assert.RecordCount(ExpenseReportLine, 1);
         ExpenseReportLine.FindFirst();
         ExpenseReportLine.TestField("Credit Card Feed No.", Expense."Credit Card Feed No.");
         ExpenseReportLine.TestField(Amount, Expense.Amount);
+        ExpenseReportLine.TestField("Expense Category", '');
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Submitted);
         CompleteTest();
     end;
 
+    [Test]
+    procedure AddCardExpenseToReportAPIAddsReleasedCardExpense()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        ResponseText: Text;
+    begin
+        // [SCENARIO] A card expense that is already released, for example after "Remove from report", is added again by
+        // the same action.
+        Initialize();
+
+        // [GIVEN] A released card expense with a category and an open report.
+        CreateCardExpense(Expense);
+        CreateCardCategory(ExpenseCategory);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Modify(true);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        Commit();
+
+        // [WHEN] addCardExpenseToReport is called with the expense id.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
+
+        // [THEN] The report has a card line for the expense.
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpenseReportLine, 1);
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure AddCardExpenseToReportAPIRejectsManualExpense()
+    var
+        Expense: Record Expense;
+        CorpCard: Record "EA Corp Card";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ResponseText: Text;
+    begin
+        // [SCENARIO] The Expense Agent action is only for card expenses; a manual expense follows the standard flow.
+        Initialize();
+
+        // [GIVEN] An open manual expense paid with the card and an open report.
+        CorpCard.Get(CardIdTok);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        Commit();
+
+        // [WHEN] addCardExpenseToReport is called with the manual expense.
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
+
+        // [THEN] The expense is not added and stays open.
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        Assert.RecordIsEmpty(ExpenseReportLine);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Open);
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure ReleaseExpenseAPIStillRequiresCategoryForCardExpense()
+    var
+        Expense: Record Expense;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Regression: The standard releaseExpense action keeps the existing rules for card expenses; only the
+        // Expense Agent action relaxes the category.
+        Initialize();
+
+        // [GIVEN] An open card expense without a category.
+        CreateCardExpense(Expense);
+        ClearCategory(Expense);
+        Commit();
+
+        // [WHEN] releaseExpense is called.
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(GetExpenseActionURL(Expense, ReleaseExpenseActionTok), '', ResponseText, 200);
+
+        // [THEN] The expense stays open.
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Open);
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure ReportWithCardLineWithoutCategoryCannotBeReleased()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A card line added without a category does not relax report release; the user must set a category on
+        // the line first.
+        Initialize();
+
+        // [GIVEN] A card line without a category, added through "Create reports".
+        CreateCardLineWithoutCategory(Expense, ExpenseReportLine);
+        Commit();
+
+        // [WHEN] The report is released.
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        asserterror ExpenseReportHeader.PerformManualRelease();
+
+        // [THEN] The missing category blocks the release.
+        Assert.ExpectedError(ExpenseReportLine.FieldCaption("Expense Category"));
+        CompleteTest();
+    end;
     [Test]
     procedure ExpensesAPICardExpenseAwaitingReportListsOnlyCardExpensesNotOnReport()
     var
@@ -451,6 +567,89 @@ codeunit 148374 "EA Card Report Line API Tests"
         CompleteTest();
     end;
 
+    [Test]
+    procedure AttachCardReceiptWithAnotherReceiptIsRejected()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        DocumentAttachment: Record "Document Attachment";
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Once a card expense has its receipt, a different receipt cannot be attached through the action.
+        Initialize();
+
+        // [GIVEN] A card line with a receipt attached through the action.
+        CreateCardLine(Expense, ExpenseReportLine);
+        Commit();
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+
+        // [WHEN] Another receipt is attached.
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetAttachCardReceiptURL(ExpenseReportLine),
+            CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D), OtherReceiptFileNameTok, Enum::"Image Format"::Jpeg), ResponseText, 200);
+
+        // [THEN] The request is rejected and the first receipt is kept.
+        Assert.AreEqual(1, CountExpenseAttachments(Expense), 'The expense must keep its single receipt.');
+        Assert.AreEqual(1, CountLineAttachments(ExpenseReportLine), 'The line must keep its single receipt.');
+        FindExpenseReceipt(Expense, DocumentAttachment);
+        Assert.AreEqual(ReceiptFileNameTok, DocumentAttachment."File Name" + '.' + DocumentAttachment."File Extension", 'The first receipt must be kept.');
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure AttachedCardReceiptCannotBeDeletedFromExpense()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        // [SCENARIO] The receipt attached through the action is locked on the expense; it cannot be deleted later.
+        Initialize();
+
+        // [GIVEN] A card line with a receipt attached through the action.
+        CreateCardLine(Expense, ExpenseReportLine);
+        Commit();
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+
+        // [WHEN] The receipt is deleted from the expense.
+        FindExpenseReceipt(Expense, DocumentAttachment);
+        asserterror DocumentAttachment.Delete(true);
+
+        // [THEN] The receipt is still attached to the expense and the line.
+        VerifyReceiptAttached(Expense, ExpenseReportLine);
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure AttachCardReceiptLinksLineReceiptToExpenseReceipt()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReceipt: Record "Document Attachment";
+        LineReceipt: Record "Document Attachment";
+    begin
+        // [SCENARIO] The line gets the same receipt as the expense, so it cannot be removed from the line on its own.
+        Initialize();
+
+        // [GIVEN] A card line without a receipt.
+        CreateCardLine(Expense, ExpenseReportLine);
+        Commit();
+
+        // [WHEN] A receipt is attached to the card line.
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+
+        // [THEN] The line's receipt refers to the same document as the expense's receipt.
+        FindExpenseReceipt(Expense, ExpenseReceipt);
+        FindLineReceipt(ExpenseReportLine, LineReceipt);
+        Assert.AreEqual(ExpenseReceipt."Document Reference ID", LineReceipt."Document Reference ID", 'The line receipt must refer to the expense receipt.');
+
+        // [THEN] Deleting the receipt from the line is rejected.
+        asserterror LineReceipt.Delete(true);
+        LineReceipt.SetRecFilter();
+        Assert.RecordIsNotEmpty(LineReceipt);
+        CompleteTest();
+    end;
+
     // ---------------------------------------------------------------------------------------------
     // The service's delete of a line and its expense cannot orphan the card transaction
     // ---------------------------------------------------------------------------------------------
@@ -534,17 +733,21 @@ codeunit 148374 "EA Card Report Line API Tests"
         Expense.Get(Expense."No.");
     end;
 
-    // Card line without a category, as "Create reports" creates it (needs card expenses to be releasable without a category).
+    // Card line without a category, as "Create reports" creates it through the addCardExpenseToReport action.
     local procedure CreateCardLineWithoutCategory(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
     var
         ExpenseReportHeader: Record "Expense Report Header";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        ResponseText: Text;
     begin
         CreateCardExpense(Expense);
         ClearCategory(Expense);
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
-        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        Commit();
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.SetRange("Expense No.", Expense."No.");
+        ExpenseReportLine.FindFirst();
         Expense.Get(Expense."No.");
     end;
 
@@ -660,18 +863,56 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     local procedure CreateAttachCardReceiptRequest(ReceiptDetails: JsonObject): Text
+    begin
+        exit(CreateAttachCardReceiptRequest(ReceiptDetails, ReceiptFileNameTok, Enum::"Image Format"::Png));
+    end;
+
+    local procedure CreateAttachCardReceiptRequest(ReceiptDetails: JsonObject; FileName: Text; ImageFormat: Enum "Image Format"): Text
     var
-        Base64Convert: Codeunit "Base64 Convert";
         Request: JsonObject;
         ReceiptDetailsText: Text;
         RequestText: Text;
     begin
         ReceiptDetails.WriteTo(ReceiptDetailsText);
-        Request.Add('fileName', ReceiptFileNameTok);
-        Request.Add('fileContent', Base64Convert.ToBase64(ReceiptFileContentTok));
+        Request.Add('fileName', FileName);
+        Request.Add('fileContent', GetReceiptImageBase64(ImageFormat));
         Request.Add('receiptDetails', ReceiptDetailsText);
         Request.WriteTo(RequestText);
         exit(RequestText);
+    end;
+
+    // A real one-pixel image, built without DotNet like "Library - Expense".CreateTempBLOBWithImageOfType on main.
+    local procedure GetReceiptImageBase64(ImageFormat: Enum "Image Format"): Text
+    var
+        Image: Codeunit Image;
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        OutStream: OutStream;
+        InStream: InStream;
+    begin
+        Image.FromBase64(OnePixelPngBase64Tok);
+        Image.SetFormat(ImageFormat);
+        TempBlob.CreateOutStream(OutStream);
+        Image.Save(OutStream);
+        TempBlob.CreateInStream(InStream);
+        exit(Base64Convert.ToBase64(InStream));
+    end;
+
+    local procedure FindExpenseReceipt(Expense: Record Expense; var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.SetRange("Table ID", Database::Expense);
+        DocumentAttachment.SetRange("No.", Expense."No.");
+        DocumentAttachment.SetRange("No Receipt Declaration", false);
+        DocumentAttachment.FindFirst();
+    end;
+
+    local procedure FindLineReceipt(ExpenseReportLine: Record "Expense Report Line"; var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.SetRange("Table ID", Database::"Expense Report Line");
+        DocumentAttachment.SetRange("No.", ExpenseReportLine."Document No.");
+        DocumentAttachment.SetRange("Line No.", ExpenseReportLine."Line No.");
+        DocumentAttachment.SetRange("No Receipt Declaration", false);
+        DocumentAttachment.FindFirst();
     end;
 
     // OCR details as the service extracts them. Empty values mean "not extracted".
