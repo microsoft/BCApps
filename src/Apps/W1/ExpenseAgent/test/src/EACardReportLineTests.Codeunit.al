@@ -9,7 +9,7 @@ using Microsoft.ExpenseAgent;
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines]
 // Card transactions become expense report lines before a receipt exists. These tests describe the target behavior
 // (changes B1, B3, B4, B5 and B7 of the corporate card report line design). Tests that need a change that is not
-// implemented yet are listed in src/DisabledTests/Expense_Agent_Tests until the change lands.
+// implemented yet fail until the change lands; they are intentionally not disabled.
 codeunit 148373 "EA Card Report Line Tests"
 {
     Subtype = Test;
