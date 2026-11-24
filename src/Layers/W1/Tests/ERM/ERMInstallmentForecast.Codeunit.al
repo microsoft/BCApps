@@ -30,6 +30,7 @@ codeunit 134498 "ERM Installment Forecast"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryInstallments: Codeunit "Library - ERM Installments";
         LibraryCashFlow: Codeunit "Library - Cash Flow";
+        DaysDateFormulaTok: Label '<%1D>', Locked = true, Comment = '%1 = Number of days';
 
     [Test]
     procedure ForecastRetainsSeparateInstallmentObligations()
@@ -92,7 +93,7 @@ codeunit 134498 "ERM Installment Forecast"
         ForecastEntry.SetRange("Document No.", Invoice."No.");
         Assert.AreEqual(3, ForecastEntry.Count(), 'Registration must not merge obligations sharing an invoice number.');
         for Index := 1 to 3 do begin
-            ForecastEntry.SetRange("Cash Flow Date", CalcDate(StrSubstNo('<%1D>', Index * 30), Invoice."Document Date"));
+            ForecastEntry.SetRange("Cash Flow Date", CalcDate(StrSubstNo(DaysDateFormulaTok, Index * 30), Invoice."Document Date"));
             Assert.AreEqual(1, ForecastEntry.Count(), 'Each installment must retain its forecast date after registration.');
         end;
         Forecast.CalcFields("Amount (LCY)");
@@ -272,7 +273,7 @@ codeunit 134498 "ERM Installment Forecast"
         Assert.AreEqual(125, Line."Amount (LCY)", 'Forecast terms must not change the original aggregate receivable.');
         for Index := 1 to 3 do begin
             LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", Index);
-            Entry.TestField("Due Date", CalcDate(StrSubstNo('<%1D>', Index * 30), Invoice."Document Date"));
+            Entry.TestField("Due Date", CalcDate(StrSubstNo(DaysDateFormulaTok, Index * 30), Invoice."Document Date"));
         end;
 
         // [WHEN] Flow step 3: The override is disabled and the same forecast is refreshed.
@@ -318,7 +319,9 @@ codeunit 134498 "ERM Installment Forecast"
         // [THEN] Only the overdue forecast line moves; ledger due dates and future forecast dates are preserved.
         FilterInvoiceLines(Line, Forecast, Invoice);
         Assert.AreEqual(3, Line.Count(), 'Moving an overdue forecast date must not duplicate the invoice.');
+#pragma warning disable AA0210 // Lines are already scoped to a single forecast and invoice.
         Line.SetRange("Cash Flow Date", WorkDate());
+#pragma warning restore AA0210
         Assert.AreEqual(1, Line.Count(), 'Only the overdue installment must move to the work date.');
         Line.FindFirst();
         Line.TestField(Overdue, true);

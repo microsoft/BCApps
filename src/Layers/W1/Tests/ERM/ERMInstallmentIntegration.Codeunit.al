@@ -32,6 +32,7 @@ codeunit 134499 "ERM Installment Integration"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryInstallments: Codeunit "Library - ERM Installments";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        DaysDateFormulaTok: Label '<%1D>', Locked = true, Comment = '%1 = Number of days';
 
     [Test]
     procedure ReadRoleCanReadPostedScheduleAndLiveBalances()
@@ -146,7 +147,7 @@ codeunit 134499 "ERM Installment Integration"
         Invoice: Record "Sales Invoice Header";
         Entry: Record "Cust. Ledger Entry";
         JournalLine: Record "Gen. Journal Line";
-        Template: Record "Gen. Journal Template";
+        JournalTemplate: Record "Gen. Journal Template";
         Batch: Record "Gen. Journal Batch";
         Aggregate: Record "Sales Invoice Entity Aggregate";
         PermissionsMock: Codeunit "Permissions Mock";
@@ -165,10 +166,10 @@ codeunit 134499 "ERM Installment Integration"
         Entry."Applies-to ID" := ApplicationID;
         Entry."Amount to Apply" := 41.67;
         Entry.Modify(true);
-        LibraryERM.FindGenJournalTemplate(Template);
-        LibraryERM.CreateGenJournalBatch(Batch, Template.Name);
+        LibraryERM.FindGenJournalTemplate(JournalTemplate);
+        LibraryERM.CreateGenJournalBatch(Batch, JournalTemplate.Name);
         LibraryERM.CreateGeneralJnlLineWithBalAcc(
-            JournalLine, Template.Name, Batch.Name, JournalLine."Document Type"::Payment,
+            JournalLine, JournalTemplate.Name, Batch.Name, JournalLine."Document Type"::Payment,
             JournalLine."Account Type"::Customer, Entry."Customer No.",
             JournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), -41.67);
         JournalLine.Validate("Posting Date", WorkDate());
@@ -304,7 +305,7 @@ codeunit 134499 "ERM Installment Integration"
                 Line."Allocation Type" := Line."Allocation Type"::"Remaining Amount"
             else
                 Line."Payment %" := 8.33333;
-            Evaluate(Line."Due Date Calculation", StrSubstNo('<%1D>', Sequence * 30));
+            Evaluate(Line."Due Date Calculation", StrSubstNo(DaysDateFormulaTok, Sequence * 30));
             Line.Insert(true);
         end;
     end;

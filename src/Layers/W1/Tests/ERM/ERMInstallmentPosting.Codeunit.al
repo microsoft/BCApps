@@ -652,7 +652,7 @@ codeunit 134493 "ERM Installment Posting"
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         CustomerPostingGroup: Record "Customer Posting Group";
         GLEntry: Record "G/L Entry";
-        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        TempApplyUnapplyParameters: Record "Apply Unapply Parameters";
         CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
     begin
         // [FEATURE] [Installments] [Application] [Payment Discount]
@@ -700,9 +700,9 @@ codeunit 134493 "ERM Installment Posting"
         // [WHEN] The final receipt application and its discount are unapplied.
         DetailedCustLedgEntry.Reset();
         DetailedCustLedgEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(CustLedgerEntry."Entry No."));
-        ApplyUnapplyParameters."Document No." := DetailedCustLedgEntry."Document No.";
-        ApplyUnapplyParameters."Posting Date" := WorkDate();
-        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, ApplyUnapplyParameters, false);
+        TempApplyUnapplyParameters."Document No." := DetailedCustLedgEntry."Document No.";
+        TempApplyUnapplyParameters."Posting Date" := WorkDate();
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, TempApplyUnapplyParameters, false);
 
         // [THEN] The earlier partial receipt remains applied and the original discount becomes available again.
         CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
@@ -724,7 +724,7 @@ codeunit 134493 "ERM Installment Posting"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        TempApplyUnapplyParameters: Record "Apply Unapply Parameters";
         CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
         ApplicationID: Code[50];
         PaymentNo: Code[20];
@@ -752,11 +752,11 @@ codeunit 134493 "ERM Installment Posting"
         VerifyInvoiceBalance(SalesInvoiceHeader, 0, true);
         LibraryERM.FindCustomerLedgerEntry(PaymentEntry, PaymentEntry."Document Type"::Payment, PaymentNo);
         DetailedCustLedgEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(PaymentEntry."Entry No."));
-        ApplyUnapplyParameters."Document No." := PaymentNo;
-        ApplyUnapplyParameters."Posting Date" := WorkDate();
+        TempApplyUnapplyParameters."Document No." := PaymentNo;
+        TempApplyUnapplyParameters."Posting Date" := WorkDate();
 
         // [WHEN] The native application transaction is unapplied through the posted-entry service.
-        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, ApplyUnapplyParameters, false);
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, TempApplyUnapplyParameters, false);
 
         // [THEN] Every installment reopens on its original ledger link and the invoice balance is restored.
         VerifyInvoiceBalance(SalesInvoiceHeader, 125, false);
@@ -1566,7 +1566,7 @@ codeunit 134493 "ERM Installment Posting"
         PaymentEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         GLEntry: Record "G/L Entry";
-        ApplyUnapplyParameters: Record "Apply Unapply Parameters";
+        TempApplyUnapplyParameters: Record "Apply Unapply Parameters";
         CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
         PaymentNo: Code[20];
         ApplicationID: Code[50];
@@ -1596,10 +1596,10 @@ codeunit 134493 "ERM Installment Posting"
         LibraryERM.FindCustomerLedgerEntry(PaymentEntry, PaymentEntry."Document Type"::Payment, PaymentNo);
         DetailedCustLedgEntry.Reset();
         DetailedCustLedgEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(PaymentEntry."Entry No."));
-        ApplyUnapplyParameters."Document No." := PaymentNo;
-        ApplyUnapplyParameters."Posting Date" := WorkDate() + 1;
+        TempApplyUnapplyParameters."Document No." := PaymentNo;
+        TempApplyUnapplyParameters."Posting Date" := WorkDate() + 1;
 
-        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, ApplyUnapplyParameters, false);
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedCustLedgEntry, TempApplyUnapplyParameters, false);
 
         CustLedgerEntry.Get(OriginalPlanLine."Cust. Ledger Entry No.");
         CustLedgerEntry.CalcFields("Remaining Amount");
@@ -1614,7 +1614,7 @@ codeunit 134493 "ERM Installment Posting"
         PaymentEntry.Validate("Applies-to ID", ApplicationID);
         PaymentEntry.Validate("Amount to Apply", PaymentEntry."Remaining Amount");
         PaymentEntry.Modify(true);
-        Assert.IsTrue(CustEntryApplyPostedEntries.Apply(PaymentEntry, ApplyUnapplyParameters), 'The original foreign-currency receipt must be reapplied.');
+        Assert.IsTrue(CustEntryApplyPostedEntries.Apply(PaymentEntry, TempApplyUnapplyParameters), 'The original foreign-currency receipt must be reapplied.');
 
         VerifyInvoiceBalance(SalesInvoiceHeader, 83.33, false);
         GLEntry.CalcSums(Amount);

@@ -31,6 +31,7 @@ codeunit 134497 "ERM Installment Collections"
         LibraryInstallments: Codeunit "Library - ERM Installments";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         ManualSelectionErr: Label 'has more than one open installment', Locked = true;
+        StatementEntryXPathTok: Label 'DataItem[Column[@name="DocNo_DtldCustLedgEntries"]="%1"]', Locked = true, Comment = '%1 = Invoice number';
 
     [Test]
     procedure OverdueReminderCollectsOnlyTheRemainingDueInstallment()
@@ -109,11 +110,15 @@ codeunit 134497 "ERM Installment Collections"
         FilterReminderLines(ReminderLine, ReminderHeader."No.");
         Assert.AreEqual(2, ReminderLine.Count(), 'Only the first two installments are overdue.');
         GetInstallment(Entry, Invoice."Installment Plan ID", 1);
+#pragma warning disable AA0210 // Lines are already scoped to a single reminder and customer ledger entry type.
         ReminderLine.SetRange("Entry No.", Entry."Entry No.");
+#pragma warning restore AA0210
         ReminderLine.FindFirst();
         ReminderLine.TestField("No. of Reminders", 2);
         GetInstallment(Entry, Invoice."Installment Plan ID", 2);
+#pragma warning disable AA0210 // Lines are already scoped to a single reminder and customer ledger entry type.
         ReminderLine.SetRange("Entry No.", Entry."Entry No.");
+#pragma warning restore AA0210
         ReminderLine.FindFirst();
         ReminderLine.TestField("No. of Reminders", 1);
         VerifyRemaining(Invoice."Installment Plan ID", 3, 41.66);
@@ -235,7 +240,7 @@ codeunit 134497 "ERM Installment Collections"
         Blob.CreateInStream(Input);
         LibraryReportDataset.LoadFromInStream(Input);
         LibraryReportDataset.SetXmlNodeList(
-            StrSubstNo('DataItem[Column[@name="DocNo_DtldCustLedgEntries"]="%1"]', Invoice."No."));
+            StrSubstNo(StatementEntryXPathTok, Invoice."No."));
         while LibraryReportDataset.GetNextRow() do begin
             RowCount += 1;
             LibraryReportDataset.FindCurrentRowValue('Amt_DtldCustLedgEntries', Value);
