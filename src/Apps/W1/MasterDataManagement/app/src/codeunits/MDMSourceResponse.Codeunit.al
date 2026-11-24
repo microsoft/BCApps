@@ -6,7 +6,7 @@ using System.Utilities;
 /// <summary>
 /// Parses a GetRecords/LastModifiedAtPerTable JSON response from the source and materializes records into a
 /// temporary RecordRef, so the existing synchronization engine can read them as if they were local. Also
-/// exposes the response's control fields (tableAvailable / indexed / unavailableFields / hasMore / nextCursor)
+/// exposes the response's control fields (tableAvailable / readPermission / indexed / unavailableFields / hasMore / nextCursor)
 /// so the caller can raise the right synchronization error.
 /// </summary>
 codeunit 7248 "MDM Source Response"
@@ -28,6 +28,12 @@ codeunit 7248 "MDM Source Response"
     procedure TableAvailable(var Response: JsonObject): Boolean
     begin
         exit(ReadControlBoolean(Response, 'tableAvailable', true));
+    end;
+
+    // False when the source's registered app has no read permission on the table.
+    procedure ReadPermission(var Response: JsonObject): Boolean
+    begin
+        exit(ReadControlBoolean(Response, 'readPermission', true));
     end;
 
     procedure Indexed(var Response: JsonObject): Boolean

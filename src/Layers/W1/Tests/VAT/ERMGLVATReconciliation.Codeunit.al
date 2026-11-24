@@ -16,6 +16,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";
+        LibraryReportDataset: Codeunit "Library - Report Dataset";
         IsInitialized: Boolean;
         TransactionNo: Integer;
         ConfirmAdjustQst: Label 'Do you want to fill the G/L Account No. field in VAT entries that are linked to G/L Entries?';
@@ -91,26 +92,68 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
 
     [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
-    procedure CallSetGLAccountNumberFromVATEntriesPage()
+    procedure CallSetGLAccountNumberFromVATEntriesPageOnlyForSelection()
     var
-        VATEntry: Record 254;
-        VATEntriesPage: TestPage 315;
+        VATEntry: Record "VAT Entry";
+        VATEntriesPage: TestPage "VAT Entries";
         GLAccountNo: array[4] of Code[20];
     begin
-        // [SCENARIO] "Set G/L Account No." action is invoked from the "VAT Entries" page and the action is confirmed
+        // [SCENARIO 657911] "Set G/L Account No." action invoked from the "VAT Entries" page only processes the selected VAT entries
         Initialize();
 
-        // [GIVEN] 4 G/L Entry - VAT Entry Links, where two of them refer to VAT Entries whose G/L Account Number field is blank
+        // [GIVEN] 4 G/L Entry - VAT Entry Links, where VAT Entries "3" and "4" have a blank G/L Account Number
         CreateVATEntriesGLEntriesWithLink(GLAccountNo, TransactionNo);
 
-        // [GIVEN] The "VAT Entries" page is open
+        // [GIVEN] The "VAT Entries" page is open and VAT Entry "3" is selected
+        VATEntry.SetRange("Transaction No.", TransactionNo);
+        VATEntry.FindSet();
+        VATEntry.Next(2);
         VATEntriesPage.OpenView();
+        VATEntriesPage.GoToRecord(VATEntry);
 
-        // [WHEN] The "Set G/L Account No." action is run and confirmed in the confirm dialog
-        LibraryVariableStorage.Enqueue(true); // Yes - for ConfirmHandlerSetGLAccountNo
+        // [WHEN] The "Set G/L Account No." action is run
         VATEntriesPage.SetGLAccountNo.Invoke();
+        VATEntriesPage.Close();
 
-        // [then] The G/L Account Number field is correctly set for all the test VAT Entries
+        // [THEN] The G/L Account Number field is set for VAT Entry "3", VAT Entry "4" that was not selected keeps a blank G/L Account Number
+        GLAccountNo[4] := '';
+        VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('GLVATReconciliationRequestPageHandler')]
+    procedure GLVATReconciliationAccountTotalingDoesNotAdjustVATEntries()
+    var
+        VATEntry: Record "VAT Entry";
+        VATStatementTemplate: Record "VAT Statement Template";
+        VATStatementName: Record "VAT Statement Name";
+        VATStatementLine: Record "VAT Statement Line";
+        GLAccountNo: array[4] of Code[20];
+        RequestPageXML: Text;
+    begin
+        // [SCENARIO 657911] "G/L - VAT Reconciliation" report does not adjust VAT entries for VAT statement lines of type "Account Totaling"
+        Initialize();
+
+        // [GIVEN] 4 G/L Entry - VAT Entry Links, where VAT Entries "3" and "4" have a blank G/L Account Number
+        CreateVATEntriesGLEntriesWithLink(GLAccountNo, TransactionNo);
+
+        // [GIVEN] VAT Statement "V" with a single "Account Totaling" line
+        LibraryERM.CreateVATStatementTemplate(VATStatementTemplate);
+        LibraryERM.CreateVATStatementName(VATStatementName, VATStatementTemplate.Name);
+        LibraryERM.CreateVATStatementLine(VATStatementLine, VATStatementTemplate.Name, VATStatementName.Name);
+        VATStatementLine.Validate(Type, VATStatementLine.Type::"Account Totaling");
+        VATStatementLine.Validate("Account Totaling", GLAccountNo[1]);
+        VATStatementLine.Modify(true);
+
+        // [WHEN] Run report "G/L - VAT Reconciliation" for VAT Statement "V"
+        Commit();
+        VATStatementName.SetRecFilter();
+        RequestPageXML := Report.RunRequestPage(Report::"G/L - VAT Reconciliation", RequestPageXML);
+        LibraryReportDataset.RunReportAndLoad(Report::"G/L - VAT Reconciliation", VATStatementName, RequestPageXML);
+
+        // [THEN] No confirmation to adjust VAT entries is raised and VAT Entries "3" and "4" keep a blank G/L Account Number
+        GLAccountNo[3] := '';
+        GLAccountNo[4] := '';
         VATEntry.SetRange("Transaction No.", TransactionNo);
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
@@ -222,6 +265,11 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
             VATEntry.TestField("G/L Acc. No.", GLAccountNo[index]);
             VATEntry.Next();
         end;
+    end;
+
+    [RequestPageHandler]
+    procedure GLVATReconciliationRequestPageHandler(var GLVATReconciliation: TestRequestPage "G/L - VAT Reconciliation")
+    begin
     end;
 
     [ConfirmHandler]
