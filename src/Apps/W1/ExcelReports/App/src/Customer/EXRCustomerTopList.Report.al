@@ -194,9 +194,9 @@ report 4409 "EXR Customer Top List"
         exit(CustomerFilter.TrimEnd('|'));
     end;
 
-    local procedure EscapeCustomerNoFilter(CustomerNo: Code[20]): Text
+    local procedure EscapeCustomerNoFilter(CustomerNo: Text): Text
     begin
-        exit('''' + CustomerNo + '''');
+        exit('''' + CustomerNo.Replace('''', '''''') + '''');
     end;
 
     local procedure ChangeShowType(NewShowType: Option)
@@ -215,7 +215,7 @@ report 4409 "EXR Customer Top List"
         EXTTopCustomerSale.Open();
         if EXTTopCustomerSale.Read() then
             repeat
-                TopCustomerData.SetFilter(TopCustomerData."Customer No.", EscapeCustomerNoFilter(EXTTopCustomerSale.Customer_No));
+                TopCustomerData.SetRange(TopCustomerData."Customer No.", EXTTopCustomerSale.Customer_No);
                 if TopCustomerData.FindFirst() then begin
                     TopCustomerData."Amount 2 (LCY)" := EXTTopCustomerSale.Sum_Purch_LCY;
                     if Customer.Get(TopCustomerData."Customer No.") then
@@ -235,7 +235,7 @@ report 4409 "EXR Customer Top List"
         EXTTopCustomerBalance.Open();
         if EXTTopCustomerBalance.Read() then
             repeat
-                TopCustomerData.SetFilter(TopCustomerData."Customer No.", EscapeCustomerNoFilter(EXTTopCustomerBalance.Customer_No));
+                TopCustomerData.SetRange(TopCustomerData."Customer No.", EXTTopCustomerBalance.Customer_No);
                 if TopCustomerData.FindFirst() then begin
                     TopCustomerData."Amount 2 (LCY)" := EXTTopCustomerBalance.Balance_LCY;
                     if Customer.Get(TopCustomerData."Customer No.") then

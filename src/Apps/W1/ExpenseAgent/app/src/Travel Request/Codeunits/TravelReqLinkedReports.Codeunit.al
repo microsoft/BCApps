@@ -9,7 +9,7 @@ using Microsoft.Finance.SpendRequest;
 /// <summary>
 /// Finds and shows the expense reports linked to a travel request, either on the report header or on any of its lines.
 /// </summary>
-codeunit 6914 "Travel Req. Linked Reports"
+codeunit 6924 "Travel Req. Linked Reports"
 {
     Access = Internal;
     InherentEntitlements = X;

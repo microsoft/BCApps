@@ -14,6 +14,7 @@ codeunit 139752 "Outlook API Helper Tests"
     var
         LibraryAssert: Codeunit "Library Assert";
         SendEmailExternalUserErr: Label 'Could not send the email, because the user is delegated or external.';
+        AttachmentsExpanded: Boolean;
 
     [Test]
     procedure DefaultRedirectUrlIsAllowed()
@@ -207,6 +208,136 @@ codeunit 139752 "Outlook API Helper Tests"
         EmailMessage.Attachments_GetContent(InStream);
         InStream.ReadText(AttachmentContent);
         LibraryAssert.AreEqual('RegularContent', AttachmentContent, 'Unexpected regular attachment content');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsInlineAttachmentsOnlyHandler')]
+    procedure TestRetrieveEmailWithInlineAttachmentsWhenHasAttachmentsFalse()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        InStream: InStream;
+        AttachmentContent: Text;
+    begin
+        // [SCENARIO] Microsoft Graph reports hasAttachments=false when an email has only inline
+        // attachments. Those attachments must still be imported into the email message.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] Filters are set to load attachments
+        TempFilters.Init();
+        TempFilters."Load Attachments" := true;
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+
+        // [WHEN] Emails are retrieved (response has hasAttachments=false but includes inline attachments)
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] An email inbox record was created
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected an email inbox record to be created');
+        LibraryAssert.AreEqual('Test Inline Only Attachments', EmailInbox.Description, 'Unexpected email subject');
+
+        // [THEN] The inline attachment is imported despite hasAttachments=false
+        EmailMessage.Get(EmailInbox."Message Id");
+        LibraryAssert.IsTrue(EmailMessage.Attachments_First(), 'Expected the inline attachment to be imported');
+        LibraryAssert.AreEqual('inline.txt', EmailMessage.Attachments_GetName(), 'Unexpected attachment name');
+        LibraryAssert.AreEqual('text/plain', EmailMessage.Attachments_GetContentType(), 'Unexpected content type');
+        LibraryAssert.IsTrue(EmailMessage.Attachments_IsInline(), 'Attachment should be inline');
+        LibraryAssert.AreEqual('cid456', EmailMessage.Attachments_GetContentId(), 'Unexpected contentId for inline attachment');
+
+        EmailMessage.Attachments_GetContent(InStream);
+        InStream.ReadText(AttachmentContent);
+        LibraryAssert.AreEqual('InlineContent', AttachmentContent, 'Unexpected inline attachment content');
+
+        LibraryAssert.AreEqual(0, EmailMessage.Attachments_Next(), 'Only the inline attachment should have been imported');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsInlineAttachmentsBackfillHandler')]
+    procedure TestBackfillInlineAttachmentsOnPreviouslyRetrievedEmail()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        MessageId: Guid;
+    begin
+        // [SCENARIO] An email that was first retrieved without attachments gets its inline-only attachment
+        // when it is retrieved again with Load Attachments enabled, and further retrievals do not duplicate it.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] The email was retrieved with Load Attachments = false (no attachments in the response)
+        TempFilters.Init();
+        TempFilters."Load Attachments" := false;
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+        AttachmentsExpanded := false;
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected an email inbox record to be created');
+        MessageId := EmailInbox."Message Id";
+        EmailMessage.Get(MessageId);
+        LibraryAssert.IsFalse(EmailMessage.Attachments_First(), 'No attachments are expected after the first retrieval');
+
+        // [WHEN] The same email is retrieved again with Load Attachments = true (response has hasAttachments=false and inline attachments)
+        TempFilters."Load Attachments" := true;
+        AttachmentsExpanded := true;
+        Clear(EmailInbox);
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] No second inbox entry is created and the inline attachment is added to the existing message
+        EmailInbox.Reset();
+        EmailInbox.SetRange("Account Id", OutlookAccount.Id);
+        LibraryAssert.AreEqual(1, EmailInbox.Count(), 'The email should not have been retrieved twice');
+        EmailMessage.Get(MessageId);
+        LibraryAssert.IsTrue(EmailMessage.Attachments_First(), 'Expected the inline attachment to be loaded');
+        LibraryAssert.AreEqual('inline.txt', EmailMessage.Attachments_GetName(), 'Unexpected attachment name');
+        LibraryAssert.IsTrue(EmailMessage.Attachments_IsInline(), 'Attachment should be inline');
+        LibraryAssert.AreEqual(0, EmailMessage.Attachments_Next(), 'Only one attachment is expected after the backfill');
+
+        // [WHEN] The same email is retrieved a third time
+        Clear(EmailInbox);
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] The attachment is not duplicated
+        EmailMessage.Get(MessageId);
+        LibraryAssert.IsTrue(EmailMessage.Attachments_First(), 'Expected the inline attachment to still be present');
+        LibraryAssert.AreEqual(0, EmailMessage.Attachments_Next(), 'The attachment should not have been duplicated');
     end;
 
     [Test]
@@ -552,6 +683,30 @@ codeunit 139752 "Outlook API Helper Tests"
         RetrieveEmailFileTok: Label 'RetrieveEmailWithAttachments.txt', Locked = true;
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
+        exit(false);
+    end;
+
+    [HttpClientHandler]
+    procedure GraphRetrieveEmailsInlineAttachmentsOnlyHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RetrieveEmailFileTok: Label 'RetrieveEmailWithInlineAttachmentsOnly.txt', Locked = true;
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
+        exit(false);
+    end;
+
+    [HttpClientHandler]
+    procedure GraphRetrieveEmailsInlineAttachmentsBackfillHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        WithAttachmentsFileTok: Label 'RetrieveEmailWithInlineAttachmentsOnly.txt', Locked = true;
+        WithoutAttachmentsFileTok: Label 'RetrieveEmailWithoutAttachmentsExpanded.txt', Locked = true;
+    begin
+        if AttachmentsExpanded then
+            Response.Content.WriteFrom(NavApp.GetResourceAsText(WithAttachmentsFileTok, TextEncoding::UTF8))
+        else
+            Response.Content.WriteFrom(NavApp.GetResourceAsText(WithoutAttachmentsFileTok, TextEncoding::UTF8));
         Response.HttpStatusCode := 200;
         exit(false);
     end;
