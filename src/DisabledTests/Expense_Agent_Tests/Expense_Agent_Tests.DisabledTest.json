@@ -55,117 +55,112 @@
     "method": "AgentVATSpecificationIsInsertedThroughAPI"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "OpenCardExpenseWithoutCategoryCanBeAddedToReport"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "ReportWithCardLineWithoutCategoryCannotBeReleased"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "CategoryChangeOnCardLineKeepsCardValues"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "ClearingCategoryOnCardLineKeepsAmount"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "LineCategoryUnderNoReceiptLimitSetsReceiptNotNeeded"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "LineCategoryAboveNoReceiptLimitClearsReceiptNotNeeded"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "ReceiptMatchesCardExpenseOnOpenReport"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "CheckReturnsCardExpenseOnOpenReport"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "DeletingCardLineReturnsExpenseToOpen"
   },
   {
-    "codeunitId": 148350,
+    "codeunitId": 148373,
     "codeunitName": "EA Card Report Line Tests",
     "method": "CardLinkedExpenseCannotBeDeleted"
   },
   {
-    "codeunitId": 148350,
-    "codeunitName": "EA Card Report Line Tests",
-    "method": "RemovedCardExpenseCanBeAddedToReportAgain"
-  },
-  {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AddExpenseToReportAPIAcceptsOpenCardExpense"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "ExpensesAPIAwaitingCardReportListsOnlyCardExpensesNotOnReport"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "CardExpenseMatchesAPIReturnsCardLineOnOpenReport"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptAttachesReceiptToExpenseAndLine"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptFillsEmptyFieldsOnExpenseAndLine"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptKeepsCategorySetOnLineByUser"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptKeepsCategorySetOnExpenseByBCUser"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptKeepsParticipantsOnLine"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptNeverChangesCardFields"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptWithEmptyValuesClearsNothing"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AttachCardReceiptTwiceDoesNotDuplicateAttachment"
   },
   {
-    "codeunitId": 148351,
+    "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "DeletingCardLineAndExpenseThroughAPIKeepsTransactionLinked"
   }

@@ -14,12 +14,13 @@ using System.Text;
 // not exist yet (changes B2, B5 and B6). Their names and payload are defined once in the labels and request
 // builders below, so they can be aligned with the final API in one place. Tests that need an unimplemented change
 // are listed in src/DisabledTests/Expense_Agent_Tests until the change lands.
-codeunit 148351 "EA Card Report Line API Tests"
+codeunit 148374 "EA Card Report Line API Tests"
 {
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Disabled;
 
     var
         Assert: Codeunit Assert;

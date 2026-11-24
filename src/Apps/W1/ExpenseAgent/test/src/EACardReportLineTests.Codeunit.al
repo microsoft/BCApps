@@ -10,7 +10,7 @@ using Microsoft.ExpenseAgent;
 // Card transactions become expense report lines before a receipt exists. These tests describe the target behavior
 // (changes B1, B3, B4, B5 and B7 of the corporate card report line design). Tests that need a change that is not
 // implemented yet are listed in src/DisabledTests/Expense_Agent_Tests until the change lands.
-codeunit 148350 "EA Card Report Line Tests"
+codeunit 148373 "EA Card Report Line Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -567,7 +567,8 @@ codeunit 148350 "EA Card Report Line Tests"
         LibraryExpense.CreateExpenseCategory(
             ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
         if NoReceiptLimit <> 0 then begin
-            ExpenseCategory.Validate("Amount Limit for No Receipt", NoReceiptLimit);
+            // Assigned directly: validating the limit requires Allow No Receipt, which some tests turn off on purpose.
+            ExpenseCategory."Amount Limit for No Receipt" := NoReceiptLimit;
             ExpenseCategory.Modify(true);
         end;
     end;
