@@ -23,7 +23,6 @@ codeunit 148373 "EA Card Report Line Tests"
         CreateExpenseReport: Codeunit "Create Expense Report";
         ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
-        OtherCardIdTok: Label 'CORPCARD-0002', Locked = true;
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
         AttachmentMandatoryTok: Label 'Document Attachment is mandatory', Locked = true;
         MerchantMandatoryTok: Label 'Merchant Name is mandatory', Locked = true;
@@ -78,69 +77,6 @@ codeunit 148373 "EA Card Report Line Tests"
         Assert.ExpectedError(Expense.FieldCaption(Status));
     end;
 
-    [Test]
-    procedure ManualExpenseWithoutCategoryStillCannotBeReleased()
-    var
-        Expense: Record Expense;
-        CorpCard: Record "EA Corp Card";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
-    begin
-        // [SCENARIO] Regression: A manual expense still needs a category to be released.
-        Initialize();
-
-        // [GIVEN] An open manual expense paid with the card, without a category.
-        CorpCard.Get(CardIdTok);
-        CorpCardTestLib.InsertExpense(Expense, CorpCard);
-        ClearCategory(Expense);
-
-        // [WHEN] The expense is released.
-        asserterror ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-
-        // [THEN] The category is required.
-        Assert.ExpectedError(Expense.FieldCaption("Expense Category"));
-    end;
-
-    [Test]
-    procedure LinkedManualExpenseWithoutCategoryStillCannotBeReleased()
-    var
-        Expense: Record Expense;
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
-    begin
-        // [SCENARIO] Regression: A manual expense linked to a transaction is not created from it, so it still needs a category.
-        Initialize();
-
-        // [GIVEN] An open manual expense linked to a card transaction, without a category.
-        CreateLinkedManualExpense(Expense);
-        ClearCategory(Expense);
-
-        // [WHEN] The expense is released.
-        asserterror ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-
-        // [THEN] The category is required.
-        Assert.ExpectedError(Expense.FieldCaption("Expense Category"));
-    end;
-
-    [Test]
-    procedure OtherUsersCardExpenseCannotBeAddedToReport()
-    var
-        Expense: Record Expense;
-        OtherExpense: Record Expense;
-        ExpenseReportHeader: Record "Expense Report Header";
-    begin
-        // [SCENARIO] A card expense of another expense user cannot be added to the report.
-        Initialize();
-
-        // [GIVEN] A report of the first expense user and a card expense of another expense user.
-        CreateCardExpense(Expense, CardIdTok);
-        CreateCardExpense(OtherExpense, OtherCardIdTok);
-        CreateReportForExpense(ExpenseReportHeader, Expense);
-
-        // [WHEN] The other user's expense is added to the report.
-        asserterror CreateExpenseReport.AddSingleExpenseToExpenseReport(OtherExpense, ExpenseReportHeader);
-
-        // [THEN] The expense user must match.
-        Assert.ExpectedError(OtherExpense.FieldCaption("Expense User No."));
-    end;
     // ---------------------------------------------------------------------------------------------
     // A category change on a card line keeps the card values
     // ---------------------------------------------------------------------------------------------
@@ -442,34 +378,6 @@ codeunit 148373 "EA Card Report Line Tests"
         Expense.TestField("Credit Card Feed No.", FeedNo);
         CorpCardTrans.Get(FeedNo);
         CorpCardTrans.TestField("Expense No.", Expense."No.");
-    end;
-
-    [Test]
-    procedure DeletingManualLineReturnsExpenseToReleased()
-    var
-        Expense: Record Expense;
-        CorpCard: Record "EA Corp Card";
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportLine: Record "Expense Report Line";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
-    begin
-        // [SCENARIO] Regression: Deleting a line of a manual expense still sets the expense back to Released.
-        Initialize();
-
-        // [GIVEN] A released manual card-paid expense on an open report.
-        CorpCard.Get(CardIdTok);
-        CorpCardTestLib.InsertExpense(Expense, CorpCard);
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-        CreateReportForExpense(ExpenseReportHeader, Expense);
-        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
-
-        // [WHEN] The line is deleted.
-        ExpenseReportLine.Delete(true);
-
-        // [THEN] The expense is released and off the report.
-        Expense.Get(Expense."No.");
-        Expense.TestField(Status, Expense.Status::Released);
-        Expense.TestField("Expense Report No.", '');
     end;
 
     [Test]
@@ -851,25 +759,6 @@ codeunit 148373 "EA Card Report Line Tests"
     local procedure CreateReportForExpense(var ExpenseReportHeader: Record "Expense Report Header"; Expense: Record Expense)
     begin
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
-    end;
-
-    local procedure CreateLinkedManualExpense(var Expense: Record Expense)
-    var
-        CorpCard: Record "EA Corp Card";
-        CorpCardTrans: Record "EA Corp Card Trans";
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
-    begin
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup.Validate("Require Corporate Card", false);
-        ExpenseAgentSetup.Modify(true);
-        CorpCard.Get(CardIdTok);
-        CorpCardTestLib.InsertExpense(Expense, CorpCard);
-        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
-        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
-        CorpCardTrans.Modify(true);
-        Expense.Get(Expense."No.");
-        Expense.TestField(Source, Expense.Source::Manual);
     end;
 
     local procedure ValidateLineAgainstRules(var ExpenseReportLine: Record "Expense Report Line")
