@@ -111,7 +111,7 @@ codeunit 9803 "Job Queue Telemetry"
 
         SetJobQueueTelemetryDimensions(JobQueueEntry, Dimensions);
         Dimensions.Add('JobQueueExecutedScheduledTaskId', Format(ExecutedTaskId, 0, 4));
-        Telemetry.LogMessage('0000RJQ',
+        Telemetry.LogMessage('0000WW6',
                                 StrSubstNo(JobQueueEntryFinalizationResumedTxt, Format(JobQueueEntry.ID, 0, 4)),
                                 Verbosity::Warning,
                                 DataClassification::OrganizationIdentifiableInformation,
