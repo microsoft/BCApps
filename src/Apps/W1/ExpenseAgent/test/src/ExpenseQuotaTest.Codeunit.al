@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using System.AI;
 
+// [FEATURE] [Expense Agent] [Quota]
 codeunit 148298 "Expense Quota Test"
 {
     Subtype = Test;
@@ -151,8 +152,10 @@ codeunit 148298 "Expense Quota Test"
         ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
     begin
         // [SCENARIO] Trial quota permits consumption without evaluating the principal's paid quota
+        // [GIVEN] Trial quota is available and paid quota is unavailable
         InitializeQuotaProvider(ExpenseConsumptionHandler, ExpenseAgentQuotaMock, 1, false);
 
+        // [WHEN] [THEN] The expense user can consume without a paid quota check
         Assert.IsTrue(ExpenseConsumptionHandler.CanConsume(CreateGuid()), 'Trial quota should permit consumption for the expense user.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetPaidQuotaCheckCount(), 'Paid quota should not be queried while trial quota is available.');
     end;
@@ -166,14 +169,19 @@ codeunit 148298 "Expense Quota Test"
         SecondPrincipalId: Guid;
     begin
         // [SCENARIO] Paid quota checks use each requested expense user's principal and preserve the decision
+        // [GIVEN] Trial quota is exhausted and two expense users have distinct principals
         InitializeQuotaProvider(ExpenseConsumptionHandler, ExpenseAgentQuotaMock, 0, true);
         FirstPrincipalId := CreateGuid();
         SecondPrincipalId := CreateGuid();
 
+        // [WHEN] [THEN] The first principal's available paid quota permits consumption
         Assert.IsTrue(ExpenseConsumptionHandler.CanConsume(FirstPrincipalId), 'Available paid quota should permit consumption.');
         Assert.AreEqual(FirstPrincipalId, ExpenseAgentQuotaMock.GetLastPaidQuotaPrincipalId(), 'The first quota check must use the first expense user''s principal.');
 
+        // [GIVEN] Paid quota is unavailable for the next check
         ExpenseAgentQuotaMock.SetPaidQuotaAvailable(false);
+
+        // [WHEN] [THEN] The second principal's quota prevents consumption without reusing the first principal
         Assert.IsFalse(ExpenseConsumptionHandler.CanConsume(SecondPrincipalId), 'Unavailable paid quota should prevent consumption.');
         Assert.AreEqual(SecondPrincipalId, ExpenseAgentQuotaMock.GetLastPaidQuotaPrincipalId(), 'The second quota check must use the second expense user''s principal.');
         Assert.AreEqual(2, ExpenseAgentQuotaMock.GetPaidQuotaCheckCount(), 'Each expense user must have a separate quota check.');
