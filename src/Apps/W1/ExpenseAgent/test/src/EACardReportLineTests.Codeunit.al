@@ -33,17 +33,19 @@ codeunit 148373 "EA Card Report Line Tests"
         MaxAmountTok: Label 'must not exceed', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
-    // A card expense can be released without a category, then added to a report through the normal path
+    // Without the Expense Agent, card expenses follow the standard BC flow: release with the existing rules, then add
+    // to a report. Adding a card expense without a category is only possible through the Expense Agent action, which
+    // the API tests cover.
     // ---------------------------------------------------------------------------------------------
 
     [Test]
-    procedure CardExpenseWithoutCategoryCanBeReleased()
+    procedure CardExpenseWithoutCategoryStillCannotBeReleasedInBC()
     var
         Expense: Record Expense;
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
-        // [SCENARIO] A card expense created from a transaction can be released without a category, so "Create reports"
-        // can add it to a report before the receipt and the category are known.
+        // [SCENARIO] Regression: Releasing a card expense through the standard release keeps the existing rules, so a
+        // category is required.
         Initialize();
 
         // [GIVEN] An open card expense without a category.
@@ -51,43 +53,11 @@ codeunit 148373 "EA Card Report Line Tests"
         ClearCategory(Expense);
 
         // [WHEN] The expense is released.
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        asserterror ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
 
-        // [THEN] The expense is released and keeps its card values.
-        Expense.Get(Expense."No.");
-        Expense.TestField(Status, Expense.Status::Released);
-        Expense.TestField("Expense Category", '');
-        Expense.TestField(Amount, 20);
+        // [THEN] The category is required.
+        Assert.ExpectedError(Expense.FieldCaption("Expense Category"));
     end;
-
-    [Test]
-    procedure ReleasedCardExpenseWithoutCategoryCanBeAddedToReport()
-    var
-        Expense: Record Expense;
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportLine: Record "Expense Report Line";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
-    begin
-        // [SCENARIO] A released card expense without a category is added to a report through the existing path.
-        Initialize();
-
-        // [GIVEN] A card expense of 20 released without a category.
-        CreateCardExpense(Expense, CardIdTok);
-        ClearCategory(Expense);
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-        CreateReportForExpense(ExpenseReportHeader, Expense);
-
-        // [WHEN] The expense is added to an open report.
-        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
-
-        // [THEN] The line carries the card values and the expense is submitted on the report.
-        VerifyCardLine(ExpenseReportLine, Expense);
-        ExpenseReportLine.TestField("Expense Category", '');
-        Expense.Get(Expense."No.");
-        Expense.TestField("Expense Report No.", ExpenseReportHeader."No.");
-        Expense.TestField(Status, Expense.Status::Submitted);
-    end;
-
     [Test]
     procedure OpenCardExpenseStillMustBeReleasedBeforeAddingToReport()
     var
@@ -115,7 +85,7 @@ codeunit 148373 "EA Card Report Line Tests"
         CorpCard: Record "EA Corp Card";
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
-        // [SCENARIO] Regression: Only card expenses can be released without a category; a manual expense still needs one.
+        // [SCENARIO] Regression: A manual expense still needs a category to be released.
         Initialize();
 
         // [GIVEN] An open manual expense paid with the card, without a category.
@@ -148,32 +118,6 @@ codeunit 148373 "EA Card Report Line Tests"
 
         // [THEN] The category is required.
         Assert.ExpectedError(Expense.FieldCaption("Expense Category"));
-    end;
-
-    [Test]
-    procedure ReportWithCardLineWithoutCategoryCannotBeReleased()
-    var
-        Expense: Record Expense;
-        ExpenseReportHeader: Record "Expense Report Header";
-        ExpenseReportLine: Record "Expense Report Line";
-        ReleaseExpenseDocument: Codeunit "Release Expense Document";
-    begin
-        // [SCENARIO] Releasing the card expense without a category does not relax report release; the user must set a
-        // category on the line first.
-        Initialize();
-
-        // [GIVEN] A card expense released without a category, on an open report.
-        CreateCardExpense(Expense, CardIdTok);
-        ClearCategory(Expense);
-        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
-        CreateReportForExpense(ExpenseReportHeader, Expense);
-        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
-
-        // [WHEN] The report is released.
-        asserterror ExpenseReportHeader.PerformManualRelease();
-
-        // [THEN] The missing category blocks the release.
-        Assert.ExpectedError(ExpenseReportLine.FieldCaption("Expense Category"));
     end;
 
     [Test]
@@ -865,8 +809,7 @@ codeunit 148373 "EA Card Report Line Tests"
         Expense.Modify();
     end;
 
-    // Creates a card expense and adds it to an open report through the existing released path, so the line exists
-    // even before card expenses can be released without a category.
+    // Creates a card expense and adds it to an open report through the standard BC flow (category, release, add).
     local procedure CreateCardLine(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line"; CardId: Code[50])
     var
         ExpenseCategory: Record "Expense Category";
