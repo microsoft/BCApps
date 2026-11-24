@@ -53,13 +53,13 @@ codeunit 2504 "Extension Management"
         exit(ExtensionInstallationImpl.UninstallExtension(PackageId, IsUIEnabled, true));
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Uploads an extension, using a File Stream and based on the Locale Identifier.
     /// This method is only applicable in SaaS environment.
     /// </summary>
     /// <param name="FileStream">The File Stream containing the extension to be uploaded.</param>
     /// <param name="lcid">The Locale Identifier.</param>
-#if not CLEAN30
     [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure UploadExtension(FileStream: InStream; lcid: Integer)
     begin
@@ -135,11 +135,11 @@ codeunit 2504 "Extension Management"
         exit(ExtensionInstallationImpl.IsInstalledByAppId(AppId));
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Retrieves a list of all the Deployment Status Entries
     /// </summary>
     /// <param name="TempExtensionDeploymentStatus">Gets the list of all the Deployment Status Entries in a temporary record.</param>
-#if not CLEAN30
 #pragma warning disable AL0432
     [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetAllExtensionDeploymentStatusEntries(var TempExtensionDeploymentStatus: Record "Extension Deployment Status" temporary)
@@ -149,6 +149,7 @@ codeunit 2504 "Extension Management"
 #pragma warning restore AL0432
 #endif
 
+#if not CLEAN30
     /// <summary>
     /// Retrieves the AppName,Version,Schedule,Publisher by the NAVApp Tenant OperationId.
     /// </summary>
@@ -158,7 +159,6 @@ codeunit 2504 "Extension Management"
     /// <param name="Publisher">Gets the Publisher of the NavApp.</param>
     /// <param name="AppName">Gets the AppName of the NavApp.</param>
     /// <param name="Description">The Description of the NavApp; in case no name is provided, the description will replace the AppName.</param>
-#if not CLEAN30
     [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetDeployOperationInfo(OperationId: Guid; var Version: Text; var Schedule: Text; var Publisher: Text; var AppName: Text; Description: Text)
     begin
@@ -166,11 +166,11 @@ codeunit 2504 "Extension Management"
     end;
 #endif
 
+#if not CLEAN30
     /// <summary>
     /// Refreshes the status of the Operation.
     /// </summary>
     /// <param name="OperationId">The Id of the operation to be refreshed.</param>
-#if not CLEAN30
     [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure RefreshStatus(OperationId: Guid)
     begin
@@ -235,6 +235,7 @@ codeunit 2504 "Extension Management"
         ExtensionOperationImpl.GetExtensionLogo(AppId, LogoTempBlob);
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Uploads an extension to current version, next minor or next major, using a File Stream and based on the Locale Identifier.
     /// This method is only applicable in SaaS environment.
@@ -242,7 +243,6 @@ codeunit 2504 "Extension Management"
     /// <param name="FileInStream">The File Stream containing the extension to be uploaded.</param>
     /// <param name="lcid">The Locale Identifier.</param>
     /// <param name="DeployTo">The version that the extension will be deployed to.</param>
-#if not CLEAN30
 #pragma warning disable AL0432
     [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure UploadExtensionToVersion(FileInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To")
@@ -285,12 +285,12 @@ codeunit 2504 "Extension Management"
         exit(ExtensionOperationImpl.GetAppName(AppId))
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Returns the detailed message from a deployment operation.
     /// </summary>
     /// <param name="OperationId">The Id of the operation to get the detailed message from.</param>
     /// <returns>The detailed message as text.</returns>
-#if not CLEAN30
     [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetDeploymentDetailedStatusMessage(OperationId: Guid): Text
     begin

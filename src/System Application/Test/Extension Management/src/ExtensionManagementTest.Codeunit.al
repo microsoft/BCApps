@@ -50,27 +50,31 @@ codeunit 133100 "Extension Management Test"
         PackageIdExistsErr: Label 'The returned extension pakage does not exist';
         NullPackageIdErr: Label 'There should not be an extension corresponding to the returned package ID';
         PackageIdExtensionVersionErr: Label 'The package Id does not poin to the correct extension version';
+#if not CLEAN30
         ExtensionManagementDeprecationMsg: Label 'Uploading and managing per-tenant extensions is moving to the Business Central admin center. This page will remain available for viewing installed extensions.';
+#endif
 
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('ExtensionManagementNotificationHandler')]
-    procedure ExtensionManagementDeprecationNotificationShownInSaaS()
+    procedure ExtensionManagementDeprecationNotificationFollowsLifecycleInSaaS()
     var
         ExtensionManagementPage: TestPage "Extension Management";
     begin
-        // [SCENARIO] SaaS users receive exactly one PTE upload migration notification.
+        // [SCENARIO] SaaS users receive the migration notification only while legacy PTE upload is available.
         // [GIVEN] Extension management permissions and a SaaS environment.
         PermissionsMock.Set('Exten. Mgt. - Admin');
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         LibraryVariableStorage.Clear();
+#if not CLEAN30
         LibraryVariableStorage.Enqueue(ExtensionManagementDeprecationMsg);
+#endif
 
         // [WHEN] The Extension Management page is opened.
         ExtensionManagementPage.OpenView();
         ExtensionManagementPage.Close();
 
-        // [THEN] The expected notification was sent exactly once.
+        // [THEN] The notification was sent exactly once before removal, or not at all after removal.
         LibraryVariableStorage.AssertEmpty();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
     end;
@@ -96,6 +100,7 @@ codeunit 133100 "Extension Management Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     [HandlerFunctions('AdminCenterDocumentationHyperlinkHandler')]
@@ -107,6 +112,7 @@ codeunit 133100 "Extension Management Test"
         ExtensionMgtTestLibrary.OpenAdminCenterExtensionManagementDocumentation();
         // [THEN] The hyperlink handler verifies the documentation URL.
     end;
+#endif
 
     local procedure SetNavAppIds()
     begin
@@ -763,11 +769,13 @@ codeunit 133100 "Extension Management Test"
         exit(true);
     end;
 
+#if not CLEAN30
     [HyperlinkHandler]
     procedure AdminCenterDocumentationHyperlinkHandler(Link: Text[1024])
     begin
         Assert.AreEqual('https://go.microsoft.com/fwlink/?LinkId=2374621', Link, 'Unexpected deprecation documentation link.');
     end;
+#endif
 
     [ModalPageHandler]
     procedure ExtensionSettingsModalHandler(var ExtensionSettings: TestPage "Extension Settings")

@@ -380,11 +380,11 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Analysis View Filter" = RM,
                   tabledata "API Data Upgrade" = RIMD,
                   tabledata "API Entities Setup" = RIMD,
-#pragma warning disable AL0432
 #if not CLEAN30
+#pragma warning disable AL0432
                   tabledata "API Extension Upload" = rimd,
-#endif
 #pragma warning restore AL0432
+#endif
                   tabledata "Application Area Buffer" = RM,
                   tabledata "Application Area Setup" = RM,
                   tabledata "Applied Payment Entry" = RIMD,

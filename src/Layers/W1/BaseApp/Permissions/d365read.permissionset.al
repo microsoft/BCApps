@@ -340,11 +340,11 @@ permissionset 1044 "D365 READ"
                   tabledata "Analysis View Filter" = R,
                   tabledata "API Data Upgrade" = R,
                   tabledata "API Entities Setup" = R,
-#pragma warning disable AL0432
 #if not CLEAN30
+#pragma warning disable AL0432
                   tabledata "API Extension Upload" = r,
-#endif
 #pragma warning restore AL0432
+#endif
                   tabledata "Application Area Buffer" = R,
                   tabledata "Application Area Setup" = R,
                   tabledata "Applied Payment Entry" = R,

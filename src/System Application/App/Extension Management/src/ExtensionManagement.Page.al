@@ -406,10 +406,13 @@ page 2500 "Extension Management"
         ActionsEnabled := false;
 
         HelpActionVisible := false;
+#if not CLEAN30
         ShowExtensionManagementDeprecationNotification();
+#endif
         ShowUninstalledExtensionsNotification();
     end;
 
+#if not CLEAN30
     local procedure ShowExtensionManagementDeprecationNotification()
     var
         DeprecationNotification: Notification;
@@ -423,6 +426,7 @@ page 2500 "Extension Management"
         DeprecationNotification.AddAction(ReadMoreHereLbl, Codeunit::"Extension Operation Impl", 'OpenAdminCenterExtensionManagementDocumentation');
         DeprecationNotification.Send();
     end;
+#endif
 
     local procedure ShowUninstalledExtensionsNotification()
     var
@@ -468,9 +472,11 @@ page 2500 "Extension Management"
         ShowOrphanedDataLbl: Label 'Show Data';
         MarkAllAsReviewedLbl: Label 'Mark All as Reviewed';
         OrphanedDataNotificationIdTok: Label 'b1c5a678-2e3f-4d91-a6b0-9f8e7d6c5b4a', Locked = true;
+#if not CLEAN30
         ExtensionManagementDeprecationMsg: Label 'Uploading and managing per-tenant extensions is moving to the Business Central admin center. This page will remain available for viewing installed extensions.';
         ReadMoreHereLbl: Label 'Read more here';
         ExtensionManagementDeprecationNotificationIdTok: Label '3be91c11-8195-4c65-be23-20fddbea9bb7', Locked = true;
+#endif
 
     protected procedure IsSaasEnvironment(): boolean
     begin

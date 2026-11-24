@@ -30,12 +30,12 @@ permissionset 2504 "Extension Management - Objects"
                   page "Extn. Installation Progress" = X,
                   page "Extn. Orphaned App Details" = X,
                   page "Extn Deployment Status Detail" = X,
-#pragma warning disable AL0432
 #if not CLEAN30
+#pragma warning disable AL0432
                   page "Marketplace Extn Deployment" = X,
                   page "Upload And Deploy Extension" = X;
+#pragma warning restore AL0432
 #else
                   page "Marketplace Extn Deployment" = X;
 #endif
-#pragma warning restore AL0432
 }

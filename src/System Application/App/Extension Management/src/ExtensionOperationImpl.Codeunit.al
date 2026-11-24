@@ -42,7 +42,9 @@ codeunit 2503 "Extension Operation Impl"
         InstallationFailedOpenStatusTxt: Label 'App installation failed. User has chosen to open Extension Installation Status.', Locked = true;
         InstallationFailedDoNotOpenStatusTxt: Label 'App installation failed. User has chosen not to open Extension Installation Status.', Locked = true;
         PageCaptionTok: Label '%1 %2', Comment = '%1 = Page default caption %2 = App name';
+#if not CLEAN30
         AdminCenterExtensionManagementUrlLbl: Label 'https://go.microsoft.com/fwlink/?LinkId=2374621', Locked = true;
+#endif
 
     local procedure AssertIsInitialized()
     begin
@@ -176,10 +178,12 @@ codeunit 2503 "Extension Operation Impl"
         exit(true);
     end;
 
+#if not CLEAN30
     procedure OpenAdminCenterExtensionManagementDocumentation(Notification: Notification)
     begin
         Hyperlink(AdminCenterExtensionManagementUrlLbl);
     end;
+#endif
 
     procedure UnpublishUninstalledPerTenantExtension(PackageID: Guid)
     begin
