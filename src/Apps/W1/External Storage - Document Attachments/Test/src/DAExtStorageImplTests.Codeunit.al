@@ -7,6 +7,7 @@ namespace Microsoft.ExternalStorage.DocumentAttachments.Test;
 
 using Microsoft.ExternalStorage.DocumentAttachments;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Purchases.History;
 using System.Environment;
 using System.ExternalFileStorage;
 using System.TestLibraries.ExternalFileStorage;
@@ -199,6 +200,110 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment2.FindFirst();
         Assert.AreNotEqual(DocumentAttachment1."External File Path", DocumentAttachment2."External File Path",
             'Each document should have unique external path');
+    end;
+
+    #endregion
+
+    #region Table Folder Tests
+
+    [Test]
+    procedure TableFoldersTrimPeriodsAfterTruncation()
+    var
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        LongTableName: Text;
+    begin
+        Assert.AreEqual('Purch._Cr._Memo_Hdr',
+            DAExternalStorageImpl.SanitizeTableNameFolder('Purch. Cr. Memo Hdr.', Database::"Purch. Cr. Memo Hdr."),
+            'The posted purchase credit memo folder must not end in a period');
+        Assert.AreEqual('Purch._Cr._Memo_Hdr',
+            DAExternalStorageImpl.SanitizeTableNameFolder('Purch. Cr. Memo Hdr...', Database::"Purch. Cr. Memo Hdr."),
+            'All trailing periods must be removed without removing internal periods');
+        Assert.AreEqual('Document_Attachment',
+            DAExternalStorageImpl.SanitizeTableNameFolder('Document Attachment', Database::"Document Attachment"),
+            'Existing valid table folders must not change');
+        Assert.AreEqual('Document_Attachment',
+            DAExternalStorageImpl.SanitizeTableNameFolder('<Document>: "Attachment''/\|?*', Database::"Document Attachment"),
+            'Existing reserved-character removal must be preserved');
+
+        LongTableName := PadStr('Table', 98, 'x');
+        Assert.AreEqual(LongTableName,
+            DAExternalStorageImpl.SanitizeTableNameFolder(LongTableName + '..More', 124),
+            'Trailing periods exposed by truncation must be removed');
+        LongTableName := PadStr('Table', 100, 'x');
+        Assert.AreEqual(LongTableName,
+            DAExternalStorageImpl.SanitizeTableNameFolder(LongTableName + 'More', 124),
+            'Valid table folders must remain limited to 100 characters');
+        Assert.AreEqual('Table_124', DAExternalStorageImpl.SanitizeTableNameFolder('<>:"''/\|?*...', 124),
+            'An empty normalized folder must fall back to the table ID');
+        Assert.AreEqual('Table_124', DAExternalStorageImpl.SanitizeTableNameFolder('', 124),
+            'An empty table name must fall back to the table ID');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure PurchaseCreditMemoFolderRoundTrip()
+    begin
+        // [SCENARIO] Lookup, creation, upload and readback use the same normalized folder, with or without a root.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+
+        VerifyTableFolderRoundTrip('');
+        VerifyTableFolderRoundTrip('Attachments');
+        VerifyTableFolderRoundTrip('Attachments/');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure LegacyTableFolderReadbackAndMigration()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExternalFileStorage: Codeunit "External File Storage";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        OutStream: OutStream;
+        OriginalContent: Text;
+        OriginalPath: Text;
+    begin
+        // [SCENARIO] Saved paths remain readable as-is; explicit migration normalizes only the new destination.
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeature();
+        FileConnectorMock.SetStoreFileContent(true);
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DocumentAttachment.Rename(Database::"Purch. Cr. Memo Hdr.", DocumentAttachment."No.",
+            DocumentAttachment."Document Type", DocumentAttachment."Line No.", DocumentAttachment.ID);
+        OriginalContent := GetAttachmentContent(DocumentAttachment);
+        OriginalPath := 'previous-environment/Purch._Cr._Memo_Hdr./legacy.txt';
+
+        TempBlob.CreateOutStream(OutStream);
+        DocumentAttachment.ExportToStream(OutStream);
+        TempBlob.CreateInStream(InStream);
+        ExternalFileStorage.Initialize(Enum::"File Scenario"::"Doc. Attach. - External Storage");
+        Assert.IsTrue(ExternalFileStorage.CreateFile(OriginalPath, InStream), 'The legacy file must exist in the mock');
+        DocumentAttachment."Stored Externally" := true;
+        DocumentAttachment."External File Path" := CopyStr(OriginalPath, 1, MaxStrLen(DocumentAttachment."External File Path"));
+        DocumentAttachment."Source Environment Hash" := 'previous-environment';
+        DocumentAttachment.Modify();
+        RefreshAttachment(DocumentAttachment);
+
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Remove internal content before readback');
+        Assert.IsTrue(DAExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment), 'Restore must use the saved legacy path');
+        RefreshAttachment(DocumentAttachment);
+        Assert.AreEqual(OriginalPath, DocumentAttachment."External File Path", 'Readback must not normalize the saved path');
+        Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'The legacy content must remain readable');
+
+        Assert.IsTrue(DAExternalStorageImpl.MigrateFileToCurrentEnvironment(DocumentAttachment), 'Migration must read the old path');
+        RefreshAttachment(DocumentAttachment);
+        Assert.IsTrue(DocumentAttachment."External File Path".StartsWith(
+            DAExternalStorageImpl.GetCurrentEnvironmentHash() + '/Purch._Cr._Memo_Hdr/'),
+            'Migration must use the normalized destination folder');
+        Assert.IsTrue(ExternalFileExists(OriginalPath), 'Migration must retain the original remote file');
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Remove internal content before migrated readback');
+        Assert.IsTrue(DAExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment), 'The migrated file must be readable');
+        Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'Migration must preserve the content');
     end;
 
     #endregion
@@ -2528,6 +2633,39 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.ExportToStream(OutStream);
         TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(Content);
+    end;
+
+    local procedure VerifyTableFolderRoundTrip(RootFolder: Text)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        DAExternalStorageSetup: Record "DA External Storage Setup";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExpectedFolder: Text;
+        OriginalContent: Text;
+        SavedPath: Text;
+    begin
+        DAExternalStorageSetup.Get();
+        DAExternalStorageSetup."Root Folder" := CopyStr(RootFolder, 1, MaxStrLen(DAExternalStorageSetup."Root Folder"));
+        DAExternalStorageSetup.Modify();
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DocumentAttachment.Rename(Database::"Purch. Cr. Memo Hdr.", DocumentAttachment."No.",
+            DocumentAttachment."Document Type", DocumentAttachment."Line No.", DocumentAttachment.ID);
+        OriginalContent := GetAttachmentContent(DocumentAttachment);
+        ExpectedFolder := DAExternalStorageImpl.GetCurrentEnvironmentHash() + '/Purch._Cr._Memo_Hdr';
+        if RootFolder <> '' then
+            ExpectedFolder := DelChr(RootFolder, '>', '/') + '/' + ExpectedFolder;
+
+        Assert.IsTrue(DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment), 'The posted credit memo attachment must upload');
+        RefreshAttachment(DocumentAttachment);
+        SavedPath := DocumentAttachment."External File Path";
+        Assert.AreEqual(ExpectedFolder, FileConnectorMock.GetLastDirectoryExistsPath(), 'Lookup must use the normalized folder');
+        Assert.AreEqual(ExpectedFolder, FileConnectorMock.GetLastCreatedDirectoryPath(), 'Creation must use the normalized folder');
+        Assert.IsTrue(SavedPath.StartsWith(ExpectedFolder + '/'), 'Upload must use the same normalized folder');
+        Assert.IsTrue(DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment), 'Remove internal content before readback');
+        Assert.IsTrue(DAExternalStorageImpl.DownloadFromExternalStorageToInternal(DocumentAttachment), 'Readback must use the uploaded path');
+        RefreshAttachment(DocumentAttachment);
+        Assert.AreEqual(SavedPath, DocumentAttachment."External File Path", 'Readback must preserve the saved path');
+        Assert.AreEqual(OriginalContent, GetAttachmentContent(DocumentAttachment), 'The uploaded content must round-trip');
     end;
 
     local procedure VerifyFileNameRoundTrip(FileName: Text; FileExtension: Text): Text

@@ -528,6 +528,66 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    procedure EmptyReleasedProdOrderSubcActionsDisabled()
+    var
+        ProductionOrder: Record "Production Order";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        ReleasedProductionOrdersPage: Page "Released Production Orders";
+        ReleasedProductionOrders: TestPage "Released Production Orders";
+    begin
+        // [SCENARIO 648872] Subcontracting actions require a selected released production order.
+        Initialize();
+
+        // [WHEN] Opening the released production orders list with a view containing no records.
+        LibraryApplicationArea.EnablePremiumSetup();
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+        ProductionOrder.SetRange("No.", '');
+        Assert.RecordIsEmpty(ProductionOrder);
+        ReleasedProductionOrdersPage.SetTableView(ProductionOrder);
+        ReleasedProductionOrders.Trap();
+        ReleasedProductionOrdersPage.Run();
+        Assert.IsFalse(ReleasedProductionOrders.First(), 'The released production orders list must be empty.');
+
+        // [THEN] Subcontracting actions cannot open unrelated records.
+        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, false);
+        ReleasedProductionOrders.Close();
+    end;
+
+    [Test]
+    procedure NonEmptyReleasedProdOrderSubcActionsEnabled()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
+        ReleasedProductionOrders: TestPage "Released Production Orders";
+    begin
+        // [SCENARIO 648872] Subcontracting actions are enabled on a non-empty released production orders list.
+        Initialize();
+
+        // [GIVEN] A released production order.
+        LibraryApplicationArea.EnablePremiumSetup();
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 1);
+
+        // [WHEN] Opening the released production orders list.
+        ReleasedProductionOrders.OpenView();
+        ReleasedProductionOrders.GoToRecord(ProductionOrder);
+
+        // [THEN] Subcontracting actions are enabled.
+        VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders, true);
+        ReleasedProductionOrders.Close();
+    end;
+
+    local procedure VerifyReleasedProdOrderSubcActionsEnabled(ReleasedProductionOrders: TestPage "Released Production Orders"; ExpectedEnabled: Boolean)
+    begin
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Subcontracting Purchase Lines".Enabled(), 'Subcontracting Order Lines must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Subc. Transfer Orders".Enabled(), 'Subcontracting Transfer Orders must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."Subc. Transfer Entries".Enabled(), 'Subcontracting Transfer Entries must follow the current production order selection.');
+        Assert.AreEqual(ExpectedEnabled, ReleasedProductionOrders."WIP Ledger Entries".Enabled(), 'Subcontracting WIP Entries must follow the current production order selection.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler,HandleTransferOrder')]
     procedure CannotDeleteSubcontractingOrderWithAssociatedTransferOrder()
     var
