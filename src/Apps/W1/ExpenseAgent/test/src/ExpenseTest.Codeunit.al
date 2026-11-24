@@ -14,7 +14,6 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
 using Microsoft.TestLibraries.Foundation.NoSeries;
-using System;
 using System.Automation;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -3750,6 +3749,7 @@ codeunit 148305 "Expense Test"
         // [WHEN] Update "Reimbursement Type" in Expense.
         Expense.Validate("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
         Expense.Validate("Payment Method Code", '');
+        Expense.Validate("Corporate Card Id", LibraryExpense.GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
 
         // [THEN] Verify that the Reimbursement Amount is zero when Refundable is false and Type is Credit Paid.
@@ -3999,6 +3999,7 @@ codeunit 148305 "Expense Test"
     procedure ExpenseItemizationQuantityValueShouldBeDefaultOne()
     var
         Expense: Record Expense;
+        ExpectedExpense: Record Expense;
         PostCode: Record "Post Code";
         Currency: Record Currency;
         ExpenseRuleHeader: Record "Expense Rule Header";
@@ -4031,7 +4032,9 @@ codeunit 148305 "Expense Test"
         LibraryVariableStorage.Enqueue(1);
 
         // [GIVEN] Enqueue expected Message text.
-        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, '0.00', Expense.Amount));
+        ExpectedExpense := Expense;
+        ExpectedExpense.Amount := 0;  // to force same type of formatting
+        LibraryVariableStorage.Enqueue(StrSubstNo(ItemizationTotalMismatchErr, ExpectedExpense.Amount, Expense.Amount));
 
         // [WHEN] Open Expense Itemization Page.
         ExpensePage.OpenEdit();
@@ -6381,27 +6384,8 @@ codeunit 148305 "Expense Test"
         TempBlob: Codeunit "Temp Blob";
     begin
         DocumentAttachment.Init();
-        CreateTempBLOBWithImageOfType(TempBlob, 'jpeg');
+        LibraryExpense.CreateTempBLOBWithImageOfType(TempBlob, Enum::"Image Format"::Jpeg);
         DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
-    end;
-
-    local procedure CreateTempBLOBWithImageOfType(var TempBlob: Codeunit "Temp Blob"; ImageType: Text)
-    var
-        ImageFormat: DotNet ImageFormat;
-        Bitmap: DotNet Bitmap;
-        InStr: InStream;
-    begin
-        TempBlob.CreateInStream(InStr);
-        Bitmap := Bitmap.Bitmap(1, 1);
-        case ImageType of
-            'png':
-                Bitmap.Save(InStr, ImageFormat.Png);
-            'jpeg':
-                Bitmap.Save(InStr, ImageFormat.Jpeg);
-            else
-                Bitmap.Save(InStr, ImageFormat.Bmp);
-        end;
-        Bitmap.Dispose();
     end;
 
     local procedure CheckIfDocAttachExist(TableNo: Integer; DocNo: Code[20]; LineNo: Integer): Boolean;

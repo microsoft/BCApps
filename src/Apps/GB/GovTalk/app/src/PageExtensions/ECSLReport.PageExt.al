@@ -21,14 +21,7 @@ pageextension 10504 "ECSL Report" extends "ECSL Report"
     trigger OnAfterGetCurrRecord()
     var
         GovTalkSetup: Record "Gov Talk Setup";
-#if not CLEAN27
-        GovTalk: Codeunit GovTalk;
-#endif
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         DeleteErrors(DummyCompanyInformation.RecordId);
         DeleteErrors(GovTalkSetup.RecordId);
     end;

@@ -8,6 +8,7 @@ namespace System.TestTools.TestRunner;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
+// [FEATURE] Runtime test input placeholder registration and resolution.
 codeunit 130482 "Placeholder Tests"
 {
     Subtype = Test;
@@ -23,12 +24,12 @@ codeunit 130482 "Placeholder Tests"
         TurnsTemplateTok: Label '{"turns":[{"message":"%1"},{"message":"%1"}]}', Comment = '%1 = Placeholder token repeated in both turn messages.', Locked = true;
 
     [Test]
-    procedure SetGetsAndOverwritesCaseInsensitiveName()
+    procedure RegistrationPreservesValueWithCaseInsensitiveName()
     var
         Name: Text;
         Value: Text;
     begin
-        // [SCENARIO] Registering the same name with different casing overwrites one value without changing its text.
+        // [SCENARIO] A registered value retains its text when retrieved using a differently cased name.
 
         // [GIVEN] A full placeholder name with mixed casing.
         Initialize();
@@ -40,6 +41,20 @@ codeunit 130482 "Placeholder Tests"
         // [THEN] Name lookup ignores casing without changing the stored value.
         Assert.IsTrue(DataTools.GetPlaceholder(LowerCase(Name), Value), 'The name must be case-insensitive.');
         Assert.AreEqual('00123-Abc', Value, 'Values must retain their case and leading zeros.');
+    end;
+
+    [Test]
+    procedure OverwriteUsesCaseInsensitiveName()
+    var
+        Name: Text;
+        Value: Text;
+    begin
+        // [SCENARIO] Registering the same name with different casing replaces its existing value.
+
+        // [GIVEN] A value registered under a mixed-case full placeholder name.
+        Initialize();
+        Name := TestName + '-Customer1No';
+        DataTools.SetPlaceholder(Name, '00123-Abc');
 
         // [WHEN] The same name is registered again using different casing.
         DataTools.SetPlaceholder(UpperCase(Name), 'Updated');
@@ -279,7 +294,7 @@ codeunit 130482 "Placeholder Tests"
         Value: Text;
         UnicodeCharacter: Char;
     begin
-        // [SCENARIO] Long multiline Unicode values round-trip, and shorter overwrites leave no old BLOB suffix.
+        // [SCENARIO] Long multiline Unicode values retain their complete text through storage and resolution.
 
         // [GIVEN] Long text containing Unicode, line breaks, quotes, and significant whitespace.
         Initialize();
@@ -299,6 +314,18 @@ codeunit 130482 "Placeholder Tests"
         Assert.IsTrue(DataTools.GetPlaceholder(TestName, Value), 'The BLOB value must exist.');
         Assert.AreEqual(Expected, Value, 'BLOB storage must preserve the complete text.');
         Assert.AreEqual(Expected, DataTools.ResolveText(Token(TestName)), 'Resolution must not format or trim the value.');
+    end;
+
+    [Test]
+    procedure BlobOverwriteDoesNotRetainOldSuffix()
+    var
+        Value: Text;
+    begin
+        // [SCENARIO] Overwriting a long BLOB with a shorter value leaves no suffix from the original text.
+
+        // [GIVEN] A long existing placeholder value.
+        Initialize();
+        DataTools.SetPlaceholder(TestName, PadStr('x', 32768, 'y'));
 
         // [WHEN] A shorter value replaces the BLOB.
         DataTools.SetPlaceholder(TestName, 'short');

@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA33
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,29 +13,64 @@ tableextension 7410 "Item Subst. Suggestion" extends "Item Substitution"
         {
             Caption = 'Confidence';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(7331; Score; Decimal)
         {
             Caption = 'Score';
             DataClassification = SystemMetadata;
             AutoFormatType = 0;
+            ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(7332; "Primary Search Terms"; Blob)
         {
             Caption = 'Primary Search Terms';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
         field(7333; "Additional Search Terms"; Blob)
         {
             Caption = 'Secondary Search Terms';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
     }
 
     keys
     {
+#if not CLEAN30
         key(Key2; Score) { }
+#endif
     }
+#if not CLEAN30
 
     internal procedure SetPrimarySearchTerms(SearchTerms: List of [Text])
     var
@@ -80,4 +116,6 @@ tableextension 7410 "Item Subst. Suggestion" extends "Item Substitution"
         Rec."Additional Search Terms".CreateInStream(SearchTermInStream, TextEncoding::UTF8);
         SearchTermInStream.ReadText(Result);
     end;
+#endif
 }
+#endif

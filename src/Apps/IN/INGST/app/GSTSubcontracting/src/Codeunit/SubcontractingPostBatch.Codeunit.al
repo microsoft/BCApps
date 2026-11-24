@@ -210,6 +210,7 @@ codeunit 18467 "Subcontracting Post Batch"
         PurchLineToUpdate: Record "Purchase Line";
         Currency: Record Currency;
         PurchPost: Codeunit "Purch.-Post";
+        IsHandled: Boolean;
     begin
         if not Confirm(PostConfirmationQst) then
             Error('');
@@ -247,12 +248,17 @@ codeunit 18467 "Subcontracting Post Batch"
                         Currency.Get(PurchHeader."Currency Code");
                         Currency.TestField("Amount Rounding Precision");
                     end;
-                    PurchHeader."Vendor Shipment No." := MultiSubOrderDet."Vendor Shipment No.";
-                    PurchHeader.Receive := true;
-                    PurchHeader.Invoice := false;
-                    PurchHeader.SubConPostLine := PurchLine."Line No.";
-                    PurchPost.Run(PurchHeader);
-                    PurchHeader.Modify();
+
+                    IsHandled := false;
+                    OnBeforePostPurchOrderLine(MultiSubOrderDet, PurchHeader, PurchLine, IsHandled);
+                    if not IsHandled then begin
+                        PurchHeader."Vendor Shipment No." := MultiSubOrderDet."Vendor Shipment No.";
+                        PurchHeader.Receive := true;
+                        PurchHeader.Invoice := false;
+                        PurchHeader.SubConPostLine := PurchLine."Line No.";
+                        PurchPost.Run(PurchHeader);
+                        PurchHeader.Modify();
+                    end;
                 end;
                 PurchLineToUpdate.Get(PurchLine."Document Type", PurchLine."Document No.", PurchLine."Line No.");
                 PurchLineToUpdate."Applies-to ID (Receipt)" := '';
@@ -582,5 +588,10 @@ codeunit 18467 "Subcontracting Post Batch"
             if TotalQty = 0 then
                 Error(NothingtoReceiveErr)
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostPurchOrderLine(MultiSubOrderDet: Record "Multiple Subcon. Order Details"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
     end;
 }

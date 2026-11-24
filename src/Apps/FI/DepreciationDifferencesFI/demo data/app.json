@@ -1,0 +1,57 @@
+{
+  "id": "1ccf0618-8dba-4fe4-aad6-ef4f9c075f3b",
+  "name": "Depreciation Differences FI Demo Data",
+  "publisher": "Microsoft",
+  "version": "30.0.0.0",
+  "brief": "Demo data for Finnish posting depreciation differences in Business Central.",
+  "description": "Provides demo data for the Finnish posting depreciation differences functionality in Business Central.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2212316",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2212316",
+  "application": "30.0.0.0",
+  "platform": "30.0.0.0",
+  "dependencies": [
+    {
+      "id": "ecb1100e-3081-4c6a-9554-de33c687bf5f",
+      "name": "Depreciation Differences FI",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5a0b41e9-7a42-4123-d521-2265186cfb31",
+      "name": "Contoso Coffee Demo Dataset",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
+      "id": "5b0a31a1-6b42-4123-a521-2265186cfb31",
+      "name": "Contoso Coffee Demo Dataset (FI)",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 13487,
+      "to": 13487
+    },
+    {
+      "from": 13486,
+      "to": 13486
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}

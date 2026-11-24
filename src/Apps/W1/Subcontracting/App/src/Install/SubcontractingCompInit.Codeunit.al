@@ -63,6 +63,8 @@ codeunit 20503 "Subcontracting Comp. Init."
         then
             CreateReqWkshTemplate(ReqWkshTemplate, false);
 
+        UpdateSubcontractingWorksheetPage(ReqWkshTemplate);
+
         if not RequisitionWkshName.Get(ReqWkshTemplate.Name, ManufacturingSetup."Subcontracting Batch Name") then
             CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplate.Name);
         ManufacturingSetup."Subcontracting Template Name" := ReqWkshTemplate.Name;
@@ -73,18 +75,45 @@ codeunit 20503 "Subcontracting Comp. Init."
     procedure CreateReqWkshTemplate(var ReqWkshTemplate: Record "Req. Wksh. Template"; Recurring: Boolean): Boolean
     begin
         ReqWkshTemplate.SetRange(Type, ReqWkshTemplate.Type::Subcontracting);
-        if ReqWkshTemplate.FindFirst() then
+        if ReqWkshTemplate.FindFirst() then begin
+            UpdateSubcontractingWorksheetPage(ReqWkshTemplate);
             exit(false);
+        end;
 
         ReqWkshTemplate.Init();
-        ReqWkshTemplate.Validate(Name, ReqWkshTempNameLbl);
+        ReqWkshTemplate.Validate(Name, GetAvailableReqWkshTemplateName());
         ReqWkshTemplate.Validate(Description, ReqWkshTempDescLbl);
         ReqWkshTemplate.Recurring := Recurring;
         ReqWkshTemplate.Validate(Type, ReqWkshTemplate.Type::Subcontracting);
         ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
-        if not ReqWkshTemplate.Insert(true) then
-            ReqWkshTemplate.Modify(true);
+        ReqWkshTemplate.Insert(true);
         exit(true);
+    end;
+
+    local procedure GetAvailableReqWkshTemplateName(): Code[10]
+    var
+        ExistingReqWkshTemplate: Record "Req. Wksh. Template";
+        TemplateName: Code[10];
+        SuffixText: Text;
+        Suffix: Integer;
+    begin
+        TemplateName := CopyStr(ReqWkshTempNameLbl, 1, MaxStrLen(TemplateName));
+        while ExistingReqWkshTemplate.Get(TemplateName) do begin
+            Suffix += 1;
+            SuffixText := Format(Suffix, 0, 9);
+            TemplateName := CopyStr(CopyStr(ReqWkshTempNameLbl, 1, MaxStrLen(TemplateName) - StrLen(SuffixText)) + SuffixText, 1, MaxStrLen(TemplateName));
+        end;
+        exit(TemplateName);
+    end;
+
+    local procedure UpdateSubcontractingWorksheetPage(var ReqWkshTemplate: Record "Req. Wksh. Template")
+    begin
+        // The obsolete Subcontracting Worksheet page may no longer be available in symbols.
+        if ReqWkshTemplate."Page ID" <> 99000886 then
+            exit;
+
+        ReqWkshTemplate.Validate("Page ID", Page::"Subc. Subcontracting Worksheet");
+        ReqWkshTemplate.Modify(true);
     end;
 
     procedure CreateRequisitionWkshName(var RequisitionWkshName: Record "Requisition Wksh. Name"; WorksheetTemplateName: Text)

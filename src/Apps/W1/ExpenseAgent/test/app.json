@@ -20,7 +20,7 @@
     },
     {
       "id": "66efe10c-8033-403b-a86d-77c0887178ba",
-      "name": "Expense Agent (Preview)",
+      "name": "Expense Agent",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     },
@@ -38,6 +38,7 @@
     },
     {
       "id": "bee8cf2f-494a-42f4-aabd-650e87934d39",
+      
       "name": "Business Foundation Test Libraries",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
@@ -51,7 +52,7 @@
       "to": 148319
     },
     {
-      "from": 148330,
+      "from": 148329,
       "to": 148369
     }
   ],
