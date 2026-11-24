@@ -7825,6 +7825,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry: Record "G/L Entry";
         AmountAddCurr: Decimal;
         GLEntryNoFromVAT: Integer;
+        SavedPostingDate: Date;
     begin
         OnBeforePostUnrealVATByUnapply(GenJnlLine, VATPostingSetup, VATEntry, NewVATEntry);
         if GLSetup."Enable Russian Accounting" then begin
@@ -8017,7 +8018,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure InsertDtldCustLedgEntryUnapply(GenJnlLine: Record "Gen. Journal Line"; var NewDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var OldDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var NextDtldLedgEntryNo: BigInteger; var CustomerPostingGroup: Record "Customer Posting Group")
+    local procedure InsertDtldCustLedgEntryUnapply(var GenJnlLine: Record "Gen. Journal Line"; var SavedGenJnlLine: Record "Gen. Journal Line"; var NewDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var OldDtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var NextDtldLedgEntryNo: BigInteger; var CustomerPostingGroup: Record "Customer Posting Group")
+    var
+        CustLedgEntry2: Record "Cust. Ledger Entry";
     begin
         NewDtldCustLedgEntry := OldDtldCustLedgEntry;
         NewDtldCustLedgEntry."Entry No." := NextDtldLedgEntryNo;
@@ -8057,7 +8060,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnAfterInsertDtldCustLedgEntryUnapply(CustomerPostingGroup, OldDtldCustLedgEntry, GenJnlLine, NewDtldCustLedgEntry);
     end;
 
-    local procedure InsertDtldVendLedgEntryUnapply(GenJnlLine: Record "Gen. Journal Line"; var NewDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; OldDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var NextDtldLedgEntryNo: BigInteger)
+    local procedure InsertDtldVendLedgEntryUnapply(var GenJnlLine: Record "Gen. Journal Line"; var SavedGenJnlLine: Record "Gen. Journal Line"; var NewDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; OldDtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry"; var NextDtldLedgEntryNo: BigInteger)
+    var
+        VendLedgEntry2: Record "Vendor Ledger Entry";
     begin
         NewDtldVendLedgEntry := OldDtldVendLedgEntry;
         NewDtldVendLedgEntry."Entry No." := NextDtldLedgEntryNo;
@@ -8807,10 +8812,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure InsertCustGLEntry(GenJnlLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer"; CustPostingGr: Record "Customer Posting Group")
     var
-        Complete: Boolean;
-        LinkedAmount: Decimal;
-        FirstEntryNo: Integer;
-        LastEntryNo: Integer;
+        TempGenJnlLine: Record "Gen. Journal Line";
+        SavedGenJnlLine: Record "Gen. Journal Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        SalesSetup: Record "Sales & Receivables Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATPrepmtPost: Codeunit "VAT Prepayment-Post";
     begin
         InitGLEntry(
             GenJnlLine, GLEntry, CustPostingGr.GetPrepaymentAccount(DtldCVLedgEntryBuf.Prepayment),

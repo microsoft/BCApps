@@ -1453,6 +1453,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        WHTPostingSetup: Record "WHT Posting Setup";
+        WHTAmount: Decimal;
+        WHTAmountLCY: Decimal;
         DtldLedgEntryInserted: Boolean;
         ShouldCheckDocNo: Boolean;
         IsHandled: Boolean;
@@ -1466,6 +1469,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
         OnPostCustOnAfterInitCustLedgEntry(GenJournalLine, CustLedgEntry, Cust, CustPostingGr);
 
+        CalcCustWHT(GenJournalLine, WHTPostingSetup, WHTAmountLCY, WHTAmount);
+        CustLedgEntry."Amount to Apply" := GenJournalLine.Amount;
+
         if not Cust."Block Payment Tolerance" then
             CalcPmtTolerancePossible(
                 GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",
@@ -1477,6 +1483,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf.CopyFromGenJnlLine(GenJournalLine);
         OnPostCustOnAfterTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, TempDtldCVLedgEntryBuf);
         TempDtldCVLedgEntryBuf."CV Ledger Entry No." := CustLedgEntry."Entry No.";
+        TempDtldCVLedgEntryBuf.Amount := TempDtldCVLedgEntryBuf.Amount - ExchangeAmtLCYToFCY2(WHTAmount);
+        TempDtldCVLedgEntryBuf."Amount (LCY)" := TempDtldCVLedgEntryBuf."Amount (LCY)" - WHTAmountLCY;
+        TempDtldCVLedgEntryBuf."Additional-Currency Amount" := GenJournalLine.Amount;
         OnPostCustOnBeforeCopyFromCustLedgEntry(CVLedgEntryBuf, GenJournalLine, Cust);
         CVLedgEntryBuf.CopyFromCustLedgEntry(CustLedgEntry);
 
@@ -1532,6 +1541,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if DtldLedgEntryInserted then
             if IsTempGLEntryBufEmpty() then
                 DtldCustLedgEntry.SetZeroTransNo(NextTransactionNo);
+
+        PostCustWHT(GenJournalLine, CustLedgEntry, WHTPostingSetup, WHTAmountLCY);
     end;
 
     local procedure PostVend(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
@@ -1689,6 +1700,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if DtldLedgEntryInserted then
             if IsTempGLEntryBufEmpty() then
                 DtldVendLedgEntry.SetZeroTransNo(NextTransactionNo);
+
+        PostVendWHT(GenJournalLine, VendLedgEntry, WHTPostingSetup, WHTAmountLCY, WHTAmount);
     end;
 
     local procedure PostEmployee(GenJnlLine: Record "Gen. Journal Line")

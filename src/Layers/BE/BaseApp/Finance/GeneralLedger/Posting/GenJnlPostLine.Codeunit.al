@@ -1406,7 +1406,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CVLedgEntryBuf.Positive := CVLedgEntryBuf."Remaining Amount" > 0;
         OnPostCustOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine, Cust, CustLedgEntry, TempDtldCVLedgEntryBuf);
 
-        CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
+        if GenJournalLine."Amount (LCY)" <> 0 then
+            if GenJournalLine."System-Created Entry" then begin
+                CVLedgEntryBuf."Original Pmt. Disc. Possible" := Round(GenJournalLine."Orig. Pmt. Disc. Possible", AmountRoundingPrecision);
+                CVLedgEntryBuf."Orig. Pmt. Disc. Possible(LCY)" := Round(GenJournalLine."Orig. Pmt. Disc. Possible(LCY)");
+                CVLedgEntryBuf."Remaining Pmt. Disc. Possible" := CVLedgEntryBuf."Original Pmt. Disc. Possible";
+            end else
+                CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
 
         if GenJournalLine."Currency Code" <> '' then begin
             GenJournalLine.TestField("Currency Factor");

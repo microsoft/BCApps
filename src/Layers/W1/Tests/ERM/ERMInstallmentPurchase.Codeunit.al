@@ -98,6 +98,7 @@ codeunit 134501 "ERM Installment Purchase"
         PlanLine.SetCurrentKey("Plan ID", "Installment No.");
         PlanLine.SetRange("Plan ID", PlanID);
         PlanLine.FindSet();
+        AnchorEntryNo := 0;
         repeat
             InstallmentNo += 1;
             PlanLine.TestField("Installment No.", InstallmentNo);
@@ -275,7 +276,7 @@ codeunit 134501 "ERM Installment Purchase"
         if not UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag()) then
             UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInstallmentInvoiceGroupUpgradeTag());
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag()) then
-            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag(), CompanyName());
+            UpgradeTagLibrary.DeleteUpgradeTag(UpgradeTagDefinitions.GetPurchaseInstallmentInvoiceGroupUpgradeTag(), CopyStr(CompanyName(), 1, 30));
     end;
 
     local procedure ClearVendorInvoiceGroups(PlanID: Guid)

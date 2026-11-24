@@ -1370,6 +1370,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
         OnPostCustOnAfterInitCustLedgEntry(GenJournalLine, CustLedgEntry, Cust, CustPostingGr);
 
+        if GenJournalLine."Reference No." <> '' then
+            CustLedgEntry."Reference No." := GenJournalLine."Reference No."
+        else
+            CustLedgEntry."Reference No." := GenJournalLine."Invoice Message";
+
+        UpdateImportedRefPayment(GenJournalLine, CustLedgEntry);
+
         if not Cust."Block Payment Tolerance" then
             CalcPmtTolerancePossible(
                 GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",

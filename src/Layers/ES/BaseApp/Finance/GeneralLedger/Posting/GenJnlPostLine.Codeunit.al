@@ -228,7 +228,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AppliedAmountLCY2: Decimal;
         AppliesToDocType: Enum "Gen. Journal Document Type";
         IsCreditMemo: Boolean;
-        OriginalEntryExist: Boolean;
         TotalAmountForTax: Decimal;
         ForceDocBalance: Boolean;
         BillSettlementGainLoss: Boolean;
@@ -1459,6 +1458,22 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GenJournalLine, CustLedgEntry."Pmt. Discount Date", CustLedgEntry."Pmt. Disc. Tolerance Date",
                 CustLedgEntry."Max. Payment Tolerance");
 
+        if GLSetup."Payment Discount Type" =
+           GLSetup."Payment Discount Type"::"Calc. Pmt. Disc. on Lines"
+        then
+            CustLedgEntry."Pmt. Disc. Given (LCY)" := GenJournalLine."Pmt. Discount Given/Rec. (LCY)"
+        else
+            if GenJournalLine."Amount (LCY)" <> 0 then begin
+                if GLSetup."Pmt. Disc. Excl. VAT" then
+                    CustLedgEntry."Original Pmt. Disc. Possible" := GenJournalLine."Sales/Purch. (LCY)" * GenJournalLine.Amount / GenJournalLine."Amount (LCY)"
+                else
+                    CustLedgEntry."Original Pmt. Disc. Possible" := GenJournalLine.Amount;
+                CustLedgEntry."Original Pmt. Disc. Possible" :=
+                  Round(
+                    CustLedgEntry."Original Pmt. Disc. Possible" * GenJournalLine."Payment Discount %" / 100, AmountRoundingPrecision);
+                CustLedgEntry."Remaining Pmt. Disc. Possible" := CustLedgEntry."Original Pmt. Disc. Possible";
+            end;
+
         TempDtldCVLedgEntryBuf.DeleteAll();
         TempDtldCVLedgEntryBuf.Init();
         OnPostCustOnBeforeTempDtldCVLedgEntryBufCopyFromGenJnlLine(GenJournalLine, CustLedgEntry, Cust, GLReg, CVLedgEntryBuf);
@@ -1476,7 +1491,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CVLedgEntryBuf.Positive := CVLedgEntryBuf."Remaining Amount" > 0;
         OnPostCustOnAfterCopyCVLedgEntryBuf(CVLedgEntryBuf, GenJournalLine, Cust, CustLedgEntry, TempDtldCVLedgEntryBuf);
 
-        CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
+        if InstallmentCount <> 0 then
+            CalcPmtDiscPossible(GenJournalLine, CVLedgEntryBuf);
 
         if GenJournalLine."Currency Code" <> '' then begin
             GenJournalLine.TestField("Currency Factor");
@@ -1495,8 +1511,22 @@ codeunit 12 "Gen. Jnl.-Post Line"
             end;
         end;
 
+        IsOriginalEntryExist(GenJournalLine);
         OnPostCustOnBeforeApplyCustLedgEntry(GenJournalLine, CVLedgEntryBuf, FromBillSettlement);
         ApplyCustLedgEntry(CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJournalLine, Cust);
+
+        if (GenJournalLine."Applies-to ID" = '') and
+           (GenJournalLine."Applies-to Doc. Type" = GenJournalLine."Applies-to Doc. Type"::" ")
+        then
+            GenJournalLine."Applies-to Doc. Type" := AppliesToDocType;
+        if not GenJournalLine.Prepayment then begin
+            if GenJournalLine."Document Type" = GenJournalLine."Document Type"::Bill then begin
+                DocPost.CreateReceivableDoc(GenJournalLine, CVLedgEntryBuf, BillFromJournal);
+                CustLedgEntry."Document Situation" := CustLedgEntry."Document Situation"::Cartera;
+                CustLedgEntry."Document Status" := CustLedgEntry."Document Status"::Open;
+            end;
+            SendDocToCartera(GenJournalLine, VendLedgEntry, CustLedgEntry, 0, CVLedgEntryBuf);
+        end;
 
         CustLedgEntry.CopyFromCVLedgEntryBuffer(CVLedgEntryBuf);
         IsHandled := false;
@@ -1661,7 +1691,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     CheckPurchExtDocNo(GenJournalLine);
             end;
 
-        OriginalEntryExist := IsOriginalEntryExist(GenJournalLine);
+        IsOriginalEntryExist(GenJournalLine);
         // Post application
         OnPostVendOnBeforeApplyVendLedgEntry(GenJournalLine, CVLedgEntryBuf, FromBillSettlement);
         ApplyVendLedgEntry(CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJournalLine, Vend);
@@ -4366,6 +4396,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
                         (GenJnlLine."Applies-to Doc. No." <> '')) then
                     OldCustLedgEntry.TestField(Positive, not NewCVLedgEntryBuf.Positive);
 
+            CheckCarteraAccessPermissions(OldCustLedgEntry."Document Situation");
+            DocPost.CheckAppliedReceivableDoc(OldCustLedgEntry, GenJnlLine."System-Created Entry");
             if OldCustLedgEntry."Posting Date" > ApplyingDate then
                 ApplyingDate := OldCustLedgEntry."Posting Date";
             OnPrepareTempCustLedgEntryOnBeforeCheckAgainstApplnCurrencyWithAppliesToDocNo(GenJnlLine, NewCVLedgEntryBuf, OldCustLedgEntry);

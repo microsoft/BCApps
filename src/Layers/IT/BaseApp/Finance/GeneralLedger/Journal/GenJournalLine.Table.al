@@ -1236,10 +1236,9 @@ table 81 "Gen. Journal Line"
                 "Pmt. Discount Date" := 0D;
                 "Payment Discount %" := 0;
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     if "Payment Terms Code" <> xRec."Payment Terms Code" then
                         DeleteSalesPaymentLines();
-                end;
 #endif
                 if ("Account Type" <> "Account Type"::"G/L Account") or
                    ("Bal. Account Type" <> "Bal. Account Type"::"G/L Account")
@@ -1258,11 +1257,25 @@ table 81 "Gen. Journal Line"
                             "Due Date" := "Posting Date";
                     end else
 #endif
-                    begin
-                        case "Document Type" of
-                            "Document Type"::Invoice:
-                                if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
-                                    PaymentTerms.Get("Payment Terms Code");
+                    case "Document Type" of
+                        "Document Type"::Invoice:
+                            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                                PaymentTerms.Get("Payment Terms Code");
+                                IsHandled := false;
+                                OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
+                                if not IsHandled then
+                                    "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                                IsHandled := false;
+                                OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
+                                if not IsHandled then
+                                    "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                                "Payment Discount %" := PaymentTerms."Discount %";
+                            end else
+                                "Due Date" := "Document Date";
+                        "Document Type"::"Credit Memo":
+                            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                                PaymentTerms.Get("Payment Terms Code");
+                                if PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
                                     IsHandled := false;
                                     OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
                                     if not IsHandled then
@@ -1274,26 +1287,10 @@ table 81 "Gen. Journal Line"
                                     "Payment Discount %" := PaymentTerms."Discount %";
                                 end else
                                     "Due Date" := "Document Date";
-                            "Document Type"::"Credit Memo":
-                                if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
-                                    PaymentTerms.Get("Payment Terms Code");
-                                    if PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
-                                        IsHandled := false;
-                                        OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
-                                        if not IsHandled then
-                                            "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-                                        IsHandled := false;
-                                        OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
-                                        if not IsHandled then
-                                            "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
-                                        "Payment Discount %" := PaymentTerms."Discount %";
-                                    end else
-                                        "Due Date" := "Document Date";
-                                end else
-                                    "Due Date" := "Document Date";
-                            else
+                            end else
                                 "Due Date" := "Document Date";
-                        end;
+                        else
+                            "Due Date" := "Document Date";
                     end;
             end;
         }
@@ -1546,10 +1543,9 @@ table 81 "Gen. Journal Line"
                     "VAT Registration No." := '';
                 end;
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     if xRec."Bal. Account Type" in [xRec."Bal. Account Type"::Customer, xRec."Bal. Account Type"::Vendor] then
                         DeleteSalesPaymentLines();
-                end;
 #endif
                 if ("Account Type" in [
                                        "Account Type"::"G/L Account", "Account Type"::"Bank Account", "Account Type"::"Fixed Asset"]) and
@@ -4345,9 +4341,8 @@ table 81 "Gen. Journal Line"
             ClearDataExchangeEntries(false);
 
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 DeleteSalesPaymentLines();
-            end;
 #endif
             GenJnlAlloc.SetRange("Journal Template Name", "Journal Template Name");
             GenJnlAlloc.SetRange("Journal Batch Name", "Journal Batch Name");
@@ -4389,9 +4384,8 @@ table 81 "Gen. Journal Line"
             "Source Code" := GenJnlTemplate."Source Code";
 
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             Validate("Payment Terms Code");
-        end;
 #endif
         Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
         Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
@@ -6142,9 +6136,8 @@ table 81 "Gen. Journal Line"
             SetAmountWithCustLedgEntry();
             UpdateDocumentTypeAndAppliesTo(CustLedgEntry."Document Type", CustLedgEntry."Document No.");
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 "Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
-            end;
 #endif
             if "Document Type" = "Document Type"::Dishonored then begin
                 "Document No. to Close" := CustLedgEntry."Document No. to Close";
@@ -6241,9 +6234,8 @@ table 81 "Gen. Journal Line"
             SetAmountWithVendLedgEntry();
             UpdateDocumentTypeAndAppliesTo(VendLedgEntry."Document Type", VendLedgEntry."Document No.");
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 "Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
-            end;
 #endif
             OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo(Rec, VendLedgEntry);
         end;
@@ -7277,9 +7269,8 @@ table 81 "Gen. Journal Line"
             CustLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
             CustLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 CustLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
-            end;
 #endif
             if CustLedgEntry.FindFirst() then;
         end else
@@ -7298,9 +7289,8 @@ table 81 "Gen. Journal Line"
             VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
             VendLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 VendLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
-            end;
 #endif
             if VendLedgEntry.FindFirst() then;
         end else
