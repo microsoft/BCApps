@@ -17,14 +17,30 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         PrepareDraftHelper: Codeunit "EDoc Prepare Purch. Draft";
 
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"): Enum "E-Document Type"
-    var
-        FeatureConfiguration: Codeunit "Feature Configuration";
     begin
-        if FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok then
-            exit("E-Document Type"::"Purchase Invoice");
+        exit(PrepareDraft(EDocument, EDocImportParameters, IsAgentDrivenLineMatchingEnabled()));
+    end;
+
+    internal procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"; AgentDrivenLineMatching: Boolean): Enum "E-Document Type"
+    begin
+        if AgentDrivenLineMatching then
+            if IsPayablesAgentEDocument(EDocument) then
+                exit("E-Document Type"::"Purchase Invoice");
 
         PrepareDraftHelper.PrepareDraft(EDocument, EDocImportParameters);
         exit("E-Document Type"::"Purchase Invoice");
+    end;
+
+    local procedure IsAgentDrivenLineMatchingEnabled(): Boolean
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+    begin
+        exit(FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok);
+    end;
+
+    local procedure IsPayablesAgentEDocument(EDocument: Record "E-Document"): Boolean
+    begin
+        exit(EDocument.GetEDocumentService().Code = PayablesAgentEDocServiceTok);
     end;
 
     procedure OpenDraftPage(var EDocument: Record "E-Document")
@@ -45,4 +61,5 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
     var
         AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
         AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
+        PayablesAgentEDocServiceTok: Label 'AGENT', Locked = true;
 }
