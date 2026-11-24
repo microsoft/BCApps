@@ -4580,7 +4580,10 @@ codeunit 137083 "SCM Production Orders IV"
         ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
         UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
         Quantity: Decimal;
+        ExpectedCostAmount: Decimal;
         LastValueEntryNo: Integer;
+        OutputItemLedgerEntryNo: Integer;
+        ReversingOutputItemLedgerEntryNo: Integer;
     begin
         // [SCENARIO 651524] Adjust Cost must not create a Variance Value Entry with "Expected Cost" = Yes
         // after a Finished Production Order of a Standard Cost item is reopened, its entries reversed and new output posted.
@@ -4637,10 +4640,16 @@ codeunit 137083 "SCM Production Orders IV"
         ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
         ItemLedgerEntry.FindFirst();
+        OutputItemLedgerEntryNo := ItemLedgerEntry."Entry No.";
         ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
         UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
 
         ItemLedgerEntry.SetRange("Entry No.");
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        ReversingOutputItemLedgerEntryNo := ItemLedgerEntry."Entry No.";
+        ItemLedgerEntry.SetRange(Positive);
+
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
         ItemLedgerEntry.FindFirst();
         ItemLedgerEntry.SetRange("Entry No.", ItemLedgerEntry."Entry No.");
@@ -4662,16 +4671,16 @@ codeunit 137083 "SCM Production Orders IV"
         // [WHEN] Run Adjust Cost - Item Entries.
         LibraryCosting.AdjustCostItemEntries(StrSubstNo('%1|%2', CompItem."No.", ProdItem."No."), '');
 
-        // [THEN] Adjust Cost created a new adjustment Variance Value Entry for item "P".
+        // [THEN] Adjust Cost created a new Variance Value Entry for the reversing output entry of item "P".
         ValueEntry.Reset();
         ValueEntry.SetFilter("Entry No.", '>%1', LastValueEntryNo);
         ValueEntry.SetRange("Item No.", ProdItem."No.");
         ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
-        ValueEntry.SetRange(Adjustment, true);
+        ValueEntry.SetRange("Item Ledger Entry No.", ReversingOutputItemLedgerEntryNo);
         Assert.RecordIsNotEmpty(ValueEntry);
 
         // [THEN] Every Variance Value Entry created by Adjust Cost for item "P" has "Expected Cost" = No and "Cost Amount (Expected)" = 0.
-        ValueEntry.SetRange(Adjustment);
+        ValueEntry.SetRange("Item Ledger Entry No.");
         ValueEntry.FindSet();
         repeat
             Assert.AreEqual(
@@ -4684,12 +4693,18 @@ codeunit 137083 "SCM Production Orders IV"
                 StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Expected)"), 0, ValueEntry."Entry No.", ValueEntry.TableCaption()));
         until ValueEntry.Next() = 0;
 
-        // [THEN] The adjustment Variance Value Entry for item "P" is posted to "Cost Amount (Actual)".
-        ValueEntry.SetRange(Adjustment, true);
-        ValueEntry.CalcSums("Cost Amount (Actual)");
-        Assert.AreNotEqual(
-            0, ValueEntry."Cost Amount (Actual)",
-            StrSubstNo(ValueMustNotBeZeroErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ValueEntry.TableCaption()));
+        // [THEN] The reversing output entry carries exactly the negated actual Variance cost of the reversed output entry.
+        ExpectedCostAmount := -CalcCostAmountActual(OutputItemLedgerEntryNo, true);
+        Assert.AreNotEqual(0, ExpectedCostAmount, StrSubstNo(ValueMustNotBeZeroErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ItemLedgerEntry.TableCaption()));
+        Assert.AreEqual(
+            ExpectedCostAmount, CalcCostAmountActual(ReversingOutputItemLedgerEntryNo, true),
+            StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ExpectedCostAmount, ReversingOutputItemLedgerEntryNo, ItemLedgerEntry.TableCaption()));
+
+        // [THEN] The reversing output entry carries exactly the negated total actual cost of the reversed output entry.
+        ExpectedCostAmount := -CalcCostAmountActual(OutputItemLedgerEntryNo, false);
+        Assert.AreEqual(
+            ExpectedCostAmount, CalcCostAmountActual(ReversingOutputItemLedgerEntryNo, false),
+            StrSubstNo(EntryMustBeEqualErr, ValueEntry.FieldCaption("Cost Amount (Actual)"), ExpectedCostAmount, ReversingOutputItemLedgerEntryNo, ItemLedgerEntry.TableCaption()));
 
         // [THEN] Post Inventory Cost to G/L completes successfully and posts all Value Entries of item "P".
         LibraryPostInventoryToGL.PostInvtCostToGL(false, WorkDate(), '');
@@ -4744,6 +4759,17 @@ codeunit 137083 "SCM Production Orders IV"
         LibraryInventory.ItemJournalSetup(ItemJournalTemplate, ItemJournalBatch);
         ItemJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
         ItemJournalBatch.Modify(true);
+    end;
+
+    local procedure CalcCostAmountActual(ItemLedgerEntryNo: Integer; VarianceOnly: Boolean): Decimal
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntryNo);
+        if VarianceOnly then
+            ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        ValueEntry.CalcSums("Cost Amount (Actual)");
+        exit(ValueEntry."Cost Amount (Actual)");
     end;
 
     local procedure CreateCertifiedProductionBOM(var ProductionBOMHeader: Record "Production BOM Header"; Item: Record Item; QuantityPer: Decimal)
