@@ -5,7 +5,9 @@
 
 namespace System.Apps;
 
+#if not CLEAN30
 using System.Environment;
+#endif
 
 /// <summary>
 /// Displays the deployment status for extensions that are deployed or are scheduled for deployment.
