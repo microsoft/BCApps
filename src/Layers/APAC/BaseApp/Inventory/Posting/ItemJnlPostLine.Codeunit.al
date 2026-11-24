@@ -5747,7 +5747,7 @@ codeunit 22 "Item Jnl.-Post Line"
         end;
     end;
 
-    local procedure TransReserveFromJobPlanningLine(FromJobContractEntryNo: BigInteger; ToItemJnlLine: Record "Item Journal Line")
+    local procedure TransReserveFromJobPlanningLine(FromJobContractEntryNo: Integer; ToItemJnlLine: Record "Item Journal Line")
     var
         JobPlanningLine: Record "Job Planning Line";
     begin

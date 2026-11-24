@@ -494,7 +494,7 @@ codeunit 5600 "FA Insert Ledger Entry"
     var
         OriginalFALedgerEntry: Record "FA Ledger Entry";
         OriginalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
-        DerogatorySourceEntryNo: Integer;
+        DerogatorySourceEntryNo: BigInteger;
     begin
         case FAEntryType of
             FAEntryType::"Fixed Asset":
@@ -513,7 +513,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             NewGLEntryNo, FAEntryType, FAEntryNo, NewFAEntryNo, TransactionNo, DerogatorySourceEntryNo, true);
     end;
 
-    local procedure InsertReverseEntryWithLink(NewGLEntryNo: Integer; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: Integer; var NewFAEntryNo: Integer; TransactionNo: Integer; DerogatorySourceEntryNo: Integer; ReverseAutomaticSalvage: Boolean)
+    local procedure InsertReverseEntryWithLink(NewGLEntryNo: BigInteger; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: BigInteger; var NewFAEntryNo: BigInteger; TransactionNo: Integer; DerogatorySourceEntryNo: BigInteger; ReverseAutomaticSalvage: Boolean)
     var
         SourceCodeSetup: Record "Source Code Setup";
         FALedgEntry3: Record "FA Ledger Entry";
@@ -878,7 +878,7 @@ codeunit 5600 "FA Insert Ledger Entry"
 
     procedure InsertFARevEntryForDerog(FAEntryType: Option " ","Fixed Asset",Maintenance; ReversingFALedgerEntry: Record "FA Ledger Entry")
     var
-        NewDerogatoryEntryNo: Integer;
+        NewDerogatoryEntryNo: BigInteger;
     begin
         InsertFARevEntryForDerogWithResult(FAEntryType, NewDerogatoryEntryNo, ReversingFALedgerEntry);
     end;
@@ -888,13 +888,14 @@ codeunit 5600 "FA Insert Ledger Entry"
         InsertFARevEntryForDerogWithResult(FAEntryType, NewFAEntryNo, FALedgEntry);
     end;
 
-    local procedure InsertFARevEntryForDerogWithResult(FAEntryType: Option " ","Fixed Asset",Maintenance; var NewDerogatoryEntryNo: Integer; ReversingFALedgerEntry: Record "FA Ledger Entry")
+    local procedure InsertFARevEntryForDerogWithResult(FAEntryType: Option " ","Fixed Asset",Maintenance; var NewDerogatoryEntryNo: BigInteger; ReversingFALedgerEntry: Record "FA Ledger Entry")
     var
         FADepreciationBook: Record "FA Depreciation Book";
         FALedgEntryForDerog: Record "FA Ledger Entry";
         OriginalFALedgerEntry: Record "FA Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
+        NewDerogatoryEntryNo: BigInteger;
     begin
 #if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then begin
@@ -983,6 +984,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         OriginalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
+        NewDerogatoryEntryNo: BigInteger;
     begin
 #if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then begin

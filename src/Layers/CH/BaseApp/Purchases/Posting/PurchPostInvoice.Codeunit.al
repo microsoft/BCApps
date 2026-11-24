@@ -1356,7 +1356,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         end;
     end;
 
-    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: Integer; var JobPurchLine: Record "Purchase Line"; var TempJobSourcePurchLine: Record "Purchase Line" temporary; var JobLineViews: Dictionary of [Integer, List of [Text]]; var JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
+    local procedure PostJobLine(InvoicePostingBuffer: Record "Invoice Posting Buffer"; GLEntryNo: BigInteger; var JobPurchLine: Record "Purchase Line"; var TempJobSourcePurchLine: Record "Purchase Line" temporary; var JobLineViews: Dictionary of [Integer, List of [Text]]; var JobLineGLEntryNos: Dictionary of [Integer, List of [Integer]])
     var
         Views: List of [Text];
         GLEntryNos: List of [Integer];

@@ -2943,7 +2943,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         exit(not ItemApplicationTrace.IsEmpty());
     end;
 
-    local procedure IsItemLedgEntryPositive(ItemLedgerEntryNo: Integer): Boolean
+    local procedure IsItemLedgEntryPositive(ItemLedgerEntryNo: BigInteger): Boolean
     var
         ItemLedgerEntry: Record "Item Ledger Entry";
         IsPositive: Boolean;
