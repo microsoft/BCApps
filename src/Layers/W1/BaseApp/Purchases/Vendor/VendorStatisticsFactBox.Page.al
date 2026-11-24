@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
@@ -100,6 +101,16 @@ page 9094 "Vendor Statistics FactBox"
                 AutoFormatExpression = '';
                 Caption = 'Invoiced Prepayment Amount (LCY)';
                 ToolTip = 'Specifies your invoiced prepayments to the vendor. This amount is subtracted when calculating Total (LCY).';
+            }
+            field(ReturnShpdNotInvAmountLCY; ReturnShpdNotInvAmountLCY)
+            {
+                AccessByPermission = TableData "Purchase Line" = R;
+                ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
+                Caption = 'Return Shpd. Not Invd. (LCY)';
+                Editable = false;
+                ToolTip = 'Specifies the amount for purchase returns shipped but not yet invoiced. This amount is subtracted when calculating Total (LCY).';
             }
             field(TotalAmountLCY; TotalAmountLCY)
             {
@@ -209,10 +220,11 @@ page 9094 "Vendor Statistics FactBox"
         end;
 
         MatchedOrderAmountLCY := Rec.GetMatchedOrderAmountLCY();
+        ReturnShpdNotInvAmountLCY := Rec.GetReturnShpdNotInvAmountLCY();
         TotalAmountLCY :=
             Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" +
             Rec."Outstanding Invoices (LCY)" - Rec.GetInvoicedPrepmtAmountLCY() - MatchedOrderAmountLCY -
-            Rec.GetReturnShpdNotInvAmountLCY();
+            ReturnShpdNotInvAmountLCY;
 
         VendorNo := CopyStr(VendorNoFilter, 1, MaxStrLen(VendorNo));
         if VendorNo <> CurrVendorNo then begin
@@ -235,6 +247,7 @@ page 9094 "Vendor Statistics FactBox"
         TaskIdCalculateCue: Integer;
         CurrVendorNo: Code[20];
         MatchedOrderAmountLCY: Decimal;
+        ReturnShpdNotInvAmountLCY: Decimal;
         LinkedCustomerNo: Code[20];
         BalanceAsCustomerEnabled: Boolean;
 

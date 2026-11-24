@@ -2248,12 +2248,13 @@ table 23 Vendor
         [SecurityFiltering(SecurityFilter::Filtered)]
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
         InvoiceRemainingQuantities: Dictionary of [Guid, Decimal];
+        ReceiptRemainingQuantities: Dictionary of [Guid, Decimal];
         ReceiptLinkedInvoices: Dictionary of [Guid, Boolean];
         EmptyGuid: Guid;
-        ReceiptRemainingQuantityBase: Decimal;
         RemainingQuantityBase: Decimal;
         MatchedQuantityBase: Decimal;
         QuantityBase: Decimal;
+        HasReceiptMatches: Boolean;
     begin
         PurchaseLineOrder.SetCurrentKey("Document Type", "Pay-to Vendor No.");
         PurchaseLineOrder.SetRange("Document Type", PurchaseLineOrder."Document Type"::Order);
@@ -2272,6 +2273,7 @@ table 23 Vendor
                 RemainingQuantityBase := PurchaseLineOrder."Outstanding Qty. (Base)" + PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)";
                 if RemainingQuantityBase <> 0 then begin
                     MatchedQuantityBase := 0;
+                    Clear(ReceiptRemainingQuantities);
                     Clear(ReceiptLinkedInvoices);
                     PurchaseLineInvoice.SetRange(SystemId);
                     PurchaseReceiptLine.SetCurrentKey("Order No.", "Order Line No.");
@@ -2279,22 +2281,17 @@ table 23 Vendor
                     PurchaseReceiptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
                     if PurchaseReceiptLine.FindSet() then
                         repeat
-                            ReceiptRemainingQuantityBase :=
-                                PurchaseReceiptLine."Qty. Rcd. Not Invoiced" * PurchaseReceiptLine."Qty. per Unit of Measure";
+                            ReceiptRemainingQuantities.Set(
+                                PurchaseReceiptLine.SystemId,
+                                PurchaseReceiptLine."Qty. Rcd. Not Invoiced" * PurchaseReceiptLine."Qty. per Unit of Measure");
                             PurchaseLineInvoice.SetRange("Receipt No.", PurchaseReceiptLine."Document No.");
                             PurchaseLineInvoice.SetRange("Receipt Line No.", PurchaseReceiptLine."Line No.");
                             if PurchaseLineInvoice.FindSet() then
                                 repeat
                                     ReceiptLinkedInvoices.Set(PurchaseLineInvoice.SystemId, true);
-                                    QuantityBase := PurchaseLineInvoice."Outstanding Qty. (Base)";
-                                    if (QuantityBase > 0) <> (ReceiptRemainingQuantityBase > 0) then
-                                        QuantityBase := 0;
-                                    if Abs(QuantityBase) > Abs(ReceiptRemainingQuantityBase) then
-                                        QuantityBase := ReceiptRemainingQuantityBase;
-                                    QuantityBase := GetInvoiceMatchedQuantityBase(
-                                        InvoiceRemainingQuantities, PurchaseLineInvoice, QuantityBase, RemainingQuantityBase - MatchedQuantityBase);
-                                    MatchedQuantityBase += QuantityBase;
-                                    ReceiptRemainingQuantityBase -= QuantityBase;
+                                    MatchedQuantityBase += GetReceiptMatchedQuantityBase(
+                                        InvoiceRemainingQuantities, ReceiptRemainingQuantities, PurchaseLineInvoice, PurchaseReceiptLine.SystemId,
+                                        PurchaseLineInvoice."Outstanding Qty. (Base)", RemainingQuantityBase - MatchedQuantityBase);
                                 until PurchaseLineInvoice.Next() = 0;
                         until PurchaseReceiptLine.Next() = 0;
                     PurchaseLineInvoice.SetRange("Receipt No.");
@@ -2306,18 +2303,27 @@ table 23 Vendor
                             PurchaseLineInvoice.SetRange(SystemId, MatchedOrderLine."Document Line SystemId");
                             if PurchaseLineInvoice.FindFirst() and not ReceiptLinkedInvoices.ContainsKey(PurchaseLineInvoice.SystemId) then begin
                                 QuantityBase := MatchedOrderLine."Qty. to Invoice (Base)";
+                                HasReceiptMatches := false;
                                 if not MatchedOrderLine."Receipt on Invoice" then begin
                                     // Receipt matches carry the current allocation; the order-level match also exists.
                                     MatchedReceiptLine.SetRange("Document Line SystemId", MatchedOrderLine."Document Line SystemId");
                                     MatchedReceiptLine.SetRange("Matched Order Line SystemId", PurchaseLineOrder.SystemId);
                                     MatchedReceiptLine.SetFilter("Matched Rcpt./Shpt. Line SysId", '<>%1', EmptyGuid);
-                                    if not MatchedReceiptLine.IsEmpty() then begin
-                                        MatchedReceiptLine.CalcSums("Qty. to Invoice (Base)");
-                                        QuantityBase := MatchedReceiptLine."Qty. to Invoice (Base)";
+                                    if MatchedReceiptLine.FindSet() then begin
+                                        HasReceiptMatches := true;
+                                        QuantityBase := 0;
+                                        repeat
+                                            QuantityBase += GetReceiptMatchedQuantityBase(
+                                                InvoiceRemainingQuantities, ReceiptRemainingQuantities, PurchaseLineInvoice,
+                                                MatchedReceiptLine."Matched Rcpt./Shpt. Line SysId", MatchedReceiptLine."Qty. to Invoice (Base)",
+                                                RemainingQuantityBase - MatchedQuantityBase - QuantityBase);
+                                        until MatchedReceiptLine.Next() = 0;
                                     end;
                                 end;
-                                MatchedQuantityBase += GetInvoiceMatchedQuantityBase(
-                                    InvoiceRemainingQuantities, PurchaseLineInvoice, QuantityBase, RemainingQuantityBase - MatchedQuantityBase);
+                                if not HasReceiptMatches then
+                                    QuantityBase := GetInvoiceMatchedQuantityBase(
+                                        InvoiceRemainingQuantities, PurchaseLineInvoice, QuantityBase, RemainingQuantityBase - MatchedQuantityBase);
+                                MatchedQuantityBase += QuantityBase;
                             end;
                         until MatchedOrderLine.Next() = 0;
 
@@ -2332,6 +2338,23 @@ table 23 Vendor
                 end;
             until PurchaseLineOrder.Next() = 0;
         end;
+    end;
+
+    local procedure GetReceiptMatchedQuantityBase(var InvoiceRemainingQuantities: Dictionary of [Guid, Decimal]; var ReceiptRemainingQuantities: Dictionary of [Guid, Decimal]; PurchaseLineInvoice: Record "Purchase Line"; ReceiptLineSystemId: Guid; QuantityBase: Decimal; OrderRemainingQuantityBase: Decimal): Decimal
+    var
+        ReceiptRemainingQuantityBase: Decimal;
+    begin
+        if not ReceiptRemainingQuantities.Get(ReceiptLineSystemId, ReceiptRemainingQuantityBase) then
+            exit(0);
+        if (QuantityBase > 0) <> (ReceiptRemainingQuantityBase > 0) then
+            exit(0);
+
+        if Abs(QuantityBase) > Abs(ReceiptRemainingQuantityBase) then
+            QuantityBase := ReceiptRemainingQuantityBase;
+        QuantityBase := GetInvoiceMatchedQuantityBase(
+            InvoiceRemainingQuantities, PurchaseLineInvoice, QuantityBase, OrderRemainingQuantityBase);
+        ReceiptRemainingQuantities.Set(ReceiptLineSystemId, ReceiptRemainingQuantityBase - QuantityBase);
+        exit(QuantityBase);
     end;
 
     local procedure GetInvoiceMatchedQuantityBase(var InvoiceRemainingQuantities: Dictionary of [Guid, Decimal]; PurchaseLineInvoice: Record "Purchase Line"; QuantityBase: Decimal; OrderRemainingQuantityBase: Decimal): Decimal

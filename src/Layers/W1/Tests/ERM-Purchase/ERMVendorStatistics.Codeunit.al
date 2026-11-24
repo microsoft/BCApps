@@ -1608,6 +1608,7 @@ codeunit 134334 "ERM Vendor Statistics"
         Vendor: Record Vendor;
         PurchaseLineOrder: Record "Purchase Line";
         PurchaseLineInvoice: Record "Purchase Line";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
         MatchedOrderLine: Record "Matched Order Line";
     begin
         // [SCENARIO 658521] Receipt allocations override the order match quantity and are counted only once.
@@ -1620,14 +1621,32 @@ codeunit 134334 "ERM Vendor Statistics"
         PurchaseLineOrder.Modify();
         MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 2, 30);
         MatchedOrderLine := MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 4);
-        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := CreateGuid();
+        MockVendorPurchaseReceiptLine(PurchaseReceiptLine, PurchaseLineOrder, 1, 1);
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := PurchaseReceiptLine.SystemId;
         MatchedOrderLine."Qty. to Invoice" := 1;
         MatchedOrderLine."Qty. to Invoice (Base)" := 1;
         MatchedOrderLine.Insert();
-        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := CreateGuid();
+        MockVendorPurchaseReceiptLine(PurchaseReceiptLine, PurchaseLineOrder, 1, 1);
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := PurchaseReceiptLine.SystemId;
         MatchedOrderLine.Insert();
 
         Assert.AreEqual(110, Vendor.GetTotalAmountLCY(), MatchedPurchasesTotalErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalSharesReceiptCapacityAcrossLinkTypes()
+    begin
+        // [SCENARIO 658521] Receipt links and explicit receipt matches share the same remaining received base quantity.
+        VerifyVendorReceiptCapacityAcrossLinkTypes(1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalSharesNegativeReceiptCapacityAcrossLinkTypes()
+    begin
+        // [SCENARIO 658521] Negative receipt quantities are shared across both invoice link types.
+        VerifyVendorReceiptCapacityAcrossLinkTypes(-1);
     end;
 
     [Test]
@@ -2043,9 +2062,66 @@ codeunit 134334 "ERM Vendor Statistics"
         VendorList.Trap();
         Page.Run(Page::"Vendor List", Vendor);
         Assert.IsTrue(VendorList.VendorStatisticsFactBox.MatchedOrderAmountLCY.Visible(), FieldIsNotHiddenErr);
+        Assert.IsTrue(VendorList.VendorStatisticsFactBox.ReturnShpdNotInvAmountLCY.Visible(), FieldIsNotHiddenErr);
         Assert.AreEqual(ExpectedAmountLCY, VendorList.VendorStatisticsFactBox.TotalAmountLCY.AsDecimal(), 'Vendor Statistics FactBox total with the selected FlowFilters.');
         VendorList.VendorStatisticsFactBox.MatchedOrderAmountLCY.AssertEquals(Vendor.GetMatchedOrderAmountLCY());
+        VendorList.VendorStatisticsFactBox.ReturnShpdNotInvAmountLCY.AssertEquals(Vendor.GetReturnShpdNotInvAmountLCY());
         VendorList.Close();
+    end;
+
+    local procedure VerifyVendorReceiptCapacityAcrossLinkTypes(QuantitySign: Integer)
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: array[2] of Record "Purchase Line";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 10 * QuantitySign, 60 * QuantitySign);
+        PurchaseLineOrder."Outstanding Qty. (Base)" := 6 * QuantitySign;
+        PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)" := 4 * QuantitySign;
+        PurchaseLineOrder."Amt. Rcd. Not Invoiced (LCY)" := 40 * QuantitySign;
+        PurchaseLineOrder.Modify();
+        MockVendorPurchaseReceiptLine(PurchaseReceiptLine, PurchaseLineOrder, 2 * QuantitySign, 2);
+        MockVendorPurchaseLine(PurchaseLineInvoice[1], Vendor."No.", PurchaseLineInvoice[1]."Document Type"::Invoice, 4 * QuantitySign, 40 * QuantitySign);
+        PurchaseLineInvoice[1]."Receipt No." := PurchaseReceiptLine."Document No.";
+        PurchaseLineInvoice[1]."Receipt Line No." := PurchaseReceiptLine."Line No.";
+        PurchaseLineInvoice[1].Modify();
+        MockVendorPurchaseLine(PurchaseLineInvoice[2], Vendor."No.", PurchaseLineInvoice[2]."Document Type"::Invoice, 4 * QuantitySign, 40 * QuantitySign);
+        MatchedOrderLine := MockVendorOrderMatch(PurchaseLineInvoice[2], PurchaseLineOrder, 4 * QuantitySign);
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := PurchaseReceiptLine.SystemId;
+        MatchedOrderLine.Insert();
+
+        VerifyVendorMatchedTotal(Vendor, 140 * QuantitySign);
+        Assert.AreEqual(40 * QuantitySign, Vendor.GetMatchedOrderAmountLCY(), MatchedPurchasesTotalErr);
+
+        PurchaseLineInvoice[1]."Outstanding Qty. (Base)" := 2 * QuantitySign;
+        PurchaseLineInvoice[1]."Outstanding Amount (LCY)" := 20 * QuantitySign;
+        PurchaseLineInvoice[1].Modify();
+        VerifyVendorMatchedTotal(Vendor, 120 * QuantitySign);
+
+        PurchaseLineInvoice[2]."Outstanding Qty. (Base)" := QuantitySign;
+        PurchaseLineInvoice[2]."Outstanding Amount (LCY)" := 10 * QuantitySign;
+        PurchaseLineInvoice[2].Modify();
+        VerifyVendorMatchedTotal(Vendor, 100 * QuantitySign);
+
+        PurchaseReceiptLine."Qty. Rcd. Not Invoiced" := 0;
+        PurchaseReceiptLine.Modify();
+        VerifyVendorMatchedTotal(Vendor, 130 * QuantitySign);
+    end;
+
+    local procedure MockVendorPurchaseReceiptLine(var PurchaseReceiptLine: Record "Purch. Rcpt. Line"; PurchaseLineOrder: Record "Purchase Line"; Quantity: Decimal; QuantityPerUnitOfMeasure: Decimal)
+    begin
+        Clear(PurchaseReceiptLine);
+        PurchaseReceiptLine."Document No." := LibraryUtility.GenerateRandomCode(PurchaseReceiptLine.FieldNo("Document No."), Database::"Purch. Rcpt. Line");
+        PurchaseReceiptLine."Line No." := 10000;
+        PurchaseReceiptLine."Order No." := PurchaseLineOrder."Document No.";
+        PurchaseReceiptLine."Order Line No." := PurchaseLineOrder."Line No.";
+        PurchaseReceiptLine."Qty. Rcd. Not Invoiced" := Quantity;
+        PurchaseReceiptLine."Qty. per Unit of Measure" := QuantityPerUnitOfMeasure;
+        PurchaseReceiptLine.Insert();
     end;
 
     local procedure MockVendorPurchaseLine(var PurchaseLine: Record "Purchase Line"; VendorNo: Code[20]; DocumentType: Enum "Purchase Document Type"; QuantityBase: Decimal; OutstandingAmountLCY: Decimal)
