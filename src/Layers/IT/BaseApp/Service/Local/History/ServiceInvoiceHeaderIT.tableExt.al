@@ -7,7 +7,9 @@ namespace Microsoft.Service.History;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Intrastat;
+#if not CLEAN30
 using Microsoft.Utilities;
+#endif
 
 tableextension 12456 "Service Invoice Header IT" extends "Service Invoice Header"
 {

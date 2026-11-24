@@ -11,7 +11,9 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 // using Microsoft.Foundation.Enums;
+#if not CLEAN30
 using Microsoft.Utilities;
+#endif
 
 /// <summary>
 /// Generates formatted VAT statements with calculated totals and detailed breakdowns.

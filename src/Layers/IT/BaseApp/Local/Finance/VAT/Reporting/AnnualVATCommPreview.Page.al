@@ -5,7 +5,9 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Foundation.AuditCodes;
+#if not CLEAN30
 using Microsoft.Utilities;
+#endif
 using System.Text;
 
 page 12127 "Annual VAT Comm. Preview"

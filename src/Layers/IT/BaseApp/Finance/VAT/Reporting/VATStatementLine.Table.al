@@ -10,7 +10,9 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
+#if not CLEAN30
 using Microsoft.Utilities;
+#endif
 
 /// <summary>
 /// Line definitions for VAT statement configurations used in VAT reporting and calculations.

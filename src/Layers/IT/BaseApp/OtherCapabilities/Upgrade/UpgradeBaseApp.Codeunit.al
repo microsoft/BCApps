@@ -25,7 +25,9 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
+#if not CLEAN30
 using Microsoft.Finance.VAT.Ledger;
+#endif
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
@@ -68,16 +70,22 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+#if not CLEAN30
 using Microsoft.Sales.Archive;
+#endif
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+#if not CLEAN30
 using Microsoft.Sales.FinanceCharge;
+#endif
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
 using Microsoft.Service.Archive;
+#if not CLEAN30
 using Microsoft.Service.Contract;
+#endif
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Utilities;

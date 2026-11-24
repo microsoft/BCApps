@@ -10,7 +10,9 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+#if not CLEAN30
 using Microsoft.Utilities;
+#endif
 
 tableextension 12140 "Service Header Archive IT" extends "Service Header Archive"
 {
