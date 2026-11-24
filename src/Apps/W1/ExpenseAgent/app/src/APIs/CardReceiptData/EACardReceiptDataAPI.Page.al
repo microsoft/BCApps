@@ -19,7 +19,7 @@ page 7421 "EA Card Receipt Data API"
     DelayedInsert = true;
     Extensible = false;
     AboutTitle = 'Card Receipt Data';
-    AboutText = 'Stages a receipt and its extracted data for a corporate card expense that is waiting for a receipt. The apply action attaches the receipt and fills only empty fields on the expense and its expense report line. Amount, currency, date, merchant and card always come from the card transaction.';
+    AboutText = 'Stages a receipt and its extracted data for a corporate card expense that is waiting for a receipt. The apply action attaches the receipt and fills only empty fields on the expense and its expense report line. Amount, currency, date, merchant and card always come from the card transaction. The applied receipt is locked: applying the same receipt data again changes nothing, and other receipt data is rejected.';
 
     layout
     {

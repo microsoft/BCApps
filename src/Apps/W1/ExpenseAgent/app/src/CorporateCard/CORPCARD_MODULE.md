@@ -587,6 +587,18 @@ POST .../expenseUsers({expenseUserId})/cardExpenseMatches
 
 Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent. The merchant name is not checked, because the user picked the expense. The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
 
+### Applying a Receipt to a Card Expense (Card Receipt Data API)
+
+A card expense that is waiting for a receipt, including one whose line is on an open expense report, gets its receipt through `cardReceiptData` instead of the attachments API:
+
+1. `POST .../expenses({expenseId})/cardReceiptData` with `fileName` and the extracted values; `cardReceiptParticipants`, `cardReceiptItems` and `cardReceiptVATSpecifications` can be sent in the same request.
+2. Upload the file bytes with `PATCH .../cardReceiptData({id})/attachmentContent`.
+3. `POST .../cardReceiptData({id})/Microsoft.NAV.apply`. The response is the expense.
+
+Apply attaches the receipt to the expense and, when the expense is on an open report, to its line with the same **Document Reference ID**. It fills only empty fields; amount, currency, date, merchant, card and payment method always come from the card transaction. Manual expenses and lines, expenses on a report that is not open, and expenses that already have a manually attached receipt are rejected.
+
+A card expense gets one receipt. The attached receipt stores a fingerprint of the receipt data (file name, file content, values, participants, itemization and VAT specification lines) and is locked: it cannot be updated or deleted on the expense, and not on its own on the line, also after the line is removed from the report. Repeating the three steps with identical data is a safe retry: apply deletes the staged data and changes nothing. Different receipt data is rejected with 400. Staged data whose apply failed is not deleted.
+
 ### Upgrade Behavior
 
 Upgrade fills blank Corporate Card Id values on expenses, report lines, and posted report lines from their existing feed transaction links. Expense source is preserved: legacy expenses remain Manual because a feed link does not distinguish an imported draft from a manually linked expense. New feed-created drafts are explicitly marked CorporateCard when created. It also initializes provider short names through the same defaults used by setup. Existing manually selected card identities and custom provider short names are retained.
