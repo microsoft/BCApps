@@ -117,6 +117,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AddCurrency: Record Currency;
         CurrExchRate: Record "Currency Exchange Rate";
         VATEntry: Record "VAT Entry";
+        SalesTaxJournalVATEntry: Record "VAT Entry" temporary;
         TaxDetail: Record "Tax Detail";
         UnrealizedCustLedgEntry: Record "Cust. Ledger Entry";
         UnrealizedVendLedgEntry: Record "Vendor Ledger Entry";
@@ -185,6 +186,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SourceCodeSetupRead: Boolean;
         IsGLRegInserted: Boolean;
         IgnoreJournalTemplNameMandatoryCheck: Boolean;
+        SalesTaxJournalVATPending: Boolean;
 
         NeedsRoundingErr: Label '%1 needs to be rounded', Comment = '%1 - amount';
         PurchaseAlreadyExistsErr: Label 'Purchase %1 %2 already exists for this vendor.', Comment = '%1 = Document Type; %2 = Document No.';
@@ -335,6 +337,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             PostGenJnlLine(GenJnlLine, not Balancing);
         end;
 
+        PostSalesTaxJournalVATEntry(GenJnlLine);
         CheckPostUnrealizedVAT(GenJnlLine, true);
 
         CreateDeferralScheduleFromGL(GenJnlLine, Balancing);
@@ -973,13 +976,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VATEntry."Base Before Pmt. Disc." := GLEntryAmount;
             VATEntry."G/L Register No." := GLReg."No.";
             VATEntry.TestField("G/L Register No.");
-            OnBeforeInsertVATEntry(VATEntry, GenJnlLine, NextVATEntryNo, TempGLEntryVATEntryLink, TempGLEntryBuf, GLReg);
-            VATEntry.Insert(true);
-            TempGLEntryVATEntryLink.InsertLinkSelf(TempGLEntryBuf."Entry No.", VATEntry."Entry No.");
-            NextVATEntryNo := VATEntry."Entry No." + 1;
-            OnAfterInsertVATEntry(GenJnlLine, VATEntry, TempGLEntryBuf."Entry No.", NextVATEntryNo, TempGLEntryVATEntryLink);
-            if NextVATEntryNo = VATEntry."Entry No." + 1 then
-                NextVATEntryNo := GetNextVATEntryNoForPosting(VATEntry."Entry No.");
+            InsertVATEntryWithGLLink(GenJnlLine);
         end;
 
         // VAT for G/L entry/entries
@@ -993,6 +990,42 @@ codeunit 12 "Gen. Jnl.-Post Line"
           GenJnlLine, VATEntry, UnrealizedVAT, AddCurrencyCode, VATPostingSetup, GLEntryAmount, GLEntryVATAmount, GLEntryBaseAmount,
           SrcCurrCode, SrcCurrGLEntryAmt, SrcCurrGLEntryVATAmt, SrcCurrGLEntryBaseAmt, AddCurrGLEntryVATAmt,
           NextConnectionNo, NextVATEntryNo, NextTransactionNo, TempGLEntryBuf."Entry No.");
+    end;
+
+    internal procedure SetSalesTaxJournalVATEntry(NewVATEntry: Record "VAT Entry")
+    begin
+        SalesTaxJournalVATEntry := NewVATEntry;
+        SalesTaxJournalVATPending := true;
+    end;
+
+    local procedure PostSalesTaxJournalVATEntry(GenJnlLine: Record "Gen. Journal Line")
+    begin
+        if not SalesTaxJournalVATPending then
+            exit;
+
+        VATEntry := SalesTaxJournalVATEntry;
+        VATEntry."Entry No." := NextVATEntryNo;
+        VATEntry."Posting Date" := GenJnlLine."Posting Date";
+        VATEntry."Document No." := GenJnlLine."Document No.";
+        VATEntry."Document Date" := GenJnlLine."Document Date";
+        VATEntry."Source Code" := GenJnlLine."Source Code";
+        VATEntry."Transaction No." := NextTransactionNo;
+        VATEntry."G/L Register No." := GLReg."No.";
+        VATEntry.SetVATDateFromGenJnlLine(GenJnlLine);
+        VATEntry.TestField("G/L Register No.");
+        InsertVATEntryWithGLLink(GenJnlLine);
+        SalesTaxJournalVATPending := false;
+    end;
+
+    local procedure InsertVATEntryWithGLLink(GenJnlLine: Record "Gen. Journal Line")
+    begin
+        OnBeforeInsertVATEntry(VATEntry, GenJnlLine, NextVATEntryNo, TempGLEntryVATEntryLink, TempGLEntryBuf, GLReg);
+        VATEntry.Insert(true);
+        TempGLEntryVATEntryLink.InsertLinkSelf(TempGLEntryBuf."Entry No.", VATEntry."Entry No.");
+        NextVATEntryNo := VATEntry."Entry No." + 1;
+        OnAfterInsertVATEntry(GenJnlLine, VATEntry, TempGLEntryBuf."Entry No.", NextVATEntryNo, TempGLEntryVATEntryLink);
+        if NextVATEntryNo = VATEntry."Entry No." + 1 then
+            NextVATEntryNo := GetNextVATEntryNoForPosting(VATEntry."Entry No.");
     end;
 
     local procedure SetUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line"; VATPostingSetup: Record "VAT Posting Setup"; TaxJurisdiction: Record "Tax Jurisdiction") UnrealizedVAT: Boolean

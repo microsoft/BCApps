@@ -53,7 +53,9 @@ codeunit 10101 "Post- Print Sales Tax Jnl"
 
         ManageSalesTaxJournal.PostToVAT(GenJnlLine);
         ManageSalesTaxJournal.CreateGenJnlLines(GenJnlLine);
+        BindSubscription(ManageSalesTaxJournal);
         GenJnlPostBatch.Run(GenJnlLine);
+        UnbindSubscription(ManageSalesTaxJournal);
 
         if GLReg.Get(GenJnlLine."Line No.") then begin
             if GenJnlTemplate."Cust. Receipt Report ID" <> 0 then begin

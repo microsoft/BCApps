@@ -262,6 +262,9 @@ codeunit 134388 "ERM Sales Tax"
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         GLTransaction: Record "G/L Transaction";
+        GLRegister: Record "G/L Register";
+        GLEntry: Record "G/L Entry";
+        GLEntryVATEntryLink: Record "G/L Entry - VAT Entry Link";
         VATEntry: Record "VAT Entry";
         ReservedVATEntryNo: Integer;
         ReservedTransactionNo: Integer;
@@ -279,13 +282,31 @@ codeunit 134388 "ERM Sales Tax"
         ReservedVATEntryNo := VATEntry.GetNextEntryNo();
         ReservedTransactionNo := GLTransaction.GetNextTransactionNo();
 
-        // [WHEN] The sales tax journal creates its VAT entry.
+        // [WHEN] The sales tax journal is posted through the general-journal posting engine.
         PostSalesTaxJournalVATEntry(VATEntry);
 
         // [THEN] Neither reserved number is reused, and the journal amount is retained.
         Assert.IsTrue(VATEntry."Entry No." > ReservedVATEntryNo, 'The reserved VAT entry number must not be reused.');
         Assert.IsTrue(VATEntry."Transaction No." > ReservedTransactionNo, 'The reserved transaction number must not be reused.');
         VATEntry.TestField(Amount, 100);
+
+        // [THEN] The VAT entry belongs to the same transaction and register as the balanced G/L entries.
+        VATEntry.TestField("G/L Register No.");
+        GLTransaction.Get(VATEntry."Transaction No.");
+        GLTransaction.TestField("G/L Register No.", VATEntry."G/L Register No.");
+        GLRegister.Get(VATEntry."G/L Register No.");
+        GLRegister.TestField("Source Code", VATEntry."Source Code");
+        Assert.IsTrue(
+            (GLRegister."From VAT Entry No." <= VATEntry."Entry No.") and
+            (GLRegister."To VAT Entry No." >= VATEntry."Entry No."),
+            'The posting register must include the sales tax VAT entry.');
+        GLEntry.SetRange("Transaction No.", VATEntry."Transaction No.");
+        Assert.AreEqual(2, GLEntry.Count(), 'The sales tax transaction must contain the journal and balancing entries.');
+        GLEntry.CalcSums(Amount);
+        GLEntry.TestField(Amount, 0);
+        GLEntry.FindFirst();
+        GLEntry.TestField("G/L Register No.", VATEntry."G/L Register No.");
+        GLEntryVATEntryLink.Get(GLEntry."Entry No.", VATEntry."Entry No.");
     end;
 
     [Test]
@@ -330,8 +351,11 @@ codeunit 134388 "ERM Sales Tax"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         GenJournalLine: Record "Gen. Journal Line";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         ManageSalesTaxJournal: Codeunit "Manage Sales Tax Journal";
+        GenJnlPostBatch: Codeunit "Gen. Jnl.-Post Batch";
         LastVATEntryNo: Integer;
+        PostingDate: Date;
     begin
         VATEntry.Reset();
         if VATEntry.FindLast() then
@@ -339,18 +363,28 @@ codeunit 134388 "ERM Sales Tax"
 
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
-        LibraryERM.CreateGeneralJnlLine(
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
             GenJournalLine, GenJournalTemplate.Name, GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
-            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 100);
+            GenJournalLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 100);
 
         GenJournalLine.SetRange("Journal Template Name", GenJournalTemplate.Name);
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
         ManageSalesTaxJournal.PostToVAT(GenJournalLine);
+        PostingDate := GenJournalLine."Posting Date";
 
         VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
         VATEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        if GeneralLedgerSetup.UseConcurrentPosting() then begin
+            Assert.RecordIsEmpty(VATEntry);
+            ManageSalesTaxJournal.CreateGenJnlLines(GenJournalLine);
+            BindSubscription(ManageSalesTaxJournal);
+            GenJnlPostBatch.SetSuppressCommit(true);
+            GenJnlPostBatch.Run(GenJournalLine);
+            UnbindSubscription(ManageSalesTaxJournal);
+        end;
         VATEntry.FindFirst();
-        VATEntry.TestField("Posting Date", GenJournalLine."Posting Date");
+        VATEntry.TestField("Posting Date", PostingDate);
     end;
 
     local procedure Initialize()

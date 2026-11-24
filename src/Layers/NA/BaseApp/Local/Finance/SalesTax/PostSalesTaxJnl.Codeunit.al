@@ -44,7 +44,9 @@ codeunit 10100 "Post Sales Tax Jnl"
 
         ManageSalesTaxJournal.PostToVAT(GenJnlLine);
         ManageSalesTaxJournal.CreateGenJnlLines(GenJnlLine);
+        BindSubscription(ManageSalesTaxJournal);
         GenJnlPostBatch.Run(GenJnlLine);
+        UnbindSubscription(ManageSalesTaxJournal);
 
         if GenJnlLine."Line No." = 0 then
             Message(JournalErrorsMgt.GetNothingToPostErrorMsg())
