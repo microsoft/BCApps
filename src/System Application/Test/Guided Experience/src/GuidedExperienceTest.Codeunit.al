@@ -26,10 +26,12 @@ codeunit 132594 "Guided Experience Test"
         GuidedExperienceRecordCountErr: Label 'Guided Experience record count error.';
 
     [Test]
+    [HandlerFunctions('EarlyAccessFeatureDetailsHandler')]
     procedure EarlyAccessMetadataKeepsFullTextAndStepOrder()
     var
         TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
         EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
+        FeatureDetails: Page "Early Access Feature Details";
         Features: JsonArray;
         Feature: JsonObject;
         Steps: JsonArray;
@@ -42,6 +44,7 @@ codeunit 132594 "Guided Experience Test"
         FullOverview := PadStr('Feature benefit. ', 1500, 'x');
         LongStep := PadStr('Read the full guidance, including <plain text>. ', 6000, 'y');
         Feature.Add('FeatureName', 'Feature with guidance');
+        Feature.Add('Category', 'General');
         Feature.Add('Description', FullOverview);
         Feature.Add('ReleaseVersion', '30.0');
         Feature.Add('HelpURL', 'https://example.com/help');
@@ -65,13 +68,17 @@ codeunit 132594 "Guided Experience Test"
         Assert.AreEqual(ExpectedGuide.ToText(), GettingStarted, 'Numbered steps must preserve their order and full plain text.');
         Assert.AreEqual('https://example.com/help', TempGuidedExperienceItem."Help URL", 'Help must be preserved.');
         Assert.AreEqual('https://example.com/video', TempGuidedExperienceItem."Video URL", 'Video must be preserved.');
+        FeatureDetails.SetFeature(TempGuidedExperienceItem, EarlyAccessPreviewMgt.GetReleaseVersion(TempGuidedExperienceItem.Code), Overview, GettingStarted);
+        FeatureDetails.Run();
     end;
 
     [Test]
+    [HandlerFunctions('EarlyAccessLegacyFeatureDetailsHandler')]
     procedure EarlyAccessMetadataDoesNotLeakBetweenFeaturesOrReloads()
     var
         TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
         EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
+        FeatureDetails: Page "Early Access Feature Details";
         Features: JsonArray;
         EmptyFeatures: JsonArray;
         Overview: Text;
@@ -104,6 +111,16 @@ codeunit 132594 "Guided Experience Test"
         EarlyAccessPreviewMgt.GetFeatureDetails('', Overview, GettingStarted);
         Assert.AreEqual('', Overview, 'No selection must clear the overview.');
         Assert.AreEqual('', GettingStarted, 'No selection must clear the guidance.');
+
+        TempGuidedExperienceItem.Get('1', 0);
+        TempGuidedExperienceItem."Help URL" := 'https://example.com/help';
+        TempGuidedExperienceItem."Video URL" := 'https://example.com/video';
+        EarlyAccessPreviewMgt.GetFeatureDetails('1', Overview, GettingStarted);
+        FeatureDetails.SetFeature(TempGuidedExperienceItem, EarlyAccessPreviewMgt.GetReleaseVersion('1'), Overview, GettingStarted);
+        TempGuidedExperienceItem.Get('2', 0);
+        EarlyAccessPreviewMgt.GetFeatureDetails('2', Overview, GettingStarted);
+        FeatureDetails.SetFeature(TempGuidedExperienceItem, EarlyAccessPreviewMgt.GetReleaseVersion('2'), Overview, GettingStarted);
+        FeatureDetails.Run();
 
         TempGuidedExperienceItem.SetRange(Code, '2');
         EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, EmptyFeatures);
@@ -161,6 +178,33 @@ codeunit 132594 "Guided Experience Test"
         Features.ReadFrom('[{"GettingStartedSteps":[{}]}]');
         asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
         Assert.ExpectedError('GettingStartedSteps value for early access preview feature 1 must be a JSON string.');
+    end;
+
+    [PageHandler]
+    procedure EarlyAccessFeatureDetailsHandler(var FeatureDetails: TestPage "Early Access Feature Details")
+    begin
+        FeatureDetails.FeatureName.AssertEquals('Feature with guidance');
+        FeatureDetails.Category.AssertEquals('General');
+        FeatureDetails.ReleaseVersion.AssertEquals('30.0');
+        Assert.AreEqual(1500, StrLen(FeatureDetails.Overview.Value()), 'The reading page must retain the full overview.');
+        Assert.IsTrue(StrLen(FeatureDetails.GettingStarted.Value()) > 6000, 'The reading page must retain the full numbered guidance.');
+        Assert.IsTrue(FeatureDetails.ViewHelp.Enabled(), 'The selected feature has a help link.');
+        Assert.IsTrue(FeatureDetails.WatchVideo.Enabled(), 'The selected feature has a video link.');
+        Assert.IsTrue(FeatureDetails.ProvideFeatureFeedback.Enabled(), 'Feature feedback must be available in the reading context.');
+        FeatureDetails.Close();
+    end;
+
+    [PageHandler]
+    procedure EarlyAccessLegacyFeatureDetailsHandler(var FeatureDetails: TestPage "Early Access Feature Details")
+    begin
+        FeatureDetails.FeatureName.AssertEquals('Legacy');
+        FeatureDetails.ReleaseVersion.AssertEquals('');
+        FeatureDetails.Overview.AssertEquals('');
+        Assert.IsFalse(FeatureDetails.GettingStarted.Visible(), 'Legacy features must not show guidance from another feature.');
+        Assert.IsFalse(FeatureDetails.ViewHelp.Enabled(), 'A missing help link must clear the previous enabled state.');
+        Assert.IsFalse(FeatureDetails.WatchVideo.Enabled(), 'A missing video link must clear the previous enabled state.');
+        Assert.IsTrue(FeatureDetails.ProvideFeatureFeedback.Enabled(), 'Legacy features can still receive feature feedback.');
+        FeatureDetails.Close();
     end;
 
     [Test]
