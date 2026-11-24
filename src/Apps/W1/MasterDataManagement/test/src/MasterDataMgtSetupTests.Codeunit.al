@@ -19,6 +19,9 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         InitializeHandled: Boolean;
         IncorrectTablesListErr: Label 'Synchronization tables list is incorrect.';
         UnexpectedConfirmErr: Label 'Unexpected confirmation dialog: %1', Locked = true;
+        SystemTableErr: Label 'System tables can''t be synchronized', Locked = true;
+        TableIdAttributeTxt: Label 'IntegrationTableMapping_TableID="%1"', Locked = true, Comment = '%1 = table ID';
+        IntegrationTableIdAttributeTxt: Label 'IntegrationTableMapping_IntegrationTableID="%1"', Locked = true, Comment = '%1 = table ID';
 
     [Test]
     [HandlerFunctions('SynchronizationEnabledMessageHandler')]
@@ -114,7 +117,6 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Initialize();
         MasterDataManagementSetup.Init();
         MasterDataManagementSetup."Source Environment Name" := 'CONTOSO-PROD';
-        MasterDataManagementSetup."Source Environment URL" := 'https://example/v2.0/contoso-prod';
         MasterDataManagementSetup."Source Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(MasterDataManagementSetup."Source Company Name"));
         MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
         MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret
@@ -191,7 +193,6 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         // [GIVEN] A cross-environment setup with a configured connection
         MasterDataManagementSetup.Init();
         MasterDataManagementSetup."Source Environment Name" := 'CONTOSO-PROD';
-        MasterDataManagementSetup."Source Environment URL" := 'https://example/v2.0/contoso-prod';
         MasterDataManagementSetup."Source Company Name" := CopyStr(LibraryRandom.RandText(30), 1, MaxStrLen(MasterDataManagementSetup."Source Company Name"));
         MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
         MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret
@@ -528,6 +529,102 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         Assert.AreEqual(1, MasterDataMgtCoupling.Count(), 'The coupling should be kept');
     end;
 
+    [Test]
+    procedure ImportSetupRejectsSystemTable()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+        FieldNumbers: List of [Integer];
+        SetupXml: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Setup] [Security]
+        // [SCENARIO 660382] Import Setup applies the same table checks as Add Table, so a crafted setup file can't add a
+        //                   system table to the synchronization, neither as an updated nor as a new synchronization table.
+        Initialize();
+        // [GIVEN] a setup file whose synchronization table was changed to a system table
+        MasterDataMgtSetupDefault.GenerateIntegrationTableMapping(IntegrationTableMapping, FieldNumbers, 'MDM_SYSTEMTABLE', Database::"Payment Terms", '', false, false);
+        SetupXml := ExportSetup();
+        SetupXml := SetupXml.Replace(StrSubstNo(TableIdAttributeTxt, Database::"Payment Terms"), StrSubstNo(TableIdAttributeTxt, Database::User));
+        SetupXml := SetupXml.Replace(StrSubstNo(IntegrationTableIdAttributeTxt, Database::"Payment Terms"), StrSubstNo(IntegrationTableIdAttributeTxt, Database::User));
+        Assert.IsTrue(StrPos(SetupXml, StrSubstNo(TableIdAttributeTxt, Database::User)) > 0, 'Precondition: the setup file should reference the system table');
+
+        // [WHEN] the file updates the existing synchronization table [THEN] the import is rejected
+        asserterror ImportSetup(SetupXml);
+        Assert.ExpectedError(SystemTableErr);
+        IntegrationTableMapping.Get('MDM_SYSTEMTABLE');
+        Assert.AreEqual(Database::"Payment Terms", IntegrationTableMapping."Table ID", 'The synchronization table must not be changed to a system table');
+
+        // [WHEN] the file adds the system table as a new synchronization table [THEN] the import is rejected
+        IntegrationTableMapping.Delete(true);
+        asserterror ImportSetup(SetupXml);
+        Assert.ExpectedError(SystemTableErr);
+        Assert.IsFalse(IntegrationTableMapping.Get('MDM_SYSTEMTABLE'), 'The system table must not be added');
+    end;
+
+    [Test]
+    procedure GenerateMappingRejectsSystemTable()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+        FieldNumbers: List of [Integer];
+    begin
+        // [FEATURE] [Master Data Management] [Setup] [Security]
+        // [SCENARIO 660382] Generating a synchronization table for a system table is refused, whoever calls it.
+        Initialize();
+
+        // [WHEN] a synchronization table is generated for a system table [THEN] it is refused
+        asserterror MasterDataMgtSetupDefault.GenerateIntegrationTableMapping(IntegrationTableMapping, FieldNumbers, 'MDM_SYSTEMTABLE', Database::User, '', false, false);
+        Assert.ExpectedError(SystemTableErr);
+        Assert.IsFalse(IntegrationTableMapping.Get('MDM_SYSTEMTABLE'), 'The system table must not be added');
+    end;
+
+    [Test]
+    [HandlerFunctions('TableObjectsExcludesSystemTablesHandler')]
+    procedure AddTableDoesNotOfferSystemTables()
+    var
+        MasterDataSynchTables: TestPage "Master Data Synch. Tables";
+    begin
+        // [FEATURE] [Master Data Management] [Setup] [Security] [UI]
+        // [SCENARIO 660382] The Add Table picker on Synchronization Tables doesn't offer system tables.
+        Initialize();
+
+        // [WHEN] the user adds a table to the synchronization
+        MasterDataSynchTables.OpenEdit();
+        MasterDataSynchTables.New();
+        MasterDataSynchTables.TableCaptionValue.AssistEdit();
+
+        // [THEN] the table picker excludes system tables (verified in TableObjectsExcludesSystemTablesHandler)
+        MasterDataSynchTables.Close();
+    end;
+
+    local procedure ExportSetup() SetupXml: Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        OutStr: OutStream;
+        Line: Text;
+    begin
+        TempBlob.CreateOutStream(OutStr);
+        XMLPORT.Export(XMLPORT::ExportMDMSetup, OutStr);
+        TempBlob.CreateInStream(InStr, TEXTENCODING::UTF16);
+        while not InStr.EOS() do begin
+            InStr.ReadText(Line);
+            SetupXml += Line + ' ';
+        end;
+    end;
+
+    local procedure ImportSetup(SetupXml: Text)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        InStr: InStream;
+        OutStr: OutStream;
+    begin
+        TempBlob.CreateOutStream(OutStr, TEXTENCODING::UTF16);
+        OutStr.WriteText(SetupXml);
+        TempBlob.CreateInStream(InStr, TEXTENCODING::UTF16);
+        XMLPORT.Import(XMLPORT::ImportMDMSetup, InStr);
+    end;
+
     local procedure DeleteSynchJobQueueEntries()
     var
         JobQueueEntry: Record "Job Queue Entry";
@@ -598,6 +695,13 @@ codeunit 139770 "Master Data Mgt. Setup Tests"
         TableObjects.FILTER.SetFilter("Object ID", TableID);
         TableObjects.Last();
         TableObjects.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    internal procedure TableObjectsExcludesSystemTablesHandler(var TableObjects: TestPage "Table Objects")
+    begin
+        Assert.IsTrue(StrPos(TableObjects.Filter.GetFilter("Object ID"), '<2000000000') = 1, 'The table picker should exclude system tables');
+        TableObjects.Cancel().Invoke();
     end;
 
     [ConfirmHandler]
