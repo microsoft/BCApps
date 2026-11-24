@@ -65,6 +65,7 @@ codeunit 148153 "Usage Based Billing Test"
         ContractTestLibrary: Codeunit "Contract Test Library";
         CorrectPostedPurchaseInvoice: Codeunit "Correct Posted Purch. Invoice";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        LibraryERM: Codeunit "Library - ERM";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryItemReference: Codeunit "Library - Item Reference";
@@ -81,6 +82,8 @@ codeunit 148153 "Usage Based Billing Test"
         LimitUsageBasedBillingPeriodToFirstMonth: Boolean;
         PostDocument: Boolean;
         CorrectedDocumentNo: Code[20];
+        UnitCostFromElseCaseSubscriber: Decimal;
+        UnitCostPassedToElseCaseSubscriber: Decimal;
         i: Integer;
         j: Integer;
         ColumnSeparator: Option " ",Tab,Semicolon,Comma,Space,Custom;
@@ -91,6 +94,7 @@ codeunit 148153 "Usage Based Billing Test"
         BillingLineStartDateLbl: Label 'Billing Line should start at the earliest Charge Start Date.', Locked = true;
         BillingLineStretchedEndDateLbl: Label 'Billing Line should be stretched to the Charge End Date of the crossing usage entry.', Locked = true;
         BillingLineRhythmEndDateLbl: Label 'Billing Line should end at the billing rhythm period end.', Locked = true;
+        ChargePeriodWithoutBillingBasePeriodErr: Label 'The price and unit cost of Subscription Line %1 of Subscription %2 cannot be updated from the usage data, because the charge period from %3 to %4 does not cover any part of a billing base period.', Locked = true;
         FirstBillingLineEndDateLbl: Label 'First Billing Line should end at the first rhythm period end.', Locked = true;
         FirstBillingLineStartDateLbl: Label 'First Billing Line should start at the first Charge Start Date.', Locked = true;
         NextBillingDateLbl: Label 'Next Billing Date should follow the stretched billing period.', Locked = true;
@@ -287,6 +291,198 @@ codeunit 148153 "Usage Based Billing Test"
             StrSubstNo(CustomerCurrencyMismatchErr, CustomerContract."No.", CustomerContract."Currency Code", UsageDataBilling."Currency Code"),
             UsageDataBilling.GetReason(),
             'Error reason should match customer currency mismatch message');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler')]
+    procedure CustomerSubscriptionLinePriceFromImportInForeignCurrencyIsConvertedToBillingBasePeriod()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] A unit price imported in local currency for a charge period of several billing base periods is stored on a customer subscription line in foreign currency per billing base period, in the currency of the line
+        // [GIVEN] A customer subscription line in a foreign currency with a price of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data in local currency with Unit Price from Import, a unit price of 30 for a charge period of exactly three months
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInCurrency(ChargeStartDate, LibraryERM.CreateCurrencyWithRandomExchRates());
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 1, 22.5, 30, "Usage Based Pricing"::"Usage Quantity", 7.5, 7.5);
+
+        // [THEN] The customer subscription line gets the amount of the usage data, converted to the currency of the line, per month
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        SubscriptionLine.TestField("Currency Code", Customer."Currency Code");
+        FindCustomerUsageDataBilling(UsageDataBilling, UsageDataImport."Entry No.");
+        UsageDataBilling.TestField("Currency Code", Customer."Currency Code");
+        Assert.AreNotEqual(30, UsageDataBilling.Amount, 'The amount of the usage data must be converted to the currency of the subscription line.');
+        Assert.AreNearlyEqual(UsageDataBilling.Amount / 3, SubscriptionLine.Price, 0.000001, 'The imported price must be stored per billing base period in the currency of the line.');
+    end;
+
+    [Test]
+    procedure CustomerSubscriptionLinePriceFromImportIsConvertedToBillingBasePeriod()
+    var
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] A unit price imported for a charge period of several billing base periods is stored on the customer subscription line per billing base period
+        // [GIVEN] A customer subscription line with a price of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with Unit Price from Import, a unit price of 30 for a charge period of exactly three months
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 1, 22.5, 30, "Usage Based Pricing"::"Usage Quantity", 7.5, 7.5);
+
+        // [THEN] The customer subscription line gets the imported price per month
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(10, SubscriptionLine.Price, 'The imported price must be stored per billing base period.');
+        Assert.AreEqual(10, SubscriptionLine."Calculation Base Amount", 'The calculation base amount must follow the price per billing base period.');
+    end;
+
+    [Test]
+    procedure CustomerSubscriptionLinePriceFromImportIsConvertedToBillingBasePeriodLongerThanBillingRhythm()
+    var
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] A unit price and unit cost imported for a charge period shorter than the billing base period are stored on the customer subscription line per billing base period
+        // [GIVEN] A customer subscription line with a price and unit cost of 90 per year (billing base period 1Y, billing rhythm 1M)
+        // [GIVEN] Usage data with Unit Price from Import, a unit price and unit cost of 10 for a charge period of exactly one month
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+
+        // [WHEN] The usage data is processed
+        ImportUsageDataForChargePeriod(ChargeStartDate, CalcDate('<CM>', ChargeStartDate), 1, 10, 10, "Usage Based Pricing"::"Usage Quantity", '<1Y>', '<1M>', 90, 90, 1);
+        CreateAndProcessUsageDataBilling();
+
+        // [THEN] The customer subscription line gets the imported price and unit cost per year
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(120, SubscriptionLine.Price, 'The imported price must be stored per billing base period.');
+        Assert.AreEqual(120, SubscriptionLine."Unit Cost", 'The imported unit cost must be stored per billing base period.');
+    end;
+
+    [Test]
+    procedure CustomerSubscriptionLinePriceIsKeptWhenSeveralUsageDataLinesOnlyDifferByRounding()
+    var
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] The price of a customer subscription line is not changed when the price derived from several rounded usage data amounts only differs from it by rounding
+        // [GIVEN] A customer subscription line with a price of 7.506 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Two usage data lines with a quantity of 1 each for one month, so each amount is rounded up from 7.506 to 7.51
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<CM>', ChargeStartDate), 1, 1, 0, "Usage Based Pricing"::"Usage Quantity", 7.506, 1, 2);
+
+        // [THEN] The usage data was processed, and the customer subscription line keeps its price
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(7.506, SubscriptionLine.Price, 'The price of the subscription line must not change because of rounding.');
+    end;
+
+    [Test]
+    procedure CustomerSubscriptionLinePriceIsKeptWhenUsageDataCoversSeveralBillingBasePeriods()
+    var
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] Processing usage data priced from the customer subscription line does not change the price of that line, even if the charge period covers several billing base periods
+        // [GIVEN] A customer subscription line with a price of 7.51 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data without Unit Price from Import with a quantity of 142 for a charge period of eleven months and four days
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<11M+3D>', ChargeStartDate), 142, 1, 0, "Usage Based Pricing"::"Usage Quantity", 7.51, 1);
+
+        // [THEN] The usage data was processed, and the customer subscription line keeps its price per month
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(7.51, SubscriptionLine.Price, 'The price of the subscription line must not change.');
+        Assert.AreEqual(7.51, SubscriptionLine."Calculation Base Amount", 'The calculation base amount of the subscription line must not change.');
+    end;
+
+    [Test]
+    procedure CustomerSubscriptionLineUnitCostIsConvertedToBillingBasePeriod()
+    var
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] A unit cost imported for a charge period of several billing base periods is stored on the customer subscription line per billing base period
+        // [GIVEN] A customer subscription line with a unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with a unit cost of 30 for a charge period of exactly three months
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 1, 30, 0, "Usage Based Pricing"::"Usage Quantity", 7.5, 7.5);
+
+        // [THEN] The customer subscription line gets the imported unit cost per month
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(10, SubscriptionLine."Unit Cost", 'The imported unit cost must be stored per billing base period.');
+        Assert.AreEqual(10, SubscriptionLine."Unit Cost (LCY)", 'The imported unit cost (LCY) must be stored per billing base period.');
+    end;
+
+    [Test]
+    procedure CustomerSubscriptionLineUnitCostIsConvertedToBillingBasePeriodForNegativeQuantity()
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] A unit cost imported for a charge period of several billing base periods is stored on the customer subscription line per billing base period, also if the usage data contains a line with a negative quantity
+        // [GIVEN] A customer subscription line with a unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Two usage data lines with a unit cost of 30 for a charge period of exactly three months, one with a quantity of 2 and one with a quantity of -1
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+        ImportUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 2, 30, 0, "Usage Based Pricing"::"Usage Quantity", '<1M>', '<1Y>', 7.5, 7.5, 2);
+        FindUsageDataGenericImport(UsageDataGenericImport, UsageDataImport."Entry No.");
+        UsageDataGenericImport.Quantity := -1;
+        UsageDataGenericImport."Cost Amount" := -30;
+        UsageDataGenericImport.Modify(false);
+
+        // [WHEN] The usage data is processed
+        CreateAndProcessUsageDataBilling();
+
+        // [THEN] The customer subscription line gets the imported unit cost per month
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(10, SubscriptionLine."Unit Cost", 'The imported unit cost must be stored per billing base period.');
+    end;
+
+    [Test]
+    procedure CustomerSubscriptionLineUnitCostIsKeptWhenImportedCostOnlyDiffersByRounding()
+    var
+        PeriodSubscriptionLine: Record "Subscription Line";
+        ChargeEndDate: Date;
+        ChargeStartDate: Date;
+        PeriodUnitCost: Decimal;
+    begin
+        // [SCENARIO] The unit cost of a customer subscription line is not changed when the imported cost for the charge period only differs from it by rounding
+        // [GIVEN] A customer subscription line with a unit cost of 7.51 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with a quantity of 142 for a charge period of eleven months and four days, with the unit cost of the line for that period
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        ChargeEndDate := CalcDate('<11M+3D>', ChargeStartDate);
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+        FindCustomerSubscriptionLine(PeriodSubscriptionLine, SubscriptionHeader."No.");
+        Evaluate(PeriodSubscriptionLine."Billing Base Period", '<1M>');
+        Evaluate(PeriodSubscriptionLine."Billing Rhythm", '<1Y>');
+        PeriodSubscriptionLine.Price := 7.51;
+        PeriodUnitCost := PeriodSubscriptionLine.UnitPriceForPeriod(ChargeStartDate, ChargeEndDate);
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, ChargeEndDate, 142, PeriodUnitCost, 0, "Usage Based Pricing"::"Usage Quantity", 7.51, 7.51);
+
+        // [THEN] The usage data was processed, and the customer subscription line keeps its unit cost per month
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(7.51, SubscriptionLine."Unit Cost", 'The unit cost of the subscription line must not change because of rounding.');
     end;
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateVendorBillingDocumentPageHandler,MessageHandler')]
@@ -1070,6 +1266,65 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataBilling.TestField("Document No.", '');
         UsageDataBilling.TestField("Document Line No.", 0);
         UsageDataBilling.TestField("Billing Line Entry No.", 0);
+    end;
+
+    [Test]
+    procedure SubscriptionLinePriceIsKeptForFixedQuantity()
+    var
+        VendorSubscriptionLine: Record "Subscription Line";
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] Processing usage data for subscription lines with fixed quantity pricing does not change their price or unit cost, even if the charge period covers several billing base periods
+        // [GIVEN] Customer and vendor subscription lines with fixed quantity pricing, a price and unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with a unit cost of 30 for a charge period of exactly three months
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 1, 30, 0, "Usage Based Pricing"::"Fixed Quantity", 7.5, 7.5);
+
+        // [THEN] The subscription lines keep their price and unit cost per month
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", "Processing Status"::Ok);
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(7.5, SubscriptionLine.Price, 'The price of the customer subscription line must not change.');
+        Assert.AreEqual(7.5, SubscriptionLine."Unit Cost", 'The unit cost of the customer subscription line must not change.');
+        FindVendorSubscriptionLine(VendorSubscriptionLine);
+        Assert.AreEqual(7.5, VendorSubscriptionLine.Price, 'The price of the vendor subscription line must not change.');
+    end;
+
+    [Test]
+    procedure SubscriptionLinePricesAreConvertedToBillingBasePeriodForUnitCostSurcharge()
+    var
+        VendorSubscriptionLine: Record "Subscription Line";
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] For unit cost surcharge pricing, the unit cost and the surcharged price for a charge period of several billing base periods are stored on the subscription lines per billing base period
+        // [GIVEN] A subscription with a quantity of 2, and subscription lines with a unit cost surcharge of 20 %, a price and unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with a quantity of 2 and a unit cost of 30 for a charge period of exactly three months
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+        SubscriptionHeader.Get(SubscriptionHeader."No.");
+        SubscriptionHeader.Quantity := 2;
+        SubscriptionHeader.Modify(false);
+        ImportUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 2, 30, 0, "Usage Based Pricing"::"Unit Cost Surcharge", '<1M>', '<1Y>', 7.5, 7.5, 1);
+        SubscriptionLine.Reset();
+        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        SubscriptionLine.ModifyAll("Pricing Unit Cost Surcharge %", 20, false);
+
+        // [WHEN] The usage data is processed
+        CreateAndProcessUsageDataBilling();
+
+        // [THEN] The customer subscription line gets the unit cost and the surcharged price per month
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(12, SubscriptionLine.Price, 'The surcharged price must be stored per billing base period.');
+        Assert.AreEqual(10, SubscriptionLine."Unit Cost", 'The imported unit cost must be stored per billing base period.');
+
+        // [THEN] The vendor subscription line gets the unit cost per month as its price
+        FindVendorSubscriptionLine(VendorSubscriptionLine);
+        Assert.AreEqual(10, VendorSubscriptionLine.Price, 'The imported cost must be stored as price per billing base period.');
     end;
 
     [Test]
@@ -2382,6 +2637,36 @@ codeunit 148153 "Usage Based Billing Test"
     end;
 
     [Test]
+    procedure UnitCostFromSubscriberForOtherUsageBasedPricingIsStoredPerBillingBasePeriod()
+    var
+        VendorSubscriptionLine: Record "Subscription Line";
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] For a usage based pricing handled by a subscriber, the subscriber receives and returns the unit cost per billing base period, even if the charge period covers several billing base periods
+        // [GIVEN] Subscription lines with a usage based pricing handled by a subscriber, a price and unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] A subscriber that sets a unit cost of 12 per month
+        // [GIVEN] Usage data with Unit Price from Import for a charge period of exactly three months
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+        UnitCostFromElseCaseSubscriber := 12;
+
+        // [WHEN] The usage data is processed
+        BindSubscription(this);
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 1, 30, 22.5, "Usage Based Pricing"::"Test Above Unit Cost Surcharge", 7.5, 7.5);
+        UnbindSubscription(this);
+
+        // [THEN] The subscriber received the unit cost per month
+        Assert.AreEqual(7.5, UnitCostPassedToElseCaseSubscriber, 'The subscriber must receive the unit cost per billing base period.');
+
+        // [THEN] The unit cost set by the subscriber is stored per month on the customer subscription line and as price on the vendor subscription line
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(12, SubscriptionLine."Unit Cost", 'The unit cost from the subscriber must be stored per billing base period.');
+        FindVendorSubscriptionLine(VendorSubscriptionLine);
+        Assert.AreEqual(12, VendorSubscriptionLine.Price, 'The unit cost from the subscriber must be stored as price per billing base period.');
+    end;
+
+    [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure UpdatingServiceObjectAvailabilityDuringProcessing()
     var
@@ -2434,6 +2719,97 @@ codeunit 148153 "Usage Based Billing Test"
 
         // [THEN]: Test if Subscription Availability is set to "Connected"
         ValidateUsageDataGenericImportAvailability(UsageDataImport."Entry No.", "Service Object Availability"::Connected, SubscriptionHeader."No.");
+    end;
+
+    [Test]
+    procedure UsageDataWithEmptyChargePeriodCannotUpdateSubscriptionLinePrice()
+    var
+        ChargeEndDate: Date;
+        ChargeStartDate: Date;
+        SubscriptionQuantity: Decimal;
+    begin
+        // [SCENARIO] Usage data whose charge period ends one day before it starts is marked as an error and changes neither the subscription nor its lines
+        // [GIVEN] Subscription lines with a price and unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with Unit Price from Import and a quantity different from the subscription quantity, for a charge period that ends one day before it starts
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        ChargeEndDate := ChargeStartDate - 1;
+        CreateUsageDataBillingForInvalidChargePeriod(ChargeStartDate, ChargeEndDate, SubscriptionQuantity);
+
+        // [WHEN] The usage data billing is processed
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] The usage data billing and the import get the processing status Error, the usage data billing with the reason
+        // [THEN] Price, unit cost and the subscription quantity are not changed
+        VerifyUsageDataBillingWithInvalidChargePeriodIsNotProcessed(ChargeStartDate, ChargeEndDate, SubscriptionQuantity);
+    end;
+
+    [Test]
+    procedure UsageDataWithEmptyChargePeriodDoesNotStopProcessingOfOtherSubscriptionLines()
+    var
+        CustomerUsageDataBilling: Record "Usage Data Billing";
+        VendorUsageDataBilling: Record "Usage Data Billing";
+        ChargeStartDate: Date;
+        SubscriptionQuantity: Decimal;
+    begin
+        // [SCENARIO] Usage data with an invalid charge period is marked as an error only for its own subscription line, the other subscription lines are still processed
+        // [GIVEN] Subscription lines with a price and unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data billing of the customer subscription line for a charge period that ends one day before it starts
+        // [GIVEN] Usage data billing of the vendor subscription line for a charge period of one month, with an imported unit cost of 30 and a quantity two above the subscription quantity
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        CreateUsageDataBillingForInvalidChargePeriod(ChargeStartDate, ChargeStartDate - 1, SubscriptionQuantity);
+        VendorUsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        VendorUsageDataBilling.SetRange(Partner, "Service Partner"::Vendor);
+        VendorUsageDataBilling.FindFirst();
+        VendorUsageDataBilling."Charge End Date" := CalcDate('<CM>', ChargeStartDate);
+        VendorUsageDataBilling.Modify(false);
+
+        // [WHEN] The usage data billing is processed
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] Only the usage data billing of the customer subscription line gets the processing status Error with the reason, the import too
+        // [THEN] The customer subscription line does not take over the price and unit cost from the usage data
+        FindCustomerUsageDataBilling(CustomerUsageDataBilling, UsageDataImport."Entry No.");
+        FindCustomerSubscriptionLine(SubscriptionLine, SubscriptionHeader."No.");
+        Assert.AreEqual(Enum::"Processing Status"::Error, CustomerUsageDataBilling."Processing Status", 'The usage data billing with an invalid charge period must get the processing status Error.');
+        Assert.AreEqual(StrSubstNo(ChargePeriodWithoutBillingBasePeriodErr, SubscriptionLine.Description, SubscriptionHeader."No.", ChargeStartDate, ChargeStartDate - 1), CustomerUsageDataBilling.GetReason(), 'The reason must explain the invalid charge period.');
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        Assert.AreEqual(Enum::"Processing Status"::Error, UsageDataImport."Processing Status", 'The usage data import must get the processing status Error.');
+        Assert.AreEqual(7.5, SubscriptionLine.Price, 'The price of the customer subscription line must not be changed.');
+        Assert.AreEqual(7.5, SubscriptionLine."Unit Cost", 'The unit cost of the customer subscription line must not be changed.');
+
+        // [THEN] The usage data billing of the vendor subscription line is processed: the vendor subscription line takes over the unit cost of the usage data for one month as its price per month
+        // [THEN] The subscription quantity is changed to the quantity of the usage data
+        VendorUsageDataBilling.Get(VendorUsageDataBilling."Entry No.");
+        Assert.AreEqual(Enum::"Processing Status"::Ok, VendorUsageDataBilling."Processing Status", 'The usage data billing with a valid charge period must be processed.');
+        FindVendorSubscriptionLine(SubscriptionLine);
+        Assert.AreNearlyEqual(VendorUsageDataBilling."Cost Amount" / VendorUsageDataBilling.Quantity, SubscriptionLine.Price, 0.000001, 'The vendor subscription line must take over the unit cost from the usage data as its price per billing base period.');
+        SubscriptionHeader.Get(SubscriptionHeader."No.");
+        Assert.AreEqual(SubscriptionQuantity + 2, SubscriptionHeader.Quantity, 'The subscription quantity must be changed to the quantity of the usage data.');
+    end;
+
+    [Test]
+    procedure UsageDataWithNegativeChargePeriodCannotUpdateSubscriptionLinePrice()
+    var
+        ChargeEndDate: Date;
+        ChargeStartDate: Date;
+        SubscriptionQuantity: Decimal;
+    begin
+        // [SCENARIO] Usage data whose charge period ends several days before it starts is marked as an error and changes neither the subscription nor its lines
+        // [GIVEN] Subscription lines with a price and unit cost of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with Unit Price from Import and a quantity different from the subscription quantity, for a charge period that ends five days before it starts
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        ChargeEndDate := ChargeStartDate - 5;
+        CreateUsageDataBillingForInvalidChargePeriod(ChargeStartDate, ChargeEndDate, SubscriptionQuantity);
+
+        // [WHEN] The usage data billing is processed
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] The usage data billing and the import get the processing status Error, the usage data billing with the reason
+        // [THEN] Price, unit cost and the subscription quantity are not changed
+        VerifyUsageDataBillingWithInvalidChargePeriodIsNotProcessed(ChargeStartDate, ChargeEndDate, SubscriptionQuantity);
     end;
 
     [Test]
@@ -2527,6 +2903,27 @@ codeunit 148153 "Usage Based Billing Test"
             StrSubstNo(VendorCurrencyMismatchErr, VendorContract."No.", VendorContract."Currency Code", ''),
             UsageDataBilling.GetReason(),
             'Error reason should match vendor currency mismatch message');
+    end;
+
+    [Test]
+    procedure VendorSubscriptionLinePriceIsConvertedToBillingBasePeriod()
+    var
+        VendorSubscriptionLine: Record "Subscription Line";
+        ChargeStartDate: Date;
+    begin
+        // [SCENARIO] A vendor cost imported for a charge period of several billing base periods is stored as the price of the vendor subscription line per billing base period
+        // [GIVEN] A vendor subscription line with a price of 7.50 per month (billing base period 1M, billing rhythm 1Y)
+        // [GIVEN] Usage data with a unit cost of 30 for a charge period of exactly three months
+        Initialize();
+        ChargeStartDate := CalcDate('<-CM>', WorkDate());
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+
+        // [WHEN] The usage data is processed
+        ProcessUsageDataForChargePeriod(ChargeStartDate, CalcDate('<3M-1D>', ChargeStartDate), 1, 30, 0, "Usage Based Pricing"::"Usage Quantity", 7.5, 7.5);
+
+        // [THEN] The vendor subscription line gets the imported cost per month as its price
+        FindVendorSubscriptionLine(VendorSubscriptionLine);
+        Assert.AreEqual(10, VendorSubscriptionLine.Price, 'The imported cost must be stored as price per billing base period.');
     end;
 
     [Test]
@@ -3205,6 +3602,13 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataGenericImport.FindFirst();
     end;
 
+    local procedure FindVendorSubscriptionLine(var FoundSubscriptionLine: Record "Subscription Line")
+    begin
+        FoundSubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        FoundSubscriptionLine.SetRange(Partner, "Service Partner"::Vendor);
+        FoundSubscriptionLine.FindFirst();
+    end;
+
     local procedure GetBillingEntryNo(BillingDocumentType: Enum "Rec. Billing Document Type"; ServicePartner: Enum "Service Partner"; DocumentNo: Code[20]; ContractNo: Code[20]; ContractLineNo: Integer): Integer
     begin
         BillingLine.FilterBillingLineOnContractLine(ServicePartner, ContractNo, ContractLineNo);
@@ -3299,6 +3703,62 @@ codeunit 148153 "Usage Based Billing Test"
         until SubscriptionLine.Next() = 0;
     end;
 
+    local procedure ProcessUsageDataForChargePeriod(ChargeStartDate: Date; ChargeEndDate: Date; Quantity: Decimal; ImportUnitCost: Decimal; ImportUnitPrice: Decimal; UsageBasedPricing: Enum "Usage Based Pricing"; LinePrice: Decimal; LineUnitCost: Decimal)
+    begin
+        ProcessUsageDataForChargePeriod(ChargeStartDate, ChargeEndDate, Quantity, ImportUnitCost, ImportUnitPrice, UsageBasedPricing, LinePrice, LineUnitCost, 1);
+    end;
+
+    local procedure ProcessUsageDataForChargePeriod(ChargeStartDate: Date; ChargeEndDate: Date; Quantity: Decimal; ImportUnitCost: Decimal; ImportUnitPrice: Decimal; UsageBasedPricing: Enum "Usage Based Pricing"; LinePrice: Decimal; LineUnitCost: Decimal; NumberOfImportLines: Integer)
+    begin
+        ImportUsageDataForChargePeriod(ChargeStartDate, ChargeEndDate, Quantity, ImportUnitCost, ImportUnitPrice, UsageBasedPricing, '<1M>', '<1Y>', LinePrice, LineUnitCost, NumberOfImportLines);
+        CreateAndProcessUsageDataBilling();
+    end;
+
+    local procedure CreateUsageDataBillingForInvalidChargePeriod(ChargeStartDate: Date; ChargeEndDate: Date; var SubscriptionQuantity: Decimal)
+    begin
+        SetupServiceObjectAndContractsInLCY(ChargeStartDate);
+        SubscriptionHeader.Get(SubscriptionHeader."No.");
+        SubscriptionQuantity := SubscriptionHeader.Quantity;
+        ImportUsageDataForChargePeriod(ChargeStartDate, ChargeEndDate, SubscriptionQuantity + 2, 30, 30, "Usage Based Pricing"::"Usage Quantity", '<1M>', '<1Y>', 7.5, 7.5, 1);
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
+    end;
+
+    local procedure CreateAndProcessUsageDataBilling()
+    begin
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+    end;
+
+    local procedure ImportUsageDataForChargePeriod(ChargeStartDate: Date; ChargeEndDate: Date; Quantity: Decimal; ImportUnitCost: Decimal; ImportUnitPrice: Decimal; UsageBasedPricing: Enum "Usage Based Pricing"; BillingBasePeriod: Text; BillingRhythm: Text; LinePrice: Decimal; LineUnitCost: Decimal; NumberOfImportLines: Integer)
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+        AdditionalUsageDataGenericImport: Record "Usage Data Generic Import";
+        LineNo: Integer;
+    begin
+        UsageBasedBTestLibrary.CreateUsageDataSupplier(UsageDataSupplier, Enum::"Usage Data Supplier Type"::Generic, ImportUnitPrice <> 0, Enum::"Vendor Invoice Per"::Import);
+        UsageBasedBTestLibrary.CreateGenericImportSettings(GenericImportSettings, UsageDataSupplier."No.", true, true);
+        UsageBasedBTestLibrary.CreateUsageDataImport(UsageDataImport, UsageDataSupplier."No.");
+        UsageBasedBTestLibrary.CreateSimpleUsageDataGenericImport(UsageDataGenericImport, UsageDataImport."Entry No.", SubscriptionHeader."No.", Customer."No.", ImportUnitCost, ChargeStartDate, ChargeEndDate, ChargeStartDate, ChargeEndDate, Quantity);
+        if ImportUnitPrice <> 0 then begin
+            UsageDataGenericImport.Price := ImportUnitPrice;
+            UsageDataGenericImport.Amount := ImportUnitPrice * Quantity;
+            UsageDataGenericImport.Modify(false);
+        end;
+        for LineNo := 2 to NumberOfImportLines do begin
+            AdditionalUsageDataGenericImport := UsageDataGenericImport;
+            AdditionalUsageDataGenericImport."Entry No." := 0;
+            AdditionalUsageDataGenericImport.Insert(false);
+        end;
+        ProcessUsageDataImport(Enum::"Processing Step"::"Process Imported Lines");
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataGenericImport.FindFirst();
+        PrepareServiceCommitmentAndUsageDataGenericImportForUsageBilling(UsageDataGenericImport, UsageBasedPricing, BillingBasePeriod, BillingRhythm);
+        SetSubscriptionLinesPriceAndUnitCost(LinePrice, LineUnitCost);
+        Codeunit.Run(Codeunit::"Import And Process Usage Data", UsageDataImport);
+    end;
+
     local procedure ProcessUsageDataImport(ProcessingStep: Enum "Processing Step")
     begin
         UsageDataImport."Processing Step" := ProcessingStep;
@@ -3328,6 +3788,20 @@ codeunit 148153 "Usage Based Billing Test"
         UsageDataImport.SetRecFilter();
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+    end;
+
+    local procedure SetSubscriptionLinesPriceAndUnitCost(NewPrice: Decimal; NewUnitCost: Decimal)
+    begin
+        SubscriptionLine.Reset();
+        SubscriptionLine.SetRange("Subscription Header No.", SubscriptionHeader."No.");
+        SubscriptionLine.FindSet();
+        repeat
+            SubscriptionLine.Validate("Calculation Base %", 100);
+            SubscriptionLine.Validate("Calculation Base Amount", NewPrice);
+            SubscriptionLine."Unit Cost" := NewUnitCost;
+            SubscriptionLine."Unit Cost (LCY)" := NewUnitCost;
+            SubscriptionLine.Modify(false);
+        until SubscriptionLine.Next() = 0;
     end;
 
     local procedure SetupUsageBasedCustomerContractForMonthlyRhythm(var PeriodStartDate: Date; var SupplierSubscriptionID: Text)
@@ -3489,6 +3963,24 @@ codeunit 148153 "Usage Based Billing Test"
         CreateVendorContractAndAssignServiceCommitments();
     end;
 
+    local procedure SetupServiceObjectAndContractsInCurrency(ServiceAndCalculationStartDate: Date; CurrencyCode: Code[10])
+    var
+        TempSubscriptionLine: Record "Subscription Line" temporary;
+    begin
+        ContractTestLibrary.CreateCustomer(Customer, CurrencyCode);
+        CreateServiceObjectWithServiceCommitments(Customer."No.", ServiceAndCalculationStartDate);
+        CreateCustomerContractAndAssignServiceCommitments();
+        ContractTestLibrary.CreateVendor(Vendor, CurrencyCode);
+        ContractTestLibrary.CreateVendorContract(VendorContract, Vendor."No.");
+        ContractTestLibrary.FillTempServiceCommitmentForVendor(TempSubscriptionLine, SubscriptionHeader, VendorContract);
+        VendorContract.CreateVendorContractLinesFromServiceCommitments(TempSubscriptionLine);
+    end;
+
+    local procedure SetupServiceObjectAndContractsInLCY(ServiceAndCalculationStartDate: Date)
+    begin
+        SetupServiceObjectAndContractsInCurrency(ServiceAndCalculationStartDate, '');
+    end;
+
     local procedure SetupUsageDataForProcessingToGenericImport()
     begin
         SetupUsageDataForProcessingToGenericImport(WorkDate(), WorkDate(), WorkDate(), WorkDate(), LibraryRandom.RandDec(10, 2));
@@ -3582,6 +4074,27 @@ codeunit 148153 "Usage Based Billing Test"
         CreateContractInvoicesAndTestProcessedUsageData();
     end;
 
+    local procedure VerifyUsageDataBillingWithInvalidChargePeriodIsNotProcessed(ChargeStartDate: Date; ChargeEndDate: Date; SubscriptionQuantity: Decimal)
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        UsageDataBilling.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        Assert.RecordCount(UsageDataBilling, 2);
+        UsageDataBilling.FindSet();
+        repeat
+            SubscriptionLine.Get(UsageDataBilling."Subscription Line Entry No.");
+            Assert.AreEqual(Enum::"Processing Status"::Error, UsageDataBilling."Processing Status", 'The usage data billing with an invalid charge period must get the processing status Error.');
+            Assert.AreEqual(StrSubstNo(ChargePeriodWithoutBillingBasePeriodErr, SubscriptionLine.Description, SubscriptionHeader."No.", ChargeStartDate, ChargeEndDate), UsageDataBilling.GetReason(), 'The reason must explain the invalid charge period.');
+            Assert.AreEqual(7.5, SubscriptionLine.Price, 'The price of the subscription line must not be changed.');
+            Assert.AreEqual(7.5, SubscriptionLine."Unit Cost", 'The unit cost of the subscription line must not be changed.');
+        until UsageDataBilling.Next() = 0;
+
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        Assert.AreEqual(Enum::"Processing Status"::Error, UsageDataImport."Processing Status", 'The usage data import must get the processing status Error.');
+        SubscriptionHeader.Get(SubscriptionHeader."No.");
+        Assert.AreEqual(SubscriptionQuantity, SubscriptionHeader.Quantity, 'The subscription quantity must not be changed.');
+    end;
+
     local procedure ValidateUsageDataGenericImportAvailability(UsageDataImportEntryNo: Integer; ExpectedServiceObjectAvailability: Enum "Service Object Availability"; ExpectedServiceObjectNo: Code[20])
     var
         UsageDataGenericImport: Record "Usage Data Generic Import";
@@ -3658,6 +4171,14 @@ codeunit 148153 "Usage Based Billing Test"
             exit;
         if CalcDate('<CM>', BillingPeriodStart) < BillingPeriodEnd then
             BillingPeriodEnd := CalcDate('<CM>', BillingPeriodStart);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Usage Data Billing", OnUsageBasedPricingElseCaseOnProcessSubscriptionLine, '', false, false)]
+    local procedure SetUnitCostOnUsageBasedPricingElseCaseOnProcessSubscriptionLine(var UnitCost: Decimal; var IsHandled: Boolean)
+    begin
+        UnitCostPassedToElseCaseSubscriber := UnitCost;
+        UnitCost := UnitCostFromElseCaseSubscriber;
+        IsHandled := true;
     end;
 
     #endregion Subscribers
