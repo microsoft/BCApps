@@ -1300,8 +1300,7 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         TableField: Record Field;
         LocalRecordRef: RecordRef;
     begin
-        if IsSystemTable(TableID) then
-            Error(SystemTableErr, GetTableCaption(TableID));
+        CheckNotSystemTable(TableID);
         LocalRecordRef.Open(TableID);
         InsertIntegrationTableMapping(IntegrationTableMapping, IntegrationTableMappingName, TableID, TableID, LocalRecordRef.SystemIdNo(), LocalRecordRef.SystemModifiedAtNo(), ConfigTemplateCode, '', SynchOnlyCoupledRecords);
         TableField.SetRange(TableNo, TableID);
@@ -1367,20 +1366,27 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         exit(ObjectTranslation.TranslateObject(ObjectTranslation."Object Type"::Table, TableID));
     end;
 
-    // Only per-company tables of type Normal can be synchronized, and never system tables (ID 2000000000 and above).
-    // Every path that adds a synchronization table checks this: Add Table, its related tables, and Import Setup.
+    // Add Table offers only per-company tables of type Normal, and never system tables (ID 2000000000 and above).
     internal procedure CheckTableCanBeSynchronized(TableID: Integer)
     var
         TableMetadata: Record "Table Metadata";
     begin
-        if IsSystemTable(TableID) then
-            Error(SystemTableErr, GetTableCaption(TableID));
+        CheckNotSystemTable(TableID);
         if not TableMetadata.Get(TableID) then
             Error(TableMetadataNotFoundErr, TableID);
         if not TableMetadata.DataPerCompany then
             Error(TableNotPerCompanyErr, GetTableCaption(TableID));
         if TableMetadata.TableType <> TableMetadata.TableType::Normal then
             Error(TableNotOfTypeNormalErr, GetTableCaption(TableID));
+    end;
+
+    // System tables can never be synchronized, whichever path adds the synchronization table: Add Table, Import Setup,
+    // or GenerateIntegrationTableMapping. Import Setup checks only this, because an exported setup can contain tables that
+    // Add Table doesn't offer, such as a default table that is shared across companies in some localizations.
+    internal procedure CheckNotSystemTable(TableID: Integer)
+    begin
+        if IsSystemTable(TableID) then
+            Error(SystemTableErr, GetTableCaption(TableID));
     end;
 
     internal procedure CanTableBeSynchronized(TableID: Integer): Boolean
