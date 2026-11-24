@@ -245,6 +245,7 @@ table 6900 Expense
             begin
                 if xRec."Merchant Name" <> Rec."Merchant Name" then begin
                     TestStatusOpen();
+                    CheckCorporateCardSourceFields();
                     MarkNoReceiptDeclarationOutdated();
                     ApplyRule(false, true);
                 end;
@@ -311,6 +312,7 @@ table 6900 Expense
                 ExpensePaymentMethod: Record "Expense Payment Method";
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 if xRec."Payment Method Code" <> Rec."Payment Method Code" then begin
                     Rec.Validate("Reimbursement Type", Rec."Reimbursement Type"::" ");
                     if ExpensePaymentMethod.Get(Rec."Payment Method Code") then
@@ -528,6 +530,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
             end;
 
@@ -1149,6 +1152,12 @@ table 6900 Expense
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
         if Rec."Currency Code" <> StoredExpense."Currency Code" then
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Currency Code"));
+        if Rec."Merchant Name" <> StoredExpense."Merchant Name" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Merchant Name"));
+        if Rec."Payment Method Code" <> StoredExpense."Payment Method Code" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Payment Method Code"));
+        if Rec."Corporate Card Id" <> StoredExpense."Corporate Card Id" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Corporate Card Id"));
     end;
 
     internal procedure GetRuleStyleText() StatusStyleText: Text

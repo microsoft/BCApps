@@ -155,6 +155,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the vendor or merchant for this expense.';
+                    Editable = Rec.Source <> Rec.Source::CorporateCard;
                 }
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
                 {
@@ -359,6 +360,7 @@ page 6988 "Expense"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment method used for this expense.';
                     Importance = Standard;
+                    Editable = Rec.Source <> Rec.Source::CorporateCard;
 
                     trigger OnValidate()
                     begin
