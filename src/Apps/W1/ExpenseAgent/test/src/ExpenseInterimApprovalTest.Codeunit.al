@@ -463,7 +463,7 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure AssignedInterimApproverCompletesApprovalWhenSettingDisabled()
+    procedure AssignedInterimApproverCompletesApprovalWhenSettingDisabledFlow()
     var
         Submitter: Record "Expense User";
         InterimApprover: Record "Expense User";
@@ -471,7 +471,7 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader: Record "Expense Report Header";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO] Disabling interim approvers does not strand a report with an existing assignment.
+        // [SCENARIO] The full interim-to-final approval flow completes on the same report after interim assignments are disabled.
         Initialize();
 
         // [GIVEN] A submitted report is assigned to an interim approver before interim approvers are disabled.
@@ -530,7 +530,7 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure ProcessingReportDelegatesInterimWhenSettingDisabled()
+    procedure ProcessingReportDelegatesInterimWhenSettingDisabledFlow()
     var
         Submitter: Record "Expense User";
         InterimApprover: Record "Expense User";
@@ -538,7 +538,7 @@ codeunit 148346 "Expense Interim Approval Test"
         FinalApprover: Record "Expense User";
         ExpenseReportHeader: Record "Expense Report Header";
     begin
-        // [SCENARIO] Disabling new interim assignments does not prevent alternate coverage for an existing interim stage.
+        // [SCENARIO] The full delegation-to-final approval flow completes on the same report after interim assignments are disabled.
         Initialize();
 
         // [GIVEN] A report has an interim assignment before interim approvers are disabled.
