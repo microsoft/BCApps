@@ -895,7 +895,6 @@ codeunit 5600 "FA Insert Ledger Entry"
         OriginalFALedgerEntry: Record "FA Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
-        NewDerogatoryEntryNo: BigInteger;
     begin
 #if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then begin
@@ -977,14 +976,13 @@ codeunit 5600 "FA Insert Ledger Entry"
         InsertMaintRevEntryForDerogWithResult(FAEntryType, NewFAEntryNo, MaintenanceLedgEntry);
     end;
 
-    local procedure InsertMaintRevEntryForDerogWithResult(FAEntryType: Option; var NewDerogatoryEntryNo: Integer; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
+    local procedure InsertMaintRevEntryForDerogWithResult(FAEntryType: Option; var NewDerogatoryEntryNo: BigInteger; ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry")
     var
         FADepreciationBook: Record "FA Depreciation Book";
         MaintLedgEntryForDerog: Record "Maintenance Ledger Entry";
         OriginalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
-        NewDerogatoryEntryNo: BigInteger;
     begin
 #if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then begin
