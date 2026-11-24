@@ -375,6 +375,11 @@ codeunit 47201 "SL Populate Vendor 1099 Data"
     var
         SLAPBalances: Record "SL AP_Balances";
     begin
+        if TaxYear = SLNext1099Yr then
+            SLAPBalances.SetLoadFields(NYBox00, NYBox01, NYBox02, NYBox03, NYBox04, NYBox05, NYBox06, NYBox07, NYBox09, NYBox11, NYBox12, NYBox13, NYBox14)
+        else
+            SLAPBalances.SetLoadFields(CYBox00, CYBox01, CYBox02, CYBox03, CYBox04, CYBox05, CYBox06, CYBox07, CYBox09, CYBox11, CYBox12, CYBox13, CYBox14);
+
         if not SLAPBalances.Get(VendorNo, CompanyName) then
             exit;
 
