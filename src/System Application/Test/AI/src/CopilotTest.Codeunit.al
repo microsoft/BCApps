@@ -384,13 +384,20 @@ codeunit 132683 "Copilot Test"
         CopilotQuota: Codeunit "Copilot Quota";
         ConsumptionId: Guid;
     begin
+        // [FEATURE] [Copilot] [Consumption]
+        // [SCENARIO] Consumption lookup distinguishes missing, recorded, and unrelated IDs
+        // [GIVEN] A consumption ID without a ledger entry
         ConsumptionId := CreateGuid();
+
+        // [WHEN] [THEN] Looking up the unrecorded ID returns false
         LibraryAssert.IsFalse(CopilotQuota.IsAIConsumptionRecorded(ConsumptionId), 'An unrecorded consumption ID should not be recorded.');
 
+        // [GIVEN] A ledger entry is recorded with that consumption ID
         AIConsumptionLogEntry.SystemId := ConsumptionId;
         AIConsumptionLogEntry."Consumption DateTime" := CurrentDateTime();
         AIConsumptionLogEntry.Insert(false, true);
 
+        // [WHEN] [THEN] Only the recorded ID is found
         LibraryAssert.IsTrue(CopilotQuota.IsAIConsumptionRecorded(ConsumptionId), 'A recorded consumption ID should be recorded.');
         LibraryAssert.IsFalse(CopilotQuota.IsAIConsumptionRecorded(CreateGuid()), 'A different consumption ID should not be recorded.');
     end;
