@@ -18,6 +18,12 @@ pageextension 31321 "Purch. Cr. Memo Subform CZ" extends "Purch. Cr. Memo Subfor
                 ToolTip = 'Specifies the statistic indication code.';
                 Visible = false;
             }
+            field("Country/Reg. of Orig. Code CZ"; Rec."Country/Reg. of Orig. Code CZ")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies a code for the country/region where the item was produced or processed.';
+                Visible = false;
+            }
         }
     }
 }
