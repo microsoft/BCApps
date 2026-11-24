@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.API;
 
 using Microsoft.eServices.EDocument;
-using System.IO;
 using System.Text;
 using System.Utilities;
 
@@ -94,7 +93,6 @@ page 6115 "New E-Documents API"
         EDocument: Record "E-Document";
         EDocumentServiceVar: Record "E-Document Service";
         EDocumentImport: Codeunit "E-Doc. Import";
-        FileMgt: Codeunit "File Management";
         TempBlob: Codeunit "Temp Blob";
         Instream: InStream;
     begin
@@ -104,16 +102,7 @@ page 6115 "New E-Documents API"
         if not EDocumentServiceVar.Get(EDocumentServiceText) then
             Error(EDocumentServiceNotFoundErr, EDocumentServiceVar);
 
-        case LowerCase(FileMgt.GetExtension(FileName)) of
-            'xml':
-                FileType := FileType::XML;
-            'pdf':
-                FileType := FileType::PDF;
-            'json':
-                FileType := FileType::JSON;
-            else
-                FileType := FileType::Unspecified;
-        end;
+        FileType := EDocumentImport.GetFileFormatFromFileName(FileName);
 
         GetFileContent(FileContent, TempBlob);
         TempBlob.CreateInStream(Instream, TextEncoding::UTF8);

@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -373,6 +374,36 @@ codeunit 11038 "E-Document DE Helper"
     local procedure TryValidateRoutingNo(RoutingNo: Text[50])
     begin
         ValidateRoutingNo(RoutingNo);
+    end;
+
+    /// <summary>
+    /// Sets the draft format ("Read into Draft Impl.") that a German document format chosen on an e-document service reads with.
+    /// The draft format is only replaced when it is not set yet or when it is the one the previous document format chose,
+    /// so a draft format picked by hand is kept.
+    /// </summary>
+    /// <param name="EDocumentService">The e-document service whose document format was changed.</param>
+    /// <param name="PreviousDocumentFormat">The document format of the service before the change.</param>
+    /// <param name="DraftFormat">The draft format of the new document format.</param>
+    internal procedure SetDefaultDraftFormat(var EDocumentService: Record "E-Document Service"; PreviousDocumentFormat: Enum "E-Document Format"; DraftFormat: Enum "E-Doc. Read into Draft")
+    begin
+        if (EDocumentService."Read into Draft Impl." <> EDocumentService."Read into Draft Impl."::Unspecified) and
+           (EDocumentService."Read into Draft Impl." <> GetDefaultDraftFormat(PreviousDocumentFormat))
+        then
+            exit;
+        EDocumentService."Read into Draft Impl." := DraftFormat;
+    end;
+
+    local procedure GetDefaultDraftFormat(DocumentFormat: Enum "E-Document Format"): Enum "E-Doc. Read into Draft"
+    begin
+        case DocumentFormat of
+            DocumentFormat::XRechnung:
+                exit("E-Doc. Read into Draft"::XRechnung);
+            DocumentFormat::ZUGFeRD:
+                exit("E-Doc. Read into Draft"::ZUGFeRD);
+            DocumentFormat::"PEPPOL BIS 3.0 DE":
+                exit("E-Doc. Read into Draft"::"PEPPOL BIS 3.0 DE");
+        end;
+        exit("E-Doc. Read into Draft"::Unspecified);
     end;
 
     var

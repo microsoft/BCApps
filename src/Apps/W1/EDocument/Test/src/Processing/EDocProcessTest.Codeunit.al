@@ -2869,4 +2869,357 @@ codeunit 139883 "E-Doc Process Test"
             'The selected draft format must be stored on the service.');
     end;
 
+    #region New from file
+
+    [Test]
+    procedure NewFromFileStoresXmlFileAsXml()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+    begin
+        // [SCENARIO] A file uploaded with "New from file" is stored with its name, its content and the file format of its extension
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+
+        // [WHEN] An XML file is uploaded as a new e-document
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Invoice.xml', '<Invoice/>');
+
+        // [THEN] The stored file is an XML file with the uploaded name and content
+        EDocDataStorage.Get(EDocument."Unstructured Data Entry No.");
+        Assert.AreEqual(Enum::"E-Doc. File Format"::XML, EDocDataStorage."File Format", 'An uploaded .xml file must be stored as XML.');
+        Assert.AreEqual('Invoice.xml', EDocDataStorage.Name, 'The uploaded file must be stored under its file name.');
+        Assert.AreEqual('<Invoice/>', ReadDataStorage(EDocDataStorage), 'The uploaded content must be stored unchanged.');
+    end;
+
+    [Test]
+    procedure NewFromFileStoresPdfFileWithUpperCaseExtensionAsPdf()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+    begin
+        // [SCENARIO] "New from file" recognizes a PDF file by its extension, regardless of its case
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+
+        // [WHEN] A PDF file with an upper-case extension is uploaded as a new e-document
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Scan.PDF', 'PDF content');
+
+        // [THEN] It is stored as PDF
+        EDocDataStorage.Get(EDocument."Unstructured Data Entry No.");
+        Assert.AreEqual(Enum::"E-Doc. File Format"::PDF, EDocDataStorage."File Format", 'An uploaded .PDF file must be stored as PDF.');
+    end;
+
+    [Test]
+    procedure NewFromFileStoresJsonFileAsJson()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+    begin
+        // [SCENARIO] "New from file" recognizes a JSON file by its extension
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+
+        // [WHEN] A JSON file is uploaded as a new e-document
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Data.json', '{}');
+
+        // [THEN] It is stored as JSON
+        EDocDataStorage.Get(EDocument."Unstructured Data Entry No.");
+        Assert.AreEqual(Enum::"E-Doc. File Format"::JSON, EDocDataStorage."File Format", 'An uploaded .json file must be stored as JSON.');
+    end;
+
+    [Test]
+    procedure NewFromFileStoresTextFileAsUnspecified()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+    begin
+        // [SCENARIO] "New from file" keeps the file format unspecified when the extension does not name a known format
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+
+        // [WHEN] A .txt file is uploaded as a new e-document
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Notes.txt', 'Some text');
+
+        // [THEN] It is stored with an unspecified file format
+        EDocDataStorage.Get(EDocument."Unstructured Data Entry No.");
+        Assert.AreEqual(Enum::"E-Doc. File Format"::Unspecified, EDocDataStorage."File Format", 'A .txt file must not get a file format.');
+    end;
+
+    [Test]
+    procedure NewFromFileStoresFileWithoutExtensionAsUnspecified()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+    begin
+        // [SCENARIO] "New from file" keeps the file format unspecified when the file has no extension
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+
+        // [WHEN] A file without extension is uploaded as a new e-document
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Invoice', 'Some text');
+
+        // [THEN] It is stored with an unspecified file format
+        EDocDataStorage.Get(EDocument."Unstructured Data Entry No.");
+        Assert.AreEqual(Enum::"E-Doc. File Format"::Unspecified, EDocDataStorage."File Format", 'A file without extension must not get a file format.');
+    end;
+
+    [Test]
+    procedure NewFromFileXmlIsStructuredByImportProcessV2()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        // [SCENARIO] An XML file uploaded with "New from file" passes the structuring step of import process Version 2.0
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0 and an XML file uploaded as a new e-document for it
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Invoice.xml', '<Invoice/>');
+
+        // [WHEN] The received data is structured
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] The e-document is readable and the uploaded XML is used as its structured data
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'An uploaded XML file must be structured by import process Version 2.0.');
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual(EDocument."Unstructured Data Entry No.", EDocument."Structured Data Entry No.", 'An uploaded XML file is already structured.');
+    end;
+
+    [Test]
+    procedure ReplaceSourceDocumentStoresNewFileWithItsNameAndFormat()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentLog: Record "E-Document Log";
+        FirstDataStorageEntryNo: Integer;
+    begin
+        // [SCENARIO] Replacing the source document of an e-document stores the new file with its name and file format and links it to the e-document
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0 and an e-document created from an uploaded XML file
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Invoice.xml', '<Invoice/>');
+        FirstDataStorageEntryNo := EDocument."Unstructured Data Entry No.";
+
+        // [WHEN] A PDF file replaces the source document of the same e-document
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Scan.pdf', 'PDF content');
+
+        // [THEN] The e-document points to a new stored file with the name and file format of the PDF
+        Assert.AreNotEqual(FirstDataStorageEntryNo, EDocument."Unstructured Data Entry No.", 'The replaced source document must be stored as a new file.');
+        EDocDataStorage.Get(EDocument."Unstructured Data Entry No.");
+        Assert.AreEqual('Scan.pdf', EDocDataStorage.Name, 'The replacing file must be stored under its file name.');
+        Assert.AreEqual(Enum::"E-Doc. File Format"::PDF, EDocDataStorage."File Format", 'The replacing .pdf file must be stored as PDF.');
+        Assert.AreEqual('Scan.pdf', EDocument."File Name", 'The e-document must carry the name of the replacing file.');
+
+        // [THEN] The new file is linked through an imported log entry of the e-document and its service
+        EDocumentLog.SetRange("E-Doc. Entry No", EDocument."Entry No");
+        EDocumentLog.SetRange("Service Code", EDocService.Code);
+        EDocumentLog.SetRange(Status, Enum::"E-Document Service Status"::Imported);
+        EDocumentLog.SetRange("E-Doc. Data Storage Entry No.", EDocument."Unstructured Data Entry No.");
+        Assert.IsFalse(EDocumentLog.IsEmpty(), 'The replacing file must be logged as imported for the e-document and its service.');
+    end;
+
+    [Test]
+    procedure NewFromFileLogsFileForImportProcessV1()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocumentLog: Codeunit "E-Document Log";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        Content: Text;
+    begin
+        // [SCENARIO] Import process Version 1.0 still finds the file uploaded with "New from file" in the log of the e-document
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 1.0
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 1.0");
+
+        // [WHEN] An XML file is uploaded as a new e-document
+        UploadFileAsNewEDocument(EDocService, EDocument, 'Invoice.xml', '<Invoice/>');
+
+        // [THEN] The imported log entry of the e-document and its service holds the uploaded content
+        Assert.IsTrue(EDocumentLog.GetDocumentBlobFromLog(EDocument, EDocService, TempBlob, Enum::"E-Document Service Status"::Imported), 'The uploaded file must be logged as imported for the e-document and its service.');
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(Content);
+        Assert.AreEqual('<Invoice/>', Content, 'The logged file must hold the uploaded content.');
+    end;
+
+    local procedure CreateServiceWithImportProcess(var EDocService: Record "E-Document Service"; ImportProcess: Enum "E-Document Import Process")
+    begin
+        EDocService.Get(LibraryEDoc.CreateService(Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock, ImportProcess));
+    end;
+
+    local procedure UploadFileAsNewEDocument(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; FileName: Text; Content: Text)
+    var
+        EDocImport: Codeunit "E-Doc. Import";
+        TempBlob: Codeunit "Temp Blob";
+        OutStream: OutStream;
+        InStream: InStream;
+    begin
+        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(Content);
+        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
+        EDocImport.UploadDocument(EDocument, EDocService, FileName, InStream);
+        EDocument.Get(EDocument."Entry No");
+        EDocument.TestField("Unstructured Data Entry No.");
+    end;
+
+    local procedure ReadDataStorage(EDocDataStorage: Record "E-Doc. Data Storage") Content: Text
+    var
+        InStream: InStream;
+    begin
+        EDocDataStorage.GetTempBlob().CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(Content);
+    end;
+
+    #endregion
+
+    #region Structure data implementation
+
+    [Test]
+    procedure StructuringPdfUsesImplementationChosenByExtension()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        StructureDataImplChooser: Codeunit "E-Doc. Impl. State";
+    begin
+        // [SCENARIO] An extension chooses how a received PDF is structured when the e-document does not specify it
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0 and a received PDF without a structure implementation
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+        CreateReceivedPdfEDocument(EDocService, EDocument, "Structure Received E-Doc."::Unspecified);
+
+        // [GIVEN] An extension that chooses the PDF mock implementation
+        StructureDataImplChooser.SetStructureDataImplToChoose("Structure Received E-Doc."::"PDF Mock");
+        BindSubscription(StructureDataImplChooser);
+
+        // [WHEN] The received data is structured
+        RunStructureReceivedDataStep(EDocument);
+        UnbindSubscription(StructureDataImplChooser);
+
+        // [THEN] The e-document is structured by the implementation the extension chose
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("Structure Received E-Doc."::"PDF Mock", EDocument."Structure Data Impl.", 'The structure implementation chosen by the extension must be used.');
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'The received PDF must be structured.');
+        EDocDataStorage.Get(EDocument."Structured Data Entry No.");
+        Assert.AreEqual('Mocked content', ReadDataStorage(EDocDataStorage), 'The structured data must come from the chosen implementation.');
+    end;
+
+    [Test]
+    procedure ExtensionIsOfferedReceivedFileAndPreferredImplementation()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        StructureDataImplChooser: Codeunit "E-Doc. Impl. State";
+        RequestEDocumentEntryNo: Integer;
+        RequestDataStorageEntryNo: Integer;
+        OfferedStructureDataImpl: Enum "Structure Received E-Doc.";
+    begin
+        // [SCENARIO] The extension that chooses the structure implementation sees the e-document, its received file and the preferred implementation of the file format
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0 and a received PDF without a structure implementation
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+        CreateReceivedPdfEDocument(EDocService, EDocument, "Structure Received E-Doc."::Unspecified);
+
+        // [GIVEN] An extension that chooses the PDF mock implementation
+        StructureDataImplChooser.SetStructureDataImplToChoose("Structure Received E-Doc."::"PDF Mock");
+        BindSubscription(StructureDataImplChooser);
+
+        // [WHEN] The received data is structured
+        RunStructureReceivedDataStep(EDocument);
+        UnbindSubscription(StructureDataImplChooser);
+
+        // [THEN] The extension was asked once, for this e-document and its received file, with the PDF default MLLM
+        Assert.AreEqual(1, StructureDataImplChooser.GetStructureDataImplRequest(RequestEDocumentEntryNo, RequestDataStorageEntryNo, OfferedStructureDataImpl), 'The extension must be asked once.');
+        Assert.AreEqual(EDocument."Entry No", RequestEDocumentEntryNo, 'The extension must see the e-document being structured.');
+        Assert.AreEqual(EDocument."Unstructured Data Entry No.", RequestDataStorageEntryNo, 'The extension must see the received file.');
+        Assert.AreEqual("Structure Received E-Doc."::MLLM, OfferedStructureDataImpl, 'The extension must be offered the preferred implementation of the PDF file format.');
+    end;
+
+    [Test]
+    procedure ExtensionIsNotAskedWhenStructureImplementationIsSet()
+    var
+        EDocService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        StructureDataImplChooser: Codeunit "E-Doc. Impl. State";
+        RequestEDocumentEntryNo: Integer;
+        RequestDataStorageEntryNo: Integer;
+        OfferedStructureDataImpl: Enum "Structure Received E-Doc.";
+    begin
+        // [SCENARIO] A structure implementation set on the e-document is kept and no extension is asked to choose one
+        Initialize(Enum::"Service Integration"::"Mock");
+
+        // [GIVEN] A service with import process Version 2.0 and a received PDF whose structure implementation is the PDF mock
+        CreateServiceWithImportProcess(EDocService, Enum::"E-Document Import Process"::"Version 2.0");
+        CreateReceivedPdfEDocument(EDocService, EDocument, "Structure Received E-Doc."::"PDF Mock");
+
+        // [GIVEN] An extension that would choose another implementation
+        StructureDataImplChooser.SetStructureDataImplToChoose("Structure Received E-Doc."::"Already Structured");
+        BindSubscription(StructureDataImplChooser);
+
+        // [WHEN] The received data is structured
+        RunStructureReceivedDataStep(EDocument);
+        UnbindSubscription(StructureDataImplChooser);
+
+        // [THEN] The extension was not asked and the implementation of the e-document structured it
+        Assert.AreEqual(0, StructureDataImplChooser.GetStructureDataImplRequest(RequestEDocumentEntryNo, RequestDataStorageEntryNo, OfferedStructureDataImpl), 'The extension must not be asked when the e-document specifies the implementation.');
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("Structure Received E-Doc."::"PDF Mock", EDocument."Structure Data Impl.", 'The structure implementation of the e-document must be kept.');
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'The received PDF must be structured.');
+    end;
+
+    local procedure CreateReceivedPdfEDocument(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; StructureDataImpl: Enum "Structure Received E-Doc.")
+    var
+        EDocLogRecord: Record "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        EDocumentLog: Codeunit "E-Document Log";
+    begin
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocService);
+        EDocumentLog.SetBlob('Test.pdf', Enum::"E-Doc. File Format"::PDF, 'Data');
+        EDocumentLog.SetFields(EDocument, EDocService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Unprocessed);
+        EDocument."Structure Data Impl." := StructureDataImpl;
+        EDocument."Unstructured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument."File Name" := 'Test.pdf';
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Unprocessed);
+    end;
+
+    local procedure RunStructureReceivedDataStep(var EDocument: Record "E-Document")
+    var
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+    end;
+
+    #endregion
+
 }

@@ -15,6 +15,7 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.IO;
 using System.Utilities;
 
 codeunit 6140 "E-Doc. Import"
@@ -191,12 +192,8 @@ codeunit 6140 "E-Doc. Import"
     internal procedure UploadDocument(var EDocument: Record "E-Document")
     var
         EDocumentService: Record "E-Document Service";
-        EDocLog: Record "E-Document Log";
-        TempBlob: Codeunit "Temp Blob";
-        OutStr: OutStream;
         InStr: InStream;
         FileName: Text;
-        EDocumentServiceStatus: Enum "E-Document Service Status";
     begin
         if Page.RunModal(Page::"E-Document Services", EDocumentService) <> Action::LookupOK then
             exit;
@@ -204,6 +201,16 @@ codeunit 6140 "E-Doc. Import"
         if not UploadIntoStream('', '', '', FileName, InStr) then
             exit;
 
+        UploadDocument(EDocument, EDocumentService, FileName, InStr);
+    end;
+
+    internal procedure UploadDocument(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; InStr: InStream)
+    var
+        EDocLog: Record "E-Document Log";
+        TempBlob: Codeunit "Temp Blob";
+        OutStr: OutStream;
+        EDocumentServiceStatus: Enum "E-Document Service Status";
+    begin
         EDocument.Direction := EDocument.Direction::Incoming;
         EDocument."Document Type" := Enum::"E-Document Type"::None;
         EDocument.Service := EDocumentService.Code;
@@ -222,9 +229,36 @@ codeunit 6140 "E-Doc. Import"
             EDocumentProcessing.ModifyServiceStatus(EDocument, EDocumentService, EDocumentServiceStatus);
         end;
 
-        EDocLog := EDocumentLog.InsertLog(EDocument, EDocumentService, TempBlob, EDocumentServiceStatus);
+        EDocumentLog.SetFields(EDocument, EDocumentService);
+        EDocumentLog.SetBlob(CopyStr(FileName, 1, 256), GetFileFormatFromFileName(FileName), TempBlob);
+        EDocLog := EDocumentLog.InsertLog(EDocumentServiceStatus);
         EDocument."Unstructured Data Entry No." := EDocLog."E-Doc. Data Storage Entry No.";
         EDocument.Modify();
+    end;
+
+    internal procedure GetFileFormatFromFileName(FileName: Text): Enum "E-Doc. File Format"
+    var
+        FileManagement: Codeunit "File Management";
+    begin
+        case LowerCase(FileManagement.GetExtension(FileName)) of
+            'xml':
+                exit(Enum::"E-Doc. File Format"::XML);
+            'pdf':
+                exit(Enum::"E-Doc. File Format"::PDF);
+            'json':
+                exit(Enum::"E-Doc. File Format"::JSON);
+            else
+                exit(Enum::"E-Doc. File Format"::Unspecified);
+        end;
+    end;
+
+    internal procedure GetStructureDataImplementation(EDocument: Record "E-Document"; EDocumentDataStorage: Record "E-Doc. Data Storage"; PreferredStructureDataImpl: Enum "Structure Received E-Doc."): Enum "Structure Received E-Doc."
+    var
+        StructureDataImpl: Enum "Structure Received E-Doc.";
+    begin
+        StructureDataImpl := PreferredStructureDataImpl;
+        OnAfterGetStructureDataImplementation(EDocument, EDocumentDataStorage, StructureDataImpl);
+        exit(StructureDataImpl);
     end;
 
     internal procedure V1_GetBasicInfo(var EDocument: Record "E-Document")
@@ -927,6 +961,18 @@ codeunit 6140 "E-Doc. Import"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessIncomingEDocument(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"; StartState: Enum "Import E-Doc. Proc. Status"; DesiredEndState: Enum "Import E-Doc. Proc. Status")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised when Import Process Version 2.0 structures a received file for which no structure implementation was set.
+    /// Subscribers can inspect the received file and choose the implementation, for example to read an invoice embedded in a PDF.
+    /// </summary>
+    /// <param name="EDocument">The e-document being structured.</param>
+    /// <param name="EDocumentDataStorage">The data storage entry with the received file.</param>
+    /// <param name="StructureDataImpl">The preferred implementation of the file format; set it to use another one.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetStructureDataImplementation(EDocument: Record "E-Document"; EDocumentDataStorage: Record "E-Doc. Data Storage"; var StructureDataImpl: Enum "Structure Received E-Doc.")
     begin
     end;
 

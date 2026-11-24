@@ -9,6 +9,7 @@ using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Clause;
@@ -4060,6 +4061,92 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
 
     #endregion
+
+    #region ServiceSetup
+    [Test]
+    procedure SelectingXRechnungFormatSetsXRechnungDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Choosing XRechnung as the document format of a service also chooses XRechnung as its draft format
+        Initialize();
+
+        // [GIVEN] A new e-document service without a draft format
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+
+        // [WHEN] XRechnung is chosen as the document format
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::XRechnung);
+
+        // [THEN] The draft format is XRechnung, so import process Version 2.0 can read the received documents into a draft
+        Assert.AreEqual("E-Doc. Read into Draft"::XRechnung, NewEDocumentService."Read into Draft Impl.", 'Choosing XRechnung as the document format must choose XRechnung as the draft format.');
+    end;
+
+    [Test]
+    procedure SelectingXRechnungFormatKeepsChosenDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Choosing XRechnung as the document format keeps a draft format that was already chosen
+        Initialize();
+
+        // [GIVEN] A new e-document service whose draft format is PEPPOL
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+        NewEDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        NewEDocumentService.Modify();
+
+        // [WHEN] XRechnung is chosen as the document format
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::XRechnung);
+
+        // [THEN] The chosen draft format is kept
+        Assert.AreEqual("E-Doc. Read into Draft"::PEPPOL, NewEDocumentService."Read into Draft Impl.", 'Choosing XRechnung as the document format must keep the chosen draft format.');
+    end;
+    [Test]
+    procedure SwitchingFromZUGFeRDToXRechnungSetsXRechnungDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Switching the document format from ZUGFeRD to XRechnung also switches the draft format to XRechnung
+        Initialize();
+
+        // [GIVEN] A service whose document format is ZUGFeRD, with the draft format that ZUGFeRD chose
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::ZUGFeRD);
+
+        // [WHEN] The document format is switched to XRechnung
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::XRechnung);
+
+        // [THEN] The draft format follows the new document format
+        Assert.AreEqual("E-Doc. Read into Draft"::XRechnung, NewEDocumentService."Read into Draft Impl.", 'Switching the document format must replace the draft format of the previous document format.');
+    end;
+
+    [Test]
+    procedure SwitchingDocumentFormatKeepsHandPickedDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Switching the document format keeps a draft format the user picked by hand
+        Initialize();
+
+        // [GIVEN] A ZUGFeRD service whose draft format was changed by hand to PEPPOL
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::ZUGFeRD);
+        NewEDocumentService.Validate("Read into Draft Impl.", "E-Doc. Read into Draft"::PEPPOL);
+
+        // [WHEN] The document format is switched to XRechnung
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::XRechnung);
+
+        // [THEN] The hand-picked draft format is kept
+        Assert.AreEqual("E-Doc. Read into Draft"::PEPPOL, NewEDocumentService."Read into Draft Impl.", 'Switching the document format must keep a hand-picked draft format.');
+    end;
+
+    #endregion
+
+    local procedure CreateServiceWithoutDocumentFormat(var NewEDocumentService: Record "E-Document Service")
+    begin
+        NewEDocumentService.Init();
+        NewEDocumentService.Code := LibraryUtility.GenerateRandomCode20(NewEDocumentService.FieldNo(Code), Database::"E-Document Service");
+        NewEDocumentService.Insert();
+    end;
 
     local procedure CreateAndPostSalesInvoiceWithItemCharge(NoOfItemLines: Integer; ChargeQuantity: Decimal; ChargeUnitPrice: Decimal; var ItemChargeNo: Code[20]): Code[20]
     begin

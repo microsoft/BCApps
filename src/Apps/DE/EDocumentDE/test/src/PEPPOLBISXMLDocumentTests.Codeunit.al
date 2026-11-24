@@ -8,6 +8,7 @@ using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.IO.Peppol;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.UOM;
@@ -410,6 +411,34 @@ codeunit 13923 "PEPPOL BIS XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
     end;
     #endregion
+
+    #region ServiceSetup
+    [Test]
+    procedure SwitchingFromXRechnungToPEPPOLBIS30DESetsPEPPOLBIS30DEDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Switching the document format from XRechnung to PEPPOL BIS 3.0 DE also switches the draft format to PEPPOL BIS 3.0 DE
+        Initialize();
+
+        // [GIVEN] A service whose document format is XRechnung, with the draft format that XRechnung chose
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::XRechnung);
+
+        // [WHEN] The document format is switched to PEPPOL BIS 3.0 DE
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::"PEPPOL BIS 3.0 DE");
+
+        // [THEN] The draft format follows the new document format
+        Assert.AreEqual("E-Doc. Read into Draft"::"PEPPOL BIS 3.0 DE", NewEDocumentService."Read into Draft Impl.", 'Switching the document format must replace the draft format of the previous document format.');
+    end;
+    #endregion
+
+    local procedure CreateServiceWithoutDocumentFormat(var NewEDocumentService: Record "E-Document Service")
+    begin
+        NewEDocumentService.Init();
+        NewEDocumentService.Code := LibraryUtility.GenerateRandomCode20(NewEDocumentService.FieldNo(Code), Database::"E-Document Service");
+        NewEDocumentService.Insert();
+    end;
 
     local procedure Initialize()
     begin
