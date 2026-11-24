@@ -3484,6 +3484,9 @@ codeunit 139235 "PEPPOL30 Management Tests"
         // [SCENARIO 9815] Header-level Delivery is not exported for a service document without delivery information
         Initialize();
 
+        // [GIVEN] A customer ledger entry already uses the first number of a separately generated series
+        CreateConflictingCustLedgerEntry(Enum::"Gen. Journal Document Type"::Invoice);
+
         // [GIVEN] Posted Service Invoice without Ship-to address, for a Customer without GLN
         CreatePostServiceInvoice(ServiceInvoiceHeader);
         Customer.Get(ServiceInvoiceHeader."Customer No.");
@@ -3515,6 +3518,9 @@ codeunit 139235 "PEPPOL30 Management Tests"
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 9815] Header-level Delivery is not exported for a service document without delivery information
         Initialize();
+
+        // [GIVEN] A customer ledger entry already uses the first number of a separately generated series
+        CreateConflictingCustLedgerEntry(Enum::"Gen. Journal Document Type"::"Credit Memo");
 
         // [GIVEN] Posted Service Credit Memo without Ship-to address, for a Customer without GLN
         CreatePostServiceCrMemo(ServiceCrMemoHeader);
@@ -4711,6 +4717,16 @@ codeunit 139235 "PEPPOL30 Management Tests"
         ServiceCrMemoHeader.FindFirst();
     end;
 
+    local procedure CreateConflictingCustLedgerEntry(DocumentType: Enum "Gen. Journal Document Type")
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        CustLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(CustLedgerEntry, CustLedgerEntry.FieldNo("Entry No."));
+        CustLedgerEntry."Document Type" := DocumentType;
+        CustLedgerEntry."Document No." := 'GU00000000';
+        CustLedgerEntry.Insert();
+    end;
+
     local procedure CreatePostServiceDoc(DocumentType: Enum "Service Document Type"): Code[20]
     var
         Customer: Record Customer;
@@ -4720,9 +4736,11 @@ codeunit 139235 "PEPPOL30 Management Tests"
         GenJournalTemplate: Record "Gen. Journal Template";
     begin
         LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
-        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
+        GenJournalTemplate."Posting No. Series" := LibraryUtility.GetGlobalNoSeriesCode();
         GenJournalTemplate.Modify(false);
         ServMgtSetup.GetRecordOnce();
+        ServMgtSetup."Posted Service Invoice Nos." := GenJournalTemplate."Posting No. Series";
+        ServMgtSetup."Posted Serv. Credit Memo Nos." := GenJournalTemplate."Posting No. Series";
         ServMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
         ServMgtSetup."Serv. Cr. Memo Templ. Name" := GenJournalTemplate.Name;
         ServMgtSetup.Modify(false);
