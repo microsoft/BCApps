@@ -105,6 +105,11 @@
     "method": "CardLinkedExpenseCannotBeDeleted"
   },
   {
+    "codeunitId": 148373,
+    "codeunitName": "EA Card Report Line Tests",
+    "method": "DeletingReportWithCardLineReturnsExpenseToOpen"
+  },
+  {
     "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "AddExpenseToReportAPIAcceptsOpenCardExpense"
