@@ -62,6 +62,10 @@ codeunit 6902 "Expense Rule Validation"
         ExpenseRuleViolation: Record "Expense Rule Violation";
     begin
         ExpenseRuleViolation.ClearRuleViolations(Expense."No.");
+        if IsCardExpenseWaitingForReceipt(Expense) then begin
+            CheckAttachmentsOnExpense(Expense);
+            exit;
+        end;
         InitialExpenseValidation(Expense);
         if not ShouldApplyRule(Expense."Expense Detail Required") then
             exit;
@@ -79,6 +83,22 @@ codeunit 6902 "Expense Rule Validation"
     procedure IsMerchantReceiptRequirementApplicable(ExpenseDetailRequired: Enum "Expense Detail Needed"): Boolean
     begin
         exit(not (ExpenseDetailRequired in [ExpenseDetailRequired::Mileage, ExpenseDetailRequired::"Per Diem"]));
+    end;
+
+    /// <summary>
+    /// A card expense waits for its receipt while it is linked to a card transaction, has no receipt and no no-receipt reason.
+    /// </summary>
+    procedure IsCardExpenseWaitingForReceipt(Expense: Record Expense): Boolean
+    begin
+        exit((Expense."Credit Card Feed No." <> 0) and not Expense."Receipt Attached" and (Expense."No Receipt Type" = Expense."No Receipt Type"::" "));
+    end;
+
+    /// <summary>
+    /// A card report line waits for its receipt while it is linked to a card transaction, has no receipt and no no-receipt reason.
+    /// </summary>
+    procedure IsCardLineWaitingForReceipt(ExpenseReportLine: Record "Expense Report Line"): Boolean
+    begin
+        exit((ExpenseReportLine."Credit Card Feed No." <> 0) and not ExpenseReportLine."Receipt Attached" and (ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::" "));
     end;
 
     procedure ShouldApplyRule(ExpenseDetailRequired: Enum "Expense Detail Needed"): Boolean
@@ -836,11 +856,25 @@ codeunit 6902 "Expense Rule Validation"
     end;
 
     procedure ValidateExpenseReportLineAgainstRule(var ExpenseReportLine: Record "Expense Report Line")
+    begin
+        ValidateExpenseReportLineAgainstRule(ExpenseReportLine, false);
+    end;
+
+    /// <summary>
+    /// Validates the report line against the rules. While a card line waits for its receipt, only the category's attachment
+    /// requirement is checked, because the receipt brings the receipt number, merchant and details. FullValidation runs all
+    /// rules regardless, which releasing the report requires.
+    /// </summary>
+    procedure ValidateExpenseReportLineAgainstRule(var ExpenseReportLine: Record "Expense Report Line"; FullValidation: Boolean)
     var
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
     begin
         ExpenseReportRuleViolation.ClearRuleViolations(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        if not FullValidation and IsCardLineWaitingForReceipt(ExpenseReportLine) then begin
+            CheckAttachmentsOnExpenseReportLine(ExpenseReportLine);
+            exit;
+        end;
         InitialExpenseReportLineValidation(ExpenseReportLine);
         if not ShouldApplyRule(ExpenseReportLine."Expense Detail Required") then
             exit;

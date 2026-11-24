@@ -99,7 +99,7 @@ codeunit 6984 "Release Exp. Report Document"
 
         ExpenseAgentSetup.GetRecordOnce();
         if ExpenseAgentSetup."Use Rules" then begin
-            ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+            ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine, true);
             ExpenseReportLine.CalcFields("Rule Violations");
             if ExpenseReportLine."Rule Violations" then
                 Error(RuleViolationPresentOnLineErr);

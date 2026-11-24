@@ -2006,6 +2006,27 @@ table 6907 "Expense Report Line"
 
         if ("Spend Request No." <> '') and Rec.Refundable then
             CheckSpendRequestAmount();
+
+        UpdateNoReceiptType();
+    end;
+
+    // Mirrors Expense.UpdateNoReceiptType, except that a lost-receipt declaration is never changed on the line.
+    local procedure UpdateNoReceiptType()
+    var
+        ExpenseCategory: Record "Expense Category";
+    begin
+        if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then
+            exit;
+
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Allow No Receipt" then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then begin
+                    Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed";
+                    exit;
+                end;
+
+        Clear(Rec."No Receipt Type");
     end;
 
     local procedure CheckSpendRequestAmount()
@@ -2282,7 +2303,11 @@ table 6907 "Expense Report Line"
             exit;
 
         Expense.Validate("Expense Report No.", '');
-        Expense.Status := Expense.Status::Released;
+        // A removed card expense goes back to waiting for an expense report, like a new card expense.
+        if (Expense.Source = Expense.Source::CorporateCard) and (Expense."Credit Card Feed No." <> 0) then
+            Expense.Status := Expense.Status::Open
+        else
+            Expense.Status := Expense.Status::Released;
         Expense.Modify();
     end;
 
@@ -2429,7 +2454,14 @@ table 6907 "Expense Report Line"
     local procedure UpdateFromExpenseCategory()
     var
         ExpenseCategory: Record "Expense Category";
+        CardDescription: Text[100];
+        IsCardLine: Boolean;
     begin
+        // Amount, currency, payment and merchant description of a card line come from the card transaction
+        // and must survive a category change.
+        IsCardLine := Rec."Credit Card Feed No." <> 0;
+        if IsCardLine then
+            CardDescription := Rec.Description;
         Rec.Description := '';
         Rec."Expense Detail Required" := Rec."Expense Detail Required"::" ";
         Rec."Spend Request No." := '';
@@ -2438,7 +2470,10 @@ table 6907 "Expense Report Line"
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
-            Rec.Amount := 0;
+            if IsCardLine then
+                Rec.Description := CardDescription
+            else
+                Rec.Amount := 0;
             Rec.UpdateAmounts();
             exit;
         end;
@@ -2454,10 +2489,15 @@ table 6907 "Expense Report Line"
             Rec.Validate("Expense Location", '');
 
         Rec.Validate(Refundable, ExpenseCategory.Refundable);
-        Rec.Validate(Description, ExpenseCategory."Posting Description");
-        Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
-        if ExpenseCategory."Default Payment Method" <> '' then
-            Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
+        if IsCardLine and (CardDescription <> '') then
+            Rec.Validate(Description, CardDescription)
+        else
+            Rec.Validate(Description, ExpenseCategory."Posting Description");
+        if not IsCardLine then begin
+            Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
+            if ExpenseCategory."Default Payment Method" <> '' then
+                Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
+        end;
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
@@ -2465,10 +2505,11 @@ table 6907 "Expense Report Line"
             Rec.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
 
-        if Rec."Expense No." = '' then
-            Rec.Validate("Expense Currency Code", '');
-
-        Rec.Amount := 0;
+        if not IsCardLine then begin
+            if Rec."Expense No." = '' then
+                Rec.Validate("Expense Currency Code", '');
+            Rec.Amount := 0;
+        end;
         Rec.UpdateAmounts();
     end;
 

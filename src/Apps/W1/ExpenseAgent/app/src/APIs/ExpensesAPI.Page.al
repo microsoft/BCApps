@@ -377,6 +377,13 @@ page 6927 "Expenses API"
                     EntitySetName = 'expenseRuleViolations';
                     SubPageLink = "Expense No." = field("No.");
                 }
+                part(cardReceiptData; "EA Card Receipt Data API")
+                {
+                    Caption = 'Card Receipt Data';
+                    EntityName = 'cardReceiptData';
+                    EntitySetName = 'cardReceiptData';
+                    SubPageLink = "Expense SystemId" = field(SystemId);
+                }
             }
         }
     }

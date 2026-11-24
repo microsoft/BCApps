@@ -68,5 +68,9 @@ permissionset 6907 "Expense Mgmt. Read"
         tabledata "Expense Report Line VAT Spec." = R,
         tabledata "Expense Activity Log Entry" = R,
         tabledata "Expense Activities Cue" = R,
-        tabledata "Posted Exp. Rep. Line VAT Spec" = R;
+        tabledata "Posted Exp. Rep. Line VAT Spec" = R,
+        tabledata "EA Card Receipt Data" = R,
+        tabledata "EA Card Receipt Participant" = R,
+        tabledata "EA Card Receipt Item" = R,
+        tabledata "EA Card Receipt VAT Spec." = R;
 }
