@@ -26,6 +26,12 @@ codeunit 148373 "EA Card Report Line Tests"
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
         OtherCardIdTok: Label 'CORPCARD-0002', Locked = true;
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
+        AttachmentMandatoryTok: Label 'Document Attachment is mandatory', Locked = true;
+        MerchantMandatoryTok: Label 'Merchant Name is mandatory', Locked = true;
+        ReceiptNoMandatoryTok: Label 'Receipt No. is mandatory', Locked = true;
+        JustificationRequiredTok: Label 'Justification is required', Locked = true;
+        DuplicateTok: Label 'already exists', Locked = true;
+        MaxAmountTok: Label 'must not exceed', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
     // B1: an open card expense without a category can be added to a report
@@ -516,6 +522,246 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
+    // Expense rules on card lines (Use Rules on, credit card feed on)
+    // Kept as is: attachment enforcement, merchant name mandatory, justification conditions, and duplicate
+    // detection against non-card lines. Relaxed for card lines: duplicates between different card transactions,
+    // Receipt No. Mandatory, and amount conditions the user cannot fix because the card amount is locked.
+    // ---------------------------------------------------------------------------------------------
+
+    [Test]
+    procedure CardLineWithoutReceiptGetsAttachmentViolation()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Rules kept: a card line without a receipt is flagged when its category requires an attachment.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] A card line whose category enforces attachments.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        SetAttachmentEnforcement(ExpenseReportLine."Expense Category", Enum::"Expense Attachment Enforcement"::Error);
+
+        // [WHEN] The line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] The missing receipt is a rule violation.
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, AttachmentMandatoryTok), 'A card line without a receipt must be flagged.');
+    end;
+
+    [Test]
+    procedure CardLineNotNeedingReceiptHasNoAttachmentViolation()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Rules kept: "Receipt not needed" satisfies attachment enforcement on a card line.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] A card line that does not need a receipt, whose category enforces attachments.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        SetAttachmentEnforcement(ExpenseReportLine."Expense Category", Enum::"Expense Attachment Enforcement"::Error);
+        ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Receipt not needed";
+        ExpenseReportLine.Modify();
+
+        // [WHEN] The line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] There is no attachment violation.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, AttachmentMandatoryTok), 'A card line that does not need a receipt must not be flagged.');
+    end;
+
+    [Test]
+    procedure CardLineSatisfiesMerchantNameMandatory()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // [SCENARIO] Rules kept: the merchant from the card transaction satisfies Merchant Name Mandatory.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Merchant Name Mandatory" := true;
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] A card line with the transaction's merchant.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+
+        // [WHEN] The line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] There is no merchant name violation.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, MerchantMandatoryTok), 'The card merchant must satisfy Merchant Name Mandatory.');
+    end;
+
+    [Test]
+    procedure JustificationConditionAppliesToCardLine()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        // [SCENARIO] Rules kept: a justification threshold applies to card lines, and the user can satisfy it.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] A card line of 20 and a rule that needs a justification from 10.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseReportLine."Expense Category", '', WorkDate() - 30,
+            ExpenseRuleHeader."Justification Required"::"Against Conditions", '', '', ExpenseRuleCondition."Condition Type"::"At Least Justification Needed", 10);
+
+        // [WHEN] The line is validated without and then with a justification.
+        ValidateLineAgainstRules(ExpenseReportLine);
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, JustificationRequiredTok), 'The card line must need a justification.');
+        ExpenseReportLine.Justification := 'Client lunch';
+        ExpenseReportLine.Modify();
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] The justification satisfies the rule.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, JustificationRequiredTok), 'The justification must satisfy the rule.');
+    end;
+
+    [Test]
+    procedure CardLineAndManualLineWithSameValuesAreDuplicates()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ManualLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO] Rules kept: a manual line with the same date, merchant and amount as a card line is still a duplicate,
+        // because the same purchase was probably entered twice.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] A card line and a manual line with the same date, merchant and amount.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        LibraryExpense.CreateExpenseReportLine(
+            ManualLine, ExpenseReportHeader, Expense."Expense User No.", ExpenseReportLine."Expense Category", '', true, '', ExpenseReportLine.Amount);
+        ManualLine."Expense Ext. Doc. No." := ExpenseReportLine."Expense Ext. Doc. No.";
+        ManualLine."Merchant Name" := ExpenseReportLine."Merchant Name";
+        ManualLine."Expense Date" := ExpenseReportLine."Expense Date";
+        ManualLine.Modify();
+
+        // [WHEN] The card line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] It is flagged as a possible duplicate.
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, DuplicateTok), 'A manual line with the same values must be a duplicate.');
+    end;
+
+    [Test]
+    procedure CardLineAboveMaxAmountWithoutJustificationIsFlagged()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        // [SCENARIO] Rules kept: a card line above the category's maximum amount cannot be released silently.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] A card line of 20 and a rule with a maximum amount of 10.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseReportLine."Expense Category", '', WorkDate() - 30,
+            ExpenseRuleHeader."Justification Required"::" ", '', '', ExpenseRuleCondition."Condition Type"::"Max Amount", 10);
+        SetLineDetailRequired(ExpenseReportLine, ExpenseReportLine."Expense Detail Required"::Itemize);
+
+        // [WHEN] The line is validated against the rules without a justification.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] The line has a maximum amount violation.
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, MaxAmountTok), 'A card line above the maximum amount must be flagged.');
+    end;
+
+    [Test]
+    procedure CardLinesFromDifferentTransactionsAreNotDuplicates()
+    var
+        Expense: Record Expense;
+        OtherExpense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        OtherLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Relaxed: two card transactions on the same day at the same merchant for the same amount (two coffees)
+        // are two purchases. Each has its own transaction, so they are not duplicates.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] Two card lines from different transactions with the same date, merchant and amount.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        CreateCardLine(OtherExpense, OtherLine, CardIdTok);
+        Assert.AreNotEqual(Expense."Credit Card Feed No.", OtherExpense."Credit Card Feed No.", 'The lines must come from different transactions.');
+
+        // [WHEN] The first line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] It is not flagged as a duplicate.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, DuplicateTok), 'Different card transactions must not be duplicates.');
+    end;
+
+    [Test]
+    procedure CardLineDoesNotNeedReceiptNumber()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // [SCENARIO] Relaxed: the card transaction identifies the purchase, so Receipt No. Mandatory does not apply to card
+        // lines (a lost or not-needed receipt would otherwise block the report for good).
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Receipt No. Mandatory" := true;
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] A card line without a receipt number.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        ExpenseReportLine.TestField("Expense Ext. Doc. No.", '');
+
+        // [WHEN] The line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] There is no receipt number violation.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, ReceiptNoMandatoryTok), 'A card line must not need a receipt number.');
+    end;
+
+    [Test]
+    procedure CardLineAboveMaxAmountIsAcceptedWithJustification()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        // [SCENARIO] Relaxed: the card amount is locked, so an amount condition cannot be fixed by the user. On a card line it
+        // asks for a justification instead of blocking the report.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] A card line of 20 with a justification and a rule with a maximum amount of 10.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseReportLine."Expense Category", '', WorkDate() - 30,
+            ExpenseRuleHeader."Justification Required"::" ", '', '', ExpenseRuleCondition."Condition Type"::"Max Amount", 10);
+        SetLineDetailRequired(ExpenseReportLine, ExpenseReportLine."Expense Detail Required"::Itemize);
+        ExpenseReportLine.Justification := 'Team dinner approved by manager';
+        ExpenseReportLine.Modify();
+
+        // [WHEN] The line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] The line has no maximum amount violation.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, MaxAmountTok), 'A justified card line above the maximum amount must not be blocked.');
+    end;
+
+    // ---------------------------------------------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------------------------------------------
 
@@ -603,6 +849,41 @@ codeunit 148373 "EA Card Report Line Tests"
         CorpCardTrans.Modify(true);
         Expense.Get(Expense."No.");
         Expense.TestField(Source, Expense.Source::Manual);
+    end;
+
+    local procedure ValidateLineAgainstRules(var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+    end;
+
+    local procedure HasLineViolation(ExpenseReportLine: Record "Expense Report Line"; DescriptionPart: Text): Boolean
+    var
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportRuleViolation.SetFilter(Description, '@*' + DescriptionPart + '*');
+        exit(not ExpenseReportRuleViolation.IsEmpty());
+    end;
+
+    // Amount conditions are evaluated for itemized, participant and mileage lines.
+    local procedure SetLineDetailRequired(var ExpenseReportLine: Record "Expense Report Line"; DetailRequired: Enum "Expense Detail Needed")
+    begin
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine."Expense Detail Required" := DetailRequired;
+        ExpenseReportLine.Modify();
+    end;
+
+    local procedure SetAttachmentEnforcement(CategoryCode: Code[20]; AttachmentEnforcement: Enum "Expense Attachment Enforcement")
+    var
+        ExpenseCategory: Record "Expense Category";
+    begin
+        ExpenseCategory.Get(CategoryCode);
+        ExpenseCategory."Attachment Enforcement" := AttachmentEnforcement;
+        ExpenseCategory.Modify();
     end;
 
     local procedure SetAllowNoReceipt(AllowNoReceipt: Boolean)

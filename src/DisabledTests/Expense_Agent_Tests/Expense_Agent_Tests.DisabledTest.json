@@ -163,5 +163,20 @@
     "codeunitId": 148374,
     "codeunitName": "EA Card Report Line API Tests",
     "method": "DeletingCardLineAndExpenseThroughAPIKeepsTransactionLinked"
+  },
+  {
+    "codeunitId": 148373,
+    "codeunitName": "EA Card Report Line Tests",
+    "method": "CardLinesFromDifferentTransactionsAreNotDuplicates"
+  },
+  {
+    "codeunitId": 148373,
+    "codeunitName": "EA Card Report Line Tests",
+    "method": "CardLineDoesNotNeedReceiptNumber"
+  },
+  {
+    "codeunitId": 148373,
+    "codeunitName": "EA Card Report Line Tests",
+    "method": "CardLineAboveMaxAmountIsAcceptedWithJustification"
   }
 ]
