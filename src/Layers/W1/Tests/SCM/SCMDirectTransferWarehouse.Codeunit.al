@@ -21,6 +21,8 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         WrongPostPreviewErr: Label 'Expected empty error from Preview. Actual error: ';
         UnexpectedTransferQtyErr: Label 'Unexpected transfer quantity at location %1 (Positive=%2).', Comment = '%1 = Location Code, %2 = Positive flag';
         InTransitCodeNotClearedErr: Label 'In-Transit Code must not be cleared when Direct Transfer Posting = "Shipment and Receipt".';
+        DirectTransferRequireReceiveErr: Label 'Direct transfers cannot be posted directly to location %1 because Require Receive is enabled.', Comment = '%1 = Location Code';
+        ShipmentReceiptRequirePutAwayErr: Label 'Direct transfers using Shipment and Receipt posting cannot use location %1 because Require Put-away is enabled. Use Direct Transfer posting with inventory put-away, or use a non-direct transfer.', Comment = '%1 = Location Code';
 
     [Test]
     [Scope('OnPrem')]
@@ -312,7 +314,7 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         // [WHEN] Create Direct Transfer Order with "TO" location requiring receive
         // [THEN] Creating Direct Transfer fails with validation error
         asserterror CreateDirectTransferOrder(TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', Quantity, TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
-        Assert.ExpectedError('Require Receive must be equal to ''No''');
+        VerifyRequireReceiveError(LocationTo.Code);
     end;
 
     [Test]
@@ -346,7 +348,8 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         // [WHEN] Create Direct Transfer Order with "TO" location requiring put-away
         // [THEN] Creating Direct Transfer fails with validation error
         asserterror CreateDirectTransferOrder(TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', Quantity, TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
-        Assert.ExpectedError('Require Put-away must be equal to ''No''');
+        Assert.ExpectedError(StrSubstNo(ShipmentReceiptRequirePutAwayErr, LocationTo.Code));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -2200,6 +2203,284 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         VerifyToggleDirectTransferPreservesReservations(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", false);
     end;
 
+    [Test]
+    procedure DirectRouteInsertRejectsRequireReceive()
+    var
+        TransferRoute: Record "Transfer Route";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Inserting a complete direct posting route rejects a receiving destination.
+        Initialize();
+
+        // [GIVEN] Route "R" uses Direct Transfer posting to receiving location "T".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, false, true, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+
+        // [WHEN] The complete route is inserted with triggers.
+        asserterror TransferRoute.Insert(true);
+
+        // [THEN] The receiving requirement is reported for "T".
+        VerifyRequireReceiveError(LocationTo.Code);
+    end;
+
+    [Test]
+    procedure DirectRouteModifyRejectsRequireReceive()
+    var
+        TransferRoute: Record "Transfer Route";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Route modification rechecks the complete combination after location settings change.
+        Initialize();
+
+        // [GIVEN] Valid direct posting route "R" whose destination "T" subsequently requires receipt.
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, false, false, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        TransferRoute.Insert(true);
+        LocationTo.Validate("Require Receive", true);
+        LocationTo.Modify(true);
+
+        // [WHEN] The route is persisted without revalidating its individual fields.
+        asserterror TransferRoute.Modify(true);
+
+        // [THEN] The current receiving requirement is reported for "T".
+        VerifyRequireReceiveError(LocationTo.Code);
+    end;
+
+    [Test]
+    procedure ImportedDirectRouteRejectsReceiveFromFirst()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Selecting the destination rejects an invalid imported direct posting route.
+        Initialize();
+
+        // [GIVEN] Imported route "R" requires receipt at "T" and header "H" has source "F".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, false, true, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        TransferRoute.Insert(false);
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, '', '');
+
+        // [WHEN] Destination "T" applies the imported route.
+        asserterror TransferHeader.Validate("Transfer-to Code", LocationTo.Code);
+
+        // [THEN] The receiving requirement is reported for "T".
+        VerifyRequireReceiveError(LocationTo.Code);
+    end;
+
+    [Test]
+    procedure ImportedDirectRouteRejectsReceiveToFirst()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Selecting the source rejects an invalid imported direct posting route.
+        Initialize();
+
+        // [GIVEN] Imported route "R" requires receipt at "T" and header "H" has destination "T".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, false, true, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        TransferRoute.Insert(false);
+        LibraryInventory.CreateTransferHeader(TransferHeader, '', LocationTo.Code, '');
+
+        // [WHEN] Source "F" applies the imported route.
+        asserterror TransferHeader.Validate("Transfer-from Code", LocationFrom.Code);
+
+        // [THEN] The receiving requirement is reported for "T".
+        VerifyRequireReceiveError(LocationTo.Code);
+    end;
+
+    [Test]
+    procedure DirectRouteReleaseRejectsChangedReceive()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Release rechecks a direct posting destination whose receiving requirement changed.
+        Initialize();
+
+        // [GIVEN] Valid direct header "H" with an item line, then receipt is enabled at "T".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, false, false, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        TransferRoute.Insert(true);
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, '');
+        CreateItemLineForRouteRelease(TransferHeader);
+        LocationTo.Validate("Require Receive", true);
+        LocationTo.Modify(true);
+
+        // [WHEN] The existing header is released.
+        asserterror LibraryInventory.ReleaseTransferOrder(TransferHeader);
+
+        // [THEN] The receiving requirement is reported for "T".
+        VerifyRequireReceiveError(LocationTo.Code);
+    end;
+
+    [Test]
+    procedure DirectRoutePutAwayAppliesAndReleases()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Direct Transfer posting supports inventory put-away without warehouse receipt.
+        Initialize();
+
+        // [GIVEN] Direct posting route "R" to put-away-only destination "T".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, true, false, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        TransferRoute.Insert(true);
+
+        // [WHEN] The route is applied to header "H" and a real item line is released.
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, '');
+        VerifyDirectPostingRouteApplied(TransferHeader, LocationTo.Code);
+        CreateItemLineForRouteRelease(TransferHeader);
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+
+        // [THEN] The persisted header is released with Direct Transfer posting.
+        TransferHeader.Get(TransferHeader."No.");
+        VerifyDirectPostingRouteApplied(TransferHeader, LocationTo.Code);
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'Inventory put-away must permit release.');
+    end;
+
+    [Test]
+    procedure ShipmentReceiptRouteRejectsPutAway()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Shipment and Receipt route application rejects inventory put-away.
+        Initialize();
+
+        // [GIVEN] Imported Shipment and Receipt route "R" to put-away destination "T".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, true, false, TransferRoute."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferRoute.Insert(false);
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, '', '');
+
+        // [WHEN] Destination "T" applies the imported route.
+        asserterror TransferHeader.Validate("Transfer-to Code", LocationTo.Code);
+
+        // [THEN] The error explains the supported posting alternatives.
+        Assert.ExpectedError(StrSubstNo(ShipmentReceiptRequirePutAwayErr, LocationTo.Code));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure NonDirectRouteAllowsInboundRequirements()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Non-direct routes retain support for inbound warehouse requirements.
+        Initialize();
+
+        // [GIVEN] Non-direct route "R" uses transit location "I" and receiving/put-away destination "T".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, true, true, TransferRoute."Direct Transfer Posting"::" ");
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        TransferRoute."Direct Transfer" := false;
+        TransferRoute."In-Transit Code" := LocationInTransit.Code;
+        TransferRoute.Insert(true);
+
+        // [WHEN] Header "H" applies the route and is released with an item line.
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, LocationInTransit.Code);
+        CreateItemLineForRouteRelease(TransferHeader);
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+
+        // [THEN] Non-direct settings, transit and released status are retained.
+        TransferHeader.Get(TransferHeader."No.");
+        VerifyNonDirectInboundRouteReleased(TransferHeader, LocationInTransit.Code);
+    end;
+
+    [Test]
+    procedure DirectRouteApplicationClearsStaleTransit()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Applying a Direct Transfer posting route does not retain stale transit on the header.
+        Initialize();
+
+        // [GIVEN] Imported direct route "R" and partial header "H" retain transit location "I".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, false, false, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        TransferRoute."In-Transit Code" := LocationInTransit.Code;
+        TransferRoute.Insert(false);
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, '', LocationInTransit.Code);
+
+        // [WHEN] Destination "T" applies the direct posting route.
+        TransferHeader.Validate("Transfer-to Code", LocationTo.Code);
+        TransferHeader.Modify(true);
+
+        // [THEN] The persisted direct header has no transit location.
+        TransferHeader.Get(TransferHeader."No.");
+        VerifyDirectPostingRouteApplied(TransferHeader, LocationTo.Code);
+    end;
+
+    [Test]
+    procedure DirectRouteSwitchValidatesCandidateMode()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        OldLocationTo: Record Location;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 649010] Switching routes validates the new Direct Transfer mode, not the old Shipment and Receipt mode.
+        Initialize();
+
+        // [GIVEN] Header "H" uses Shipment and Receipt to "O"; another route supports put-away at "T".
+        InitializeInboundTransferRoute(
+            TransferRoute, LocationFrom, LocationTo, true, false, TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+        TransferRoute.Insert(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(OldLocationTo);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationFrom.Code, OldLocationTo.Code, '', '', '');
+        TransferRoute."Direct Transfer" := true;
+        TransferRoute."Direct Transfer Posting" := TransferRoute."Direct Transfer Posting"::"Shipment and Receipt";
+        TransferRoute.Modify(true);
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, OldLocationTo.Code, '');
+        Assert.AreEqual(
+            TransferHeader."Direct Transfer Posting"::"Shipment and Receipt", TransferHeader."Direct Transfer Posting",
+            'The original route must use Shipment and Receipt.');
+        TransferHeader.SetHideValidationDialog(true);
+
+        // [WHEN] Destination "T" selects the new Direct Transfer posting route.
+        TransferHeader.Validate("Transfer-to Code", LocationTo.Code);
+        TransferHeader.Modify(true);
+
+        // [THEN] The supported candidate route is applied despite the old posting mode.
+        TransferHeader.Get(TransferHeader."No.");
+        VerifyDirectPostingRouteApplied(TransferHeader, LocationTo.Code);
+    end;
+
     local procedure VerifyToggleDirectTransferPreservesReservations(PostingMode: Enum "Direct Transfer Posting Type"; InitialDirectTransfer: Boolean)
     begin
         SetDirectTransferPostingMode(PostingMode);
@@ -2472,6 +2753,52 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         Commit();
     end;
 
+    local procedure CreateItemLineForRouteRelease(var TransferHeader: Record "Transfer Header")
+    var
+        Item: Record Item;
+        TransferLine: Record "Transfer Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 10);
+    end;
+
+    local procedure InitializeInboundTransferRoute(var TransferRoute: Record "Transfer Route"; var LocationFrom: Record Location; var LocationTo: Record Location; RequirePutAway: Boolean; RequireReceive: Boolean; PostingMode: Enum "Direct Transfer Posting Type")
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        CreateLocationWithWarehouseSetup(LocationTo, false, RequirePutAway, false, RequireReceive, false);
+        TransferRoute.Init();
+        TransferRoute."Transfer-from Code" := LocationFrom.Code;
+        TransferRoute."Transfer-to Code" := LocationTo.Code;
+        TransferRoute."Direct Transfer" := true;
+        TransferRoute."Direct Transfer Posting" := PostingMode;
+    end;
+
+    local procedure VerifyDirectPostingRouteApplied(TransferHeader: Record "Transfer Header"; DestinationCode: Code[10])
+    begin
+        Assert.AreEqual(DestinationCode, TransferHeader."Transfer-to Code", 'The candidate destination must be retained.');
+        Assert.IsTrue(TransferHeader."Direct Transfer", 'The route must enable Direct Transfer.');
+        Assert.AreEqual(
+            TransferHeader."Direct Transfer Posting"::"Direct Transfer", TransferHeader."Direct Transfer Posting",
+            'The route must select Direct Transfer posting.');
+        Assert.AreEqual('', TransferHeader."In-Transit Code", 'Direct Transfer posting must clear stale transit.');
+    end;
+
+    local procedure VerifyNonDirectInboundRouteReleased(TransferHeader: Record "Transfer Header"; InTransitCode: Code[10])
+    begin
+        Assert.IsFalse(TransferHeader."Direct Transfer", 'Inbound requirements must not force a direct transfer.');
+        Assert.AreEqual(
+            TransferHeader."Direct Transfer Posting"::" ", TransferHeader."Direct Transfer Posting",
+            'A non-direct transfer must retain a blank direct posting mode.');
+        Assert.AreEqual(InTransitCode, TransferHeader."In-Transit Code", 'A non-direct transfer must retain transit.');
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'Inbound requirements must permit non-direct release.');
+    end;
+
+    local procedure VerifyRequireReceiveError(LocationCode: Code[10])
+    begin
+        Assert.ExpectedError(StrSubstNo(DirectTransferRequireReceiveErr, LocationCode));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
     local procedure CreateTransferForDeselection(var TransferHeader: Record "Transfer Header"; UseTransferRoute: Boolean; RequirePutaway: Boolean; RequireReceive: Boolean)
     var
         LocationFrom: Record Location;
@@ -2481,7 +2808,7 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         TransferRoute: Record "Transfer Route";
     begin
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
-        CreateLocationWithWarehouseSetup(LocationTo, false, RequirePutaway, false, RequireReceive, false);
+        CreateLocationWithWarehouseSetup(LocationTo, false, RequirePutaway, false, false, false);
         CreateItemWithPositiveInventory(Item, LocationFrom.Code, 100);
         if UseTransferRoute then begin
             LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationFrom.Code, LocationTo.Code, '', '', '');
@@ -2495,6 +2822,9 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
                 TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', 10,
                 TransferHeader."Direct Transfer Posting"::"Direct Transfer");
         LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 20);
+        // Model a pre-existing direct order before its destination starts requiring warehouse receipt.
+        LocationTo.Validate("Require Receive", RequireReceive);
+        LocationTo.Modify(true);
         TransferHeader.Get(TransferHeader."No.");
         Assert.AreEqual(TransferHeader.Status::Open, TransferHeader.Status, 'The transfer must be open.');
         Assert.AreEqual(true, TransferHeader."Direct Transfer", 'The transfer must initially be direct.');
