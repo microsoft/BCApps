@@ -181,7 +181,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Account No.';
             ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
-            TableRelation = if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
+            TableRelation =
+            if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                           Blocked = const(false))
             else
             if ("Account Type" = const(Customer)) Customer
@@ -435,7 +436,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                                Blocked = const(false))
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -746,7 +748,8 @@ table 81 "Gen. Journal Line"
             Caption = 'Bill-to/Pay-to No.';
             ToolTip = 'Specifies the number of the bill-to customer or pay-to vendor that the entry is linked to.';
             Editable = false;
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -770,7 +773,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Posting Group';
             ToolTip = 'Specifies the posting group that will be used in posting the journal line.The field is used only if the account type is either customer or vendor.';
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Posting Group"
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Account Type" = const(Vendor)) "Vendor Posting Group"
             else
@@ -1945,7 +1949,8 @@ table 81 "Gen. Journal Line"
         field(79; "Source No."; Code[20])
         {
             Caption = 'Source No.';
-            TableRelation = if ("Source Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
             else
@@ -2346,7 +2351,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Ship-to/Order Address Code';
             ToolTip = 'Specifies the address code of the ship-to customer or order-from vendor that the entry is linked to.';
-            TableRelation = if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
             else
             if ("Account Type" = const(Vendor)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."))
             else
@@ -2419,7 +2425,8 @@ table 81 "Gen. Journal Line"
         field(118; "Sell-to/Buy-from No."; Code[20])
         {
             Caption = 'Sell-to/Buy-from No.';
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -2708,7 +2715,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Recipient Bank Account';
             ToolTip = 'Specifies the bank account that the amount will be transferred to after it has been exported from the payment journal.';
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
             else
             if ("Account Type" = const(Vendor)) "Vendor Bank Account".Code where("Vendor No." = field("Account No."))
             else
@@ -3164,7 +3172,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Direct Debit Mandate ID';
             ToolTip = 'Specifies the identification of the direct-debit mandate that is being used on the journal lines to process a direct debit collection.';
-            TableRelation = if ("Account Type" = const(Customer)) "SEPA Direct Debit Mandate" where("Customer No." = field("Account No."));
+            TableRelation =
+            if ("Account Type" = const(Customer)) "SEPA Direct Debit Mandate" where("Customer No." = field("Account No."));
 
             trigger OnValidate()
             var
@@ -3901,7 +3910,7 @@ table 81 "Gen. Journal Line"
                 ValidateAdjmtAppliesTo();
             end;
         }
-        field(11627; "Adjmt. Entry No."; Integer)
+        field(11627; "Adjmt. Entry No."; BigInteger)
         {
             Caption = 'Adjmt. Entry No.';
             Editable = false;
@@ -3968,7 +3977,8 @@ table 81 "Gen. Journal Line"
         field(28023; "Customer/Vendor Bank"; Code[20])
         {
             Caption = 'Customer/Vendor Bank';
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
             else
             if ("Account Type" = const(Vendor)) "Vendor Bank Account".Code where("Vendor No." = field("Account No."));
 
@@ -4135,7 +4145,7 @@ table 81 "Gen. Journal Line"
             AutoFormatExpression = '';
             Caption = 'Interest Amount (LCY)';
         }
-        field(28161; "Entry No."; Integer)
+        field(28161; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             Editable = false;
