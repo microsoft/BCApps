@@ -8950,7 +8950,6 @@ codeunit 80 "Sales-Post"
 
     local procedure UpdateSalesOrderLineIfExist(DocumentNo: Code[20])
     var
-        SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         IsHandled: Boolean;
     begin
@@ -8959,10 +8958,10 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
-        SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
-        if SalesCreditMemoHeader.FindFirst() then
-            CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");
+        if (SalesCrMemoHeader."No." = '') or (SalesCrMemoHeader."Return Order No." <> DocumentNo) then
+            exit;
+
+        CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCrMemoHeader."No.");
     end;
 
     /// <summary>
