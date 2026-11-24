@@ -1398,13 +1398,12 @@ page 507 "Blanket Sales Order"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
         ArchiveManagement: Codeunit ArchiveManagement;
@@ -1412,6 +1411,9 @@ page 507 "Blanket Sales Order"
         CustomerMgt: Codeunit "Customer Mgt.";
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         DocNoVisible: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;
         OpenApprovalEntriesExist: Boolean;

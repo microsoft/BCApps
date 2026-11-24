@@ -704,10 +704,10 @@ table 38 "Purchase Header"
 
             trigger OnValidate()
             var
-                IsHandled: Boolean;
 #if not CLEAN30
                 PaymentLines: Record "Payment Lines";
 #endif
+                IsHandled: Boolean;
             begin
 #if not CLEAN30
                 if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
@@ -3519,9 +3519,50 @@ table 38 "Purchase Header"
     end;
 
     var
+        GLSetup: Record "General Ledger Setup";
+        GLAcc: Record "G/L Account";
+        xPurchLine: Record "Purchase Line";
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        Vend: Record Vendor;
+        PaymentTerms: Record "Payment Terms";
+        PaymentMethod: Record "Payment Method";
+        CurrExchRate: Record "Currency Exchange Rate";
+        Cust: Record Customer;
+        CompanyInfo: Record "Company Information";
+        PostCode: Record "Post Code";
+        BankAcc: Record "Bank Account";
+        PurchRcptHeader: Record "Purch. Rcpt. Header";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        ReturnShptHeader: Record "Return Shipment Header";
+        PurchInvHeaderPrepmt: Record "Purch. Inv. Header";
+        PurchCrMemoHeaderPrepmt: Record "Purch. Cr. Memo Hdr.";
+        GenBusPostingGrp: Record "Gen. Business Posting Group";
+        RespCenter: Record "Responsibility Center";
+        Location: Record Location;
+        WhseRequest: Record "Warehouse Request";
+        InvtSetup: Record "Inventory Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GlobalNoSeries: Record "No. Series";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        VendBankAccount: Record "Vendor Bank Account";
+#if not CLEAN30
+        PaymentPurchase: Record "Payment Lines";
+        PaymentTermsLine: Record "Payment Lines";
+#endif
+        PurchWithhSoc: Record "Purch. Withh. Contribution";
+        ShipmentMethod: Record "Shipment Method";
 #if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
+        NoSeries: Codeunit "No. Series";
+        DimMgt: Codeunit DimensionManagement;
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        UserSetupMgt: Codeunit "User Setup Management";
+        LeadTimeMgt: Codeunit "Lead-Time Management";
+        PostingSetupMgt: Codeunit PostingSetupManagement;
+        StandardCodesMgtGlobal: Codeunit "Standard Codes Mgt.";
+        ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text003: Label 'You cannot rename a %1.';
@@ -3577,47 +3618,6 @@ table 38 "Purchase Header"
         DifferentDatesQst: Label 'Posting Date %1 is different from Work Date %2.\\Do you want to continue?', Comment = '%1 - Posting Date, %2 - work date';
         DifferentDatesErr: Label 'Posting Date %1 is different from Work Date %2.\\Batch posting cannot be used.', Comment = '%1 - Posting Date, %2 - work date';
         PurchLineMatchedToOrderLineErr: Label 'You cannot change the field because line %1 is matched to order line.', Comment = '%1 - Line No.';
-        GLSetup: Record "General Ledger Setup";
-        GLAcc: Record "G/L Account";
-        xPurchLine: Record "Purchase Line";
-        VendLedgEntry: Record "Vendor Ledger Entry";
-        Vend: Record Vendor;
-        PaymentTerms: Record "Payment Terms";
-        PaymentMethod: Record "Payment Method";
-        CurrExchRate: Record "Currency Exchange Rate";
-        Cust: Record Customer;
-        CompanyInfo: Record "Company Information";
-        PostCode: Record "Post Code";
-        BankAcc: Record "Bank Account";
-        PurchRcptHeader: Record "Purch. Rcpt. Header";
-        PurchInvHeader: Record "Purch. Inv. Header";
-        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
-        ReturnShptHeader: Record "Return Shipment Header";
-        PurchInvHeaderPrepmt: Record "Purch. Inv. Header";
-        PurchCrMemoHeaderPrepmt: Record "Purch. Cr. Memo Hdr.";
-        GenBusPostingGrp: Record "Gen. Business Posting Group";
-        RespCenter: Record "Responsibility Center";
-        Location: Record Location;
-        WhseRequest: Record "Warehouse Request";
-        InvtSetup: Record "Inventory Setup";
-        GenJournalTemplate: Record "Gen. Journal Template";
-        GlobalNoSeries: Record "No. Series";
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        VendBankAccount: Record "Vendor Bank Account";
-#if not CLEAN30
-        PaymentPurchase: Record "Payment Lines";
-        PaymentTermsLine: Record "Payment Lines";
-#endif
-        PurchWithhSoc: Record "Purch. Withh. Contribution";
-        ShipmentMethod: Record "Shipment Method";
-        NoSeries: Codeunit "No. Series";
-        DimMgt: Codeunit DimensionManagement;
-        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-        UserSetupMgt: Codeunit "User Setup Management";
-        LeadTimeMgt: Codeunit "Lead-Time Management";
-        PostingSetupMgt: Codeunit PostingSetupManagement;
-        StandardCodesMgtGlobal: Codeunit "Standard Codes Mgt.";
-        ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         CurrencyDate: Date;
         Confirmed: Boolean;
 #pragma warning disable AA0074

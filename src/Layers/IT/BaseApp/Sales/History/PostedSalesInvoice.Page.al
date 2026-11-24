@@ -1419,16 +1419,16 @@ page 132 "Posted Sales Invoice"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-#endif
         SellToContact: Record Contact;
         BillToContact: Record Contact;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        PaymentInstallmentsEnabled: Boolean;
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         HasIncomingDocument: Boolean;
         DocExchStatusStyle: Text;
         CRMIntegrationEnabled: Boolean;

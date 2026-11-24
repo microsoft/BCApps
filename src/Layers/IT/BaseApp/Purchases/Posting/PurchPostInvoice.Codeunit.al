@@ -29,9 +29,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     Permissions = TableData "Invoice Posting Buffer" = rimd;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GLSetup: Record "General Ledger Setup";
         PurchSetup: Record "Purchases & Payables Setup";
         Currency: Record Currency;
@@ -43,6 +40,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBufferReverseCharge: Record "Invoice Posting Buffer" temporary;
         TotalPurchLine: Record "Purchase Line";
         TotalPurchLineLCY: Record "Purchase Line";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DeferralUtilities: Codeunit "Deferral Utilities";
         DimensionManagement: Codeunit DimensionManagement;
         JobPostLine: Codeunit "Job Post-Line";

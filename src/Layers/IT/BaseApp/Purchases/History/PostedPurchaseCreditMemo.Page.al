@@ -946,15 +946,17 @@ page 140 "Posted Purchase Credit Memo"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         HasIncomingDocument: Boolean;
         IsOfficeAddin: Boolean;
         IsBuyFromCountyVisible: Boolean;

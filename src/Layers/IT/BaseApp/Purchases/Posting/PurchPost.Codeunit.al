@@ -335,41 +335,6 @@ codeunit 90 "Purch.-Post"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
-#pragma warning disable AA0470
-        PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
-        PostingPurchasesAndVATMsg: Label 'Posting purchases and VAT  #3######\', Comment = 'Counter';
-        PostingVendorsMsg: Label 'Posting to vendors         #4######\', Comment = 'Counter';
-        PostingBalAccountMsg: Label 'Posting to bal. account    #5######', Comment = 'Counter';
-        PostingLines2Msg: Label 'Posting lines         #2######', Comment = 'Counter';
-#pragma warning restore AA0470
-        InvoiceNoMsg: Label '%1 %2 -> Invoice %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Invoice No.';
-        CreditMemoNoMsg: Label '%1 %2 -> Credit Memo %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Credit Memo No.';
-        ReceiptSameSignErr: Label 'must have the same sign as the receipt';
-        ReceiptLinesDeletedErr: Label 'Receipt lines have been deleted.';
-        PurchaseAlreadyExistsErr: Label 'Purchase %1 %2 already exists for this vendor.', Comment = '%1 = Document Type, %2 = Document No.';
-        InvoiceMoreThanReceivedErr: Label 'You cannot invoice order %1 for more than you have received.', Comment = '%1 = Order No.';
-#if not CLEAN28
-        CannotPostBeforeAssosSalesOrderErr: Label 'You cannot post this purchase order before the associated sales orders have been invoiced. Post sales order %1 before posting this purchase order.', Comment = '%1 = Sales Order No.';
-#endif
-        ExtDocNoNeededErr: Label 'You need to enter the document number of the document from the vendor in the %1 field, so that this document stays linked to the original.', Comment = '%1 = Field caption of e.g. Vendor Invoice No.';
-        VATAmountTxt: Label 'VAT Amount';
-        VATRateTxt: Label '%1% VAT', Comment = '%1 = VAT Rate';
-        BlanketOrderQuantityGreaterThanErr: Label 'in the associated blanket order must not be greater than %1', Comment = '%1 = Quantity';
-        BlanketOrderQuantityReducedErr: Label 'in the associated blanket order must be reduced';
-        ReceiveInvoiceShipErr: Label 'Please enter "Yes" in Receive and/or Invoice and/or Ship.';
-        WarehouseRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1/%2 = Document Type, %3/%4 - Document No.,%5/%6 = Line No.';
-        ReturnShipmentSamesSignErr: Label 'must have the same sign as the return shipment';
-        ReturnShipmentInvoicedErr: Label 'Line %1 of the return shipment %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
-        ReceiptInvoicedErr: Label 'Line %1 of the receipt %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
-        QuantityToInvoiceGreaterErr: Label 'The quantity you are attempting to invoice is greater than the quantity in receipt %1.', Comment = '%1 = Receipt No.';
-        CannotAssignMoreErr: Label 'You cannot assign more than %1 units in %2 = %3,%4 = %5,%6 = %7.', Comment = '%1 = Quantity, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
-        MustAssignErr: Label 'You must assign all item charges, if you invoice everything.';
-        CannotAssignInvoicedErr: Label 'You cannot assign item charges to the %1 %2 = %3,%4 = %5, %6 = %7, because it has been invoiced.', Comment = '%1 = Purchase Line, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
-        CheckTotalAmountPurchLinesErr: Label '%1 (%2) is not equal to total of lines (%3)', Comment = '%1 = FieldCaption of Doc. Amount Incl. VAT; %2 - Doc. Amount Incl. VAT; %3 - Amount Including VAT ';
-        CheckTotalAmountVATPurchLinesErr: Label '%1 (%2) is not equal to total of VAT on lines (%3)', Comment = '%1 - Doc. Amount VAT; %2 - Doc. Amount VAT; %3 - Amount Including VAT - PurchHeader.Amount';
         PurchSetup: Record "Purchases & Payables Setup";
         GLSetup: Record "General Ledger Setup";
         InventorySetup: Record "Inventory Setup";
@@ -412,6 +377,18 @@ codeunit 90 "Purch.-Post"
         TempSKU: Record "Stockkeeping Unit" temporary;
         TempDeferralHeader: Record "Deferral Header" temporary;
         TempDeferralLine: Record "Deferral Line" temporary;
+#if not CLEAN30
+        PaymentJournalLine: Record "Payment Lines";
+        PaymentTermsLine: Record "Payment Lines";
+        PostedPayments: Record "Posted Payment Lines";
+#endif
+        WithhSocSec: Record "Purch. Withh. Contribution";
+        CompWithhTax: Record "Computed Withholding Tax";
+        CompSocSec: Record "Computed Contribution";
+        TempFA: Record "Fixed Asset" temporary;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ErrorMessageMgt: Codeunit "Error Message Management";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
@@ -431,6 +408,38 @@ codeunit 90 "Purch.-Post"
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
         MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+#pragma warning disable AA0470
+        PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
+        PostingPurchasesAndVATMsg: Label 'Posting purchases and VAT  #3######\', Comment = 'Counter';
+        PostingVendorsMsg: Label 'Posting to vendors         #4######\', Comment = 'Counter';
+        PostingBalAccountMsg: Label 'Posting to bal. account    #5######', Comment = 'Counter';
+        PostingLines2Msg: Label 'Posting lines         #2######', Comment = 'Counter';
+#pragma warning restore AA0470
+        InvoiceNoMsg: Label '%1 %2 -> Invoice %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Invoice No.';
+        CreditMemoNoMsg: Label '%1 %2 -> Credit Memo %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Credit Memo No.';
+        ReceiptSameSignErr: Label 'must have the same sign as the receipt';
+        ReceiptLinesDeletedErr: Label 'Receipt lines have been deleted.';
+        PurchaseAlreadyExistsErr: Label 'Purchase %1 %2 already exists for this vendor.', Comment = '%1 = Document Type, %2 = Document No.';
+        InvoiceMoreThanReceivedErr: Label 'You cannot invoice order %1 for more than you have received.', Comment = '%1 = Order No.';
+#if not CLEAN28
+        CannotPostBeforeAssosSalesOrderErr: Label 'You cannot post this purchase order before the associated sales orders have been invoiced. Post sales order %1 before posting this purchase order.', Comment = '%1 = Sales Order No.';
+#endif
+        ExtDocNoNeededErr: Label 'You need to enter the document number of the document from the vendor in the %1 field, so that this document stays linked to the original.', Comment = '%1 = Field caption of e.g. Vendor Invoice No.';
+        VATAmountTxt: Label 'VAT Amount';
+        VATRateTxt: Label '%1% VAT', Comment = '%1 = VAT Rate';
+        BlanketOrderQuantityGreaterThanErr: Label 'in the associated blanket order must not be greater than %1', Comment = '%1 = Quantity';
+        BlanketOrderQuantityReducedErr: Label 'in the associated blanket order must be reduced';
+        ReceiveInvoiceShipErr: Label 'Please enter "Yes" in Receive and/or Invoice and/or Ship.';
+        WarehouseRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1/%2 = Document Type, %3/%4 - Document No.,%5/%6 = Line No.';
+        ReturnShipmentSamesSignErr: Label 'must have the same sign as the return shipment';
+        ReturnShipmentInvoicedErr: Label 'Line %1 of the return shipment %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
+        ReceiptInvoicedErr: Label 'Line %1 of the receipt %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
+        QuantityToInvoiceGreaterErr: Label 'The quantity you are attempting to invoice is greater than the quantity in receipt %1.', Comment = '%1 = Receipt No.';
+        CannotAssignMoreErr: Label 'You cannot assign more than %1 units in %2 = %3,%4 = %5,%6 = %7.', Comment = '%1 = Quantity, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
+        MustAssignErr: Label 'You must assign all item charges, if you invoice everything.';
+        CannotAssignInvoicedErr: Label 'You cannot assign item charges to the %1 %2 = %3,%4 = %5, %6 = %7, because it has been invoiced.', Comment = '%1 = Purchase Line, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
+        CheckTotalAmountPurchLinesErr: Label '%1 (%2) is not equal to total of lines (%3)', Comment = '%1 = FieldCaption of Doc. Amount Incl. VAT; %2 - Doc. Amount Incl. VAT; %3 - Amount Including VAT ';
+        CheckTotalAmountVATPurchLinesErr: Label '%1 (%2) is not equal to total of VAT on lines (%3)', Comment = '%1 - Doc. Amount VAT; %2 - Doc. Amount VAT; %3 - Amount Including VAT - PurchHeader.Amount';
         InvoicePostingInterface: Interface "Invoice Posting";
         IsInterfaceInitialized: Boolean;
         Window: Dialog;
@@ -471,19 +480,10 @@ codeunit 90 "Purch.-Post"
         CannotBeGreaterThanErr: Label 'cannot be more than %1.', Comment = '%1 = Amount';
         CannotBeSmallerThanErr: Label 'must be at least %1.', Comment = '%1 = Amount';
         ItemJnlRollRndg: Boolean;
-#if not CLEAN30
-        PaymentJournalLine: Record "Payment Lines";
-        PaymentTermsLine: Record "Payment Lines";
-        PostedPayments: Record "Posted Payment Lines";
-#endif
-        WithhSocSec: Record "Purch. Withh. Contribution";
-        CompWithhTax: Record "Computed Withholding Tax";
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
         Text1130004: Label 'Total Reg. %1 is different from total Document %2.', Comment = '%1=Total Reg.;%2=Total of Document';
         Text1130005: Label 'Total Reg. %1 %3 is different from total Document %2 %3.', Comment = '%1=Total Reg.;%2=Total of Document;%3=Currency';
         Text1130006: Label '%1 the value in withholding tax must be higher than 0 when %2 is not blank.';
-        CompSocSec: Record "Computed Contribution";
-        TempFA: Record "Fixed Asset" temporary;
 #if not CLEAN30
         Text1130007: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries';
 #endif

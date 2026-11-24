@@ -627,8 +627,8 @@ page 146 "Posted Purchase Invoices"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
         FeatureKeyManagement: Codeunit "Feature Key Management";
+        PaymentInstallmentsEnabled: Boolean;
         IsOfficeAddin: Boolean;
         HasInstallmentPlan: Boolean;
 }

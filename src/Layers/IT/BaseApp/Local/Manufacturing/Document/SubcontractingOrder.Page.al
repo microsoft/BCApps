@@ -731,17 +731,19 @@ page 12152 "Subcontracting Order"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         CopyPurchDoc: Report "Copy Purchase Document";
         MoveNegPurchLines: Report "Move Negative Purchase Lines";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ReportPrint: Codeunit "Test Report-Print";
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
         ArchiveManagement: Codeunit ArchiveManagement;
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
 
     local procedure PaytoVendorNoOnAfterValidate()
     begin

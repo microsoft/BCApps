@@ -50,8 +50,8 @@ codeunit 1256 "Post Late Gen. Journal Lines"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         GenJournalLine: Record "Gen. Journal Line";
-        XLATETxt: Label 'LATE', Comment = 'Late';
         GLAccount: Record "G/L Account";
         SalesInstallmentHistory: Codeunit "Sales Installment History";
+        XLATETxt: Label 'LATE', Comment = 'Late';
 }
 

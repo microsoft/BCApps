@@ -57,14 +57,14 @@ codeunit 6620 "Copy Document Mgt."
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         Currency: Record Currency;
         TempAsmHeader: Record "Assembly Header" temporary;
         TempAsmLine: Record "Assembly Line" temporary;
         TempSalesInvLine: Record "Sales Invoice Line" temporary;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         TranslationHelper: Codeunit "Translation Helper";
         CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
         ItemCheckAvail: Codeunit "Item-Check Avail.";

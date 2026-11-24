@@ -56,9 +56,6 @@ codeunit 5988 "Serv-Documents Mgt."
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GLSetup: Record "General Ledger Setup";
         ServHeader: Record "Service Header" temporary;
         ServLine: Record "Service Line" temporary;
@@ -84,6 +81,12 @@ codeunit 5988 "Serv-Documents Mgt."
         ServDocReg: Record "Service Document Register";
         ServiceCommentLine: Record "Service Comment Line";
         TempWarrantyLedgerEntry: Record "Warranty Ledger Entry" temporary;
+#if not CLEAN30
+        PaymentJournalLine: Record "Payment Lines";
+        PaymentTermsLine: Record "Payment Lines";
+        PostedPayments: Record "Posted Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ServPostingJnlsMgt: Codeunit "Serv-Posting Journals Mgt.";
         ServAmountsMgt: Codeunit "Serv-Amounts Mgt.";
         ServITRMgt: Codeunit "Serv-Item Tracking Rsrv. Mgt.";
@@ -139,11 +142,6 @@ codeunit 5988 "Serv-Documents Mgt."
 #pragma warning restore AA0074
         TrackingSpecificationExists: Boolean;
         ServLineInvoicedConsumedQty: Decimal;
-#if not CLEAN30
-        PaymentJournalLine: Record "Payment Lines";
-        PaymentTermsLine: Record "Payment Lines";
-        PostedPayments: Record "Posted Payment Lines";
-#endif
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
         Text1130000: Label 'must not be prior to %1';
         Text12100: Label 'It is not possible to post document with a customer with VAT exemption if an active VAT exemption doesn''t exist.';

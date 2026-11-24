@@ -1940,14 +1940,13 @@ page 51 "Purchase Invoice"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         PurchSetup: Record "Purchases & Payables Setup";
         GLSetup: Record "General Ledger Setup";
         RemitAddressBuffer: Record "Remit Address Buffer";
         MoveNegPurchLines: Report "Move Negative Purchase Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         ReportPrint: Codeunit "Test Report-Print";
         UserMgt: Codeunit "User Setup Management";
@@ -1957,6 +1956,7 @@ page 51 "Purchase Invoice"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        PaymentInstallmentsEnabled: Boolean;
         StatusStyleTxt: Text;
         HasIncomingDocument: Boolean;
         DocNoVisible: Boolean;

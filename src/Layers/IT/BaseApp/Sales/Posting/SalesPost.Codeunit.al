@@ -116,34 +116,6 @@ codeunit 80 "Sales-Post"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
-#pragma warning disable AA0470
-        PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
-        PostingSalesAndVATMsg: Label 'Posting sales and VAT      #3######\', Comment = 'Counter';
-        PostingCustomersMsg: Label 'Posting to customers       #4######\', Comment = 'Counter';
-        PostingBalAccountMsg: Label 'Posting to bal. account    #5######', Comment = 'Counter';
-        PostingLines2Msg: Label 'Posting lines              #2######', Comment = 'Counter';
-#pragma warning restore AA0470
-        InvoiceNoMsg: Label '%1 %2 -> Invoice %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Invoice No.';
-        CreditMemoNoMsg: Label '%1 %2 -> Credit Memo %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Credit Memo No.';
-        DropShipmentErr: Label 'You cannot ship sales order line %1. The line is marked as a drop shipment and is not yet associated with a purchase order.', Comment = '%1 = Line No.';
-        ShipmentSameSignErr: Label 'must have the same sign as the shipment';
-        ShipmentLinesDeletedErr: Label 'The shipment lines have been deleted.';
-        InvoiceMoreThanShippedErr: Label 'You cannot invoice more than you have shipped for order %1.', Comment = '%1 = Order No.';
-        VATAmountTxt: Label 'VAT Amount';
-        VATRateTxt: Label '%1% VAT', Comment = '%1 = VAT Rate';
-        BlanketOrderQuantityGreaterThanErr: Label 'in the associated blanket order must not be greater than %1', Comment = '%1 = Quantity';
-        BlanketOrderQuantityReducedErr: Label 'in the associated blanket order must not be reduced';
-        ShipInvoiceReceiveErr: Label 'Please enter "Yes" in Ship and/or Invoice and/or Receive.';
-        WarehouseRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1/%2 = Document Type, %3/%4 - Document No.,%5/%6 = Line No.';
-        ReturnReceiptSameSignErr: Label 'must have the same sign as the return receipt';
-        ReturnReceiptInvoicedErr: Label 'Line %1 of the return receipt %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
-        ShipmentInvoiceErr: Label 'Line %1 of the shipment %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
-        QuantityToInvoiceGreaterErr: Label 'The quantity you are attempting to invoice is greater than the quantity in shipment %1.', Comment = '%1 = Document No.';
-        CannotAssignMoreErr: Label 'You cannot assign more than %1 units in %2 = %3, %4 = %5,%6 = %7.', Comment = '%1 = Quantity, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
-        MustAssignErr: Label 'You must assign all item charges, if you invoice everything.';
         Item: Record Item;
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
@@ -187,6 +159,9 @@ codeunit 80 "Sales-Post"
         PaymentMethod: Record "Payment Method";
         TempDeferralHeader: Record "Deferral Header" temporary;
         TempDeferralLine: Record "Deferral Line" temporary;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ErrorMessageMgt: Codeunit "Error Message Management";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         ResJnlPostLine: Codeunit "Res. Jnl.-Post Line";
@@ -205,6 +180,31 @@ codeunit 80 "Sales-Post"
         DeferralUtilities: Codeunit "Deferral Utilities";
         UOMMgt: Codeunit "Unit of Measure Management";
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
+#pragma warning disable AA0470
+        PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
+        PostingSalesAndVATMsg: Label 'Posting sales and VAT      #3######\', Comment = 'Counter';
+        PostingCustomersMsg: Label 'Posting to customers       #4######\', Comment = 'Counter';
+        PostingBalAccountMsg: Label 'Posting to bal. account    #5######', Comment = 'Counter';
+        PostingLines2Msg: Label 'Posting lines              #2######', Comment = 'Counter';
+#pragma warning restore AA0470
+        InvoiceNoMsg: Label '%1 %2 -> Invoice %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Invoice No.';
+        CreditMemoNoMsg: Label '%1 %2 -> Credit Memo %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Credit Memo No.';
+        DropShipmentErr: Label 'You cannot ship sales order line %1. The line is marked as a drop shipment and is not yet associated with a purchase order.', Comment = '%1 = Line No.';
+        ShipmentSameSignErr: Label 'must have the same sign as the shipment';
+        ShipmentLinesDeletedErr: Label 'The shipment lines have been deleted.';
+        InvoiceMoreThanShippedErr: Label 'You cannot invoice more than you have shipped for order %1.', Comment = '%1 = Order No.';
+        VATAmountTxt: Label 'VAT Amount';
+        VATRateTxt: Label '%1% VAT', Comment = '%1 = VAT Rate';
+        BlanketOrderQuantityGreaterThanErr: Label 'in the associated blanket order must not be greater than %1', Comment = '%1 = Quantity';
+        BlanketOrderQuantityReducedErr: Label 'in the associated blanket order must not be reduced';
+        ShipInvoiceReceiveErr: Label 'Please enter "Yes" in Ship and/or Invoice and/or Receive.';
+        WarehouseRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1/%2 = Document Type, %3/%4 - Document No.,%5/%6 = Line No.';
+        ReturnReceiptSameSignErr: Label 'must have the same sign as the return receipt';
+        ReturnReceiptInvoicedErr: Label 'Line %1 of the return receipt %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
+        ShipmentInvoiceErr: Label 'Line %1 of the shipment %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
+        QuantityToInvoiceGreaterErr: Label 'The quantity you are attempting to invoice is greater than the quantity in shipment %1.', Comment = '%1 = Document No.';
+        CannotAssignMoreErr: Label 'You cannot assign more than %1 units in %2 = %3, %4 = %5,%6 = %7.', Comment = '%1 = Quantity, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
+        MustAssignErr: Label 'You must assign all item charges, if you invoice everything.';
         InvoicePostingInterface: Interface "Invoice Posting";
         IsInterfaceInitalized: Boolean;
         Window: Dialog;

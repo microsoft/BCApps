@@ -164,8 +164,8 @@ page 8844 "Posted Purch. Inst. Schedule"
     end;
 
     var
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         InvoiceNo: Code[20];
         CurrencyCode: Code[10];
         PlanID: Guid;

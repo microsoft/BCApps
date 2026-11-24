@@ -54,15 +54,15 @@ codeunit 444 "Purchase-Post Prepayments"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GLSetup: Record "General Ledger Setup";
         PurchSetup: Record "Purchases & Payables Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         TempGlobalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer" temporary;
         TempPurchaseLine: Record "Purchase Line" temporary;
         GenJournalTemplate: Record "Gen. Journal Template";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ErrorMessageMgt: Codeunit "Error Message Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
@@ -70,9 +70,9 @@ codeunit 444 "Purchase-Post Prepayments"
         SuppressCommit: Boolean;
         PrepmtDocumentType: Option ,,Invoice,"Credit Memo";
         PreviewMode: Boolean;
-
 #pragma warning disable AA0074
 #pragma warning disable AA0470
+
         Text002: Label 'Posting Prepayment Lines   #2######\';
         Text003: Label '%1 %2 -> Invoice %3';
         Text004: Label 'Posting purchases and VAT  #3######\';

@@ -1251,19 +1251,21 @@ page 509 "Blanket Purchase Order"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
         ArchiveManagement: Codeunit ArchiveManagement;
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         DocNoVisible: Boolean;
         OpenApprovalEntriesExist: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;

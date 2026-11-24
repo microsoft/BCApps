@@ -1681,15 +1681,14 @@ page 44 "Sales Credit Memo"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         MoveNegSalesLines: Report "Move Negative Sales Lines";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ReportPrint: Codeunit "Test Report-Print";
         UserMgt: Codeunit "User Setup Management";
         SalesCalcDiscByType: Codeunit "Sales - Calc Discount By Type";
@@ -1698,6 +1697,9 @@ page 44 "Sales Credit Memo"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         WorkDescription: Text;
         StatusStyleTxt: Text;
         JobQueueVisible: Boolean;

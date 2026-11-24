@@ -124,7 +124,7 @@ codeunit 134496 "ERM Installment Correction"
         InvoiceEntry: Record "Cust. Ledger Entry";
         CreditEntry: Record "Cust. Ledger Entry";
         DetailedEntry: Record "Detailed Cust. Ledg. Entry";
-        Parameters: Record "Apply Unapply Parameters";
+        TempParameters: Record "Apply Unapply Parameters";
         PlanLine: Record "Sales Installment Plan Line";
         CustEntryApplyPostedEntries: Codeunit "CustEntry-Apply Posted Entries";
         OriginalDiscount: Decimal;
@@ -155,11 +155,11 @@ codeunit 134496 "ERM Installment Correction"
         Assert.IsTrue(DetailedEntry.IsEmpty(), 'A credit is not a cash receipt and must not realize a payment discount.');
         DetailedEntry.Reset();
         DetailedEntry.Get(CustEntryApplyPostedEntries.FindLastApplEntry(CreditEntry."Entry No."));
-        Parameters."Document No." := CreditNo;
-        Parameters."Posting Date" := WorkDate();
+        TempParameters."Document No." := CreditNo;
+        TempParameters."Posting Date" := WorkDate();
 
         // [WHEN] The credit application is unapplied.
-        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedEntry, Parameters, false);
+        CustEntryApplyPostedEntries.PostUnApplyCustomerCommit(DetailedEntry, TempParameters, false);
 
         // [THEN] The middle obligation and native credit reopen while earlier payments and discount snapshots are preserved.
         VerifyRemaining(SalesInvoiceHeader."Installment Plan ID", 1, 41.67);

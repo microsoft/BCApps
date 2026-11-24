@@ -194,13 +194,13 @@ report 12180 "Issuing Customer Bill"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GenJnlLine: Record "Gen. Journal Line";
         PaymentMethod: Record "Payment Method";
         BillCode: Record Bill;
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         Window: Dialog;
         PostingDate: Date;

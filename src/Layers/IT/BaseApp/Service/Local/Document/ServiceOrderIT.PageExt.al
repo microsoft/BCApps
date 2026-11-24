@@ -212,7 +212,7 @@ pageextension 12451 "Service Order IT" extends "Service Order"
     end;
 #if not CLEAN30
     var
-        LegacyPaymentInstallmentsEnabled: Boolean;
         FeatureKeyManagement: Codeunit "Feature Key Management";
+        LegacyPaymentInstallmentsEnabled: Boolean;
 #endif
 }

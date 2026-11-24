@@ -227,7 +227,7 @@ pageextension 12446 "Service Invoice IT" extends "Service Invoice"
     end;
 
     var
-        LegacyPaymentInstallmentsEnabled: Boolean;
         FeatureKeyManagement: Codeunit "Feature Key Management";
+        LegacyPaymentInstallmentsEnabled: Boolean;
 #endif
 }

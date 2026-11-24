@@ -109,18 +109,18 @@ codeunit 12170 "Recall Customer Bill"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         PaymentMethod: Record "Payment Method";
         GenJnlLine: Record "Gen. Journal Line";
         CustomerBillLine: Record "Customer Bill Line";
-        Text1130001: Label 'Do you want to recall the bills?';
         CustLedgEntry: Record "Cust. Ledger Entry";
         CustLedgEntry2: Record "Cust. Ledger Entry";
         Bill: Record Bill;
         SalesSetup: Record "Sales & Receivables Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        Text1130001: Label 'Do you want to recall the bills?';
         Window: Dialog;
         Text1130006: Label 'There is nothing to recall.';
         Text1130007: Label 'Recalling Customer Bill...\\';

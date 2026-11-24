@@ -55,15 +55,15 @@ codeunit 442 "Sales-Post Prepayments"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GLSetup: Record "General Ledger Setup";
         SalesSetup: Record "Sales & Receivables Setup";
         TempGlobalPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer" temporary;
         TempSalesLine: Record "Sales Line" temporary;
         GenJournalTemplate: Record "Gen. Journal Template";
         VATPostingSetup: Record "VAT Posting Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ErrorMessageMgt: Codeunit "Error Message Management";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
@@ -71,9 +71,9 @@ codeunit 442 "Sales-Post Prepayments"
         PrepmtDocumentType: Option ,,Invoice,"Credit Memo";
         SuppressCommit: Boolean;
         PreviewMode: Boolean;
-
 #pragma warning disable AA0074
 #pragma warning disable AA0470
+
         Text002: Label 'Posting Prepayment Lines   #2######\';
         Text003: Label '%1 %2 -> Invoice %3';
         Text004: Label 'Posting sales and VAT      #3######\';

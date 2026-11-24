@@ -117,9 +117,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GLSetup: Record "General Ledger Setup";
         GlobalGLEntry: Record "G/L Entry";
         GlobalGLTransaction: Record "G/L Transaction";
@@ -144,6 +141,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
 #endif
         VATBookEntry: Record "VAT Book Entry";
         GLBookEntry: Record "GL Book Entry";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         FAJnlPostLine: Codeunit "FA Jnl.-Post Line";

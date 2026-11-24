@@ -2151,13 +2151,12 @@ page 43 "Sales Invoice"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         MoveNegSalesLines: Report "Move Negative Sales Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         ReportPrint: Codeunit "Test Report-Print";
         UserMgt: Codeunit "User Setup Management";
@@ -2169,6 +2168,7 @@ page 43 "Sales Invoice"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        PaymentInstallmentsEnabled: Boolean;
         WorkDescription: Text;
         StatusStyleTxt: Text;
         HasIncomingDocument: Boolean;

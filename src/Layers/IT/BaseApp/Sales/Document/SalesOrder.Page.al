@@ -2786,15 +2786,14 @@ page 42 "Sales Order"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         BillToContact: Record Contact;
         SellToContact: Record Contact;
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         MoveNegSalesLines: Report "Move Negative Sales Lines";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         ReportPrint: Codeunit "Test Report-Print";
         DocPrint: Codeunit "Document-Print";
@@ -2806,6 +2805,9 @@ page 42 "Sales Order"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         Usage: Option "Order Confirmation","Work Order","Pick Instruction";
         JobQueueVisible: Boolean;
 #pragma warning disable AA0074

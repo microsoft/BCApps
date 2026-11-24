@@ -385,9 +385,6 @@ report 295 "Combine Shipments"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         OperationType: Record "No. Series";
@@ -395,6 +392,7 @@ report 295 "Combine Shipments"
 #if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
         PaymentSales: Record "Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
         SalesCalcDisc: Codeunit "Sales-Calc. Discount";
         SalesPost: Codeunit "Sales-Post";

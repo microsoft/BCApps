@@ -1870,14 +1870,13 @@ page 41 "Sales Quote"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         SalesHeaderArchive: Record "Sales Header Archive";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
         ArchiveManagement: Codeunit ArchiveManagement;
@@ -1887,6 +1886,9 @@ page 41 "Sales Quote"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         EnableSellToCustomerTemplateCode: Boolean;
         HasIncomingDocument: Boolean;
         DocNoVisible: Boolean;

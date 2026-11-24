@@ -1007,21 +1007,19 @@ table 111 "Sales Shipment Line"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         Currency: Record Currency;
         SalesShptHeader: Record "Sales Shipment Header";
         PostedATOLink: Record "Posted Assemble-to-Order Link";
+#if not CLEAN30
+        PostedPaymentLines: Record "Posted Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DimMgt: Codeunit DimensionManagement;
         UOMMgt: Codeunit "Unit of Measure Management";
         CurrencyRead: Boolean;
-#if not CLEAN30
-        PostedPaymentLines: Record "Posted Payment Lines";
-#endif
-
 #pragma warning disable AA0074
 #pragma warning disable AA0470
+
         Text000: Label 'Shipment No. %1:';
 #pragma warning restore AA0470
         Text001: Label 'The program cannot find this Sales line.';

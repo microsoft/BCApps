@@ -17,10 +17,10 @@ codeunit 12192 "Serv. Payment Lines Mgt."
     ObsoleteTag = '30.0';
 
     var
+        Currency: Record Currency;
 #if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
-        Currency: Record Currency;
 
     [EventSubscriber(ObjectType::Page, Page::"Payment Date Lines", 'OnUpdateAmount', '', false, false)]
     local procedure PaymentDateLinesOnUpdateAmount(var PaymentLines: Record "Payment Lines"; var CurrencyCode: Code[10]; var DocumentAmount: Decimal; DocType: Option)

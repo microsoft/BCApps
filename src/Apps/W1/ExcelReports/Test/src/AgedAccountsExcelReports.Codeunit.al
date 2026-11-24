@@ -39,6 +39,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
         // Apostrophes at the start, in the middle and at the end of a No. of the full 20 characters, so the escaped filter token is longer than the field.
         ApostropheAccountNoTok: Label '''T O''NEIL D''OR LOGI''', Locked = true;
         TopListRowCountErr: Label 'Both accounts should be exported';
+        InstallmentAgingEntryXPathTok: Label 'DataItem[@name="AgingData"][Column[@name="EntryNo"]="%1"]', Comment = '%1 = ledger entry number', Locked = true;
 
     [Test]
     [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
@@ -763,7 +764,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
         LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", Sequence);
         LibraryReportDataset.Reset();
         LibraryReportDataset.SetXmlNodeList(
-            StrSubstNo('DataItem[@name="AgingData"][Column[@name="EntryNo"]="%1"]', Format(Entry."Entry No.", 0, 9)));
+            StrSubstNo(InstallmentAgingEntryXPathTok, Format(Entry."Entry No.", 0, 9)));
         Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'Every installment must occupy exactly one native aging period.');
         LibraryReportDataset.GetNextRow();
         Assert.AreEqual(PeriodStart, GetInstallmentAgingDate('PeriodStart'), 'The due date must select its own native aging-period start.');

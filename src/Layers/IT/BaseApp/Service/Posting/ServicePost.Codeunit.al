@@ -49,9 +49,6 @@ codeunit 5980 "Service-Post"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         ServiceShptLine: Record "Service Shipment Line";
         SourceCodeSetup: Record "Source Code Setup";
         SourceCode: Record "Source Code";
@@ -62,6 +59,9 @@ codeunit 5980 "Service-Post"
         WarehouseShipmentHeader: Record "Warehouse Shipment Header";
         TempWarehouseShipmentLine: Record "Warehouse Shipment Line" temporary;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ServDocumentsMgt: Codeunit "Serv-Documents Mgt.";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WhsePostShpt: Codeunit "Whse.-Post Shipment";

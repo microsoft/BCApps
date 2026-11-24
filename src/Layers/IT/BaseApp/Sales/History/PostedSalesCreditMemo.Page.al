@@ -1120,15 +1120,17 @@ page 134 "Posted Sales Credit Memo"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
                                 HasIncomingDocument: Boolean;
                                 DocExchStatusStyle: Text;
                                 DocExchStatusVisible: Boolean;

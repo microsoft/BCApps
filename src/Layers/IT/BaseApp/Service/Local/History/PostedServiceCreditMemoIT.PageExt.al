@@ -156,7 +156,7 @@ pageextension 12454 "Posted Service Credit Memo IT" extends "Posted Service Cred
     end;
 
     var
-        LegacyPaymentInstallmentsEnabled: Boolean;
         FeatureKeyManagement: Codeunit "Feature Key Management";
+        LegacyPaymentInstallmentsEnabled: Boolean;
 #endif
 }

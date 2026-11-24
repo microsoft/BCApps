@@ -1212,16 +1212,16 @@ page 138 "Posted Purchase Invoice"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-#endif
         PurchInvHeader: Record "Purch. Inv. Header";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         RemitAddressBuffer: Record "Remit Address Buffer";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         FormatAddress: Codeunit "Format Address";
+        PaymentInstallmentsEnabled: Boolean;
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         HasIncomingDocument: Boolean;
         IsOfficeAddin: Boolean;
         IsBuyFromCountyVisible: Boolean;

@@ -1392,13 +1392,13 @@ page 132 "Posted Sales Invoice"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        PaymentInstallmentsEnabled: Boolean;
         HasIncomingDocument: Boolean;
         DocExchStatusStyle: Text;
         CRMIntegrationEnabled: Boolean;

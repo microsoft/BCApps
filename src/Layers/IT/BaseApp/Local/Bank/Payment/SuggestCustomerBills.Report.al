@@ -136,12 +136,12 @@ report 12176 "Suggest Customer Bills"
     end;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         CustomerBillLine: Record "Customer Bill Line";
         CustBankAcc: Record "Customer Bank Account";
         BankAcc: Record "Bank Account";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         NextLineNo: Integer;
         MaxAmount: Decimal;
         TotalPayments: Decimal;

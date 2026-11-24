@@ -105,9 +105,9 @@ page 12172 "Posted Payments"
     end;
 
     var
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         Currency: Record Currency;
         PostedPaymentLines2: Record "Posted Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         DocumentAmount: Decimal;
         CurrencyCode: Code[20];
         LastRec: Boolean;

@@ -1667,18 +1667,20 @@ page 254 "Purchase Journal"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GeneralLedgerSetup: Record "General Ledger Setup";
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlManagement: Codeunit GenJnlManagement;
         ClientTypeManagement: Codeunit "Client Type Management";
         JournalErrorsMgt: Codeunit "Journal Errors Mgt.";
         BackgroundErrorHandlingMgt: Codeunit "Background Error Handling Mgt.";
         ApprovalMgmt: Codeunit "Approvals Mgmt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         GenJnlBatchApprovalStatus: Text[20];
         GenJnlLineApprovalStatus: Text[20];
         Balance: Decimal;

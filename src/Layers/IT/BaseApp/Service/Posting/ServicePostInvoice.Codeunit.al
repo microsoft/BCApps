@@ -22,14 +22,14 @@ using System.Environment.Configuration;
 codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 {
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         SalesSetup: Record "Sales & Receivables Setup";
         InvoicePostingParameters: Record "Invoice Posting Parameters";
         TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary;
         TotalServiceLine: Record "Service Line";
         TotalServiceLineLCY: Record "Service Line";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ServicePostInvoiceEvents: Codeunit "Service Post Invoice Events";
         FALineNo: Integer;
         HideProgressWindow: Boolean;

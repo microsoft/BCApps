@@ -116,7 +116,7 @@ pageextension 12456 "Posted Service Invoice IT" extends "Posted Service Invoice"
     end;
 
     var
-        LegacyPaymentInstallmentsEnabled: Boolean;
         FeatureKeyManagement: Codeunit "Feature Key Management";
+        LegacyPaymentInstallmentsEnabled: Boolean;
 #endif
 }

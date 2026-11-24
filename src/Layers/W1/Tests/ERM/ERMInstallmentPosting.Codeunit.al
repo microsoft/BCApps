@@ -1447,8 +1447,8 @@ codeunit 134493 "ERM Installment Posting"
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CorrectionHeader: Record "Sales Header";
-        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         CreditEntry: Record "Cust. Ledger Entry";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         CreditNo: Code[20];
     begin
         // [SCENARIO] A native full corrective credit remains one ordinary credit while settling all invoice installments.

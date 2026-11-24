@@ -109,12 +109,12 @@ page 12171 "Payment Date Lines"
     end;
 
     var
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         GenJnlLine: Record "Gen. Journal Line";
         Currency: Record Currency;
         SalesHeader: Record "Sales Header";
         PurchaseHeader: Record "Purchase Header";
         PaymentLines2: Record "Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         DocumentAmount: Decimal;
         ResidualTotal: Decimal;
         CurrencyCode: Code[20];

@@ -29,9 +29,6 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
     Permissions = TableData "Invoice Posting Buffer" = rimd;
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         GLSetup: Record "General Ledger Setup";
         SalesSetup: Record "Sales & Receivables Setup";
         Currency: Record Currency;
@@ -42,6 +39,9 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary;
         TotalSalesLine: Record "Sales Line";
         TotalSalesLineLCY: Record "Sales Line";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DeferralUtilities: Codeunit "Deferral Utilities";
         DimensionManagement: Codeunit DimensionManagement;
         JobPostLine: Codeunit "Job Post-Line";

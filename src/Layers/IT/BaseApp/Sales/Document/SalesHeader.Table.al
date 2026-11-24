@@ -4242,9 +4242,51 @@ table 36 "Sales Header"
     end;
 
     var
+        GLSetup: Record "General Ledger Setup";
+        GLAcc: Record "G/L Account";
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        PaymentTerms: Record "Payment Terms";
+        PaymentMethod: Record "Payment Method";
+        CurrExchRate: Record "Currency Exchange Rate";
+        PostCode: Record "Post Code";
+        BankAcc: Record "Bank Account";
+        SalesShptHeader: Record "Sales Shipment Header";
+        SalesInvHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ReturnRcptHeader: Record "Return Receipt Header";
+        SalesInvHeaderPrepmt: Record "Sales Invoice Header";
+        SalesCrMemoHeaderPrepmt: Record "Sales Cr.Memo Header";
+        GenBusPostingGrp: Record "Gen. Business Posting Group";
+        RespCenter: Record "Responsibility Center";
+        InvtSetup: Record "Inventory Setup";
+        Location: Record Location;
+        WhseRequest: Record "Warehouse Request";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GlobalNoSeries: Record "No. Series";
+        ReservEntry: Record "Reservation Entry";
+        TempReservEntry: Record "Reservation Entry" temporary;
+        CompanyInfo: Record "Company Information";
+        Salesperson: Record "Salesperson/Purchaser";
+#if not CLEAN30
+        PaymentTermsLine: Record "Payment Lines";
+        PaymentSales: Record "Payment Lines";
+#endif
+        VATBusPostingGroup: Record "VAT Business Posting Group";
+        CustBankAccount: Record "Customer Bank Account";
+        ShipmentMethod: Record "Shipment Method";
 #if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
+        UserSetupMgt: Codeunit "User Setup Management";
+        CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
+        DimMgt: Codeunit DimensionManagement;
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        SalesLineReserve: Codeunit "Sales Line-Reserve";
+        PostingSetupMgt: Codeunit PostingSetupManagement;
+        ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
+        StandardCodesMgtGlobal: Codeunit "Standard Codes Mgt.";
+        SalesCalcDiscountByType: Codeunit "Sales - Calc Discount By Type";
+        AltCustVATRegFacade: Codeunit "Alt. Cust. VAT. Reg. Facade";
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text003: Label 'You cannot rename a %1.';
@@ -4287,48 +4329,6 @@ table 36 "Sales Header"
         SalesAlreadyExistsTxt: Label 'Sales %1 %2 already exists for this customer.', Comment = '%1 = Document Type; %2 = External Document No.';
         ShowDocAlreadyExistNotificationNameTxt: Label 'Sales document with same external document number already exists.';
         ShowDocAlreadyExistNotificationDescriptionTxt: Label 'Warn if sales document with same external document number already exists.';
-        GLSetup: Record "General Ledger Setup";
-        GLAcc: Record "G/L Account";
-        CustLedgEntry: Record "Cust. Ledger Entry";
-        PaymentTerms: Record "Payment Terms";
-        PaymentMethod: Record "Payment Method";
-        CurrExchRate: Record "Currency Exchange Rate";
-        PostCode: Record "Post Code";
-        BankAcc: Record "Bank Account";
-        SalesShptHeader: Record "Sales Shipment Header";
-        SalesInvHeader: Record "Sales Invoice Header";
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        ReturnRcptHeader: Record "Return Receipt Header";
-        SalesInvHeaderPrepmt: Record "Sales Invoice Header";
-        SalesCrMemoHeaderPrepmt: Record "Sales Cr.Memo Header";
-        GenBusPostingGrp: Record "Gen. Business Posting Group";
-        RespCenter: Record "Responsibility Center";
-        InvtSetup: Record "Inventory Setup";
-        Location: Record Location;
-        WhseRequest: Record "Warehouse Request";
-        GenJournalTemplate: Record "Gen. Journal Template";
-        GlobalNoSeries: Record "No. Series";
-        ReservEntry: Record "Reservation Entry";
-        TempReservEntry: Record "Reservation Entry" temporary;
-        CompanyInfo: Record "Company Information";
-        Salesperson: Record "Salesperson/Purchaser";
-#if not CLEAN30
-        PaymentTermsLine: Record "Payment Lines";
-        PaymentSales: Record "Payment Lines";
-#endif
-        VATBusPostingGroup: Record "VAT Business Posting Group";
-        CustBankAccount: Record "Customer Bank Account";
-        ShipmentMethod: Record "Shipment Method";
-        UserSetupMgt: Codeunit "User Setup Management";
-        CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
-        DimMgt: Codeunit DimensionManagement;
-        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-        SalesLineReserve: Codeunit "Sales Line-Reserve";
-        PostingSetupMgt: Codeunit PostingSetupManagement;
-        ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
-        StandardCodesMgtGlobal: Codeunit "Standard Codes Mgt.";
-        SalesCalcDiscountByType: Codeunit "Sales - Calc Discount By Type";
-        AltCustVATRegFacade: Codeunit "Alt. Cust. VAT. Reg. Facade";
         CurrencyDate: Date;
         Confirmed: Boolean;
 #pragma warning disable AA0074
@@ -4336,12 +4336,10 @@ table 36 "Sales Header"
 #pragma warning disable AA0470
         Text037: Label 'Contact %1 %2 is not related to customer %3.';
         Text038: Label 'Contact %1 %2 is related to a different company than customer %3.';
-#pragma warning restore AA0470
 #pragma warning restore AA0074
-#pragma warning disable AA0470
         ContactIsNotRelatedToAnyCostomerErr: Label 'Contact %1 %2 is not related to a customer.';
-#pragma warning restore AA0470
 #pragma warning disable AA0074
+#pragma warning restore AA0470
         Text040: Label 'A won opportunity is linked to this order.\It has to be changed to status Lost before the Order can be deleted.\Do you want to change the status for this opportunity now?';
         Text044: Label 'The status of the opportunity has not been changed. The program has aborted deleting the order.';
 #pragma warning disable AA0470

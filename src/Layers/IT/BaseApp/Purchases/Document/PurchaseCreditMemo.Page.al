@@ -1845,15 +1845,14 @@ page 52 "Purchase Credit Memo"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         PurchSetup: Record "Purchases & Payables Setup";
         GLSetup: Record "General Ledger Setup";
         MoveNegPurchLines: Report "Move Negative Purchase Lines";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ReportPrint: Codeunit "Test Report-Print";
         UserMgt: Codeunit "User Setup Management";
         WithhSocSecTax: Codeunit "Withholding - Contribution";
@@ -1863,6 +1862,9 @@ page 52 "Purchase Credit Memo"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         JobQueueVisible: Boolean;
         JobQueueUsed: Boolean;
         StatusStyleTxt: Text;

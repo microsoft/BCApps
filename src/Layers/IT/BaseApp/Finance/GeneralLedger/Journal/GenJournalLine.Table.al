@@ -4431,9 +4431,52 @@ table 81 "Gen. Journal Line"
     end;
 
     var
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        GenJnlTemplate: Record "Gen. Journal Template";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        GenJnlBatch: Record "Gen. Journal Batch";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        GenJnlLine: Record "Gen. Journal Line";
+        PaymentTerms: Record "Payment Terms";
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        EmplLedgEntry: Record "Employee Ledger Entry";
+        GenJnlAlloc: Record "Gen. Jnl. Allocation";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenBusPostingGrp: Record "Gen. Business Posting Group";
+        GenProdPostingGrp: Record "Gen. Product Posting Group";
+        GLSetup: Record "General Ledger Setup";
+        Job: Record Job;
+        SourceCodeSetup: Record "Source Code Setup";
+        TempJobJnlLine: Record "Job Journal Line" temporary;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DefDueDates: Record "Deferring Due Dates";
+        FixedDueDate: Record "Fixed Due Dates";
+#if not CLEAN30
+        PaymentPurchase: Record "Payment Lines";
+        PaymentSales: Record "Payment Lines";
+        PaymentTermsLine: Record "Payment Lines";
+#endif
+        TmpWithholdingSocSec: Record "Tmp Withholding Contribution";
+        PaymentMethod: Record "Payment Method";
+        Bill: Record Bill;
+        Country: Record "Country/Region";
 #if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
+        CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
+        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
+        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
+        GenJnlShowCTEntries: Codeunit "Gen. Jnl.-Show CT Entries";
+        CustEntrySetApplID: Codeunit "Cust. Entry-SetAppl.ID";
+        VendEntrySetApplID: Codeunit "Vend. Entry-SetAppl.ID";
+        EmplEntrySetApplID: Codeunit "Empl. Entry-SetAppl.ID";
+        DimMgt: Codeunit DimensionManagement;
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        DeferralUtilities: Codeunit "Deferral Utilities";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        NoSeriesBatch: Codeunit "No. Series - Batch";
 #pragma warning disable AA0074
         Text000: Label '%1 or %2 must be a G/L Account or Bank Account.', Comment = '%1=Account Type,%2=Balance Account Type';
 #pragma warning disable AA0470
@@ -4461,38 +4504,6 @@ table 81 "Gen. Journal Line"
         WrongJobQueueStatus: Label 'Journal line cannot be modified because it has been scheduled for posting.';
 #pragma warning restore AA0074
         RenumberDocNoQst: Label 'If you have many documents it can take time to sort them, and %1 might perform slowly during the process. In those cases we suggest that you sort them during non-working hours. Do you want to continue?', Comment = '%1= Business Central';
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        GenJnlTemplate: Record "Gen. Journal Template";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        GenJnlBatch: Record "Gen. Journal Batch";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        GenJnlLine: Record "Gen. Journal Line";
-        PaymentTerms: Record "Payment Terms";
-        CustLedgEntry: Record "Cust. Ledger Entry";
-        VendLedgEntry: Record "Vendor Ledger Entry";
-        EmplLedgEntry: Record "Employee Ledger Entry";
-        GenJnlAlloc: Record "Gen. Jnl. Allocation";
-        VATPostingSetup: Record "VAT Posting Setup";
-        GenBusPostingGrp: Record "Gen. Business Posting Group";
-        GenProdPostingGrp: Record "Gen. Product Posting Group";
-        GLSetup: Record "General Ledger Setup";
-        Job: Record Job;
-        SourceCodeSetup: Record "Source Code Setup";
-        TempJobJnlLine: Record "Job Journal Line" temporary;
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
-        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
-        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
-        GenJnlShowCTEntries: Codeunit "Gen. Jnl.-Show CT Entries";
-        CustEntrySetApplID: Codeunit "Cust. Entry-SetAppl.ID";
-        VendEntrySetApplID: Codeunit "Vend. Entry-SetAppl.ID";
-        EmplEntrySetApplID: Codeunit "Empl. Entry-SetAppl.ID";
-        DimMgt: Codeunit DimensionManagement;
-        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
-        DeferralUtilities: Codeunit "Deferral Utilities";
-        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
-        NoSeriesBatch: Codeunit "No. Series - Batch";
         Window: Dialog;
         DeferralDocType: Enum "Deferral Document Type";
         CurrencyCode: Code[10];
@@ -4515,24 +4526,13 @@ table 81 "Gen. Journal Line"
 #pragma warning restore AA0074
         GLSetupRead: Boolean;
         Day: Integer;
-        DefDueDates: Record "Deferring Due Dates";
-        FixedDueDate: Record "Fixed Due Dates";
         MaximumDay: Integer;
         Month: Integer;
         PaymentCounter: Integer;
-#if not CLEAN30
-        PaymentPurchase: Record "Payment Lines";
-        PaymentSales: Record "Payment Lines";
-        PaymentTermsLine: Record "Payment Lines";
-#endif
         Year: Integer;
-        TmpWithholdingSocSec: Record "Tmp Withholding Contribution";
-        PaymentMethod: Record "Payment Method";
         Text1130014: Label '%1 cannot be greater than %2';
         Text1130015: Label 'It''s not possible to change %1 when there are withholding lines associated. Delete this line \';
         Text1130016: Label 'or the associated withholding line.';
-        Bill: Record Bill;
-        Country: Record "Country/Region";
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';

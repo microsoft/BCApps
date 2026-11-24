@@ -164,8 +164,8 @@ page 8842 "Posted Installment Schedule"
     end;
 
     var
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         InvoiceNo: Code[20];
         CurrencyCode: Code[10];
         PlanID: Guid;

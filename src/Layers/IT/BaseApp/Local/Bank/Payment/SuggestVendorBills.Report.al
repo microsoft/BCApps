@@ -92,14 +92,14 @@ report 12177 "Suggest Vendor Bills"
     }
 
     var
-#if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         BankAccount: Record "Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
         VendorBillHeader: Record "Vendor Bill Header";
         VendorBillLine: Record "Vendor Bill Line";
         VendBillLine2: Record "Vendor Bill Line";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         NextLineNo: Integer;
         UseSameABICode: Boolean;
 

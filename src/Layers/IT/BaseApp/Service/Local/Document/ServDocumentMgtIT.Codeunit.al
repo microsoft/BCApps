@@ -20,10 +20,10 @@ using System.Environment.Configuration;
 codeunit 12140 "Serv. Document Mgt. IT"
 {
     var
+        ShipmentMethod: Record "Shipment Method";
 #if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
-        ShipmentMethod: Record "Shipment Method";
         Text1130013: Label 'You cannot change %1 because %2 is not blank';
         Text1130016: Label '%1 will be modified according to %2';
         Text1130017: Label '%1 cannot be less than %2';

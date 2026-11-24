@@ -162,10 +162,8 @@ table 3 "Payment Terms"
 
     var
 #if not CLEAN30
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
-#if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
         Text000: Label 'Impossible to rename %1 because there are payment lines associated with it.';
 

@@ -1589,13 +1589,12 @@ page 49 "Purchase Quote"
     end;
 
     var
-#if not CLEAN30
-        LegacyPaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
-#endif
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
@@ -1605,6 +1604,9 @@ page 49 "Purchase Quote"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         StatusStyleTxt: Text;
         HasIncomingDocument: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;

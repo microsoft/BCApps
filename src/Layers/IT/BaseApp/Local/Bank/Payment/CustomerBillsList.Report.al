@@ -489,13 +489,13 @@ report 12117 "Customer Bills List"
     end;
 
     var
+        SalesSetup: Record "Sales & Receivables Setup";
+        CustLedgEntry3: Record "Cust. Ledger Entry";
+        TempDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
 #if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
         EmptyEndingDateErr: Label 'Specify the Ending Date.';
-        SalesSetup: Record "Sales & Receivables Setup";
-        CustLedgEntry3: Record "Cust. Ledger Entry";
-        TempDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary;
         EndingDate: Date;
         ExposureDate: Date;
         OnlyOpened: Boolean;

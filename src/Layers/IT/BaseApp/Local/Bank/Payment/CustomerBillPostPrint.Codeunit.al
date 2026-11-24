@@ -39,14 +39,14 @@ codeunit 12172 "Customer Bill - Post + Print"
     end;
 
     var
+        BillCode: Record Bill;
 #if not CLEAN30
         FeatureKeyManagement: Codeunit "Feature Key Management";
 #endif
-        PostAndPrintQst: Label 'Do you want to post and print %1 %2?', Comment = '%1 = table caption, %2 = document no.';
-        BillCode: Record Bill;
-        InvalidListDateErr: Label 'The List Date must be greater than the Document Date of Customer Bill Line %1.';
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
+        PostAndPrintQst: Label 'Do you want to post and print %1 %2?', Comment = '%1 = table caption, %2 = document no.';
+        InvalidListDateErr: Label 'The List Date must be greater than the Document Date of Customer Bill Line %1.';
         Window: Dialog;
         Text1130012: Label 'Posting Customer Bill...\\';
         Text1130013: Label 'G/L Account       #1##################\';

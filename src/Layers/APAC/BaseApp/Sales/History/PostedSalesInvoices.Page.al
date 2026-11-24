@@ -883,9 +883,9 @@ page 143 "Posted Sales Invoices"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
         FeatureKeyManagement: Codeunit "Feature Key Management";
         TaxInvoiceMgt: Codeunit TaxInvoiceManagement;
+        PaymentInstallmentsEnabled: Boolean;
         DocExchStatusStyle: Text;
         CRMIntegrationEnabled: Boolean;
         CRMIsCoupledToRecord: Boolean;

@@ -197,7 +197,7 @@ pageextension 12444 "Service Credit Memo IT" extends "Service Credit Memo"
 
 #if not CLEAN30
     var
-        LegacyPaymentInstallmentsEnabled: Boolean;
         FeatureKeyManagement: Codeunit "Feature Key Management";
+        LegacyPaymentInstallmentsEnabled: Boolean;
 #endif
 }

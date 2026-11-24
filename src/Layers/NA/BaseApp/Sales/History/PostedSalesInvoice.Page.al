@@ -1616,15 +1616,15 @@ page 132 "Posted Sales Invoice"
     end;
 
     var
-        PaymentInstallmentsEnabled: Boolean;
-        FeatureKeyManagement: Codeunit "Feature Key Management";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FormatAddress: Codeunit "Format Address";
         EInvoiceMgt: Codeunit "E-Invoice Mgt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        PaymentInstallmentsEnabled: Boolean;
         HasIncomingDocument: Boolean;
         DocExchStatusStyle: Text;
         MXInvoiceTok: Label 'MX Electronic Invoice', Locked = true;
