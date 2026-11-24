@@ -2444,6 +2444,33 @@
     end;
 
     [Test]
+    procedure IsOpenedFromBatchWithRecordInBatchWithFilterSymbolsInName()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [Item Journal] [UT]
+        // [SCENARIO 659621] ItemJournalLine.IsOpenedFromBatch treats the batch name of the current record as a literal value.
+        Initialize();
+
+        // [GIVEN] Item journal line in batch "Z..A" of template "T".
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        ItemJournalBatch.Init();
+        ItemJournalBatch.Validate("Journal Template Name", ItemJournalTemplate.Name);
+        ItemJournalBatch.Validate(Name, 'Z..A');
+        ItemJournalBatch.Insert(true);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        ItemJournalLine.Reset();
+
+        // [WHEN] IsOpenedFromBatch is called on the record with no filters.
+        // [THEN] It returns TRUE without failing to find batch "Z..A".
+        Assert.IsTrue(ItemJournalLine.IsOpenedFromBatch(), 'ItemJournalLine.IsOpenedFromBatch must return TRUE');
+    end;
+
+    [Test]
     procedure IsOpenedFromBatchWithNoRecordAndNoFilters()
     var
         ItemJournalLine: Record "Item Journal Line";

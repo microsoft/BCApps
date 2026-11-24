@@ -3656,28 +3656,27 @@ table 83 "Item Journal Line"
         ItemJournalBatch: Record "Item Journal Batch";
         TemplateFilter: Text;
         BatchFilter: Text;
-        SpecialSymbolsTok: Label '=|&@()<>', Locked = true;
+        UseCurrentBatch: Boolean;
     begin
         BatchFilter := GetFilter("Journal Batch Name");
-        if (BatchFilter = '') and ("Journal Batch Name" <> '') then begin
-            BatchFilter := "Journal Batch Name";
-            if DelChr(BatchFilter, '=', SpecialSymbolsTok) <> BatchFilter then
-                BatchFilter := '''' + BatchFilter + '''';
-        end;
+        UseCurrentBatch := (BatchFilter = '') and ("Journal Batch Name" <> '');
 
-        if BatchFilter <> '' then begin
+        if (BatchFilter <> '') or UseCurrentBatch then begin
             TemplateFilter := GetFilter("Journal Template Name");
             if (TemplateFilter = '') and ("Journal Template Name" <> '') then begin
                 SetRange("Journal Template Name", "Journal Template Name");
-                TemplateFilter := GetFilter("Journal Template Name");
-            end;
-            if TemplateFilter <> '' then
-                ItemJournalBatch.SetFilter("Journal Template Name", TemplateFilter);
-            ItemJournalBatch.SetFilter(Name, BatchFilter);
+                ItemJournalBatch.SetRange("Journal Template Name", "Journal Template Name");
+            end else
+                if TemplateFilter <> '' then
+                    ItemJournalBatch.SetFilter("Journal Template Name", TemplateFilter);
+            if UseCurrentBatch then
+                ItemJournalBatch.SetRange(Name, "Journal Batch Name")
+            else
+                ItemJournalBatch.SetFilter(Name, BatchFilter);
             ItemJournalBatch.FindFirst();
         end;
 
-        exit((("Journal Batch Name" <> '') and ("Journal Template Name" = '')) or (BatchFilter <> ''));
+        exit((("Journal Batch Name" <> '') and ("Journal Template Name" = '')) or (BatchFilter <> '') or UseCurrentBatch);
     end;
 
     /// <summary>
