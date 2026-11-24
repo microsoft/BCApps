@@ -46,6 +46,8 @@
         SetIgnoreCommitToFalse: Boolean;
         RaiseErrorAfterCommit: Boolean;
         CommitTestMarkerID: Guid;
+        ClassifyAsProductionOrder: Boolean;
+        ClassifyAsConsumptionTemplate: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -2591,6 +2593,142 @@
         Assert.RecordCount(ItemLedgerEntry, 1);
     end;
 
+    [Test]
+    procedure SalespersonDimensionsForNonProductionOrder()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DimensionValue: Record "Dimension Value";
+        DimensionSetEntry: Record "Dimension Set Entry";
+    begin
+        // [SCENARIO 629922] A non-production journal line with an order number receives salesperson dimensions.
+        Initialize();
+        CreateSalespersonWithDefaultDimension(SalespersonPurchaser, DimensionValue);
+        ItemJournalLine."Order No." := LibraryUtility.GenerateGUID();
+
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+
+        DimensionSetEntry.Get(ItemJournalLine."Dimension Set ID", DimensionValue."Dimension Code");
+        DimensionSetEntry.TestField("Dimension Value Code", DimensionValue.Code);
+    end;
+
+    [Test]
+    procedure SalespersonDimensionsForProductionOrder()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DimensionValue: Record "Dimension Value";
+        DimensionSetEntry: Record "Dimension Set Entry";
+    begin
+        // [SCENARIO 629922] Salesperson dimensions are skipped only for production lines with an order number.
+        Initialize();
+        CreateSalespersonWithDefaultDimension(SalespersonPurchaser, DimensionValue);
+        ItemJournalLine."Order Type" := ItemJournalLine."Order Type"::Production;
+        ItemJournalLine."Order No." := LibraryUtility.GenerateGUID();
+
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+        ItemJournalLine.TestField("Dimension Set ID", 0);
+
+        ItemJournalLine."Order No." := '';
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+
+        DimensionSetEntry.Get(ItemJournalLine."Dimension Set ID", DimensionValue."Dimension Code");
+        DimensionSetEntry.TestField("Dimension Value Code", DimensionValue.Code);
+    end;
+
+    [Test]
+    procedure SalespersonDimensionsUseProductionOrderPredicate()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DimensionValue: Record "Dimension Value";
+    begin
+        // [SCENARIO 629922] Dimension handling uses the production predicate rather than an enum getter.
+        Initialize();
+        CreateSalespersonWithDefaultDimension(SalespersonPurchaser, DimensionValue);
+        ItemJournalLine."Order No." := LibraryUtility.GenerateGUID();
+        ClassifyAsProductionOrder := true;
+        BindSubscription(this);
+
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+
+        UnbindSubscription(this);
+        ItemJournalLine.TestField("Dimension Set ID", 0);
+    end;
+
+    [Test]
+    procedure NewJournalLineDocumentNoWithProductionNumbering()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        // [SCENARIO 629922] Production order numbering does not prevent ordinary journals from copying document numbers.
+        Initialize();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Doc. No. Is Prod. Order No." := true;
+        ManufacturingSetup.Modify();
+
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Item, true);
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Consumption, false);
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Output, false);
+    end;
+
+    [Test]
+    procedure NewJournalLineUsesConsumptionTemplatePredicate()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        // [SCENARIO 629922] New line setup uses the consumption predicate rather than an enum getter.
+        Initialize();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Doc. No. Is Prod. Order No." := true;
+        ManufacturingSetup.Modify();
+        ClassifyAsConsumptionTemplate := true;
+        BindSubscription(this);
+
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Item, false);
+
+        UnbindSubscription(this);
+    end;
+
+    local procedure CreateSalespersonWithDefaultDimension(var SalespersonPurchaser: Record "Salesperson/Purchaser"; var DimensionValue: Record "Dimension Value")
+    var
+        DefaultDimension: Record "Default Dimension";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        LibraryDimension.CreateDefaultDimension(
+            DefaultDimension, Database::"Salesperson/Purchaser", SalespersonPurchaser.Code,
+            DimensionValue."Dimension Code", DimensionValue.Code);
+    end;
+
+    local procedure VerifyNewJournalLineDocumentNo(TemplateType: Enum "Item Journal Template Type"; CopyDocumentNo: Boolean)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        LastItemJournalLine: Record "Item Journal Line";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, TemplateType);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LastItemJournalLine."Journal Template Name" := ItemJournalTemplate.Name;
+        LastItemJournalLine."Journal Batch Name" := ItemJournalBatch.Name;
+        LastItemJournalLine."Line No." := 10000;
+        LastItemJournalLine."Entry Type" := LastItemJournalLine."Entry Type"::"Positive Adjmt.";
+        LastItemJournalLine."Posting Date" := WorkDate();
+        LastItemJournalLine."Document No." := LibraryUtility.GenerateGUID();
+        LastItemJournalLine.Insert();
+        ItemJournalLine."Journal Template Name" := ItemJournalTemplate.Name;
+        ItemJournalLine."Journal Batch Name" := ItemJournalBatch.Name;
+
+        ItemJournalLine.SetUpNewLine(LastItemJournalLine);
+
+        if CopyDocumentNo then
+            ItemJournalLine.TestField("Document No.", LastItemJournalLine."Document No.")
+        else
+            ItemJournalLine.TestField("Document No.", '');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2601,6 +2739,8 @@
         SetIgnoreCommitToFalse := false;
         RaiseErrorAfterCommit := false;
         Clear(CommitTestMarkerID);
+        ClassifyAsProductionOrder := false;
+        ClassifyAsConsumptionTemplate := false;
 
         // Lazy Setup.
         if isInitialized then
@@ -3379,6 +3519,20 @@
         ItemList.Last();
         Assert.AreEqual(FirstItemNo, ItemList."No.".Value, '');
         Assert.AreEqual(LibraryVariableStorage.DequeueText(), ItemList."No.".Value, '');
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsOrderTypeProduction', '', false, false)]
+    local procedure OnAfterIsOrderTypeProduction(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
+    begin
+        if ClassifyAsProductionOrder and (ItemJournalLine."Order Type" = ItemJournalLine."Order Type"::" ") then
+            Result := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterIsConsumptionTemplateType', '', false, false)]
+    local procedure OnAfterIsConsumptionTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+        if ClassifyAsConsumptionTemplate and (ItemJournalTemplate.Type = ItemJournalTemplate.Type::Item) then
+            Result := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforeCode', '', false, false)]

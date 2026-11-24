@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Stores the vehicle types that are used for mileage expenses.
+/// </summary>
 table 7108 "Expense Vehicle Type"
 {
-    Access = Internal;
     Caption = 'Vehicle Type';
     DataClassification = CustomerContent;
     DrillDownPageId = "Expense Vehicle Types";

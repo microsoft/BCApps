@@ -1,6 +1,6 @@
 {
   "id": "9a6af095-afbf-449a-a516-8147c96060da",
-  "name": "Expense Agent (Preview) (CA)",
+  "name": "Expense Agent (CA)",
   "publisher": "Microsoft",
   "version": "30.0.0.0",
   "brief": "The Expense Agent module will enable users to capture and report on business expenses. The solution provides a foundation for enforcing expense policies, improving financial transparency, and supporting compliance with internal controls and audit requirements.",
@@ -14,7 +14,7 @@
   "dependencies": [
     {
       "id": "66efe10c-8033-403b-a86d-77c0887178ba",
-      "name": "Expense Agent (Preview)",
+      "name": "Expense Agent",
       "publisher": "Microsoft",
       "version": "30.0.0.0"
     }

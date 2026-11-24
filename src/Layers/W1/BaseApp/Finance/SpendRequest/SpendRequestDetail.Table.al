@@ -7,6 +7,9 @@ namespace Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Stores the detail lines of a spend request with their expected amounts and currency.
+/// </summary>
 table 6841 "Spend Request Detail"
 {
     Caption = 'Spend Request Document Detail';

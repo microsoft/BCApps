@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.HumanResources.Employee;
 
+/// <summary>
+/// Stores the participants of a posted expense report line.
+/// </summary>
 table 6917 "Posted Exp. Rep. Line Particip"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line Participants';
     DataClassification = CustomerContent;
     LookupPageId = "Posted Exp. Rep. Line Particip";
