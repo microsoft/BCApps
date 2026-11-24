@@ -286,6 +286,24 @@ codeunit 139757 "Library - Master Data Mgt."
         MDMHttpSourceTransport.ValidateSourceHostUrl(BaseUrl);
     end;
 
+    /// <summary>Returns the base URL that the HTTP transport builds for the current setup, without calling the source.</summary>
+    /// <returns>The source API base URL, built from this environment's tenant and the source environment name.</returns>
+    procedure GetHttpTransportSourceApiBaseUrl(): Text
+    var
+        MDMHttpSourceTransport: Codeunit "MDM Http Source Transport";
+    begin
+        exit(MDMHttpSourceTransport.GetSourceApiBaseUrlForTest());
+    end;
+
+    /// <summary>Returns the custom dimensions that the HTTP transport adds to cross-environment audit entries and telemetry.</summary>
+    /// <returns>The dimensions, such as the client ID and credential type of the Microsoft Entra application.</returns>
+    procedure GetHttpTransportConnectionDimensions(): Dictionary of [Text, Text]
+    var
+        MDMHttpSourceTransport: Codeunit "MDM Http Source Transport";
+    begin
+        exit(MDMHttpSourceTransport.GetConnectionDimensionsForTest());
+    end;
+
     /// <summary>Unwraps the ODataV4 action envelope the HTTP transport receives, returning the inner value (or the raw body).</summary>
     /// <param name="ResponseBody">The raw response body to unwrap.</param>
     /// <returns>The inner OData value, or the body unchanged if it is not a value-envelope.</returns>
