@@ -4,6 +4,15 @@
         "Description": "Delegate real work to Copilot, such as creating or updating records or running actions in Business Central.",
         "Category": "Other",
         "HelpURL": "https://aka.ms/editBCwithCopilot",
-        "VideoURL": ""
+        "VideoURL": "",
+        "ReleaseVersion": "30.0",
+        "GettingStartedSteps": [
+            "Use a US, GB, or DE Business Central online early access preview sandbox on version 30.0.56564.0 or later with a Partner Sandbox license and evaluation data only.",
+            "Ensure your tenant has an eligible Microsoft 365 subscription, Copilot Chat is enabled in Business Central, and you have a valid Business Central license and Microsoft Copilot access.",
+            "Open your evaluation company in Business Central, then open Copilot Chat. Copilot works in the current company and environment.",
+            "Note a demo customer's original phone number, then ask Copilot in English to change only that field to a test number, identifying the customer by number. Changes are saved immediately.",
+            "Inspect Copilot's action log and the customer record to verify only the requested change, then restore the original phone number.",
+            "Optionally use Send feedback in the Chat menu or the thumbs-up or thumbs-down controls to share feedback."
+        ]
     }
 ]
