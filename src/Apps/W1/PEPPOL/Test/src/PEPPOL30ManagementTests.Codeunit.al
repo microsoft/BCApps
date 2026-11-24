@@ -4309,9 +4309,14 @@ codeunit 139235 "PEPPOL30 Management Tests"
         ServiceLine: Record "Service Line";
         ServMgtSetup: Record "Service Mgt. Setup";
         GenJournalTemplate: Record "Gen. Journal Template";
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
     begin
         LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
-        GenJournalTemplate."Posting No. Series" := LibraryERM.CreateNoSeriesCode();
+        LibraryUtility.CreateNoSeries(NoSeries, true, true, false);
+        LibraryUtility.CreateNoSeriesLine(
+          NoSeriesLine, NoSeries.Code, CopyStr(NoSeries.Code, 1, 10) + '0000000001', CopyStr(NoSeries.Code, 1, 10) + '9999999999');
+        GenJournalTemplate."Posting No. Series" := NoSeries.Code;
         GenJournalTemplate.Modify(false);
         ServMgtSetup.GetRecordOnce();
         ServMgtSetup."Serv. Inv. Template Name" := GenJournalTemplate.Name;
