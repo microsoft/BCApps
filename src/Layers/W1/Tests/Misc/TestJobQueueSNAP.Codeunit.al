@@ -1759,7 +1759,6 @@ codeunit 139020 "Test Job Queue SNAP"
         RunningJobQueueEntry: Record "Job Queue Entry";
         JobQueueEntry: Record "Job Queue Entry";
         ScheduledTask: Record "Scheduled Task";
-        JobQueueDispatcher: Codeunit "Job Queue Dispatcher";
         IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
     begin
         // [SCENARIO 659837] The task created when an entry is rescheduled as Waiting is cancelled at the entry's Job Timeout
