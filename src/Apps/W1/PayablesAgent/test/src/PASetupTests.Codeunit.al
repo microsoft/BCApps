@@ -6,6 +6,7 @@
 namespace System.Test.Agents.PayablesAgent;
 
 using Microsoft.Agent.PayablesAgent;
+using System.Agents;
 using System.Email;
 
 codeunit 133723 "PA Setup Tests"
@@ -66,6 +67,47 @@ codeunit 133723 "PA Setup Tests"
         // [WHEN] The demo guide checks the email configuration.
         // [THEN] Email is reported as not configured.
         Assert.IsFalse(PADemoGuide.IsEmailConfiguredForDemoEmail(PASetupUpdateParameters), 'Email should not be configured when no mailbox is set');
+    end;
+
+    [Test]
+    procedure AgentFoundOnlyByUserNameIsNotSetUpUntilSetupLinksIt()
+    var
+        Agent: Record Agent;
+        PASetup: Codeunit "PA Setup";
+        AgentUserId: Guid;
+    begin
+        // [SCENARIO] An agent user left behind by a deleted company with the same name isn't set up in the recreated company, and setup reuses it
+        // [GIVEN] An agent user with this company's user name, and no Payables Agent setup in the company
+        AgentUserId := GetOrCreateAgentWithCompanyUserName();
+        PASetup.DeleteSetup(CopyStr(CompanyName(), 1, 30));
+
+        // [THEN] The agent isn't set up in the company
+        Assert.IsFalse(PASetup.TryGetStoredAgent(Agent), 'An agent found only by its user name must not count as set up');
+
+        // [WHEN] Setup looks for the agent
+        // [THEN] It finds the same agent user by its user name and links it
+        Assert.IsTrue(PASetup.FindAgentAndReconcileSetup(Agent), 'Setup must find the agent by its user name');
+        Assert.AreEqual(AgentUserId, Agent."User Security ID", 'Setup must reuse the existing agent user');
+
+        // [THEN] The linked agent is set up in the company
+        Assert.IsTrue(PASetup.TryGetStoredAgent(Agent), 'The agent linked by the setup must count as set up');
+        Assert.AreEqual(AgentUserId, Agent."User Security ID", 'The setup must link the existing agent user');
+    end;
+
+    local procedure GetOrCreateAgentWithCompanyUserName(): Guid
+    var
+        Agent: Record Agent;
+        TempAgentSetupBuffer: Record "Agent Setup Buffer" temporary;
+        AgentSetup: Codeunit "Agent Setup";
+        PASetup: Codeunit "PA Setup";
+        NullGuid: Guid;
+    begin
+        Agent.SetRange("User Name", PASetup.AgentUserName());
+        if Agent.FindFirst() then
+            exit(Agent."User Security ID");
+
+        AgentSetup.GetSetupRecord(TempAgentSetupBuffer, NullGuid, "Agent Metadata Provider"::"Payables Agent", PASetup.AgentUserName(), 'Payables Agent', '');
+        exit(AgentSetup.SaveChanges(TempAgentSetupBuffer));
     end;
 
     local procedure RegisterMailbox(): Guid
