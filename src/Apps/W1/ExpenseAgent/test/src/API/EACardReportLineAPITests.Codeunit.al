@@ -45,6 +45,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
         ReceiptFileNameTok: Label 'receipt.png', Locked = true;
         OtherReceiptFileNameTok: Label 'other-receipt.jpg', Locked = true;
+        RejectedByBusinessRuleTok: Label 'Response code is 400', Locked = true;
         OnePixelPngBase64Tok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
@@ -140,6 +141,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         // [WHEN] addCardExpenseToReport is called with the linked manual expense.
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
+        AssertRejectedByBusinessRule();
 
         // [THEN] The expense is not added and stays open.
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
@@ -170,6 +172,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         // [WHEN] addCardExpenseToReport is called with the other user's expense.
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetReportActionURL(ExpenseReportHeader, AddCardExpenseToReportActionTok), CreateAddExpenseRequest(OtherExpense), ResponseText, 200);
+        AssertRejectedByBusinessRule();
 
         // [THEN] The expense is not added and stays open.
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
@@ -513,6 +516,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         // [WHEN] A receipt is attached through attachCardReceipt.
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetAttachCardReceiptURL(ExpenseReportLine), CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D)), ResponseText, 200);
+        AssertRejectedByBusinessRule();
 
         // [THEN] The request is rejected and nothing is attached.
         Assert.AreEqual(0, CountLineAttachments(ExpenseReportLine), 'No receipt must be attached to a manual line.');
@@ -540,6 +544,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         // [WHEN] A receipt is attached.
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetAttachCardReceiptURL(ExpenseReportLine), CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D)), ResponseText, 200);
+        AssertRejectedByBusinessRule();
 
         // [THEN] The request is rejected and nothing is attached.
         Assert.AreEqual(0, CountLineAttachments(ExpenseReportLine), 'No receipt must be attached to a line of a released report.');
@@ -592,6 +597,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetAttachCardReceiptURL(ExpenseReportLine),
             CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D), OtherReceiptFileNameTok, Enum::"Image Format"::Jpeg), ResponseText, 200);
+        AssertRejectedByBusinessRule();
 
         // [THEN] The request is rejected and the first receipt is kept.
         Assert.AreEqual(1, CountExpenseAttachments(Expense), 'The expense must keep its single receipt.');
@@ -951,6 +957,12 @@ codeunit 148374 "EA Card Report Line API Tests"
         Participant.Add('participantType', 'External');
         Participant.Add('participantName', ParticipantName);
         ParticipantsToken.AsArray().Add(Participant);
+    end;
+
+    // The action must reject the request with a validation error (400), not fail because it does not exist (404).
+    local procedure AssertRejectedByBusinessRule()
+    begin
+        Assert.ExpectedError(RejectedByBusinessRuleTok);
     end;
 
     local procedure GetLineURL(ExpenseReportLine: Record "Expense Report Line"): Text
