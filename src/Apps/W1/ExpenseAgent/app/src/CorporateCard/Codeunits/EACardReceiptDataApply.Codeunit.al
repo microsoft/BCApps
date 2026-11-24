@@ -23,7 +23,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
     var
         ExpenseNotFoundErr: Label 'Expense %1 was not found.', Comment = '%1 = Expense system ID';
         NotCardExpenseErr: Label 'Receipt data can only be applied to expense %1 when it was created from a corporate card transaction.', Comment = '%1 = Expense No.';
-        NotWaitingForReceiptErr: Label 'Expense %1 is not waiting for a receipt. It must be open and not on an expense report, or on an open expense report with no receipt on its line.', Comment = '%1 = Expense No.';
+        NotWaitingForReceiptErr: Label 'Expense %1 is not waiting for a receipt. It must be open or released and not on an expense report, or on an open expense report with no receipt on its line.', Comment = '%1 = Expense No.';
         ReceiptAlreadyAttachedErr: Label 'Expense %1 already has a receipt.', Comment = '%1 = Expense No.';
         ReceiptRequiredErr: Label 'Upload the receipt file and its file name before you apply the receipt data.';
         ReportLineNotFoundErr: Label 'No line for expense %1 was found on expense report %2.', Comment = '%1 = Expense No., %2 = Expense Report No.';

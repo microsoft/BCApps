@@ -6,8 +6,8 @@ namespace Microsoft.ExpenseAgent;
 
 /// <summary>
 /// Finds the corporate card expense that an incoming receipt belongs to.
-/// Candidates are card-created expenses that are still waiting for a receipt, either not on an expense report yet
-/// or on an open expense report whose line has no receipt.
+/// Candidates are card-created expenses that are still waiting for a receipt, either not on an expense report yet (open or
+/// released) or on an open expense report whose line has no receipt.
 /// </summary>
 codeunit 7438 "EA Receipt Expense Match"
 {
@@ -101,8 +101,9 @@ codeunit 7438 "EA Receipt Expense Match"
     end;
 
     /// <summary>
-    /// Returns true when a receipt can still be applied to the card expense: either the expense is not on an expense report yet,
-    /// or it is on an open expense report and its line has no receipt and no lost-receipt declaration.
+    /// Returns true when a receipt can still be applied to the card expense: either the expense is not on an expense report yet
+    /// and is open or released (for example after it was removed from a report), or it is on an open expense report and its
+    /// line has no receipt and no lost-receipt declaration.
     /// </summary>
     internal procedure IsWaitingForReceipt(Expense: Record Expense): Boolean
     var
@@ -110,7 +111,7 @@ codeunit 7438 "EA Receipt Expense Match"
         ExpenseReportLine: Record "Expense Report Line";
     begin
         if Expense."Expense Report No." = '' then
-            exit(Expense.Status = Expense.Status::Open);
+            exit(Expense.Status in [Expense.Status::Open, Expense.Status::Released]);
 
         if Expense.Status <> Expense.Status::Submitted then
             exit(false);
@@ -171,13 +172,13 @@ codeunit 7438 "EA Receipt Expense Match"
 
     local procedure SetCandidateFilters(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseDate: Date; DateWindow: Integer; Amount: Decimal; CurrencyCode: Code[10])
     begin
-        // The open-and-not-on-a-report or open-report-line part of the rule is checked per record in IsWaitingForReceipt.
+        // The not-on-a-report or open-report-line part of the rule is checked per record in IsWaitingForReceipt.
         Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetRange(Source, Expense.Source::CorporateCard);
         Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
         Expense.SetRange("Receipt Attached", false);
         Expense.SetFilter("No Receipt Type", '<>%1', Expense."No Receipt Type"::"Lost Receipt");
-        Expense.SetFilter(Status, '%1|%2', Expense.Status::Open, Expense.Status::Submitted);
+        Expense.SetFilter(Status, '%1|%2|%3', Expense.Status::Open, Expense.Status::Released, Expense.Status::Submitted);
         Expense.SetRange(Amount, Amount);
         Expense.SetRange("Expense Date", ExpenseDate - DateWindow, ExpenseDate + DateWindow);
         SetCurrencyFilter(Expense, CurrencyCode);
