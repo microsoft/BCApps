@@ -1447,7 +1447,7 @@ table 98 "General Ledger Setup"
             Caption = 'Local SEPA Instr. Priority';
             InitValue = true;
         }
-#if not CLEANSCHEMA22
+#if not CLEANSCHEMA28
         field(11401; "Use New Apply G/L Entries Page"; Boolean)
         {
             Caption = 'Use New Apply G/L Entries Page';
