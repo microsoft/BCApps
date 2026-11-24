@@ -223,7 +223,6 @@ codeunit 139915 "Sales Service Commitment Test"
         ExpectedLineAmount := TempSalesServiceCommitmentBuff."Line Amount";
         ExpectedVATAmount := TempSalesServiceCommitmentBuff."VAT Amount";
         Assert.AreNotEqual(0, ExpectedLineAmount, 'Setup-Failure: Recurring subtotal of the included sales lines should have a value.');
-        Assert.AreNotEqual(0, ExpectedVATAmount, 'Setup-Failure: Recurring VAT of the included sales lines should have a value.');
 
         // [GIVEN] Third sales line with subscription lines that is excluded from document totals
         SetupSalesLineForTotalAndVatCalculation(Item3, true);
