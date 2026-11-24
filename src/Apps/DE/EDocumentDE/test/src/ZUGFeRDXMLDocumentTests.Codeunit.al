@@ -28,7 +28,6 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Reports;
 using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
@@ -4256,14 +4255,15 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
     local procedure CreatePdfWithoutAttachment(var TempBlob: Codeunit "Temp Blob")
     var
-        Customer: Record Customer;
-        CustomerRecordRef: RecordRef;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceRecordRef: RecordRef;
         PdfOutStream: OutStream;
     begin
-        Customer.SetRange("No.", LibrarySales.CreateCustomerNo());
-        CustomerRecordRef.GetTable(Customer);
+        // Printing outside of the e-document export does not embed the ZUGFeRD XML
+        SalesInvoiceHeader.SetRange("No.", CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceRecordRef.GetTable(SalesInvoiceHeader);
         TempBlob.CreateOutStream(PdfOutStream);
-        Report.SaveAs(Report::"Customer - List", '', ReportFormat::Pdf, PdfOutStream, CustomerRecordRef);
+        Report.SaveAs(Report::"Standard Sales - Invoice", '', ReportFormat::Pdf, PdfOutStream, SalesInvoiceRecordRef);
     end;
 
     local procedure CreateReceivedEDocument(var EDocument: Record "E-Document"; var EDocDataStorage: Record "E-Doc. Data Storage"; TempBlob: Codeunit "Temp Blob"; FileFormat: Enum "E-Doc. File Format")

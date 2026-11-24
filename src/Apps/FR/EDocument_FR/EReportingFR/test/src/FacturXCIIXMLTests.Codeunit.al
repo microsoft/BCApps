@@ -22,7 +22,6 @@ using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Reminder;
-using Microsoft.Sales.Reports;
 using Microsoft.Sales.Setup;
 using System.IO;
 using System.Utilities;
@@ -1887,21 +1886,15 @@ codeunit 148148 "Factur-X CII XML Tests"
     [Test]
     procedure PdfWithoutAttachmentHasNoEmbeddedInvoice()
     var
-        Customer: Record Customer;
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
         TempBlob: Codeunit "Temp Blob";
-        CustomerRecordRef: RecordRef;
-        PdfOutStream: OutStream;
     begin
         // [SCENARIO] A received PDF without an embedded invoice is not structured with Factur-X
         Initialize();
 
         // [GIVEN] A PDF without attachments, received as a PDF file
-        Customer.SetRange("No.", LibrarySales.CreateCustomerNo());
-        CustomerRecordRef.GetTable(Customer);
-        TempBlob.CreateOutStream(PdfOutStream);
-        Report.SaveAs(Report::"Customer - List", '', ReportFormat::Pdf, PdfOutStream, CustomerRecordRef);
+        CreatePdfWithoutAttachment(TempBlob);
         InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
 
         // [WHEN] The received file is checked for an embedded invoice
@@ -1991,22 +1984,16 @@ codeunit 148148 "Factur-X CII XML Tests"
     [Test]
     procedure PdfWithoutAttachmentKeepsPreferredStructureImplementation()
     var
-        Customer: Record Customer;
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocImport: Codeunit "E-Doc. Import";
         TempBlob: Codeunit "Temp Blob";
-        CustomerRecordRef: RecordRef;
-        PdfOutStream: OutStream;
     begin
         // [SCENARIO] A received PDF without an embedded invoice keeps the preferred structure implementation of PDF files
         Initialize();
 
         // [GIVEN] A PDF without attachments, received as a PDF file
-        Customer.SetRange("No.", LibrarySales.CreateCustomerNo());
-        CustomerRecordRef.GetTable(Customer);
-        TempBlob.CreateOutStream(PdfOutStream);
-        Report.SaveAs(Report::"Customer - List", '', ReportFormat::Pdf, PdfOutStream, CustomerRecordRef);
+        CreatePdfWithoutAttachment(TempBlob);
         InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
 
         // [WHEN] The structure implementation is determined
@@ -2040,6 +2027,19 @@ codeunit 148148 "Factur-X CII XML Tests"
             'Factur-X must only be chosen for files received as PDF.');
     end;
     #endregion
+
+    local procedure CreatePdfWithoutAttachment(var TempBlob: Codeunit "Temp Blob")
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceRecordRef: RecordRef;
+        PdfOutStream: OutStream;
+    begin
+        // Printing outside of the e-document export does not embed the Factur-X XML
+        SalesInvoiceHeader.SetRange("No.", CreateAndPostSalesInvoice());
+        SalesInvoiceRecordRef.GetTable(SalesInvoiceHeader);
+        TempBlob.CreateOutStream(PdfOutStream);
+        Report.SaveAs(Report::"Standard Sales - Invoice", '', ReportFormat::Pdf, PdfOutStream, SalesInvoiceRecordRef);
+    end;
 
     local procedure ExportInvoicePdf(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempBlob: Codeunit "Temp Blob")
     var
