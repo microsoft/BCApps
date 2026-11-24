@@ -59,9 +59,14 @@ codeunit 10045 "IRS 1099 IRIS Impl." implements "IRS 1099 IRIS Transmission", "I
     end;
 
     procedure CreateTransmissionXmlContent(var Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; CorrectionToZeroMode: Boolean; var UniqueTransmissionId: Text[100]; var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var TempBlob: Codeunit "Temp Blob")
+    var
+        Helper: Codeunit "Helper IRIS";
+        Schema: Interface "IRIS XML Schema";
+        SchemaSource: Text;
     begin
-        GenerateXmlFileIRIS.SetCorrectionToZeroMode(CorrectionToZeroMode);
-        GenerateXmlFileIRIS.CreateTransmission(Transmission, TransmissionType, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
+        Schema := Helper.GetXmlSchemaVersion(Transmission."Period No.", SchemaSource);
+        Transmission.SetSchemaSource(SchemaSource);
+        Schema.CreateTransmissionXmlContent(Transmission, TransmissionType, CorrectionToZeroMode, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
     end;
 
     procedure CreateGetStatusRequestXmlContent(SearchParamType: Enum "Search Param Type IRIS"; SearchId: Text; var TempBlob: Codeunit "Temp Blob")

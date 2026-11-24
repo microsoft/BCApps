@@ -18,7 +18,6 @@ codeunit 10044 "Data Check IRIS"
         OAuthClient: Codeunit "OAuth Client IRIS";
         ErrorMessageMgt: Codeunit "Error Message Management";
         EmptyFieldErr: Label 'must be set.';
-        PeriodNoErr: Label 'The period of the transmission must be a valid year in the format YYYY.';
         VendorNotFoundErr: Label 'The vendor %1 is not found for the document %2.', Comment = '%1 - vendor number, %2 - document ID';
         IncorrectTINLengthErr: Label '(TIN) must be exactly %1 digits long.', Comment = '%1 - expected length';
         IncorrectFieldLengthErr: Label 'must be between %1 and %2 characters. Allowed characters: %3.', Comment = '%1 - min length, %2 - max length, %3 - allowed characters';
@@ -73,33 +72,31 @@ codeunit 10044 "Data Check IRIS"
         UserParamsIRIS: Record "User Params IRIS";
         UserID: SecretText;
     begin
-        UserParamsIRIS.GetRecord();
-        UserID := OAuthClient.GetToken(UserParamsIRIS."IRIS User ID Key");
+        if UserParamsIRIS.Get(UserSecurityId()) then
+            UserID := OAuthClient.GetToken(UserParamsIRIS."IRIS User ID Key");
         if UserID.IsEmpty() then
             ErrorMessageMgt.LogError(IRSFormsSetup, UserIDMustBeSetErr, '');
     end;
 
     local procedure ValidateTransmission(Transmission: Record "Transmission IRIS")
-    var
-        PeriodNoInt: Integer;
     begin
-        if not Evaluate(PeriodNoInt, Transmission."Period No.") then
-            ErrorMessageMgt.LogFieldError(Transmission, Transmission.FieldNo("Period No."), PeriodNoErr);
-
-        if (PeriodNoInt < 2000) or (PeriodNoInt > 3000) then
-            ErrorMessageMgt.LogFieldError(Transmission, Transmission.FieldNo("Period No."), PeriodNoErr);
+        if not Helper.ValidateTaxYear(Transmission."Period No.") then
+            ErrorMessageMgt.LogFieldError(Transmission, Transmission.FieldNo("Period No."), GetLastErrorText());
     end;
 
     local procedure ValidateCompanyInformation()
     var
         CompanyInformation: Record "Company Information";
+        Schema: Interface "IRIS XML Schema";
         TIN: Text;
         ContactPersonName: Text;
         PhoneNo: Text;
         ZipCode: Text;
         StateCode: Text;
     begin
+        Schema := Helper.GetXmlSchemaVersion(TransmissionContext."Period No.");
         CompanyInformation.Get();
+        Schema.ValidateTransmission(TransmissionContext);
 
         TIN := Helper.FormatTIN(CompanyInformation."Federal ID No.");
         if StrLen(TIN) <> GetTINLength() then
