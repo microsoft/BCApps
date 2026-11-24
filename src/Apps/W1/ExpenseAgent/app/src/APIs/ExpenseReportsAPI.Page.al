@@ -482,6 +482,26 @@ page 6928 "Expense Reports API"
     end;
 
     [ServiceEnabled]
+    procedure AddCardExpenseToReport(var ActionContext: WebServiceActionContext; ExpenseId: Guid)
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        ExpenseNotFoundErr: Label 'Expense with Id %1 not found.', Comment = '%1 = Expense System Id';
+    begin
+        if not Expense.GetBySystemId(ExpenseId) then
+            Error(ExpenseNotFoundErr, ExpenseId);
+
+        ExpenseReportLine := CreateExpenseReport.AddCardExpenseToExpenseReport(Expense, Rec);
+        EAKPITrack.UpdateExpenseReportLineEntry(ExpenseReportLine);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
     procedure AssignInterimApprover(var ActionContext: WebServiceActionContext; InterimApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
     begin
         Rec.AssignInterimApprover(InterimApproverExpenseUserNo, ActorExpenseUserNo);
