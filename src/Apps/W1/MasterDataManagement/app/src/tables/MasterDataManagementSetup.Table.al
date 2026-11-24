@@ -99,14 +99,27 @@ table 7230 "Master Data Management Setup"
                 // Re-pointing an enabled setup would leave stale couplings/cursors against the old source; force a disable/rebuild.
                 if "Is Enabled" and ("Source Environment Name" <> xRec."Source Environment Name") then
                     Error(CannotChangeSourceWhileEnabledErr);
+                // The name becomes a path segment of the request URL, so it must be a plain environment name.
+                if "Source Environment Name" <> '' then
+                    CheckSourceEnvironmentName("Source Environment Name");
                 MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
             end;
         }
+#if not CLEANSCHEMA33
         field(156; "Source Environment URL"; Text[250])
         {
             Caption = 'Source Environment URL';
             DataClassification = OrganizationIdentifiableInformation;
+            ObsoleteReason = 'The source request URL is no longer stored. It is built at runtime from the source environment name and the tenant of this environment.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(157; "Source Company Name"; Text[100])
         {
             Caption = 'Source Company';
@@ -216,12 +229,35 @@ table 7230 "Master Data Management Setup"
 
     internal procedure IsCrossEnvConnectionConfigured(): Boolean
     begin
-        exit(("Source Environment URL" <> '') and ("Source Company Name" <> '') and ("Source OAuth Client Id" <> '') and HasSourceCredential());
+        exit(IsCrossEnvironment() and ("Source Company Name" <> '') and ("Source OAuth Client Id" <> '') and HasSourceCredential());
     end;
 
     internal procedure IsCrossEnvironment(): Boolean
     begin
         exit("Source Environment Name" <> '');
+    end;
+
+    // Business Central environment names have up to 30 characters, start with a letter, and contain only letters,
+    // digits, hyphens and underscores. Anything else (for example '/', '.', '?', '#' or '%') could change which
+    // tenant or resource the request URL addresses.
+    internal procedure IsValidSourceEnvironmentName(EnvironmentName: Text): Boolean
+    begin
+        if (EnvironmentName = '') or (StrLen(EnvironmentName) > 30) then
+            exit(false);
+        if DelChr(CopyStr(EnvironmentName, 1, 1), '=', EnvironmentNameLettersTok) <> '' then
+            exit(false);
+        exit(DelChr(EnvironmentName, '=', EnvironmentNameLettersTok + EnvironmentNameOtherCharsTok) = '');
+    end;
+
+    internal procedure CheckSourceEnvironmentName(EnvironmentName: Text)
+    var
+        ErrInfo: ErrorInfo;
+    begin
+        if IsValidSourceEnvironmentName(EnvironmentName) then
+            exit;
+        ErrInfo.Message := StrSubstNo(InvalidSourceEnvironmentNameErr, EnvironmentName);
+        ErrInfo.DataClassification := DataClassification::CustomerContent; // the message echoes the entered name
+        Error(ErrInfo);
     end;
 
     // The source connection authenticates with either a client secret or a certificate, never both.
@@ -238,7 +274,11 @@ table 7230 "Master Data Management Setup"
     // Reverting to same-environment: drop the source connection details and the stored credentials.
     internal procedure ClearCrossEnvConnection()
     begin
+#if not CLEAN30
+#pragma warning disable AL0432
         "Source Environment URL" := '';
+#pragma warning restore AL0432
+#endif
         "Source Company Name" := '';
         "Source OAuth Client Id" := '';
         ClearSourceCredentials();
@@ -549,6 +589,9 @@ table 7230 "Master Data Management Setup"
         MustConfigureConnectionErr: label 'Enter the cross-environment connection details before you enable synchronization.';
         OpenSetupNavigationTxt: label 'Open Master Data Management Setup';
         CannotChangeSourceWhileEnabledErr: label 'You cannot change the source environment while synchronization is enabled. Disable synchronization first, then change the source.';
+        InvalidSourceEnvironmentNameErr: label 'The source environment name ''%1'' is not valid. An environment name has up to 30 characters, starts with a letter, and contains only letters, numbers, hyphens (-), and underscores (_).', Comment = '%1 = the entered source environment name';
+        EnvironmentNameLettersTok: label 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', Locked = true;
+        EnvironmentNameOtherCharsTok: label '0123456789-_', Locked = true;
         EncryptionRequiredErr: label 'Enable data encryption before saving the source connection secret. Cross-environment credentials are never stored unencrypted.';
         CertificateNotReadableErr: label 'The certificate could not be read. Make sure that the file is a .pfx or .p12 certificate and that the password is correct.';
         CertificateWithoutPrivateKeyErr: label 'The certificate does not contain a private key. Upload a .pfx or .p12 file that includes the private key of the certificate registered for the Microsoft Entra application.';
