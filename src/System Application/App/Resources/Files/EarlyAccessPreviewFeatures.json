@@ -9,7 +9,7 @@
     {
         "FeatureName": "Add subcontracting suggestions to an existing purchase order",
         "ReleaseVersion": "30.0",
-        "Description": "Business Central 30.0. You can add new subcontracting worksheet suggestions to a compatible open purchase order for the same vendor, keeping related work on one order.",
+        "Description": "You can add new subcontracting worksheet suggestions to a compatible open purchase order for the same vendor, keeping related work on one order.",
         "GettingStartedSteps": [
             "Use a company with the Premium experience and Microsoft's Subcontracting app installed and set up. Start with a released production order that has an outstanding operation at a subcontractor work center.",
             "Open Subcontracting Worksheets and choose Calculate Subcontracts to get a suggestion for that operation.",
