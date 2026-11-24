@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Dimension;
 
-codeunit 6916 "Exp. Report Change Log Mgt."
+codeunit 6927 "Exp. Report Change Log Mgt."
 {
     Access = Internal;
     Permissions = tabledata "Exp. Report Change Log Entry" = rimd,
