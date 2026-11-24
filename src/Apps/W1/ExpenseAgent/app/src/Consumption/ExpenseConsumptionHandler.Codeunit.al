@@ -118,23 +118,6 @@ codeunit 6969 "Expense Consumption Handler"
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
 
-    internal procedure LogAIConsumption(
-        AiConsumptionRequestJson: JsonObject;
-        ActionsSummary: Text;
-        ConsumptionSourceType: Enum "Expense Agent Cons. Source";
-        ConsumptionSourceSystemId: Guid;
-        Operation: Code[50];
-        ExpenseUserNo: Code[20]): Guid
-    var
-        Usage: Integer;
-        CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
-    begin
-        ReadV1Usage(AiConsumptionRequestJson, Usage, CopilotQuotaUsageType);
-
-        exit(LogAIConsumption(Usage, CopilotQuotaUsageType,
-            Truncate(ActionsSummary), ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo));
-    end;
-
     local procedure ReadV1Usage(AiConsumptionRequestJson: JsonObject; var Usage: Integer; var CopilotQuotaUsageType: Enum "Copilot Quota Usage Type")
     var
         V1Json: JsonObject;
