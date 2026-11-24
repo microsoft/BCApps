@@ -227,6 +227,7 @@ table 6969 "Expense Agent Env. Consumption"
         DeletedRecordTxt: Label 'Deleted %1', Comment = '%1: a record caption, such as "Expense Report"';
         RecordIdStringPatternTxt: Label '%1 %2', Comment = '%1: a record caption, such as "Expense Report"; %2: a record number, such as "ER123"';
 
+    [NonDebuggable]
     procedure GetTaskDisplayName(var TaskShortName: Text[30]; var TaskLongName: Text)
     var
         TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
@@ -235,6 +236,7 @@ table 6969 "Expense Agent Env. Consumption"
         GetTaskDisplayName(TempUserAIConsumptionData."Company Name", TaskShortName, TaskLongName);
     end;
 
+    [NonDebuggable]
     procedure GetTaskDisplayName(SourceCompany: Text[30]; var TaskShortName: Text[30]; var TaskLongName: Text)
     var
         DestinationCompany: Text[30];
@@ -251,13 +253,11 @@ table 6969 "Expense Agent Env. Consumption"
         TaskShortName := CopyStr(TaskLongName, 1, 30);
     end;
 
+    [NonDebuggable]
     procedure GetBillingDetails(var TempUserAIConsumptionData: Record "User AI Consumption Data" temporary): Boolean
     var
         UserAIConsumptionData: Record "User AI Consumption Data";
         AIConsumptionLogEntry: Record "AI Consumption Log Entry";
-        DescriptionInStream: InStream;
-        DescriptionOutStream: OutStream;
-        ActionsText: Text;
     begin
         Clear(TempUserAIConsumptionData);
         if not AIConsumptionLogEntry.ReadPermission() then
@@ -272,13 +272,30 @@ table 6969 "Expense Agent Env. Consumption"
             TempUserAIConsumptionData."Copilot Credits" := AIConsumptionLogEntry."AI Credits";
             TempUserAIConsumptionData."Company Name" := AIConsumptionLogEntry."Company Name";
             TempUserAIConsumptionData."Processed For Billing" := AIConsumptionLogEntry."Reporting State" = Enum::"AI Consumption Reporting State"::Completed;
+            exit(true);
+        end;
+
+        UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
+        if not UserAIConsumptionData.FindFirst() then
+            exit(false);
+
+        TempUserAIConsumptionData := UserAIConsumptionData;
+        exit(true);
+    end;
+
+    [NonDebuggable]
+    procedure GetBillingDescription(var DescriptionInStream: InStream): Boolean
+    var
+        UserAIConsumptionData: Record "User AI Consumption Data";
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+    begin
+        Clear(DescriptionInStream);
+        if not AIConsumptionLogEntry.ReadPermission() then
+            exit(false);
+
+        if AIConsumptionLogEntry.GetBySystemId(Rec.SystemId) then begin
             AIConsumptionLogEntry.CalcFields(Description);
             AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
-            TempUserAIConsumptionData.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
-            CopyStream(DescriptionOutStream, DescriptionInStream);
-            AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
-            DescriptionInStream.ReadText(ActionsText, MaxStrLen(TempUserAIConsumptionData.Actions));
-            TempUserAIConsumptionData.Actions := CopyStr(ActionsText, 1, MaxStrLen(TempUserAIConsumptionData.Actions));
             exit(true);
         end;
 
@@ -287,7 +304,7 @@ table 6969 "Expense Agent Env. Consumption"
             exit(false);
 
         UserAIConsumptionData.CalcFields(Description);
-        TempUserAIConsumptionData := UserAIConsumptionData;
+        UserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
         exit(true);
     end;
 

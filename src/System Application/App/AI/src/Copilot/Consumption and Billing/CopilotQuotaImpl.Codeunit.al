@@ -45,11 +45,13 @@ codeunit 7786 "Copilot Quota Impl."
         exit(CanConsume(ConsumptionEntraPrincipalId, true));
     end;
 
+    [NonDebuggable]
     procedure CanConsume(ConsumptionEntraPrincipalId: Guid): Boolean
     begin
         exit(CanConsume(ConsumptionEntraPrincipalId, false));
     end;
 
+    [NonDebuggable]
     local procedure CanConsume(ConsumptionEntraPrincipalId: Guid; UseSessionPrincipal: Boolean): Boolean
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
@@ -134,6 +136,7 @@ codeunit 7786 "Copilot Quota Impl."
         );
     end;
 
+    [NonDebuggable]
     procedure RecordAIConsumption(CopilotCapability: Enum "Copilot Capability"; ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; CorrelationId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; AgentTaskId: BigInteger; Metadata: Text; Description: Text; IsFeatureTrial: Boolean; CallerModuleInfo: ModuleInfo)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
@@ -157,6 +160,7 @@ codeunit 7786 "Copilot Quota Impl."
             IsFeatureTrial);
     end;
 
+    [NonDebuggable]
     procedure IsAIConsumptionRecorded(ConsumptionId: Guid): Boolean
     var
         AIConsumptionLogEntry: Record "AI Consumption Log Entry";

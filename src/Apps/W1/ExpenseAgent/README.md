@@ -17,6 +17,8 @@ and continues recording with the supplied ID. A blank stored ID doesn't prevent
 recording.
 The System Application `Copilot Quota.CanConsume(Guid)` overload is scoped to
 OnPrem; the parameterless overload still resolves the principal from the session.
+The new production billing methods and the consumption API entry points are
+marked `NonDebuggable`. Identity-mismatch telemetry remains publisher-only.
 
 One environment consumption record identifies the event by source type, source
 system ID, and operation. V1 uses its text consumption key; V2 uses its
@@ -38,8 +40,9 @@ The billing overview reads V2 details from `AI Consumption Log Entry` by
 It doesn't combine credits from the two ledgers. Copilot Studio feature fields
 are blank for V2 events. The expense user's name must be present to supply the
 V2 consumption principal's display name.
-The action summary is limited to 1,024 characters; the description drilldown
-retains the full text.
+V2 Actions stays empty. List rendering doesn't load description blobs from
+either ledger. Description drilldown looks up the current V2 entry, or the V1
+entry when no V2 entry exists, and loads the full text on demand.
 
 The companion table's V1 lookup FlowFields are obsolete as of 30.0.
 Use `GetBillingDetails` to read billing details from the active ledger.

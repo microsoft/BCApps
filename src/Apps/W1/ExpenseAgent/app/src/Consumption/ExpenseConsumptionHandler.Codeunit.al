@@ -76,6 +76,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
 
+    [NonDebuggable]
     internal procedure LogAIConsumptionV2(
         AiConsumptionRequestJson: JsonObject;
         ActionsSummary: Text;
@@ -118,6 +119,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
 
+    [NonDebuggable]
     local procedure ReadV1Usage(AiConsumptionRequestJson: JsonObject; var Usage: Integer; var CopilotQuotaUsageType: Enum "Copilot Quota Usage Type")
     var
         V1Json: JsonObject;
@@ -127,6 +129,7 @@ codeunit 6969 "Expense Consumption Handler"
         Evaluate(CopilotQuotaUsageType, V1Json.GetText('usageType', false));
     end;
 
+    [NonDebuggable]
     local procedure GetOrCreateConsumption(var ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ConsumptionSourceType: Enum "Expense Agent Cons. Source"; ConsumptionSourceSystemId: Guid; Operation: Code[50]; ExpenseUserNo: Code[20])
     var
         UniqueId: Text[1024];
@@ -200,6 +203,7 @@ codeunit 6969 "Expense Consumption Handler"
         exit(QuotaProvider.CanConsumePaidQuota());
     end;
 
+    [NonDebuggable]
     internal procedure CanConsume(ConsumptionEntraPrincipalId: Guid): Boolean
     begin
         if TrialQuotaAvailable() then

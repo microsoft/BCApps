@@ -35,6 +35,7 @@ codeunit 6913 "Expense Agent Quota Impl." implements "Expense Agent Quota"
         exit(CopilotQuota.CanConsume());
     end;
 
+    [NonDebuggable]
     procedure CanConsumePaidQuota(ConsumptionEntraPrincipalId: Guid): Boolean
     begin
         exit(CopilotQuota.CanConsume(ConsumptionEntraPrincipalId));
@@ -51,6 +52,7 @@ codeunit 6913 "Expense Agent Quota Impl." implements "Expense Agent Quota"
             Quota, Quota, Quota, Quota, '');
     end;
 
+    [NonDebuggable]
     procedure LogConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024]; ExcludeFromBilling: Boolean)
     begin
         CopilotQuota.LogAgentUserAIConsumption(
@@ -64,6 +66,7 @@ codeunit 6913 "Expense Agent Quota Impl." implements "Expense Agent Quota"
             ExcludeFromBilling);
     end;
 
+    [NonDebuggable]
     procedure RecordConsumption(ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; Description: Text; IsFeatureTrial: Boolean)
     begin
         CopilotQuota.RecordAIConsumption(

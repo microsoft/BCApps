@@ -112,6 +112,7 @@ page 6968 "Expense User Cons. API"
 #endif
 
     [ServiceEnabled]
+    [NonDebuggable]
     procedure LogAIConsumptionV2(
         AiConsumptionRequest: Text;
         AgentConversationSessionId: Guid;
@@ -168,6 +169,7 @@ page 6968 "Expense User Cons. API"
     end;
 
     [ServiceEnabled]
+    [NonDebuggable]
     procedure CanConsume(): Boolean
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();

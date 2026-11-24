@@ -106,6 +106,7 @@ codeunit 7785 "Copilot Quota"
     /// <param name="IsFeatureTrial">Whether this consumption belongs to a feature trial.</param>
     /// <remarks>Uses the V2 consumption pipeline. During migration, also call LogAgentUserAIConsumption for the same consumption.</remarks>
     [Scope('OnPrem')]
+    [NonDebuggable]
     procedure RecordAIConsumption(CopilotCapability: Enum "Copilot Capability"; ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; CorrelationId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; AgentTaskId: BigInteger; Metadata: Text; Description: Text; IsFeatureTrial: Boolean)
     var
         CallerModuleInfo: ModuleInfo;
@@ -121,6 +122,7 @@ codeunit 7785 "Copilot Quota"
     /// <returns>True if the V2 consumption entry exists; otherwise, false.</returns>
     /// <remarks>Checks consumption recorded through the V2 consumption pipeline only.</remarks>
     [Scope('OnPrem')]
+    [NonDebuggable]
     procedure IsAIConsumptionRecorded(ConsumptionId: Guid): Boolean
     begin
         exit(CopilotQuotaImpl.IsAIConsumptionRecorded(ConsumptionId));
@@ -158,11 +160,13 @@ codeunit 7785 "Copilot Quota"
     /// <returns>True if allowed, false otherwise.</returns>
     /// <remarks>Checks both V1 and V2 consumption quota and returns true if either pipeline allows consumption.</remarks>
     [Scope('OnPrem')]
+    [NonDebuggable]
     procedure CanConsume(ConsumptionEntraPrincipalId: Guid): Boolean
     begin
         exit(CopilotQuotaImpl.CanConsume(ConsumptionEntraPrincipalId));
     end;
 
+    [NonDebuggable]
     local procedure LogV1ConsumptionReportingWarning(CopilotCapability: Enum "Copilot Capability")
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";

@@ -64,8 +64,7 @@ page 7079 "EA Billing Overview"
                         FullDescription: Text;
                         TextLine: Text;
                     begin
-                        if Rec.GetBillingDetails(TempUserAIConsumptionData) then begin
-                            TempUserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+                        if Rec.GetBillingDescription(DescriptionInStream) then begin
                             while not DescriptionInStream.EOS() do begin
                                 DescriptionInStream.ReadText(TextLine);
                                 if FullDescription <> '' then

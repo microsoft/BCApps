@@ -603,6 +603,7 @@ codeunit 148299 "Expense Consumption Test"
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
+        DescriptionInStream: InStream;
     begin
         // [SCENARIO] A companion without a platform entry has no billing details yet
         Initialize();
@@ -613,6 +614,7 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(0, TempUserAIConsumptionData."Copilot Credits", 'Pending consumption must not retain a previous row''s credits.');
         Assert.IsFalse(TempUserAIConsumptionData."Processed For Billing", 'Pending consumption must not appear processed.');
         Assert.AreEqual(CompanyName(), TempUserAIConsumptionData."Company Name", 'Pending consumption must retain the source company.');
+        Assert.IsFalse(ExpenseAgentEnvConsumption.GetBillingDescription(DescriptionInStream), 'Neither ledger means no description is available.');
     end;
 
     [Test]
@@ -643,7 +645,10 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual('Legacy action', TempUserAIConsumptionData.Actions, 'V1 actions must remain unchanged.');
         Assert.AreEqual(2, TempUserAIConsumptionData."Copilot Studio Feature Quantity", 'V1 quantities must remain unchanged.');
         Assert.IsTrue(TempUserAIConsumptionData."Processed For Billing", 'V1 processing state must remain unchanged.');
-        VerifyBillingDescription(TempUserAIConsumptionData, 'Legacy description');
+        UserAIConsumptionData.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
+        DescriptionOutStream.WriteText('Updated legacy description');
+        UserAIConsumptionData.Modify();
+        VerifyBillingDescription(ExpenseAgentEnvConsumption, 'Updated legacy description');
     end;
 
     [Test]
@@ -665,13 +670,15 @@ codeunit 148299 "Expense Consumption Test"
         AIConsumptionLogEntry.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
         DescriptionOutStream.WriteText('Model action');
         AIConsumptionLogEntry.Insert(false, true);
+        TempUserAIConsumptionData.Actions := 'Previous action';
 
         Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'V2 details must be found by SystemId.');
         Assert.AreEqual(3.5, TempUserAIConsumptionData."Copilot Credits", 'The overview must use V2 AI credits.');
-        Assert.AreEqual('Model action', TempUserAIConsumptionData.Actions, 'The overview must use the V2 description.');
+        Assert.AreEqual('', TempUserAIConsumptionData.Actions, 'V2 actions must remain empty without retaining a previous row''s value.');
+        Assert.IsFalse(TempUserAIConsumptionData.Description.HasValue(), 'V2 list details must not load the description.');
         Assert.AreEqual('', TempUserAIConsumptionData."Copilot Studio Feature", 'V2 must not invent a V1 feature.');
         Assert.IsFalse(TempUserAIConsumptionData."Processed For Billing", 'Pending V2 reporting is not completed.');
-        VerifyBillingDescription(TempUserAIConsumptionData, 'Model action');
+        VerifyBillingDescription(ExpenseAgentEnvConsumption, 'Model action');
 
         AIConsumptionLogEntry."Reporting State" := Enum::"AI Consumption Reporting State"::Completed;
         AIConsumptionLogEntry.Modify();
@@ -680,7 +687,7 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
-    procedure BillingDetailsTruncateV2ActionsAndPreserveDescription()
+    procedure BillingDetailsLoadV2DescriptionOnDemand()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         AIConsumptionLogEntry: Record "AI Consumption Log Entry";
@@ -688,8 +695,10 @@ codeunit 148299 "Expense Consumption Test"
         DescriptionOutStream: OutStream;
         Description: Text;
     begin
-        // [SCENARIO] V2 action text fits its field while the full description remains available
+        // [SCENARIO] V2 summaries omit description data and drilldown loads the latest full description
         Initialize();
+
+        // [GIVEN] A V2 ledger entry with a description longer than the legacy action field
         CreateBillingCompanion(ExpenseAgentEnvConsumption);
         Description := PadStr('Model action ', MaxStrLen(TempUserAIConsumptionData.Actions) + 1, 'x');
         AIConsumptionLogEntry.SystemId := ExpenseAgentEnvConsumption.SystemId;
@@ -697,10 +706,21 @@ codeunit 148299 "Expense Consumption Test"
         DescriptionOutStream.WriteText(Description);
         AIConsumptionLogEntry.Insert(false, true);
 
+        // [WHEN] The list loads the billing summary
         Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'V2 details must be found by SystemId.');
-        Assert.AreEqual(MaxStrLen(TempUserAIConsumptionData.Actions), StrLen(TempUserAIConsumptionData.Actions), 'V2 action text must stop at the field limit.');
-        Assert.AreEqual(CopyStr(Description, 1, MaxStrLen(TempUserAIConsumptionData.Actions)), TempUserAIConsumptionData.Actions, 'V2 actions must retain the description prefix.');
-        VerifyBillingDescription(TempUserAIConsumptionData, Description);
+
+        // [THEN] No action prefix or description is loaded
+        Assert.AreEqual('', TempUserAIConsumptionData.Actions, 'V2 actions must remain empty.');
+        Assert.IsFalse(TempUserAIConsumptionData.Description.HasValue(), 'V2 list details must not load the description.');
+
+        // [GIVEN] The description changes after the list was loaded
+        Description := 'Updated ' + Description;
+        AIConsumptionLogEntry.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
+        DescriptionOutStream.WriteText(Description);
+        AIConsumptionLogEntry.Modify();
+
+        // [WHEN] [THEN] Drilldown loads the latest description without truncation
+        VerifyBillingDescription(ExpenseAgentEnvConsumption, Description);
     end;
 
     local procedure LogV2Consumption(var ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler"; SourceId: Guid; Operation: Code[50]): Guid
@@ -732,12 +752,12 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseAgentEnvConsumption.Insert();
     end;
 
-    local procedure VerifyBillingDescription(TempUserAIConsumptionData: Record "User AI Consumption Data" temporary; ExpectedDescription: Text)
+    local procedure VerifyBillingDescription(ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption"; ExpectedDescription: Text)
     var
         DescriptionInStream: InStream;
         Description: Text;
     begin
-        TempUserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+        Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDescription(DescriptionInStream), 'The billing description must be available on demand.');
         DescriptionInStream.ReadText(Description);
         Assert.AreEqual(ExpectedDescription, Description, 'The full billing description must remain available.');
     end;
