@@ -370,6 +370,7 @@ function Test-IsObjectIdInAllowedRange {
     Reads every build project settings.json and resolves its testFolders entries to absolute paths. It also
     includes projects marked isTest in projects.json, which covers test utilities listed as AL-Go appFolders.
     A trailing wildcard is treated as the containing test folder because every application below it is a test app.
+    Wildcards elsewhere in the path (e.g. 'src/Apps/W1/*/Test') are expanded to the matching existing folders.
     .PARAMETER ProjectsPath
     The directory containing the AL-Go build projects.
     .PARAMETER ProjectsJsonPath
@@ -392,7 +393,16 @@ function Get-ALGoTestFolders {
         foreach ($testFolder in @($settings.testFolders)) {
             $testFolderWithoutWildcard = $testFolder -replace '[\\/]\*$', ''
             $projectFolder = $settingsFile.Directory.Parent.FullName
-            $testFolders += [System.IO.Path]::GetFullPath((Join-Path -Path $projectFolder -ChildPath $testFolderWithoutWildcard))
+            $testFolderPath = [System.IO.Path]::GetFullPath((Join-Path -Path $projectFolder -ChildPath $testFolderWithoutWildcard))
+            if ([System.Management.Automation.WildcardPattern]::ContainsWildcardCharacters($testFolderPath)) {
+                # Expand wildcards inside the path (e.g. 'src/Apps/W1/*/Test') to the matching folders.
+                $testFolders += @(Get-Item -Path $testFolderPath -ErrorAction SilentlyContinue |
+                    Where-Object { $_.PSIsContainer } |
+                    ForEach-Object { $_.FullName })
+            }
+            else {
+                $testFolders += $testFolderPath
+            }
         }
     }
 
