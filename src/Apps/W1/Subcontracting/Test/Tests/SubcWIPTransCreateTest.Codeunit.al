@@ -2126,11 +2126,11 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        ReusedReturnNo: Code[20];
+        OtherReturnNo: Code[20];
         PurchaseOrder: TestPage "Purchase Order";
     begin
         // [FEATURE] [AI test 0.3] [Subcontracting] [WIP Return]
-        // [SCENARIO] A return originating from another purchase order is included through current-order lines.
+        // [SCENARIO 653930] Returns from another purchase order remain excluded from current-order navigation.
         Initialize();
         LibraryVariableStorage.Clear();
 
@@ -2150,21 +2150,24 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine.SetRange("Subc. Purch. Order No.", OtherPurchaseHeader."No.");
         TransferLine.SetRange("Subc. Return Order", true);
         TransferLine.FindFirst();
-        ReusedReturnNo := TransferLine."Document No.";
+        OtherReturnNo := TransferLine."Document No.";
         CreateOutboundNavigationDecoy(PurchaseHeader);
 
-        // [WHEN] "P1" creates its returns, reusing the existing open header.
+        // [WHEN] "P1" creates its returns while "P2" has a matching open header.
         PurchaseOrder.GoToRecord(PurchaseHeader);
         PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
 
-        // [THEN] The reused header keeps "P2" as its origin but has a return line linked to "P1".
-        TransferHeader.Get(ReusedReturnNo);
-        Assert.AreEqual(OtherPurchaseHeader."No.", TransferHeader."Subcontr. Purch. Order No.", 'The reused header must retain its original purchase order.');
+        // [THEN] "P1" does not reuse the "P2" header.
         TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader."No.");
-        TransferLine.SetRange("Document No.", ReusedReturnNo);
-        Assert.RecordCount(TransferLine, 1);
+        TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.FindSet();
+        repeat
+            Assert.AreNotEqual(OtherReturnNo, TransferLine."Document No.", 'The current purchase order must not reuse another purchase order''s return header.');
+            TransferHeader.Get(TransferLine."Document No.");
+            Assert.AreEqual(PurchaseHeader."No.", TransferHeader."Subcontr. Purch. Order No.", 'The return header must belong to the current purchase order.');
+        until TransferLine.Next() = 0;
 
-        // [THEN] Both distinct return numbers appear in the list, excluding the outbound order.
+        // [THEN] Only the two current-order return numbers appear in the list, excluding outbound and "P2" orders.
         VerifyReturnNavigation(PurchaseHeader, 2, 'List');
         PurchaseOrder.Close();
         LibraryVariableStorage.AssertEmpty();
