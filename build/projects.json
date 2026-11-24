@@ -2264,6 +2264,17 @@
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "Depreciation Differences FI Demo Data Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FI\\DepreciationDifferencesFI\\demo data test",
+      "dvdFolder": "Applications\\DepreciationDifferencesFI\\DemoDataTest",
+      "supportedCountries": "FI",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
+      "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
     "DK Core": {
       "projectPath": "$env:INETROOT\\App\\Apps\\DK\\DKCore\\app",
       "dvdFolder": "Applications\\DKCore\\Source",
@@ -5403,7 +5414,7 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
-    "Expense Agent (Preview)": {
+    "Expense Agent": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\ExpenseAgent\\app",
       "hasTranslations": true,
       "supportedCountries": "All",
@@ -6768,6 +6779,18 @@
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true
+    },
+    "Business Skills Test Library": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\LibraryBusinessSkill",
+      "isMultiCountry": true,
+      "dvdFolder": "Applications\\TestFramework\\TestLibraries\\Business Skills",
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json",
+      "repositoryUrl": "https://github.com/microsoft/BCApps",
+      "allowedEnvironmentTypes": [
+        "Sandbox"
+      ]
     },
     "Agent Test Library": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\LibraryAgent",

@@ -18,5 +18,6 @@ permissionset 99 "Reporting - Edit"
 #pragma warning restore AL0432
                   tabledata "Report Layout Definition" = R,
                   tabledata "Tenant Report Layout" = RIMD,
+                  tabledata "Tenant Report Layout Override" = RIMD,
                   tabledata "Tenant Report Layout Selection" = RIMD;
 }
