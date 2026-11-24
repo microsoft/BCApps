@@ -88,7 +88,7 @@ table 847 "Cash Flow Forecast Entry"
             AutoFormatExpression = '';
             Caption = 'Payment Discount';
         }
-        field(22; "Associated Entry No."; Integer)
+        field(22; "Associated Entry No."; BigInteger)
         {
             Caption = 'Associated Entry No.';
         }
@@ -134,7 +134,8 @@ table 847 "Cash Flow Forecast Entry"
         field(33; "Source No."; Code[20])
         {
             Caption = 'Source No.';
-            TableRelation = if ("Source Type" = const("Liquid Funds")) "G/L Account"
+            TableRelation =
+            if ("Source Type" = const("Liquid Funds")) "G/L Account"
             else
             if ("Source Type" = const(Receivables)) "Cust. Ledger Entry"."Document No."
             else

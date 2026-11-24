@@ -180,7 +180,7 @@ table 1101 "Cost Journal Line"
             Caption = 'System-Created Entry';
             Editable = false;
         }
-        field(32; "Cost Entry No."; Integer)
+        field(32; "Cost Entry No."; BigInteger)
         {
             Caption = 'Cost Entry No.';
             Editable = false;

@@ -102,7 +102,7 @@ report 5813 "Clean Up Post Value Entries"
         CompletedMsg: Label '%1 entries were checked.\%2 entries were deleted.\%3 entries still have cost to post to the general ledger.', Comment = '%1, %2, %3: number of entries';
         CountOnlyCompletedMsg: Label '%1 entries were checked.\%2 entries can be deleted.\%3 entries still have cost to post to the general ledger.', Comment = '%1, %2, %3: number of entries';
 
-    local procedure AddEntryToDelete(ValueEntryNo: Integer)
+    local procedure AddEntryToDelete(ValueEntryNo: BigInteger)
     begin
         TempPostValueEntryToGLToDelete.Init();
         TempPostValueEntryToGLToDelete."Value Entry No." := ValueEntryNo;

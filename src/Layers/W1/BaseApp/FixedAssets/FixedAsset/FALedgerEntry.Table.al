@@ -142,7 +142,7 @@ table 5601 "FA Ledger Entry"
             OptionCaption = ' ,Net,Gross';
             OptionMembers = " ",Net,Gross;
         }
-        field(21; "Disposal Entry No."; Integer)
+        field(21; "Disposal Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Disposal Entry No.';
@@ -273,7 +273,8 @@ table 5601 "FA Ledger Entry"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -503,7 +504,7 @@ table 5601 "FA Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
             DataClassification = SystemMetadata;
@@ -517,7 +518,7 @@ table 5601 "FA Ledger Entry"
             ToolTip = 'Specifies whether the entry is excluded from derogatory depreciation calculations.';
             Editable = false;
         }
-        field(5866; "Derogatory Source Entry No."; Integer)
+        field(5866; "Derogatory Source Entry No."; BigInteger)
         {
             Caption = 'Derogatory Source Entry No.';
             ToolTip = 'Specifies the source fixed asset ledger entry linked to this derogatory entry.';
