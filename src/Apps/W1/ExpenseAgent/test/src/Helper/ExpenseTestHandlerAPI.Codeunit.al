@@ -131,6 +131,22 @@ codeunit 148307 "Expense Test Handler API"
         exit('Corporate card updated');
     end;
 
+    /// <summary>
+    /// Reopens a released expense that is not on a report, so tests can edit an expense created through POST /expenses,
+    /// which releases it.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_ReopenExpense?company=..." -d "{\"expenseId\": \"...\"}"
+    /// </summary>
+    [ServiceEnabled]
+    procedure ReopenExpense(expenseId: Guid): Text[50]
+    var
+        Expense: Record Expense;
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        Expense.GetBySystemId(expenseId);
+        ReleaseExpenseDocument.PerformManualReopen(Expense);
+        exit('Expense reopened');
+    end;
+
     local procedure FindOrCreateCorporateCard(ExpenseUserId: Guid; LastFourDigits: Text[4]; var CorpCard: Record "EA Corp Card")
     var
         ExpenseUser: Record "Expense User";
@@ -223,6 +239,7 @@ codeunit 148307 "Expense Test Handler API"
         TransactionJson.Add('status', Format(CorpCardTrans.Status));
         TransactionJson.Add('matchType', Format(CorpCardTrans."Match Type"));
         TransactionJson.Add('cardId', CorpCardTrans."Card Id");
+        TransactionJson.Add('lastFourDigits', CorpCardTrans."Card Last 4");
         TransactionJson.Add('expenseNo', CorpCardTrans."Expense No.");
         TransactionJson.Add('expenseId', ExpenseId);
         TransactionJson.Add('exceptionMessage', ExceptionMessage);
