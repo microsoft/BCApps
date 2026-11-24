@@ -153,7 +153,9 @@ From **External Storage Synchronize** report:
 - Every failed attachment is recorded in the **Error Message Register** with its original filename and reason. Interactive runs also show the **Error Messages** page; background runs register failures without raising an attachment error or opening dialogs.
 - If an upload creates an external file but its attachment update fails, the external file is retained, not automatically deleted. The registered error includes the created logical path for recovery. Verify the actual storage account and file before taking any manual action; the current account mapping is not proof of ownership.
 - **Maximum Records to Process** limits a run when nonzero. Subsequent runs exclude successfully uploaded attachments; failed attachments remain eligible for retry.
-- This change does not rename existing external files or remove provider-specific folder-name restrictions, including trailing-dot folder names.
+- Generated table folders retain the existing reserved-character removal and space-to-underscore conversion, and remove trailing periods after truncation to 100 characters. An empty result uses `Table_<TableID>`. For example, `Purch. Cr. Memo Hdr.` becomes `Purch._Cr._Memo_Hdr`.
+- Directory lookup, creation and upload use the same generated folder. Existing valid folder names and configured root folders remain unchanged. Downloads and restores use the saved External File Path as-is; existing external files and folders are not renamed.
+- Filenames retain their GUID suffix, keeping uploads distinct even when table names normalize to the same folder. Other provider-specific naming restrictions are not changed.
 
 ## Important Notes
 

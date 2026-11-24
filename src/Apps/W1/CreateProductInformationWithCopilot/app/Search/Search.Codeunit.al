@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,6 +13,9 @@ using System.Telemetry;
 
 codeunit 7333 "Search"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Copilot item substitution suggestions are discontinued. Use modern search on the Items list instead.';
+    ObsoleteTag = '30.0';
     Access = Internal;
 
     [TryFunction]
@@ -254,3 +258,4 @@ codeunit 7333 "Search"
         exit("Search Confidence"::None);
     end;
 }
+#endif

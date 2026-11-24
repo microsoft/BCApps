@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+/// <summary>
+/// Displays the list of spend requests.
+/// </summary>
 page 6840 "Spend Request List"
 {
     Caption = 'Spend Requests';

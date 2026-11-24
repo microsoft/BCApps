@@ -3,7 +3,8 @@ codeunit 134907 "ERM Invoice and Reminder"
     Permissions = TableData "Issued Reminder Header" = rimd,
                   TableData "Issued Reminder Line" = rimd,
                   TableData "Cust. Ledger Entry" = rimd,
-                  TableData "Detailed Cust. Ledg. Entry" = rimd;
+                  TableData "Detailed Cust. Ledg. Entry" = rimd,
+                  TableData "G/L Entry" = ri;
     Subtype = Test;
     TestPermissions = NonRestrictive;
     EventSubscriberInstance = Manual;
@@ -1458,12 +1459,22 @@ codeunit 134907 "ERM Invoice and Reminder"
 
     local procedure MockCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; LastIssuedReminderLevel: Integer; DueDate: Date)
     var
-        LastEntryNo: Integer;
+        GLEntry: Record "G/L Entry";
+        EntryNo: Integer;
     begin
-        if CustLedgerEntry.FindLast() then
-            LastEntryNo := CustLedgerEntry."Entry No.";
+        // Posted Cust. Ledger Entries take their Entry No. from G/L Entry, so reserve the number with a placeholder G/L Entry
+        // to prevent later postings in this codeunit from colliding with the mocked entry.
+        EntryNo := GLEntry.GetLastEntryNo();
+        if CustLedgerEntry.GetLastEntryNo() > EntryNo then
+            EntryNo := CustLedgerEntry.GetLastEntryNo();
+        EntryNo += 1;
+        GLEntry.Init();
+        GLEntry."Entry No." := EntryNo;
+        GLEntry."Posting Date" := WorkDate();
+        GLEntry.Insert();
+
         CustLedgerEntry.Init();
-        CustLedgerEntry."Entry No." := LastEntryNo + 1;
+        CustLedgerEntry."Entry No." := EntryNo;
         CustLedgerEntry."Customer No." := CustomerNo;
         CustLedgerEntry."Posting Date" := WorkDate();
         CustLedgerEntry."Document Type" := DocumentType;

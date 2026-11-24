@@ -7,9 +7,11 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Foundation.UOM;
 
+/// <summary>
+/// Stores the expense rules that apply to an expense category and location from an effective date.
+/// </summary>
 table 6927 "Expense Rule Header"
 {
-    Access = Internal;
     Caption = 'Expense Rule Header';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Management Rules";
@@ -119,6 +121,11 @@ table 6927 "Expense Rule Header"
         ExpenseRuleAppliedErr: Label 'You cannot delete or rename this %1 because it has been applied to at least one %2 or %3.', Comment = '%1 = Expense Rule Header table caption, %2 = Expense table caption, %3 = Expense Report Line table caption';
         RequiredSpecificMerchantNotAllowedErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Expense Detail Required value (Mileage or Per Diem), %4 = Expense Category table caption, %5 = Expense Category Code';
 
+    /// <summary>
+    /// Finds the latest expense rule that applies to the expense category, location, and date of the expense report line.
+    /// </summary>
+    /// <param name="ExpenseReportLine">The expense report line to find the rule for.</param>
+    /// <returns>True if an applicable rule was found; otherwise, false.</returns>
     procedure FindApplicableRule(ExpenseReportLine: Record "Expense Report Line"): Boolean
     begin
         Rec.SetRange("Expense Category Code", ExpenseReportLine."Expense Category");
@@ -130,6 +137,11 @@ table 6927 "Expense Rule Header"
         exit(false);
     end;
 
+    /// <summary>
+    /// Finds the latest expense rule that applies to the expense category, location, and date of the expense.
+    /// </summary>
+    /// <param name="Expense">The expense to find the rule for.</param>
+    /// <returns>True if an applicable rule was found; otherwise, false.</returns>
     procedure FindApplicableRule(Expense: Record Expense): Boolean
     begin
         Rec.SetRange("Expense Category Code", Expense."Expense Category");
