@@ -64,14 +64,13 @@ page 7079 "EA Billing Overview"
                         FullDescription: Text;
                         TextLine: Text;
                     begin
-                        if Rec.GetBillingDescription(DescriptionInStream) then begin
+                        if Rec.GetBillingDescription(DescriptionInStream) then
                             while not DescriptionInStream.EOS() do begin
                                 DescriptionInStream.ReadText(TextLine);
                                 if FullDescription <> '' then
                                     FullDescription += '\';
                                 FullDescription += TextLine;
                             end;
-                        end;
                         if FullDescription <> '' then
                             Message(FullDescription)
                         else
