@@ -1451,7 +1451,10 @@
             LibraryERM.FindCustomerLedgerEntry(
               CreditMemoCustLedgerEntry, CreditMemoCustLedgerEntry."Document Type"::"Credit Memo", CreditMemoNo);
             LibraryERM.SetApplyCustomerEntry(CreditMemoCustLedgerEntry, -ApplicationAmounts[ApplicationIndex]);
+            // The applied amount is limited by the invoice's Amount to Apply.
             InvoiceCustLedgerEntry.Get(InvoiceCustLedgerEntry."Entry No.");
+            InvoiceCustLedgerEntry.Validate("Amount to Apply", ApplicationAmounts[ApplicationIndex]);
+            InvoiceCustLedgerEntry.Modify(true);
             LibraryERM.SetAppliestoIdCustomer(InvoiceCustLedgerEntry);
             LibraryERM.PostCustLedgerApplication(CreditMemoCustLedgerEntry);
         end;
