@@ -2,9 +2,9 @@
     {
         "FeatureName": "Edit with Copilot",
         "Description": "Delegate real work to Copilot, such as creating or updating records or running actions in Business Central.",
-        "Category": "Other",
+        "Category": "AI",
         "HelpURL": "https://aka.ms/editBCwithCopilot",
-        "VideoURL": "",
+        "VideoURL": "https://youtu.be/RtG0l-4zlCI",
         "ReleaseVersion": "30.0",
         "GettingStartedSteps": [
             "Use a US, GB, or DE Business Central online early access preview sandbox on version 30.0.56564.0 or later with a Partner Sandbox license and evaluation data only.",
