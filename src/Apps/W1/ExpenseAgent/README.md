@@ -38,6 +38,8 @@ The billing overview reads V2 details from `AI Consumption Log Entry` by
 It doesn't combine credits from the two ledgers. Copilot Studio feature fields
 are blank for V2 events. The expense user's name must be present to supply the
 V2 consumption principal's display name.
+The action summary is limited to 1,024 characters; the description drilldown
+retains the full text.
 
 The companion table's V1 lookup FlowFields are obsolete as of 30.0.
 Use `GetBillingDetails` to read billing details from the active ledger.

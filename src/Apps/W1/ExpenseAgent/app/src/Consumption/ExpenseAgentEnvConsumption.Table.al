@@ -257,6 +257,7 @@ table 6969 "Expense Agent Env. Consumption"
         AIConsumptionLogEntry: Record "AI Consumption Log Entry";
         DescriptionInStream: InStream;
         DescriptionOutStream: OutStream;
+        ActionsText: Text;
     begin
         Clear(TempUserAIConsumptionData);
         if not AIConsumptionLogEntry.ReadPermission() then
@@ -276,7 +277,8 @@ table 6969 "Expense Agent Env. Consumption"
             TempUserAIConsumptionData.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
             CopyStream(DescriptionOutStream, DescriptionInStream);
             AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
-            DescriptionInStream.ReadText(TempUserAIConsumptionData.Actions, MaxStrLen(TempUserAIConsumptionData.Actions));
+            DescriptionInStream.ReadText(ActionsText, MaxStrLen(TempUserAIConsumptionData.Actions));
+            TempUserAIConsumptionData.Actions := CopyStr(ActionsText, 1, MaxStrLen(TempUserAIConsumptionData.Actions));
             exit(true);
         end;
 

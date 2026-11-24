@@ -679,6 +679,30 @@ codeunit 148299 "Expense Consumption Test"
         Assert.IsTrue(TempUserAIConsumptionData."Processed For Billing", 'Completed V2 reporting must appear processed.');
     end;
 
+    [Test]
+    procedure BillingDetailsTruncateV2ActionsAndPreserveDescription()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+        TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
+        DescriptionOutStream: OutStream;
+        Description: Text;
+    begin
+        // [SCENARIO] V2 action text fits its field while the full description remains available
+        Initialize();
+        CreateBillingCompanion(ExpenseAgentEnvConsumption);
+        Description := PadStr('Model action ', MaxStrLen(TempUserAIConsumptionData.Actions) + 1, 'x');
+        AIConsumptionLogEntry.SystemId := ExpenseAgentEnvConsumption.SystemId;
+        AIConsumptionLogEntry.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
+        DescriptionOutStream.WriteText(Description);
+        AIConsumptionLogEntry.Insert(false, true);
+
+        Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'V2 details must be found by SystemId.');
+        Assert.AreEqual(MaxStrLen(TempUserAIConsumptionData.Actions), StrLen(TempUserAIConsumptionData.Actions), 'V2 action text must stop at the field limit.');
+        Assert.AreEqual(CopyStr(Description, 1, MaxStrLen(TempUserAIConsumptionData.Actions)), TempUserAIConsumptionData.Actions, 'V2 actions must retain the description prefix.');
+        VerifyBillingDescription(TempUserAIConsumptionData, Description);
+    end;
+
     local procedure LogV2Consumption(var ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler"; SourceId: Guid; Operation: Code[50]): Guid
     begin
         exit(ExpenseConsumptionHandler.LogAIConsumptionV2(CreateValidConsumptionJson(), 'Processed expense',
