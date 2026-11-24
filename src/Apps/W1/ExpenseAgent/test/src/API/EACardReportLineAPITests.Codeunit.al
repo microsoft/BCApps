@@ -34,6 +34,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLinesServiceNameTok: Label 'expenseReportLines', Locked = true;
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
         AddExpenseToReportActionTok: Label 'Microsoft.NAV.addExpenseToReport', Locked = true;
+        ReleaseExpenseActionTok: Label 'Microsoft.NAV.releaseExpense', Locked = true;
         // Placeholders for APIs that do not exist yet.
         AttachCardReceiptActionTok: Label 'Microsoft.NAV.attachCardReceipt', Locked = true;
         AwaitingCardReportFieldTok: Label 'awaitingCardReport', Locked = true;
@@ -48,14 +49,15 @@ codeunit 148374 "EA Card Report Line API Tests"
     // ---------------------------------------------------------------------------------------------
 
     [Test]
-    procedure AddExpenseToReportAPIAcceptsOpenCardExpense()
+    procedure ReleaseAndAddExpenseToReportAPIAcceptCardExpenseWithoutCategory()
     var
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
         ResponseText: Text;
     begin
-        // [SCENARIO] addExpenseToReport adds an open card expense without a category, which "Create reports" relies on.
+        // [SCENARIO] "Create reports" releases a card expense without a category through releaseExpense and then adds it
+        // to a report through addExpenseToReport.
         Initialize();
 
         // [GIVEN] An open card expense without a category and an open report.
@@ -64,7 +66,8 @@ codeunit 148374 "EA Card Report Line API Tests"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
         Commit();
 
-        // [WHEN] addExpenseToReport is called with the expense id.
+        // [WHEN] releaseExpense and then addExpenseToReport are called.
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(GetExpenseActionURL(Expense, ReleaseExpenseActionTok), '', ResponseText, 200);
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetReportActionURL(ExpenseReportHeader, AddExpenseToReportActionTok), CreateAddExpenseRequest(Expense), ResponseText, 200);
 
@@ -82,17 +85,26 @@ codeunit 148374 "EA Card Report Line API Tests"
     procedure ExpensesAPIAwaitingCardReportListsOnlyCardExpensesNotOnReport()
     var
         AwaitingExpense: Record Expense;
+        ReleasedAwaitingExpense: Record Expense;
         OnReportExpense: Record Expense;
         LinkedManualExpense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
         // [SCENARIO] The pending page lists card expenses (Source = CorporateCard) that are not on a report yet.
         Initialize();
 
-        // [GIVEN] A card expense not on a report, a card expense on a report and a manual expense linked to a transaction.
+        // [GIVEN] An open and a released card expense not on a report, a card expense on a report and a manual expense
+        // linked to a transaction.
         CreateCardExpense(AwaitingExpense);
+        CreateCardExpense(ReleasedAwaitingExpense);
+        CreateCardCategory(ExpenseCategory);
+        ReleasedAwaitingExpense.Validate("Expense Category", ExpenseCategory.Code);
+        ReleasedAwaitingExpense.Modify(true);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(ReleasedAwaitingExpense);
         CreateCardLine(OnReportExpense, ExpenseReportLine);
         CreateLinkedManualExpense(LinkedManualExpense);
         Commit();
@@ -104,10 +116,11 @@ codeunit 148374 "EA Card Report Line API Tests"
                 GetUserScopedURL(AwaitingExpense, ExpensesServiceNameTok), '$filter=' + AwaitingCardReportFieldTok + ' eq true'),
             200);
 
-        // [THEN] Only the card expense that is not on a report is returned.
+        // [THEN] Only the card expenses that are not on a report are returned, open or released.
         GetIds(ResponseText, 'value', ExpenseIds);
-        Assert.AreEqual(1, ExpenseIds.Count(), 'Only the card expense that is not on a report must wait for a report.');
-        Assert.IsTrue(ExpenseIds.Contains(AwaitingExpense.SystemId), 'The card expense that is not on a report must be listed.');
+        Assert.AreEqual(2, ExpenseIds.Count(), 'Only card expenses that are not on a report must wait for a report.');
+        Assert.IsTrue(ExpenseIds.Contains(AwaitingExpense.SystemId), 'The open card expense that is not on a report must be listed.');
+        Assert.IsTrue(ExpenseIds.Contains(ReleasedAwaitingExpense.SystemId), 'The released card expense that is not on a report must be listed.');
         CompleteTest();
     end;
 
@@ -239,6 +252,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         BCUserCategory: Record "Expense Category";
         OcrCategory: Record "Expense Category";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
         // [SCENARIO] A category a BC user set on the expense before it was added to a report is not overwritten by OCR.
         Initialize();
@@ -249,6 +263,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         CreateCardCategory(OcrCategory);
         Expense.Validate("Expense Category", BCUserCategory.Code);
         Expense.Modify(true);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
         ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
         Commit();
@@ -460,9 +475,9 @@ codeunit 148374 "EA Card Report Line API Tests"
         asserterror LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(
             LibraryGraphMgt.CreateTargetURL(Format(Expense.SystemId), Page::"Expenses API", ExpensesServiceNameTok), '', ResponseText, 204);
 
-        // [THEN] The expense still exists, is open and is still linked to its transaction.
+        // [THEN] The expense still exists, is released again and is still linked to its transaction.
         Assert.IsTrue(Expense.Get(Expense."No."), 'The card expense must not be deleted.');
-        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField(Status, Expense.Status::Released);
         CorpCardTrans.Get(Expense."Credit Card Feed No.");
         CorpCardTrans.TestField("Expense No.", Expense."No.");
         CompleteTest();
@@ -518,13 +533,15 @@ codeunit 148374 "EA Card Report Line API Tests"
         Expense.Get(Expense."No.");
     end;
 
-    // Card line without a category, as "Create reports" creates it (needs open card expenses to be addable to a report).
+    // Card line without a category, as "Create reports" creates it (needs card expenses to be releasable without a category).
     local procedure CreateCardLineWithoutCategory(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
     var
         ExpenseReportHeader: Record "Expense Report Header";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
         CreateCardExpense(Expense);
         ClearCategory(Expense);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
         ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
         Expense.Get(Expense."No.");
@@ -704,6 +721,11 @@ codeunit 148374 "EA Card Report Line API Tests"
     begin
         exit(LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ExpenseReportHeader.SystemId), Page::"Expense Reports API", ExpenseReportsServiceNameTok, ActionName));
+    end;
+
+    local procedure GetExpenseActionURL(Expense: Record Expense; ActionName: Text): Text
+    begin
+        exit(LibraryGraphMgt.CreateTargetURLWithSubpage(Format(Expense.SystemId), Page::"Expenses API", ExpensesServiceNameTok, ActionName));
     end;
 
     local procedure GetUserScopedURL(Expense: Record Expense; SubpageServiceName: Text): Text

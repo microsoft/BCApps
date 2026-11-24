@@ -33,22 +33,48 @@ codeunit 148373 "EA Card Report Line Tests"
         MaxAmountTok: Label 'must not exceed', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
-    // An open card expense without a category can be added to a report
+    // A card expense can be released without a category, then added to a report through the normal path
     // ---------------------------------------------------------------------------------------------
 
     [Test]
-    procedure OpenCardExpenseWithoutCategoryCanBeAddedToReport()
+    procedure CardExpenseWithoutCategoryCanBeReleased()
+    var
+        Expense: Record Expense;
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        // [SCENARIO] A card expense created from a transaction can be released without a category, so "Create reports"
+        // can add it to a report before the receipt and the category are known.
+        Initialize();
+
+        // [GIVEN] An open card expense without a category.
+        CreateCardExpense(Expense, CardIdTok);
+        ClearCategory(Expense);
+
+        // [WHEN] The expense is released.
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+
+        // [THEN] The expense is released and keeps its card values.
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField("Expense Category", '');
+        Expense.TestField(Amount, 20);
+    end;
+
+    [Test]
+    procedure ReleasedCardExpenseWithoutCategoryCanBeAddedToReport()
     var
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
-        // [SCENARIO] A card expense created from a transaction can be added to a report while it is open and has no category.
+        // [SCENARIO] A released card expense without a category is added to a report through the existing path.
         Initialize();
 
-        // [GIVEN] An open card expense of 20 without a category.
+        // [GIVEN] A card expense of 20 released without a category.
         CreateCardExpense(Expense, CardIdTok);
         ClearCategory(Expense);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
         CreateReportForExpense(ExpenseReportHeader, Expense);
 
         // [WHEN] The expense is added to an open report.
@@ -56,24 +82,23 @@ codeunit 148373 "EA Card Report Line Tests"
 
         // [THEN] The line carries the card values and the expense is submitted on the report.
         VerifyCardLine(ExpenseReportLine, Expense);
+        ExpenseReportLine.TestField("Expense Category", '');
         Expense.Get(Expense."No.");
         Expense.TestField("Expense Report No.", ExpenseReportHeader."No.");
         Expense.TestField(Status, Expense.Status::Submitted);
     end;
 
     [Test]
-    procedure OpenManualExpenseStillCannotBeAddedToReport()
+    procedure OpenCardExpenseStillMustBeReleasedBeforeAddingToReport()
     var
         Expense: Record Expense;
-        CorpCard: Record "EA Corp Card";
         ExpenseReportHeader: Record "Expense Report Header";
     begin
-        // [SCENARIO] Only card expenses are relaxed; an open manual expense must still be released first.
+        // [SCENARIO] Regression: Adding to a report still requires a released expense, also for card expenses.
         Initialize();
 
-        // [GIVEN] An open manual expense paid with the card.
-        CorpCard.Get(CardIdTok);
-        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        // [GIVEN] An open card expense.
+        CreateCardExpense(Expense, CardIdTok);
         CreateReportForExpense(ExpenseReportHeader, Expense);
 
         // [WHEN] The expense is added to a report.
@@ -84,23 +109,45 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     [Test]
-    procedure OpenLinkedManualExpenseStillCannotBeAddedToReport()
+    procedure ManualExpenseWithoutCategoryStillCannotBeReleased()
     var
         Expense: Record Expense;
-        ExpenseReportHeader: Record "Expense Report Header";
+        CorpCard: Record "EA Corp Card";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
-        // [SCENARIO] A manual expense linked to a transaction keeps the normal flow and must be released first.
+        // [SCENARIO] Regression: Only card expenses can be released without a category; a manual expense still needs one.
         Initialize();
 
-        // [GIVEN] An open manual expense linked to a card transaction.
+        // [GIVEN] An open manual expense paid with the card, without a category.
+        CorpCard.Get(CardIdTok);
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        ClearCategory(Expense);
+
+        // [WHEN] The expense is released.
+        asserterror ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+
+        // [THEN] The category is required.
+        Assert.ExpectedError(Expense.FieldCaption("Expense Category"));
+    end;
+
+    [Test]
+    procedure LinkedManualExpenseWithoutCategoryStillCannotBeReleased()
+    var
+        Expense: Record Expense;
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        // [SCENARIO] Regression: A manual expense linked to a transaction is not created from it, so it still needs a category.
+        Initialize();
+
+        // [GIVEN] An open manual expense linked to a card transaction, without a category.
         CreateLinkedManualExpense(Expense);
-        CreateReportForExpense(ExpenseReportHeader, Expense);
+        ClearCategory(Expense);
 
-        // [WHEN] The expense is added to a report.
-        asserterror CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        // [WHEN] The expense is released.
+        asserterror ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
 
-        // [THEN] The expense must be released.
-        Assert.ExpectedError(Expense.FieldCaption(Status));
+        // [THEN] The category is required.
+        Assert.ExpectedError(Expense.FieldCaption("Expense Category"));
     end;
 
     [Test]
@@ -109,13 +156,16 @@ codeunit 148373 "EA Card Report Line Tests"
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
-        // [SCENARIO] The relaxed add does not relax report release; the user must set a category first.
+        // [SCENARIO] Releasing the card expense without a category does not relax report release; the user must set a
+        // category on the line first.
         Initialize();
 
-        // [GIVEN] A card expense without a category on an open report.
+        // [GIVEN] A card expense released without a category, on an open report.
         CreateCardExpense(Expense, CardIdTok);
         ClearCategory(Expense);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
         CreateReportForExpense(ExpenseReportHeader, Expense);
         ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
 
@@ -147,7 +197,6 @@ codeunit 148373 "EA Card Report Line Tests"
         // [THEN] The expense user must match.
         Assert.ExpectedError(OtherExpense.FieldCaption("Expense User No."));
     end;
-
     // ---------------------------------------------------------------------------------------------
     // A category change on a card line keeps the card values
     // ---------------------------------------------------------------------------------------------
@@ -421,18 +470,18 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // Removing a card line returns the expense to the pending list; card expenses cannot be deleted
+    // Removing a card line keeps the expense released and waiting for a report; card expenses cannot be deleted
     // ---------------------------------------------------------------------------------------------
 
     [Test]
-    procedure DeletingCardLineReturnsExpenseToOpen()
+    procedure DeletingCardLineKeepsExpenseReleasedAndLinked()
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         CorpCardTrans: Record "EA Corp Card Trans";
         FeedNo: Integer;
     begin
-        // [SCENARIO] "Remove from report" deletes the card line and puts the expense back in the pending list.
+        // [SCENARIO] "Remove from report" deletes the card line; the expense is released again, waits for a report and stays linked.
         Initialize();
 
         // [GIVEN] A card line on an open report.
@@ -442,9 +491,9 @@ codeunit 148373 "EA Card Report Line Tests"
         // [WHEN] The line is deleted.
         ExpenseReportLine.Delete(true);
 
-        // [THEN] The expense is open, off the report and still linked to its transaction.
+        // [THEN] The expense is released, off the report and still linked to its transaction.
         Expense.Get(Expense."No.");
-        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
         Expense.TestField("Credit Card Feed No.", FeedNo);
         CorpCardTrans.Get(FeedNo);
@@ -504,7 +553,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] After "Remove from report" the open card expense can be added to a report again.
+        // [SCENARIO] After "Remove from report" the released card expense can be added to a report again.
         Initialize();
 
         // [GIVEN] A card line that was removed from its report.
@@ -521,7 +570,7 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     [Test]
-    procedure DeletingReportWithCardLineReturnsExpenseToOpen()
+    procedure DeletingReportWithCardLineKeepsExpenseReleasedAndLinked()
     var
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
@@ -529,7 +578,7 @@ codeunit 148373 "EA Card Report Line Tests"
         CorpCardTrans: Record "EA Corp Card Trans";
         FeedNo: Integer;
     begin
-        // [SCENARIO] Deleting a whole draft report keeps its card expenses and puts them back in the pending list,
+        // [SCENARIO] Deleting a whole draft report keeps its card expenses released and waiting for a report,
         // so no card transaction points to a deleted expense.
         Initialize();
 
@@ -541,9 +590,9 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
         ExpenseReportHeader.Delete(true);
 
-        // [THEN] The expense is open, off the report and still linked to its transaction.
+        // [THEN] The expense is released, off the report and still linked to its transaction.
         Assert.IsTrue(Expense.Get(Expense."No."), 'The card expense must not be deleted with its report.');
-        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
         Expense.TestField("Credit Card Feed No.", FeedNo);
         CorpCardTrans.Get(FeedNo);
@@ -817,7 +866,7 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // Creates a card expense and adds it to an open report through the existing released path, so the line exists
-    // even before open card expenses can be added to a report.
+    // even before card expenses can be released without a category.
     local procedure CreateCardLine(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line"; CardId: Code[50])
     var
         ExpenseCategory: Record "Expense Category";
