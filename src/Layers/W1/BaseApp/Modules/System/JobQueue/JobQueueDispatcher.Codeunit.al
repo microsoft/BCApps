@@ -24,7 +24,8 @@ codeunit 448 "Job Queue Dispatcher"
             RunCleanupForCurrentJob(Rec);
 
         if not Rec.IsReadyToStart() then begin
-            JobQueueTelemetry.SendJobQueueNotReadyToStartTelemetry(Rec);
+            if not ResumeInterruptedFinalization(Rec) then
+                JobQueueTelemetry.SendJobQueueNotReadyToStartTelemetry(Rec);
             exit;
         end;
 
@@ -122,6 +123,50 @@ codeunit 448 "Job Queue Dispatcher"
             SendTraceOnFailedToGetRecordBeforeFinalizingRecord(JobQueueEntry);
 
         OnAfterSuccessHandleRequest(JobQueueEntry, JobQueueExecutionTimeInMs, JobQueueLogEntry."System Task Id");
+    end;
+
+    /// <summary>
+    /// The job result is committed before the log entry is finalized and the next run is scheduled.
+    /// If that bookkeeping fails (for example, on a lock timeout), the retried task finds the entry Finished.
+    /// The job itself must not run again, so only the remaining bookkeeping is completed.
+    /// A log entry for the same task proves that this task ran the job, so an entry set to Finished by other means is not affected.
+    /// </summary>
+    /// <param name="JobQueueEntry">The Job Queue Entry that the task runs for.</param>
+    /// <returns>True if the interrupted finalization was resumed, otherwise false.</returns>
+    local procedure ResumeInterruptedFinalization(var JobQueueEntry: Record "Job Queue Entry"): Boolean
+    var
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        ExecutedTaskId: Guid;
+    begin
+        if JobQueueEntry.Status <> JobQueueEntry.Status::Finished then
+            exit(false);
+        if not JobQueueEntry.DoesExistLocked() then
+            exit(false);
+        if JobQueueEntry.Status <> JobQueueEntry.Status::Finished then
+            exit(false);
+        ExecutedTaskId := JobQueueEntry."System Task ID";
+        if IsNullGuid(ExecutedTaskId) then
+            exit(false);
+
+        JobQueueLogEntry.ReadIsolation(IsolationLevel::UpdLock);
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        JobQueueLogEntry.SetRange("System Task Id", ExecutedTaskId);
+        if not JobQueueLogEntry.FindLast() then
+            exit(false);
+        if not (JobQueueLogEntry.Status in [JobQueueLogEntry.Status::"In Process", JobQueueLogEntry.Status::Success]) then
+            exit(false);
+        if JobQueueLogEntry.Status = JobQueueLogEntry.Status::"In Process" then
+            JobQueueEntry.FinalizeLogEntry(JobQueueLogEntry);
+
+        JobQueueEntry.FinalizeRun(ExecutedTaskId);
+        JobQueueTelemetry.SendJobQueueFinalizationResumedTelemetry(JobQueueEntry, ExecutedTaskId);
+
+        if JobQueueEntry."Job Queue Category Code" <> '' then begin
+            Commit();
+            JobQueueEntry.ActivateNextJobInCategoryIfAny();
+        end;
+        Commit();
+        exit(true);
     end;
 
     /// <summary>

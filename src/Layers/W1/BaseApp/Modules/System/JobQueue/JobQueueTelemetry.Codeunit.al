@@ -21,6 +21,7 @@ codeunit 9803 "Job Queue Telemetry"
         JobQueueEntryNotEnqueuedTxt: Label 'Job queue entry not enqueued: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntrySkippedTxt: Label 'Job queue entry skipped: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntryNotReadyToStartTxt: Label 'Job queue entry not ready to start: %1', Comment = '%1 = Job queue id', Locked = true;
+        JobQueueEntryFinalizationResumedTxt: Label 'Job queue entry finalization resumed: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntryExpiredTxt: Label 'Job queue entry expired: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntryRescheduledDueToStartEndTimeTxt: Label 'Job queue entry rescheduled due to start/end time: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntryRescheduledAsWaitingTxt: Label 'Job queue entry rescheduled as waiting: %1', Comment = '%1 = Job queue id', Locked = true;
@@ -94,6 +95,25 @@ codeunit 9803 "Job Queue Telemetry"
         Telemetry.LogMessage('0000P8L',
                                 StrSubstNo(JobQueueEntryNotReadyToStartTxt, Format(JobQueueEntry.ID, 0, 4)),
                                 Verbosity::Normal,
+                                DataClassification::OrganizationIdentifiableInformation,
+                                TelemetryScope::All,
+                                Dimensions);
+
+        TranslationHelper.RestoreGlobalLanguage();
+    end;
+
+    internal procedure SendJobQueueFinalizationResumedTelemetry(var JobQueueEntry: Record "Job Queue Entry"; ExecutedTaskId: Guid)
+    var
+        TranslationHelper: Codeunit "Translation Helper";
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        TranslationHelper.SetGlobalLanguageToDefault();
+
+        SetJobQueueTelemetryDimensions(JobQueueEntry, Dimensions);
+        Dimensions.Add('JobQueueExecutedScheduledTaskId', Format(ExecutedTaskId, 0, 4));
+        Telemetry.LogMessage('0000RJQ',
+                                StrSubstNo(JobQueueEntryFinalizationResumedTxt, Format(JobQueueEntry.ID, 0, 4)),
+                                Verbosity::Warning,
                                 DataClassification::OrganizationIdentifiableInformation,
                                 TelemetryScope::All,
                                 Dimensions);

@@ -750,6 +750,127 @@ codeunit 139018 "Job Queue Entry Tests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure RetryAfterInterruptedFinalizationReschedulesRecurringJobWithoutRerun()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        ExecutedTaskId: Guid;
+    begin
+        // [FEATURE] [Job Queue Dispatcher]
+        // [SCENARIO 660077] A retried task resumes the interrupted finalization of a recurring job without running it again
+        JobQueueLogEntry.DeleteAll();
+
+        // [GIVEN] A recurring entry whose job completed and committed Finished, but whose log entry is still In Process
+        CreateFinishedJobQueueEntryWithUnfinalizedLog(JobQueueEntry, JobQueueLogEntry, true);
+        ExecutedTaskId := JobQueueEntry."System Task ID";
+
+        // [WHEN] The platform retries the scheduled task
+        BindSubscription(this);
+        Codeunit.Run(Codeunit::"Job Queue Dispatcher", JobQueueEntry);
+        UnbindSubscription(this);
+
+        // [THEN] The job is not run again
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        Assert.AreEqual(1, JobQueueLogEntry.Count(), 'The job must not be run again.');
+
+        // [THEN] The log entry is finalized as Success
+        JobQueueLogEntry.FindFirst();
+        JobQueueLogEntry.TestField(Status, JobQueueLogEntry.Status::Success);
+        Assert.AreNotEqual(0DT, JobQueueLogEntry."End Date/Time", 'End Date/Time should be set after finalization');
+
+        // [THEN] The next run is scheduled
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        JobQueueEntry.TestField(Status, JobQueueEntry.Status::Ready);
+        JobQueueEntry.TestField("System Task ID");
+        Assert.AreNotEqual(ExecutedTaskId, JobQueueEntry."System Task ID", 'A new task must be scheduled for the next run.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RetryAfterInterruptedFinalizationDeletesNonRecurringJobWithoutRerun()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+    begin
+        // [FEATURE] [Job Queue Dispatcher]
+        // [SCENARIO 660077] A retried task resumes the interrupted finalization of a non-recurring job without running it again
+        JobQueueLogEntry.DeleteAll();
+
+        // [GIVEN] A non-recurring entry whose job completed and committed Finished, but whose log entry is still In Process
+        CreateFinishedJobQueueEntryWithUnfinalizedLog(JobQueueEntry, JobQueueLogEntry, false);
+
+        // [WHEN] The platform retries the scheduled task
+        Codeunit.Run(Codeunit::"Job Queue Dispatcher", JobQueueEntry);
+
+        // [THEN] The job is not run again and the log entry is finalized as Success
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        Assert.AreEqual(1, JobQueueLogEntry.Count(), 'The job must not be run again.');
+        JobQueueLogEntry.FindFirst();
+        JobQueueLogEntry.TestField(Status, JobQueueLogEntry.Status::Success);
+
+        // [THEN] The completed entry is removed
+        Assert.IsFalse(JobQueueEntry.Get(JobQueueEntry.ID), 'The completed non-recurring entry must be deleted.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure FinishedEntryWithoutLogForTaskIsNotRescheduled()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        TaskId: Guid;
+    begin
+        // [FEATURE] [Job Queue Dispatcher]
+        // [SCENARIO 660077] A recurring entry set to Finished without being run by its task is left untouched
+        JobQueueLogEntry.DeleteAll();
+
+        // [GIVEN] A recurring Finished entry with no log entry for its scheduled task
+        CreateFinishedJobQueueEntryWithUnfinalizedLog(JobQueueEntry, JobQueueLogEntry, true);
+        JobQueueLogEntry.Delete();
+        TaskId := JobQueueEntry."System Task ID";
+        Commit();
+
+        // [WHEN] The scheduled task runs
+        BindSubscription(this);
+        Codeunit.Run(Codeunit::"Job Queue Dispatcher", JobQueueEntry);
+        UnbindSubscription(this);
+
+        // [THEN] The job is not run and the entry stays Finished with the same task
+        JobQueueLogEntry.SetRange(ID, JobQueueEntry.ID);
+        Assert.IsTrue(JobQueueLogEntry.IsEmpty(), 'The job must not be run.');
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        JobQueueEntry.TestField(Status, JobQueueEntry.Status::Finished);
+        JobQueueEntry.TestField("System Task ID", TaskId);
+    end;
+
+    local procedure CreateFinishedJobQueueEntryWithUnfinalizedLog(var JobQueueEntry: Record "Job Queue Entry"; var JobQueueLogEntry: Record "Job Queue Log Entry"; Recurring: Boolean)
+    begin
+        JobQueueEntry.Init();
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"Notification Entry Dispatcher";
+        if Recurring then begin
+            JobQueueEntry.Validate("Run on Mondays", true);
+            JobQueueEntry.Validate("Run on Tuesdays", true);
+            JobQueueEntry.Validate("Run on Wednesdays", true);
+            JobQueueEntry.Validate("Run on Thursdays", true);
+            JobQueueEntry.Validate("Run on Fridays", true);
+            JobQueueEntry.Validate("Run on Saturdays", true);
+            JobQueueEntry.Validate("Run on Sundays", true);
+            JobQueueEntry."No. of Minutes between Runs" := 1;
+        end;
+        JobQueueEntry."System Task ID" := CreateGuid();
+        JobQueueEntry."User Session Started" := CurrentDateTime();
+        JobQueueEntry.Status := JobQueueEntry.Status::"In Process";
+        JobQueueEntry.Insert(true);
+        JobQueueEntry.InsertLogEntry(JobQueueLogEntry);
+
+        JobQueueEntry.Status := JobQueueEntry.Status::Finished;
+        JobQueueEntry.Modify();
+        Commit();
+    end;
+
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
     procedure RetentionContinuationPreservesWaitingJob()
