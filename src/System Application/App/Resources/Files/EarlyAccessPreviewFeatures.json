@@ -18,7 +18,7 @@
             "Open the purchase order you selected and verify the additional subcontracting operation line and its production order and operation links. Supporting component or comment lines can also be present."
         ],
         "Category": "Supply chain management",
-        "HelpURL": "https://learn.microsoft.com/dynamics365/business-central/subcontract-setup",
+        "HelpURL": "https://learn.microsoft.com/dynamics365/business-central/subcontract-order#create-subcontracting-purchase-orders-with-the-worksheet",
         "VideoURL": "",
         "ADOSliceIds": [634223]
     }
