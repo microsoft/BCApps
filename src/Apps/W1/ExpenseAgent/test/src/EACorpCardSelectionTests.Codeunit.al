@@ -505,6 +505,188 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
+    procedure ReportLineCardChangeUpdatesSubmittedExpenseOnlyWhenSaved()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        // [SCENARIO 659642] Saving an unlinked report-line card change updates its submitted expense.
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CreateSecondCard(OtherCard, CorpCard);
+        CreateReportLineFromExpense(Expense, ExpenseReportLine, CorpCard);
+
+        ExpenseReportLine.Validate("Corporate Card Id", OtherCard."Card Id");
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", CorpCard."Card Id");
+
+        ExpenseReportLine.Modify(true);
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Corporate Card Id", OtherCard."Card Id");
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", OtherCard."Card Id");
+        Expense.TestField(Status, Expense.Status::Submitted);
+        Expense.TestField("Expense Report No.", ExpenseReportLine."Document No.");
+        Expense.TestField("Credit Card Feed No.", 0);
+        Expense.TestField(Amount, 20);
+
+        // [WHEN] A transaction for the newly selected card arrives, both records can be matched.
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, OtherCard);
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
+        CorpCardTrans.Modify(true);
+
+        Expense.Get(Expense."No.");
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+    end;
+
+    [Test]
+    procedure DirectReportLineCardChangesAndClearingUpdateExpense()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO 659642] Triggered modifications synchronize card changes even without field validation.
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CreateSecondCard(OtherCard, CorpCard);
+        CreateReportLineFromExpense(Expense, ExpenseReportLine, CorpCard);
+
+        ExpenseReportLine."Corporate Card Id" := OtherCard."Card Id";
+        ExpenseReportLine.Modify(true);
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", OtherCard."Card Id");
+
+        ExpenseReportLine.Validate("Corporate Card Id", '');
+        ExpenseReportLine.Modify(true);
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Corporate Card Id", '');
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", '');
+        Expense.TestField(Status, Expense.Status::Submitted);
+    end;
+
+    [Test]
+    procedure ReportLineCannotChangeFeedLinkedSourceExpenseCard()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO 659642] A missing feed link on the line cannot bypass the source expense's link.
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CreateSecondCard(OtherCard, CorpCard);
+        CreateReportLineFromExpense(Expense, ExpenseReportLine, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
+        Expense.Modify(true);
+        Commit();
+
+        ExpenseReportLine."Corporate Card Id" := OtherCard."Card Id";
+        asserterror ExpenseReportLine.Modify(true);
+
+        Assert.ExpectedError(Expense.FieldCaption("Credit Card Feed No."));
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Corporate Card Id", CorpCard."Card Id");
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", CorpCard."Card Id");
+        Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+    end;
+
+    [Test]
+    procedure ReportLineCardChangeValidatesSourceExpenseDate()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO 659642] A card valid on the report line must also be valid on the source expense.
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CreateSecondCard(OtherCard, CorpCard);
+        OtherCard."Valid From" := WorkDate() + 1;
+        OtherCard.Modify(true);
+        CreateReportLineFromExpense(Expense, ExpenseReportLine, CorpCard);
+        ExpenseReportLine.Validate("Expense Date", OtherCard."Valid From");
+        ExpenseReportLine.Modify(true);
+        Commit();
+
+        asserterror ExpenseReportLine.Validate("Corporate Card Id", OtherCard."Card Id");
+
+        Assert.ExpectedError('is not valid on expense date');
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", CorpCard."Card Id");
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Corporate Card Id", CorpCard."Card Id");
+    end;
+
+    [Test]
+    procedure ReleasedReportCannotChangeSourceExpenseCardDirectly()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO 659642] Bypassing field validation does not enable card changes on a released report.
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CreateSecondCard(OtherCard, CorpCard);
+        CreateReportLineFromExpense(Expense, ExpenseReportLine, CorpCard);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
+        ExpenseReportHeader.Modify();
+        Commit();
+
+        ExpenseReportLine."Corporate Card Id" := OtherCard."Card Id";
+        asserterror ExpenseReportLine.Modify(true);
+
+        Assert.ExpectedError(ExpenseReportHeader.FieldCaption(Status));
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", CorpCard."Card Id");
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Corporate Card Id", CorpCard."Card Id");
+    end;
+
+    [Test]
+    procedure TemporaryReportLineCardChangeDoesNotUpdateExpense()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        TempExpenseReportLine: Record "Expense Report Line" temporary;
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
+    begin
+        // [SCENARIO 659642] A temporary report line must never update its persisted source expense.
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        CreateSecondCard(OtherCard, CorpCard);
+        CreateReportLineFromExpense(Expense, ExpenseReportLine, CorpCard);
+        TempExpenseReportLine := ExpenseReportLine;
+        TempExpenseReportLine."Corporate Card Id" := OtherCard."Card Id";
+
+        CorpCardSelectionMgt.UpdateExpenseCard(TempExpenseReportLine);
+
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", CorpCard."Card Id");
+    end;
+
+    [Test]
     procedure BlockedCardDoesNotPreventExpenseDescriptionChanges()
     var
         CorpCard: Record "EA Corp Card";
@@ -1394,6 +1576,7 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
     begin
@@ -1401,6 +1584,9 @@ codeunit 148364 EACorpCardSelectionTests
         Initialize();
 
         // [GIVEN] A source expense of 20 was added to a report, edited to 30 on the report line, and posted before its feed arrived.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow Amount Changes in ER" := true;
+        ExpenseAgentSetup.Modify();
         CorpCard.Get('CORPCARD-0001');
         CorpCardTestLib.PostManualExpense(Expense, PostedExpenseReportLine, CorpCard, 30);
         Expense.TestField(Amount, 20);
@@ -1440,6 +1626,8 @@ codeunit 148364 EACorpCardSelectionTests
         // [GIVEN] An existing expense is represented by a report line and has a matching late feed.
         CorpCard.Get('CORPCARD-0001');
         ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow Amount Changes in ER" := true;
+        ExpenseAgentSetup.Modify();
         CorpCardTestLib.InsertExpense(Expense, CorpCard);
         CreateStandaloneReportLine(ExpenseReportLine, CorpCard);
         Expense."Expense Report No." := ExpenseReportLine."Document No.";
@@ -1485,6 +1673,19 @@ codeunit 148364 EACorpCardSelectionTests
             ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
             ExpenseReportLine.TestField("Credit Card Feed No.", 0);
         end;
+    end;
+
+    local procedure CreateReportLineFromExpense(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line"; CorpCard: Record "EA Corp Card")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+    begin
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        Expense.Status := Expense.Status::Released;
+        Expense.Modify(true);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, CorpCard."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        Expense.Get(Expense."No.");
     end;
 
     local procedure CreateMatchedStandaloneReportLine(var ExpenseReportLine: Record "Expense Report Line"; var CorpCardTrans: Record "EA Corp Card Trans"; CorpCard: Record "EA Corp Card")

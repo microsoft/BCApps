@@ -72,6 +72,9 @@ page 6996 "Expense Agent Setup"
                 field("Allow Grp. of Trans. in Report"; Rec."Allow Grp. of Trans. in Report")
                 {
                 }
+                field("Allow Amount Changes in ER"; Rec."Allow Amount Changes in ER")
+                {
+                }
                 field("Allow VAT Reclaim"; Rec."Allow VAT Reclaim")
                 {
                 }

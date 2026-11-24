@@ -72,6 +72,7 @@ codeunit 6984 "Release Exp. Report Document"
         NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
+        ExpenseReportLine.CheckOriginalExpenseAmount();
         ExpenseReportLine.TestField("Expense Category");
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
         ExpenseCategory.TestField(Inactive, false);

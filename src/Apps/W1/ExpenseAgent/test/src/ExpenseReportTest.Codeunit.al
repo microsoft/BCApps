@@ -128,6 +128,204 @@ codeunit 148306 "Expense Report Test"
         ExpenseReportLocationMissingMsg: Label '%1 is missing in Expense Report No. %2, Line No. %3.', Comment = '%1 = Expense Location Caption, %2 = Expense Report No., %3 = Line No.';
 
     [Test]
+    procedure ExpenseReportAmountMustMatchSourceOnSave()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Neither triggered nor triggerless saves can change an expense-backed amount without opting in.
+        Initialize();
+        CreateSourceExpenseReportLine(Expense, ExpenseReportHeader, ExpenseReportLine);
+        ExpenseAgentSetup.Get();
+        Commit();
+
+        ExpenseReportLine.Validate(Amount, 21);
+        asserterror ExpenseReportLine.Modify(true);
+        Assert.ExpectedError(ExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportLine.Amount := 21;
+        asserterror ExpenseReportLine.Modify(false);
+        Assert.ExpectedError(ExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField(Amount, 20);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Amount, 20);
+    end;
+
+    [Test]
+    procedure ExpenseReportAmountMustMatchSourceOnInsert()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        NewExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Inserting without table triggers cannot introduce a different source amount.
+        Initialize();
+        CreateSourceExpenseReportLine(Expense, ExpenseReportHeader, ExpenseReportLine);
+        ExpenseAgentSetup.Get();
+        NewExpenseReportLine."Document No." := ExpenseReportHeader."No.";
+        NewExpenseReportLine."Line No." := ExpenseReportLine."Line No." + 10000;
+        NewExpenseReportLine."Expense No." := Expense."No.";
+        NewExpenseReportLine.Amount := 21;
+
+        asserterror NewExpenseReportLine.Insert(false);
+
+        Assert.ExpectedError(ExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"));
+    end;
+
+    [Test]
+    procedure AllowExpenseReportAmountChangesLeavesSourceUnchanged()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Opting in allows a different report amount to be saved and released without changing the source.
+        Initialize();
+        CreateSourceExpenseReportLine(Expense, ExpenseReportHeader, ExpenseReportLine);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow Amount Changes in ER" := true;
+        ExpenseAgentSetup.Modify();
+
+        ExpenseReportLine.Validate(Amount, 21);
+        ExpenseReportLine.Modify(true);
+        ExpenseReportHeader.PerformManualRelease();
+
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField(Amount, 21);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Amount, 20);
+    end;
+
+    [Test]
+    procedure ExistingExpenseReportAmountDifferencePreventsRelease()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Turning the setting off also blocks release of existing differences.
+        Initialize();
+        CreateSourceExpenseReportLine(Expense, ExpenseReportHeader, ExpenseReportLine);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow Amount Changes in ER" := true;
+        ExpenseAgentSetup.Modify();
+        ExpenseReportLine.Validate(Amount, 21);
+        ExpenseReportLine.Modify(true);
+        ExpenseAgentSetup."Allow Amount Changes in ER" := false;
+        ExpenseAgentSetup.Modify();
+        Commit();
+
+        ExpenseReportLine.Description := 'Changed description';
+        asserterror ExpenseReportLine.Modify(false);
+        Assert.ExpectedError(ExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"));
+
+        asserterror ExpenseReportHeader.PerformManualRelease();
+
+        Assert.ExpectedError(ExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);
+    end;
+
+    [Test]
+    procedure ExistingReleasedExpenseAmountDifferencePreventsPosting()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO] Posting rechecks the setting even when the report was already released while differences were allowed.
+        Initialize();
+        CreateSourceExpenseReportLine(Expense, ExpenseReportHeader, ExpenseReportLine);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow Amount Changes in ER" := true;
+        ExpenseAgentSetup.Modify();
+        ExpenseReportLine.Validate(Amount, 21);
+        ExpenseReportLine.Modify(true);
+        ExpenseReportHeader.PerformManualRelease();
+        ExpenseAgentSetup."Allow Amount Changes in ER" := false;
+        ExpenseAgentSetup.Modify();
+        Commit();
+
+        asserterror ExpenseReportPost.RunWithCheck(ExpenseReportHeader);
+
+        Assert.ExpectedError(ExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"));
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Amount, 20);
+    end;
+
+    [Test]
+    procedure StandaloneExpenseReportAmountCanChangeWithoutOptIn()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        StandaloneExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] The setting does not restrict amounts on lines without a source expense.
+        Initialize();
+        CreateSourceExpenseReportLine(Expense, ExpenseReportHeader, ExpenseReportLine);
+        LibraryExpense.CreateExpenseReportLine(
+            StandaloneExpenseReportLine, ExpenseReportHeader, Expense."Expense User No.", Expense."Expense Category",
+            Expense."Payment Method Code", true, '', 20);
+
+        StandaloneExpenseReportLine.Validate(Amount, 21);
+        StandaloneExpenseReportLine.Modify(true);
+
+        StandaloneExpenseReportLine.Get(StandaloneExpenseReportLine."Document No.", StandaloneExpenseReportLine."Line No.");
+        StandaloneExpenseReportLine.TestField("Expense No.", '');
+        StandaloneExpenseReportLine.TestField(Amount, 21);
+    end;
+
+    [Test]
+    procedure PerDiemRecalculationCannotChangeOriginalExpenseAmount()
+    var
+        Expense: Record Expense;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
+    begin
+        // [SCENARIO] Automatic per diem reductions cannot bypass the amount check through a triggerless parent save.
+        Initialize();
+        CreateSourceExpenseReportLine(Expense, ExpenseReportHeader, ExpenseReportLine);
+        ExpenseAgentSetup.Get();
+        ExpenseReportLine."Expense Detail Required" := ExpenseReportLine."Expense Detail Required"::"Per Diem";
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLinePerDiem."Expense Report No." := ExpenseReportHeader."No.";
+        ExpenseReportLinePerDiem."Expense Report Line No." := ExpenseReportLine."Line No.";
+        ExpenseReportLinePerDiem."Line No." := 10000;
+        ExpenseReportLinePerDiem."Original Per Diem Amount" := 20;
+        ExpenseReportLinePerDiem."Per Diem Amount" := 20;
+        ExpenseReportLinePerDiem."Breakfast Reduction Percent" := 10;
+        ExpenseReportLinePerDiem.Insert(true);
+        Commit();
+
+        asserterror ExpenseReportLinePerDiem.Validate(Breakfast, true);
+
+        Assert.ExpectedError(ExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"));
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportLinePerDiem.Get(ExpenseReportHeader."No.", ExpenseReportLine."Line No.", 10000);
+        ExpenseReportLinePerDiem.TestField(Breakfast, false);
+        ExpenseReportLinePerDiem.TestField("Per Diem Amount", 20);
+    end;
+
+    [Test]
     procedure ExpenseReportNosIsRequiredWhenCreatingExpenseReport()
     var
         ExpenseReportHeader: Record "Expense Report Header";
@@ -6627,6 +6825,22 @@ codeunit 148306 "Expense Report Test"
         LibraryExpense.UpdateDefaultUnitOfMeasureInAgentSetup();
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Report Test");
+    end;
+
+    local procedure CreateSourceExpenseReportLine(var Expense: Record Expense; var ExpenseReportHeader: Record "Expense Report Header"; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow Amount Changes in ER" := false;
+        ExpenseAgentSetup."Use Rules" := false;
+        ExpenseAgentSetup.Modify();
+        CreateExpense(Expense, true, '', 20);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
     end;
 
     local procedure CreateExpense(var Expense: Record Expense; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)

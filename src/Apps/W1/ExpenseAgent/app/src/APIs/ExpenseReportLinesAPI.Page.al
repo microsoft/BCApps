@@ -526,7 +526,7 @@ page 6929 "Expense Report Lines API"
         NewExpenseUserNo := ExpenseUser.GetExpenseUserNoBySystemId(ExpenseUserSystemId);
         if (NewExpenseUserNo <> '') and (Rec."Expense User No." <> NewExpenseUserNo) then
             Rec."Expense User No." := NewExpenseUserNo;
-        CorpCardSelectionMgt.ValidateReportLine(Rec, false);
+        CorpCardSelectionMgt.ValidateReportLine(Rec, false, true);
     end;
 
     [ServiceEnabled]

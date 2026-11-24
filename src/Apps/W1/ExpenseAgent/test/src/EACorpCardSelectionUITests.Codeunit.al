@@ -467,6 +467,46 @@ codeunit 148365 EACorpCardSelectionUITests
 
     [Test]
     [HandlerFunctions('SelectExpenseUsersCardHandler')]
+    procedure ExpenseBackedReportLineCardLookupUpdatesExpense()
+    var
+        CorpCard: Record "EA Corp Card";
+        OtherCard: Record "EA Corp Card";
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportSubPage: TestPage "Expense Report SubPage";
+    begin
+        // [SCENARIO 659642] The lookup can replace the card on an expense-backed report line.
+        Initialize();
+        CorpCard.Get('CORPCARD-0001');
+        OtherCard := CorpCard;
+        OtherCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(OtherCard."Card Id"));
+        OtherCard.Insert(true);
+        CorpCardTestLib.InsertExpense(Expense, OtherCard);
+        CreateManualReportLine(ExpenseReportLine);
+        Expense."Expense Report No." := ExpenseReportLine."Document No.";
+        Expense.Status := Expense.Status::Submitted;
+        Expense.Modify(true);
+        ExpenseReportLine."Expense No." := Expense."No.";
+        ExpenseReportLine."Corporate Card Id" := OtherCard."Card Id";
+        ExpenseReportLine.Amount := Expense.Amount;
+        ExpenseReportLine.Modify(true);
+
+        ExpenseReportSubPage.OpenEdit();
+        ExpenseReportSubPage.GoToRecord(ExpenseReportLine);
+        Assert.IsTrue(ExpenseReportSubPage.CorporateCard.Editable(), 'An unlinked expense-backed line must allow corporate card selection.');
+        ExpenseReportSubPage.CorporateCard.Lookup();
+        ExpenseReportSubPage.Close();
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Corporate Card Id", CorpCard."Card Id");
+        Expense.Get(Expense."No.");
+        Expense.TestField("Corporate Card Id", CorpCard."Card Id");
+        Expense.TestField(Status, Expense.Status::Submitted);
+        Expense.TestField("Credit Card Feed No.", 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectExpenseUsersCardHandler')]
     procedure ReportCardDisplayUpdatesAfterSelectionAndListRefresh()
     var
         CorpCard: Record "EA Corp Card";

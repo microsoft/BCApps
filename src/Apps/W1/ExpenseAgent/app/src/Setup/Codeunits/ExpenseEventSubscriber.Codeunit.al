@@ -49,6 +49,19 @@ codeunit 6908 "Expense Event Subscriber"
         TravelerNotEmployeeErr: Label 'Traveler %1 must be an expense user linked to an employee before you can release the %2.', Comment = '%1 = Expense User No., %2 = document type description';
         FieldRequiredBeforeReleaseErr: Label 'You must specify %1 before releasing the %2.', Comment = '%1 = Field Caption, %2 = document type description';
 
+    // Database events also check recalculations saved without table triggers.
+    [EventSubscriber(ObjectType::Table, Database::"Expense Report Line", OnAfterInsertEvent, '', false, false)]
+    local procedure CheckOriginalExpenseAmountAfterInsert(var Rec: Record "Expense Report Line")
+    begin
+        Rec.CheckOriginalExpenseAmount();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Expense Report Line", OnAfterModifyEvent, '', false, false)]
+    local procedure CheckOriginalExpenseAmountAfterModify(var Rec: Record "Expense Report Line")
+    begin
+        Rec.CheckOriginalExpenseAmount();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Instruction Mgt.", OnShowPostedDocumentOnBeforePageRun, '', false, false)]
     local procedure OnShowPostedDocumentOnBeforePageRun(CalledFromPageId: Integer; RecVariant: Variant; var PageId: Integer)
     var
