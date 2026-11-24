@@ -973,6 +973,48 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatIncludesDescription2()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Description2: Text[50];
+    begin
+        // [SCENARIO] Exported ZUGFeRD invoice line carries the second description line as the item description after the item name
+        Initialize();
+        Description2 := CopyStr('Period ' + LibraryUtility.GenerateGUID(), 1, MaxStrLen(Description2));
+
+        // [GIVEN] A posted sales invoice whose line has Description 2 filled in
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithDescription2("Sales Document Type"::Invoice, Description2));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ram:SpecifiedTradeProduct/ram:Description holds Description 2 and follows ram:Name
+        VerifyItemDescriptionFollowsName(TempXMLBuffer, Description2);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatOmitsBlankDescription2()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported ZUGFeRD invoice line has no item description when the second description line is blank
+        Initialize();
+
+        // [GIVEN] A posted sales invoice whose line has a blank Description 2
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithDescription2("Sales Document Type"::Invoice, ''));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ram:SpecifiedTradeProduct/ram:Description does not exist
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:Description';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyInvoiceLineWithLineDiscount();
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -1486,6 +1528,48 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] Global product identification does not exist
         Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:GlobalID';
+        Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatIncludesDescription2()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Description2: Text[50];
+    begin
+        // [SCENARIO] Exported ZUGFeRD credit memo line carries the second description line as the item description after the item name
+        Initialize();
+        Description2 := CopyStr('Period ' + LibraryUtility.GenerateGUID(), 1, MaxStrLen(Description2));
+
+        // [GIVEN] A posted sales credit memo whose line has Description 2 filled in
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithDescription2("Sales Document Type"::"Credit Memo", Description2));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ram:SpecifiedTradeProduct/ram:Description holds Description 2 and follows ram:Name
+        VerifyItemDescriptionFollowsName(TempXMLBuffer, Description2);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatOmitsBlankDescription2()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Path: Text;
+    begin
+        // [SCENARIO] Exported ZUGFeRD credit memo line has no item description when the second description line is blank
+        Initialize();
+
+        // [GIVEN] A posted sales credit memo whose line has a blank Description 2
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithDescription2("Sales Document Type"::"Credit Memo", ''));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ram:SpecifiedTradeProduct/ram:Description does not exist
+        Path := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:Description';
         Assert.IsFalse(NodeExistsByPath(TempXMLBuffer, Path), StrSubstNo(UnexpectedNodeErr, Path));
     end;
 
@@ -2370,6 +2454,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         VerifyNodeDoesNotExist(TempXMLBuffer, ShipToTradePartyTok);
         VerifyNodeDoesNotExist(TempXMLBuffer, ApplicableHeaderTradeDeliveryTok + '/ram:ActualDeliverySupplyChainEvent');
         VerifyHeaderData(ServiceInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ExportPostedServiceInvoiceInZUGFeRDFormatIncludesDescription2()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        Description2: Text[50];
+    begin
+        // [SCENARIO] Exported ZUGFeRD service invoice line carries the second description line as the item description after the item name
+        Initialize();
+        Description2 := CopyStr('Period ' + LibraryUtility.GenerateGUID(), 1, MaxStrLen(Description2));
+
+        // [GIVEN] A posted service invoice whose line has Description 2 filled in
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocumentWithDescription2(Description2));
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportServiceInvoice(ServiceInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ram:SpecifiedTradeProduct/ram:Description holds Description 2 and follows ram:Name
+        VerifyItemDescriptionFollowsName(TempXMLBuffer, Description2);
     end;
     #endregion
 
@@ -4436,6 +4541,20 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndPostSalesDocumentWithDescription2(DocumentType: Enum "Sales Document Type"; Description2: Text[50]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, Enum::"Sales Line Type"::Item, false));
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Description 2", Description2);
+        SalesLine.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
     local procedure CreateAndPostSalesInvoiceFromOrder(): Code[20]
     var
         SalesHeader: Record "Sales Header";
@@ -4595,6 +4714,20 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ServiceHeader: Record "Service Header";
     begin
         ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithTwoLines());
+        exit(PostServiceDocument(ServiceHeader));
+    end;
+
+    local procedure CreateAndPostServiceDocumentWithDescription2(Description2: Text[50]): Code[20]
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+    begin
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
+        ServiceLine.SetRange("Document No.", ServiceHeader."No.");
+        ServiceLine.FindFirst();
+        ServiceLine.Validate("Description 2", Description2);
+        ServiceLine.Modify(true);
         exit(PostServiceDocument(ServiceHeader));
     end;
 
@@ -6013,6 +6146,27 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         if TempXMLBuffer.FindFirst() then
             exit(TempXMLBuffer.GetValue());
         Error('Node not found: %1', XPath);
+    end;
+
+    local procedure VerifyItemDescriptionFollowsName(var TempXMLBuffer: Record "XML Buffer" temporary; ExpectedDescription: Text)
+    var
+        NamePath: Text;
+        DescriptionPath: Text;
+        NameEntryNo: Integer;
+    begin
+        NamePath := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:Name';
+        DescriptionPath := DocumentLineTok + '/ram:SpecifiedTradeProduct/ram:Description';
+        Assert.AreEqual(1, CountNodesByPath(TempXMLBuffer, DescriptionPath), StrSubstNo(IncorrectValueErr, DescriptionPath));
+        Assert.AreEqual(ExpectedDescription, GetNodeByPathWithError(TempXMLBuffer, DescriptionPath), StrSubstNo(IncorrectValueErr, DescriptionPath));
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+        TempXMLBuffer.SetRange(Path, NamePath);
+        TempXMLBuffer.FindFirst();
+        NameEntryNo := TempXMLBuffer."Entry No.";
+        TempXMLBuffer.SetRange(Path, DescriptionPath);
+        TempXMLBuffer.FindFirst();
+        Assert.IsTrue(TempXMLBuffer."Entry No." > NameEntryNo, 'ram:Description must follow ram:Name in ram:SpecifiedTradeProduct');
     end;
 
     local procedure NodeExistsByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Boolean
