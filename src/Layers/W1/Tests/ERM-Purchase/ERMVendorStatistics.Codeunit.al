@@ -1870,6 +1870,115 @@ codeunit 134334 "ERM Vendor Statistics"
         VerifyVendorMatchedTotal(Vendor, 0);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalAmountReturnShpdNotInv()
+    var
+        Vendor: Record Vendor;
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] Shipped, uninvoiced purchase returns reduce vendor totals, including the FactBox.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLine, Vendor."No.", PurchaseLine."Document Type"::"Return Order", 1, 0);
+        PurchaseLine."Return Shpd. Not Invd. (LCY)" := 100;
+        PurchaseLine."Shortcut Dimension 1 Code" := 'B';
+        PurchaseLine."Shortcut Dimension 2 Code" := 'B';
+        PurchaseLine."Currency Code" := 'USD';
+        PurchaseLine.Modify();
+
+        VerifyVendorMatchedTotal(Vendor, -100);
+        Vendor.SetRange("Global Dimension 1 Filter", 'A');
+        VerifyVendorMatchedTotal(Vendor, 0);
+        Vendor.SetRange("Global Dimension 1 Filter");
+        Vendor.SetRange("Global Dimension 2 Filter", 'A');
+        VerifyVendorMatchedTotal(Vendor, 0);
+        Vendor.SetRange("Global Dimension 2 Filter");
+        Vendor.SetRange("Currency Filter", 'OTHER');
+        VerifyVendorMatchedTotal(Vendor, 0);
+        Vendor.SetRange("Currency Filter", 'USD');
+        VerifyVendorMatchedTotal(Vendor, -100);
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorGetReceiptLinesHandler')]
+    [Scope('OnPrem')]
+    procedure VendorTotalAfterGetReceiptLines()
+    var
+        Vendor: Record Vendor;
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        PurchaseInvoice: TestPage "Purchase Invoice";
+        ExpectedAmountLCY: Decimal;
+    begin
+        // [SCENARIO 658521] Get Receipt Lines represents the received order only once, even with an additional match record.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        CreatePurchaseLine(PurchaseHeaderOrder, PurchaseLineOrder);
+        PurchaseLineOrder.Validate(Quantity, 10);
+        PurchaseLineOrder.Validate("Direct Unit Cost", 10);
+        PurchaseLineOrder.Modify(true);
+        ExpectedAmountLCY := PurchaseLineOrder."Outstanding Amount (LCY)";
+        LibraryVariableStorage.Enqueue(LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false));
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+
+        PurchaseInvoice.OpenEdit();
+        PurchaseInvoice.GoToRecord(PurchaseHeaderInvoice);
+        PurchaseInvoice.PurchLines.GetReceiptLines.Invoke();
+        PurchaseInvoice.Close();
+        LibraryVariableStorage.AssertEmpty();
+
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        PurchaseLineInvoice.SetFilter("Receipt No.", '<>%1', '');
+        PurchaseLineInvoice.FindFirst();
+        PurchaseReceiptLine.Get(PurchaseLineInvoice."Receipt No.", PurchaseLineInvoice."Receipt Line No.");
+        PurchaseReceiptLine.TestField("Order No.", PurchaseHeaderOrder."No.");
+        MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLineInvoice.SystemId);
+        Assert.IsTrue(MatchedOrderLine.IsEmpty(), 'Get Receipt Lines must create a receipt link without a match record.');
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+
+        PurchaseLineInvoice.Validate(Quantity, 5);
+        PurchaseLineInvoice.Modify(true);
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+        PurchaseLineInvoice.Validate(Quantity, 10);
+        PurchaseLineInvoice.Modify(true);
+        PurchaseLineInvoice."Shortcut Dimension 1 Code" := 'INVOICE';
+        PurchaseLineInvoice.Modify();
+        Vendor.SetRange("Global Dimension 1 Filter", 'INVOICE');
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+        Vendor.SetFilter("Global Dimension 1 Filter", '<>%1', 'INVOICE');
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+        Vendor.SetRange("Global Dimension 1 Filter");
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+
+        MatchedOrderLine := MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, PurchaseLineInvoice."Quantity (Base)");
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := PurchaseReceiptLine.SystemId;
+        MatchedOrderLine.Insert();
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+
+        PurchaseLineInvoice.Validate(Quantity, PurchaseLineInvoice.Quantity / 2);
+        PurchaseLineInvoice.Modify(true);
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+        PurchaseLineInvoice.Validate(Quantity, 0);
+        PurchaseLineInvoice.Modify(true);
+        VerifyVendorMatchedTotal(Vendor, ExpectedAmountLCY);
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure VendorGetReceiptLinesHandler(var GetReceiptLines: TestPage "Get Receipt Lines")
+    begin
+        GetReceiptLines.FILTER.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        GetReceiptLines.First();
+        GetReceiptLines.OK().Invoke();
+    end;
+
     local procedure VerifyVendorTotalAfterGetOrderLines(ReceiveOrder: Boolean)
     var
         Vendor: Record Vendor;

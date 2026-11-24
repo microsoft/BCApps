@@ -82,6 +82,59 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure VendorTotalPrepaymentsRespectAgreementFilter()
+    var
+        Vendor: Record Vendor;
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] An invoiced prepayment under agreement B cannot reduce the total for agreement A.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        PurchaseLine."Document Type" := PurchaseLine."Document Type"::Order;
+        PurchaseLine."Document No." := LibraryUtility.GenerateRandomCode(PurchaseLine.FieldNo("Document No."), Database::"Purchase Line");
+        PurchaseLine."Pay-to Vendor No." := Vendor."No.";
+        PurchaseLine."Agreement No." := 'B';
+        PurchaseLine."Outstanding Amount (LCY)" := 100;
+        PurchaseLine."Prepmt. Amount Inv. (LCY)" := 16;
+        PurchaseLine."Prepmt. VAT Amount Inv. (LCY)" := 4;
+        PurchaseLine.Insert();
+
+        Vendor.SetRange("Agreement Filter", 'A');
+        Assert.AreEqual(0, Vendor.GetInvoicedPrepmtAmountLCY(), FieldValueIncorrectErr);
+        VerifyAgreementFilteredVendorTotal(Vendor, 0);
+        Vendor.SetRange("Agreement Filter", 'B');
+        Assert.AreEqual(20, Vendor.GetInvoicedPrepmtAmountLCY(), FieldValueIncorrectErr);
+        VerifyAgreementFilteredVendorTotal(Vendor, 80);
+        Vendor.SetFilter("Agreement Filter", 'A|B');
+        Assert.AreEqual(20, Vendor.GetInvoicedPrepmtAmountLCY(), FieldValueIncorrectErr);
+        VerifyAgreementFilteredVendorTotal(Vendor, 80);
+        Vendor.SetRange("Agreement Filter");
+        VerifyAgreementFilteredVendorTotal(Vendor, 80);
+    end;
+
+    local procedure VerifyAgreementFilteredVendorTotal(var SourceVendor: Record Vendor; ExpectedAmountLCY: Decimal)
+    var
+        Vendor: Record Vendor;
+        VendorList: TestPage "Vendor List";
+        VendorStatistics: TestPage "Vendor Statistics";
+    begin
+        Vendor.Copy(SourceVendor);
+        Assert.AreEqual(ExpectedAmountLCY, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+        Vendor.SetRange("No.", Vendor."No.");
+        VendorStatistics.Trap();
+        Page.Run(Page::"Vendor Statistics", Vendor);
+        VendorStatistics.GetTotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        VendorStatistics.Close();
+        Vendor.Copy(SourceVendor);
+        Vendor.SetRange("No.", Vendor."No.");
+        VendorList.Trap();
+        Page.Run(Page::"Vendor List", Vendor);
+        VendorList.VendorStatisticsFactBox.TotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        VendorList.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure NoAgreementSalesOrder()
     var
         SalesHeader: Record "Sales Header";

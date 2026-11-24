@@ -211,7 +211,8 @@ page 9094 "Vendor Statistics FactBox"
         MatchedOrderAmountLCY := Rec.GetMatchedOrderAmountLCY();
         TotalAmountLCY :=
             Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" +
-            Rec."Outstanding Invoices (LCY)" - Rec.GetInvoicedPrepmtAmountLCY() - MatchedOrderAmountLCY;
+            Rec."Outstanding Invoices (LCY)" - Rec.GetInvoicedPrepmtAmountLCY() - MatchedOrderAmountLCY -
+            Rec.GetReturnShpdNotInvAmountLCY();
 
         VendorNo := CopyStr(VendorNoFilter, 1, MaxStrLen(VendorNo));
         if VendorNo <> CurrVendorNo then begin

@@ -268,7 +268,8 @@ page 27 "Vendor List"
                               "Currency Filter" = field("Currency Filter"),
                               "Date Filter" = field("Date Filter"),
                               "Global Dimension 1 Filter" = field("Global Dimension 1 Filter"),
-                              "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
+                              "Global Dimension 2 Filter" = field("Global Dimension 2 Filter"),
+                              "Agreement Filter" = field("Agreement Filter");
             }
             part(VendorHistBuyFromFactBox; "Vendor Hist. Buy-from FactBox")
             {
@@ -1518,5 +1519,4 @@ page 27 "Vendor List"
         CurrPage.SetSelectionFilter(Vendor);
     end;
 }
-
 
