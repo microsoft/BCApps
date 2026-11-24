@@ -48,6 +48,7 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
             exit('');
         if not Agent.ReadPermission() then
             exit('');
+        Agent.SetLoadFields("Can Current User Use Agent", "Can Access Current Company");
         if not Agent.Get(AgentUserId) then
             exit('');
 
