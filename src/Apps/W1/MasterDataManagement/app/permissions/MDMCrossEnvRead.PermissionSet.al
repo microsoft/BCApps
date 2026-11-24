@@ -25,9 +25,12 @@ using System.Privacy;
 /// Assigned to the customer-registered Entra app on the SOURCE (Microsoft Entra Application Card) to grant
 /// cross-environment, read-only access to master data. Deliberately NOT part of "Master Data Mgt. - Objects":
 /// only this set grants execute on the ODataV4 source API, so local users cannot invoke it.
-/// Grants read on the master-data tables synchronized by the default configuration, so cross-environment sync
-/// works read-only out of the box. For custom or additional tables, a tenant admin extends this set (or assigns
-/// a second, narrowly scoped set alongside it) - which keeps least privilege instead of reaching for SUPER.
+/// Grants INDIRECT read (r) on the master-data tables synchronized by the default configuration, so the app can read
+/// them only through the "MDM Cross-Env Source API" codeunit (which holds the matching Permissions property), not
+/// through standard API pages or other web services. Keep this list in sync with that codeunit's Permissions property.
+/// For custom or additional tables, a tenant admin grants DIRECT read (R) in a second, narrowly scoped permission set
+/// assigned alongside this one, because the codeunit's Permissions property can't be extended. That keeps least
+/// privilege instead of reaching for SUPER.
 /// </summary>
 permissionset 7242 "MDM Cross-Env Read"
 {
@@ -36,38 +39,38 @@ permissionset 7242 "MDM Cross-Env Read"
     Caption = 'Master Data Mgt. - Cross Environment';
 
     Permissions = codeunit "MDM Cross-Env Source API" = X,
-                  tabledata "Salesperson/Purchaser" = R,
-                  tabledata Customer = R,
-                  tabledata Vendor = R,
-                  tabledata Contact = R,
-                  tabledata "Business Relation" = R,
-                  tabledata "Contact Business Relation" = R,
-                  tabledata "Country/Region" = R,
-                  tabledata "Post Code" = R,
-                  tabledata Currency = R,
-                  tabledata "Currency Exchange Rate" = R,
-                  tabledata "Payment Terms" = R,
-                  tabledata "Shipment Method" = R,
-                  tabledata "Shipping Agent" = R,
-                  tabledata "Sales & Receivables Setup" = R,
-                  tabledata "Purchases & Payables Setup" = R,
-                  tabledata "Marketing Setup" = R,
-                  tabledata "No. Series" = R,
-                  tabledata "No. Series Line" = R,
-                  tabledata "G/L Account" = R,
-                  tabledata Dimension = R,
-                  tabledata "Dimension Value" = R,
-                  tabledata "Gen. Business Posting Group" = R,
-                  tabledata "Gen. Product Posting Group" = R,
-                  tabledata "Customer Posting Group" = R,
-                  tabledata "Vendor Posting Group" = R,
-                  tabledata "VAT Business Posting Group" = R,
-                  tabledata "VAT Product Posting Group" = R,
-                  tabledata "VAT Posting Setup" = R,
-                  tabledata "Tax Area" = R,
-                  tabledata "Tax Group" = R,
-                  tabledata "Tax Jurisdiction" = R,
-                  tabledata "Tenant Media" = R,
+                  tabledata "Salesperson/Purchaser" = r,
+                  tabledata Customer = r,
+                  tabledata Vendor = r,
+                  tabledata Contact = r,
+                  tabledata "Business Relation" = r,
+                  tabledata "Contact Business Relation" = r,
+                  tabledata "Country/Region" = r,
+                  tabledata "Post Code" = r,
+                  tabledata Currency = r,
+                  tabledata "Currency Exchange Rate" = r,
+                  tabledata "Payment Terms" = r,
+                  tabledata "Shipment Method" = r,
+                  tabledata "Shipping Agent" = r,
+                  tabledata "Sales & Receivables Setup" = r,
+                  tabledata "Purchases & Payables Setup" = r,
+                  tabledata "Marketing Setup" = r,
+                  tabledata "No. Series" = r,
+                  tabledata "No. Series Line" = r,
+                  tabledata "G/L Account" = r,
+                  tabledata Dimension = r,
+                  tabledata "Dimension Value" = r,
+                  tabledata "Gen. Business Posting Group" = r,
+                  tabledata "Gen. Product Posting Group" = r,
+                  tabledata "Customer Posting Group" = r,
+                  tabledata "Vendor Posting Group" = r,
+                  tabledata "VAT Business Posting Group" = r,
+                  tabledata "VAT Product Posting Group" = r,
+                  tabledata "VAT Posting Setup" = r,
+                  tabledata "Tax Area" = r,
+                  tabledata "Tax Group" = r,
+                  tabledata "Tax Jurisdiction" = r,
+                  tabledata "Tenant Media" = r,
                   // Read the consent tables so the source can answer "not consented" as a structured signal instead of throwing a permission error (surfaced as a bare HTTP 403).
                   tabledata "Privacy Notice" = R,
                   tabledata "Privacy Notice Approval" = R;

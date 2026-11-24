@@ -12,6 +12,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         WizardPrivacyNoticeOpenCount: Integer;
         ConfirmQuestions: List of [Text];
         InvalidSourceHostErr: Label 'not a valid Business Central endpoint', Locked = true;
+        InvalidSourceEnvironmentNameErr: Label 'An environment name has up to 30 characters', Locked = true;
 
     [Test]
     procedure CrossEnvGetBySystemIdRoundTripsSourceRecord()
@@ -80,6 +81,103 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [GIVEN] a look-alike host that only embeds the allowed host as a non-final label [THEN] validation is rejected
         asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://api.businesscentral.dynamics.com.evil.example.com');
         Assert.ExpectedError(InvalidSourceHostErr);
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportBuildsSourceUrlFromOwnTenant()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        AzureADTenant: Codeunit "Azure AD Tenant";
+        SourceApiBaseUrl: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660386] The request URL is rebuilt for every request from this environment's tenant and the source
+        //                   environment name, so a changed stored URL can't send the token to another tenant.
+        Initialize();
+        // [GIVEN] a cross-environment setup
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
+#if not CLEAN30
+        // [GIVEN] the stored (obsolete) source URL was changed to point to another tenant's environment
+#pragma warning disable AL0432
+        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/00000000-0000-0000-0000-0000000000aa/OTHER-PROD';
+#pragma warning restore AL0432
+#endif
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the transport builds the source URL
+        SourceApiBaseUrl := LibraryMasterDataMgt.GetHttpTransportSourceApiBaseUrl();
+
+        // [THEN] it targets this environment's tenant and the configured source environment, never the stored URL
+        Assert.IsTrue(StrPos(SourceApiBaseUrl, '/v2.0/' + AzureADTenant.GetAadTenantId() + '/CONTOSO-PROD') > 0, 'The URL should use this tenant and the source environment name');
+        Assert.AreEqual(0, StrPos(SourceApiBaseUrl, 'OTHER-PROD'), 'The stored URL must not be used');
+        Assert.AreEqual(0, StrPos(SourceApiBaseUrl, '00000000-0000-0000-0000-0000000000aa'), 'Another tenant must never be addressed');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceEnvironmentNameMustBeAPlainEnvironmentName()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660386] The source environment name becomes a path segment of the request URL, so only a plain
+        //                   environment name is accepted; a name that would change the URL path is rejected.
+        Initialize();
+        MasterDataManagementSetup.Get();
+
+        // [WHEN] a name with URL path characters is entered [THEN] it is rejected
+        asserterror MasterDataManagementSetup.Validate("Source Environment Name", 'PROD/../../00000000-0000-0000-0000-0000000000aa/OTHER');
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+        asserterror MasterDataManagementSetup.Validate("Source Environment Name", 'PROD?company=x');
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+        // [WHEN] a name that doesn't start with a letter or is longer than 30 characters is entered [THEN] it is rejected
+        asserterror MasterDataManagementSetup.Validate("Source Environment Name", '1PROD');
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+        asserterror MasterDataManagementSetup.Validate("Source Environment Name", PadStr('PROD', 31, 'X'));
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+
+        // [WHEN] a valid environment name is entered [THEN] it is accepted
+        MasterDataManagementSetup.Validate("Source Environment Name", 'Contoso_Prod-2');
+
+        // [GIVEN] an invalid name stored without validation, for example by a configuration package
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Source Environment Name" := 'PROD/../../OTHER';
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the transport builds the source URL [THEN] it refuses
+        asserterror LibraryMasterDataMgt.GetHttpTransportSourceApiBaseUrl();
+        Assert.ExpectedError('not a valid environment name');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportAuditDimensionsNameTheAppAndCredentialType()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660388] Cross-environment audit entries and telemetry name the Microsoft Entra application (client) ID
+        //                   and how it authenticated. This release supports only a client secret.
+        Initialize();
+        // [GIVEN] a cross-environment connection that uses a client secret
+        SetCrossEnvConnectionDetails();
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the transport builds the audit and telemetry dimensions [THEN] they carry the client ID and credential type
+        Dimensions := LibraryMasterDataMgt.GetHttpTransportConnectionDimensions();
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', Dimensions.Get('ClientId'), 'The client ID should be logged');
+        Assert.AreEqual('ClientSecret', Dimensions.Get('CredentialType'), 'The client secret credential type should be logged');
 
         CleanUp();
     end;
@@ -395,7 +493,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         asserterror LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
 
         // [THEN] the error tells the source admin to grant read permission
-        Assert.ExpectedError('grant it read permission to this table');
+        Assert.ExpectedError('grant the application direct read permission (R) to this table');
 
         CleanUp();
     end;
@@ -420,7 +518,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         asserterror LibraryMasterDataMgt.GetIntegrationRecRefCount(IntegrationTableMapping);
 
         // [THEN] it stops with the read-permission error instead of reporting an empty table
-        Assert.ExpectedError('grant it read permission to this table');
+        Assert.ExpectedError('grant the application direct read permission (R) to this table');
 
         CleanUp();
     end;
@@ -631,6 +729,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         InProcessTransport: Codeunit "MDM In-Process Transport";
         AzureADTenant: Codeunit "Azure AD Tenant";
         ConnectionDetails: TestPage "MDM Connection Details";
+        SourceApiBaseUrl: Text;
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] The Connection Details wizard collects the source connection details and saves them (secret to Isolated Storage).
@@ -654,12 +753,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] the setup holds the connection and a stored client secret
         MasterDataManagementSetup.Get();
         Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment not saved');
-        // The URL is constructed from the current tenant, ring host, and source environment name.
+        // The request URL is constructed at runtime from the current tenant, ring host, and source environment name.
+        SourceApiBaseUrl := LibraryMasterDataMgt.GetHttpTransportSourceApiBaseUrl();
         Assert.IsTrue(
-            StrPos(MasterDataManagementSetup."Source Environment URL", '/v2.0/' + AzureADTenant.GetAadTenantId() + '/CONTOSO-PROD') > 0,
+            StrPos(SourceApiBaseUrl, '/v2.0/' + AzureADTenant.GetAadTenantId() + '/CONTOSO-PROD') > 0,
             'Source URL should embed the tenant id and source environment name');
         Assert.IsTrue(
-            StrPos(LowerCase(MasterDataManagementSetup."Source Environment URL"), 'https://api.businesscentral.dynamics') = 1,
+            StrPos(LowerCase(SourceApiBaseUrl), 'https://api.businesscentral.dynamics') = 1,
             'Source URL should target the Business Central API host');
         Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company not saved');
         Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id not saved');
@@ -684,7 +784,6 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [GIVEN] a configured cross-environment connection with a stored secret
         MasterDataManagementSetup.Get();
         MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
-        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/contoso-prod';
         MasterDataManagementSetup."Source Company Name" := 'CRONUS';
         MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
         MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret key
@@ -698,7 +797,6 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] every cross-environment field and the stored secret are cleared
         MasterDataManagementSetup.Get();
         Assert.AreEqual('', MasterDataManagementSetup."Source Environment Name", 'Source environment should be cleared');
-        Assert.AreEqual('', MasterDataManagementSetup."Source Environment URL", 'Source URL should be cleared');
         Assert.AreEqual('', MasterDataManagementSetup."Source Company Name", 'Source company should be cleared');
         Assert.AreEqual('', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be cleared');
         Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Secret key should be cleared'); // empty Source Environment Name (asserted above) means same-environment again
@@ -2069,5 +2167,16 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibraryRandomCu: Codeunit "Library - Random";
     begin
         exit(LibraryRandomCu.RandIntInRange(1, 999999));
+    end;
+
+    local procedure SetCrossEnvConnectionDetails()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+    begin
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
+        MasterDataManagementSetup."Source Company Name" := 'CRONUS';
+        MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
+        MasterDataManagementSetup.Modify(false);
     end;
 }

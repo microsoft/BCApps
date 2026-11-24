@@ -176,6 +176,7 @@ xmlport 7231 ImportMDMSetup
                     TableFilterOutStr: OutStream;
                     IntegrationTableFilterOutStr: OutStream;
                 begin
+                    CheckTablesCanBeSynchronized();
                     integrationTableMapping."Table Caption" := MasterDataMgtSetupDefault.GetTableCaption(integrationTableMapping."Table ID");
                     integrationTableMapping."Table Filter".CreateOutStream(TableFilterOutStr);
                     integrationTableMapping."Integration Table Filter".CreateOutStream(IntegrationTableFilterOutStr);
@@ -209,6 +210,7 @@ xmlport 7231 ImportMDMSetup
                     TableFilterOutStr: OutStream;
                     IntegrationTableFilterOutStr: OutStream;
                 begin
+                    CheckTablesCanBeSynchronized();
                     integrationTableMapping."Table Filter".CreateOutStream(TableFilterOutStr);
                     integrationTableMapping."Integration Table Filter".CreateOutStream(IntegrationTableFilterOutStr);
                     TableFilterOutStr.WriteText(tableFilterText);
@@ -218,5 +220,16 @@ xmlport 7231 ImportMDMSetup
             }
         }
     }
+
+    // An imported file is untrusted input: apply the same table checks as the Add Table action, so a crafted file
+    // can't add a system table or any other table that can't be synchronized.
+    local procedure CheckTablesCanBeSynchronized()
+    var
+        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+    begin
+        MasterDataMgtSetupDefault.CheckTableCanBeSynchronized(integrationTableMapping."Table ID");
+        if integrationTableMapping."Integration Table ID" <> integrationTableMapping."Table ID" then
+            MasterDataMgtSetupDefault.CheckTableCanBeSynchronized(integrationTableMapping."Integration Table ID");
+    end;
 }
 
