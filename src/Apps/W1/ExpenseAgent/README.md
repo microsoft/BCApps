@@ -181,6 +181,11 @@ either a handoff or full approval. Don't interpret a 404 as an approval
 outcome or broaden that view's filter. Errors from approval are propagated
 instead of returning a success-shaped outcome.
 
+An unexpected post-approval status raises an internal error. BC retains the
+diagnostic status in telemetry rather than exposing it as a client error.
+Approval may already be committed when this error occurs; don't assume
+failure means the report is unchanged or retry without reconciling its state.
+
 `Expense Reports API Test` covers the OData scalar response, handoff through
 the approver view, final and single-stage approval, active final alternates,
 policy override, and rejection of inactive approvers. These tests require

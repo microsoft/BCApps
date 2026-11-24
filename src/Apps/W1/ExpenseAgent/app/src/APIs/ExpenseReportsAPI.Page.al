@@ -467,6 +467,7 @@ page 6928 "Expense Reports API"
         ApprovalOutcome: JsonObject;
         NextApprover: JsonValue;
         OutcomeText: Text;
+        UnexpectedApprovalStatusErrorInfo: ErrorInfo;
     begin
         Rec.PerformManualApproved(ApproverExpenseUserNo, SkipPolicyValidation);
 
@@ -484,7 +485,12 @@ page 6928 "Expense Reports API"
                     NextApprover.SetValueToNull();
                 end;
             else
-                Error(UnexpectedApprovalStatusErr, Rec.Status);
+                begin
+                    UnexpectedApprovalStatusErrorInfo.Message := StrSubstNo(UnexpectedApprovalStatusErr, Rec.Status);
+                    UnexpectedApprovalStatusErrorInfo.ErrorType := ErrorType::Internal;
+                    UnexpectedApprovalStatusErrorInfo.DataClassification := DataClassification::SystemMetadata;
+                    Error(UnexpectedApprovalStatusErrorInfo);
+                end;
         end;
         ApprovalOutcome.Add('approvalComplete', Rec.Status = Rec.Status::Approved);
         ApprovalOutcome.Add('nextApproverExpenseUserNo', NextApprover);
