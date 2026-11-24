@@ -5,6 +5,8 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Foundation.Attachment;
+using System.Utilities;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines]
 // Card transactions become expense report lines before a receipt exists. These tests describe the target behavior.
@@ -30,6 +32,8 @@ codeunit 148373 "EA Card Report Line Tests"
         JustificationRequiredTok: Label 'Justification is required', Locked = true;
         DuplicateTok: Label 'already exists', Locked = true;
         MaxAmountTok: Label 'must not exceed', Locked = true;
+        ReceiptFileNameTok: Label 'receipt.png', Locked = true;
+        OnePixelPngBase64Tok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
     // Without the Expense Agent, card expenses follow the standard BC flow: release with the existing rules, then add
@@ -288,6 +292,27 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     [Test]
+    procedure ReceiptMatchesReleasedCardExpenseRemovedFromReport()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] After "Remove from report" the card expense is released and waits for a report. A receipt uploaded
+        // through the general flow still finds it, so no duplicate expense is created.
+        Initialize();
+
+        // [GIVEN] A card line of 20 without a receipt that was removed from its report.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        ExpenseReportLine.Delete(true);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Released);
+
+        // [WHEN] A receipt of 20 from the same merchant is matched.
+        // [THEN] The released card expense is returned.
+        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20), 'A released card expense that waits for a report must match the receipt.');
+    end;
+
+    [Test]
     procedure ReceiptDoesNotMatchCardExpenseOnReleasedReport()
     var
         Expense: Record Expense;
@@ -444,6 +469,101 @@ codeunit 148373 "EA Card Report Line Tests"
 
         // [THEN] The expense is released, off the report and still linked to its transaction.
         Assert.IsTrue(Expense.Get(Expense."No."), 'The card expense must not be deleted with its report.');
+        Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField("Expense Report No.", '');
+        Expense.TestField("Credit Card Feed No.", FeedNo);
+        CorpCardTrans.Get(FeedNo);
+        CorpCardTrans.TestField("Expense No.", Expense."No.");
+    end;
+
+    // ---------------------------------------------------------------------------------------------
+    // Moving a card line to another report keeps the card link and the receipt; the moved line can still be removed
+    // ---------------------------------------------------------------------------------------------
+
+    [Test]
+    procedure MovingCardLineKeepsCardLinkAndReceipt()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        SourceExpenseReportHeader: Record "Expense Report Header";
+        TargetExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        SourceLine: Record "Expense Report Line";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        ExpenseReceipt: Record "Document Attachment";
+        LineReceipt: Record "Document Attachment";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        FeedNo: Integer;
+    begin
+        // [SCENARIO] Moving a card line with its expense and receipt to another open report keeps the card values, the
+        // link to the transaction and the receipt. The move must not be treated as "Remove from report".
+        Initialize();
+
+        // [GIVEN] A card expense of 20 with a receipt, released and added to an open report, and a second open report.
+        CreateCardExpense(Expense, CardIdTok);
+        CreateCardCategory(ExpenseCategory, 0);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Modify(true);
+        AttachReceiptToExpense(Expense);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        CreateReportForExpense(SourceExpenseReportHeader, Expense);
+        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, SourceExpenseReportHeader);
+        CreateReportForExpense(TargetExpenseReportHeader, Expense);
+        FeedNo := Expense."Credit Card Feed No.";
+
+        // [WHEN] The line is moved to the second report.
+        ExpenseReportLine.MoveToExpenseReport(TargetExpenseReportHeader."No.");
+
+        // [THEN] The source report has no line left and the moved line keeps the card values and the transaction link.
+        SourceLine.SetRange("Document No.", SourceExpenseReportHeader."No.");
+        Assert.RecordIsEmpty(SourceLine);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Document No.", TargetExpenseReportHeader."No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", FeedNo);
+        ExpenseReportLine.TestField("Corporate Card Id", CardIdTok);
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportLine.TestField("Receipt Attached", true);
+
+        // [THEN] The expense is submitted on the target report and still linked to its transaction.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Report No.", TargetExpenseReportHeader."No.");
+        Expense.TestField(Status, Expense.Status::Submitted);
+        Expense.TestField("Credit Card Feed No.", FeedNo);
+        CorpCardTrans.Get(FeedNo);
+        CorpCardTrans.TestField("Expense No.", Expense."No.");
+
+        // [THEN] The moved line has one receipt, and it refers to the expense's receipt.
+        FindExpenseReceipt(Expense, ExpenseReceipt);
+        FindLineReceipt(ExpenseReportLine, LineReceipt);
+        Assert.AreEqual(1, LineReceipt.Count(), 'The moved line must have a single receipt.');
+        Assert.AreEqual(Format(ExpenseReceipt."Document Reference ID"), Format(LineReceipt."Document Reference ID"), 'The moved line receipt must refer to the expense receipt.');
+    end;
+
+    [Test]
+    procedure MovedCardLineCanBeRemovedFromReport()
+    var
+        Expense: Record Expense;
+        TargetExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        FeedNo: Integer;
+    begin
+        // [SCENARIO] A card line that was moved to another report can still be removed from that report; the expense is
+        // released again, waits for a report and stays linked to its transaction.
+        Initialize();
+
+        // [GIVEN] A card line that was moved to a second open report.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        CreateReportForExpense(TargetExpenseReportHeader, Expense);
+        ExpenseReportLine.MoveToExpenseReport(TargetExpenseReportHeader."No.");
+        FeedNo := Expense."Credit Card Feed No.";
+
+        // [WHEN] The moved line is deleted.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.Delete(true);
+
+        // [THEN] The expense is released, off the report and still linked to its transaction.
+        Expense.Get(Expense."No.");
         Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
         Expense.TestField("Credit Card Feed No.", FeedNo);
@@ -803,6 +923,43 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Allow No Receipt" := AllowNoReceipt;
         ExpenseAgentSetup.Modify();
+    end;
+
+    // Attaches a real one-pixel image as the receipt, built without DotNet like "Library - Expense".CreateTempBLOBWithImageOfType on main.
+    local procedure AttachReceiptToExpense(var Expense: Record Expense)
+    var
+        DocumentAttachment: Record "Document Attachment";
+        Image: Codeunit Image;
+        TempBlob: Codeunit "Temp Blob";
+        RecRef: RecordRef;
+        OutStream: OutStream;
+        InStream: InStream;
+    begin
+        Image.FromBase64(OnePixelPngBase64Tok);
+        Image.SetFormat(Enum::"Image Format"::Png);
+        TempBlob.CreateOutStream(OutStream);
+        Image.Save(OutStream);
+        TempBlob.CreateInStream(InStream);
+        RecRef.GetTable(Expense);
+        DocumentAttachment.SaveAttachmentFromStream(InStream, RecRef, ReceiptFileNameTok);
+        Expense.Get(Expense."No.");
+    end;
+
+    local procedure FindExpenseReceipt(Expense: Record Expense; var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.SetRange("Table ID", Database::Expense);
+        DocumentAttachment.SetRange("No.", Expense."No.");
+        DocumentAttachment.SetRange("No Receipt Declaration", false);
+        DocumentAttachment.FindFirst();
+    end;
+
+    local procedure FindLineReceipt(ExpenseReportLine: Record "Expense Report Line"; var DocumentAttachment: Record "Document Attachment")
+    begin
+        DocumentAttachment.SetRange("Table ID", Database::"Expense Report Line");
+        DocumentAttachment.SetRange("No.", ExpenseReportLine."Document No.");
+        DocumentAttachment.SetRange("Line No.", ExpenseReportLine."Line No.");
+        DocumentAttachment.SetRange("No Receipt Declaration", false);
+        DocumentAttachment.FindFirst();
     end;
 
     local procedure FindMatch(Expense: Record Expense; ReceiptDate: Date; ReceiptAmount: Decimal): Guid

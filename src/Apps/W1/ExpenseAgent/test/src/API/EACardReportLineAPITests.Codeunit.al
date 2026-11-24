@@ -652,7 +652,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         // [THEN] The line's receipt refers to the same document as the expense's receipt.
         FindExpenseReceipt(Expense, ExpenseReceipt);
         FindLineReceipt(ExpenseReportLine, LineReceipt);
-        Assert.AreEqual(ExpenseReceipt."Document Reference ID", LineReceipt."Document Reference ID", 'The line receipt must refer to the expense receipt.');
+        Assert.AreEqual(Format(ExpenseReceipt."Document Reference ID"), Format(LineReceipt."Document Reference ID"), 'The line receipt must refer to the expense receipt.');
 
         // [THEN] Deleting the receipt from the line is rejected.
         asserterror LineReceipt.Delete(true);
