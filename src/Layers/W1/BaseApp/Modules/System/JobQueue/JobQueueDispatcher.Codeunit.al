@@ -144,6 +144,8 @@ codeunit 448 "Job Queue Dispatcher"
             exit(false);
         if JobQueueEntry.Status <> JobQueueEntry.Status::Finished then
             exit(false);
+        if JobQueueEntry."Manual Recurrence" then
+            exit(false);
         ExecutedTaskId := JobQueueEntry."System Task ID";
         if IsNullGuid(ExecutedTaskId) then
             exit(false);

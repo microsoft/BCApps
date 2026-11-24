@@ -844,6 +844,36 @@ codeunit 139018 "Job Queue Entry Tests"
         JobQueueEntry.TestField("System Task ID", TaskId);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RetryAfterInterruptedFinalizationRespectsManualRecurrence()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        JobQueueLogEntry: Record "Job Queue Log Entry";
+        TaskId: Guid;
+    begin
+        // [FEATURE] [Job Queue Dispatcher]
+        // [SCENARIO 660077] Interrupted finalization is not resumed when manual recurrence was enabled in the meantime
+        JobQueueLogEntry.DeleteAll();
+
+        // [GIVEN] A recurring Finished entry with an unfinalized log entry, switched to manual recurrence
+        CreateFinishedJobQueueEntryWithUnfinalizedLog(JobQueueEntry, JobQueueLogEntry, true);
+        JobQueueEntry."Manual Recurrence" := true;
+        JobQueueEntry.Modify();
+        TaskId := JobQueueEntry."System Task ID";
+        Commit();
+
+        // [WHEN] The platform retries the scheduled task
+        BindSubscription(this);
+        Codeunit.Run(Codeunit::"Job Queue Dispatcher", JobQueueEntry);
+        UnbindSubscription(this);
+
+        // [THEN] The entry is retained as Finished and no successor is scheduled
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        JobQueueEntry.TestField(Status, JobQueueEntry.Status::Finished);
+        JobQueueEntry.TestField("System Task ID", TaskId);
+    end;
+
     local procedure CreateFinishedJobQueueEntryWithUnfinalizedLog(var JobQueueEntry: Record "Job Queue Entry"; var JobQueueLogEntry: Record "Job Queue Log Entry"; Recurring: Boolean)
     begin
         JobQueueEntry.Init();
