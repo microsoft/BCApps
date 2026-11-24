@@ -235,11 +235,6 @@ report 402 "Purchase Document - Test"
                 column(Purchase_Header___Prices_Including_VAT__Control212; "Purchase Header"."Prices Including VAT")
                 {
                 }
-#if not CLEAN27
-                column(Purchase_Header___VAT_Base_Discount____Control1040000; "Purchase Header"."VAT Base Discount %")
-                {
-                }
-#endif
                 column(Purchase_Header___Payment_Discount____Control14; "Purchase Header"."Payment Discount %")
                 {
                 }
@@ -276,11 +271,6 @@ report 402 "Purchase Document - Test"
                 column(Purchase_Header___Prices_Including_VAT__Control214; "Purchase Header"."Prices Including VAT")
                 {
                 }
-#if not CLEAN27
-                column(Purchase_Header___VAT_Base_Discount____Control1040002; "Purchase Header"."VAT Base Discount %")
-                {
-                }
-#endif
                 column(Purchase_Header___Vendor_Cr__Memo_No__; "Purchase Header"."Vendor Cr. Memo No.")
                 {
                 }
@@ -302,11 +292,6 @@ report 402 "Purchase Document - Test"
                 column(Purchase_Header___Prices_Including_VAT__Control216; "Purchase Header"."Prices Including VAT")
                 {
                 }
-#if not CLEAN27
-                column(Purchase_Header___VAT_Base_Discount____Control1040004; "Purchase Header"."VAT Base Discount %")
-                {
-                }
-#endif
                 column(PageCounter_Number; Number)
                 {
                 }
@@ -397,11 +382,6 @@ report 402 "Purchase Document - Test"
                 column(Purchase_Header___Prices_Including_VAT__Control212Caption; "Purchase Header".FieldCaption("Prices Including VAT"))
                 {
                 }
-#if not CLEAN27
-                column(Purchase_Header___VAT_Base_Discount____Control1040000Caption; Purchase_Header___VAT_Base_Discount____Control1040000CaptionLbl)
-                {
-                }
-#endif
                 column(Purchase_Header___Payment_Discount____Control14Caption; "Purchase Header".FieldCaption("Payment Discount %"))
                 {
                 }
@@ -438,11 +418,6 @@ report 402 "Purchase Document - Test"
                 column(Purchase_Header___Prices_Including_VAT__Control214Caption; "Purchase Header".FieldCaption("Prices Including VAT"))
                 {
                 }
-#if not CLEAN27
-                column(Purchase_Header___VAT_Base_Discount____Control1040002Caption; Purchase_Header___VAT_Base_Discount____Control1040002CaptionLbl)
-                {
-                }
-#endif
                 column(Purchase_Header___Vendor_Cr__Memo_No__Caption; "Purchase Header".FieldCaption("Vendor Cr. Memo No."))
                 {
                 }
@@ -464,11 +439,6 @@ report 402 "Purchase Document - Test"
                 column(Purchase_Header___Prices_Including_VAT__Control216Caption; "Purchase Header".FieldCaption("Prices Including VAT"))
                 {
                 }
-#if not CLEAN27
-                column(Purchase_Header___VAT_Base_Discount____Control1040004Caption; Purchase_Header___VAT_Base_Discount____Control1040004CaptionLbl)
-                {
-                }
-#endif
                 column(RemitToAddressCaption; Remit_toCaptionLbl)
                 {
                 }
@@ -723,13 +693,6 @@ report 402 "Purchase Document - Test"
                             AutoFormatExpression = "Purchase Header"."Currency Code";
                             AutoFormatType = 1;
                         }
-#if not CLEAN27
-                        column(TotalReverseCharge; TotalReverseCharge)
-                        {
-                            AutoFormatExpression = "Purchase Header"."Currency Code";
-                            AutoFormatType = 1;
-                        }
-#endif
                         column(RoundLoop_Number; Number)
                         {
                         }
@@ -772,11 +735,6 @@ report 402 "Purchase Document - Test"
                         column(VATDiscountAmountCaption; VATDiscountAmountCaptionLbl)
                         {
                         }
-#if not CLEAN27
-                        column(Reverse_ChargeCaption_Control1040006; Reverse_ChargeCaption_Control1040006Lbl)
-                        {
-                        }
-#endif
                         dataitem(DimensionLoop2; "Integer")
                         {
                             DataItemTableView = sorting(Number) where(Number = filter(1 ..));
@@ -1674,10 +1632,6 @@ report 402 "Purchase Document - Test"
 
                 OnAfterCheckPurchaseDoc("Purchase Header", ErrorText, ErrorCounter);
 
-#if not CLEAN27
-                ReverseCharge := 0;
-                TotalReverseCharge := 0;
-#endif
             end;
 
             trigger OnPreDataItem()
@@ -1782,21 +1736,12 @@ report 402 "Purchase Document - Test"
 
     rendering
     {
-#if not CLEAN27
-        layout(RDLCLayout)
-        {
-            Type = RDLC;
-            LayoutFile = './Purchases/Reports/PurchaseDocumentTestGB.rdlc';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
-        }
-#else
         layout(RDLCLayout)
         {
             Type = RDLC;
             LayoutFile = './Purchases/Reports/PurchaseDocumentTest.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
-#endif
     }
 
     labels
@@ -1938,12 +1883,6 @@ report 402 "Purchase Document - Test"
         SumLineAmount: Decimal;
         SumInvDiscountAmount: Decimal;
         DifferentPostingDateToWorkDateTxt: Label '%1 %2 is different to Work Date %3.', Comment = '%1 = Posting Date Field Caption %2=Posting Date Field Value %3=WorkDate value';
-#if not CLEAN27
-        Text10500: Label 'Reverse charge item - please check correct VAT rate is entered. Reverse Charge %1';
-        TempPurchLine2: Record "Purchase Line";
-        ReverseCharge: Decimal;
-        TotalReverseCharge: Decimal;
-#endif
         Purchase_Document___TestCaptionLbl: Label 'Purchase Document - Test';
         CurrReport_PAGENOCaptionLbl: Label 'Page';
         Ship_toCaptionLbl: Label 'Ship-to';
@@ -1958,21 +1897,12 @@ report 402 "Purchase Document - Test"
         Purchase_Header___Document_Date__Control107CaptionLbl: Label 'Document Date';
         Purchase_Header___Order_Date_CaptionLbl: Label 'Order Date';
         Purchase_Header___Expected_Receipt_Date_CaptionLbl: Label 'Expected Receipt Date';
-#if not CLEAN27
-        Purchase_Header___VAT_Base_Discount____Control1040000CaptionLbl: Label 'VAT Base Discount %';
-#endif
         Purchase_Header___Due_Date__Control19CaptionLbl: Label 'Due Date';
         Purchase_Header___Pmt__Discount_Date__Control22CaptionLbl: Label 'Pmt. Discount Date';
         Purchase_Header___Posting_Date__Control112CaptionLbl: Label 'Posting Date';
         Purchase_Header___Document_Date__Control113CaptionLbl: Label 'Document Date';
-#if not CLEAN27
-        Purchase_Header___VAT_Base_Discount____Control1040002CaptionLbl: Label 'VAT Base Discount %';
-#endif
         Purchase_Header___Posting_Date__Control130CaptionLbl: Label 'Posting Date';
         Purchase_Header___Document_Date__Control131CaptionLbl: Label 'Document Date';
-#if not CLEAN27
-        Purchase_Header___VAT_Base_Discount____Control1040004CaptionLbl: Label 'VAT Base Discount %';
-#endif
         Header_DimensionsCaptionLbl: Label 'Header Dimensions';
         ErrorText_Number_CaptionLbl: Label 'Warning!';
         AmountCaptionLbl: Label 'Amount';
@@ -1981,9 +1911,6 @@ report 402 "Purchase Document - Test"
         TempPurchLine__Inv__Discount_Amount_CaptionLbl: Label 'Inv. Discount Amount';
         SubtotalCaptionLbl: Label 'Subtotal';
         VATDiscountAmountCaptionLbl: Label 'Payment Discount on VAT';
-#if not CLEAN27
-        Reverse_ChargeCaption_Control1040006Lbl: Label 'Reverse Charge';
-#endif
         Line_DimensionsCaptionLbl: Label 'Line Dimensions';
         ErrorText_Number__Control103CaptionLbl: Label 'Warning!';
         VAT_Amount_SpecificationCaptionLbl: Label 'VAT Amount Specification';
@@ -2077,26 +2004,6 @@ report 402 "Purchase Document - Test"
                                         AddError(StrSubstNo(Text019, PurchaseLine.FieldCaption("Reserved Quantity"), PurchaseLine.Signed(PurchaseLine."Qty. to Receive")));
                                 end;
 
-#if not CLEAN27
-                            ReverseCharge := 0;
-                            if "Purchase Line"."Reverse Charge Item" and
-                               ("Purchase Header"."VAT Bus. Posting Group" = PurchSetup."Domestic Vendors") and
-                               ("Purchase Header"."VAT Registration No." <> '')
-                            then
-                                if PurchSetup."Reverse Charge VAT Posting Gr." = "Purchase Line"."VAT Bus. Posting Group" then begin
-                                    TempPurchLine2 := "Purchase Line";
-                                    TempPurchLine2.SuspendStatusCheck(true);
-                                    TempPurchLine2.Validate("VAT Bus. Posting Group", PurchSetup."Domestic Vendors");
-                                    TempPurchLine2.Validate(Amount);
-                                    ReverseCharge :=
-                                      Round(
-                                        (TempPurchLine2."Amount Including VAT" - TempPurchLine2.Amount) *
-                                        TempPurchLine2."Qty. to Invoice" / TempPurchLine2.Quantity);
-                                    AddError(StrSubstNo(Text10500, ReverseCharge));
-                                    TotalReverseCharge := TotalReverseCharge + ReverseCharge;
-                                end else
-                                    AddError(StrSubstNo(Text10500, Round(0)));
-#endif
                         end else
                             AddError(StrSubstNo(Text008, Item.TableCaption(), PurchaseLine."No."));
                 end;

@@ -16,8 +16,8 @@ codeunit 265 "Feature Key Management"
         FeatureTelemetry: Codeunit System.Telemetry."Feature Telemetry";
         AutomaticAccountCodesTxt: Label 'AutomaticAccountCodes', Locked = true;
         SIEAuditFileExportTxt: Label 'SIEAuditFileExport', Locked = true;
-#if not CLEAN27
-        VATReverseChargeTok: Label 'VATReverseCharge', Locked = true;
+#if not CLEAN30
+        DepreciationDifferencesFITok: Label 'DepreciationDifferencesFI', Locked = true, MaxLength = 50;
 #endif
         DocumentReportExperienceTxt: Label 'DocumentReportExperience', Locked = true;
         ConcurrentInventoryPostingLbl: Label 'ConcurrentInventoryPosting', Locked = true;
@@ -41,25 +41,19 @@ codeunit 265 "Feature Key Management"
         exit(FeatureManagementFacade.IsEnabled(GetSIEAuditFileExportFeatureKeyId()));
     end;
 
-#if not CLEAN27
-    procedure IsVATReverseChargeEnabled(): Boolean
-    begin
-        exit(FeatureManagementFacade.IsEnabled(VATReverseChargeTok));
-    end;
-#endif
 
     procedure IsDocumentReportExperienceEnabled(): Boolean
     begin
         exit(FeatureManagementFacade.IsEnabled(DocumentReportExperienceTxt));
     end;
 
-#if not CLEAN27
-    [Obsolete('This function is deprecated. Concurrent warehouse posting is always on.', '27.0')]
-    procedure IsConcurrentWarehousingPostingEnabled(): Boolean
+#if not CLEAN30
+    procedure IsDepreciationDifferencesFIEnabled(): Boolean
     begin
-        exit(true);
+        exit(FeatureManagementFacade.IsEnabled(DepreciationDifferencesFITok, false));
     end;
 #endif
+
 
     procedure IsConcurrentInventoryPostingEnabled(): Boolean
     begin

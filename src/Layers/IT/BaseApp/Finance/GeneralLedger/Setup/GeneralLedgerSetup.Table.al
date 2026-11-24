@@ -31,9 +31,6 @@ using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 using System.Environment;
-#if not CLEAN27
-using System.Environment.Configuration;
-#endif
 using System.IO;
 using System.Security.User;
 using System.Telemetry;
@@ -1313,7 +1310,7 @@ table 98 "General Ledger Setup"
         /// <summary>
         /// G/L account category used for classifying accounts receivable accounts in financial reporting.
         /// </summary>
-        field(190; "Acc. Receivables Category"; Integer)
+        field(190; "Acc. Receivables Category"; BigInteger)
         {
             TableRelation = "G/L Account Category";
             Caption = 'Account Receivables G/L Account Category';
@@ -1340,7 +1337,7 @@ table 98 "General Ledger Setup"
             Caption = 'Check Source Curr. Consistency';
             ToolTip = 'Specifies whether Business Central validates the total of general ledger entries source currency amount during posting.';
         }
-        field(194; "Acc. Payables Category"; Integer)
+        field(194; "Acc. Payables Category"; BigInteger)
         {
             TableRelation = "G/L Account Category";
             Caption = 'Account Payables G/L Account Category';
@@ -1797,13 +1794,7 @@ table 98 "General Ledger Setup"
     procedure VATSettlementPeriodChangeCheck()
     var
         VatEntry: Record "VAT Entry";
-#if not CLEAN27
-        PeriodicSettlementVATEntry: Record "Periodic Settlement VAT Entry";
         PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
-        FeatureManagementIT: Codeunit "Feature Management IT";
-#else
-        PeriodicVATSettlementEntry: Record "Periodic VAT Settlement Entry";
-#endif
     begin
         if xRec."VAT Settlement Period" <> "VAT Settlement Period" then begin
             // Check if all VAT Entries are closed
@@ -1814,24 +1805,10 @@ table 98 "General Ledger Setup"
                 Error(Text12100, FieldCaption("VAT Settlement Period"));
 
             // Check if all Periodic VAT Settlement Entries are closed
-#if not CLEAN27
-            if FeatureManagementIT.IsVATSettlementPerActivityCodeFeatureEnabled() then begin
-                PeriodicVATSettlementEntry.SetCurrentKey("VAT Period Closed");
-                PeriodicVATSettlementEntry.SetRange("VAT Period Closed", false);
-                if not PeriodicVATSettlementEntry.IsEmpty() then
-                    Error(Text12101, FieldCaption("VAT Settlement Period"));
-            end else begin
-                PeriodicSettlementVATEntry.SetCurrentKey("VAT Period Closed");
-                PeriodicSettlementVATEntry.SetRange("VAT Period Closed", false);
-                if not PeriodicSettlementVATEntry.IsEmpty() then
-                    Error(Text12101, FieldCaption("VAT Settlement Period"));
-            end;
-#else
             PeriodicVATSettlementEntry.SetCurrentKey("VAT Period Closed");
             PeriodicVATSettlementEntry.SetRange("VAT Period Closed", false);
             if not PeriodicVATSettlementEntry.IsEmpty() then
                 Error(Text12101, FieldCaption("VAT Settlement Period"));
-#endif
         end;
     end;
 

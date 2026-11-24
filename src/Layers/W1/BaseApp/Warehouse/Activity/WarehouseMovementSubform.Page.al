@@ -298,8 +298,17 @@ page 7316 "Warehouse Movement Subform"
     procedure RegisterActivityYesNo()
     var
         WhseActivLine: Record "Warehouse Activity Line";
+        WhseActivityHeader: Record "Warehouse Activity Header";
     begin
-        WhseActivLine.Copy(Rec);
+        WhseActivityHeader.Get(Rec."Activity Type", Rec."No.");
+        if WhseActivityHeader."Breakbulk Filter" then begin
+            WhseActivLine.SetCurrentKey(
+                "Activity Type", "No.", "Sorting Sequence No.");
+            WhseActivLine.SetRange("Activity Type", Rec."Activity Type"::Movement);
+            WhseActivLine.SetRange("No.", Rec."No.");
+            WhseActivLine.FindSet();
+        end else
+            WhseActivLine.Copy(Rec);
         WhseActivLine.FilterGroup(3);
         WhseActivLine.SetRange(Breakbulk);
         WhseActivLine.FilterGroup(0);

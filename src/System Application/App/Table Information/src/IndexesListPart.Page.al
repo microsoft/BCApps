@@ -180,6 +180,28 @@ page 8704 "Indexes List Part"
     {
         area(Processing)
         {
+            action(UpdateIndexStatistics)
+            {
+                Caption = 'Update index statistics';
+                Enabled = Rec.Enabled and (Rec."Index Type" = Rec."Index Type"::Index);
+                Image = Refresh;
+                ToolTip = 'Update the database statistics for the selected index in the selected company. SIFT indexes are not supported.';
+
+                trigger OnAction()
+                var
+                    IndexManagement: Codeunit "Index Management";
+                    IndexName: Text;
+                begin
+                    IndexName := Rec."Index Name";
+                    if not Dialog.Confirm(UpdateIndexStatisticsQst, false, IndexName) then
+                        exit;
+
+                    IndexManagement.UpdateIndexStatistics(Rec);
+
+                    RefreshIndexList();
+                    Message(UpdateIndexStatisticsCompletedMsg, IndexName);
+                end;
+            }
             action(TurnIndexOff)
             {
                 Caption = 'Turn index off';
@@ -190,26 +212,13 @@ page 8704 "Indexes List Part"
                 trigger OnAction()
                 var
                     IndexManagement: Codeunit "Index Management";
-                    RecordIDOfCurrentPosition: RecordId;
-                    IsMetadataDefined: Boolean;
                 begin
-                    IsMetadataDefined := Rec."Metadata Defined";
-
-                    if not IsMetadataDefined then
-                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
-                            exit;
+                    if not ConfirmTurnIndexOff() then
+                        exit;
 
                     IndexManagement.DisableIndex(Rec);
 
-                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
-
-                    Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
-                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
-
-                    if IsMetadataDefined then
-                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
-
-                    CurrPage.Update(false);
+                    RefreshIndexList();
                 end;
             }
             action(TurnIndexOffInAllCompanies)
@@ -224,16 +233,9 @@ page 8704 "Indexes List Part"
                     Company: Record Company;
                     DatabaseIndex: Record "Database Index";
                     IndexManagement: Codeunit "Index Management";
-                    RecordIDOfCurrentPosition: RecordId;
-                    IsMetadataDefined: Boolean;
                 begin
-                    IsMetadataDefined := Rec."Metadata Defined";
-
-                    if not IsMetadataDefined then
-                        if not Dialog.Confirm(TurnOffIndexWarningQst) then
-                            exit;
-
-                    RecordIDOfCurrentPosition := Rec.RecordId; // Save the current position to be able to return to it after refreshing the data.
+                    if not ConfirmTurnIndexOff() then
+                        exit;
 
                     if Company.FindSet() then
                         repeat
@@ -241,13 +243,7 @@ page 8704 "Indexes List Part"
                                 IndexManagement.DisableIndex(DatabaseIndex);
                         until Company.Next() = 0;
 
-                    Rec.DeleteAll(); // Clear the temporary table to make sure the disabled index is not shown.
-                    BuildInMemoryList(Rec.TableId); // Rebuild the in-memory list to get the updated index status.
-
-                    if IsMetadataDefined then
-                        if Rec.Get(RecordIDOfCurrentPosition) then; // Done to avoid throwing an error, returning to the right position is of secondary importance.
-
-                    CurrPage.Update(false);
+                    RefreshIndexList();
                 end;
             }
             action(TurnOnIndex)
@@ -388,12 +384,38 @@ page 8704 "Indexes List Part"
                         InsertDisabledIndex(KeyRec, false);
                 end;
 
-                if KeyRec.MaintainSIFTIndex then begin
+                if KeyRec.MaintainSIFTIndex or (not KeyRec.Enabled and (KeyRec.SumIndexFields <> '')) then begin
                     IndexName := GetKeyIndexName(KeyRec, true);
                     if not Rec.Get(LinkTableId, IndexName, SetCompanyName, KeyRec."Source App ID", Rec."Index Type"::SIFT) then
                         InsertDisabledIndex(KeyRec, true);
                 end;
             until KeyRec.Next() = 0;
+    end;
+
+    local procedure RefreshIndexList()
+    var
+        CurrentPosition: RecordId;
+        CurrentTableId: Integer;
+    begin
+        CurrentPosition := Rec.RecordId;
+        CurrentTableId := Rec.TableId;
+
+        Rec.DeleteAll();
+        BuildInMemoryList(CurrentTableId);
+
+        // Return to the previous position if the index is still listed (e.g. a dropped non-AL index is not), otherwise go to the first index, if any.
+        if not Rec.Get(CurrentPosition) then
+            if Rec.FindFirst() then;
+
+        CurrPage.Update(false);
+    end;
+
+    local procedure ConfirmTurnIndexOff(): Boolean
+    begin
+        if Rec."Metadata Defined" then
+            exit(true);
+
+        exit(Dialog.Confirm(TurnOffIndexWarningQst));
     end;
 
     local procedure InsertDisabledIndex(KeyRec: Record "Key"; IsSift: Boolean)
@@ -482,4 +504,6 @@ page 8704 "Indexes List Part"
         NoDateTimeValueLbl: Label '-', Locked = true;
         TurnOffIndexWarningQst: Label 'Turning a non-AL defined index off cannot be undone. Please confirm.';
         TurnOnIndexQueueInfoMsg: Label 'The index has been enqueued to be turned on. It will be attempted during the subsequent maintenance window (overnight local time).';
+        UpdateIndexStatisticsQst: Label 'Updating statistics may temporarily affect database performance. Do you want to update statistics for index %1?', Comment = '%1 = index name';
+        UpdateIndexStatisticsCompletedMsg: Label 'Database statistics for index %1 were updated.', Comment = '%1 = index name';
 }
