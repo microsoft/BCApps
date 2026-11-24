@@ -13,6 +13,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
@@ -35,7 +36,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the unique sequential number assigned to this detailed customer ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -43,7 +44,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the parent customer ledger entry that this detailed entry belongs to.
         /// </summary>
-        field(2; "Cust. Ledger Entry No."; Integer)
+        field(2; "Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Cust. Ledger Entry No.';
             TableRelation = "Cust. Ledger Entry";
@@ -148,7 +149,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the transaction number that groups all entries from the same posting operation.
         /// </summary>
-        field(13; "Transaction No."; Integer)
+        field(13; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
             TableRelation = "G/L Transaction";
@@ -290,7 +291,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the customer ledger entry number to which this entry was applied during payment application.
         /// </summary>
-        field(36; "Applied Cust. Ledger Entry No."; Integer)
+        field(36; "Applied Cust. Ledger Entry No."; BigInteger)
         {
             Caption = 'Applied Cust. Ledger Entry No.';
         }
@@ -305,7 +306,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the entry number of the correcting entry that unapplied this original entry.
         /// </summary>
-        field(38; "Unapplied by Entry No."; Integer)
+        field(38; "Unapplied by Entry No."; BigInteger)
         {
             Caption = 'Unapplied by Entry No.';
             TableRelation = "Detailed Cust. Ledg. Entry";
@@ -341,7 +342,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         /// <summary>
         /// Specifies the application number that groups all entries from the same application operation.
         /// </summary>
-        field(42; "Application No."; Integer)
+        field(42; "Application No."; BigInteger)
         {
             Caption = 'Application No.';
             Editable = false;
@@ -373,9 +374,10 @@ table 379 "Detailed Cust. Ledg. Entry"
             Editable = false;
             TableRelation = "Exch. Rate Adjmt. Reg.";
         }
-        field(95; "G/L Register No."; Integer)
+        field(95; "G/L Register No."; BigInteger)
         {
             Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
             Editable = false;
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
@@ -480,12 +482,24 @@ table 379 "Detailed Cust. Ledg. Entry"
         SetOriginalDocumentInfo();
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Cust. Ledg. Entry", 'r')]
+    /// <summary>
+    /// Retrieves the next entry number from the Detailed Cust. Ledg. Entry table.
+    /// </summary>
+    /// <returns>Next Detailed Cust. Ledg. Entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): BigInteger
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Detailed Cust. Ledg. Entry"));
+    end;
+
     /// <summary>
     /// Gets the entry number of the last detailed customer ledger entry in the table.
     /// </summary>
     /// <returns>The entry number of the last detailed customer ledger entry.</returns>
     [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Cust. Ledg. Entry", 'r')]
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin
@@ -522,7 +536,7 @@ table 379 "Detailed Cust. Ledg. Entry"
     procedure SetZeroTransNo(TransactionNo: Integer)
     var
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        ApplicationNo: Integer;
+        ApplicationNo: BigInteger;
     begin
         DetailedCustLedgEntry.SetCurrentKey("Transaction No.");
         DetailedCustLedgEntry.SetRange("Transaction No.", TransactionNo);
@@ -555,7 +569,7 @@ table 379 "Detailed Cust. Ledg. Entry"
     /// </summary>
     /// <param name="EntryNo">The customer ledger entry number to calculate unrealized gain/loss for.</param>
     /// <returns>The total unrealized gain/loss amount in local currency.</returns>
-    procedure GetUnrealizedGainLossAmount(EntryNo: Integer): Decimal
+    procedure GetUnrealizedGainLossAmount(EntryNo: BigInteger): Decimal
     begin
         SetCurrentKey("Cust. Ledger Entry No.", "Entry Type");
         SetRange("Cust. Ledger Entry No.", EntryNo);

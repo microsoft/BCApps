@@ -7,6 +7,7 @@ namespace Microsoft.Inventory.Transfer;
 using Microsoft.Finance.Analysis;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
@@ -280,7 +281,7 @@ codeunit 5705 "TransferOrder-Post Receipt"
         WhsePostRcpt: Codeunit "Whse.-Post Receipt";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line";
-        PostponedValueEntries: List of [Integer];
+        PostponedValueEntries: List of [BigInteger];
         ItemsToAdjust: List of [Code[20]];
         SourceCode: Code[10];
         WhsePosting: Boolean;
@@ -834,8 +835,9 @@ codeunit 5705 "TransferOrder-Post Receipt"
     local procedure LockTables(AutoCostPosting: Boolean)
     var
         GLEntry: Record "G/L Entry";
+        GLSetup: Record "General Ledger Setup";
     begin
-        if AutoCostPosting then begin
+        if AutoCostPosting and not GLSetup.UseConcurrentPosting() then begin
             GLEntry.LockTable();
             GLEntry.GetLastEntryNo();
         end;

@@ -23,6 +23,9 @@ codeunit 134123 "Price List Line UT"
         LibrarySales: Codeunit "Library - Sales";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        PriceListLinesServiceNameTxt: Label 'PriceListLinesODataTest', Locked = true;
+        PriceListLineODataKeyTxt: Label 'Price_List_Code=''%1'',Line_No=%2', Locked = true;
         StartingDateErr: Label 'Starting Date %1 cannot be after Ending Date %2.', Comment = '%1 and %2 - dates';
         CampaignDateErr: Label 'If Source Type is Campaign, then you can only change Starting Date and Ending Date from the Campaign Card.';
         AssetTypeForUOMErr: Label 'Product Type must be equal to Item or Resource.';
@@ -3806,6 +3809,248 @@ codeunit 134123 "Price List Line UT"
 
         // [THEN] No error is raised; "Line Discount %" is updated.
         Assert.AreEqual(LineDisountPct, PriceListLine."Line Discount %", LineDiscountPctErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure InsertSalesLineWithProductAndUOMViaOData()
+    begin
+        // [FEATURE] [Edit in Excel] [Unit Of Measure]
+        // [SCENARIO 657859] Inserting a sales price list line via OData with "Product No." and a non-default "Unit of Measure Code" saves the line.
+        InsertLineWithProductAndUOMViaOData("Price Type"::Sale);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure InsertPurchaseLineWithProductAndUOMViaOData()
+    begin
+        // [FEATURE] [Edit in Excel] [Unit Of Measure]
+        // [SCENARIO 657859] Inserting a purchase price list line via OData with "Product No." and a non-default "Unit of Measure Code" saves the line.
+        InsertLineWithProductAndUOMViaOData("Price Type"::Purchase);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure InsertLineWithUOMOfAnotherItemViaODataFails()
+    var
+        Item: Record Item;
+        OtherItem: Record Item;
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        RequestBody: JsonObject;
+    begin
+        // [FEATURE] [Edit in Excel] [Unit Of Measure]
+        // [SCENARIO 657859] Inserting a price list line via OData with a "Unit of Measure Code" that does not belong to the product is rejected.
+        Initialize();
+        LibraryPriceCalculation.SetUseCustomLookup(false);
+
+        // [GIVEN] Item 'I', and item 'X' with additional unit of measure 'UOM' that is not defined for 'I'
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItem(OtherItem);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitofMeasure, OtherItem."No.", LibraryRandom.RandIntInRange(2, 10));
+
+        // [GIVEN] Sales price list 'PL'
+        CreatePriceListHeaderForOData(PriceListHeader, "Price Type"::Sale, false);
+
+        // [WHEN] Post a new line via OData: "Price List Code" = 'PL', "Product No." = 'I', "Unit of Measure Code" = 'UOM'
+        RequestBody.Add('Price_List_Code', PriceListHeader.Code);
+        RequestBody.Add('Product_No', Item."No.");
+        RequestBody.Add('Unit_of_Measure_Code_Lookup', ItemUnitofMeasure.Code);
+        asserterror PostPriceListLineViaOData(RequestBody);
+
+        // [THEN] The request fails and no line is inserted in 'PL'
+        PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
+        Assert.RecordIsEmpty(PriceListLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure InsertLineWithStartingAndEndingDateViaODataKeepsStartingDate()
+    var
+        Item: Record Item;
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        RequestBody: JsonObject;
+        StartingDate: Date;
+        EndingDate: Date;
+    begin
+        // [FEATURE] [Edit in Excel] [Starting Date]
+        // [SCENARIO 657859] Inserting a price list line via OData with both "Starting Date" and "Ending Date" keeps both dates.
+        Initialize();
+        LibraryPriceCalculation.SetUseCustomLookup(false);
+
+        // [GIVEN] Item 'I'
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Sales price list 'PL' with "Allow Updating Defaults" = true
+        CreatePriceListHeaderForOData(PriceListHeader, "Price Type"::Sale, true);
+
+        // [WHEN] Post a new line via OData: "Price List Code" = 'PL', "Starting Date" = 'SD', "Ending Date" = 'ED', "Product No." = 'I'
+        // Dates sent via OData are checked against the license date interval, so keep them within the work date month
+        StartingDate := CalcDate('<-CM>', WorkDate());
+        EndingDate := CalcDate('<CM>', WorkDate());
+        RequestBody.Add('Price_List_Code', PriceListHeader.Code);
+        RequestBody.Add('StartingDate', Format(StartingDate, 0, 9));
+        RequestBody.Add('EndingDate', Format(EndingDate, 0, 9));
+        RequestBody.Add('Product_No', Item."No.");
+        PostPriceListLineViaOData(RequestBody);
+
+        // [THEN] Line is inserted in 'PL' with "Starting Date" = 'SD' and "Ending Date" = 'ED'
+        FindSinglePriceListLineAndDeleteViaOData(PriceListLine, PriceListHeader.Code);
+        PriceListLine.TestField("Asset No.", Item."No.");
+        PriceListLine.TestField("Starting Date", StartingDate);
+        PriceListLine.TestField("Ending Date", EndingDate);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure UpdateLineViaODataKeepsUnchangedFields()
+    var
+        Item: Record Item;
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        ExpectedPriceListLine: Record "Price List Line";
+        RequestBody: JsonObject;
+        PatchRequestBody: JsonObject;
+        RequestBodyText: Text;
+        ResponseText: Text;
+        NewEndingDate: Date;
+    begin
+        // [FEATURE] [Edit in Excel] [Unit Of Measure]
+        // [SCENARIO 657859] Updating an existing price list line via OData applies the submitted values and keeps the other fields.
+        Initialize();
+        LibraryPriceCalculation.SetUseCustomLookup(false);
+
+        // [GIVEN] Item 'I' with additional unit of measure 'UOM'
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitofMeasure, Item."No.", LibraryRandom.RandIntInRange(2, 10));
+
+        // [GIVEN] Sales price list 'PL' with "Allow Updating Defaults" = true
+        CreatePriceListHeaderForOData(PriceListHeader, "Price Type"::Sale, true);
+
+        // [GIVEN] Line 'L' for item 'I' with "Starting Date" = 'SD', "Ending Date" = 'ED' inserted via OData
+        // With test isolation the test session keeps the locks on the records it writes even after Commit,
+        // so the line is inserted by the OData session to let the OData update below modify it.
+        // Dates sent via OData are checked against the license date interval, so keep them within the work date month
+        RequestBody.Add('Price_List_Code', PriceListHeader.Code);
+        RequestBody.Add('StartingDate', Format(CalcDate('<-CM>', WorkDate()), 0, 9));
+        RequestBody.Add('EndingDate', Format(CalcDate('<-CM+10D>', WorkDate()), 0, 9));
+        RequestBody.Add('Product_No', Item."No.");
+        PostPriceListLineViaOData(RequestBody);
+        PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
+        PriceListLine.FindFirst();
+        ExpectedPriceListLine := PriceListLine;
+
+        // [WHEN] Patch line 'L' via OData: "Unit of Measure Code" = 'UOM', "Ending Date" = 'ED2'
+        NewEndingDate := CalcDate('<CM>', WorkDate());
+        PatchRequestBody.Add('Unit_of_Measure_Code_Lookup', ItemUnitofMeasure.Code);
+        PatchRequestBody.Add('EndingDate', Format(NewEndingDate, 0, 9));
+        PatchRequestBody.WriteTo(RequestBodyText);
+        LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(
+            GetPriceListLinesODataURL(ExpectedPriceListLine."Price List Code", ExpectedPriceListLine."Line No."), RequestBodyText, ResponseText, 200);
+
+        // [THEN] Line 'L' has "Unit of Measure Code" = 'UOM' and "Ending Date" = 'ED2'
+        FindSinglePriceListLineAndDeleteViaOData(PriceListLine, PriceListHeader.Code);
+        PriceListLine.TestField("Line No.", ExpectedPriceListLine."Line No.");
+        PriceListLine.TestField("Unit of Measure Code", ItemUnitofMeasure.Code);
+        PriceListLine.TestField("Ending Date", NewEndingDate);
+
+        // [THEN] Product and "Starting Date" are not changed
+        PriceListLine.TestField("Asset Type", ExpectedPriceListLine."Asset Type");
+        PriceListLine.TestField("Asset No.", ExpectedPriceListLine."Asset No.");
+        PriceListLine.TestField("Product No.", ExpectedPriceListLine."Product No.");
+        PriceListLine.TestField("Starting Date", ExpectedPriceListLine."Starting Date");
+    end;
+
+    local procedure InsertLineWithProductAndUOMViaOData(PriceType: Enum "Price Type")
+    var
+        Item: Record Item;
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+        RequestBody: JsonObject;
+    begin
+        Initialize();
+        LibraryPriceCalculation.SetUseCustomLookup(false);
+
+        // [GIVEN] Item 'I' with additional unit of measure 'UOM' that is not the base unit of measure
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitofMeasure, Item."No.", LibraryRandom.RandIntInRange(2, 10));
+
+        // [GIVEN] Price list 'PL'
+        CreatePriceListHeaderForOData(PriceListHeader, PriceType, false);
+
+        // [WHEN] Post a new line via OData: "Price List Code" = 'PL', "Product No." = 'I', "Unit of Measure Code" = 'UOM'
+        RequestBody.Add('Price_List_Code', PriceListHeader.Code);
+        RequestBody.Add('Product_No', Item."No.");
+        RequestBody.Add('Unit_of_Measure_Code_Lookup', ItemUnitofMeasure.Code);
+        PostPriceListLineViaOData(RequestBody);
+
+        // [THEN] Line is inserted in 'PL' with "Asset No." = 'I', "Product No." = 'I' and "Unit of Measure Code" = 'UOM'
+        FindSinglePriceListLineAndDeleteViaOData(PriceListLine, PriceListHeader.Code);
+        PriceListLine.TestField("Asset Type", "Price Asset Type"::Item);
+        PriceListLine.TestField("Asset No.", Item."No.");
+        PriceListLine.TestField("Product No.", Item."No.");
+        PriceListLine.TestField("Unit of Measure Code", ItemUnitofMeasure.Code);
+    end;
+
+    local procedure CreatePriceListHeaderForOData(var PriceListHeader: Record "Price List Header"; PriceType: Enum "Price Type"; AllowUpdatingDefaults: Boolean)
+    begin
+        if PriceType = PriceType::Purchase then
+            LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceType, "Price Source Type"::"All Vendors", '')
+        else
+            LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceType, "Price Source Type"::"All Customers", '');
+        if AllowUpdatingDefaults then begin
+            PriceListHeader.Validate("Allow Updating Defaults", true);
+            PriceListHeader.Modify(true);
+        end;
+    end;
+
+    local procedure PostPriceListLineViaOData(RequestBody: JsonObject)
+    var
+        RequestBodyText: Text;
+        ResponseText: Text;
+    begin
+        RequestBody.WriteTo(RequestBodyText);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(GetPriceListLinesODataURL('', 0), RequestBodyText, ResponseText, 201);
+    end;
+
+    local procedure GetPriceListLinesODataURL(PriceListCode: Code[20]; LineNo: Integer): Text
+    var
+        RecordKey: Text;
+    begin
+        // EnsureWebServiceExist commits, so the test data is visible to the OData session
+        LibraryGraphMgt.EnsureWebServiceExist(PriceListLinesServiceNameTxt, Page::"Price List Lines");
+        if PriceListCode <> '' then
+            RecordKey := StrSubstNo(PriceListLineODataKeyTxt, PriceListCode, Format(LineNo, 0, 9));
+        exit(LibraryGraphMgt.CreateTargetURL(RecordKey, Page::"Price List Lines", PriceListLinesServiceNameTxt));
+    end;
+
+    local procedure FindSinglePriceListLineAndDeleteViaOData(var PriceListLine: Record "Price List Line"; PriceListCode: Code[20])
+    var
+        TempPriceListLine: Record "Price List Line" temporary;
+        ResponseText: Text;
+    begin
+        // Lines inserted via OData are committed by the OData session and are not rolled back by the test isolation,
+        // so keep a copy for verification and delete them via OData to not affect other tests
+        PriceListLine.SetRange("Price List Code", PriceListCode);
+        if PriceListLine.FindSet() then
+            repeat
+                TempPriceListLine := PriceListLine;
+                TempPriceListLine.Insert();
+            until PriceListLine.Next() = 0;
+
+        if TempPriceListLine.FindSet() then
+            repeat
+                LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(
+                    GetPriceListLinesODataURL(TempPriceListLine."Price List Code", TempPriceListLine."Line No."), '', ResponseText, 204);
+            until TempPriceListLine.Next() = 0;
+
+        Assert.RecordCount(TempPriceListLine, 1);
+        TempPriceListLine.FindFirst();
+        PriceListLine := TempPriceListLine;
     end;
 
     local procedure Initialize()

@@ -201,16 +201,6 @@ page 6408 "Workflow - Customer Entity"
                     ApplicationArea = All;
                     Caption = 'Blocked', Locked = true;
                 }
-#if not CLEAN27
-                field(invoiceCopies; Rec."Invoice Copies")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Invoice Copies', Locked = true;
-                    ObsoleteReason = 'This field is not used consequently and hence does not work as expected. It should be retired.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';                    
-                }
-#endif
                 field(lastStatementNumber; Rec."Last Statement No.")
                 {
                     ApplicationArea = All;

@@ -14,13 +14,13 @@ table 5123 "Inter. Log Entry Comment Line"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
             TableRelation = "Interaction Log Entry"."Entry No.";
         }
-        field(4; "Line No."; Integer)
+        field(4; "Line No."; BigInteger)
         {
             Caption = 'Line No.';
         }

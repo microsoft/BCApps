@@ -3349,6 +3349,16 @@ codeunit 139940 "Qlty. Inspection Utility"
         exit(QltyInspecGenRuleMgmt.FindMatchingGenerationRule(RaiseErrorIfNoRuleIsFound, IsManualCreation, TargetRecordRef, OptionalItem, OptionalSpecificTemplate, TempQltyInspectionGenRule));
     end;
 
+    /// <summary>
+    /// Wrapper for QltyInspecGenRuleMgmt.InsertItemCategoryGenerationRule
+    /// </summary>
+    internal procedure InsertItemCategoryGenerationRule(EntryNo: Integer; SortOrder: Integer; Intent: Enum "Qlty. Gen. Rule Intent"; TemplateCode: Code[20]; SourceTableNo: Integer; ConditionFilter: Text[400]; Description: Text[100]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger"; ItemCategoryCode: Code[20])
+    var
+        QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
+    begin
+        QltyInspecGenRuleMgmt.InsertItemCategoryGenerationRule(EntryNo, SortOrder, Intent, TemplateCode, SourceTableNo, ConditionFilter, Description, ActivationTrigger, ItemCategoryCode);
+    end;
+
     #endregion Qlty. Inspec. Gen. Rule Mgmt. Wrappers
 
     #region Qlty. Disp. Move Auto Choose Wrappers

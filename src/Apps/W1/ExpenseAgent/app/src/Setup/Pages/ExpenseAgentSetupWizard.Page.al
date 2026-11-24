@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.UOM;
 using System.Agents;
@@ -12,7 +13,6 @@ using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Telemetry;
-using System.Utilities;
 page 6991 "Expense Agent Setup Wizard"
 {
     PageType = ConfigurationDialog;
@@ -93,11 +93,11 @@ page 6991 "Expense Agent Setup Wizard"
 
                     group(WebAppAccessSection)
                     {
-                        Caption = 'Enable access via web';
+                        Caption = 'Enable access via web and mobile app';
                         field(EnableWebAppAccess; true)
                         {
                             ShowCaption = false;
-                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense app.';
+                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense web app and the Expense mobile app.';
                             Editable = false;
                         }
                         field(ExpenseDashboardLink; ExpenseDashboardLinkTxt)
@@ -419,6 +419,38 @@ page 6991 "Expense Agent Setup Wizard"
                                 ExpenseCategories.RunModal();
                             end;
                         }
+                    }
+                }
+                group(VATSection)
+                {
+                    Caption = 'VAT';
+
+                    field("Default VAT Bus. Posting Group"; Rec."Default VAT Bus. Posting Group")
+                    {
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field("Allow VAT Reclaim"; Rec."Allow VAT Reclaim")
+                    {
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    field(VATPostingSetupLink; VATPostingSetupLinkTxt)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        ToolTip = 'Opens the VAT posting setup to review the VAT rates and accounts used for expense processing.';
+
+                        trigger OnDrillDown()
+                        var
+                            VATPostingSetup: Page "VAT Posting Setup";
+                        begin
+                            VATPostingSetup.RunModal();
+                        end;
                     }
                 }
             }
@@ -939,6 +971,14 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                 }
             }
+            group(receipts)
+            {
+                Caption = 'Receipts';
+
+                field(NoReceipt; Rec."Allow No Receipt")
+                {
+                }
+            }
             group(CanaryGroup)
             {
                 Caption = 'Canary (allowlisted tenants)';
@@ -998,7 +1038,7 @@ page 6991 "Expense Agent Setup Wizard"
         if not EAHttpClient.TryEnableHttpRequestForExpenseAgentApp() then;
         IsConfigUpdated := false;
         LoadSetup();
-        ExpenseDashboardUrl := GetExpenseDashboardUrl();
+        ExpenseDashboardUrl := EAHttpClient.GetExpenseAppBaseUrl();
         ShowExpenseDashboardLink := ExpenseDashboardUrl <> '';
         CanaryToggleVisible := Rec."Use Canary Endpoint" or EAHttpClient.IsTenantOnCanaryAllowlist();
 
@@ -1091,6 +1131,7 @@ page 6991 "Expense Agent Setup Wizard"
         PaymentMethodsAppliedLinkTxt: Label 'View payment methods including new defaults';
         PostingGroupsLinkTxt: Label 'Preview the default expense posting groups that will be added';
         PostingGroupsAppliedLinkTxt: Label 'View expense posting groups including new defaults';
+        VATPostingSetupLinkTxt: Label 'Configure VAT posting setup';
         CategoriesLinkTxt: Label 'Preview the default expense categories that will be added';
         CategoriesAppliedLinkTxt: Label 'View expense categories including new defaults';
         LocationsLinkTxt: Label 'Preview the default expense locations that will be added';
@@ -1104,9 +1145,6 @@ page 6991 "Expense Agent Setup Wizard"
         NoSeriesAppliedLinkTxt: Label 'View number series including new defaults';
         MileageRateSetupLinkTxt: Label 'Configure mileage rates by vehicle type';
         ExpenseDashboardLinkTxt: Label 'Go to Expense app (opens in new window)';
-        ExpenseDashboardUrlOnPremTxt: Label 'http://localhost:5173/', Locked = true;
-        ExpenseDashboardUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365219', Locked = true;
-        ExpenseDashboardUrlTieTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365220', Locked = true;
         CapabilityDisabledQst: Label 'The "%1" capability is disabled in the "%2" page. The Agent will not work unless you enable the capability.\\Do you want to open the "%2" page now?', Comment = '%1=A copilot capability such as Expense Agent; %2=A page caption, such as Copilot & Agent Capabilities.';
         CapabilityDisabledErr: Label 'You must enable the "%1" capability to use the Agent.', Comment = '%1=A copilot capability such as Expense Agent.';
         NoMailboxWarningQst: Label 'Email submission is turned on, but no mailbox is configured. The agent will not process emailed receipts until you configure a mailbox for this submission channel. Do you want to continue?';
@@ -1345,7 +1383,10 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             exit;
         if ApplyNoSeries and not NoSeriesLocked then
-            ExpenseAgentSetup.CreateNoSeriesDefaults();
+            ExpenseAgentSetup.CreateNoSeriesDefaults()
+        else
+            if ExpenseAgentSetup."No. Series Applied" then
+                ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
         if ApplyPostingGroups and not PostingGroupsLocked then
@@ -1688,20 +1729,4 @@ page 6991 "Expense Agent Setup Wizard"
         exit(EAHttpClient.UnregisterErpConfiguration(Rec."Use Canary Endpoint"));
     end;
 
-    local procedure GetExpenseDashboardUrl(): Text
-    var
-        EnvironmentInfo: Codeunit "Environment Information";
-        URLHelper: Codeunit "URL Helper";
-    begin
-        if EnvironmentInfo.IsOnPrem() then
-            exit(ExpenseDashboardUrlOnPremTxt);
-        if not EnvironmentInfo.IsSaaSInfrastructure() then
-            exit('');
-        if URLHelper.IsTIE() or URLHelper.IsPPE() then
-            exit(ExpenseDashboardUrlTieTxt);
-        if EnvironmentInfo.IsSaaSInfrastructure() then
-            exit(ExpenseDashboardUrlProdTxt);
-
-        exit('');
-    end;
 }

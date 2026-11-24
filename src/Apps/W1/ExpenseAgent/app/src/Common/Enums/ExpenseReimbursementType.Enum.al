@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies how an expense was paid, which determines whether and how the employee is reimbursed.
+/// </summary>
 enum 6912 "Expense Reimbursement Type"
 {
     Caption = 'Expense Reimbursement Type';

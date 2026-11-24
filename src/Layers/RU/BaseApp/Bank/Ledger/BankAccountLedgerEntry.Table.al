@@ -12,6 +12,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Purchases.Vendor;
@@ -35,7 +36,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Unique sequential identifier for each bank account ledger entry.
         /// </summary>
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -194,7 +195,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Entry number of the bank account ledger entry that closed this entry.
         /// </summary>
-        field(44; "Closed by Entry No."; Integer)
+        field(44; "Closed by Entry No."; BigInteger)
         {
             Caption = 'Closed by Entry No.';
             TableRelation = "Bank Account Ledger Entry";
@@ -244,7 +245,8 @@ table 271 "Bank Account Ledger Entry"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -257,7 +259,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Transaction number linking this entry to other general ledger entries in the same posting transaction.
         /// </summary>
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
         }
@@ -359,7 +361,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Entry number of the bank account ledger entry that reversed this entry.
         /// </summary>
-        field(65; "Reversed by Entry No."; Integer)
+        field(65; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
@@ -369,7 +371,7 @@ table 271 "Bank Account Ledger Entry"
         /// <summary>
         /// Entry number of the original bank account ledger entry that this entry reverses.
         /// </summary>
-        field(66; "Reversed Entry No."; Integer)
+        field(66; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -487,6 +489,14 @@ table 271 "Bank Account Ledger Entry"
             FieldClass = FlowField;
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
+        }
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
         field(12400; "Company Name"; Text[100])
         {
