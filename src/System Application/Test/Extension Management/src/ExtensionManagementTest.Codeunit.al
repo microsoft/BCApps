@@ -25,7 +25,8 @@ codeunit 133100 "Extension Management Test"
 
     Subtype = Test;
     Permissions = tabledata "Extension Pending Setup" = rimd,
-                  tabledata "NAV App Setting" = rimd;
+                  tabledata "NAV App Setting" = rimd,
+                  tabledata "User Personalization" = r;
 
     trigger OnRun()
     begin
