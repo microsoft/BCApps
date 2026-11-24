@@ -449,6 +449,20 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
+    procedure V1ProcessReplayAfterCutoverDoesNotRecordV2()
+    begin
+        // [SCENARIO] A paid PROCESS recorded in V1 is not recorded again in V2 after cutover
+        VerifyV1ReplayAfterCutover('PROCESS');
+    end;
+
+    [Test]
+    procedure V1PolicyReplayAfterCutoverDoesNotRecordV2()
+    begin
+        // [SCENARIO] A paid policy evaluation recorded in V1 is not recorded again in V2 after cutover
+        VerifyV1ReplayAfterCutover('PE:EVALUATE');
+    end;
+
+    [Test]
     procedure V2TrialReplayAfterExhaustionReportsBothWithoutCharging()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
@@ -702,6 +716,35 @@ codeunit 148299 "Expense Consumption Test"
         TempUserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
         DescriptionInStream.ReadText(Description);
         Assert.AreEqual(ExpectedDescription, Description, 'The full billing description must remain available.');
+    end;
+
+    local procedure VerifyV1ReplayAfterCutover(Operation: Code[50])
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        FirstId: Guid;
+        RepeatedId: Guid;
+    begin
+        Initialize();
+        ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        SourceId := CreateGuid();
+
+        FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, Operation);
+
+        Assert.IsTrue(ExpenseAgentQuotaMock.IsConsumptionLogged(ExpenseAgentQuotaMock.GetLastV1UniqueId()), 'V1 must contain the consumption before cutover.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Consumption recorded in V1 must not be sent to V2.');
+
+        ExpenseAgentQuotaMock.SetV1RecordingEnabled(false);
+        RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, Operation);
+
+        Assert.AreEqual(FirstId, RepeatedId, 'A retry across cutover must reuse the companion ID.');
+        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive both recording attempts.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'A retry after cutover must not record completed V1 consumption in V2.');
+
+        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), Operation);
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'New consumption after cutover must still be sent to V2.');
     end;
 
     local procedure Initialize()

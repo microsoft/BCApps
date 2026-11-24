@@ -107,9 +107,10 @@ codeunit 6969 "Expense Consumption Handler"
 
         QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, Truncate(ActionsSummary), ActionsSummary,
             ExpenseAgentEnvConsumption."Consumption Unique ID", ExpenseAgentEnvConsumption."Is Feature Trial");
-        QuotaProvider.RecordConsumption(ExpenseAgentEnvConsumption.SystemId, AgentConversationSessionId,
-            AgentTurnInteractionId, ConsumptionUsagePayload, ExpenseUserEntraId, ExpenseUserDisplayName,
-            ActionsSummary, ExpenseAgentEnvConsumption."Is Feature Trial");
+        if not QuotaProvider.IsConsumptionLogged(ExpenseAgentEnvConsumption."Consumption Unique ID") then
+            QuotaProvider.RecordConsumption(ExpenseAgentEnvConsumption.SystemId, AgentConversationSessionId,
+                AgentTurnInteractionId, ConsumptionUsagePayload, ExpenseUserEntraId, ExpenseUserDisplayName,
+                ActionsSummary, ExpenseAgentEnvConsumption."Is Feature Trial");
 
         if ExpenseAgentEnvConsumption."Is Feature Trial" then
             IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation);

@@ -13,7 +13,8 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
 
     var
         TrialConsumptionIds: List of [Guid];
-        PaidConsumptionIds: List of [Text];
+        V1ConsumptionIds: List of [Text];
+        V1RecordingEnabled: Boolean;
         RemainingTrialQuota: Integer;
         PaidQuotaAvailable: Boolean;
         PaidQuotaCheckCount: Integer;
@@ -70,7 +71,7 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
 
     procedure IsConsumptionLogged(UniqueId: Text[1024]): Boolean
     begin
-        exit(PaidConsumptionIds.Contains(UniqueId));
+        exit(V1ConsumptionIds.Contains(UniqueId));
     end;
 
     procedure ReportTrialConsumption(ConsumptionId: Guid; Quota: Integer)
@@ -93,12 +94,13 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         LastV1ActionsSummary := ActionsSummary;
         LastV1ActionsDescription := ActionsDescription;
         LastV1ExcludedFromBilling := ExcludeFromBilling;
+        if V1RecordingEnabled then
+            if not V1ConsumptionIds.Contains(UniqueId) then
+                V1ConsumptionIds.Add(UniqueId);
         if ExcludeFromBilling then
             exit;
 
         PaidReportCount += 1;
-        if not PaidConsumptionIds.Contains(UniqueId) then
-            PaidConsumptionIds.Add(UniqueId);
     end;
 
     procedure RecordConsumption(ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; Description: Text; IsFeatureTrial: Boolean)
@@ -114,6 +116,11 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         LastV2IsFeatureTrial := IsFeatureTrial;
         if FailV2Reporting then
             Error(V2ReportingFailedErr);
+    end;
+
+    internal procedure SetV1RecordingEnabled(IsEnabled: Boolean)
+    begin
+        V1RecordingEnabled := IsEnabled;
     end;
 
     internal procedure SetFailV2Reporting(ShouldFail: Boolean)

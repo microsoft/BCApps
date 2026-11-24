@@ -11,7 +11,10 @@ and excludes the `v1` object.
 The bound `userConsumptions({id})/Microsoft.NAV.canConsume` action keeps its
 empty request body. It evaluates V2 quota for the bound expense user's stored
 `Entra Id`, not the integration session's principal. A missing stored Entra ID
-returns an error. Recording callers must supply that same Entra ID.
+returns an error. Recording requires a supplied Entra ID. If a nonblank stored
+Entra ID differs from the supplied ID, the action emits error-level telemetry
+and continues recording with the supplied ID. A blank stored ID doesn't prevent
+recording.
 The System Application `Copilot Quota.CanConsume(Guid)` overload is scoped to
 OnPrem; the parameterless overload still resolves the principal from the session.
 
@@ -21,6 +24,9 @@ system ID, and operation. V1 uses its text consumption key; V2 uses its
 submission because V2 records consumption in a separate system transaction.
 A failed submission can leave a pending companion record. Repeating the request
 reuses both IDs and the original trial classification.
+After the V1 call, the action checks whether that ledger contains the text key
+and skips V2 recording if it does. This prevents a completed V1 event from being
+recorded again in V2 when a retry crosses the billing cutover.
 
 Trial events are reported to both pipelines without billing. Only the `PROCESS`
 operation increments the feature-trial counter, once per consumption ID.

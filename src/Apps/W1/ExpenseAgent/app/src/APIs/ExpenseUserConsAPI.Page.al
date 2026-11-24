@@ -59,7 +59,7 @@ page 6968 "Expense User Cons. API"
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
-        MismatchingEntraIdsTelemetryErr: Label 'The Expense User has an Entra Id saved in the database, but it''s different from the ID used for consumption reporting.', Locked = true;
+        MismatchingEntraIdsTelemetryErr: Label 'The stored Expense User Entra ID differs from the ID supplied for consumption reporting. Submitting on behalf of another user is not supported.', Locked = true;
         LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent.', Locked = true;
         ConsumptionSourceTypeErr: Label 'Consumption Source Type must be provided and valid.';
         AgentConversationSessionIdOrTurnInteractionIdErr: Label 'Agent Session ID and Interaction ID must be provided.';
@@ -148,7 +148,7 @@ page 6968 "Expense User Cons. API"
         Rec.TestField(Name);
         if not IsNullGuid(Rec."Entra Id") then
             if Rec."Entra Id" <> ExpenseUserEntraId then
-                Session.LogMessage('0000W40', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
+                Session.LogMessage('0000W40', MismatchingEntraIdsTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata,
                     TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         ModelJson := AiConsumptionRequestJson.GetObject('model');
