@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.Agents;
+
 codeunit 6901 "Expense Report Approval Mgmt"
 {
     Access = Internal;
@@ -28,6 +30,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
         InterimApproverNotAllowedErr: Label 'An interim approver cannot be assigned because %1 is turned off in %2.', Comment = '%1 = Allow Interim Approvers field caption, %2 = Expense Agent Setup table caption';
+        OpenExpenseAgentSetupLbl: Label 'Configure Expense Agent';
         InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1 or %2.', Comment = '%1 = Released status caption, %2 = Pending Approval status caption';
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
@@ -264,10 +267,20 @@ codeunit 6901 "Expense Report Approval Mgmt"
     internal procedure AssignInterimApprover(var ExpenseReportHeader: Record "Expense Report Header"; NewApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+        InterimApproverErrorInfo: ErrorInfo;
     begin
         ExpenseAgentSetup.GetRecordOnce();
-        if not ExpenseAgentSetup."Allow Interim Approvers" then
-            Error(InterimApproverNotAllowedErr, ExpenseAgentSetup.FieldCaption("Allow Interim Approvers"), ExpenseAgentSetup.TableCaption());
+        if not ExpenseAgentSetup."Allow Interim Approvers" then begin
+            InterimApproverErrorInfo.Message := StrSubstNo(InterimApproverNotAllowedErr, ExpenseAgentSetup.FieldCaption("Allow Interim Approvers"), ExpenseAgentSetup.TableCaption());
+            InterimApproverErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            InterimApproverErrorInfo.ErrorType := ErrorType::Client;
+            if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then begin
+                InterimApproverErrorInfo.PageNo := Page::"Expense Agent Setup Wizard";
+                InterimApproverErrorInfo.AddNavigationAction(OpenExpenseAgentSetupLbl);
+            end;
+            Error(InterimApproverErrorInfo);
+        end;
 
         AssignInterimApprover(ExpenseReportHeader, NewApproverExpenseUserNo, ActorExpenseUserNo, Enum::"Expense Activity Actor Role"::Submitter);
     end;

@@ -113,10 +113,14 @@ These AL tests require the existing Business Central test environment.
 
 # Interim approval controls
 
-**Expense Agent Setup / Allow Interim Approvers** controls new interim
+**Configure Expense Agent / Allow Interim Approvers** controls new interim
 approver assignments. It's enabled by default for new and upgraded setups.
 The `expenseCapabilities` entry `interimApprover` uses capability ordinal 12
 and reports this setting.
+
+When assignment is blocked, authorized agent administrators can open
+**Configure Expense Agent** from the error. Other users receive the same
+validation message without navigation. The action doesn't enable the setting.
 
 Assignments are allowed while a report is Released or Pending Approval.
 `submitAndAssignInterimApprover` releases the report, assigns the selected

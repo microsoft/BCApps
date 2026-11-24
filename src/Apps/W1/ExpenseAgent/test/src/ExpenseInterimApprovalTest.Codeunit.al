@@ -452,6 +452,13 @@ codeunit 148346 "Expense Interim Approval Test"
                 InterimApproverNotAllowedErr,
                 ExpenseAgentSetup.FieldCaption("Allow Interim Approvers"),
                 ExpenseAgentSetup.TableCaption()));
+
+        // [THEN] The error does not enable interim approvers or change the report.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Allow Interim Approvers", false);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField("Interim Approver No.", '');
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Pending Approval");
     end;
 
     [Test]
