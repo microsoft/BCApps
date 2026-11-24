@@ -14,7 +14,7 @@ table 6509 "Whse. Item Entry Relation"
 
     fields
     {
-        field(1; "Item Entry No."; Integer)
+        field(1; "Item Entry No."; BigInteger)
         {
             Caption = 'Item Entry No.';
             TableRelation = "Item Ledger Entry";
@@ -41,7 +41,7 @@ table 6509 "Whse. Item Entry Relation"
         {
             Caption = 'Source Prod. Order Line';
         }
-        field(15; "Source Ref. No."; Integer)
+        field(15; "Source Ref. No."; BigInteger)
         {
             Caption = 'Source Ref. No.';
         }

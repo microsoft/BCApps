@@ -784,7 +784,6 @@ table 274 "Bank Acc. Reconciliation Line"
             end;
         end;
 
-
         BankAccRecMatchBuffer.Reset();
         BankAccRecMatchBuffer.SetRange("Ledger Entry No.", BankAccLedgEntry."Entry No.");
         BankAccRecMatchBuffer.SetRange("Statement No.", Rec."Statement No.");
@@ -858,7 +857,7 @@ table 274 "Bank Acc. Reconciliation Line"
         PaymentMatchingDetails.DeleteAll(true);
     end;
 
-    procedure GetAppliedEntryAccountName(AppliedToEntryNo: Integer): Text
+    procedure GetAppliedEntryAccountName(AppliedToEntryNo: BigInteger): Text
     var
         AccountType: Option;
         AccountNo: Code[20];
@@ -878,7 +877,7 @@ table 274 "Bank Acc. Reconciliation Line"
         exit(GetAccountName(AccountType, AccountNo));
     end;
 
-    procedure GetAppliedEntryAccountType(AppliedToEntryNo: Integer): Integer
+    procedure GetAppliedEntryAccountType(AppliedToEntryNo: BigInteger): Integer
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
     begin
@@ -898,7 +897,7 @@ table 274 "Bank Acc. Reconciliation Line"
         exit("Account Type".AsInteger());
     end;
 
-    procedure GetAppliedEntryAccountNo(AppliedToEntryNo: Integer) AccountNo: Code[20]
+    procedure GetAppliedEntryAccountNo(AppliedToEntryNo: BigInteger) AccountNo: Code[20]
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -966,7 +965,7 @@ table 274 "Bank Acc. Reconciliation Line"
         AppliedPaymentEntry."Account No." := GetAppliedToAccountNo();
     end;
 
-    procedure AppliedEntryAccountDrillDown(AppliedEntryNo: Integer)
+    procedure AppliedEntryAccountDrillDown(AppliedEntryNo: BigInteger)
     var
         AccountType: Option;
         AccountNo: Code[20];
@@ -1215,10 +1214,10 @@ table 274 "Bank Acc. Reconciliation Line"
         exit(GetAppliedNo(ApplyType::"Entry No.", '|'));
     end;
 
-    local procedure GetFirstAppliedToEntryNo(): Integer
+    local procedure GetFirstAppliedToEntryNo(): BigInteger
     var
         AppliedEntryNumbers: Text;
-        AppliedToEntryNo: Integer;
+        AppliedToEntryNo: BigInteger;
     begin
         AppliedEntryNumbers := GetAppliedToEntryNo();
         if AppliedEntryNumbers = '' then
@@ -1623,7 +1622,7 @@ table 274 "Bank Acc. Reconciliation Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetAppliedEntryAccountNo(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliedToEntryNo: Integer; var AccountNo: Code[20])
+    local procedure OnAfterGetAppliedEntryAccountNo(var BankAccReconciliationLine: Record "Bank Acc. Reconciliation Line"; AppliedToEntryNo: BigInteger; var AccountNo: Code[20])
     begin
     end;
 

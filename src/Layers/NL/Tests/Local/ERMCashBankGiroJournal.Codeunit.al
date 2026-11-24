@@ -3975,7 +3975,7 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         CBGStatement: Record "CBG Statement";
         DocumentNo: Code[20];
         BankAccountNo: Code[20];
-        AppliesToID: Code[20];
+        AppliesToID: Code[50];
     begin
         // [SCENARIO: 521221] Generate and increase Applies-to ID after 10000 line.
         Initialize();
@@ -4093,6 +4093,138 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
 
         // [THEN] No. Series should not have gaps.
         Assert.AreEqual(NoSeriesLine."Starting No.", NoSeriesCode, NoSeriesErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CustomerPaymentToleranceWithShortAndLongAppliesToIDs()
+    begin
+        // [SCENARIO] Customer payment tolerance uses the complete applies-to ID, up to 50 characters.
+        Initialize();
+
+        VerifyCustomerPaymentToleranceWithAppliesToID('APPL-00001');
+        VerifyCustomerPaymentToleranceWithAppliesToID('APPL-123456789012345');
+        VerifyCustomerPaymentToleranceWithAppliesToID('APPL-1234567890123456');
+        VerifyCustomerPaymentToleranceWithAppliesToID('APPL-123456789012345678901234567890123456789012345');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorPaymentToleranceWithShortAndLongAppliesToIDs()
+    begin
+        // [SCENARIO] Vendor payment tolerance uses the complete applies-to ID, up to 50 characters.
+        Initialize();
+
+        VerifyVendorPaymentToleranceWithAppliesToID('APPL-00001');
+        VerifyVendorPaymentToleranceWithAppliesToID('APPL-123456789012345');
+        VerifyVendorPaymentToleranceWithAppliesToID('APPL-1234567890123456');
+        VerifyVendorPaymentToleranceWithAppliesToID('APPL-123456789012345678901234567890123456789012345');
+    end;
+
+    local procedure VerifyCustomerPaymentToleranceWithAppliesToID(AppliesToID: Code[50])
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        CBGStatement: Record "CBG Statement";
+        CBGStatementLine: Record "CBG Statement Line";
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+    begin
+        // [GIVEN] An invoice for 1,000 with a maximum payment tolerance of 50 and an applies-to ID.
+        LibraryPmtDiscSetup.SetPmtToleranceWarning(false);
+        LibraryPmtDiscSetup.SetPmtDiscToleranceWarning(false);
+        LibrarySales.CreateCustomer(Customer);
+        CreateGeneralJournal(GenJournalLine, Customer."No.", GenJournalLine."Account Type"::Customer, 1000);
+        GenJournalLine.Validate("Payment Discount %", 0);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        CustLedgerEntry.SetRange("Customer No.", Customer."No.");
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Invoice, GenJournalLine."Document No.");
+        CustLedgerEntry."Applies-to ID" := AppliesToID;
+        CustLedgerEntry."Amount to Apply" := 1000;
+        CustLedgerEntry."Max. Payment Tolerance" := 50;
+        CustLedgerEntry.Modify();
+
+        // [GIVEN] A CBG payment of 990 applied to the invoice by ID, not by document number.
+        CreateCBGStatement(CBGStatement);
+        CBGStatementLine."Journal Template Name" := CBGStatement."Journal Template Name";
+        CBGStatementLine."No." := CBGStatement."No.";
+        CBGStatementLine.Date := WorkDate();
+        CBGStatementLine."Account Type" := CBGStatementLine."Account Type"::Customer;
+        CBGStatementLine."Account No." := Customer."No.";
+        CBGStatementLine.Amount := -990;
+        CBGStatementLine."Applies-to ID" := AppliesToID;
+        PaymentToleranceMgt.SetSuppressCommit(true);
+
+        // [WHEN] Payment tolerance is calculated.
+        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Customer payment tolerance calculation failed.');
+
+        // [THEN] The full ID is preserved and the invoice accepts the difference of 10.
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.TestField("Applies-to ID", AppliesToID);
+        CustLedgerEntry.TestField("Accepted Payment Tolerance", 10);
+        CustLedgerEntry.TestField("Amount to Apply", 1000);
+
+        // [WHEN] The payment is changed to the full invoice amount.
+        CBGStatementLine.Amount := -1000;
+        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Customer payment tolerance recalculation failed.');
+
+        // [THEN] The previously accepted tolerance is cleared using the same full ID.
+        CustLedgerEntry.Get(CustLedgerEntry."Entry No.");
+        CustLedgerEntry.TestField("Accepted Payment Tolerance", 0);
+    end;
+
+    local procedure VerifyVendorPaymentToleranceWithAppliesToID(AppliesToID: Code[50])
+    var
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        CBGStatement: Record "CBG Statement";
+        CBGStatementLine: Record "CBG Statement Line";
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+    begin
+        // [GIVEN] An invoice for 1,000 with a maximum payment tolerance of 50 and an applies-to ID.
+        LibraryPmtDiscSetup.SetPmtToleranceWarning(false);
+        LibraryPmtDiscSetup.SetPmtDiscToleranceWarning(false);
+        LibraryPurchase.CreateVendor(Vendor);
+        CreateGeneralJournal(GenJournalLine, Vendor."No.", GenJournalLine."Account Type"::Vendor, -1000);
+        GenJournalLine.Validate("Payment Discount %", 0);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        VendorLedgerEntry.SetRange("Vendor No.", Vendor."No.");
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, GenJournalLine."Document No.");
+        VendorLedgerEntry."Applies-to ID" := AppliesToID;
+        VendorLedgerEntry."Amount to Apply" := -1000;
+        VendorLedgerEntry."Max. Payment Tolerance" := -50;
+        VendorLedgerEntry.Modify();
+
+        // [GIVEN] A CBG payment of 990 applied to the invoice by ID, not by document number.
+        CreateCBGStatement(CBGStatement);
+        CBGStatementLine."Journal Template Name" := CBGStatement."Journal Template Name";
+        CBGStatementLine."No." := CBGStatement."No.";
+        CBGStatementLine.Date := WorkDate();
+        CBGStatementLine."Account Type" := CBGStatementLine."Account Type"::Vendor;
+        CBGStatementLine."Account No." := Vendor."No.";
+        CBGStatementLine.Amount := 990;
+        CBGStatementLine."Applies-to ID" := AppliesToID;
+        PaymentToleranceMgt.SetSuppressCommit(true);
+
+        // [WHEN] Payment tolerance is calculated.
+        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Vendor payment tolerance calculation failed.');
+
+        // [THEN] The full ID is preserved and the invoice accepts the difference of 10.
+        VendorLedgerEntry.Get(VendorLedgerEntry."Entry No.");
+        VendorLedgerEntry.TestField("Applies-to ID", AppliesToID);
+        VendorLedgerEntry.TestField("Accepted Payment Tolerance", -10);
+        VendorLedgerEntry.TestField("Amount to Apply", -1000);
+
+        // [WHEN] The payment is changed to the full invoice amount.
+        CBGStatementLine.Amount := 1000;
+        Assert.IsTrue(PaymentToleranceMgt.PmtTolCBGJnl(CBGStatementLine), 'Vendor payment tolerance recalculation failed.');
+
+        // [THEN] The previously accepted tolerance is cleared using the same full ID.
+        VendorLedgerEntry.Get(VendorLedgerEntry."Entry No.");
+        VendorLedgerEntry.TestField("Accepted Payment Tolerance", 0);
     end;
 
     local procedure Initialize()
@@ -6255,4 +6387,3 @@ codeunit 144009 "ERM Cash Bank Giro Journal"
         PaymentToleranceWarning.Yes().Invoke();
     end;
 }
-

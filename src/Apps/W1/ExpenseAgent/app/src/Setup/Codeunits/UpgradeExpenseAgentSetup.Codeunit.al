@@ -40,6 +40,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         UpgradeMigratePostedExpRepLineCanceled();
         UpgradeMigrateExpenseUserUnlimitedApproval();
         UpgradeAllowInterimApproversDefault();
+        UpgradeExpenseVendorNoSeries();
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
@@ -127,6 +128,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         PerCompanyUpgradeTags.Add(GetMigratePostedExpRepLineCanceledTag());
         PerCompanyUpgradeTags.Add(GetMigrateExpenseUserUnlimitedApprovalTag());
         PerCompanyUpgradeTags.Add(GetAllowInterimApproversDefaultUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetExpenseVendorNoSeriesUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
@@ -228,6 +230,25 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         end;
 
         UpgradeTag.SetUpgradeTag(GetAllowInterimApproversDefaultUpgradeTag());
+    end;
+
+    internal procedure UpgradeExpenseVendorNoSeries()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetExpenseVendorNoSeriesUpgradeTag()) then
+            exit;
+
+        if ExpenseAgentSetup.Get() then
+            ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
+
+        UpgradeTag.SetUpgradeTag(GetExpenseVendorNoSeriesUpgradeTag());
+    end;
+
+    internal procedure GetExpenseVendorNoSeriesUpgradeTag(): Code[250]
+    begin
+        exit('MS-658051-ExpenseVendorNoSeries-20261105');
     end;
 
     local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]

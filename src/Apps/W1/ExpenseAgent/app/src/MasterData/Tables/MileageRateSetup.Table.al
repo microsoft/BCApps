@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.Currency;
 
+/// <summary>
+/// Stores the mileage rates per vehicle type and currency for a period.
+/// </summary>
 table 6939 "Mileage Rate Setup"
 {
-    Access = Internal;
     Caption = 'Mileage Rate Setup';
     DataClassification = CustomerContent;
     DrillDownPageId = "Mileage Rate Setup";
@@ -154,6 +156,13 @@ table 6939 "Mileage Rate Setup"
         exit(Format(EndingDate));
     end;
 
+    /// <summary>
+    /// Finds the latest mileage rate for the vehicle type that is effective on the transaction date, for the specified currency or for all currencies.
+    /// </summary>
+    /// <param name="TransactionDate">The date that the rate must be effective on.</param>
+    /// <param name="CurrencyCode">The currency code of the rate.</param>
+    /// <param name="VehicleType">The vehicle type of the rate.</param>
+    /// <returns>True if an effective rate was found; otherwise, false.</returns>
     procedure FindEffectiveRate(TransactionDate: Date; CurrencyCode: Code[10]; VehicleType: Code[20]): Boolean
     begin
         Rec.Reset();

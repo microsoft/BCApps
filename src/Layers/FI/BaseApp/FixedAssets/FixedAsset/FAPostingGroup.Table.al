@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -545,16 +545,36 @@ table 5606 "FA Posting Group"
             FieldClass = FlowField;
             ToolTip = 'Specifies the total percentage of derogatory depreciation allocated, when derogatory depreciation is posted for fixed assets.';
         }
+#if not CLEANSCHEMA33
+#pragma warning disable AA0232
         field(13400; "Depr. Difference Acc."; Code[20])
         {
             Caption = 'Depr. Difference Acc.';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
             TableRelation = "G/L Account";
         }
         field(13401; "Depr. Difference Bal. Acc."; Code[20])
         {
             Caption = 'Depr. Difference Bal. Acc.';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
             TableRelation = "G/L Account";
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -880,6 +900,27 @@ table 5606 "FA Posting Group"
         exit("Derogatory Expense Acc.");
     end;
 
+    procedure InitializeDepreciationDifferenceAccounts(DepreciationDifferenceAccount: Code[20]; DepreciationDifferenceBalAccount: Code[20])
+    var
+        IsHandled: Boolean;
+    begin
+        OnInitializeDepreciationDifferenceAccounts(Rec, DepreciationDifferenceAccount, DepreciationDifferenceBalAccount, IsHandled);
+        if IsHandled then
+            exit;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+        Validate("Depr. Difference Acc.", DepreciationDifferenceAccount);
+        Validate("Depr. Difference Bal. Acc.", DepreciationDifferenceBalAccount);
+#pragma warning restore AL0432
+#endif
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInitializeDepreciationDifferenceAccounts(var FAPostingGroup: Record "FA Posting Group"; DepreciationDifferenceAccount: Code[20]; DepreciationDifferenceBalAccount: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPostingGroup(var FAPostingGroup: Record "FA Posting Group"; DepreciationBookCode: Code[10]; var Result: Boolean)
     begin
@@ -895,4 +936,3 @@ table 5606 "FA Posting Group"
     begin
     end;
 }
-

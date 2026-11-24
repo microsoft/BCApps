@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies whether an expense participant is an employee or an external person.
+/// </summary>
 enum 6986 "Expense Participant Type"
 {
-    Access = Internal;
     Caption = 'Participant Type';
 
     value(0; Employee)

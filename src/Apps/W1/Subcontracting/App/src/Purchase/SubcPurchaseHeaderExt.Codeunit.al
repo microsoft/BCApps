@@ -12,7 +12,7 @@ using Microsoft.Utilities;
 codeunit 20533 "Subc. Purchase Header Ext"
 {
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -23,7 +23,7 @@ codeunit 20533 "Subc. Purchase Header Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterCopyBuyFromVendorFieldsFromVendor, '', false, false)]
     local procedure OnAfterCopyBuyFromVendorFieldsFromVendor(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor; xPurchaseHeader: Record "Purchase Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -35,7 +35,7 @@ codeunit 20533 "Subc. Purchase Header Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnAfterValidateEvent, "Buy-from Vendor No.", false, false)]
     local procedure OnAfterValidateEventBuyFromVendorNo(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -47,7 +47,7 @@ codeunit 20533 "Subc. Purchase Header Ext"
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", OnBeforeDeleteEvent, '', false, false)]
     local procedure CheckTransferOrderOnBeforeDeleteEvent(var Rec: Record "Purchase Header"; RunTrigger: Boolean)
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -98,7 +98,7 @@ codeunit 20533 "Subc. Purchase Header Ext"
         PurchaseHeader: Record "Purchase Header";
         TransferHeader: Record "Transfer Header";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -116,7 +116,7 @@ codeunit 20533 "Subc. Purchase Header Ext"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", OnAfterCopyPurchHeaderDone, '', false, false)]
     local procedure ClearSubcLocationCodeOnAfterCopyPurchHeaderDone(var ToPurchaseHeader: Record "Purchase Header")
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

@@ -287,7 +287,7 @@ codeunit 7017 "Price List Management"
         PriceListLine: Record "Price List Line";
     begin
         PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
-        PriceListLine.SetRange(Status, "Price Status"::Draft);
+        PriceListLine.SetFilter(Status, '<>%1', "Price Status"::Active);
         exit(FindDuplicatePrices(PriceListHeader, PriceListLine, SearchInside, DuplicatePriceLine));
     end;
 

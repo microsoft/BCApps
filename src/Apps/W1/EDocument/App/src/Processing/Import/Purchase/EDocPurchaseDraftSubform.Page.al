@@ -73,6 +73,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -84,6 +85,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -114,6 +116,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -130,6 +133,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     trigger OnValidate()
                     begin
                         UpdateCalculatedAmounts(true);
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -140,6 +144,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     trigger OnValidate()
                     begin
                         UpdateCalculatedAmounts(true);
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -151,6 +156,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     trigger OnValidate()
                     begin
                         UpdateCalculatedAmounts(true);
+                        RefreshPOMatchWarnings();
                         CurrPage.Update(true);
                     end;
                 }
@@ -570,6 +576,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
         if not UserModifiedAmount then
             exit;
         EDocumentNotification.RefreshAndShowSubTotalMismatchAfterLineEdit(Rec);
+    end;
+
+    local procedure RefreshPOMatchWarnings()
+    begin
+        CurrPage.SaveRecord();
+        UpdatePOMatching();
     end;
 
     local procedure SetHasAdditionalColumns()

@@ -36,10 +36,14 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsAiAssistedPolicyEvaluationEnabled());
             Capability::InterimApprover:
                 exit(IsInterimApproverEnabled());
+            Capability::NoReceipt:
+                exit(IsNoReceiptEnabled());
             Capability::ActivityLog,
             Capability::MileageRateSetup,
             Capability::ApprovalConversation,
-            Capability::TravelRequest:
+            Capability::TravelRequest,
+            Capability::CreditCardFeed,
+            Capability::ActiveApproverRouting:
                 exit(true);
         end;
         exit(false);
@@ -52,6 +56,15 @@ codeunit 6906 "Expense Capabilities Provider"
         if not ExpenseAgentSetup.Get() then
             exit(false);
         exit(ExpenseAgentSetup."Enable Project Fields");
+    end;
+
+    local procedure IsNoReceiptEnabled(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if not ExpenseAgentSetup.Get() then
+            exit(false);
+        exit(ExpenseAgentSetup."Allow No Receipt");
     end;
 
     local procedure IsPerDiemLocationsEnabled(): Boolean
