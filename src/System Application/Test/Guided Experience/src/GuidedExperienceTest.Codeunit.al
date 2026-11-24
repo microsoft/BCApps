@@ -26,6 +26,144 @@ codeunit 132594 "Guided Experience Test"
         GuidedExperienceRecordCountErr: Label 'Guided Experience record count error.';
 
     [Test]
+    procedure EarlyAccessMetadataKeepsFullTextAndStepOrder()
+    var
+        TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
+        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
+        Features: JsonArray;
+        Feature: JsonObject;
+        Steps: JsonArray;
+        Overview: Text;
+        GettingStarted: Text;
+        LongStep: Text;
+        FullOverview: Text;
+        ExpectedGuide: TextBuilder;
+    begin
+        FullOverview := PadStr('Feature benefit. ', 1500, 'x');
+        LongStep := PadStr('Read the full guidance, including <plain text>. ', 6000, 'y');
+        Feature.Add('FeatureName', 'Feature with guidance');
+        Feature.Add('Description', FullOverview);
+        Feature.Add('ReleaseVersion', '30.0');
+        Feature.Add('HelpURL', 'https://example.com/help');
+        Feature.Add('VideoURL', 'https://example.com/video');
+        Steps.Add('Open the feature.');
+        Steps.Add(LongStep);
+        Steps.Add('Complete setup.');
+        Feature.Add('GettingStartedSteps', Steps);
+        Features.Add(Feature);
+
+        EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        EarlyAccessPreviewMgt.GetFeatureDetails(TempGuidedExperienceItem.Code, Overview, GettingStarted);
+
+        ExpectedGuide.AppendLine('1. Open the feature.');
+        ExpectedGuide.AppendLine();
+        ExpectedGuide.AppendLine('2. ' + LongStep);
+        ExpectedGuide.AppendLine();
+        ExpectedGuide.Append('3. Complete setup.');
+        Assert.AreEqual('30.0', EarlyAccessPreviewMgt.GetReleaseVersion(TempGuidedExperienceItem.Code), 'Release must come from the selected feature.');
+        Assert.AreEqual(FullOverview, Overview, 'The overview must not be truncated or contain release information.');
+        Assert.AreEqual(ExpectedGuide.ToText(), GettingStarted, 'Numbered steps must preserve their order and full plain text.');
+        Assert.AreEqual('https://example.com/help', TempGuidedExperienceItem."Help URL", 'Help must be preserved.');
+        Assert.AreEqual('https://example.com/video', TempGuidedExperienceItem."Video URL", 'Video must be preserved.');
+    end;
+
+    [Test]
+    procedure EarlyAccessMetadataDoesNotLeakBetweenFeaturesOrReloads()
+    var
+        TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
+        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
+        Features: JsonArray;
+        EmptyFeatures: JsonArray;
+        Overview: Text;
+        GettingStarted: Text;
+    begin
+        Features.ReadFrom(
+            '[{"FeatureName":"Guided","Description":"Overview","ReleaseVersion":"30.0","GettingStartedSteps":["Start here."]},' +
+            '{"FeatureName":"Legacy"},{"FeatureName":"Empty","ReleaseVersion":"","GettingStartedSteps":[]},' +
+            '{"FeatureName":"Release only","ReleaseVersion":"29.1"},{"FeatureName":"Steps only","GettingStartedSteps":["Try this."]}]');
+        EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        EarlyAccessPreviewMgt.GetFeatureDetails('1', Overview, GettingStarted);
+        Assert.AreEqual('1. Start here.', GettingStarted, 'The first feature must have guidance.');
+
+        EarlyAccessPreviewMgt.GetFeatureDetails('2', Overview, GettingStarted);
+        Assert.AreEqual('', Overview, 'A missing overview must clear the previous feature.');
+        Assert.AreEqual('', GettingStarted, 'A legacy feature must not reuse the previous guidance.');
+        Assert.AreEqual('', EarlyAccessPreviewMgt.GetReleaseVersion('2'), 'A missing release must stay blank.');
+        EarlyAccessPreviewMgt.GetFeatureDetails('3', Overview, GettingStarted);
+        Assert.AreEqual('', GettingStarted, 'An empty steps array must stay blank.');
+        Assert.AreEqual('', EarlyAccessPreviewMgt.GetReleaseVersion('3'), 'An empty release must stay blank.');
+        EarlyAccessPreviewMgt.GetFeatureDetails('4', Overview, GettingStarted);
+        Assert.AreEqual('', GettingStarted, 'Release information must not require guidance.');
+        Assert.AreEqual('29.1', EarlyAccessPreviewMgt.GetReleaseVersion('4'), 'Each feature must retain its own introducing release.');
+        EarlyAccessPreviewMgt.GetFeatureDetails('5', Overview, GettingStarted);
+        Assert.AreEqual('1. Try this.', GettingStarted, 'Guidance must not require release information.');
+        Assert.AreEqual('', EarlyAccessPreviewMgt.GetReleaseVersion('5'), 'Guidance must not invent a release.');
+
+        EarlyAccessPreviewMgt.GetFeatureDetails('1', Overview, GettingStarted);
+        Assert.AreEqual('1. Start here.', GettingStarted, 'Returning to a feature must restore its own guidance.');
+        EarlyAccessPreviewMgt.GetFeatureDetails('', Overview, GettingStarted);
+        Assert.AreEqual('', Overview, 'No selection must clear the overview.');
+        Assert.AreEqual('', GettingStarted, 'No selection must clear the guidance.');
+
+        TempGuidedExperienceItem.SetRange(Code, '2');
+        EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, EmptyFeatures);
+        Assert.IsTrue(TempGuidedExperienceItem.IsEmpty(), 'An empty catalog must clear all rows, including filtered rows.');
+        Assert.AreEqual('', TempGuidedExperienceItem.Code, 'An empty catalog must not retain a selected feature.');
+        EarlyAccessPreviewMgt.GetFeatureDetails('1', Overview, GettingStarted);
+        Assert.AreEqual('', Overview, 'Reloading must clear cached overviews.');
+        Assert.AreEqual('', GettingStarted, 'Reloading must clear cached guidance.');
+        Assert.AreEqual('', EarlyAccessPreviewMgt.GetReleaseVersion('1'), 'Reloading must clear cached releases.');
+    end;
+
+    [Test]
+    procedure EarlyAccessMetadataRejectsInvalidReleaseVersions()
+    var
+        TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
+        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
+        Features: JsonArray;
+    begin
+        Features.ReadFrom('[{"ReleaseVersion":30.0}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('ReleaseVersion value for early access preview feature 1 must be a JSON string.');
+
+        Features.ReadFrom('[{"ReleaseVersion":null}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('ReleaseVersion value for early access preview feature 1 must be a JSON string.');
+
+        Features.ReadFrom('[{"ReleaseVersion":"30.0.1"}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('must use the major.minor format');
+
+        Features.ReadFrom('[{"ReleaseVersion":"30.x"}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('must use the major.minor format');
+    end;
+
+    [Test]
+    procedure EarlyAccessMetadataRejectsInvalidSteps()
+    var
+        TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
+        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
+        Features: JsonArray;
+    begin
+        Features.ReadFrom('[{"GettingStartedSteps":"Not an array"}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('must be a JSON array of strings');
+
+        Features.ReadFrom('[{"GettingStartedSteps":["Valid",false]}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('GettingStartedSteps value for early access preview feature 1 must be a JSON string.');
+
+        Features.ReadFrom('[{"GettingStartedSteps":[null]}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('GettingStartedSteps value for early access preview feature 1 must be a JSON string.');
+
+        Features.ReadFrom('[{"GettingStartedSteps":[{}]}]');
+        asserterror EarlyAccessPreviewMgt.LoadNewFeatures(TempGuidedExperienceItem, Features);
+        Assert.ExpectedError('GettingStartedSteps value for early access preview feature 1 must be a JSON string.');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure TestInsertAssistedSetup()
     var

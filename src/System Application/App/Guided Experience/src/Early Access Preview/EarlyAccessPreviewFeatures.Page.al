@@ -62,6 +62,12 @@ page 1965 "Early Access Preview Features"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the category of the new feature.';
                 }
+                field(ReleaseVersion; ReleaseVersion)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Release version';
+                    ToolTip = 'Specifies the Business Central release that introduced the feature. This does not indicate whether it is deployed in this environment.';
+                }
                 field("Help URL"; Rec."Help URL")
                 {
                     ApplicationArea = All;
@@ -82,6 +88,13 @@ page 1965 "Early Access Preview Features"
                         Hyperlink(Rec."Video URL")
                     end;
                 }
+            }
+        }
+        area(FactBoxes)
+        {
+            part(FeatureDetails; "Early Access Feature Details")
+            {
+                ApplicationArea = All;
             }
         }
     }
@@ -170,17 +183,29 @@ page 1965 "Early Access Preview Features"
     }
 
     trigger OnOpenPage()
-    var
-        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
     begin
         EarlyAccessPreviewMgt.LoadNewFeatures(Rec);
     end;
 
     trigger OnAfterGetCurrRecord()
+    var
+        Overview: Text;
+        GettingStarted: Text;
     begin
+        if Rec.IsEmpty() then begin
+            Clear(HasVideoUrl);
+            Clear(HasHelpUrl);
+            Clear(ReleaseVersion);
+            Clear(VideoFieldText);
+            CurrPage.FeatureDetails.Page.SetFeature('', '', '');
+            exit;
+        end;
+
         HasVideoUrl := Rec."Video URL" <> '';
         HasHelpUrl := Rec."Help URL" <> '';
         UpdateFieldText();
+        EarlyAccessPreviewMgt.GetFeatureDetails(Rec.Code, Overview, GettingStarted);
+        CurrPage.FeatureDetails.Page.SetFeature(Rec.Title, Overview, GettingStarted);
     end;
 
     trigger OnAfterGetRecord()
@@ -190,6 +215,7 @@ page 1965 "Early Access Preview Features"
 
     local procedure UpdateFieldText()
     begin
+        ReleaseVersion := EarlyAccessPreviewMgt.GetReleaseVersion(Rec.Code);
         if Rec."Video URL" <> '' then
             VideoFieldText := WatchVideoLbl
         else
@@ -197,9 +223,11 @@ page 1965 "Early Access Preview Features"
     end;
 
     var
+        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
         HasVideoUrl: Boolean;
         HasHelpUrl: Boolean;
         VideoFieldText: Text;
+        ReleaseVersion: Text;
         EarlyAccessPreviewFeatureAreaTok: Label 'EarlyAccessPreview', Locked = true;
         EarlyAccessPreviewFeatureAreaDisplayNameTok: Label 'Early Access Preview', Locked = true;
         WatchVideoLbl: Label 'Watch Video';
