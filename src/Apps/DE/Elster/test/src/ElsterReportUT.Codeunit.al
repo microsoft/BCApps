@@ -560,6 +560,7 @@ codeunit 148164 "Elster Report UT"
     var
         VATStatementName: Record "VAT Statement Name";
         SalesVATAdvanceNotif: Record "Sales VAT Advance Notif.";
+        NamespaceMismatchXPathLbl: Label '//*[namespace-uri() != "%1"]', Locked = true;
     begin
         CreateVATStatementName(VATStatementName);
         CreateSalesVATAdvanceNotif(SalesVATAdvanceNotif, Period, VATStatementName.Name);
@@ -570,7 +571,7 @@ codeunit 148164 "Elster Report UT"
 
         LoadXMLFromSalesVATAdvanceNotif(SalesVATAdvanceNotif);
         LibraryXPathXMLReader.VerifyXmlNodeCountByXPath(
-            StrSubstNo('//*[namespace-uri() != "%1"]', ExpectedNamespace), 0);
+            StrSubstNo(NamespaceMismatchXPathLbl, ExpectedNamespace), 0);
         LibraryXPathXMLReader.VerifyXmlAttributeValue(
             '/ns:Anmeldungssteuern', 'version', Format(Date2DMY(StartingDate, 3)));
         LibraryXPathXMLReader.VerifyXmlNodeValue(
