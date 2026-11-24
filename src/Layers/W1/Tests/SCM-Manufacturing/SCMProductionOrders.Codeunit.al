@@ -110,6 +110,7 @@ codeunit 137069 "SCM Production Orders"
         LotNoErr: Label 'You must assign a lot number for item %1.', Comment = '%1 - Item No.';
         MalformedRecLinkErr: Label 'Wrong data in record link found';
         MatrixRowLimitMsg: Label 'Maximum number of rows to be loaded';
+        NetInvoicedOutputQtyErr: Label 'Net invoiced output quantity must be zero after the output is reversed.';
         NonEditableErr: Label 'The value must be editable.';
         NothingToPlanMsg: Label 'There is nothing to plan';
         NumberOfLineEqualErr: Label 'Number of Lines must be same.';
@@ -5221,6 +5222,78 @@ codeunit 137069 "SCM Production Orders"
         Assert.AreEqual(
           SetupTimeAfterFirstFinish, GetTotalSetupTimeOnCapacityLedgerEntries(ProductionOrder."No."),
           'Setup time must not be reposted when reopening and re-finishing the production order.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTRUE')]
+    [Scope('OnPrem')]
+    procedure ReversedOutputIsInvoicedWhenReopenedProdOrderIsFinishedAgain()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        LibraryCosting: Codeunit "Library - Costing";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Reopen] [Reverse Production Entry] [Adjust Cost Item Entries]
+        // [SCENARIO 658720] Output reversed after reopening a finished production order is invoiced when the order is finished again.
+        Initialize();
+        Qty := LibraryRandom.RandIntInRange(10, 50);
+
+        // [GIVEN] Create Component item in stock and production item with a production BOM consuming the component.
+        CreateItem(CompItem, CompItem."Replenishment System"::Purchase);
+        LibraryInventory.PostPositiveAdjustment(CompItem, '', '', '', Qty, WorkDate(), LibraryRandom.RandDec(100, 2));
+        CreateItem(ProdItem, ProdItem."Replenishment System"::"Prod. Order");
+        UpdateRoutingAndBOMOnItem(ProdItem, LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1), '');
+
+        // [GIVEN] Create Released production order for the production item with posted consumption and output.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, ProdItem."No.", Qty);
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        LibraryManufacturing.PostConsumption(ProdOrderLine, CompItem, '', '', Qty, WorkDate(), 0);
+        LibraryManufacturing.PostOutput(ProdOrderLine, Qty, WorkDate(), 0);
+
+        // [GIVEN] The production order is finished and costs are adjusted, so the output is invoiced.
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+        LibraryCosting.AdjustCostItemEntries(ProdItem."No." + '|' + CompItem."No.", '');
+
+        // [GIVEN] The finished production order is reopened, and its consumption and output are reversed.
+        ProductionOrder.Get(ProductionOrder.Status::Finished, ProductionOrder."No.");
+        ProdOrderStatusMgt.ProcessProdOrderForReopen(ProductionOrder);
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.SetRange("Entry No.", 0, ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.SetHideDialog(true);
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [WHEN] The production order is finished again and costs are adjusted.
+        ProductionOrder.Get(ProductionOrder.Status::Released, ProductionOrder."No.");
+        Clear(ProdOrderStatusMgt);
+        ProdOrderStatusMgt.SetFinishOrderWithoutOutput(true);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), false);
+        LibraryCosting.AdjustCostItemEntries(ProdItem."No." + '|' + CompItem."No.", '');
+
+        // [THEN] The reversal output entry is completely invoiced.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Invoiced Quantity", -Qty);
+        ItemLedgerEntry.TestField("Completely Invoiced", true);
+
+        // [THEN] The net invoiced output quantity of the production order is zero.
+        ItemLedgerEntry.SetRange(Positive);
+        ItemLedgerEntry.CalcSums("Invoiced Quantity");
+        Assert.AreEqual(0, ItemLedgerEntry."Invoiced Quantity", NetInvoicedOutputQtyErr);
     end;
 
     local procedure Initialize()

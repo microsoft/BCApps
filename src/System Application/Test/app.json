@@ -13,6 +13,12 @@
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-testing-application/",
   "dependencies": [
     {
+      "id": "bebde88d-6846-479d-8b30-b9f8940fdcf8",
+      "name": "Business Skills Test Library",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
