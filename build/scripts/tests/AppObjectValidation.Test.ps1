@@ -115,6 +115,32 @@ Describe "AppObjectValidation" {
             $testFolders | Should -Contain ([System.IO.Path]::GetFullPath($expected))
         }
 
+        It "expands wildcards inside the path to the matching test folders" {
+            $layout = New-ValidationLayout
+            $otherTestApp = Join-Path $layout.Source 'Apps\W1\Other\Test'
+            New-Item -ItemType Directory -Path $otherTestApp -Force | Out-Null
+            @{
+                testFolders = @('../../../src/Apps/W1/*/Test')
+            } | ConvertTo-Json | Set-Content -Path (Join-Path $layout.Projects 'Apps W1\.AL-Go\settings.json') -Encoding UTF8
+
+            $testFolders = Get-ALGoTestFolders -ProjectsPath $layout.Projects
+
+            $testFolders | Should -Contain ([System.IO.Path]::GetFullPath($layout.TestApp))
+            $testFolders | Should -Contain ([System.IO.Path]::GetFullPath($otherTestApp))
+            $testFolders | Should -Not -Contain ([System.IO.Path]::GetFullPath($layout.Production))
+            @($testFolders | Where-Object { $_.Contains('*') }) | Should -BeNullOrEmpty
+        }
+
+        It "excludes added files in test apps matched by an inner wildcard" {
+            $layout = New-ValidationLayout
+            @{
+                testFolders = @('../../../src/Apps/W1/*/Test')
+            } | ConvertTo-Json | Set-Content -Path (Join-Path $layout.Projects 'Apps W1\.AL-Go\settings.json') -Encoding UTF8
+            $file = New-TestAlFile -Path (Join-Path $layout.TestApp 'Helper.al') -Declaration 'table 139500 "Helper"'
+
+            { Invoke-AddedFileValidation -Layout $layout -FilePaths @($file) } | Should -Not -Throw
+        }
+
         It "includes projects canonically marked as tests even when they are AL-Go app folders" {
             $layout = New-ValidationLayout
             $testUtility = Join-Path $layout.Source 'Apps\W1\LibraryNoTransactions\app'
