@@ -90,6 +90,8 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetRange("Status", Expense."Status"::Open);
         Expense.SetRange("Credit Card Feed No.", 0);
+        Expense.SetRange("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
+        Expense.SetFilter("Corporate Card Id", '%1|%2', '', CorpCardTrans."Card Id");
         Expense.SetRange("Currency Code", CorpCardTrans."Currency Code");
         Expense.SetFilter("Expense Date", '%1..%2', CorpCardTrans."Trans Date" - MaxDateDiff, CorpCardTrans."Trans Date" + MaxDateDiff);
         Expense.SetFilter("Amount", '%1..%2', CorpCardTrans.Amount - MaxAmountDiff, CorpCardTrans.Amount + MaxAmountDiff);
@@ -125,6 +127,7 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         LoadExpenseCandidates(ExpenseUserNo);
         TempExpenseCandidate.Reset();
         TempExpenseCandidate.SetRange("Expense User No.", ExpenseUserNo);
+        TempExpenseCandidate.SetFilter("Corporate Card Id", '%1|%2', '', CorpCardTrans."Card Id");
 
         if not TempExpenseCandidate.FindSet() then
             exit(false);
@@ -154,10 +157,11 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
         if CachedExpenseUsers.ContainsKey(ExpenseUserNo) then
             exit;
 
-        Expense.SetLoadFields("No.", "Merchant Name");
+        Expense.SetLoadFields("No.", "Merchant Name", "Corporate Card Id");
         Expense.SetRange("Expense User No.", ExpenseUserNo);
         Expense.SetRange("Status", Expense."Status"::Open);
         Expense.SetRange("Credit Card Feed No.", 0);
+        Expense.SetRange("Reimbursement Type", Expense."Reimbursement Type"::"Credit Card");
         TempExpenseCandidate.Reset();
         if Expense.FindSet() then
             repeat
@@ -165,6 +169,7 @@ codeunit 7426 "EA Corp Card Enh. Match Mgt"
                 TempExpenseCandidate."No." := Expense."No.";
                 TempExpenseCandidate."Expense User No." := ExpenseUserNo;
                 TempExpenseCandidate."Merchant Name" := Expense."Merchant Name";
+                TempExpenseCandidate."Corporate Card Id" := Expense."Corporate Card Id";
                 TempExpenseCandidate.Insert(false);
             until Expense.Next() = 0;
 

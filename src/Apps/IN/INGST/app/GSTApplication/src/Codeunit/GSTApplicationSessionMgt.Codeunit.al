@@ -6,6 +6,7 @@ namespace Microsoft.Finance.GST.Application;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GST.Base;
 using Microsoft.Finance.TaxBase;
@@ -270,8 +271,14 @@ codeunit 18434 "GST Application Session Mgt."
     end;
 
     procedure PostApplicationGenJournalLine(var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    begin
+        PostApplicationGenJournalLine(GenJnlPostLine, false);
+    end;
+
+    procedure PostApplicationGenJournalLine(var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PostToGLBuffer: Boolean)
     var
         TempGenJnlLine: Record "Gen. Journal Line" temporary;
+        GLEntry: Record "G/L Entry";
     begin
         if GSTApplicationJournalPostingStarted then
             exit;
@@ -281,7 +288,11 @@ codeunit 18434 "GST Application Session Mgt."
             repeat
                 TempGenJnlLine := TempGenJournalLine;
                 TempGenJnlLine."Line No." := 0;
-                GenJnlPostLine.RunWithoutCheck(TempGenJnlLine);
+                if PostToGLBuffer then begin
+                    GenJnlPostLine.InitGLEntry(TempGenJnlLine, GLEntry, TempGenJnlLine."Account No.", TempGenJnlLine."Amount (LCY)", 0, false, true);
+                    GenJnlPostLine.InsertGLEntry(TempGenJnlLine, GLEntry, true);
+                end else
+                    GenJnlPostLine.RunWithoutCheck(TempGenJnlLine);
                 TempGenJournalLine.Delete();
             until TempGenJournalLine.Next() = 0;
 

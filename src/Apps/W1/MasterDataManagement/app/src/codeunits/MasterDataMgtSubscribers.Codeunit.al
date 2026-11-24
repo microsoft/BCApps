@@ -1616,6 +1616,6 @@ codeunit 7237 "Master Data Mgt. Subscribers"
     begin
         if not MasterDataManagementSetup.Get() then
             exit;
-        MasterDataManagementSetup.ClearSourceClientSecretOnEnvironmentCopy();
+        MasterDataManagementSetup.ClearSourceCredentialsOnEnvironmentCopy();
     end;
 }

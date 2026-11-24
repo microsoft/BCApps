@@ -16,7 +16,7 @@ using System.Utilities;
 page 9650 "Custom Report Layouts"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Custom Report Layouts';
+    Caption = 'Custom Report Layouts (Obsolete)';
     InsertAllowed = false;
     PageType = List;
     SourceTable = "Custom Report Layout";
@@ -381,6 +381,7 @@ page 9650 "Custom Report Layouts"
         PageName := CurrPage.Caption;
         CurrPage.Caption := GetPageCaption();
         Rec.SetRange("Built-In", false);
+        ShowDeprecationNotification();
     end;
 
     var
@@ -388,11 +389,21 @@ page 9650 "Custom Report Layouts"
         UpdateNotRequiredMsg: Label 'The %1 layout is up-to-date. No further updates are required.', Comment = '%1 will be replaced by the layout name.';
         PageName: Text;
         CaptionTxt: Label '%1 - %2 %3', Locked = true;
+        PageDeprecatedTxt: Label 'This page has been deprecated and will be removed in a later release. Please migrate your layouts to the new system page Report Layouts using the Migrate to System Layouts action.';
         IsNotBuiltIn: Boolean;
         IsMultiSelect: Boolean;
         ShareOptionsVisible: Boolean;
         ShareOptionsEnabled: Boolean;
         DocxFileExtensionLbl: Label '.docx';
+
+    local procedure ShowDeprecationNotification()
+    var
+        DeprecationNotification: Notification;
+    begin
+        DeprecationNotification.Message := PageDeprecatedTxt;
+        DeprecationNotification.Scope := NotificationScope::LocalScope;
+        DeprecationNotification.Send();
+    end;
 
     local procedure GetPageCaption(): Text
     var

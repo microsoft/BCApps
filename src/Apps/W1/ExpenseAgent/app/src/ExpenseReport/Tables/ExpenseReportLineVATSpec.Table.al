@@ -18,7 +18,6 @@ using Microsoft.Finance.VAT.Setup;
 /// </summary>
 table 6922 "Expense Report Line VAT Spec."
 {
-    Access = Internal;
     Caption = 'Expense Report Line VAT Specification';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Report Line VAT Spec.";
@@ -308,6 +307,7 @@ table 6922 "Expense Report Line VAT Spec."
         }
         field(40; Source; Enum "Expense VAT Spec Source")
         {
+            Access = Internal;
             Caption = 'Source';
             ToolTip = 'Specifies the provenance of this row (Agent / Manual / Override).';
         }
@@ -318,6 +318,7 @@ table 6922 "Expense Report Line VAT Spec."
         }
         field(42; Confidence; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Confidence';
             DecimalPlaces = 0 : 5;
@@ -544,7 +545,7 @@ table 6922 "Expense Report Line VAT Spec."
     end;
 
     /// <summary>Stores a UTF-8 reclaim justification text into the blob.</summary>
-    procedure SetJustification(NewText: Text)
+    internal procedure SetJustification(NewText: Text)
     var
         OutStream: OutStream;
     begin

@@ -250,11 +250,17 @@ codeunit 8060 "Create Billing Documents"
         UsageBasedDocTypeConv: Codeunit "Usage Based Doc. Type Conv.";
         UnitPrice: Decimal;
         BillingLineNo: Integer;
+        IsHandled: Boolean;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
         ServiceCommitment.Get(TempBillingLine."Subscription Line Entry No.");
         CustomerContractLine.Get(TempBillingLine."Subscription Contract No.", TempBillingLine."Subscription Contract Line No.");
         OnAfterCustomerContractLineGetInInsertSalesLineFromTempBillingLine(CustomerContractLine, SalesHeader, TempBillingLine);
+
+        IsHandled := false;
+        OnBeforeInsertSalesLineFromTempBillingLine(TempBillingLine, SalesHeader, IsHandled);
+        if IsHandled then
+            exit;
 
         SalesLine.InitFromSalesHeader(SalesHeader);
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(true);
@@ -403,9 +409,15 @@ codeunit 8060 "Create Billing Documents"
         TransferExtendedText: Codeunit "Transfer Extended Text";
         DirectUnitCost: Decimal;
         BillingLineNo: Integer;
+        IsHandled: Boolean;
     begin
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
         ServiceCommitment.Get(TempBillingLine."Subscription Line Entry No.");
+
+        IsHandled := false;
+        OnBeforeInsertPurchaseLineFromTempBillingLine(TempBillingLine, PurchaseHeader, IsHandled);
+        if IsHandled then
+            exit;
 
         InitPurchaseLine(PurchaseLine);
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(true);
@@ -585,17 +597,23 @@ codeunit 8060 "Create Billing Documents"
     local procedure InsertContractDescriptionPurchaseLines(BillingLine: Record "Billing Line")
     var
         ContractTypeDescription: Text;
+        IsHandled: Boolean;
     begin
-        TranslationHelper.SetGlobalLanguageByCode(PurchaseHeader."Language Code");
-        if FirstContractDescriptionLineInserted then
-            InsertDescriptionPurchaseLine('', 0);
-        InsertDescriptionPurchaseLine(StrSubstNo(ContractNoTxt, BillingLine."Subscription Contract No."), 0);
-        ContractTypeDescription := GetContractTypeDescription(BillingLine."Subscription Contract No.", BillingLine.Partner, PurchaseHeader."Language Code");
-        if ContractTypeDescription <> '' then
-            InsertDescriptionPurchaseLine(ContractTypeDescription, 0);
-        if VendorRecurringBillingGrouping <> VendorRecurringBillingGrouping::Contract then
-            FirstContractDescriptionLineInserted := true;
-        TranslationHelper.RestoreGlobalLanguage();
+        IsHandled := false;
+        OnBeforeInsertContractDescriptionPurchaseLines(PurchaseHeader, BillingLine, FirstContractDescriptionLineInserted, VendorRecurringBillingGrouping, IsHandled);
+        if not IsHandled then begin
+            TranslationHelper.SetGlobalLanguageByCode(PurchaseHeader."Language Code");
+            if FirstContractDescriptionLineInserted then
+                InsertDescriptionPurchaseLine('', 0);
+            InsertDescriptionPurchaseLine(StrSubstNo(ContractNoTxt, BillingLine."Subscription Contract No."), 0);
+            ContractTypeDescription := GetContractTypeDescription(BillingLine."Subscription Contract No.", BillingLine.Partner, PurchaseHeader."Language Code");
+            if ContractTypeDescription <> '' then
+                InsertDescriptionPurchaseLine(ContractTypeDescription, 0);
+            if VendorRecurringBillingGrouping <> VendorRecurringBillingGrouping::Contract then
+                FirstContractDescriptionLineInserted := true;
+            TranslationHelper.RestoreGlobalLanguage();
+        end;
+        OnAfterInsertContractDescriptionPurchaseLines(PurchaseHeader, BillingLine, FirstContractDescriptionLineInserted, VendorRecurringBillingGrouping);
     end;
 
     internal procedure GetContractTypeDescription(ContractNo: Code[20]; Partner: Enum "Service Partner"; LanguageCode: Code[10]): Text[50]
@@ -708,6 +726,7 @@ codeunit 8060 "Create Billing Documents"
         PurchaseHeader."Posting Description" := VendorContractLbl + ' ' + VendorContract."No.";
         TranslationHelper.RestoreGlobalLanguage();
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
+        OnAfterCreatePurchaseHeaderFromContract(VendorContract, PurchaseHeader);
         PurchaseHeader.Modify(false);
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
     end;
@@ -764,6 +783,7 @@ codeunit 8060 "Create Billing Documents"
         PurchaseHeader."Posting Description" := VendorContractLbl + ' ' + TempBillingLine."Subscription Contract No.";
         TranslationHelper.RestoreGlobalLanguage();
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(true);
+        OnAfterCreatePurchaseHeaderForVendorNo(PurchaseHeader, TempBillingLine."Subscription Contract No.");
         PurchaseHeader.Modify(false);
         DocumentChangeManagement.SetSkipContractPurchaseHeaderModifyCheck(false);
     end;
@@ -1389,7 +1409,27 @@ codeunit 8060 "Create Billing Documents"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnAfterCreatePurchaseHeaderFromContract(VendorSubscriptionContract: Record "Vendor Subscription Contract"; var PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCreatePurchaseHeaderForVendorNo(var PurchaseHeader: Record "Purchase Header"; ContractNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertSalesLineFromContractLine(var SalesLine: Record "Sales Line"; var TempBillingLine: Record "Billing Line" temporary)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertSalesLineFromTempBillingLine(var TempBillingLine: Record "Billing Line" temporary; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertPurchaseLineFromTempBillingLine(var TempBillingLine: Record "Billing Line" temporary; var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 
@@ -1400,6 +1440,16 @@ codeunit 8060 "Create Billing Documents"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertContractDescriptionSalesLines(SalesHeader: Record "Sales Header"; BillingLine: Record "Billing Line"; var FirstContractDescriptionLineInserted: Boolean; CustomerRecurringBillingGrouping: Enum "Customer Rec. Billing Grouping")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertContractDescriptionPurchaseLines(PurchaseHeader: Record "Purchase Header"; BillingLine: Record "Billing Line"; var FirstContractDescriptionLineInserted: Boolean; VendorRecurringBillingGrouping: Enum "Vendor Rec. Billing Grouping"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertContractDescriptionPurchaseLines(PurchaseHeader: Record "Purchase Header"; BillingLine: Record "Billing Line"; var FirstContractDescriptionLineInserted: Boolean; VendorRecurringBillingGrouping: Enum "Vendor Rec. Billing Grouping")
     begin
     end;
 
