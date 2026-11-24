@@ -21,7 +21,7 @@ codeunit 9803 "Job Queue Telemetry"
         JobQueueEntryNotEnqueuedTxt: Label 'Job queue entry not enqueued: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntrySkippedTxt: Label 'Job queue entry skipped: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntryNotReadyToStartTxt: Label 'Job queue entry not ready to start: %1', Comment = '%1 = Job queue id', Locked = true;
-        JobQueueEntryFinalizationResumedTxt: Label 'Job queue entry finalization resumed: %1', Comment = '%1 = Job queue id', Locked = true;
+        JobQueueEntryFinalizationResumedTxt: Label 'Job queue entry finalization resumed', Locked = true;
         JobQueueEntryExpiredTxt: Label 'Job queue entry expired: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntryRescheduledDueToStartEndTimeTxt: Label 'Job queue entry rescheduled due to start/end time: %1', Comment = '%1 = Job queue id', Locked = true;
         JobQueueEntryRescheduledAsWaitingTxt: Label 'Job queue entry rescheduled as waiting: %1', Comment = '%1 = Job queue id', Locked = true;
@@ -112,7 +112,7 @@ codeunit 9803 "Job Queue Telemetry"
         SetJobQueueTelemetryDimensions(JobQueueEntry, Dimensions);
         Dimensions.Add('JobQueueExecutedScheduledTaskId', Format(ExecutedTaskId, 0, 4));
         Telemetry.LogMessage('0000WW6',
-                                StrSubstNo(JobQueueEntryFinalizationResumedTxt, Format(JobQueueEntry.ID, 0, 4)),
+                                JobQueueEntryFinalizationResumedTxt,
                                 Verbosity::Warning,
                                 DataClassification::OrganizationIdentifiableInformation,
                                 TelemetryScope::All,
