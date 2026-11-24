@@ -22,6 +22,8 @@ table 5447 "API Extension Upload"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+        // Retain the obsolete enum references for schema compatibility until CLEANSCHEMA30.
+#pragma warning disable AS0105
         field(2; Schedule; Enum "Extension Deploy To")
         {
             Caption = 'Schedule';
@@ -32,6 +34,7 @@ table 5447 "API Extension Upload"
             Caption = 'Schema Sync Mode';
             DataClassification = SystemMetadata;
         }
+#pragma warning restore AS0105
         field(20; Content; Blob)
         {
             Caption = 'Content';
