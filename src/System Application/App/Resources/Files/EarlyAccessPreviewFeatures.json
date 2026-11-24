@@ -7,12 +7,11 @@
         "VideoURL": "https://youtu.be/RtG0l-4zlCI",
         "ReleaseVersion": "30.0",
         "GettingStartedSteps": [
-            "Use a US, GB, or DE Business Central online early access preview sandbox on version 30.0.56564.0 or later with a Partner Sandbox license and evaluation data only.",
-            "Ensure your tenant has an eligible Microsoft 365 subscription, Copilot Chat is enabled in Business Central, and you have a valid Business Central license and Microsoft Copilot access.",
-            "Open your evaluation company in Business Central, then open Copilot Chat. Copilot works in the current company and environment.",
-            "Note a demo customer's original phone number, then ask Copilot in English to change only that field to a test number, identifying the customer by number. Changes are saved immediately.",
-            "Inspect Copilot's action log and the customer record to verify only the requested change, then restore the original phone number.",
-            "Optionally use Send feedback in the Chat menu or the thumbs-up or thumbs-down controls to share feedback."
+            "Ensure your tenant has an eligible Microsoft 365 subscription, Microsoft Copilot is enabled in Business Central, and you have a Business Central Essentials or Premium license. A Microsoft Copilot license is not required, but is highly recommended.",
+            "To get started, open the Copilot pane and type your task to Copilot: it can create, edit or delete records, and use actions on pages, including fields and objects from your extensions.",
+            "For example, ask Copilot to create a new Purchase Order from a demo Vendor and for some demo Items.",
+            "Changes are saved immediately, and Copilot will summarize what it changed in the Copilot pane.",
+            "Use Send feedback in the Copilot menu or the thumbs-up or thumbs-down controls to share feedback."
         ]
     }
 ]
