@@ -4261,6 +4261,104 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure SplitLinesPricesInclVATAmountsMatchVATAmountLine()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        GLAccountNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Prices Including VAT] [Rounding]
+        // [SCENARIO 11088] Rounding is distributed across lines when a VAT-inclusive amount is split into several lines, so the line totals match the VAT Amount Line (Statistics).
+        Initialize();
+
+        // [GIVEN] Sales Invoice with "Prices Including VAT" and a G/L Account with 20% Normal VAT
+        CreateSalesInvoiceWithVATSetup(SalesHeader, VATPostingSetup, 20, true);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
+
+        // [WHEN] 11 lines are added, each with Quantity = 1 and "Unit Price" = 1100
+        for i := 1 to 11 do
+            CreateSalesLineWithUnitPrice(SalesHeader, GLAccountNo, 1, 1100);
+
+        // [THEN] Sum of Amount on the lines = 12100 / 1.2 = 10083.33, not 11 * 916.67 = 10083.37
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.CalcSums(Amount, "Amount Including VAT");
+        Assert.AreEqual(Round(12100 / 1.2), SalesLine.Amount, AmountNotMatchedErr);
+        Assert.AreEqual(12100, SalesLine."Amount Including VAT", AmountNotMatchedErr);
+
+        // [THEN] Line totals are equal to the VAT Amount Line
+        VerifySalesLineTotalsMatchVATAmountLine(SalesHeader, true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MixedSignLinesPricesInclVATAmountsMatchVATAmountLines()
+    var
+        SalesHeader: Record "Sales Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        GLAccountNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Prices Including VAT] [Rounding]
+        // [SCENARIO 11088] Rounding of positive and negative lines is distributed separately, matching the VAT Amount Lines that are grouped by sign.
+        Initialize();
+
+        // [GIVEN] Sales Invoice with "Prices Including VAT" and a G/L Account with 20% Normal VAT
+        CreateSalesInvoiceWithVATSetup(SalesHeader, VATPostingSetup, 20, true);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
+
+        // [GIVEN] 3 lines with Quantity = 1 and "Unit Price" = 1100
+        for i := 1 to 3 do
+            CreateSalesLineWithUnitPrice(SalesHeader, GLAccountNo, 1, 1100);
+
+        // [WHEN] A line with Quantity = -1 and "Unit Price" = 1100 is added
+        CreateSalesLineWithUnitPrice(SalesHeader, GLAccountNo, -1, 1100);
+
+        // [THEN] Totals of the positive lines are equal to the positive VAT Amount Line (Amount = 2750.00)
+        VerifySalesLineTotalsMatchVATAmountLine(SalesHeader, true);
+
+        // [THEN] Totals of the negative line are equal to the negative VAT Amount Line (Amount = -916.67)
+        VerifySalesLineTotalsMatchVATAmountLine(SalesHeader, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MixedSignLinesPricesExclVATAmountsMatchVATAmountLines()
+    var
+        SalesHeader: Record "Sales Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GLAccount: Record "G/L Account";
+        GLAccountNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Rounding]
+        // [SCENARIO 11088] VAT rounding of positive and negative lines is distributed separately, matching the VAT Amount Lines that are grouped by sign.
+        Initialize();
+
+        // [GIVEN] Sales Invoice without "Prices Including VAT" and a G/L Account with 10% Normal VAT
+        CreateSalesInvoiceWithVATSetup(SalesHeader, VATPostingSetup, 10, false);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GLAccount."Gen. Posting Type"::Sale);
+
+        // [GIVEN] 2 lines with Quantity = 1 and "Unit Price" = 10.05
+        for i := 1 to 2 do
+            CreateSalesLineWithUnitPrice(SalesHeader, GLAccountNo, 1, 10.05);
+
+        // [WHEN] A line with Quantity = -1 and "Unit Price" = 10.05 is added
+        CreateSalesLineWithUnitPrice(SalesHeader, GLAccountNo, -1, 10.05);
+
+        // [THEN] Totals of the positive lines are equal to the positive VAT Amount Line
+        VerifySalesLineTotalsMatchVATAmountLine(SalesHeader, true);
+
+        // [THEN] Totals of the negative line are equal to the negative VAT Amount Line ("Amount Including VAT" = -11.06)
+        VerifySalesLineTotalsMatchVATAmountLine(SalesHeader, false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure VerifyPaymentTermCodeErrorOnDocumentDateBlank()
     var
         PaymentTerms: Record "Payment Terms";
@@ -5195,6 +5293,46 @@
         Assert.ExpectedError(
       StrSubstNo(
         DeleteCustSalesDocExistsErr, SalespersonPurchaser1.Code));
+    end;
+
+    local procedure CreateSalesInvoiceWithVATSetup(var SalesHeader: Record "Sales Header"; var VATPostingSetup: Record "VAT Posting Setup"; VATRate: Decimal; PricesInclVAT: Boolean)
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", VATRate);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, LibrarySales.CreateCustomerNo());
+        SalesHeader.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        SalesHeader.Validate("Prices Including VAT", PricesInclVAT);
+        SalesHeader.Modify(true);
+    end;
+
+    local procedure CreateSalesLineWithUnitPrice(SalesHeader: Record "Sales Header"; GLAccountNo: Code[20]; Qty: Decimal; UnitPrice: Decimal)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccountNo, Qty);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Modify(true);
+    end;
+
+    local procedure VerifySalesLineTotalsMatchVATAmountLine(SalesHeader: Record "Sales Header"; IsPositive: Boolean)
+    var
+        SalesLine: Record "Sales Line";
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        QtyType: Option General,Invoicing,Shipping;
+    begin
+        SalesLine.CalcVATAmountLines(QtyType::General, SalesHeader, SalesLine, TempVATAmountLine);
+        TempVATAmountLine.SetRange(Positive, IsPositive);
+        TempVATAmountLine.FindFirst();
+
+        SalesLine.Reset();
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        if IsPositive then
+            SalesLine.SetFilter("Line Amount", '>=0')
+        else
+            SalesLine.SetFilter("Line Amount", '<0');
+        SalesLine.CalcSums(Amount, "Amount Including VAT");
+        Assert.AreEqual(TempVATAmountLine."VAT Base", SalesLine.Amount, AmountNotMatchedErr);
+        Assert.AreEqual(TempVATAmountLine."Amount Including VAT", SalesLine."Amount Including VAT", AmountNotMatchedErr);
     end;
 
     local procedure Initialize()
