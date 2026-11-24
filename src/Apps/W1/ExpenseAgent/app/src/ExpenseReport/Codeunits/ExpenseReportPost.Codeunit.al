@@ -336,6 +336,7 @@ codeunit 6987 "Expense Report-Post"
     var
         ExpenseReportLineItem: Record "Expense Report Line Item";
         ExpenseCurrency: Record Currency;
+        FinancialItemizationErrorInfo: ErrorInfo;
     begin
         if ExpenseReportLine.IsEnforcedItemizationRequired() then
             exit;
@@ -347,8 +348,16 @@ codeunit 6987 "Expense Report-Post"
 
         ExpenseReportLineItem.CalcSums(Amount);
         ExpenseCurrency.Initialize(ExpenseReportLine."Expense Currency Code");
-        if Abs(ExpenseReportLineItem.Amount - ExpenseReportLine.Amount) > ExpenseCurrency."Amount Rounding Precision" then
-            Error(FinancialItemizationTotalMismatchErr, ExpenseReportLine."Line No.", ExpenseReportLineItem.Amount, ExpenseReportLine.Amount);
+        if Abs(ExpenseReportLineItem.Amount - ExpenseReportLine.Amount) > ExpenseCurrency."Amount Rounding Precision" then begin
+            FinancialItemizationErrorInfo.Message := StrSubstNo(FinancialItemizationTotalMismatchErr, ExpenseReportLine."Line No.", ExpenseReportLineItem.Amount, ExpenseReportLine.Amount);
+            FinancialItemizationErrorInfo.DataClassification := DataClassification::CustomerContent;
+            FinancialItemizationErrorInfo.ErrorType := ErrorType::Client;
+            FinancialItemizationErrorInfo.RecordId := ExpenseReportLine.RecordId;
+            FinancialItemizationErrorInfo.FieldNo := ExpenseReportLine.FieldNo(Amount);
+            FinancialItemizationErrorInfo.PageNo := Page::"Expense Report Lines";
+            FinancialItemizationErrorInfo.AddNavigationAction(ShowItLbl);
+            Error(FinancialItemizationErrorInfo);
+        end;
     end;
 
     local procedure CheckSpendRequestStatusForPosting(ExpenseReportNo: Code[20]; SpendRequestNo: Code[20])
@@ -454,6 +463,9 @@ codeunit 6987 "Expense Report-Post"
 
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
         ExpenseCategory.TestField(Inactive, false);
+        // Project costs remain aggregated on the parent category account.
+        if ExpenseReportLine.Refundable and (ExpenseReportLine."Job No." <> '') and (ExpenseReportLine.Amount <> 0) then
+            ExpenseCategory.TestField("Posting Group");
         if ExpenseSubCategory.Get(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code") then
             ExpenseSubCategory.TestField(Inactive, false);
     end;
@@ -825,6 +837,9 @@ codeunit 6987 "Expense Report-Post"
     local procedure PostItemizedJnlLines(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; PostedExpReportLine: Record "Posted Expense Report Line"; Refundable: Boolean; var PostedAmount: Decimal; var PostedAmountLCY: Decimal): Boolean
     var
         TempExpenseReportLineItem: Record "Expense Report Line Item" temporary;
+        TempExpenseCategory: Record "Expense Category" temporary;
+        TempExpenseSubcategory: Record "Expense Subcategory" temporary;
+        TempExpensePostingGroup: Record "Expense Posting Group" temporary;
         ItemExpenseReportLine: Record "Expense Report Line";
         GenJournalLine: Record "Gen. Journal Line";
         ProjectGenJournalLine: Record "Gen. Journal Line";
@@ -833,7 +848,7 @@ codeunit 6987 "Expense Report-Post"
         ProjectAmountLCY: Decimal;
         EntryCopied: Boolean;
     begin
-        if not BufferItemizationsForPosting(ExpenseReportLine, TempExpenseReportLineItem) then
+        if not BufferItemizationsForPosting(ExpenseReportLine, TempExpenseReportLineItem, TempExpenseSubcategory) then
             exit(false);
 
         OriginalAmountToEmployee := AmountToEmployee;
@@ -854,11 +869,13 @@ codeunit 6987 "Expense Report-Post"
             GenJournalLine.Validate("Expense Category", ItemExpenseReportLine."Expense Category");
             GenJournalLine.Validate("Expense Subcategory Code", ItemExpenseReportLine."Expense Subcategory Code");
             GenJournalLine.Validate(Description, ItemExpenseReportLine.UpdatePostingDescription());
+            GetCachedItemPostingGroup(ItemExpenseReportLine, TempExpenseCategory, TempExpenseSubcategory, TempExpensePostingGroup);
             if Refundable then
-                SetupRefundableAccount(GenJournalLine, ExpenseReportHeader, ItemExpenseReportLine)
+                SetupRefundableAccount(GenJournalLine, ExpenseReportHeader, ItemExpenseReportLine, TempExpensePostingGroup)
             else
-                SetupNonRefundableAccount(GenJournalLine, ExpenseReportHeader, ItemExpenseReportLine);
+                SetupNonRefundableAccount(GenJournalLine, ExpenseReportHeader, ItemExpenseReportLine, TempExpensePostingGroup);
             SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
+            OnBeforePostExpenseGenJournalLine(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
 
             if (GenJournalLine.Amount <> 0) or (GenJournalLine."Amount (LCY)" <> 0) then begin
                 if not EntryCopied then begin
@@ -896,10 +913,9 @@ codeunit 6987 "Expense Report-Post"
         exit(true);
     end;
 
-    local procedure BufferItemizationsForPosting(ExpenseReportLine: Record "Expense Report Line"; var TempExpenseReportLineItem: Record "Expense Report Line Item" temporary): Boolean
+    local procedure BufferItemizationsForPosting(ExpenseReportLine: Record "Expense Report Line"; var TempExpenseReportLineItem: Record "Expense Report Line Item" temporary; var TempExpenseSubcategory: Record "Expense Subcategory" temporary): Boolean
     var
         ExpenseReportLineItem: Record "Expense Report Line Item";
-        ExpenseSubcategory: Record "Expense Subcategory";
         HasPostingGroup: Boolean;
     begin
         // Policy-only itemizations do not determine the parent's financial amounts.
@@ -912,18 +928,56 @@ codeunit 6987 "Expense Report-Post"
             exit(false);
 
         if ExpenseReportLine."Expense Subcategory Code" <> '' then begin
-            ExpenseSubcategory.Get(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code");
-            HasPostingGroup := ExpenseSubcategory."Posting Group" <> '';
+            GetCachedItemSubcategory(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code", TempExpenseSubcategory);
+            HasPostingGroup := TempExpenseSubcategory."Posting Group" <> '';
         end;
         repeat
             TempExpenseReportLineItem := ExpenseReportLineItem;
             TempExpenseReportLineItem.Insert();
             if not HasPostingGroup and (ExpenseReportLineItem."Expense Subcategory Code" <> '') then begin
-                ExpenseSubcategory.Get(ExpenseReportLineItem."Expense Category Code", ExpenseReportLineItem."Expense Subcategory Code");
-                HasPostingGroup := ExpenseSubcategory."Posting Group" <> '';
+                GetCachedItemSubcategory(ExpenseReportLineItem."Expense Category Code", ExpenseReportLineItem."Expense Subcategory Code", TempExpenseSubcategory);
+                HasPostingGroup := TempExpenseSubcategory."Posting Group" <> '';
             end;
         until ExpenseReportLineItem.Next() = 0;
         exit(HasPostingGroup);
+    end;
+
+    local procedure GetCachedItemSubcategory(ExpenseCategoryCode: Code[20]; ExpenseSubcategoryCode: Code[20]; var TempExpenseSubcategory: Record "Expense Subcategory" temporary)
+    var
+        ExpenseSubcategory: Record "Expense Subcategory";
+    begin
+        if TempExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode) then
+            exit;
+
+        ExpenseSubcategory.Get(ExpenseCategoryCode, ExpenseSubcategoryCode);
+        TempExpenseSubcategory := ExpenseSubcategory;
+        TempExpenseSubcategory.Insert();
+    end;
+
+    local procedure GetCachedItemPostingGroup(ExpenseReportLine: Record "Expense Report Line"; var TempExpenseCategory: Record "Expense Category" temporary; var TempExpenseSubcategory: Record "Expense Subcategory" temporary; var TempExpensePostingGroup: Record "Expense Posting Group" temporary)
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        PostingGroupCode: Code[20];
+    begin
+        if not TempExpenseCategory.Get(ExpenseReportLine."Expense Category") then begin
+            ExpenseCategory.Get(ExpenseReportLine."Expense Category");
+            TempExpenseCategory := ExpenseCategory;
+            TempExpenseCategory.Insert();
+        end;
+
+        PostingGroupCode := TempExpenseCategory."Posting Group";
+        if ExpenseReportLine."Expense Subcategory Code" <> '' then begin
+            GetCachedItemSubcategory(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code", TempExpenseSubcategory);
+            if TempExpenseSubcategory."Posting Group" <> '' then
+                PostingGroupCode := TempExpenseSubcategory."Posting Group";
+        end;
+
+        if not TempExpensePostingGroup.Get(PostingGroupCode) then begin
+            ExpensePostingGroup.Get(PostingGroupCode);
+            TempExpensePostingGroup := ExpensePostingGroup;
+            TempExpensePostingGroup.Insert();
+        end;
     end;
 
     local procedure PostNonRefundableJnlLineFromSpecs(ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; var ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.")
@@ -1183,6 +1237,11 @@ codeunit 6987 "Expense Report-Post"
     begin
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
         ExpensePostingGroup.Get(ExpenseCategory.GetPostingGroupCode(ExpenseReportLine."Expense Subcategory Code"));
+        SetupRefundableAccount(GenJournalLine, ExpenseReportHeader, ExpenseReportLine, ExpensePostingGroup);
+    end;
+
+    local procedure SetupRefundableAccount(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; ExpensePostingGroup: Record "Expense Posting Group")
+    begin
         ExpensePostingGroup.TestField("Refundable Debit Account");
 
         GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
@@ -1273,6 +1332,11 @@ codeunit 6987 "Expense Report-Post"
     begin
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
         ExpensePostingGroup.Get(ExpenseCategory.GetPostingGroupCode(ExpenseReportLine."Expense Subcategory Code"));
+        SetupNonRefundableAccount(GenJournalLine, ExpenseReportHeader, ExpenseReportLine, ExpensePostingGroup);
+    end;
+
+    local procedure SetupNonRefundableAccount(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line"; ExpensePostingGroup: Record "Expense Posting Group")
+    begin
         ExpensePostingGroup.TestField("Non-Refundable Debit Account");
 
         GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"G/L Account");
