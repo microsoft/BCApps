@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Foundation.Attachment;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching]
 codeunit 148370 EAReceiptMatchTests
@@ -20,6 +21,14 @@ codeunit 148370 EAReceiptMatchTests
         LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
         ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
+        CardReceiptDataApply: Codeunit "EA Card Receipt Data Apply";
+        CannotDeleteCardExpenseErr: Label 'You cannot delete expense %1 because it is linked to a corporate card transaction.', Comment = '%1 = Expense No.';
+        NotCardExpenseErr: Label 'Receipt data can only be applied to expense %1 when it was created from a corporate card transaction.', Comment = '%1 = Expense No.';
+        NotWaitingForReceiptErr: Label 'Expense %1 is not waiting for a receipt.', Comment = '%1 = Expense No.';
+        ReceiptRequiredErr: Label 'Upload the receipt file and its file name before you apply the receipt data.';
+        ReceiptNoMandatoryOnExpenseErr: Label 'Receipt No. is mandatory on Expense No. %1', Comment = '%1 = Expense No.';
+        ReceiptNoMandatoryOnReportLineErr: Label 'Receipt No. is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
+        RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
 
     [Test]
     procedure ReceiptMatchesCardExpenseWithinDateWindow()
@@ -106,11 +115,11 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure ReceiptDoesNotMatchReceiptNotNeededCardExpense()
+    procedure ReceiptMatchesReceiptNotNeededCardExpense()
     var
         Expense: Record Expense;
     begin
-        // [SCENARIO] Card expenses that do not need a receipt are not candidates.
+        // [SCENARIO] Card expenses that do not need a receipt are still candidates, so a receipt can be added anyway.
         Initialize();
 
         // [GIVEN] A card expense marked as receipt not needed.
@@ -119,8 +128,8 @@ codeunit 148370 EAReceiptMatchTests
         Expense.Modify();
 
         // [WHEN] A receipt with the same amount and date is matched.
-        // [THEN] No expense is returned.
-        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'An expense that does not need a receipt must not match.');
+        // [THEN] The card expense is returned.
+        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20), 'An expense that does not need a receipt must still match.');
     end;
 
     [Test]
@@ -415,6 +424,492 @@ codeunit 148370 EAReceiptMatchTests
         Assert.IsTrue(IsNullGuid(CheckMatch(Expense, Expense.SystemId, WorkDate(), 20, '7777')), 'A receipt paid with another card must not fit.');
     end;
 
+    [Test]
+    procedure OpenCardExpenseWithoutCategoryCanBeAddedToReport()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A card expense from a transaction is added to a report while it is still open and has no category.
+        Initialize();
+
+        // [GIVEN] An open card expense without a category.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        ClearCategory(Expense);
+        Expense.CalcFields("Pending Card Expense");
+        Expense.TestField("Pending Card Expense", true);
+
+        // [WHEN] The expense is added to a report.
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+
+        // [THEN] The line has the card values, and the expense is submitted and no longer pending.
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportLine.TestField("Credit Card Feed No.", Expense."Credit Card Feed No.");
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Submitted);
+        Expense.CalcFields("Pending Card Expense");
+        Expense.TestField("Pending Card Expense", false);
+    end;
+
+    [Test]
+    procedure CategoryChangeOnCardLineKeepsCardValues()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        PaymentMethodCode: Code[10];
+    begin
+        // [SCENARIO] Setting the category on a card line keeps the card amount, reimbursement type and payment method.
+        Initialize();
+
+        // [GIVEN] A card line without a category and an employee-paid category.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        ClearCategory(Expense);
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        PaymentMethodCode := ExpenseReportLine."Payment Method Code";
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+
+        // [WHEN] The category is set on the line.
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Modify(true);
+
+        // [THEN] The card values are kept.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportLine.TestField("Reimbursement Type", ExpenseReportLine."Reimbursement Type"::"Credit Card");
+        ExpenseReportLine.TestField("Payment Method Code", PaymentMethodCode);
+    end;
+
+    [Test]
+    procedure RemovingCardLineReopensCardExpense()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] Removing a card line from a report sends its expense back to open, so it is pending again.
+        Initialize();
+
+        // [GIVEN] A card expense on a report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+
+        // [WHEN] The line is deleted.
+        ExpenseReportLine.Delete(true);
+
+        // [THEN] The expense is open, not on a report and pending.
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField("Expense Report No.", '');
+        Expense.CalcFields("Pending Card Expense");
+        Expense.TestField("Pending Card Expense", true);
+    end;
+
+    [Test]
+    procedure CardExpenseCannotBeDeleted()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] An expense linked to a card transaction cannot be deleted.
+        Initialize();
+
+        // [GIVEN] A card expense.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+
+        // [WHEN] The expense is deleted.
+        asserterror Expense.Delete(true);
+
+        // [THEN] An error says it is linked to a card transaction.
+        Assert.ExpectedError(StrSubstNo(CannotDeleteCardExpenseErr, Expense."No."));
+    end;
+
+    [Test]
+    procedure ReceiptMatchesCardExpenseOnOpenReport()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A receipt matches a card expense that is already on an open report and whose line has no receipt.
+        Initialize();
+
+        // [GIVEN] A card expense on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        Expense.Get(Expense."No.");
+
+        // [WHEN] A receipt with the same amount and date is matched.
+        // [THEN] The card expense is returned.
+        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20), 'A card expense on an open report must match.');
+    end;
+
+    [Test]
+    procedure ReceiptDoesNotMatchCardExpenseOnReleasedReport()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO] A card expense on a report that is no longer open is not a candidate.
+        Initialize();
+
+        // [GIVEN] A card expense on a released report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
+        ExpenseReportHeader.Modify();
+        Expense.Get(Expense."No.");
+
+        // [WHEN] A receipt with the same amount and date is matched.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'A card expense on a released report must not match.');
+    end;
+
+    [Test]
+    procedure ReceiptDoesNotMatchCardExpenseWhoseLineHasReceipt()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A card expense whose report line already has a receipt is not a candidate.
+        Initialize();
+
+        // [GIVEN] A card expense on an open report whose line has a receipt.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseReportLine."Receipt Attached" := true;
+        ExpenseReportLine.Modify();
+        Expense.Get(Expense."No.");
+
+        // [WHEN] A receipt with the same amount and date is matched.
+        // [THEN] No expense is returned.
+        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'A card line with a receipt must not match.');
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataFillsEmptyFieldsOnExpenseAndLine()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CardReceiptData: Record "EA Card Receipt Data";
+        ExpenseParticipant: Record "Expense Participant";
+        ExpenseReportLineParticip: Record "Expense Report Line Particip.";
+    begin
+        // [SCENARIO] Applying receipt data to a card line attaches the receipt to the expense and the line, and fills only empty fields.
+        Initialize();
+
+        // [GIVEN] A card expense on an open report, with a justification entered by the user on the line.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseReportLine.Validate(Justification, 'User justification');
+        ExpenseReportLine.Modify(true);
+
+        // [GIVEN] Receipt data with a justification, a merchant VAT registration number, a different amount and a participant.
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData.Justification := 'Receipt justification';
+        CardReceiptData."Merchant VAT Registration No." := 'DK12345678';
+        CardReceiptData.Modify();
+        AddCardReceiptParticipant(CardReceiptData, 'Jane Doe');
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The expense gets the receipt and the receipt values, and keeps its card amount and status.
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Submitted);
+        Expense.TestField(Amount, 20);
+        Expense.TestField("Receipt Attached", true);
+        Expense.TestField(Justification, 'Receipt justification');
+        Expense.TestField("Merchant VAT Registration No.", 'DK12345678');
+        Assert.AreEqual(1, CountAttachments(Database::Expense, Expense."No.", 0), 'The receipt must be attached to the expense.');
+        ExpenseParticipant.SetRange("Expense No.", Expense."No.");
+        Assert.AreEqual(1, ExpenseParticipant.Count(), 'The participant must be added to the expense.');
+
+        // [THEN] The line gets the receipt and the empty fields, and keeps the user's justification and the card amount.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportLine.TestField("Receipt Attached", true);
+        ExpenseReportLine.TestField(Justification, 'User justification');
+        ExpenseReportLine.TestField("Merchant VAT Registration No.", 'DK12345678');
+        Assert.AreEqual(1, CountAttachments(Database::"Expense Report Line", ExpenseReportLine."Document No.", ExpenseReportLine."Line No."), 'The receipt must be attached to the line.');
+        ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(1, ExpenseReportLineParticip.Count(), 'The participant must be added to the line.');
+
+        // [THEN] The receipt data is deleted.
+        Assert.IsFalse(CardReceiptData.Get(CardReceiptData.Id), 'The receipt data must be deleted after it is applied.');
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataAddsItemizationToLineWhenCategoryDoesNotRequireIt()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        CardReceiptData: Record "EA Card Receipt Data";
+        ExpenseItemization: Record "Expense Itemization";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+    begin
+        // [SCENARIO] Itemization from the receipt is added to the line even when it doesn't add up to the card amount, and to the expense only when its category requires it.
+        Initialize();
+
+        // [GIVEN] A card expense without a category on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        ClearCategory(Expense);
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+
+        // [GIVEN] Receipt data with a category that doesn't require itemization, and an item of 15 that doesn't add up to the card amount of 20.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData."Expense Category" := ExpenseCategory.Code;
+        CardReceiptData.Modify();
+        AddCardReceiptItem(CardReceiptData, ExpenseSubcategory.Code, 15);
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The line has the category, the card amount and the item.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.TestField(Amount, 20);
+        ExpenseReportLineItem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineItem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(1, ExpenseReportLineItem.Count(), 'The item must be added to the line.');
+
+        // [THEN] The expense has the category but no itemization.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseItemization.SetRange("Expense No.", Expense."No.");
+        Assert.IsTrue(ExpenseItemization.IsEmpty(), 'The expense must not get itemization its category does not require.');
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataToCardExpenseNotOnReport()
+    var
+        Expense: Record Expense;
+        CardReceiptData: Record "EA Card Receipt Data";
+    begin
+        // [SCENARIO] Receipt data can be applied to a card expense that is not on a report yet.
+        Initialize();
+
+        // [GIVEN] An open card expense not on a report, and receipt data with a justification.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData.Justification := 'Receipt justification';
+        CardReceiptData.Modify();
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The expense stays open with the receipt and the justification.
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField(Amount, 20);
+        Expense.TestField("Receipt Attached", true);
+        Expense.TestField(Justification, 'Receipt justification');
+        Assert.AreEqual(1, CountAttachments(Database::Expense, Expense."No.", 0), 'The receipt must be attached to the expense.');
+    end;
+
+    [Test]
+    procedure ReceiptDataCannotBeStagedForManualExpense()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Receipt data is only for expenses created from a card transaction.
+        Initialize();
+
+        // [GIVEN] A manual expense linked to a card transaction.
+        CreateLinkedManualExpense(Expense);
+
+        // [WHEN] Receipt data is staged for it.
+        asserterror CardReceiptDataApply.GetCardExpense(Expense.SystemId, Expense);
+
+        // [THEN] An error says the expense was not created from a card transaction.
+        Assert.ExpectedError(StrSubstNo(NotCardExpenseErr, Expense."No."));
+    end;
+
+    [Test]
+    procedure ReceiptDataCannotBeAppliedWhenReportIsNotOpen()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+        CardReceiptData: Record "EA Card Receipt Data";
+    begin
+        // [SCENARIO] Receipt data cannot be applied once the report of the card line is no longer open.
+        Initialize();
+
+        // [GIVEN] Receipt data for a card expense whose report was then released.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        Expense.Get(Expense."No.");
+        CreateCardReceiptData(CardReceiptData, Expense);
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
+        ExpenseReportHeader.Modify();
+
+        // [WHEN] The receipt data is applied.
+        asserterror CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] An error says the expense is not waiting for a receipt.
+        Assert.ExpectedError(StrSubstNo(NotWaitingForReceiptErr, Expense."No."));
+    end;
+
+    [Test]
+    procedure ReceiptDataCannotBeAppliedWithoutReceiptFile()
+    var
+        Expense: Record Expense;
+        CardReceiptData: Record "EA Card Receipt Data";
+    begin
+        // [SCENARIO] Receipt data must include the receipt file.
+        Initialize();
+
+        // [GIVEN] Receipt data for a card expense without file content.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CardReceiptData.Init();
+        CardReceiptData."Expense SystemId" := Expense.SystemId;
+        CardReceiptData."Expense No." := Expense."No.";
+        CardReceiptData."File Name" := 'receipt.pdf';
+        CardReceiptData.Insert(true);
+
+        // [WHEN] The receipt data is applied.
+        asserterror CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] An error asks for the receipt file.
+        Assert.ExpectedError(ReceiptRequiredErr);
+    end;
+
+    [Test]
+    procedure CardLineWaitingForReceiptSkipsReceiptRules()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [SCENARIO] A card expense and line waiting for a receipt are not checked for the receipt number.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card expense without receipt on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+
+        // [WHEN] The expense and the line are validated against the rules.
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] Neither has the receipt number violation.
+        Assert.IsFalse(HasExpenseViolation(Expense, StrSubstNo(ReceiptNoMandatoryOnExpenseErr, Expense."No.")), 'A card expense waiting for a receipt must not require a receipt number.');
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line waiting for a receipt must not require a receipt number.');
+    end;
+
+    [Test]
+    procedure CardLineGetsAllRulesAfterReceiptIsApplied()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CardReceiptData: Record "EA Card Receipt Data";
+    begin
+        // [SCENARIO] Once the receipt is applied, the card line is checked against all rules.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card expense on an open report, and receipt data without a receipt number.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        CreateCardReceiptData(CardReceiptData, Expense);
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The line has the receipt number violation.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line with a receipt must require a receipt number.');
+    end;
+
+    [Test]
+    procedure ReceiptNotNeededCardLineGetsAllRules()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [SCENARIO] A card line that doesn't need a receipt is checked against all rules right away.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card line on an open report that doesn't need a receipt.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Receipt not needed";
+        ExpenseReportLine.Modify();
+
+        // [WHEN] The line is validated against the rules.
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] The line has the receipt number violation.
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line that does not need a receipt must require a receipt number.');
+    end;
+
+    [Test]
+    procedure ReleasingReportChecksAllRulesOnCardLineWaitingForReceipt()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        // [SCENARIO] Releasing a report checks all rules, also on card lines still waiting for a receipt.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card line with a category but without receipt on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Description := 'CONTOSO COFFEE';
+        ExpenseReportLine.Modify(true);
+
+        // [WHEN] The report is released.
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        asserterror Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpenseReportHeader);
+
+        // [THEN] Release fails because the line breaks the receipt number rule.
+        Assert.ExpectedError(RuleViolationPresentOnLineErr);
+    end;
+
+    local procedure EnableReceiptNoRule()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Use Rules" := true;
+        ExpenseAgentSetup."Receipt No. Mandatory" := true;
+        ExpenseAgentSetup.Modify();
+    end;
+
+    local procedure HasExpenseViolation(Expense: Record Expense; Violation: Text): Boolean
+    var
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+    begin
+        ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
+        ExpenseRuleViolation.SetRange(Description, CopyStr(Violation, 1, MaxStrLen(ExpenseRuleViolation.Description)));
+        exit(not ExpenseRuleViolation.IsEmpty());
+    end;
+
+    local procedure HasLineViolation(ExpenseReportLine: Record "Expense Report Line"; Violation: Text): Boolean
+    var
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportRuleViolation.SetRange(Description, CopyStr(Violation, 1, MaxStrLen(ExpenseReportRuleViolation.Description)));
+        exit(not ExpenseReportRuleViolation.IsEmpty());
+    end;
+
     local procedure Initialize()
     begin
         CorpCardTestLib.InitializeCorpCardData();
@@ -497,5 +992,73 @@ codeunit 148370 EAReceiptMatchTests
         Expense.Get(Expense."No.");
         Expense.TestField(Source, Expense.Source::Manual);
         Expense.TestField("Receipt Attached", false);
+    end;
+
+    local procedure ClearCategory(var Expense: Record Expense)
+    begin
+        Expense."Expense Category" := '';
+        Expense."Expense Subcategory" := '';
+        Expense.Modify();
+    end;
+
+    local procedure AddCardExpenseToReport(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+    begin
+        Expense.Get(Expense."No.");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        Expense.Get(Expense."No.");
+    end;
+
+    local procedure CreateCardReceiptData(var CardReceiptData: Record "EA Card Receipt Data"; Expense: Record Expense)
+    var
+        ContentOutStream: OutStream;
+    begin
+        CardReceiptData.Init();
+        CardReceiptData."Expense SystemId" := Expense.SystemId;
+        CardReceiptData."Expense No." := Expense."No.";
+        CardReceiptData."File Name" := 'receipt.pdf';
+        CardReceiptData."Attachment Content".CreateOutStream(ContentOutStream);
+        ContentOutStream.WriteText('receipt');
+        CardReceiptData.Insert(true);
+    end;
+
+    local procedure AddCardReceiptParticipant(CardReceiptData: Record "EA Card Receipt Data"; ParticipantName: Text[100])
+    var
+        CardReceiptParticipant: Record "EA Card Receipt Participant";
+    begin
+        CardReceiptParticipant.Init();
+        CardReceiptParticipant."Receipt Data Id" := CardReceiptData.Id;
+        CardReceiptParticipant."Line No." := 10000;
+        CardReceiptParticipant."Participant Type" := CardReceiptParticipant."Participant Type"::External;
+        CardReceiptParticipant."Participant Name" := ParticipantName;
+        CardReceiptParticipant.Insert(true);
+    end;
+
+    local procedure AddCardReceiptItem(CardReceiptData: Record "EA Card Receipt Data"; ExpenseSubcategoryCode: Code[20]; ItemAmount: Decimal)
+    var
+        CardReceiptItem: Record "EA Card Receipt Item";
+    begin
+        CardReceiptItem.Init();
+        CardReceiptItem."Receipt Data Id" := CardReceiptData.Id;
+        CardReceiptItem."Line No." := 10000;
+        CardReceiptItem."Expense Subcategory Code" := ExpenseSubcategoryCode;
+        CardReceiptItem."Start Date" := WorkDate();
+        CardReceiptItem.Quantity := 1;
+        CardReceiptItem.Amount := ItemAmount;
+        CardReceiptItem.Insert(true);
+    end;
+
+    local procedure CountAttachments(TableId: Integer; No: Code[20]; LineNo: Integer): Integer
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange("Table ID", TableId);
+        DocumentAttachment.SetRange("No.", No);
+        DocumentAttachment.SetRange("Line No.", LineNo);
+        exit(DocumentAttachment.Count());
     end;
 }

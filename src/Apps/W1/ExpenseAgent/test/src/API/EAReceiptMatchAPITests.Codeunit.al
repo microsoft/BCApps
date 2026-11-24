@@ -12,6 +12,7 @@ codeunit 148371 "EA Receipt Match API Tests"
     Subtype = Test;
     TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
+    RequiredTestIsolation = Disabled;
     TestPermissions = Disabled;
 
     var
@@ -22,6 +23,8 @@ codeunit 148371 "EA Receipt Match API Tests"
         ExpenseUsersServiceNameTok: Label 'expenseUsers', Locked = true;
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
         ExpensesServiceNameTok: Label 'expenses', Locked = true;
+        CardReceiptDataServiceNameTok: Label 'cardReceiptData', Locked = true;
+        ApplyURLTxt: Label '%1(%2)/Microsoft.NAV.apply', Locked = true, Comment = '%1 = Card receipt data collection URL, %2 = Card receipt data id';
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
 
     [Test]
@@ -141,7 +144,7 @@ codeunit 148371 "EA Receipt Match API Tests"
     end;
 
     [Test]
-    procedure ExpensesAPIPendingCardExpenseIsTrueOnlyForCardExpenseWaitingForReceipt()
+    procedure ExpensesAPIPendingCardExpenseIsTrueOnlyForOpenCardExpenseNotOnReport()
     var
         PendingExpense: Record Expense;
         ExpenseWithReceipt: Record Expense;
@@ -153,19 +156,15 @@ codeunit 148371 "EA Receipt Match API Tests"
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] pendingCardExpense is true only for open card expenses linked to a transaction, without a receipt or a no receipt declaration.
+        // [SCENARIO] pendingCardExpense is true for open card expenses linked to a transaction that are not on a report, whatever their receipt.
         Initialize();
 
-        // [GIVEN] A card expense waiting for a receipt, one with a receipt, one declared as lost receipt, one released, one no longer linked to its transaction and a manual expense paid with the card.
+        // [GIVEN] A card expense without a receipt, one with a receipt, one declared as lost receipt, one released, one no longer linked to its transaction and a manual expense paid with the card.
         CreateCardExpense(PendingExpense);
         CreateCardExpenseWithReceipt(ExpenseWithReceipt);
         CreateLostReceiptCardExpense(LostReceiptExpense);
-        CreateCardExpense(ReleasedExpense);
-        ReleasedExpense.Status := ReleasedExpense.Status::Released;
-        ReleasedExpense.Modify();
-        CreateCardExpense(UnlinkedExpense);
-        UnlinkedExpense."Credit Card Feed No." := 0;
-        UnlinkedExpense.Modify();
+        CreateReleasedCardExpense(ReleasedExpense);
+        CreateUnlinkedCardExpense(UnlinkedExpense);
         CorpCard.Get(CardIdTok);
         CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
         Commit();
@@ -174,18 +173,20 @@ codeunit 148371 "EA Receipt Match API Tests"
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
             ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(GetUserScopedURL(PendingExpense, ExpensesServiceNameTok), '$filter=pendingCardExpense eq true'), 200);
 
-        // [THEN] Only the card expense waiting for a receipt is returned.
+        // [THEN] Only the open card expenses linked to a transaction are returned.
         GetExpenseIds(ResponseText, 'value', ExpenseIds);
-        Assert.AreEqual(1, ExpenseIds.Count(), 'Only the card expense waiting for a receipt must be pending.');
-        Assert.IsTrue(ExpenseIds.Contains(PendingExpense.SystemId), 'The card expense waiting for a receipt must be pending.');
+        Assert.AreEqual(3, ExpenseIds.Count(), 'Only open card expenses linked to a transaction must be pending.');
+        Assert.IsTrue(ExpenseIds.Contains(PendingExpense.SystemId), 'The card expense without a receipt must be pending.');
+        Assert.IsTrue(ExpenseIds.Contains(ExpenseWithReceipt.SystemId), 'The card expense with a receipt must be pending.');
+        Assert.IsTrue(ExpenseIds.Contains(LostReceiptExpense.SystemId), 'The card expense declared as lost receipt must be pending.');
         CompleteTest();
     end;
 
     [Test]
     procedure ExpenseUsersAPIExpandFiltersExpensesOnPendingCardExpenseBeforeTop()
     var
-        ExpenseWithReceipt: Record Expense;
-        LostReceiptExpense: Record Expense;
+        ReleasedExpense: Record Expense;
+        UnlinkedExpense: Record Expense;
         PendingExpense: Record Expense;
         OtherPendingExpense: Record Expense;
         ExpenseUser: Record "Expense User";
@@ -196,8 +197,8 @@ codeunit 148371 "EA Receipt Match API Tests"
         Initialize();
 
         // [GIVEN] Two card expenses that are not pending, followed by two newer card expenses that are.
-        CreateCardExpenseWithReceipt(ExpenseWithReceipt);
-        CreateLostReceiptCardExpense(LostReceiptExpense);
+        CreateReleasedCardExpense(ReleasedExpense);
+        CreateUnlinkedCardExpense(UnlinkedExpense);
         CreateCardExpense(PendingExpense);
         CreateCardExpense(OtherPendingExpense);
         ExpenseUser.Get(PendingExpense."Expense User No.");
@@ -214,8 +215,57 @@ codeunit 148371 "EA Receipt Match API Tests"
         // [THEN] The two expenses that are not pending are returned.
         GetExpenseIds(ResponseText, 'expenses', ExpenseIds);
         Assert.AreEqual(2, ExpenseIds.Count(), 'The filter must be applied before $top.');
-        Assert.IsTrue(ExpenseIds.Contains(ExpenseWithReceipt.SystemId), 'The expense with a receipt must be returned.');
-        Assert.IsTrue(ExpenseIds.Contains(LostReceiptExpense.SystemId), 'The expense declared as lost receipt must be returned.');
+        Assert.IsTrue(ExpenseIds.Contains(ReleasedExpense.SystemId), 'The released expense must be returned.');
+        Assert.IsTrue(ExpenseIds.Contains(UnlinkedExpense.SystemId), 'The expense no longer linked to its transaction must be returned.');
+        CompleteTest();
+    end;
+
+    [Test]
+    procedure CardReceiptDataAPIDeepInsertThenApplyAttachesReceipt()
+    var
+        Expense: Record Expense;
+        CardReceiptData: Record "EA Card Receipt Data";
+        CardReceiptParticipant: Record "EA Card Receipt Participant";
+        ExpenseParticipant: Record "Expense Participant";
+        ContentOutStream: OutStream;
+        ResponseText: Text;
+        TargetURL: Text;
+        ReceiptDataId: Guid;
+    begin
+        // [SCENARIO] Receipt data and its participants are created in one request under the expense, and the apply action attaches them.
+        Initialize();
+
+        // [GIVEN] A card expense waiting for a receipt.
+        CreateCardExpense(Expense);
+        Commit();
+
+        // [WHEN] Receipt data with a participant is posted through expenses({id})/cardReceiptData.
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(Format(Expense.SystemId), Page::"Expenses API", ExpensesServiceNameTok, CardReceiptDataServiceNameTok);
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, CreateCardReceiptDataRequest(), ResponseText, 201);
+
+        // [THEN] The receipt data is linked to the expense and its participant to the receipt data.
+        ReceiptDataId := GetId(ResponseText);
+        CardReceiptData.Get(ReceiptDataId);
+        CardReceiptData.TestField("Expense SystemId", Expense.SystemId);
+        CardReceiptData.TestField("Expense No.", Expense."No.");
+        CardReceiptParticipant.SetRange("Receipt Data Id", ReceiptDataId);
+        Assert.AreEqual(1, CardReceiptParticipant.Count(), 'The participant must be linked to the receipt data.');
+
+        // [WHEN] The receipt file is uploaded and the apply action is called.
+        CardReceiptData."Attachment Content".CreateOutStream(ContentOutStream);
+        ContentOutStream.WriteText('receipt');
+        CardReceiptData.Modify();
+        Commit();
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            StrSubstNo(ApplyURLTxt, TargetURL, LowerCase(DelChr(Format(ReceiptDataId), '=', '{}'))), '', ResponseText, 200);
+
+        // [THEN] The expense has the receipt, the justification and the participant, and the receipt data is deleted.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Receipt Attached", true);
+        Expense.TestField(Justification, 'Client meeting');
+        ExpenseParticipant.SetRange("Expense No.", Expense."No.");
+        Assert.AreEqual(1, ExpenseParticipant.Count(), 'The participant must be added to the expense.');
+        Assert.IsFalse(CardReceiptData.Get(ReceiptDataId), 'The receipt data must be deleted after it is applied.');
         CompleteTest();
     end;
 
@@ -273,6 +323,47 @@ codeunit 148371 "EA Receipt Match API Tests"
         CreateCardExpense(Expense);
         Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
         Expense.Modify();
+    end;
+
+    local procedure CreateReleasedCardExpense(var Expense: Record Expense)
+    begin
+        CreateCardExpense(Expense);
+        Expense.Status := Expense.Status::Released;
+        Expense.Modify();
+    end;
+
+    local procedure CreateUnlinkedCardExpense(var Expense: Record Expense)
+    begin
+        CreateCardExpense(Expense);
+        Expense."Credit Card Feed No." := 0;
+        Expense.Modify();
+    end;
+
+    local procedure CreateCardReceiptDataRequest(): Text
+    var
+        Request: JsonObject;
+        Participant: JsonObject;
+        Participants: JsonArray;
+        RequestText: Text;
+    begin
+        Request.Add('fileName', 'receipt.pdf');
+        Request.Add('justification', 'Client meeting');
+        Participant.Add('participantType', 'External');
+        Participant.Add('participantName', 'Jane Doe');
+        Participants.Add(Participant);
+        Request.Add('cardReceiptParticipants', Participants);
+        Request.WriteTo(RequestText);
+        exit(RequestText);
+    end;
+
+    local procedure GetId(ResponseText: Text) Id: Guid
+    var
+        Response: JsonObject;
+        IdToken: JsonToken;
+    begin
+        Response.ReadFrom(ResponseText);
+        Response.Get('id', IdToken);
+        Evaluate(Id, IdToken.AsValue().AsText());
     end;
 
     local procedure GetExpenseIds(ResponseText: Text; ArrayName: Text; var ExpenseIds: List of [Guid])

@@ -6,7 +6,8 @@ namespace Microsoft.ExpenseAgent;
 
 /// <summary>
 /// Finds the corporate card expense that an incoming receipt belongs to.
-/// Candidates are card-created expenses that are still waiting for a receipt and an expense report.
+/// Candidates are card-created expenses that are still waiting for a receipt, either not on an expense report yet
+/// or on an open expense report whose line has no receipt.
 /// </summary>
 codeunit 7438 "EA Receipt Expense Match"
 {
@@ -21,21 +22,19 @@ codeunit 7438 "EA Receipt Expense Match"
         AmountRequiredErr: Label 'The receipt amount must be specified.';
 
     /// <summary>
-    /// Sets the filters that define a card-created expense waiting for a receipt and an expense report.
+    /// Returns true when the expense is a card-created expense waiting to be added to an expense report.
     /// Keep in sync with the Expense field "Pending Card Expense", which exposes the same rule through the expenses API.
     /// </summary>
-    internal procedure SetPendingCardExpenseFilters(var Expense: Record Expense)
+    internal procedure IsPendingCardExpense(Expense: Record Expense): Boolean
     begin
-        Expense.SetRange(Source, Expense.Source::CorporateCard);
-        Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
-        Expense.SetRange("Receipt Attached", false);
-        Expense.SetRange("No Receipt Type", Expense."No Receipt Type"::" ");
-        Expense.SetRange(Status, Expense.Status::Open);
-        Expense.SetRange("Expense Report No.", '');
+        exit((Expense.Source = Expense.Source::CorporateCard) and
+             (Expense."Credit Card Feed No." <> 0) and
+             (Expense.Status = Expense.Status::Open) and
+             (Expense."Expense Report No." = ''));
     end;
 
     /// <summary>
-    /// Returns the SystemId of the pending card expense that the receipt belongs to, or an empty GUID when none matches.
+    /// Returns the SystemId of the card expense that the receipt belongs to, or an empty GUID when none matches.
     /// Candidates must have the same expense user, currency and exact amount, and an expense date within the
     /// Corp Card Date Match Window. When CardLast4 is four digits, the expense must also be paid with one of the user's cards
     /// ending in those digits. Otherwise nothing proves the receipt was paid by card, so the merchant name must be similar
@@ -56,14 +55,14 @@ codeunit 7438 "EA Receipt Expense Match"
         SetCandidateFilters(Expense, ExpenseUserNo, ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
         FilterByCard := GetCardIdsEndingIn(ExpenseUserNo, CardLast4, CardIds);
 
-        Expense.SetLoadFields(SystemId, "Expense Date", "Merchant Name", "Corporate Card Id");
+        Expense.SetLoadFields(SystemId, "No.", Status, "Expense Report No.", "Expense Date", "Merchant Name", "Corporate Card Id");
         if not Expense.FindSet() then
             exit;
 
         HasCandidate := false;
         BestScore := 0;
         repeat
-            if IsPaidWithCard(Expense, FilterByCard, CardIds) then begin
+            if IsPaidWithCard(Expense, FilterByCard, CardIds) and IsWaitingForReceipt(Expense) then begin
                 MerchantSimilarity := GetMerchantSimilarity(MerchantName, Expense."Merchant Name");
                 if FilterByCard or (MerchantSimilarity >= GetMinMerchantSimilarity()) then begin
                     Score := CalculateMatchScore(ExpenseDate, MerchantSimilarity, Expense);
@@ -78,7 +77,7 @@ codeunit 7438 "EA Receipt Expense Match"
     end;
 
     /// <summary>
-    /// Returns ExpenseSystemId when that expense is a pending card expense the receipt belongs to, or an empty GUID otherwise.
+    /// Returns ExpenseSystemId when that expense is a card expense the receipt belongs to, or an empty GUID otherwise.
     /// Uses the same rules as FindMatchingExpense, except the merchant name: the user picked the expense, so it is not checked.
     /// </summary>
     internal procedure CheckMatchingExpense(ExpenseUserSystemId: Guid; ExpenseSystemId: Guid; ExpenseDate: Date; Amount: Decimal; CurrencyCode: Code[10]; CardLast4: Text): Guid
@@ -91,12 +90,41 @@ codeunit 7438 "EA Receipt Expense Match"
         ExpenseUserNo := GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount);
         SetCandidateFilters(Expense, ExpenseUserNo, ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
         Expense.SetRange(SystemId, ExpenseSystemId);
-        Expense.SetLoadFields("Corporate Card Id");
+        Expense.SetLoadFields("No.", Status, "Expense Report No.", "Corporate Card Id");
         if not Expense.FindFirst() then
             exit(EmptyGuid);
         if not IsPaidWithCard(Expense, GetCardIdsEndingIn(ExpenseUserNo, CardLast4, CardIds), CardIds) then
             exit(EmptyGuid);
+        if not IsWaitingForReceipt(Expense) then
+            exit(EmptyGuid);
         exit(ExpenseSystemId);
+    end;
+
+    /// <summary>
+    /// Returns true when a receipt can still be applied to the card expense: either the expense is not on an expense report yet,
+    /// or it is on an open expense report and its line has no receipt and no lost-receipt declaration.
+    /// </summary>
+    internal procedure IsWaitingForReceipt(Expense: Record Expense): Boolean
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        if Expense."Expense Report No." = '' then
+            exit(Expense.Status = Expense.Status::Open);
+
+        if Expense.Status <> Expense.Status::Submitted then
+            exit(false);
+        ExpenseReportHeader.SetLoadFields(Status);
+        if not ExpenseReportHeader.Get(Expense."Expense Report No.") then
+            exit(false);
+        if ExpenseReportHeader.Status <> ExpenseReportHeader.Status::Open then
+            exit(false);
+
+        ExpenseReportLine.SetRange("Document No.", Expense."Expense Report No.");
+        ExpenseReportLine.SetRange("Expense No.", Expense."No.");
+        ExpenseReportLine.SetRange("Receipt Attached", false);
+        ExpenseReportLine.SetFilter("No Receipt Type", '<>%1', ExpenseReportLine."No Receipt Type"::"Lost Receipt");
+        exit(not ExpenseReportLine.IsEmpty());
     end;
 
     // Returns false when CardLast4 is not exactly four digits, so matching ignores the card.
@@ -143,8 +171,13 @@ codeunit 7438 "EA Receipt Expense Match"
 
     local procedure SetCandidateFilters(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseDate: Date; DateWindow: Integer; Amount: Decimal; CurrencyCode: Code[10])
     begin
+        // The open-and-not-on-a-report or open-report-line part of the rule is checked per record in IsWaitingForReceipt.
         Expense.SetRange("Expense User No.", ExpenseUserNo);
-        SetPendingCardExpenseFilters(Expense);
+        Expense.SetRange(Source, Expense.Source::CorporateCard);
+        Expense.SetFilter("Credit Card Feed No.", '<>%1', 0);
+        Expense.SetRange("Receipt Attached", false);
+        Expense.SetFilter("No Receipt Type", '<>%1', Expense."No Receipt Type"::"Lost Receipt");
+        Expense.SetFilter(Status, '%1|%2', Expense.Status::Open, Expense.Status::Submitted);
         Expense.SetRange(Amount, Amount);
         Expense.SetRange("Expense Date", ExpenseDate - DateWindow, ExpenseDate + DateWindow);
         SetCurrencyFilter(Expense, CurrencyCode);

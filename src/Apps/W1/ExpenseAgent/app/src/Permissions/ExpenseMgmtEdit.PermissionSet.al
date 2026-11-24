@@ -46,5 +46,9 @@ permissionset 6906 "Expense Mgmt. Edit"
         tabledata "Expense VAT Specification" = IMD,
         tabledata "Expense Report Line VAT Spec." = IMD,
         tabledata "Expense Activities Cue" = IMD,
-        tabledata "Expense Vendor" = RIMD;
+        tabledata "Expense Vendor" = RIMD,
+        tabledata "EA Card Receipt Data" = IMD,
+        tabledata "EA Card Receipt Participant" = IMD,
+        tabledata "EA Card Receipt Item" = IMD,
+        tabledata "EA Card Receipt VAT Spec." = IMD;
 }

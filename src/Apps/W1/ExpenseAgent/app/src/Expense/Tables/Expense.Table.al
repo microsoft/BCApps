@@ -540,14 +540,12 @@ table 6900 Expense
         {
             Access = Internal;
             Caption = 'Pending Card Expense';
-            ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is still open and waiting for a receipt, with no no-receipt declaration and no expense report.';
+            ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is still open and waiting to be added to an expense report.';
             FieldClass = FlowField;
-            // Keep in sync with "EA Receipt Expense Match".SetPendingCardExpenseFilters.
+            // Keep in sync with "EA Receipt Expense Match".IsPendingCardExpense.
             CalcFormula = exist(Expense where("No." = field("No."),
                                               Source = const(CorporateCard),
                                               "Credit Card Feed No." = filter(<> 0),
-                                              "Receipt Attached" = const(false),
-                                              "No Receipt Type" = const(" "),
                                               Status = const(Open),
                                               "Expense Report No." = const('')));
             Editable = false;
@@ -900,6 +898,9 @@ table 6900 Expense
     begin
         if Rec."Expense Report No." <> '' then
             Error(CannotDeleteWithExpenseReportErr, Rec."No.", Rec."Expense Report No.");
+        // The card transaction keeps a reference to the expense, so deleting it would orphan the transaction.
+        if Rec."Credit Card Feed No." <> 0 then
+            Error(CannotDeleteCardExpenseErr, Rec."No.");
 
         DeleteExpenseParticipant();
         DeleteExpenseItemization();
@@ -926,6 +927,7 @@ table 6900 Expense
         CalledFromExpenseAgent: Boolean;
         EmptyGuid: Guid;
         CannotDeleteWithExpenseReportErr: Label 'You cannot delete expense %1 because it is associated with expense report %2.', Comment = '%1 = Expense No., %2 = Expense Report No.';
+        CannotDeleteCardExpenseErr: Label 'You cannot delete expense %1 because it is linked to a corporate card transaction.', Comment = '%1 = Expense No.';
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense %2 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No.';
         CannotModifyWithItemizationErr: Label 'You cannot modify %1 field of expense %2 because it has associated itemizations.', Comment = '%1 = Field Name, %2 = Expense No.';
         DeleteAssociatedRecordsQst: Label 'If you change %1, the existing %2 details will be deleted.\\Do you want to continue?', Comment = '%1 = Field Name, %2 = Expense Detail Required';
