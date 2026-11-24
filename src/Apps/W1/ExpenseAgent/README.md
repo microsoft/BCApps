@@ -126,6 +126,52 @@ Disabling the setting preserves existing approvals and alternate coverage.
 Resubmitting a report while the setting is disabled clears stale interim
 assignments.
 
+## Approval action outcomes
+
+Use these additive bound actions when the caller needs the approval result:
+
+- `Microsoft.NAV.approvedExpenseReportWithOutcome`, with `approverExpenseUserNo`.
+- `Microsoft.NAV.approvedExpenseReportWithPolicyOverrideAndOutcome`, with
+  `approverExpenseUserNo` and `skipPolicyValidation`.
+
+POST the action under `expenseReports({reportId})` using the existing
+`microsoft/expense/beta` API. The existing actions without an outcome remain
+unchanged. The new actions use the same approval permissions, active-approver
+checks, and policy validation. Only the explicit override can skip policy
+validation.
+
+The AL action returns JSON text as an OData scalar with HTTP 200. Read the
+response's `value` string and parse it as JSON:
+
+```json
+{
+  "reportId": "00000000-0000-0000-0000-000000000001",
+  "bcStatus": "Interim_x0020_Approved",
+  "approvalComplete": false,
+  "nextApproverExpenseUserNo": "APPROVER-002"
+}
+```
+
+Full approval returns `bcStatus: "Approved"`, `approvalComplete: true`, and
+`nextApproverExpenseUserNo: null`. The outcome is captured from the updated
+report in the action, not from a later GET. It identifies the active next
+approver, including alternate coverage.
+
+An interim-approved report is still awaiting approval. Keep it pending in
+the caller's public model, notify the returned next approver, and send a
+completion email only when `approvalComplete` is true. Callers must deduplicate
+notifications for the same approval attempt.
+
+The acting approver's report navigation can stop returning the report after
+either a handoff or full approval. Don't interpret a 404 as an approval
+outcome or broaden that view's filter. Errors from approval are propagated
+instead of returning a success-shaped outcome.
+
+`Expense Reports API Test` covers the OData scalar response, handoff through
+the approver view, final and single-stage approval, active final alternates,
+policy override, and rejection of inactive approvers. These tests require
+the existing Business Central test environment.
+
 # Reserved codeunit IDs
 
 Do not use codeunit IDs 6913-6921 or 6977 in the Expense Agent apps. They belong to the

@@ -25,10 +25,15 @@ codeunit 148329 "Expense Reports API Test"
         LibraryExpense: Codeunit "Library - Expense";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         IsInitialized: Boolean;
         ApproverViewsServiceNameTok: Label 'approverViews', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ActiveApproverFilterLbl: Label '$filter=activeApproverExpenseUserNo eq ''%1''', Comment = '%1 = Expense User No.', Locked = true;
+        ApproveWithOutcomeActionTok: Label 'Microsoft.NAV.approvedExpenseReportWithOutcome', Locked = true;
+        ApproveWithOverrideAndOutcomeActionTok: Label 'Microsoft.NAV.approvedExpenseReportWithPolicyOverrideAndOutcome', Locked = true;
+        ActorNotActiveApproverErr: Label 'This expense report is awaiting approval from %1. Only that approver can approve or reject it.', Comment = '%1 = Expense User No. of the active approver';
+        PolicyEvaluationNotCurrentCodeTok: Label 'PolicyEvaluationNotCurrent', Locked = true;
 
     [Test]
     procedure ApproverViewReturnsOnlyActivePendingReports()
@@ -198,6 +203,275 @@ codeunit 148329 "Expense Reports API Test"
         UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
+    [Test]
+    procedure ApproveActionReturnsInterimHandoffOutcome()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        Outcome: JsonObject;
+        ExpectedReportIds: List of [Guid];
+        EmptyReportIds: List of [Guid];
+        ReportURL: Text;
+    begin
+        // [SCENARIO] The action returns the handoff outcome even though the report leaves the acting approver's view.
+        Initialize();
+        CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
+        ReportURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(InterimApprover.SystemId), Page::"Approver View API", ApproverViewsServiceNameTok, ExpenseReportsServiceNameTok);
+        ReportURL := LibraryGraphMgt.AppendPathToTargetURL(
+            ReportURL, '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseReportHeader.SystemId)) + ')');
+
+        // [WHEN] The interim approver approves through the approver-view navigation.
+        Outcome := InvokeApprovalOutcome(ReportURL, InterimApprover."No.", ApproveWithOutcomeActionTok, false);
+
+        // [THEN] The response identifies the pending final stage without another report read.
+        AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Interim_x0020_Approved', false, FinalApprover."No.");
+        ExpectedReportIds.Add(ExpenseReportHeader.SystemId);
+        AssertExpandedReports(InterimApprover, EmptyReportIds);
+        AssertExpandedReports(FinalApprover, ExpectedReportIds);
+        RestoreApprovalSetup();
+    end;
+
+    [Test]
+    procedure ApproveActionReturnsFinalApprovalOutcome()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        Outcome: JsonObject;
+    begin
+        // [SCENARIO] Approval of the final stage reports completion and no next approver.
+        Initialize();
+        CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+
+        // [WHEN] The final approver approves through the outcome-returning action.
+        Outcome := InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOutcomeActionTok, false);
+
+        // [THEN] The response distinguishes full approval from an interim handoff.
+        AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Approved', true, '');
+        RestoreApprovalSetup();
+    end;
+
+    [Test]
+    procedure ApproveActionWithoutInterimReturnsCompletion()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        Outcome: JsonObject;
+    begin
+        // [SCENARIO] A report without an interim stage completes in one approval action.
+        Initialize();
+        CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, false);
+
+        Outcome := InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOutcomeActionTok, false);
+
+        AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Approved', true, '');
+        RestoreApprovalSetup();
+    end;
+
+    [Test]
+    procedure ApproveActionReturnsActiveFinalAlternate()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        FinalAlternate: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
+        Outcome: JsonObject;
+    begin
+        // [SCENARIO] The outcome identifies the active final alternate, not the configured primary approver.
+        Initialize();
+        CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
+        CreateApprover(FinalAlternate);
+        ExpenseReportApprovalMgmt.AssignAlternateApprover(ExpenseReportHeader, FinalAlternate."No.", Submitter."No.");
+        ExpenseReportHeader.TestField("Primary Final Approver No.", FinalApprover."No.");
+
+        Outcome := InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), InterimApprover."No.", ApproveWithOutcomeActionTok, false);
+
+        AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Interim_x0020_Approved', false, FinalAlternate."No.");
+        RestoreApprovalSetup();
+    end;
+
+    [Test]
+    procedure PolicyOverrideActionReturnsBothApprovalOutcomes()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        InterimOutcome: JsonObject;
+        FinalOutcome: JsonObject;
+    begin
+        // [SCENARIO] The policy-override action returns the same handoff and completion contract.
+        Initialize();
+        CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
+
+        InterimOutcome := InvokeApprovalOutcome(
+            GetReportURL(ExpenseReportHeader.SystemId), InterimApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
+        FinalOutcome := InvokeApprovalOutcome(
+            GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
+
+        // [THEN] The original handoff response remains a snapshot after the final stage completes.
+        AssertApprovalOutcome(InterimOutcome, ExpenseReportHeader.SystemId, 'Interim_x0020_Approved', false, FinalApprover."No.");
+        AssertApprovalOutcome(FinalOutcome, ExpenseReportHeader.SystemId, 'Approved', true, '');
+        RestoreApprovalSetup();
+    end;
+
+    [Test]
+    procedure OutcomeActionsPreservePolicyValidation()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpensePolicy: Record "Expense Policy";
+        Outcome: JsonObject;
+    begin
+        // [SCENARIO] Only an explicit policy override permits approval with unevaluated policies.
+        Initialize();
+        CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, false);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup.Modify();
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Approval outcome validation policy');
+        Assert.AreEqual(Enum::"Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'The report must require policy evaluation before approval.');
+
+        asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOutcomeActionTok, false);
+        Assert.ExpectedError(PolicyEvaluationNotCurrentCodeTok);
+        asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, false);
+        Assert.ExpectedError(PolicyEvaluationNotCurrentCodeTok);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::"Pending Approval");
+
+        Outcome := InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
+
+        AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Approved', true, '');
+        RestoreApprovalSetup();
+    end;
+
+    [Test]
+    procedure OutcomeActionsRejectInactiveApprovers()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO] An outcome action does not bypass the active-approver check.
+        Initialize();
+        CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
+
+        asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOutcomeActionTok, false);
+        Assert.ExpectedError(StrSubstNo(ActorNotActiveApproverErr, InterimApprover."No."));
+        asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
+        Assert.ExpectedError(StrSubstNo(ActorNotActiveApproverErr, InterimApprover."No."));
+
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::"Pending Approval");
+        ExpenseReportHeader.TestField("Approver Expense User No.", InterimApprover."No.");
+        RestoreApprovalSetup();
+    end;
+
+    local procedure InvokeApprovalOutcome(ReportURL: Text; ApproverExpenseUserNo: Code[20]; ActionName: Text; SkipPolicyValidation: Boolean) Outcome: JsonObject
+    var
+        RequestBody: JsonObject;
+        Response: JsonObject;
+        Value: JsonToken;
+        RequestText: Text;
+        ResponseText: Text;
+    begin
+        RequestBody.Add('approverExpenseUserNo', ApproverExpenseUserNo);
+        if ActionName = ApproveWithOverrideAndOutcomeActionTok then
+            RequestBody.Add('skipPolicyValidation', SkipPolicyValidation);
+        RequestBody.WriteTo(RequestText);
+        Commit();
+
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            LibraryGraphMgt.AppendPathToTargetURL(ReportURL, '/' + ActionName), RequestText, ResponseText, 200);
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The action response must be valid JSON.');
+        Assert.IsTrue(Response.Get('value', Value), 'The action response must contain its scalar value.');
+        Assert.IsTrue(Outcome.ReadFrom(Value.AsValue().AsText()), 'The action value must contain the JSON approval outcome.');
+    end;
+
+    local procedure AssertApprovalOutcome(Outcome: JsonObject; ExpectedReportId: Guid; ExpectedStatus: Text; ExpectedComplete: Boolean; ExpectedNextApprover: Code[20])
+    var
+        Value: JsonToken;
+        PropertyNames: List of [Text];
+        ReportId: Guid;
+    begin
+        PropertyNames := Outcome.Keys();
+        Assert.AreEqual(4, PropertyNames.Count(), 'The approval outcome must contain exactly four properties.');
+        Assert.IsTrue(Outcome.Get('reportId', Value), 'The outcome must identify the report.');
+        Evaluate(ReportId, Value.AsValue().AsText());
+        Assert.AreEqual(ExpectedReportId, ReportId, 'The outcome must identify the approved report.');
+        Assert.IsTrue(Outcome.Get('bcStatus', Value), 'The outcome must contain the BC status.');
+        Assert.AreEqual(ExpectedStatus, Value.AsValue().AsText(), 'The outcome must preserve the exact BC status.');
+        Assert.IsTrue(Outcome.Get('approvalComplete', Value), 'The outcome must indicate whether approval is complete.');
+        Assert.AreEqual(ExpectedComplete, Value.AsValue().AsBoolean(), 'Interim approval must not be reported as complete.');
+        Assert.IsTrue(Outcome.Get('nextApproverExpenseUserNo', Value), 'The outcome must contain the next-approver property.');
+        if ExpectedComplete then
+            Assert.IsTrue(Value.AsValue().IsNull(), 'A completed approval must not identify a next approver.')
+        else
+            Assert.AreEqual(ExpectedNextApprover, Value.AsValue().AsText(), 'The outcome must identify the active next approver.');
+    end;
+
+    local procedure GetReportURL(ReportSystemId: Guid): Text
+    begin
+        exit(LibraryGraphMgt.CreateTargetURL(Format(ReportSystemId), Page::"Expense Reports API", ExpenseReportsServiceNameTok));
+    end;
+
+    local procedure CreateApprovalReport(var Submitter: Record "Expense User"; var InterimApprover: Record "Expense User"; var FinalApprover: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header"; IncludeInterim: Boolean)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ApprovalSetup: Record "Expense Approval Setup";
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseReportLine: Record "Expense Report Line";
+        ActiveApproverNo: Code[20];
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Enable Agent" := true;
+        ExpenseAgentSetup."Enable Approval Workflow" := false;
+        ExpenseAgentSetup."Use Rules" := false;
+        ExpenseAgentSetup."Evaluate Policies" := false;
+        ExpenseAgentSetup.Modify();
+        LibraryExpense.CreateExpenseUser(Submitter);
+        CreateApprover(InterimApprover);
+        CreateApprover(FinalApprover);
+        LibraryExpense.CreateExpenseApprovalSetup(ApprovalSetup, Submitter."No.", FinalApprover."No.");
+        ActiveApproverNo := FinalApprover."No.";
+        if IncludeInterim then
+            ActiveApproverNo := InterimApprover."No.";
+        CreateReport(ExpenseReportHeader, Submitter."No.", ActiveApproverNo, ExpenseReportHeader.Status::Open);
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, Submitter."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', 100);
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Pending Approval";
+        ExpenseReportHeader."Final Approver No." := FinalApprover."No.";
+        if IncludeInterim then
+            ExpenseReportHeader."Interim Approver No." := InterimApprover."No.";
+        ExpenseReportHeader.Modify();
+    end;
+
+    local procedure RestoreApprovalSetup()
+    begin
+        LibrarySetupStorage.Restore();
+        Commit();
+    end;
+
     local procedure AssertExpandedReports(Approver: Record "Expense User"; ExpectedReportIds: List of [Guid])
     var
         Response: JsonObject;
@@ -261,6 +535,7 @@ codeunit 148329 "Expense Reports API Test"
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense Reports API Test");
+        LibrarySetupStorage.Restore();
         if IsInitialized then
             exit;
 
@@ -271,6 +546,7 @@ codeunit 148329 "Expense Reports API Test"
         end;
         LibraryERMCountryData.UpdateGeneralLedgerSetup();
         LibraryExpense.SetupNumberSeriesInExpenseMgmt();
+        LibrarySetupStorage.Save(Database::"Expense Agent Setup");
         IsInitialized := true;
         Commit();
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Expense Reports API Test");
