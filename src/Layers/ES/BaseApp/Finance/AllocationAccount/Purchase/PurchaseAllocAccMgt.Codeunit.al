@@ -573,6 +573,7 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
 
         if AllocationAccount."Document Lines Split" = AllocationAccount."Document Lines Split"::"Split Amount" then begin
             if IsInheritFromParent then begin
+                // Allocation amounts already use the source line's VAT-inclusive or VAT-exclusive basis.
                 PurchaseLine.Validate("Direct Unit Cost", GetUnitPrice(PurchaseLine, AllocationLine.Amount));
                 PurchaseLine."Line Amount" := GetAmount(PurchaseLine, AllocationLine.Amount);
                 PurchaseLine.Amount := PurchaseLine."Line Amount";
@@ -589,15 +590,12 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         end;
     end;
 
-    local procedure GetAmount(var PurchaseLine: Record "Purchase Line"; AllocationLineAmount: Decimal): Decimal
+    local procedure GetAmount(PurchaseLine: Record "Purchase Line"; AllocationLineAmount: Decimal): Decimal
     var
         AllocationAccountMgt: Codeunit "Allocation Account Mgt.";
         AmountRoundingPrecision: Decimal;
         Amount: Decimal;
     begin
-        if PurchaseLine.GetPurchHeader()."Prices Including VAT" then
-            AllocationLineAmount += AllocationLineAmount * PurchaseLine."VAT %" / 100;
-
         AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
         Amount := Round((AllocationLineAmount + AmountRounding), AmountRoundingPrecision);
         AmountRounding += (AllocationLineAmount - Amount);
@@ -611,7 +609,6 @@ codeunit 2679 "Purchase Alloc. Acc. Mgt."
         AmountRoundingPrecision: Decimal;
     begin
         if PurchaseLine.GetPurchHeader()."Prices Including VAT" then begin
-            AllocationLineAmount += AllocationLineAmount * PurchaseLine."VAT %" / 100;
             AmountRoundingPrecision := AllocationAccountMgt.GetCurrencyRoundingPrecision(PurchaseLine."Currency Code");
             exit(Round(AllocationLineAmount / PurchaseLine.Quantity, AmountRoundingPrecision));
         end;

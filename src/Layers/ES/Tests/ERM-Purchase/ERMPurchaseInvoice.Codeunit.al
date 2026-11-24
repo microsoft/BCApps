@@ -3459,10 +3459,23 @@
     [Test]
     [HandlerFunctions('HandleEditDimensionSetEntriesPage')]
     procedure PostPurchInvoiceWithAllocationAccountAndInvoiceDiscountIsConsistent()
+    begin
+        VerifyPostPurchInvoiceWithAllocationAndInvDisc(false, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleEditDimensionSetEntriesPage')]
+    procedure PostPurchInvoiceWithInheritedAllocationAndInvDiscPricesInclVAT()
+    begin
+        VerifyPostPurchInvoiceWithAllocationAndInvDisc(true, true);
+    end;
+
+    local procedure VerifyPostPurchInvoiceWithAllocationAndInvDisc(PricesIncludingVAT: Boolean; InheritFromParent: Boolean)
     var
         Vendor: Record Vendor;
         VATPostingSetup: Record "VAT Posting Setup";
         AllocationAccount: Record "Allocation Account";
+        AllocAccountDistribution: Record "Alloc. Account Distribution";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurchInvHeader: Record "Purch. Inv. Header";
@@ -3473,6 +3486,7 @@
         VendorNo: Code[20];
         TotalAmount: Decimal;
         TotalAmountInclVAT: Decimal;
+        DirectUnitCost: Decimal;
     begin
         // [SCENARIO 650386] The posted purchase invoice and the resulting ledger entries must stay financially consistent.
         Initialize();
@@ -3482,8 +3496,16 @@
         CreateVendorWithInvoiceDiscount(VendorNo, VATPostingSetup, 10);
         Vendor.Get(VendorNo);
         CreateAllocationAccountWithTwoDimensionedShares(AllocationAccount, VATPostingSetup, 50, 50);
+        if InheritFromParent then begin
+            AllocAccountDistribution.SetRange("Allocation Account No.", AllocationAccount."No.");
+            AllocAccountDistribution.ModifyAll("Destination Account Type", AllocAccountDistribution."Destination Account Type"::"Inherit from Parent");
+            AllocAccountDistribution.ModifyAll("Destination Account Number", '');
+        end;
         GLAccount.Get(CreateGLAccountForPurchase(VATPostingSetup));
-        CreatePurchaseOrderWithAllocationAccount(PurchaseHeader, PurchaseLine, Vendor, GLAccount, AllocationAccount, 1, 1100);
+        DirectUnitCost := 1100;
+        if PricesIncludingVAT then
+            DirectUnitCost *= 1 + VATPostingSetup."VAT %" / 100;
+        CreatePurchaseOrderWithAllocationAccount(PurchaseHeader, PurchaseLine, Vendor, GLAccount, AllocationAccount, 1, DirectUnitCost, PricesIncludingVAT);
         CalcPurchaseInvoiceDiscount(PurchaseHeader, PurchaseLine);
 
         // [WHEN] The purchase order is posted
@@ -3501,7 +3523,7 @@
             TotalAmountInclVAT += PurchInvLine."Amount Including VAT";
         until PurchInvLine.Next() = 0;
 
-        // [THEN] The invoice discount of 110 is applied exactly once across the two allocated lines
+        // [THEN] The 10% invoice discount is applied exactly once across the two allocated lines
         Assert.AreNearlyEqual(990, TotalAmount, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, PurchInvLine.FieldCaption(Amount), PurchInvLine.TableCaption()));
         Assert.AreNearlyEqual(1197.9, TotalAmountInclVAT, LibraryERM.GetAmountRoundingPrecision(), StrSubstNo(WrongAmountErr, PurchInvLine.FieldCaption("Amount Including VAT"), PurchInvLine.TableCaption()));
 
@@ -3714,9 +3736,10 @@
         LibraryDimension.CreateDimensionValue(SecondDimensionValue, Dimension.Code);
     end;
 
-    local procedure CreatePurchaseOrderWithAllocationAccount(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Vendor: Record Vendor; GLAccount: Record "G/L Account"; AllocationAccount: Record "Allocation Account"; Quantity: Decimal; DirectUnitCost: Decimal)
+    local procedure CreatePurchaseOrderWithAllocationAccount(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Vendor: Record Vendor; GLAccount: Record "G/L Account"; AllocationAccount: Record "Allocation Account"; Quantity: Decimal; DirectUnitCost: Decimal; PricesIncludingVAT: Boolean)
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseHeader.Validate("Prices Including VAT", PricesIncludingVAT);
         UpdatePurchInvoiceNo(PurchaseHeader);
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccount."No.", Quantity);
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
