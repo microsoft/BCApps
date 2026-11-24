@@ -161,3 +161,11 @@ receipt to exemption. `Expense Capabilities API Test` verifies the company
 setting in both states.
 
 These AL tests require the existing Business Central test environment.
+
+# Reserved codeunit IDs
+
+Do not use codeunit IDs 6913-6921 or 6977 in the Expense Agent apps. They belong to the
+deprecated `Expense Agent (<country>)` apps in `src/Apps/<country>/ExpenseAgent_<country>`,
+which are no longer built but can still be installed on tenants. Reusing one of these IDs
+makes installs, upgrades and hotfixes fail with "The application object of type 'CodeUnit'
+with the ID '<id>' is defined in multiple apps". The compiler does not catch this.
