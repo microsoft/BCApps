@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using System.Telemetry;
+using System.Utilities;
 
 codeunit 10031 "IRS 1099 Form Document"
 {
@@ -18,6 +19,7 @@ codeunit 10031 "IRS 1099 Form Document"
         CannotReopenSubmittedFormDocumentErr: Label 'You must use the Allow Correction action to mark the document for correction and then reopen it.';
         CannotAllowCorrectionErr: Label 'Only documents that are in progress or submitted can be marked for correction.';
         IRSFormsTok: Label 'IRS Forms', Locked = true;
+        ReplaceSupplLinesQst: Label 'Replace all supplemental lines on document %1 with the supplemental lines from document %2? The source document will not be changed.', Comment = '%1 = target document ID, %2 = source document ID';
 
     procedure Reopen(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
     begin
@@ -69,6 +71,27 @@ codeunit 10031 "IRS 1099 Form Document"
     procedure RecreateForm(IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
     begin
         RunCreateFormDocsReport(IRS1099FormDocHeader."Period No.", IRS1099FormDocHeader."Vendor No.", IRS1099FormDocHeader."Form No.", true);
+    end;
+
+    procedure CopySupplementalLines(DocHeader: Record "IRS 1099 Form Doc. Header"): Boolean
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        ConfirmMgt: Codeunit "Confirm Management";
+        Supplemental: Codeunit "IRS 1099 Supplemental";
+        SourceDocuments: Page "IRS 1099 Form Documents";
+    begin
+        DocHeader.TestField(Status, DocHeader.Status::Open);
+        SourceDocHeader.SetFilter(ID, '<>%1', DocHeader.ID);
+        SourceDocuments.SetTableView(SourceDocHeader);
+        SourceDocuments.SetSupplementalCopyLookup();
+        SourceDocuments.LookupMode(true);
+        if SourceDocuments.RunModal() <> Action::LookupOK then
+            exit(false);
+        SourceDocuments.GetRecord(SourceDocHeader);
+        if not ConfirmMgt.GetResponseOrDefault(StrSubstNo(ReplaceSupplLinesQst, DocHeader.ID, SourceDocHeader.ID), false) then
+            exit(false);
+        Supplemental.CopyFromDocument(SourceDocHeader.ID, DocHeader.ID);
+        exit(true);
     end;
 
     local procedure RunCreateFormDocsReport(PeriodNo: Code[20]; VendorNo: Code[20]; FormNo: Code[20]; Recreate: Boolean)

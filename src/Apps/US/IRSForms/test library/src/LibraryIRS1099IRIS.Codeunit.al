@@ -30,12 +30,13 @@ codeunit 148023 "Library - IRS 1099 IRIS"
         CompanyInformation: Record "Company Information";
         PostCode: Record "Post Code";
     begin
-        PostCode.Validate(Code, '60402');
-        PostCode.Validate(City, 'Berwyn');
-        PostCode.Validate(County, 'IL');
-        PostCode.Validate("Country/Region Code", 'US');
-        if not PostCode.Get(PostCode.Code, PostCode.City) then
+        if not PostCode.Get('60402', 'Berwyn') then begin
+            PostCode.Validate(Code, '60402');
+            PostCode.Validate(City, 'Berwyn');
+            PostCode.Validate(County, 'IL');
+            PostCode.Validate("Country/Region Code", 'US');
             PostCode.Insert();
+        end;
         CompanyInformation.Get();
         CompanyInformation.Name := LibraryUtility.GenerateGUID();
         CompanyInformation."Federal ID No." := GetUniqueTIN();
@@ -172,6 +173,13 @@ codeunit 148023 "Library - IRS 1099 IRIS"
         ProcessTransmission.RequestStatus(ReceiptID, UniqueTransmissionID, StatusText);
     end;
 
+    procedure RemoveSandboxTransmission(var Transmission: Record "Transmission IRIS"; DeleteDocuments: Boolean): Boolean
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        exit(ProcessTransmission.RemoveSandboxTransmission(Transmission, DeleteDocuments));
+    end;
+
     procedure ResolveSchemaVersion(PeriodNo: Code[20]; var Source: Text): Enum "XML Schema Version IRIS"
     var
         Helper: Codeunit "Helper IRIS";
@@ -222,6 +230,13 @@ codeunit 148023 "Library - IRS 1099 IRIS"
         ProcessTransmission: Codeunit "Process Transmission IRIS";
     begin
         ProcessTransmission.SendReplacement(Transmission);
+    end;
+
+    procedure SendTwoStepZeroCorrection(var Transmission: Record "Transmission IRIS")
+    var
+        ProcessTransmission: Codeunit "Process Transmission IRIS";
+    begin
+        ProcessTransmission.SendTwoStepZeroCorrection(Transmission);
     end;
 
     procedure ValidateTaxYear(TaxYear: Text)

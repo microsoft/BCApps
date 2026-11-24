@@ -270,7 +270,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         CreateAnnualSetup(2025);
         CreateAnnualSetup(2026);
 
-        // [WHEN] The standard thresholds and definitions are read.
+        // [WHEN] Standard thresholds and definitions are read.
 
         // [THEN] Historical exceptions, other categories and typed setup remain distinct.
         VerifyAnnualThresholds('2025', 600, 1, 0);
@@ -295,14 +295,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Annual setup carries the supplemental definitions and statement instructions into future years.
         Initialize();
 
-        // [GIVEN] The reporting year is TY2027 with no annual setup.
+        // [GIVEN] Reporting year is TY2027 with no annual setup.
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         CreateAnnualSetup(2027);
 
         SupplementalBox.SetRange("Period No.", '2027');
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         Assert.RecordCount(SupplementalBox, 6);
         VerifyStandardSupplBoxSetup('2027');
         VerifyAnnualThresholds('2027', 2000, 2000, 2000);
@@ -323,7 +323,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Copying 2025 to 2026 converges without inheriting schema overrides or duplicating setup.
         Initialize();
 
-        // [GIVEN] Source setup has overrides and the target has none.
+        // [GIVEN] Source setup has overrides and target has none.
         CreateAnnualSetup(2025);
         ReportingPeriod.Get('2025');
         ReportingPeriod."IRIS XML Schema Version Test" := ReportingPeriod."IRIS XML Schema Version Test"::"5.0.7";
@@ -334,7 +334,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [WHEN] Setup is copied.
         LibraryIRSReportingPeriod.CopyPeriodSetup('2025', '2026');
 
-        // [THEN] Only the target defaults change and its new overrides remain empty.
+        // [THEN] Only target defaults change and its new overrides remain empty.
         VerifyAnnualThresholds('2025', 600, 1, 0);
         VerifyAnnualThresholds('2026', 2000, 2000, 2000);
         VerifyYearInstructions('2025', false);
@@ -347,7 +347,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         StatementLine.Get('2026', 'NEC', 12500);
         Assert.AreEqual(StatementLine."Value Source"::"Supplemental Line", StatementLine."Value Source", 'Copied setup gains explicit supplemental selectors.');
 
-        // [GIVEN] The target now has explicit overrides and a customized threshold.
+        // [GIVEN] Target now has explicit overrides and customized threshold.
         ReportingPeriod.Get('2026');
         ReportingPeriod."IRIS XML Schema Version Test" := ReportingPeriod."IRIS XML Schema Version Test"::"2.0.3";
         ReportingPeriod."IRIS XML Schema Version Live" := ReportingPeriod."IRIS XML Schema Version Live"::"5.0.7";
@@ -356,7 +356,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         FormBox."Minimum Reportable Amount" := 2500;
         FormBox.Modify();
 
-        // [WHEN] The copy is repeated into existing setup.
+        // [WHEN] Copy is repeated into existing setup.
         LibraryIRSReportingPeriod.CopyPeriodSetup('2025', '2026');
 
         // [THEN] Existing target choices remain and no definitions are duplicated.
@@ -378,7 +378,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Reconciliation inserts absent defaults, recognizes prior standards and preserves custom choices.
         Initialize();
 
-        // [GIVEN] An existing target has an absent box, old standard and custom setup.
+        // [GIVEN] Existing target has absent box, old standard and custom setup.
         CreateAnnualSetup(2026);
         FormBox.Get('2026', 'MISC', 'MISC-01');
         FormBox.Delete(true);
@@ -396,11 +396,11 @@ codeunit 148016 "IRS Reporting Period Tests"
         SupplementalBox."XML Element Name" := 'CUSTOM';
         SupplementalBox.Modify();
 
-        // [WHEN] The explicit reconciliation is repeated.
+        // [WHEN] Explicit reconciliation is repeated.
         LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
 
-        // [THEN] The custom values are preserved and identified for explicit resolution.
+        // [THEN] Custom values are preserved and identified for explicit resolution.
         VerifyMinimum('2026', 'MISC', 'MISC-01', 2000);
         VerifyMinimum('2026', 'MISC', 'MISC-09', 2000);
         VerifyMinimum('2026', 'NEC', 'NEC-01', 2500);
@@ -428,7 +428,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] The old financial MISC-14 migration is never applied to a 2025-to-2026 update.
         Initialize();
 
-        // [GIVEN] A target retains a historical financial identifier with an old meaning.
+        // [GIVEN] Target retains historical financial identifier with old meaning.
         CreateAnnualSetup(2025);
         CreateAnnualSetup(2026);
         StatementLine.Get('2026', 'MISC', 130000);
@@ -441,7 +441,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         FormBox.Description := 'Historical parachute payments';
         FormBox.Insert(true);
 
-        // [WHEN] The real consecutive-year update and reconciliation are repeated.
+        // [WHEN] Real consecutive-year update and reconciliation are repeated.
         LibraryIRSReportingPeriod.UpdateDataForNewTaxYear('2025', '2026');
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
 
@@ -463,14 +463,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A financial parent cannot be deleted while supplemental setup references it.
         Initialize();
 
-        // [GIVEN] Six supported definitions reference the financial parents.
+        // [GIVEN] Six supported definitions reference financial parents.
         CreateAnnualSetup(2026);
         FormBox.Get('2026', 'NEC', 'NEC-01');
 
-        // [WHEN] The parent is deleted.
+        // [WHEN] Parent is deleted.
         asserterror FormBox.Delete(true);
 
-        // [THEN] The dependent definition is identified.
+        // [THEN] Dependent definition is identified.
         Assert.ExpectedError('parent of supplemental box NEC-01B');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -485,14 +485,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A financial parent cannot be renamed while supplemental setup references it.
         Initialize();
 
-        // [GIVEN] MISC other income is the parent of the tips definition.
+        // [GIVEN] MISC other income is parent of tips definition.
         CreateAnnualSetup(2026);
         FormBox.Get('2026', 'MISC', 'MISC-03');
 
-        // [WHEN] The parent is renamed.
+        // [WHEN] Parent is renamed.
         asserterror FormBox.Rename('2026', 'MISC', 'RENAMED');
 
-        // [THEN] The reverse-reference guard identifies the dependent setup.
+        // [THEN] Reverse-reference guard identifies dependent setup.
         Assert.ExpectedError('parent of supplemental box MISC-13A');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -511,7 +511,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Allowed deletion removes statements before definitions and financial parents without orphans.
         Initialize();
 
-        // [GIVEN] A period contains financial and supplemental setup, but no documents.
+        // [GIVEN] Period contains financial and supplemental setup, but no documents.
         CreateAnnualSetup(2026);
 
         // [WHEN] NEC setup is deleted.
@@ -531,7 +531,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         SupplementalBox.SetRange("Form No.", 'MISC');
         Assert.RecordCount(SupplementalBox, 3);
 
-        // [WHEN] The remaining period is deleted.
+        // [WHEN] Remaining period is deleted.
         ReportingPeriod.Get('2026');
         ReportingPeriod.Delete(true);
 
@@ -566,7 +566,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Setup identifies only stale Open documents and preserves saved snapshots and payload history.
         Initialize();
 
-        // [GIVEN] Stale Open/submitted documents, a current Open document and another period.
+        // [GIVEN] Stale Open/submitted documents, current Open document and another period.
         CreateAnnualSetup(2025);
         CreateAnnualSetup(2026);
         CreateStoredDocument(OpenIRS1099FormDocHeader, '2026', OpenIRS1099FormDocHeader.Status::Open, 600);
@@ -590,7 +590,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
 
-        // [THEN] Only the stale Open identity is reported; stored data is not recalculated.
+        // [THEN] Only stale Open identity is reported; stored data is not recalculated.
         Assert.IsTrue(Details.Contains(StrSubstNo(OpenDocumentTok, OpenIRS1099FormDocHeader.ID)), 'Identify the affected Open document.');
         Assert.IsFalse(Details.Contains(StrSubstNo(OpenDocumentTok, SubmittedIRS1099FormDocHeader.ID)), 'Submitted documents must not be offered.');
         Assert.IsFalse(Details.Contains(StrSubstNo(OpenDocumentTok, CurrentIRS1099FormDocHeader.ID)), 'Current Open documents need no notice.');
@@ -625,7 +625,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Annual setup never repairs a structural conflict by retargeting a saved parent.
         Initialize();
 
-        // [GIVEN] A saved supplemental line and an incompatible imported definition.
+        // [GIVEN] Saved supplemental line and incompatible imported definition.
         CreateAnnualSetup(2026);
         CreateStoredDocument(IRS1099FormDocHeader, '2026', IRS1099FormDocHeader.Status::Open, 600);
         SupplementalLine."Document ID" := IRS1099FormDocHeader.ID;
@@ -639,7 +639,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [WHEN] Setup is reconciled.
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
 
-        // [THEN] The conflict is explicit and neither the definition nor snapshot is silently reinterpreted.
+        // [THEN] Conflict is explicit and neither definition nor snapshot is silently reinterpreted.
         Assert.IsTrue(Details.Contains('NEC-01B'), 'Identify the structural conflict for explicit resolution.');
         SupplementalBox.Get('2026', 'NEC', 'NEC-01B');
         Assert.AreEqual('NEC-03', SupplementalBox."Parent Form Box No.", 'Annual setup must not silently repair in-use structure.');
@@ -659,7 +659,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Period deletion checks all document use before removing any setup.
         Initialize();
 
-        // [GIVEN] The period contains a submitted document.
+        // [GIVEN] Period contains submitted document.
         CreateAnnualSetup(2026);
         CreateStoredDocument(IRS1099FormDocHeader, '2026', IRS1099FormDocHeader.Status::Submitted, 600);
         ReportingPeriod.Get('2026');
@@ -667,7 +667,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [WHEN] Period deletion is attempted.
         asserterror ReportingPeriod.Delete(true);
 
-        // [THEN] A document-use error precedes dependency cleanup.
+        // [THEN] Document-use error precedes dependency cleanup.
         Assert.ExpectedError('used by 1099 form documents');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -689,7 +689,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Definitions validate against the target company's period and parents, not ambient company data.
         Initialize();
 
-        // [GIVEN] A disposable company contains a target period absent from the current company.
+        // [GIVEN] Disposable company contains target period absent from current company.
         CreateAnnualSetup(2026);
         FormBox.Get('2026', 'NEC', 'NEC-01');
         FormBox."Minimum Reportable Amount" := 777;
@@ -719,7 +719,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         Commit();
         OtherCompany.Delete(true);
 
-        // [THEN] The company-scoped setup converges without touching the current company.
+        // [THEN] Company-scoped setup converges without touching current company.
         Assert.AreEqual(2000, OtherMinimum, 'Target-company defaults must be reconciled.');
         Assert.AreEqual(6, SupplBoxCount, 'Target-company definitions must be complete and unique.');
         Assert.AreEqual(6, StatementCount, 'Supplemental selectors must belong only to the target company and period.');
@@ -741,14 +741,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Active statement selectors protect definitions even without document values.
         Initialize();
 
-        // [GIVEN] Definition B is selected by a standard statement row.
+        // [GIVEN] Supplemental definition is selected by standard statement row.
         CreateAnnualSetup(2026);
         SupplementalBox.Get('2026', 'NEC', 'NEC-01B');
 
-        // [WHEN] Definition B is deleted.
+        // [WHEN] Supplemental definition is deleted.
         asserterror SupplementalBox.Delete(true);
 
-        // [THEN] The dependent row is identified.
+        // [THEN] Dependent row is identified.
         Assert.ExpectedError('used by statement row NEC-01B');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -763,14 +763,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Renaming a definition cannot orphan an active selector.
         Initialize();
 
-        // [GIVEN] Definition B is selected by a standard statement row.
+        // [GIVEN] Supplemental definition is selected by standard statement row.
         CreateAnnualSetup(2026);
         SupplementalBox.Get('2026', 'NEC', 'NEC-01C');
 
-        // [WHEN] Definition B is renamed.
+        // [WHEN] Supplemental definition is renamed.
         asserterror SupplementalBox.Rename('2026', 'NEC', 'RENAMED');
 
-        // [THEN] The dependent row is identified.
+        // [THEN] Dependent row is identified.
         Assert.ExpectedError('used by statement row NEC-01C');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -785,15 +785,15 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A structurally incompatible edit identifies the dependent statement before breaking its reference.
         Initialize();
 
-        // [GIVEN] Definition B is selected by a standard statement row.
+        // [GIVEN] Supplemental definition is selected by standard statement row.
         CreateAnnualSetup(2026);
         SupplementalBox.Get('2026', 'NEC', 'NEC-01D');
         SupplementalBox."Parent Form Box No." := 'NEC-03';
 
-        // [WHEN] Its stored parent is changed through a direct AL modify.
+        // [WHEN] Its stored parent is changed through direct AL modify.
         asserterror SupplementalBox.Modify(true);
 
-        // [THEN] The reference guard protects the dependent statement.
+        // [THEN] Reference guard protects dependent statement.
         Assert.ExpectedError('used by statement row NEC-01D');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -809,7 +809,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A financial row retains its filters and does not activate a stale supplemental selector.
         Initialize();
 
-        // [GIVEN] Row S uses financial filters rather than its inactive supplemental selector.
+        // [GIVEN] Statement row uses financial filters rather than its inactive supplemental selector.
         CreateAnnualSetup(2026);
         StatementLine.Get('2026', 'NEC', 12500);
         StatementLine.Validate("Value Source", StatementLine."Value Source"::"Document Line");
@@ -817,10 +817,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         StatementLine.Modify(true);
         SupplementalBox.Get('2026', 'NEC', 'NEC-01B');
 
-        // [WHEN] The otherwise unused supplemental definition is deleted.
+        // [WHEN] Otherwise unused supplemental definition is deleted.
         SupplementalBox.Delete(true);
 
-        // [THEN] Financial configuration is retained without an active reverse reference.
+        // [THEN] Financial configuration is retained without active reverse reference.
         Assert.IsFalse(SupplementalBox.Get('2026', 'NEC', 'NEC-01B'), 'Only active supplemental selectors are reverse references.');
         StatementLine.Get('2026', 'NEC', 12500);
         Assert.AreEqual('NEC-01B', StatementLine."Supplemental Box No.", 'Changing source must not silently erase the saved configuration.');
@@ -837,7 +837,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Repeat annual updates insert absent rows without retargeting custom sources, boxes, labels or order.
         Initialize();
 
-        // [GIVEN] Rows S have custom source, selector, description and ordering; one default is absent.
+        // [GIVEN] Statement rows have custom source, selector, description and ordering; one default is absent.
         CreateAnnualSetup(2026);
         StatementLine.Get('2026', 'NEC', 12500);
         StatementLine.Validate("Supplemental Box No.", 'NEC-01D');
@@ -886,7 +886,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A customer row at a supplied insertion point is never replaced.
         Initialize();
 
-        // [GIVEN] Row S occupies a standard insertion point with custom content.
+        // [GIVEN] Statement row occupies standard insertion point with custom content.
         CreateAnnualSetup(2026);
         StatementLine.Get('2026', 'NEC', 12500);
         StatementLine."Row No." := 'CUSTOM';
@@ -896,7 +896,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [WHEN] Annual reconciliation is requested.
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
 
-        // [THEN] The customer row is preserved and its conflict reported.
+        // [THEN] Customer row is preserved and its conflict reported.
         StatementLine.Get('2026', 'NEC', 12500);
         Assert.AreEqual('CUSTOM', StatementLine."Row No.", 'Do not replace an occupied standard position.');
         Assert.AreEqual('My row', StatementLine.Description, 'Preserve customer content.');
@@ -913,14 +913,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A selector cannot borrow a definition from another form in the same year.
         Initialize();
 
-        // [GIVEN] Row S belongs to NEC.
+        // [GIVEN] Statement row belongs to NEC.
         CreateAnnualSetup(2026);
         StatementLine.Get('2026', 'NEC', 12500);
 
-        // [WHEN] A MISC supplemental definition is selected.
+        // [WHEN] MISC supplemental definition is selected.
         asserterror StatementLine.Validate("Supplemental Box No.", 'MISC-13A');
 
-        // [THEN] The filtered relation rejects the cross-form selector.
+        // [THEN] Filtered relation rejects cross-form selector.
         Assert.ExpectedError('cannot be found in the related table');
         Assert.ExpectedErrorCode('DB:RecordNotFound');
     end;
@@ -943,17 +943,17 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Annual Setup Adds Instructions To Empty Period On First Update.
         Initialize();
 
-        // [GIVEN] P is a TY2026 reporting period with no forms or instructions.
+        // [GIVEN] 2026 reporting period has no forms or instructions.
 
         ReportingPeriod."No." := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(ReportingPeriod."No."));
         ReportingPeriod."Starting Date" := 20260101D;
         ReportingPeriod."Ending Date" := 20261231D;
         ReportingPeriod.Insert(true);
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup(ReportingPeriod."No.", CompanyName());
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         VerifyYearInstructions(ReportingPeriod."No.", true);
         Assert.AreEqual('', Details, 'Missing forms and their annual instructions must be created in the same update.');
         Instruction.SetRange("Period No.", ReportingPeriod."No.");
@@ -976,7 +976,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Explicit updates repair recognized stale 2025 instructions without touching earlier years.
         Initialize();
 
-        // [GIVEN] Period P has the released stale instructions, while historical period H has the same text.
+        // [GIVEN] Current reporting period has released stale instructions, while historical period has same text.
         CreateAnnualSetup(2025);
         SetInstruction('2025', 'NEC', 7, 'Box 3.', 'Reserved for future use.');
         SetInstruction('2025', 'MISC', 18, 'Box 14.', 'Shows your total compensation of excess golden parachute payments subject to a 20% excise tax. See your tax return instructions for where to report.');
@@ -986,12 +986,12 @@ codeunit 148016 "IRS Reporting Period Tests"
         Instruction."Period No." := 'HISTORY2024';
         Instruction.Insert();
 
-        // [WHEN] Both periods are explicitly reconciled, with the current one repeated.
+        // [WHEN] Both periods are explicitly reconciled, with current one repeated.
         LibraryIRSReportingPeriod.UpdateAnnualSetup('2025', CompanyName());
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2025', CompanyName());
         LibraryIRSReportingPeriod.UpdateAnnualSetup('HISTORY2024', CompanyName());
 
-        // [THEN] The supported year converges without conflicts or duplicates and historical text remains.
+        // [THEN] Supported year converges without conflicts or duplicates and historical text remains.
         VerifyYearInstructions('2025', false);
         Assert.AreEqual('', Details, 'Already-current instructions do not require a resolution.');
         Instruction.Get('HISTORY2024', 'NEC', 7);
@@ -1009,7 +1009,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Annual instructions preserve custom text and moved rows while restoring absent defaults.
         Initialize();
 
-        // [GIVEN] Period P has customized and moved instructions and a missing standard instruction.
+        // [GIVEN] Reporting period has customized and moved instructions and missing standard instruction.
         CreateAnnualSetup(2026);
         SetInstruction('2026', 'NEC', 7, 'Box 3.', 'Custom parachute guidance');
         SetInstruction('2026', 'MISC', 17, 'My FATCA guidance', 'Custom account reporting');
@@ -1020,7 +1020,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         Instruction.Get('2026', 'MISC', 23);
         Instruction.Delete();
 
-        // [WHEN] The annual update is repeated.
+        // [WHEN] Annual update is repeated.
         LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
 
@@ -1056,7 +1056,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Annual reconciliation replaces previous default summaries with official recipient instructions.
         Initialize();
 
-        // [GIVEN] P has the previous standard supplemental recipient summaries.
+        // [GIVEN] Reporting period has previous standard supplemental recipient summaries.
         CreateAnnualSetup(2026);
         PreviousCashTips := 'Shows cash tips already included in the reported income. This is a breakdown, not additional income. Determine any deduction using the instructions for your tax return.';
         PreviousOccupation := 'Shows up to two Treasury tipped occupation codes. Code 000 identifies a nonqualifying occupation and retains its leading zeros.';
@@ -1068,10 +1068,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         SetInstruction('2026', 'MISC', 24, 'Box 13b.', PreviousOccupation);
         SetInstruction('2026', 'MISC', 18, 'Box 14.', PreviousOvertime);
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2026', CompanyName());
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         Assert.AreEqual('', Details, 'Previous default summaries are not customizations.');
         Instruction.Get('2026', 'NEC', 12);
         Assert.IsTrue(Instruction.Description.Contains('amount reported in box 1a'), 'NEC tips refer to nonemployee compensation.');
@@ -1098,19 +1098,19 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] TestPage omits the hidden control and cannot substitute for client personalization.
         Initialize();
 
-        // [GIVEN] The current BC environment is a sandbox.
+        // [GIVEN] Current BC environment is sandbox.
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
 
-        // [WHEN] The actual page is opened without personalization.
+        // [WHEN] Actual page is opened without personalization.
         ReportingPeriods.OpenEdit();
 
-        // [THEN] An attempted control edit is rejected because the hidden field is not exposed.
+        // [THEN] Attempted control edit is rejected because hidden field is not exposed.
         asserterror ReportingPeriods.IRISXmlSchemaVersion.SetValue("XML Schema Version IRIS"::"5.0.7");
         Assert.ExpectedError('is not found on the page');
         ReportingPeriods.Close();
 
-        // [WHEN] The same page is opened in production.
+        // [WHEN] Same page is opened in production.
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
         ReportingPeriods.OpenEdit();
 
@@ -1131,14 +1131,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Read opens and evaluates the sandbox page even though its schema control is hidden.
         Initialize();
 
-        // [GIVEN] A sandbox period with a hidden schema override.
+        // [GIVEN] Sandbox period with hidden schema override.
         PrepareReadPermissionFixture(true, true);
 
-        // [WHEN] The page evaluates its period using only normal Read permissions.
+        // [WHEN] Page evaluates its period using only normal Read permissions.
         ReportingPeriods.OpenView();
         ReportingPeriods.GoToKey('2099');
 
-        // [THEN] The period is readable without a configuration execute-permission failure.
+        // [THEN] Period is readable without configuration execute-permission failure.
         ReportingPeriods."No.".AssertEquals('2099');
         ReportingPeriods.Close();
         RestorePermissionEnvironment();
@@ -1154,10 +1154,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Read opens the production page without making the schema override visible.
         Initialize();
 
-        // [GIVEN] A production period with a hidden schema override.
+        // [GIVEN] Production period with hidden schema override.
         PrepareReadPermissionFixture(true, false);
 
-        // [WHEN] The page evaluates its period using only normal Read permissions.
+        // [WHEN] Page evaluates its period using only normal Read permissions.
         ReportingPeriods.OpenView();
         ReportingPeriods.GoToKey('2099');
 
@@ -1177,14 +1177,14 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Normal Read page evaluation also works in OnPrem without changing environment guards.
         Initialize();
 
-        // [GIVEN] An OnPrem period with a hidden schema override.
+        // [GIVEN] OnPrem period with hidden schema override.
         PrepareReadPermissionFixture(false, false);
 
-        // [WHEN] The page evaluates its period using only normal Read permissions.
+        // [WHEN] Page evaluates its period using only normal Read permissions.
         ReportingPeriods.OpenView();
         ReportingPeriods.GoToKey('2099');
 
-        // [THEN] No SaaS mock is required to authorize the configuration codeunit.
+        // [THEN] No SaaS mock is required to authorize configuration codeunit.
         ReportingPeriods."No.".AssertEquals('2099');
         ReportingPeriods.Close();
         RestorePermissionEnvironment();
@@ -1201,7 +1201,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Normal IRS setup-edit permissions allow validated override writes for an unverified year.
         Initialize();
 
-        // [GIVEN] An unverified period is edited with only the normal IRS edit permission set.
+        // [GIVEN] Unverified period is edited with only normal IRS edit permission set.
         LibraryIRSReportingPeriod.CreateSpecificReportingPeriod('2099', 20990101D, 20991231D);
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
@@ -1219,7 +1219,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
 
-        // [THEN] The values are saved without requiring a verified filing year.
+        // [THEN] Values are saved without requiring verified filing year.
         Assert.IsTrue(CanWrite, 'The normal edit permission set must permit setup writes.');
         Assert.AreEqual("XML Schema Version IRIS"::"5.0.7", ReportingPeriod."IRIS XML Schema Version Test", 'TEST override is saved.');
         Assert.AreEqual("XML Schema Version IRIS"::"2.0.3", ReportingPeriod."IRIS XML Schema Version Live", 'Production override is saved independently.');
@@ -1236,7 +1236,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Hiding the override is not security; the normal read permission set rejects a write.
         Initialize();
 
-        // [GIVEN] A period is read with only the normal IRS read permission set.
+        // [GIVEN] Period is read with only normal IRS read permission set.
         LibraryIRSReportingPeriod.CreateSpecificReportingPeriod('2099', 20990101D, 20991231D);
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
@@ -1246,10 +1246,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         CanWrite := ReportingPeriod.WritePermission();
         ReportingPeriod.Validate("IRIS XML Schema Version Test", "XML Schema Version IRIS"::"5.0.7");
 
-        // [WHEN] A direct write attempts to bypass the hidden control.
+        // [WHEN] Direct write attempts to bypass hidden control.
         asserterror ReportingPeriod.Modify(true);
 
-        // [THEN] Platform authorization rejects the write and rolls back the uncommitted fixture.
+        // [THEN] Platform authorization rejects write and rolls back uncommitted fixture.
         LibraryLowerPermissions.StopLoggingNAVPermissions();
         Assert.ExpectedError('permission');
         Assert.ExpectedErrorCode('DB:ClientModifyDenied');
@@ -1270,16 +1270,16 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Financial insertion cannot turn an existing supplemental definition into a posting destination.
         Initialize();
 
-        // [GIVEN] A committed owned period P has supplemental box NEC-01B.
+        // [GIVEN] Committed test reporting period has supplemental box NEC-01B.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         CreateSupplBox(PeriodNo, 'NEC', 'NEC-01B', 'NEC-01', 'CashTipsAmt', CompanyName());
         Commit();
         PrepareFormBox(FormBox, PeriodNo, 'NEC', 'NEC-01B');
 
-        // [WHEN] A form box is inserted at that identity.
+        // [WHEN] Form box is inserted at that identity.
         asserterror FormBox.Insert(true);
 
-        // [THEN] The collision is rejected and the existing definition remains unchanged.
+        // [THEN] Collision is rejected and existing definition remains unchanged.
         Assert.ExpectedError('already exists as a supplemental box');
         Assert.ExpectedErrorCode('Dialog');
         VerifyRejectedFormBoxNumber(PeriodNo, CompanyName());
@@ -1299,7 +1299,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] The existing supplemental-to-financial rejection remains effective.
         Initialize();
 
-        // [GIVEN] A committed owned period P has a custom form box.
+        // [GIVEN] Committed test reporting period has custom Form Box.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         PrepareFormBox(FormBox, PeriodNo, 'NEC', 'CUSTOM');
         FormBox.Description := 'Financial meaning';
@@ -1310,10 +1310,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         SupplementalBox."No." := 'CUSTOM';
         SupplementalBox."Parent Form Box No." := 'NEC-01';
 
-        // [WHEN] A supplemental definition is inserted with the same identity.
+        // [WHEN] Supplemental definition is inserted with same identity.
         asserterror SupplementalBox.Insert(true);
 
-        // [THEN] The original financial meaning survives without a supplemental replacement.
+        // [THEN] Original financial meaning survives without supplemental replacement.
         Assert.ExpectedError('does not meet the reporting requirements');
         Assert.ExpectedErrorCode('Dialog');
         VerifyRejectedSupplBoxNumber(PeriodNo);
@@ -1333,7 +1333,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Changing any financial key component must validate the complete rename destination.
         Initialize();
 
-        // [GIVEN] Three unused form boxes have distinct keys outside a supplemental identity.
+        // [GIVEN] Three unused form boxes have distinct keys outside supplemental identity.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         OtherPeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         CreateSupplBox(PeriodNo, 'NEC', 'NEC-01B', 'NEC-01', 'CashTipsAmt', CompanyName());
@@ -1345,27 +1345,27 @@ codeunit 148016 "IRS Reporting Period Tests"
         FormBox.Insert(true);
         Commit();
 
-        // [WHEN] Only the box number changes into the occupied supplemental identity.
+        // [WHEN] Only box number changes into occupied supplemental identity.
         FormBox.Get(PeriodNo, 'NEC', 'CUSTOM');
         asserterror FormBox.Rename(PeriodNo, 'NEC', 'NEC-01B');
 
-        // [THEN] The box-number destination is rejected.
+        // [THEN] Box-number destination is rejected.
         Assert.ExpectedError('already exists as a supplemental box');
         Assert.ExpectedErrorCode('Dialog');
 
-        // [WHEN] Only the form changes into the occupied supplemental identity.
+        // [WHEN] Only form changes into occupied supplemental identity.
         FormBox.Get(PeriodNo, 'MISC', 'NEC-01B');
         asserterror FormBox.Rename(PeriodNo, 'NEC', 'NEC-01B');
 
-        // [THEN] The form destination is rejected.
+        // [THEN] Form destination is rejected.
         Assert.ExpectedError('already exists as a supplemental box');
         Assert.ExpectedErrorCode('Dialog');
 
-        // [WHEN] Only the period changes into the occupied supplemental identity.
+        // [WHEN] Only period changes into occupied supplemental identity.
         FormBox.Get(OtherPeriodNo, 'NEC', 'NEC-01B');
         asserterror FormBox.Rename(PeriodNo, 'NEC', 'NEC-01B');
 
-        // [THEN] All source keys and the supplemental definition remain intact.
+        // [THEN] All source keys and supplemental definition remain intact.
         Assert.ExpectedError('already exists as a supplemental box');
         Assert.ExpectedErrorCode('Dialog');
         VerifyRejectedFormBoxRenames(PeriodNo, OtherPeriodNo);
@@ -1387,7 +1387,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Triggerless financial setup copy reports and skips a target supplemental collision.
         Initialize();
 
-        // [GIVEN] Source P1 has a form box and target P2 uses that identity for a supplemental box.
+        // [GIVEN] Source period has Form Box and target period uses that identity for supplemental box.
         FromPeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         ToPeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         PrepareFormBox(FormBox, FromPeriodNo, 'NEC', 'NEC-01B');
@@ -1395,10 +1395,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         FormBox.Insert(true);
         CreateSupplBox(ToPeriodNo, 'NEC', 'NEC-01B', 'NEC-01', 'CashTipsAmt', CompanyName());
 
-        // [WHEN] The supported copy path bypasses financial table insert triggers.
+        // [WHEN] Supported copy path bypasses financial table insert triggers.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
-        // [THEN] No collision is inserted, the source is unchanged, and the summary names the rejected target.
+        // [THEN] No collision is inserted, source is unchanged, and summary names rejected target.
         VerifyRejectedFormBoxNumber(ToPeriodNo, CompanyName());
         VerifyFormBoxCopyConflict(FromPeriodNo, ToPeriodNo);
     end;
@@ -1418,7 +1418,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Identical numbers in another form or period remain valid financial posting destinations.
         Initialize();
 
-        // [GIVEN] P1 has supplemental NEC-01B while P2 and form MISC do not.
+        // [GIVEN] First period has supplemental NEC-01B while second period and form MISC do not.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         OtherPeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         CreateSupplBox(PeriodNo, 'NEC', 'NEC-01B', 'NEC-01', 'CashTipsAmt', CompanyName());
@@ -1455,7 +1455,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Changed-company insertion uses target definitions, never ambient-company definitions.
         Initialize();
 
-        // [GIVEN] Owned company B has a collision absent from A and a free identity occupied only in A.
+        // [GIVEN] Target company has collision absent from current company and free identity occupied only in current company.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         CreateSupplBox(PeriodNo, 'NEC', 'NEC-01B', 'NEC-01', 'CashTipsAmt', CompanyName());
         OtherCompany.Name := CopyStr('IRS Identity ' + DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(OtherCompany.Name));
@@ -1470,10 +1470,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         Commit();
         PrepareFormBox(FormBox, OtherPeriodNo, 'NEC', 'NEC-01B');
 
-        // [WHEN] A triggered insert targets B's supplemental definition.
+        // [WHEN] Triggered insert targets target company's supplemental definition.
         asserterror FormBox.Insert(true);
 
-        // [THEN] B's collision is rejected, whereas A's matching identifier did not block the earlier B insert.
+        // [THEN] Target company's collision is rejected, whereas current company's matching identifier did not block earlier target-company insert.
         Assert.ExpectedError('already exists as a supplemental box');
         Assert.ExpectedErrorCode('Dialog');
         VerifyRejectedFormBoxNumber(OtherPeriodNo, OtherCompany.Name);
@@ -1497,7 +1497,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Suppl Box Validation Uses Target Company.
         Initialize();
 
-        // [GIVEN] Companies A and B have distinct reporting setup and a financial-box collision only in B.
+        // [GIVEN] Current and target companies have distinct reporting setup and financial-box collision only in target company.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         OtherCompany.Name := CopyStr('IRS Supplemental ' + DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(OtherCompany.Name));
         Commit();
@@ -1508,7 +1508,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         PrepareFormBox(FormBox, PeriodNo, 'NEC', 'NEC-01B');
         FormBox.Insert(true);
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         SupplementalBox.ChangeCompany(OtherCompany.Name);
         SupplementalBox."Period No." := TargetOnlyPeriodNo;
         SupplementalBox."Form No." := 'NEC';
@@ -1518,7 +1518,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         SupplementalBox."XML Element Name" := 'CashTipsAmt';
         SupplementalBox.Insert(true);
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         Assert.IsTrue(SupplementalBox.Get(TargetOnlyPeriodNo, 'NEC', 'NEC-01B'), 'A period and parent present only in the target company must validate.');
         Commit();
 
@@ -1553,7 +1553,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Annual reconciliation reports historical conflicts without deleting or repurposing either record.
         Initialize();
 
-        // [GIVEN] An owned period has a historical conflict created without insert triggers.
+        // [GIVEN] Owned period has historical conflict created without insert triggers.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         CreateSupplBox(PeriodNo, 'NEC', 'NEC-01B', 'NEC-01', 'CashTipsAmt', CompanyName());
         PrepareFormBox(FormBox, PeriodNo, 'NEC', 'NEC-01B');
@@ -1565,7 +1565,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         LibraryIRSReportingPeriod.UpdateAnnualSetup(PeriodNo, CompanyName());
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup(PeriodNo, CompanyName());
 
-        // [THEN] Both identities and their meaning are preserved with an explicit scoped conflict.
+        // [THEN] Both identities and their meaning are preserved with explicit scoped conflict.
         FormBox.Get(PeriodNo, 'NEC', 'NEC-01B');
         SupplementalBox.Get(PeriodNo, 'NEC', 'NEC-01B');
         VerifyExistingFormBoxNumberConflict(FormBox, SupplementalBox, Details);
@@ -1584,7 +1584,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Reconciliation cannot recreate a financial parent over an existing custom supplemental identity.
         Initialize();
 
-        // [GIVEN] Custom supplemental NEC-01 uses an existing alternative financial parent.
+        // [GIVEN] Custom supplemental NEC-01 uses existing alternative financial parent.
         PeriodNo := CreateBoxSetupTestPeriod(CompanyName());
         FormBox.Get(PeriodNo, 'NEC', 'NEC-01');
         FormBox.Delete(true);
@@ -1595,7 +1595,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [WHEN] Standard annual financial reconciliation attempts to supply NEC-01.
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup(PeriodNo, CompanyName());
 
-        // [THEN] The custom definition is preserved and the financial parent is explicitly reported, not inserted.
+        // [THEN] Custom definition is preserved and financial parent is explicitly reported, not inserted.
         Assert.IsFalse(FormBox.Get(PeriodNo, 'NEC', 'NEC-01'), 'Reconciliation must not create a financial/supplemental collision.');
         SupplementalBox.Get(PeriodNo, 'NEC', 'NEC-01');
         Assert.AreEqual('CUSTOM', SupplementalBox."Parent Form Box No.", 'Custom supplemental meaning must survive.');
@@ -1614,7 +1614,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A copy to an earlier year retains financial statements without unsupported supplemental dependencies.
         Initialize();
 
-        // [GIVEN] Source S has complete 2026 setup and target T is in 2025.
+        // [GIVEN] Source period has complete 2026 setup and target period is in 2025.
         CreateAnnualSetup(2026);
         TargetPeriodNo := CreateSetupCopyPeriod();
         ReportingPeriod.Get(TargetPeriodNo);
@@ -1644,7 +1644,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Copying to a future year preserves source labels, existing target labels and valid supplemental selectors.
         Initialize();
 
-        // [GIVEN] Source P has customized labels and target Q is a TY2027 period.
+        // [GIVEN] Source period has customized labels and target period is in 2027.
         CreateAnnualSetup(2026);
         SupplementalBox.Get('2026', 'NEC', 'NEC-01B');
         SupplementalBox.Description := 'Source customized cash tips';
@@ -1655,11 +1655,11 @@ codeunit 148016 "IRS Reporting Period Tests"
         ReportingPeriod."Ending Date" := 20271231D;
         ReportingPeriod.Modify();
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         LibraryIRSReportingPeriod.CopyPeriodSetup('2026', TargetPeriodNo);
         SupplementalBox.Get(TargetPeriodNo, 'NEC', 'NEC-01B');
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         Assert.AreEqual('Source customized cash tips', SupplementalBox.Description, 'Copy source labels before seeding missing defaults.');
         SupplementalBox.Description := 'Target customized cash tips';
         SupplementalBox.Modify(true);
@@ -1691,7 +1691,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Setup Copy Preserves Supplemental Descriptions.
         Initialize();
 
-        // [GIVEN] Source P and target Q have independently customized descriptions.
+        // [GIVEN] Source and target periods have independently customized descriptions.
 
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
@@ -1706,13 +1706,13 @@ codeunit 148016 "IRS Reporting Period Tests"
         SupplementalBox.Description := 'Existing target occupations';
         SupplementalBox.Insert(true);
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
         SupplementalBox.Get(ToPeriodNo, 'NEC', 'NEC-01B');
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         Assert.AreEqual('Source custom tips', SupplementalBox.Description, 'Copy source descriptions before supplying absent defaults.');
         SupplementalBox.Get(ToPeriodNo, 'NEC', 'NEC-01C');
         Assert.AreEqual('Existing target occupations', SupplementalBox.Description, 'Never replace an existing target description.');
@@ -1738,7 +1738,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Custom typed definitions and their selectors precede statement defaults and converge without losing labels.
         Initialize();
 
-        // [GIVEN] S has custom amount and code definitions, a custom parent and selectors at standard default positions.
+        // [GIVEN] Source period has custom amount and code definitions, custom parent and selectors at standard default positions.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         PrepareFormBox(FormBox, FromPeriodNo, 'NEC', 'CUSTOM-PARENT');
@@ -1772,7 +1772,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A historical dangling source selector is reported rather than introduced into the target.
         Initialize();
 
-        // [GIVEN] S contains an intentionally malformed selector without a definition.
+        // [GIVEN] Source period contains intentionally malformed selector without definition.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         CreateSetupCopySelector(FromPeriodNo, 'MISSING', 31000);
@@ -1780,7 +1780,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [WHEN] Its setup is copied.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
-        // [THEN] T contains no new dangling selector and S remains available for explicit repair.
+        // [THEN] Target period contains no new dangling selector and source period remains available for explicit repair.
         VerifyRejectedSetupSelector(FromPeriodNo, ToPeriodNo, 'MISSING', 31000, 'does not exist');
     end;
 
@@ -1797,7 +1797,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] An unsupported custom source mapping is not accepted by triggerless setup copying.
         Initialize();
 
-        // [GIVEN] S has a custom definition with an unsupported XML mapping and its selector.
+        // [GIVEN] Source period has custom definition with unsupported XML mapping and its selector.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         CreateSupplBox(FromPeriodNo, 'NEC', 'UNSUPPORTED-MAP', 'NEC-01', 'UnsupportedElement', CompanyName());
@@ -1806,7 +1806,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [WHEN] Its setup is copied.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
-        // [THEN] Neither unsupported dependency is introduced and the source mapping remains unchanged.
+        // [THEN] Neither unsupported dependency is introduced and source mapping remains unchanged.
         VerifyRejectedSetupSelector(FromPeriodNo, ToPeriodNo, 'UNSUPPORTED-MAP', 31000, 'XML element does not meet the reporting requirements');
         Assert.IsFalse(SupplementalBox.Get(ToPeriodNo, 'NEC', 'UNSUPPORTED-MAP'), 'Do not copy an unsupported source mapping.');
         SupplementalBox.Get(FromPeriodNo, 'NEC', 'UNSUPPORTED-MAP');
@@ -1826,7 +1826,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Incompatible typed and malformed target definitions remain unchanged without acquiring source selectors.
         Initialize();
 
-        // [GIVEN] S has valid custom definitions, while T has incompatible typed and historical unsupported mappings.
+        // [GIVEN] Source period has valid custom definitions, while target period has incompatible typed and historical unsupported mappings.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         CreateSupplBox(FromPeriodNo, 'NEC', 'CUSTOM', 'NEC-01', '', CompanyName());
@@ -1862,15 +1862,15 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Copy reports an existing dangling target selector without deleting or repairing historical setup.
         Initialize();
 
-        // [GIVEN] T already contains a historical dangling selector unrelated to S's financial setup.
+        // [GIVEN] Target period already contains historical dangling selector unrelated to source period's financial setup.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         CreateSetupCopySelector(ToPeriodNo, 'MISSING', 31000);
 
-        // [WHEN] Ordinary financial setup is copied into T.
+        // [WHEN] Ordinary financial setup is copied into target period.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
-        // [THEN] The historical row stays unchanged and is explicitly reported for repair.
+        // [THEN] Historical row stays unchanged and is explicitly reported for repair.
         StatementLine.Get(ToPeriodNo, 'NEC', 31000);
         Assert.AreEqual('MISSING', StatementLine."Supplemental Box No.", 'Do not delete or silently repair existing malformed target setup.');
         VerifySetupCopySummary(ToPeriodNo, 'MISSING', 'cannot be used for reporting in the target period and was not changed');
@@ -1889,7 +1889,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] A target's customized statement identity is reported and never overwritten by a copied supplemental selector.
         Initialize();
 
-        // [GIVEN] S has a valid supplemental selector at the position of T's customized financial statement.
+        // [GIVEN] Source period has valid supplemental selector at position of target period's customized financial statement.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         CreateSupplBox(FromPeriodNo, 'NEC', 'CUSTOM', 'NEC-01', '', CompanyName());
@@ -1904,11 +1904,11 @@ codeunit 148016 "IRS Reporting Period Tests"
         StatementLine.SetFormBoxFilter('NEC-01');
         StatementLine.Insert(true);
 
-        // [WHEN] S is copied into T twice.
+        // [WHEN] Source period's setup is copied into target period twice.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
-        // [THEN] Target description, selector, sign, total and ordering are unchanged and the conflict is scoped.
+        // [THEN] Target description, selector, sign, total and ordering are unchanged and conflict is scoped.
         VerifyOccupiedSetupStatement(StatementLine, ToPeriodNo);
     end;
 
@@ -1928,7 +1928,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Rejection of a financial identity also rejects its directly dependent vendor setup and adjustment.
         Initialize();
 
-        // [GIVEN] S's form box has vendor setup and adjustment, while T reserves that identity as supplemental.
+        // [GIVEN] Source period's Form Box has vendor setup and adjustment, while target period reserves that identity as supplemental.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         PrepareFormBox(FormBox, FromPeriodNo, 'NEC', 'NEC-01B');
@@ -1947,10 +1947,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         Adjustment.Insert(true);
         CreateSupplBox(ToPeriodNo, 'NEC', 'NEC-01B', 'NEC-01', 'CashTipsAmt', CompanyName());
 
-        // [WHEN] The financial parent is rejected during copy.
+        // [WHEN] Financial parent is rejected during copy.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
-        // [THEN] No dangling dependent is copied and its reason is reported without changing the source amount.
+        // [THEN] No dangling dependent is copied and its reason is reported without changing source amount.
         VerifySkippedFormBoxDependentSetup(FromPeriodNo, ToPeriodNo, Vendor."No.");
     end;
 
@@ -1969,10 +1969,10 @@ codeunit 148016 "IRS Reporting Period Tests"
         StatementCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Cross-company repeated copy validates B's supported target independently of A's unsupported counterpart.
+        // [SCENARIO 653992] Cross-company repeated copy validates the target company's supported period independently of the current company's unsupported counterpart.
         Initialize();
 
-        // [GIVEN] A has S in 2026 and T in 2025, while owned B has a supported 2026 T with a custom parent minimum.
+        // [GIVEN] Current company has 2026 source period and 2025 target period, while target company has supported 2026 target period with custom parent minimum.
         FromPeriodNo := CreateSetupCopyPeriod();
         ToPeriodNo := CreateSetupCopyPeriod();
         ReportingPeriod.Get(ToPeriodNo);
@@ -1991,11 +1991,11 @@ codeunit 148016 "IRS Reporting Period Tests"
         TempSelectedCompany.Name := OtherCompany.Name;
         TempSelectedCompany.Insert();
 
-        // [WHEN] A's source setup is copied to B twice.
+        // [WHEN] Current company's source setup is copied to target company twice.
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo, TempSelectedCompany);
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo, TempSelectedCompany);
 
-        // [THEN] Only B receives one valid custom dependency and selector; source and session-company T remain unchanged.
+        // [THEN] Only target company receives one valid custom dependency and selector; source and current company's target period remain unchanged.
         VerifyCrossCompanySetupCopy(FromPeriodNo, ToPeriodNo, OtherCompany.Name);
         SupplementalBox.ChangeCompany(OtherCompany.Name);
         SupplementalBox.SetRange("Period No.", ToPeriodNo);

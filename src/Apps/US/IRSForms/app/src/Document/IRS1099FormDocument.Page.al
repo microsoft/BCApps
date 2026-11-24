@@ -197,6 +197,24 @@ page 10037 "IRS 1099 Form Document"
                     CurrPage.Update(false);
                 end;
             }
+            action(CopySupplementalLines)
+            {
+                ApplicationArea = BasicCA, BasicUS;
+                Caption = 'Copy Supplemental Lines';
+                Ellipsis = true;
+                Enabled = IsLinesEditable and (Rec.Status = Rec.Status::Open);
+                Image = CopyDocument;
+                ToolTip = 'Replace the supplemental lines on this open document with lines from another document, including an abandoned document. The copied lines must be valid for this document.';
+
+                trigger OnAction()
+                var
+                    IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
+                begin
+                    CurrPage.SaveRecord();
+                    if IRS1099FormDocument.CopySupplementalLines(Rec) then
+                        CurrPage.Update(false);
+                end;
+            }
             action(Print)
             {
                 ApplicationArea = BasicCA, BasicUS;

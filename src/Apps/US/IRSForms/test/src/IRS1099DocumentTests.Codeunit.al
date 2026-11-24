@@ -45,7 +45,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         VendorNotSetupForIRS1099Err: Label 'Vendor %1 is not set up for IRS 1099 reporting in the reporting period %2.', Comment = '%1 = Vendor No., %2 = Period No.';
         DocumentContextTxt: Label 'Document %1', Comment = '%1 - document ID', Locked = true;
         ParentAmountRangeErr: Label 'between zero and the amount %1 on the parent document line', Locked = true;
-
+        CopySourceDocIDVisibleErr: Label 'Document IDs must be visible when selecting a source for copying supplemental lines.';
 
     trigger OnRun()
     begin
@@ -1665,7 +1665,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Positive cash tips cannot be released without occupation codes.
         Initialize();
 
-        // [GIVEN] Document D with positive tips and no codes.
+        // [GIVEN] Form Document with positive tips and no codes.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         SupplementalLine.Validate(Amount, 100);
@@ -1675,7 +1675,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [WHEN] Release is attempted.
         asserterror LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
 
-        // [THEN] An actionable error leaves D Open.
+        // [THEN] Actionable error leaves Form Document Open.
         Assert.ExpectedError('positive cash tips require one or two valid Treasury tipped occupation codes');
         Assert.ExpectedErrorCode('Dialog');
         IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
@@ -1694,7 +1694,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Clearing and restoring tips suppresses and restores saved codes without re-entry.
         Initialize();
 
-        // [GIVEN] Document D with tips and valid codes.
+        // [GIVEN] Form Document with tips and valid codes.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CodesSupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01C');
         Assert.IsTrue(LibraryIRS1099Document.IsSupplementalReportable(CodesSupplementalLine), 'Positive tips should report codes.');
@@ -1704,14 +1704,14 @@ codeunit 148010 "IRS 1099 Document Tests"
         TipsSupplementalLine.Validate(Amount, 0);
         TipsSupplementalLine.Modify(true);
 
-        // [THEN] Codes remain stored but are excluded with an explanation.
+        // [THEN] Codes remain stored but are excluded with explanation.
         VerifyRetainedExcludedCodes(CodesSupplementalLine);
 
         // [WHEN] Positive tips are restored.
         TipsSupplementalLine.Validate(Amount, 100);
         TipsSupplementalLine.Modify(true);
 
-        // [THEN] The same codes become reportable without re-entry.
+        // [THEN] Same codes become reportable without re-entry.
         Assert.IsTrue(LibraryIRS1099Document.IsSupplementalReportable(CodesSupplementalLine), 'Restoring tips must restore code eligibility.');
         Assert.AreEqual('', LibraryIRS1099Document.GetSupplementalExplanation(CodesSupplementalLine), 'Restored codes should not show a zero-tip explanation.');
         LibraryVariableStorage.AssertEmpty();
@@ -1729,7 +1729,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Eligible rent does not qualify excluded other-income disclosures.
         Initialize();
 
-        // [GIVEN] D has rent 2500, other income 500 and tips 100 with valid codes.
+        // [GIVEN] Form Document has rent 2500, other income 500 and tips 100 with valid codes.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'MISC');
         SetParentDocLineAmount(IRS1099FormDocHeader.ID, 500, 2000);
         CreateFormBoxAndDocLine(IRS1099FormDocHeader, 'MISC-01', 2500, 2000);
@@ -1740,7 +1740,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         CodesSupplementalLine.Validate("Occupation Code 1", '000');
         CodesSupplementalLine.Modify(true);
 
-        // [WHEN] D is released.
+        // [WHEN] Form Document is released.
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
 
         // [THEN] Tips are validated against 500 and excluded, rather than qualified by rent.
@@ -1764,11 +1764,11 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Positive backup withholding preserves income and its disclosures below the threshold.
         Initialize();
 
-        // [GIVEN] D has compensation 500, tips 100, a 2000 threshold and withholding 50.
+        // [GIVEN] Form Document has compensation 500, tips 100, 2000 threshold and withholding 50.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 500, 100);
         CreateFormBoxAndDocLine(IRS1099FormDocHeader, 'NEC-04', 50, 0);
 
-        // [WHEN] D is released.
+        // [WHEN] Form Document is released.
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
 
         // [THEN] Both income and its tips are reportable.
@@ -1787,12 +1787,12 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Withholding Does Not Qualify Negative Nec Income.
         Initialize();
 
-        // [GIVEN] D has negative NEC income and positive backup withholding.
+        // [GIVEN] Form Document has negative NEC income and positive backup withholding.
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         VerifyNegativeIncomeWithWithholding('NEC', 'NEC-04');
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -1803,12 +1803,12 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Withholding Does Not Qualify Negative Misc Income.
         Initialize();
 
-        // [GIVEN] D has negative MISC income and positive backup withholding.
+        // [GIVEN] Form Document has negative MISC income and positive backup withholding.
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         VerifyNegativeIncomeWithWithholding('MISC', 'MISC-04');
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -1823,7 +1823,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A custom stored disclosure is not silently omitted at release.
         Initialize();
 
-        // [GIVEN] D contains a populated unmapped custom supplemental box.
+        // [GIVEN] Form Document contains populated unmapped custom supplemental box.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01D');
         SupplementalBox."No." := 'CUSTOM';
@@ -1853,7 +1853,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An accepted 1500 return cannot be detached by changing only its minimum from 600 to 2000.
         Initialize();
 
-        // [GIVEN] D is accepted and linked, with its original receipt and correction state.
+        // [GIVEN] Form Document is accepted and linked, with its original receipt and correction state.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Submitted;
         IRS1099FormDocHeader."IRIS Submission Status" := IRS1099FormDocHeader."IRIS Submission Status"::Accepted;
@@ -1865,10 +1865,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         IRS1099FormDocHeader.Modify(true);
         Commit();
 
-        // [WHEN] The eligibility-only update is selected.
+        // [WHEN] Eligibility-only update is selected.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] The correction route is explicit and every stored filing value survives.
+        // [THEN] Correction route is explicit and every stored filing value survives.
         VerifyRejectedLifecycleUpdate(IRS1099FormDocHeader);
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1884,13 +1884,13 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] In Progress is unsafe even before any receipt or submission identifiers arrive.
         Initialize();
 
-        // [GIVEN] D is processing with no receipt.
+        // [GIVEN] Form Document is processing with no receipt.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::"In Progress";
         IRS1099FormDocHeader.Modify(true);
         Commit();
 
-        // [WHEN] The nonfiling update is selected.
+        // [WHEN] Nonfiling update is selected.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Pending state and association are not cleared.
@@ -1909,13 +1909,13 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Reopening does not make an old receipt safe to detach.
         Initialize();
 
-        // [GIVEN] Open D retains a previous accepted receipt.
+        // [GIVEN] Open Form Document retains previous accepted receipt.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         IRS1099FormDocHeader."IRIS Last Accepted Receipt ID" := 'OLD-ACCEPTED-RECEIPT';
         IRS1099FormDocHeader.Modify(true);
         Commit();
 
-        // [WHEN] The nonfiling update is selected.
+        // [WHEN] Nonfiling update is selected.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Editable status does not authorize unlinking.
@@ -1934,7 +1934,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A reopened correction cannot be treated as unsent when receipts are absent.
         Initialize();
 
-        // [GIVEN] Open D retains correction state but no receipts.
+        // [GIVEN] Open Form Document retains correction state but no receipts.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         IRS1099FormDocHeader."Allow Correction" := true;
         IRS1099FormDocHeader."IRIS Needs Correction" := true;
@@ -1944,10 +1944,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         IRS1099FormDocHeader.Modify(true);
         Commit();
 
-        // [WHEN] The nonfiling update is selected.
+        // [WHEN] Nonfiling update is selected.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] All correction flags remain available to the existing correction workflow.
+        // [THEN] All correction flags remain available to existing correction workflow.
         VerifyRejectedLifecycleUpdate(IRS1099FormDocHeader);
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1964,17 +1964,17 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An exact document's failed send attempt in an older transmission remains unsafe without a receipt.
         Initialize();
 
-        // [GIVEN] Released D has no header filing markers but is linked to an earlier send attempt.
+        // [GIVEN] Released Form Document has no header filing markers but is linked to earlier send attempt.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
         IRS1099FormDocHeader.Modify(true);
         CreateLifecycleAttempt(Attempt, IRS1099FormDocHeader, Transmission."Document ID" + 1, true);
         Commit();
 
-        // [WHEN] The nonfiling update is selected.
+        // [WHEN] Nonfiling update is selected.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] Exact attempt metadata, the link and saved disclosures survive.
+        // [THEN] Exact attempt metadata, link and saved disclosures survive.
         VerifyRejectedLifecycleUpdate(IRS1099FormDocHeader);
         VerifyLifecycleAttempt(Attempt, IRS1099FormDocHeader.ID);
         LibraryVariableStorage.AssertEmpty();
@@ -1993,12 +1993,12 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Missing attempt-header metadata cannot turn an exact document association into proof of no send.
         Initialize();
 
-        // [GIVEN] D has an orphaned log line and no header filing markers.
+        // [GIVEN] Form Document has orphaned log line and no header filing markers.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         CreateLifecycleAttempt(Attempt, IRS1099FormDocHeader, Transmission."Document ID", false);
         Commit();
 
-        // [WHEN] The nonfiling update is selected.
+        // [WHEN] Nonfiling update is selected.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Ambiguous history is retained and requires existing attempt resolution.
@@ -2024,7 +2024,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An unsafe threshold update rolls back valid line changes, details and proposed attachments together.
         Initialize();
 
-        // [GIVEN] D1 has a valid amount update, D2 has filed, and U is a staged attachment.
+        // [GIVEN] First Form Document has valid amount update, second has been filed, and unlinked document is staged for attachment.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateAdditionalSupplementalDocument(UnsafeIRS1099FormDocHeader, IRS1099FormDocHeader, 1500, 100);
         SetParentDocLineAmount(UnsafeIRS1099FormDocHeader.ID, 1500, 600);
@@ -2065,7 +2065,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Another document's history in the same transmission does not make a new released return sent.
         Initialize();
 
-        // [GIVEN] Released D is unsent, while O has history in the same transmission.
+        // [GIVEN] Released Form Document is unsent, while another document has history in same Transmission.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
         IRS1099FormDocHeader.Modify(true);
@@ -2073,10 +2073,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         CreateLifecycleAttempt(Attempt, OtherIRS1099FormDocHeader, Transmission."Document ID", true);
         Commit();
 
-        // [WHEN] D's eligibility-only update is selected.
+        // [WHEN] Unsent Form Document's eligibility-only update is selected.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] D becomes Open/unlinked with saved values; O's history is unchanged.
+        // [THEN] Unsent Form Document becomes Open and unlinked with saved values; other document's history is unchanged.
         IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
         Assert.AreEqual(IRS1099FormDocHeader.Status::Open, IRS1099FormDocHeader.Status, 'A demonstrably unsent nonfiling document stays editable.');
         VerifyDocumentLink(IRS1099FormDocHeader.ID, 0);
@@ -2101,18 +2101,18 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An unchanged 1500 payment is offered after its threshold changes from 600 to 2000.
         Initialize();
 
-        // [GIVEN] D stores an included 1500 payment under threshold 600.
+        // [GIVEN] Form Document stores included 1500 payment under threshold 600.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 1500, 100);
         SetParentDocLineAmount(IRS1099FormDocHeader.ID, 1500, 600);
         FormBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01');
         FormBox."Minimum Reportable Amount" := 600;
         FormBox.Modify(true);
 
-        // [WHEN] Annual setup identifies D and recalculation candidates are explicitly staged.
+        // [WHEN] Annual setup identifies Form Document and recalculation candidates are explicitly staged.
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup(IRS1099FormDocHeader."Period No.", CompanyName());
         LibraryIRS1099Document.GetDocumentUpdateCandidates(TempIRS1099FormDocLine, TempIRS1099FormDocLineDetail, IRS1099FormDocHeader."Period No.");
 
-        // [THEN] The unchanged amount has an explicit threshold/inclusion update.
+        // [THEN] Unchanged amount has explicit threshold/inclusion update.
         Assert.IsTrue(Details.Contains('needs recalculation'), 'Annual setup must identify stale Open documents.');
         Assert.RecordCount(TempIRS1099FormDocLine, 1);
         TempIRS1099FormDocLine.FindFirst();
@@ -2121,12 +2121,12 @@ codeunit 148010 "IRS 1099 Document Tests"
         Assert.IsFalse(TempIRS1099FormDocLine."Include In 1099", 'The proposed parent is below threshold.');
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 1500, true);
 
-        // [WHEN] The operator reviews the eligibility comparison and explicitly deselects D.
+        // [WHEN] Operator reviews eligibility comparison and explicitly deselects Form Document.
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] Equal amounts still display the minimum/inclusion change without applying it.
+        // [THEN] Equal amounts still display minimum/inclusion change without applying it.
         VerifyEligibilityPageRow(true, 1500, 600, true, 1500, 2000, false, false);
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 1500, true);
         VerifyStoredMinimum(IRS1099FormDocHeader.ID, 600);
@@ -2147,16 +2147,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Moving existing -> Create -> existing clears missing current values and cancellation persists nothing.
         Initialize();
 
-        // [GIVEN] D has a threshold-only update and a proposed new form box.
+        // [GIVEN] Form Document has threshold-only update and proposed new Form Box.
         CreateLifecycleThresholdCandidate(IRS1099FormDocHeader, Transmission);
         CreateFormBox(IRS1099FormDocHeader, 'NEC-03', 0);
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-03', 200);
         Commit();
 
-        // [WHEN] The operator inspects both rows and cancels.
+        // [WHEN] Operator inspects both rows and cancels.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] Create has no predecessor, returning restores D's current values, and nothing is applied.
+        // [THEN] Create has no predecessor, returning restores Form Document's current values, and nothing is applied.
         VerifyEligibilityPageRow(true, 1500, 600, true, 1500, 2000, false, true);
         VerifyEligibilityPageRow(false, 0, 0, false, 200, 0, true, true);
         VerifyEligibilityPageRow(true, 1500, 600, true, 1500, 2000, false, true);
@@ -2181,7 +2181,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Cancelling selection does not attach an otherwise eligible unlinked document.
         Initialize();
 
-        // [GIVEN] D needs recalculation and U is an unlinked released document.
+        // [GIVEN] One Form Document needs recalculation and another is unlinked Released document.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateAdditionalSupplementalDocument(UnlinkedIRS1099FormDocHeader, IRS1099FormDocHeader, 5000, 100);
         LibraryIRS1099Document.ReleaseDocument(UnlinkedIRS1099FormDocHeader);
@@ -2189,7 +2189,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] The selection is cancelled.
+        // [WHEN] Selection is cancelled.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Documents, links and disclosures are unchanged.
@@ -2215,7 +2215,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A retained breakdown exceeding its parent amount rolls back every selected document and proposed attachment.
         Initialize();
 
-        // [GIVEN] D1 and D2 need updates; U is a proposed attachment.
+        // [GIVEN] Two Form Documents need updates and unlinked document is proposed for attachment.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateAdditionalSupplementalDocument(SecondIRS1099FormDocHeader, IRS1099FormDocHeader, 5000, 100);
         CreateAdditionalSupplementalDocument(UnlinkedIRS1099FormDocHeader, IRS1099FormDocHeader, 5000, 100);
@@ -2228,7 +2228,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] All candidates are accepted, including D2's parent amount of 50, below its saved tips.
+        // [WHEN] All candidates are accepted, including second Form Document's parent amount of 50, below its saved tips.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] No selected financial change or association survives.
@@ -2257,7 +2257,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         OvertimeSupplementalLine.Validate(Amount, 4000);
         OvertimeSupplementalLine.Modify(true);
 
-        // [WHEN] D is released.
+        // [WHEN] Form Document is released.
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
 
         // [THEN] Both breakdowns survive and income is unchanged.
@@ -2280,7 +2280,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Recalculation is not consent to delete a populated supplemental parent.
         Initialize();
 
-        // [GIVEN] D's only calculation source is removed, but saved tips remain.
+        // [GIVEN] Form Document's only calculation source is removed, but saved tips remain.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         Adjustment.Get(IRS1099FormDocHeader."Period No.", IRS1099FormDocHeader."Vendor No.", IRS1099FormDocHeader."Form No.", 'NEC-01');
         Adjustment.Delete(true);
@@ -2289,10 +2289,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] Removal of the missing financial parent is accepted.
+        // [WHEN] Removal of missing financial parent is accepted.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] D and its saved disclosures survive unchanged.
+        // [THEN] Form Document and its saved disclosures survive unchanged.
         Assert.ExpectedError('Recalculation would remove the document line for that form box');
         Assert.ExpectedErrorCode('Dialog');
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 5000, true);
@@ -2312,16 +2312,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Same-identity recreation retains valid disclosures even with no filing eligibility.
         Initialize();
 
-        // [GIVEN] D will recalculate from 5000 to excluded compensation 500.
+        // [GIVEN] Form Document will recalculate from 5000 to excluded compensation 500.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         OldDocumentID := IRS1099FormDocHeader.ID;
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-01', 500);
 
-        // [WHEN] The document is recreated.
+        // [WHEN] Document is recreated.
         LibraryIRS1099Document.CreateFormDocuments(DMY2Date(1, 1, 2026), DMY2Date(31, 12, 2026),
             IRS1099FormDocHeader."Vendor No.", IRS1099FormDocHeader."Form No.", true);
 
-        // [THEN] The new identity remains Open and unlinked with its valid stored values.
+        // [THEN] New identity remains Open and unlinked with its valid stored values.
         FindReplacementDocument(IRS1099FormDocHeader);
         Assert.AreNotEqual(OldDocumentID, IRS1099FormDocHeader.ID, 'Recreation must allocate a new identity.');
         Assert.AreEqual(IRS1099FormDocHeader.Status::Open, IRS1099FormDocHeader.Status, 'Nonfiling disclosures must remain editable.');
@@ -2341,16 +2341,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A linked parent cannot be reassigned to another form box.
         Initialize();
 
-        // [GIVEN] D has a financial parent referenced by saved tips.
+        // [GIVEN] Form Document has financial parent referenced by saved tips.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateFormBox(IRS1099FormDocHeader, 'NEC-03', 0);
         FindParentDocLine(IRS1099FormDocHeader.ID, ParentIRS1099FormDocLine);
         Commit();
 
-        // [WHEN] The parent box is changed without correcting the disclosures.
+        // [WHEN] Parent box is changed without correcting disclosures.
         asserterror ParentIRS1099FormDocLine.Validate("Form Box No.", 'NEC-03');
 
-        // [THEN] An actionable error preserves the original parent relationship.
+        // [THEN] Actionable error preserves original parent relationship.
         Assert.ExpectedError('Remove those lines in Supplemental Lines before changing the form box');
         Assert.ExpectedErrorCode('Dialog');
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 5000, true);
@@ -2370,7 +2370,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Stored tips exceeding parent income on a proposed attachment roll back the attach-only operation.
         Initialize();
 
-        // [GIVEN] D1 and D2 have no calculation changes, but D2 contains imported tips exceeding parent income.
+        // [GIVEN] Two Form Documents have no calculation changes, but second contains imported tips exceeding parent income.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateAdditionalSupplementalDocument(ExcessTipsIRS1099FormDocHeader, IRS1099FormDocHeader, 5000, 100);
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
@@ -2381,7 +2381,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] Both proposed attachments are applied without a selection page.
+        // [WHEN] Both proposed attachments are applied without selection page.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Neither association survives validation failure.
@@ -2406,11 +2406,11 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Removing backup withholding requires confirmation of the unselected income eligibility change.
         Initialize();
 
-        // [GIVEN] Released D has compensation 500 qualified by withholding 50.
+        // [GIVEN] Released Form Document has compensation 500 qualified by withholding 50.
         CreateWithholdingRemovalCandidate(IRS1099FormDocHeader, Transmission);
         Commit();
 
-        // [WHEN] The explicitly selected recalculation removes withholding.
+        // [WHEN] Explicitly selected recalculation removes withholding.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Income remains 500, but its saved tips no longer qualify for filing.
@@ -2434,7 +2434,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A setup threshold edit does not rewrite a submitted document or its saved eligibility.
         Initialize();
 
-        // [GIVEN] Submitted D stores income 1500 under threshold 600 and saved disclosures.
+        // [GIVEN] Submitted Form Document stores income 1500 under threshold 600 and saved disclosures.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 1500, 100);
         SetParentDocLineAmount(IRS1099FormDocHeader.ID, 1500, 600);
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Submitted;
@@ -2486,10 +2486,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         LibraryVariableStorage.Enqueue(IRS1099FormDocHeader."Vendor No.");
         Commit();
 
-        // [WHEN] Only D1 is selected.
+        // [WHEN] Only first Form Document is selected.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] D1 recalculates explicitly; D2's manual amount and stored threshold remain unchanged.
+        // [THEN] First Form Document recalculates explicitly; second document's manual amount and stored threshold remain unchanged.
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 1500, false);
         VerifyParentDocLineState(OtherIRS1099FormDocHeader.ID, 1750, true);
         FindParentDocLine(OtherIRS1099FormDocHeader.ID, ParentIRS1099FormDocLine);
@@ -2509,16 +2509,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An up-to-date released document can still be attached without a selection page.
         Initialize();
 
-        // [GIVEN] D has valid disclosures and no financial changes.
+        // [GIVEN] Form Document has valid disclosures and no financial changes.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] The transmission is updated.
+        // [WHEN] Transmission is updated.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] D is attached with its original financial and supplemental amounts.
+        // [THEN] Form Document is attached with its original financial and supplemental amounts.
         VerifyDocumentLink(IRS1099FormDocHeader.ID, Transmission."Document ID");
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 5000, true);
         VerifySavedTips(IRS1099FormDocHeader.ID, 100);
@@ -2536,17 +2536,17 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Valid disclosures survive an update that excludes every financial line.
         Initialize();
 
-        // [GIVEN] Released D has 5000 income and valid tips, and will recalculate to 500.
+        // [GIVEN] Released Form Document has 5000 income and valid tips, and will recalculate to 500.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-01', 500);
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] The recalculation is accepted.
+        // [WHEN] Recalculation is accepted.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] D remains Open and unlinked with the excluded parent and tips.
+        // [THEN] Form Document remains Open and unlinked with excluded parent and tips.
         IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
         Assert.AreEqual(IRS1099FormDocHeader.Status::Open, IRS1099FormDocHeader.Status, 'A nonfiling document must remain editable.');
         VerifyParentDocLineState(IRS1099FormDocHeader.ID, 500, false);
@@ -2563,18 +2563,18 @@ codeunit 148010 "IRS 1099 Document Tests"
         OldDocumentID: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Deleting and recreating D transfers disclosures to its actual new identity.
+        // [SCENARIO 653992] Deleting and recreating a Form Document transfers disclosures to its actual new identity.
         Initialize();
 
-        // [GIVEN] D has saved tips and a parent that will be renumbered.
+        // [GIVEN] Form Document has saved tips and parent that will be renumbered.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         OldDocumentID := IRS1099FormDocHeader.ID;
 
-        // [WHEN] The same year/vendor/form is recreated.
+        // [WHEN] Same year/vendor/form is recreated.
         LibraryIRS1099Document.CreateFormDocuments(DMY2Date(1, 1, 2026), DMY2Date(31, 12, 2026),
             IRS1099FormDocHeader."Vendor No.", IRS1099FormDocHeader."Form No.", true);
 
-        // [THEN] Only the new document owns the transferred values.
+        // [THEN] Only new document owns transferred values.
         FindReplacementDocument(IRS1099FormDocHeader);
         Assert.AreNotEqual(OldDocumentID, IRS1099FormDocHeader.ID, 'The new identity must not be assumed equal to the old one.');
         VerifySavedTips(IRS1099FormDocHeader.ID, 100);
@@ -2594,13 +2594,13 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Rejected recreation cannot destroy the source header or its supplements.
         Initialize();
 
-        // [GIVEN] D's recalculated income of 50 is smaller than saved tips of 100.
+        // [GIVEN] Form Document's recalculated income of 50 is smaller than saved tips of 100.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         OldDocumentID := IRS1099FormDocHeader.ID;
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-01', 50);
         Commit();
 
-        // [WHEN] The same-identity recreation is attempted.
+        // [WHEN] Same-identity recreation is attempted.
         asserterror LibraryIRS1099Document.CreateFormDocuments(DMY2Date(1, 1, 2026), DMY2Date(31, 12, 2026),
             IRS1099FormDocHeader."Vendor No.", IRS1099FormDocHeader."Form No.", true);
 
@@ -2624,7 +2624,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A replacement copies disclosures while retaining the Abandoned source values.
         Initialize();
 
-        // [GIVEN] D needs an additional form box.
+        // [GIVEN] Form Document needs additional Form Box.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateFormBox(IRS1099FormDocHeader, 'NEC-03', 0);
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-03', 200);
@@ -2632,7 +2632,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] Creation of the additional box is accepted.
+        // [WHEN] Creation of additional box is accepted.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Source history and new document have separate, preserved disclosures.
@@ -2667,7 +2667,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Exact source IDs isolate replacement disclosures and both retained and new financial details.
         Initialize();
 
-        // [GIVEN] D1 and D2 share vendor/form but have different saved values; D3 belongs to another vendor.
+        // [GIVEN] First two Form Documents share vendor and form but have different saved values; third belongs to another vendor.
         CreateSupplementalUpdateDocument(FirstIRS1099FormDocHeader, 5000, 100);
         CreateSameVendorSupplementalDocument(SecondIRS1099FormDocHeader, FirstIRS1099FormDocHeader, 6000, 200);
         CreateAdditionalSupplementalDocument(OtherIRS1099FormDocHeader, FirstIRS1099FormDocHeader, 7000, 300);
@@ -2681,7 +2681,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         AddCreateCandidate(TempIRS1099FormDocLine, SecondIRS1099FormDocHeader, SecondIRS1099FormDocHeader.ID, 3000, 202);
         SecondNewEntryNo := CreateRoutingDetail(TempIRS1099FormDocLineDetail, TempIRS1099FormDocLine, 202);
 
-        // [WHEN] The real replacement apply accepts the exact-source candidates together.
+        // [WHEN] Real replacement apply accepts exact-source candidates together.
         BindSubscription(RoutingSubscriber);
         NewDocumentIDs := LibraryIRS1099Document.ApplyDocumentCreationCandidates(TempIRS1099FormDocLine, TempIRS1099FormDocLineDetail);
         UnbindSubscription(RoutingSubscriber);
@@ -2710,14 +2710,14 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An unspecified source must not silently choose one of several active documents.
         Initialize();
 
-        // [GIVEN] Two active documents share the candidate's period/vendor/form.
+        // [GIVEN] Two active documents share candidate's period/vendor/form.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateSameVendorSupplementalDocument(SecondIRS1099FormDocHeader, IRS1099FormDocHeader, 6000, 200);
         CreateFormBox(IRS1099FormDocHeader, 'NEC-03', 0);
         AddCreateCandidate(TempIRS1099FormDocLine, IRS1099FormDocHeader, 0, 7000, 201);
         Commit();
 
-        // [WHEN] A replacement is attempted without an exact source.
+        // [WHEN] Replacement is attempted without exact source.
         asserterror LibraryIRS1099Document.ApplyDocumentCreationCandidates(TempIRS1099FormDocLine, TempIRS1099FormDocLineDetail);
 
         // [THEN] Neither source is changed or guessed.
@@ -2741,7 +2741,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A supplied source from another form is rejected rather than substituted.
         Initialize();
 
-        // [GIVEN] A NEC candidate carries the ID of the same vendor's MISC document.
+        // [GIVEN] NEC candidate carries ID of same vendor's MISC document.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         Form."Period No." := IRS1099FormDocHeader."Period No.";
         Form."No." := 'MISC';
@@ -2754,10 +2754,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         AddCreateCandidate(TempIRS1099FormDocLine, IRS1099FormDocHeader, OtherIRS1099FormDocHeader.ID, 7000, 201);
         Commit();
 
-        // [WHEN] The incompatible exact source is applied.
+        // [WHEN] Incompatible exact source is applied.
         asserterror LibraryIRS1099Document.ApplyDocumentCreationCandidates(TempIRS1099FormDocLine, TempIRS1099FormDocLineDetail);
 
-        // [THEN] Both identities and the NEC disclosures are unchanged.
+        // [THEN] Both identities and NEC disclosures are unchanged.
         Assert.ExpectedError('Form No.');
         Assert.ExpectedErrorCode('TestField');
         VerifyOpenRoutingSource(IRS1099FormDocHeader.ID, 100);
@@ -2782,7 +2782,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A selected removal stays removed when another form box creates a replacement.
         Initialize();
 
-        // [GIVEN] D retains compensation/details, removes withholding, and adds a different box.
+        // [GIVEN] Form Document retains compensation and details, removes withholding, and adds different box.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateFormBoxAndDocLine(IRS1099FormDocHeader, 'NEC-04', 50, 0);
         CreateFormBox(IRS1099FormDocHeader, 'NEC-03', 0);
@@ -2793,10 +2793,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] The actual transmission update accepts Create and Abandon together.
+        // [WHEN] Actual transmission update accepts Create and Abandon together.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] The new document retains the parent and its detail, but not the removed box.
+        // [THEN] New document retains parent and its detail, but not removed box.
         FindReplacementDocument(IRS1099FormDocHeader);
         RemovedIRS1099FormDocLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
         RemovedIRS1099FormDocLine.SetRange("Form Box No.", 'NEC-04');
@@ -2819,12 +2819,12 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Declining the explicit supplemental cascade preserves parent and disclosures.
         Initialize();
 
-        // [GIVEN] D has a financial parent with saved supplemental lines.
+        // [GIVEN] Form Document has financial parent with saved supplemental lines.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         FindParentDocLine(IRS1099FormDocHeader.ID, ParentIRS1099FormDocLine);
         Commit();
 
-        // [WHEN] The user declines the deliberate parent deletion.
+        // [WHEN] User declines deliberate parent deletion.
         asserterror ParentIRS1099FormDocLine.Delete(true);
 
         // [THEN] No values are removed.
@@ -2846,12 +2846,12 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Confirmed deletion removes the parent and its supplements but not other financial lines.
         Initialize();
 
-        // [GIVEN] D has a supplemental parent and an unrelated financial line.
+        // [GIVEN] Form Document has supplemental parent and unrelated financial line.
         CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
         CreateFormBoxAndDocLine(IRS1099FormDocHeader, 'NEC-03', 200, 0);
         FindParentDocLine(IRS1099FormDocHeader.ID, ParentIRS1099FormDocLine);
 
-        // [WHEN] The explicit supplemental cascade is confirmed.
+        // [WHEN] Explicit supplemental cascade is confirmed.
         ParentIRS1099FormDocLine.Delete(true);
 
         // [THEN] Only linked data is removed.
@@ -2876,7 +2876,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An unused MISC cash-tip definition cannot point at rents.
         Initialize();
 
-        // [GIVEN] MISC other income and a separate valid rents box.
+        // [GIVEN] MISC other income and separate valid rents box.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'MISC');
         FormBox."Period No." := IRS1099FormDocHeader."Period No.";
         FormBox."Form No." := 'MISC';
@@ -2885,10 +2885,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'MISC', 'MISC-13A');
         SupplementalBox."Parent Form Box No." := 'MISC-01';
 
-        // [WHEN] The otherwise existing form box is assigned as the tip parent.
+        // [WHEN] Otherwise existing form box is assigned as tip parent.
         asserterror SupplementalBox.Modify(true);
 
-        // [THEN] The full mapping tuple, not just parent existence, is enforced.
+        // [THEN] Full mapping tuple, not just parent existence, is enforced.
         Assert.ExpectedError('does not meet the reporting requirements');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -2904,7 +2904,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A known amount mapping cannot be configured as codes.
         Initialize();
 
-        // [GIVEN] An unused NEC cash-tip definition.
+        // [GIVEN] Unused NEC cash-tip definition.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
         SupplementalBox."Value Type" := SupplementalBox."Value Type"::"Occupation Codes";
@@ -2912,7 +2912,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [WHEN] Its stored type is changed.
         asserterror SupplementalBox.Modify(true);
 
-        // [THEN] The mapping cannot reinterpret amounts.
+        // [THEN] Mapping cannot reinterpret amounts.
         Assert.ExpectedError('does not meet the reporting requirements');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -2928,7 +2928,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A known cash-tip identifier cannot serialize overtime.
         Initialize();
 
-        // [GIVEN] An unused NEC cash-tip definition.
+        // [GIVEN] Unused NEC cash-tip definition.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
         SupplementalBox."XML Element Name" := 'OvertimeCompensationAmt';
@@ -2936,7 +2936,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [WHEN] Its XML element is changed.
         asserterror SupplementalBox.Modify(true);
 
-        // [THEN] A valid but different XML element is rejected.
+        // [THEN] Valid but different XML element is rejected.
         Assert.ExpectedError('does not meet the reporting requirements');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -2952,11 +2952,11 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Compatible descriptions and unmapped custom definitions remain editable.
         Initialize();
 
-        // [GIVEN] An unused standard definition.
+        // [GIVEN] Unused standard definition.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
 
-        // [WHEN] Its description is customized and a separate unmapped amount definition is added.
+        // [WHEN] Its description is customized and separate unmapped amount definition is added.
         SupplementalBox.Description := 'Qualified cash tips';
         SupplementalBox.Modify(true);
         SupplementalBox."No." := 'CUSTOM';
@@ -2964,7 +2964,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         SupplementalBox.Insert(true);
         SupplementalBox.Rename(SupplementalBox."Period No.", 'NEC', 'CUSTOM-RENAMED');
 
-        // [THEN] Custom setup has its own identity without claiming an XML mapping.
+        // [THEN] Custom setup has its own identity without claiming XML mapping.
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'CUSTOM-RENAMED');
         Assert.AreEqual('Qualified cash tips', SupplementalBox.Description, 'Description customization was lost.');
         Assert.AreEqual('', SupplementalBox."XML Element Name", 'A custom definition must not acquire an XML mapping.');
@@ -2982,7 +2982,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Occupation codes preserve leading zeros without creating financial lines.
         Initialize();
 
-        // [GIVEN] A NEC income document.
+        // [GIVEN] NEC income document.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01C');
 
@@ -2991,7 +2991,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         SupplementalLine.Validate("Occupation Code 2", '000');
         SupplementalLine.Modify(true);
 
-        // [THEN] Codes and the saved parent remain typed and financial income remains unchanged.
+        // [THEN] Codes and saved parent remain typed and financial income remains unchanged.
         SupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01C');
         VerifySupplementalCodes(SupplementalLine);
         IRS1099FormDocLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
@@ -3011,13 +3011,13 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Selecting a code box cannot silently reinterpret an entered amount.
         Initialize();
 
-        // [GIVEN] An amount row with entered tips.
+        // [GIVEN] Amount row with entered tips.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         SupplementalLine.Validate(Amount, 100);
         SupplementalLine.Modify(true);
 
-        // [WHEN] The box is changed to occupation codes.
+        // [WHEN] Box is changed to occupation codes.
         asserterror SupplementalLine.Validate("Supplemental Box No.", 'NEC-01C');
 
         // [THEN] Typed values must be corrected explicitly.
@@ -3036,15 +3036,15 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Amount rows cannot store occupation codes even through record writes.
         Initialize();
 
-        // [GIVEN] A NEC tip amount row.
+        // [GIVEN] NEC tip amount row.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         SupplementalLine."Occupation Code 1" := '101';
 
-        // [WHEN] A code is assigned without field validation.
+        // [WHEN] Code is assigned without field validation.
         asserterror SupplementalLine.Modify(true);
 
-        // [THEN] The table trigger still enforces the value kind.
+        // [THEN] Table trigger still enforces value kind.
         Assert.ExpectedError('Amount lines cannot contain occupation codes, and Occupation Codes lines cannot contain an amount');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -3060,11 +3060,11 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] A three-digit value outside the exact XSD enumeration is rejected.
         Initialize();
 
-        // [GIVEN] An occupation-code row.
+        // [GIVEN] Occupation-code row.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01C');
 
-        // [WHEN] The gap immediately after code 110 is entered.
+        // [WHEN] Gap immediately after code 110 is entered.
         asserterror SupplementalLine.Validate("Occupation Code 1", '111');
 
         // [THEN] Three numeric-looking characters alone are insufficient.
@@ -3083,14 +3083,14 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] An individual breakdown cannot exceed its stored income.
         Initialize();
 
-        // [GIVEN] A parent amount of 5000.
+        // [GIVEN] Parent amount of 5000.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01D');
 
         // [WHEN] Overtime exceeds that parent.
         asserterror SupplementalLine.Validate(Amount, 5001);
 
-        // [THEN] The error identifies the document breakdown constraint.
+        // [THEN] Error identifies document breakdown constraint.
         Assert.ExpectedError('must be between zero and the amount');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -3107,19 +3107,19 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Parent lookup uses document ID and saved box rather than financial line number.
         Initialize();
 
-        // [GIVEN] A saved tip row and its financial parent.
+        // [GIVEN] Saved tip row and its financial parent.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         IRS1099FormDocLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
         IRS1099FormDocLine.FindFirst();
 
-        // [WHEN] The financial line is renumbered and tips are subsequently edited.
+        // [WHEN] Financial line is renumbered and tips are subsequently edited.
         IRS1099FormDocLine.Rename(IRS1099FormDocLine."Period No.", IRS1099FormDocLine."Vendor No.",
             IRS1099FormDocLine."Form No.", IRS1099FormDocHeader.ID, 30000);
         SupplementalLine.Validate(Amount, 100);
         SupplementalLine.Modify(true);
 
-        // [THEN] The saved parent box still resolves the same income.
+        // [THEN] Saved parent box still resolves same income.
         Assert.AreEqual('NEC-01', SupplementalLine."Parent Form Box No.", 'Renumbering must not redirect the parent.');
         Assert.AreEqual(100, SupplementalLine.Amount, 'The breakdown should remain editable.');
         LibraryVariableStorage.AssertEmpty();
@@ -3136,7 +3136,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Nonstructural edits remain allowed for an in-use definition.
         Initialize();
 
-        // [GIVEN] A used cash-tip definition.
+        // [GIVEN] Used cash-tip definition.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
@@ -3163,15 +3163,15 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Deleting an in-use definition cannot orphan stored disclosures.
         Initialize();
 
-        // [GIVEN] A used cash-tip definition.
+        // [GIVEN] Used cash-tip definition.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
 
-        // [WHEN] The setup row is deleted.
+        // [WHEN] Setup row is deleted.
         asserterror SupplementalBox.Delete(true);
 
-        // [THEN] The dependent document is identified.
+        // [THEN] Dependent document is identified.
         Assert.ExpectedError('is used by document');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -3188,15 +3188,15 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Renaming an in-use definition cannot redirect its identity.
         Initialize();
 
-        // [GIVEN] A used cash-tip definition.
+        // [GIVEN] Used cash-tip definition.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
 
-        // [WHEN] The setup identity is renamed.
+        // [WHEN] Setup identity is renamed.
         asserterror SupplementalBox.Rename(SupplementalBox."Period No.", 'NEC', 'CUSTOM');
 
-        // [THEN] The dependent document is identified.
+        // [THEN] Dependent document is identified.
         Assert.ExpectedError('is used by document');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -3214,7 +3214,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] The lookup shows only same-form available definitions with financial parents.
         Initialize();
 
-        // [GIVEN] Three definitions, one already selected on the document.
+        // [GIVEN] Three definitions, one already selected on document.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         FormBox."Period No." := IRS1099FormDocHeader."Period No.";
@@ -3230,7 +3230,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [WHEN] Available boxes are resolved.
         LibraryIRS1099Document.FilterAvailableSupplementalBoxes(SupplementalBox, IRS1099FormDocHeader.ID);
 
-        // [THEN] Only the two remaining definitions are offered.
+        // [THEN] Only two remaining definitions are offered.
         Assert.RecordCount(SupplementalBox, 2);
         SupplementalBox.FindFirst();
         Assert.AreEqual('NEC-01C', SupplementalBox."No.", 'The already selected box must not be offered again.');
@@ -3248,7 +3248,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Supplemental definitions cannot be saved for an earlier year.
         Initialize();
 
-        // [GIVEN] A fixture whose reporting period is changed to 2025.
+        // [GIVEN] Fixture whose reporting period is changed to 2025.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         ReportingPeriod.Get(IRS1099FormDocHeader."Period No.");
         ReportingPeriod."Starting Date" := DMY2Date(1, 1, 2025);
@@ -3256,11 +3256,11 @@ codeunit 148010 "IRS 1099 Document Tests"
         ReportingPeriod.Modify();
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
 
-        // [WHEN] The otherwise compatible definition is saved.
+        // [WHEN] Otherwise compatible definition is saved.
         SupplementalBox.Description := 'Earlier year';
         asserterror SupplementalBox.Modify(true);
 
-        // [THEN] Scope is validated independently of the mapping identifier.
+        // [THEN] Scope is validated independently of mapping identifier.
         Assert.ExpectedError('supported for tax years 2026 and later on forms MISC and NEC within a single calendar year');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -3278,7 +3278,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Supplemental validation uses the period dates, not its identifier or a fixed year.
         Initialize();
 
-        // [GIVEN] D has tips and occupation codes in a single TY2027 reporting period.
+        // [GIVEN] Form Document has tips and occupation codes in single 2027 reporting period.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         ReportingPeriod.Get(IRS1099FormDocHeader."Period No.");
         ReportingPeriod."Starting Date" := 20270101D;
@@ -3291,10 +3291,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         CodesSupplementalLine.Validate("Occupation Code 1", '000');
         CodesSupplementalLine.Modify(true);
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         Assert.AreEqual(IRS1099FormDocHeader.Status::Released, IRS1099FormDocHeader.Status, 'Status must match the expected value.');
         Assert.IsTrue(LibraryIRS1099Document.IsSupplementalReportable(TipsSupplementalLine), 'Future-year tips must remain reportable.');
         Assert.IsTrue(LibraryIRS1099Document.IsSupplementalReportable(CodesSupplementalLine), 'Future-year codes must remain reportable.');
@@ -3313,18 +3313,18 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Removing the upper year limit must not allow a period spanning two calendar years.
         Initialize();
 
-        // [GIVEN] D's reporting period spans TY2026 and TY2027.
+        // [GIVEN] Form Document's reporting period spans 2026 and 2027.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         ReportingPeriod.Get(IRS1099FormDocHeader."Period No.");
         ReportingPeriod."Ending Date" := 20271231D;
         ReportingPeriod.Modify();
         SupplementalBox.Get(IRS1099FormDocHeader."Period No.", 'NEC', 'NEC-01B');
 
-        // [WHEN] The requested operation is executed through its existing entry point.
+        // [WHEN] Requested operation is executed through its existing entry point.
         SupplementalBox.Description := 'Spanning tax years';
         asserterror SupplementalBox.Modify(true);
 
-        // [THEN] The expected result and preserved data are verified.
+        // [THEN] Expected result and preserved data are verified.
         Assert.ExpectedError('within a single calendar year');
         Assert.ExpectedErrorCode('Dialog');
 
@@ -3346,10 +3346,10 @@ codeunit 148010 "IRS 1099 Document Tests"
         GenJournalLine."IRS 1099 Reporting Period" := IRS1099FormDocHeader."Period No.";
         GenJournalLine."IRS 1099 Form No." := 'NEC';
 
-        // [WHEN] A supplemental tip box is selected as a journal destination.
+        // [WHEN] Supplemental tip box is selected as journal destination.
         asserterror GenJournalLine.Validate("IRS 1099 Form Box No.", 'NEC-01B');
 
-        // [THEN] The financial table relation rejects it.
+        // [THEN] Financial table relation rejects it.
         Assert.ExpectedError('NEC-01B');
         Assert.ExpectedErrorCode('DB:RecordNotFound');
         LibraryVariableStorage.AssertEmpty();
@@ -3366,16 +3366,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Empty supplemental lines are hidden until explicitly shown without creating rows.
         Initialize();
 
-        // [GIVEN] Document D has no supplemental lines.
+        // [GIVEN] Form Document has no supplemental lines.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         IRS1099FormDocument.OpenEdit();
         IRS1099FormDocument.GoToRecord(IRS1099FormDocHeader);
         VerifySupplementalLinesVisibility(IRS1099FormDocument, false);
 
-        // [WHEN] The user reveals supplemental lines.
+        // [WHEN] User reveals supplemental lines.
         IRS1099FormDocument.ShowSupplementalLines.Invoke();
 
-        // [THEN] The part is visible without inserting unused rows.
+        // [THEN] Part is visible without inserting unused rows.
         VerifySupplementalLinesVisibility(IRS1099FormDocument, true);
         IRS1099FormDocument.Close();
         SupplementalLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
@@ -3394,11 +3394,11 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Existing supplemental lines are automatically shown on an Open document.
         Initialize();
 
-        // [GIVEN] Open document D has a supplemental line.
+        // [GIVEN] Open Form Document has supplemental line.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
 
-        // [WHEN] The document card is opened.
+        // [WHEN] Document card is opened.
         IRS1099FormDocument.OpenEdit();
         IRS1099FormDocument.GoToRecord(IRS1099FormDocHeader);
 
@@ -3420,13 +3420,13 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Existing supplemental lines remain visible and read-only on a Released document.
         Initialize();
 
-        // [GIVEN] Released document D has a supplemental line.
+        // [GIVEN] Released Form Document has supplemental line.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
         IRS1099FormDocHeader.Modify(true);
 
-        // [WHEN] The document card is opened.
+        // [WHEN] Document card is opened.
         IRS1099FormDocument.OpenEdit();
         IRS1099FormDocument.GoToRecord(IRS1099FormDocHeader);
 
@@ -3448,7 +3448,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Revealing empty supplemental lines applies only to the current document.
         Initialize();
 
-        // [GIVEN] Documents D and E have no supplemental lines, and D's part is explicitly shown.
+        // [GIVEN] Two Form Documents have no supplemental lines, and first document's part is explicitly shown.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         OtherIRS1099FormDocHeader."Period No." := IRS1099FormDocHeader."Period No.";
         OtherIRS1099FormDocHeader."Vendor No." := LibraryPurchase.CreateVendorNo();
@@ -3458,16 +3458,16 @@ codeunit 148010 "IRS 1099 Document Tests"
         IRS1099FormDocument.GoToRecord(IRS1099FormDocHeader);
         IRS1099FormDocument.ShowSupplementalLines.Invoke();
 
-        // [WHEN] The user navigates to E.
+        // [WHEN] User navigates to second Form Document.
         IRS1099FormDocument.GoToRecord(OtherIRS1099FormDocHeader);
 
-        // [THEN] E's empty supplemental lines are hidden.
+        // [THEN] Second Form Document's empty supplemental lines are hidden.
         VerifySupplementalLinesVisibility(IRS1099FormDocument, false);
 
-        // [WHEN] The user returns to D without having entered a supplemental line.
+        // [WHEN] User returns to first Form Document without having entered supplemental line.
         IRS1099FormDocument.GoToRecord(IRS1099FormDocHeader);
 
-        // [THEN] D's empty supplemental lines are hidden again.
+        // [THEN] First Form Document's empty supplemental lines are hidden again.
         VerifySupplementalLinesVisibility(IRS1099FormDocument, false);
         IRS1099FormDocument.Close();
         LibraryVariableStorage.AssertEmpty();
@@ -3485,18 +3485,18 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Manual lookup fills the parent without inserting unused supplemental rows.
         Initialize();
 
-        // [GIVEN] A document with definitions and no supplemental rows.
+        // [GIVEN] Document with definitions and no supplemental rows.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         IRS1099FormDocument.OpenEdit();
         IRS1099FormDocument.GoToRecord(IRS1099FormDocHeader);
 
-        // [WHEN] A user explicitly selects the first descriptive lookup choice.
+        // [WHEN] User explicitly selects first descriptive lookup choice.
         IRS1099FormDocument.ShowSupplementalLines.Invoke();
         IRS1099FormDocument.SupplementalLines.New();
         IRS1099FormDocument.SupplementalLines."Supplemental Box No.".Lookup();
         IRS1099FormDocument.SupplementalLines.Amount.SetValue(100);
 
-        // [THEN] The assigned parent is read-only and only the selected row is saved.
+        // [THEN] Assigned parent is read-only and only selected row is saved.
         Assert.IsFalse(IRS1099FormDocument.SupplementalLines."Parent Form Box No.".Editable(), 'The parent snapshot must be read-only.');
         IRS1099FormDocument.Close();
         SupplementalLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
@@ -3516,7 +3516,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [SCENARIO 653992] Stored disclosures cannot be changed while their document is Released.
         Initialize();
 
-        // [GIVEN] A supplemental row on a released document.
+        // [GIVEN] Supplemental row on released document.
         LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
         CreateSupplementalLine(SupplementalLine, IRS1099FormDocHeader.ID, 'NEC-01B');
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
@@ -3525,7 +3525,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         // [WHEN] Its amount is edited directly.
         asserterror SupplementalLine.Validate(Amount, 100);
 
-        // [THEN] The normal document status restriction applies.
+        // [THEN] Normal document status restriction applies.
         Assert.ExpectedError('Open');
         Assert.ExpectedErrorCode('TestField');
         LibraryVariableStorage.AssertEmpty();
@@ -3539,17 +3539,17 @@ codeunit 148010 "IRS 1099 Document Tests"
         Transmission: Record "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Declining dependent eligibility changes rolls back the selected withholding update.
+        // [SCENARIO 653992] Declining dependent eligibility changes rolls back the selected withholding update.
         Initialize();
 
-        // [GIVEN] D has income qualified by withholding, and only withholding is selected for removal.
+        // [GIVEN] Form Document has income qualified by withholding, and only withholding is selected for removal.
         CreateWithholdingRemovalCandidate(IRS1099FormDocHeader, Transmission);
         Commit();
 
-        // [WHEN] The dependent change to the unselected income line is declined.
+        // [WHEN] Dependent change to unselected income line is declined.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] Neither the selected withholding nor its dependent income and disclosures change.
+        // [THEN] Neither selected withholding nor its dependent income and disclosures change.
         Assert.ExpectedError('');
         Assert.ExpectedErrorCode('Dialog');
         VerifyDependentEligibilityConfirmation(IRS1099FormDocHeader.ID);
@@ -3566,18 +3566,18 @@ codeunit 148010 "IRS 1099 Document Tests"
         Transmission: Record "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Selecting a new withholding line confirms the changed eligibility of copied unselected income.
+        // [SCENARIO 653992] Selecting a new withholding line confirms the changed eligibility of copied unselected income.
         Initialize();
 
-        // [GIVEN] D stores manual excluded income 750 while the proposed financial recalculation is 500.
+        // [GIVEN] Form Document stores manual excluded income 750 while proposed financial recalculation is 500.
         CreateWithholdingCreationCandidate(IRS1099FormDocHeader, Transmission);
         OriginalIRS1099FormDocHeader := IRS1099FormDocHeader;
         Commit();
 
-        // [WHEN] Only the new withholding line is selected and its dependent eligibility change is accepted.
+        // [WHEN] Only new withholding line is selected and its dependent eligibility change is accepted.
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] The replacement keeps the copied amount and minimum while confirming the inclusion change.
+        // [THEN] Replacement keeps copied amount and minimum while confirming inclusion change.
         VerifyDependentEligibilityConfirmation(OriginalIRS1099FormDocHeader.ID);
         VerifyWithholdingCreation(IRS1099FormDocHeader, OriginalIRS1099FormDocHeader, Transmission."Document ID");
         LibraryVariableStorage.AssertEmpty();
@@ -3591,21 +3591,198 @@ codeunit 148010 "IRS 1099 Document Tests"
         Transmission: Record "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Declining a copied-line eligibility change rolls back replacement creation and source abandonment.
+        // [SCENARIO 653992] Declining a copied-line eligibility change rolls back replacement creation and source abandonment.
         Initialize();
 
-        // [GIVEN] D has saved excluded income and a selected new withholding line.
+        // [GIVEN] Form Document has saved excluded income and selected new withholding line.
         CreateWithholdingCreationCandidate(IRS1099FormDocHeader, Transmission);
         Commit();
 
-        // [WHEN] The dependent copied-income eligibility change is declined.
+        // [WHEN] Dependent copied-income eligibility change is declined.
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [THEN] The original document and disclosures survive without a replacement.
+        // [THEN] Original document and disclosures survive without replacement.
         Assert.ExpectedError('');
         Assert.ExpectedErrorCode('Dialog');
         VerifyDependentEligibilityConfirmation(IRS1099FormDocHeader.ID);
         VerifyWithholdingCreationCancellation(IRS1099FormDocHeader);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectSupplementalSourceHandler,AcceptSupplementalCascadeHandler')]
+    procedure CopySupplementalLinesFromAbandonedDocument()
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        OtherSourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        TargetDocHeader: Record "IRS 1099 Form Doc. Header";
+        DocumentPage: TestPage "IRS 1099 Form Document";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Copying from an Abandoned source document replaces all supplemental lines on an Open target document without changing the source.
+        Initialize();
+
+        // [GIVEN] Two Abandoned source documents share vendor, year and form; target document has different supplemental values.
+        CreateSupplementalCopyDocuments(SourceDocHeader, TargetDocHeader);
+        CreateSameVendorSupplementalDocument(OtherSourceDocHeader, SourceDocHeader, 5000, 200);
+        OtherSourceDocHeader.Status := OtherSourceDocHeader.Status::Abandoned;
+        OtherSourceDocHeader.Modify(true);
+        LibraryVariableStorage.Enqueue(SourceDocHeader.ID);
+        Commit();
+        DocumentPage.OpenEdit();
+        DocumentPage.GoToRecord(TargetDocHeader);
+
+        // [WHEN] User selects first source document and confirms replacement.
+        DocumentPage.CopySupplementalLines.Invoke();
+
+        // [THEN] Document IDs distinguish sources, target receives first source's values, and both sources are unchanged.
+        Assert.IsTrue(LibraryVariableStorage.DequeueBoolean(), CopySourceDocIDVisibleErr);
+        VerifySupplementalCopyTarget(TargetDocHeader.ID, 100, 2, '101', '000');
+        VerifySupplementalCopySource(SourceDocHeader.ID);
+        VerifyAbandonedSource(OtherSourceDocHeader.ID, 200);
+        VerifyParentDocLineState(TargetDocHeader.ID, 5000, true);
+        VerifySupplementalLinesVisibility(DocumentPage, true);
+        DocumentPage.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SelectSupplementalSourceHandler,DeclineSupplementalCascadeHandler')]
+    procedure CopySupplementalLinesCancellationPreservesTarget()
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        TargetDocHeader: Record "IRS 1099 Form Doc. Header";
+        DocumentPage: TestPage "IRS 1099 Form Document";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Declining replacement preserves every existing supplemental line.
+        Initialize();
+
+        // [GIVEN] Source and target documents have different supplemental values.
+        CreateSupplementalCopyDocuments(SourceDocHeader, TargetDocHeader);
+        LibraryVariableStorage.Enqueue(SourceDocHeader.ID);
+        Commit();
+        DocumentPage.OpenEdit();
+        DocumentPage.GoToRecord(TargetDocHeader);
+
+        // [WHEN] Source is selected but replacement is declined.
+        DocumentPage.CopySupplementalLines.Invoke();
+
+        // [THEN] Both documents retain all their original values.
+        Assert.IsTrue(LibraryVariableStorage.DequeueBoolean(), CopySourceDocIDVisibleErr);
+        VerifyUnchangedSupplementalCopyTarget(TargetDocHeader.ID);
+        VerifySupplementalCopySource(SourceDocHeader.ID);
+        DocumentPage.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure CopySupplementalLinesRejectsReleasedTarget()
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        TargetDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Copying cannot bypass the target document's Open status requirement.
+        Initialize();
+
+        // [GIVEN] Target document is Released with its existing supplemental values.
+        CreateSupplementalCopyDocuments(SourceDocHeader, TargetDocHeader);
+        LibraryIRS1099Document.ReleaseDocument(TargetDocHeader);
+        Commit();
+
+        // [WHEN] Copying into target document is attempted directly.
+        asserterror LibraryIRS1099Document.CopySupplementalLines(SourceDocHeader.ID, TargetDocHeader.ID);
+
+        // [THEN] Status error leaves both documents unchanged.
+        Assert.ExpectedError('Open');
+        Assert.ExpectedErrorCode('TestField');
+        VerifyUnchangedSupplementalCopyTarget(TargetDocHeader.ID);
+        VerifySupplementalCopySource(SourceDocHeader.ID);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure CopySupplementalLinesRejectsUnsupportedMapping()
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        TargetDocHeader: Record "IRS 1099 Form Doc. Header";
+        SupplBox: Record "IRS 1099 Suppl. Box";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] An unsupported XML mapping cannot replace the target's saved supplemental lines.
+        Initialize();
+
+        // [GIVEN] Setup for copied box specifies unsupported XML element.
+        CreateSupplementalCopyDocuments(SourceDocHeader, TargetDocHeader);
+        SupplBox.Get(TargetDocHeader."Period No.", TargetDocHeader."Form No.", 'NEC-01B');
+        SupplBox."XML Element Name" := 'UnsupportedElement';
+        SupplBox.Modify(false);
+        Commit();
+
+        // [WHEN] Copying is attempted against current target setup.
+        asserterror LibraryIRS1099Document.CopySupplementalLines(SourceDocHeader.ID, TargetDocHeader.ID);
+
+        // [THEN] Setup error preserves original rows on both documents.
+        Assert.ExpectedError('setup for supplemental box NEC-01B does not meet the reporting requirements');
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyUnchangedSupplementalCopyTarget(TargetDocHeader.ID);
+        VerifySupplementalCopySource(SourceDocHeader.ID);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure CopySupplementalLinesRejectsMissingTargetParent()
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        TargetDocHeader: Record "IRS 1099 Form Doc. Header";
+        ParentDocLine: Record "IRS 1099 Form Doc. Line";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] A missing target parent rejects copying without removing saved supplemental rows.
+        Initialize();
+
+        // [GIVEN] Target document has saved lines but its financial parent is missing.
+        CreateSupplementalCopyDocuments(SourceDocHeader, TargetDocHeader);
+        FindParentDocLine(TargetDocHeader.ID, ParentDocLine);
+        ParentDocLine.Delete(false);
+        Commit();
+
+        // [WHEN] Copying is attempted.
+        asserterror LibraryIRS1099Document.CopySupplementalLines(SourceDocHeader.ID, TargetDocHeader.ID);
+
+        // [THEN] Missing-parent error preserves every existing supplemental row.
+        Assert.ExpectedError('must have a document line for form box NEC-01');
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyUnchangedSupplementalCopyTarget(TargetDocHeader.ID);
+        VerifySupplementalCopySource(SourceDocHeader.ID);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure CopySupplementalLinesRejectsExcessTargetAmount()
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        TargetDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Source tips exceeding the target parent amount cannot replace valid existing lines.
+        Initialize();
+
+        // [GIVEN] Source document has tips of 100; target document has parent of 50 and valid smaller disclosures.
+        CreateSupplementalCopyDocuments(SourceDocHeader, TargetDocHeader);
+        SetParentDocLineAmount(TargetDocHeader.ID, 50, 0);
+        Commit();
+
+        // [WHEN] Copying source values into target document is attempted.
+        asserterror LibraryIRS1099Document.CopySupplementalLines(SourceDocHeader.ID, TargetDocHeader.ID);
+
+        // [THEN] Amount error leaves target's smaller values and source unchanged.
+        Assert.ExpectedError('must be between zero and the amount');
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyUnchangedSupplementalCopyTarget(TargetDocHeader.ID);
+        VerifySupplementalCopySource(SourceDocHeader.ID);
+        VerifyParentDocLineState(TargetDocHeader.ID, 50, true);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -3835,6 +4012,24 @@ codeunit 148010 "IRS 1099 Document Tests"
         CreateFormBox(IRS1099FormDocHeader, 'NEC-04', 0);
         SetDocumentAdjustment(IRS1099FormDocHeader, 'NEC-04', 50);
         InitializeUpdateTransmission(Transmission, IRS1099FormDocHeader);
+    end;
+
+    local procedure CreateSupplementalCopyDocuments(var SourceDocHeader: Record "IRS 1099 Form Doc. Header"; var TargetDocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+    begin
+        CreateSupplementalUpdateDocument(SourceDocHeader, 5000, 100);
+        SourceDocHeader.Status := SourceDocHeader.Status::Abandoned;
+        SourceDocHeader."IRIS Last Receipt ID" := 'SAVED-SOURCE-RECEIPT';
+        SourceDocHeader.Modify(true);
+        CreateSameVendorSupplementalDocument(TargetDocHeader, SourceDocHeader, 5000, 25);
+        CreateSupplementalLine(SupplLine, TargetDocHeader.ID, 'NEC-01D');
+        SupplLine.Validate(Amount, 50);
+        SupplLine.Modify(true);
+        SupplLine.Get(TargetDocHeader.ID, 'NEC-01C');
+        SupplLine."Occupation Code 1" := '000';
+        SupplLine."Occupation Code 2" := '101';
+        SupplLine.Modify(true);
     end;
 
     procedure DeleteDocuments()
@@ -4267,6 +4462,40 @@ codeunit 148010 "IRS 1099 Document Tests"
         Assert.RecordIsEmpty(WithholdingDocumentLine);
     end;
 
+    local procedure VerifySupplementalCopySource(DocumentID: Integer)
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        VerifyAbandonedSource(DocumentID, 100);
+        VerifySupplementalCopyTarget(DocumentID, 100, 2, '101', '000');
+        VerifyParentDocLineState(DocumentID, 5000, true);
+        SourceDocHeader.Get(DocumentID);
+        Assert.AreEqual('SAVED-SOURCE-RECEIPT', SourceDocHeader."IRIS Last Receipt ID", 'Copying must not change source filing identity.');
+    end;
+
+    local procedure VerifySupplementalCopyTarget(DocumentID: Integer; TipsAmount: Decimal; LineCount: Integer; FirstOccupationCode: Text[3]; SecondOccupationCode: Text[3])
+    var
+        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+    begin
+        SupplLine.SetRange("Document ID", DocumentID);
+        Assert.RecordCount(SupplLine, LineCount);
+        VerifySavedTips(DocumentID, TipsAmount);
+        SupplLine.Get(DocumentID, 'NEC-01C');
+        Assert.AreEqual(FirstOccupationCode, SupplLine."Occupation Code 1", 'The first occupation code was not preserved.');
+        Assert.AreEqual(SecondOccupationCode, SupplLine."Occupation Code 2", 'The second occupation code was not preserved.');
+        Assert.AreEqual(0, SupplLine.Amount, 'Occupation codes must not acquire an amount.');
+        Assert.AreEqual('NEC-01', SupplLine."Parent Form Box No.", 'The copied codes must use the target parent.');
+    end;
+
+    local procedure VerifyUnchangedSupplementalCopyTarget(DocumentID: Integer)
+    var
+        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+    begin
+        VerifySupplementalCopyTarget(DocumentID, 25, 3, '000', '101');
+        SupplLine.Get(DocumentID, 'NEC-01D');
+        Assert.AreEqual(50, SupplLine.Amount, 'Cancelling or rejecting copying must preserve the target-only line.');
+    end;
+
     [ModalPageHandler]
     procedure InspectEligibilityDeclineUpdateHandler(var UpdatePage: TestPage "IRS 1099 Form Doc. Update")
     begin
@@ -4369,6 +4598,17 @@ codeunit 148010 "IRS 1099 Document Tests"
     begin
         IRS1099SupplBoxes.First();
         IRS1099SupplBoxes.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure SelectSupplementalSourceHandler(var SourceDocuments: TestPage "IRS 1099 Form Documents")
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        SourceDocHeader.Get(LibraryVariableStorage.DequeueInteger());
+        SourceDocuments.GoToRecord(SourceDocHeader);
+        LibraryVariableStorage.Enqueue(SourceDocuments.ID.Visible());
+        SourceDocuments.OK().Invoke();
     end;
 
     [MessageHandler]

@@ -21,6 +21,8 @@ codeunit 10040 "IRS 1099 Supplemental"
         UnsupportedMappingValueTypeErr: Label 'The value type %1 for supplemental box %2 in the tax-year mapping resource is not supported.', Comment = '%1 = JSON value type, %2 = supplemental box';
         ExcludedParentTxt: Label 'Not reported because the parent document line is not included in 1099 reporting. Your entered values have been kept.';
         ZeroTipsTxt: Label 'Saved occupation codes are not reported because cash tips are excluded or round to zero. The codes are kept and will be used if reportable cash tips are entered again.';
+        SameDocumentErr: Label 'Select a different source document to copy supplemental lines.';
+        NoSupplementalLinesErr: Label 'Document %1 has no supplemental lines to copy.', Comment = '%1 = source document ID';
 
     procedure IsFormBoxAmountReportable(FormNo: Code[20]; FormBoxNo: Code[20]; Amount: Decimal; MinimumAmount: Decimal; HasBackupWithholding: Boolean): Boolean
     begin
@@ -195,6 +197,40 @@ codeunit 10040 "IRS 1099 Supplemental"
                 TempSupplLine := SupplLine;
                 TempSupplLine.Insert();
             until SupplLine.Next() = 0;
+    end;
+
+    procedure CopyFromDocument(SourceDocumentID: Integer; TargetDocumentID: Integer)
+    var
+        SourceDocHeader: Record "IRS 1099 Form Doc. Header";
+        TargetDocHeader: Record "IRS 1099 Form Doc. Header";
+        SourceSupplLine: Record "IRS 1099 Doc. Suppl. Line";
+        TargetSupplLine: Record "IRS 1099 Doc. Suppl. Line";
+        TempSupplLine: Record "IRS 1099 Doc. Suppl. Line" temporary;
+    begin
+        if SourceDocumentID = TargetDocumentID then
+            Error(SameDocumentErr);
+        SourceDocHeader.Get(SourceDocumentID);
+        TargetDocHeader.LockTable();
+        TargetDocHeader.Get(TargetDocumentID);
+        TargetDocHeader.TestField(Status, TargetDocHeader.Status::Open);
+        SourceSupplLine.SetRange("Document ID", SourceDocHeader.ID);
+        if not SourceSupplLine.FindSet() then
+            Error(NoSupplementalLinesErr, SourceDocumentID);
+        repeat
+            TempSupplLine := SourceSupplLine;
+            TempSupplLine."Document ID" := TargetDocumentID;
+            // Validate copied lines against the target setup before removing existing lines.
+            TempSupplLine.Insert(true);
+        until SourceSupplLine.Next() = 0;
+
+        TargetSupplLine.SetRange("Document ID", TargetDocumentID);
+        TargetSupplLine.DeleteAll(true);
+        if TempSupplLine.FindSet() then
+            repeat
+                TargetSupplLine := TempSupplLine;
+                TargetSupplLine.Insert(true);
+            until TempSupplLine.Next() = 0;
+        ValidateSupplementalLines(TargetDocumentID);
     end;
 
     procedure RestoreSupplLinesFromTemp(OldDocumentID: Integer; NewDocumentID: Integer; var TempSupplLine: Record "IRS 1099 Doc. Suppl. Line" temporary)

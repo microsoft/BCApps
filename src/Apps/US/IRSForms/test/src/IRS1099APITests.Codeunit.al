@@ -71,12 +71,12 @@ codeunit 148018 "IRS 1099 API Tests"
         Initialize();
         Commit();
 
-        // [GIVEN] D has excluded income 500, stored tips 100 and text codes; another document has no disclosures.
+        // [GIVEN] Form Document has excluded income 500, stored tips 100 and text codes; another document has no disclosures.
         CreateSupplementalAPIFixture(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 100);
         CreateAPIDocument(OtherIRS1099FormDocHeader);
         Commit();
 
-        // [WHEN] D is expanded and its child navigation is read.
+        // [WHEN] Form Document is expanded and its child navigation is read.
         Url := LibraryGraphMgt.CreateTargetURL(Format(IRS1099FormDocHeader.SystemId), Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
         LibraryGraphMgt.GetFromWebService(ResponseText,
             LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099documentsupplementallines'));
@@ -114,11 +114,11 @@ codeunit 148018 "IRS 1099 API Tests"
         Initialize();
         Commit();
 
-        // [GIVEN] D retains occupation codes after its tips are cleared.
+        // [GIVEN] Form Document retains occupation codes after its tips are cleared.
         CreateSupplementalAPIFixture(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 0);
         Commit();
 
-        // [WHEN] The code row is read directly using SystemId.
+        // [WHEN] Code row is read directly using SystemId.
         LibraryGraphMgt.GetFromWebService(ResponseText,
             LibraryGraphMgt.CreateTargetURL(Format(CodesSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl));
 
@@ -145,7 +145,7 @@ codeunit 148018 "IRS 1099 API Tests"
         Initialize();
         Commit();
 
-        // [GIVEN] D has eligible fractional tips and an explicit tip/code statement selection.
+        // [GIVEN] Form Document has eligible fractional tips and explicit tip/code statement selection.
         CreateSupplementalAPIFixture(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 0.004);
         ParentIRS1099FormDocLine.Validate(Amount, 5000);
         ParentIRS1099FormDocLine.Modify(true);
@@ -159,13 +159,13 @@ codeunit 148018 "IRS 1099 API Tests"
         StatementLine.Validate("Supplemental Box No.", 'NEC-01C');
         StatementLine.Insert(true);
 
-        // [WHEN] The statement projection is generated and the stored tip row is read through the API.
+        // [WHEN] Statement projection is generated and stored tip row is read through API.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
         Commit();
         LibraryGraphMgt.GetFromWebService(ResponseText,
             LibraryGraphMgt.CreateTargetURL(Format(TipsSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl));
 
-        // [THEN] Only the amount is projected into the statement, but the API retains the raw decimal.
+        // [THEN] Only amount is projected into statement, but API retains raw decimal.
         Assert.AreEqual(1, Lines.Count(), 'Rounded-zero tips suppress the statement codes, not the positive raw amount row.');
         VerifySupplementalValue(ResponseText, TipsSupplementalLine);
         TipsSupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01B');
@@ -193,12 +193,12 @@ codeunit 148018 "IRS 1099 API Tests"
         Initialize();
         Commit();
 
-        // [GIVEN] An Open document D with saved disclosures.
+        // [GIVEN] Open Form Document with saved disclosures.
         CreateSupplementalAPIFixture(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 100);
         Commit();
         Url := LibraryGraphMgt.CreateTargetURL(Format(TipsSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl);
 
-        // [WHEN] POST attempts to insert a supplemental row.
+        // [WHEN] POST attempts to insert supplemental row.
         asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             LibraryGraphMgt.CreateTargetURL('', Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl),
             '{"amount":50}', ResponseText, 405);
@@ -208,7 +208,7 @@ codeunit 148018 "IRS 1099 API Tests"
         Assert.ExpectedError('Entity does not support insert.');
         Assert.ExpectedErrorCode('Dialog');
 
-        // [WHEN] PATCH attempts to change the stored amount.
+        // [WHEN] PATCH attempts to change stored amount.
         asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(Url, '{"amount":50}', ResponseText, 405);
 
         // [THEN] Modifications are explicitly rejected.
@@ -216,7 +216,7 @@ codeunit 148018 "IRS 1099 API Tests"
         Assert.ExpectedError('Entity does not support modifying data.');
         Assert.ExpectedErrorCode('Dialog');
 
-        // [WHEN] DELETE attempts to remove the stored row.
+        // [WHEN] DELETE attempts to remove stored row.
         asserterror LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(Url, '', ResponseText, 400);
 
         // [THEN] Deletion is explicitly rejected.
@@ -224,7 +224,7 @@ codeunit 148018 "IRS 1099 API Tests"
         Assert.ExpectedError('Entity does not support delete.');
         Assert.ExpectedErrorCode('Dialog');
 
-        // [THEN] Neither the stored amounts nor the row count changed.
+        // [THEN] Neither stored amounts nor row count changed.
         TipsSupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01B');
         Assert.AreEqual(100, TipsSupplementalLine.Amount, 'Rejected writes changed stored tips.');
         TipsSupplementalLine.SetRange("Document ID", IRS1099FormDocHeader.ID);

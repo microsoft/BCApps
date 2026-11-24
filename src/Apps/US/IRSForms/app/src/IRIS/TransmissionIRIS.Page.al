@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using System.Environment;
 using System.Privacy;
 using System.Telemetry;
 using System.Utilities;
@@ -93,6 +94,32 @@ page 10058 "Transmission IRIS"
     {
         area(Processing)
         {
+            action(RemoveTransmissionAndResetDocuments)
+            {
+                Caption = 'Remove Transmission and Reset Documents';
+                Image = ResetStatus;
+                ToolTip = 'Remove this transmission and its local history in a sandbox. Keep document contents and PDFs, clear filing state, and open non-abandoned documents. This does not cancel IRS/ATS submissions.';
+                Visible = SandboxRemovalVisible;
+
+                trigger OnAction()
+                begin
+                    if ProcessTransmission.RemoveSandboxTransmission(Rec, false) then
+                        CurrPage.Close();
+                end;
+            }
+            action(RemoveTransmissionAndDocuments)
+            {
+                Caption = 'Remove Transmission and Documents';
+                Image = Delete;
+                ToolTip = 'Remove this transmission, its local history, and its associated documents and PDFs in a sandbox. This does not cancel IRS/ATS submissions.';
+                Visible = SandboxRemovalVisible;
+
+                trigger OnAction()
+                begin
+                    if ProcessTransmission.RemoveSandboxTransmission(Rec, true) then
+                        CurrPage.Close();
+                end;
+            }
             action(UpdateTransmission)
             {
                 Caption = 'Update Transmission';
@@ -205,7 +232,6 @@ page 10058 "Transmission IRIS"
 
                     trigger OnAction()
                     var
-                        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
                         ProcessDialog: Dialog;
                     begin
                         if not ConfirmSendTransmission("Transmission Type IRIS"::C) then
@@ -213,11 +239,7 @@ page 10058 "Transmission IRIS"
 
                         ProcessDialog.Open(SendingCorrectionMsg);
 
-                        IRS1099FormDocHeader.SetRange("IRIS Transmission Document ID", Rec."Document ID");
-                        IRS1099FormDocHeader.SetFilter(Status, ProcessTransmission.GetFormDocToSendStatusFilter());
-                        IRS1099FormDocHeader.ModifyAll("IRIS Needs Correction", true);
-                        ProcessTransmission.SendCorrection(Rec, true);
-                        IRS1099FormDocHeader.ModifyAll("IRIS Needs Correction", false);
+                        ProcessTransmission.SendTwoStepZeroCorrection(Rec);
 
                         ProcessDialog.Close();
 
@@ -417,6 +439,7 @@ page 10058 "Transmission IRIS"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Helper: Codeunit "Helper IRIS";
         KeyVaultClientIRIS: Codeunit "Key Vault Client IRIS";
+        EnvironmentInformation: Codeunit "Environment Information";
         StatusStyle: Text;
         ErrorInfoCaption: Text;
         DestinationText: Text;
@@ -426,6 +449,7 @@ page 10058 "Transmission IRIS"
         SendReplacementActionVisible: Boolean;
         SendCorrectionActionVisible: Boolean;
         ForceCorrectionActionsVisible: Boolean;
+        SandboxRemovalVisible: Boolean;
         SendTransmissionQst: Label 'Send the transmission for tax year %1 to IRS %2?\\%3', Comment = '%1 - tax year, %2 - destination (Test or Production), %3 - destination explanation';
         SendReplacementTransmissionQst: Label 'Send the replacement transmission for tax year %1 to IRS %2?\\%3', Comment = '%1 - tax year, %2 - destination (Test or Production), %3 - destination explanation';
         SendCorrectionTransmissionQst: Label 'Send the correction transmission for tax year %1 to IRS %2?\\%3', Comment = '%1 - tax year, %2 - destination (Test or Production), %3 - destination explanation';
@@ -480,6 +504,7 @@ page 10058 "Transmission IRIS"
 
     local procedure SetActionsVisibility()
     begin
+        SandboxRemovalVisible := EnvironmentInformation.IsSandbox();
         SendOriginalActionVisible := ProcessTransmission.IsSendOriginalAllowed(Rec);
         SendReplacementActionVisible := ProcessTransmission.IsSendReplacementAllowed(Rec);
         SendCorrectionActionVisible := ProcessTransmission.IsSendCorrectionAllowed(Rec) or ForceCorrectionActionsVisible;

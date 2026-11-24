@@ -37,6 +37,8 @@ codeunit 10056 "Process Transmission IRIS"
         TransmissionPartiallyAcceptedErr: Label 'The transmission has been partially accepted and can only be replaced or corrected.';
         TransmissionRejectedErr: Label 'The transmission has been rejected and can only be replaced.';
         NoLinesMarkedForCorrectionErr: Label 'Mark at least one line with the "Needs Correction" flag to send the correction transmission.';
+        NewDocCorrectionErr: Label '1099 form document %1 for vendor %2, form %3, period %4 has no recorded IRIS submission to correct. Clear Needs Correction for this document. New or recreated forms must be sent as original returns. If a send may already have occurred, use Request Status before sending again.', Comment = '%1 = document ID, %2 = vendor number, %3 = form number, %4 = reporting period';
+        MissingCorrectionDetailsErr: Label '1099 form document %1 for vendor %2, form %3, period %4 is missing previous IRS filing details required for a correction. Use Request Status, then contact support with the acknowledgment from Transmission History. Do not submit this document as a new original return.', Comment = '%1 = document ID, %2 = vendor number, %3 = form number, %4 = reporting period';
         TransmissionDocUpToDateErr: Label 'The transmission document is already up-to-date.';
         FormDocsAddedMsg: Label '• Added %1 existing released form documents to the transmission.\', Comment = '%1 - number of added form documents';
         FormLinesUpdatedMsg: Label '• The amounts of the selected IRS 1099 form document lines were updated.\';
@@ -56,7 +58,14 @@ codeunit 10056 "Process Transmission IRIS"
         AcknowledgmentIdentityMismatchErr: Label 'The acknowledgment does not match the requested transmission attempt. Check its unique transmission ID and receipt ID in Transmission History.';
         DependentEligibilityChangesQst: Label 'The selected updates also change Include in 1099 on these unselected lines:%1\\Their amounts and minimum reportable amounts will not change. Do you want to apply these dependent changes?', Comment = '%1 = list of affected document lines';
         DependentEligibilityChangeTxt: Label '\Document %1, form box %2: %3 -> %4', Comment = '%1 = document ID, %2 = form box, %3 = current Include in 1099, %4 = new Include in 1099';
+        SandboxRemovalOnlyErr: Label 'Transmissions can only be removed with this action in a sandbox in the current company.';
+        SandboxRemovalConflictErr: Label 'Document %1 belongs to another transmission or reporting year. The transmission was not removed.', Comment = '%1 = document ID';
+        SandboxRemovalChangedErr: Label 'The transmission or its associated documents or history changed. Open the transmission again and retry the removal.';
+        TransmissionChangedErr: Label 'The transmission changed or no longer exists. Open the transmission again and retry the action.';
+        ResetSandboxTransmissionQst: Label 'Remove transmission %1 for tax year %2 and reset %3 documents, keeping their contents? This removes %4 local history attempts and all errors for this transmission. Non-abandoned documents become Open; abandoned documents remain Abandoned. This is local sandbox cleanup only and does not cancel IRS/ATS submissions. Continue?', Comment = '%1 = transmission ID, %2 = tax year, %3 = document count, %4 = history attempt count';
+        DeleteSandboxTransmissionQst: Label 'Remove transmission %1 for tax year %2 and delete %3 documents and their contents? This removes %4 local history attempts and all errors for this transmission. This is local sandbox cleanup only and does not cancel IRS/ATS submissions. Continue?', Comment = '%1 = transmission ID, %2 = tax year, %3 = document count, %4 = history attempt count';
 
+    #region Transmission Validation
     procedure CheckOriginal(var Transmission: Record "Transmission IRIS")
     begin
         case Transmission.Status of
@@ -123,8 +132,27 @@ codeunit 10056 "Process Transmission IRIS"
         IRS1099FormDocHeader.SetRange("IRIS Transmission Document ID", Transmission."Document ID");
         IRS1099FormDocHeader.SetFilter(Status, GetFormDocToSendStatusFilter());
         IRS1099FormDocHeader.SetRange("IRIS Needs Correction", true);
-        if IRS1099FormDocHeader.IsEmpty() then
+        if not IRS1099FormDocHeader.FindSet() then
             Error(NoLinesMarkedForCorrectionErr);
+        repeat
+            CheckDocumentCanBeCorrected(IRS1099FormDocHeader);
+        until IRS1099FormDocHeader.Next() = 0;
+    end;
+
+    local procedure CheckDocumentCanBeCorrected(DocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        TransmissionLogLine: Record "Transmission Log Line IRIS";
+    begin
+        if DocHeader."IRIS Submission Status" = DocHeader."IRIS Submission Status"::None then begin
+            TransmissionLogLine.SetRange("IRS 1099 Form Document ID", DocHeader.ID);
+            if TransmissionLogLine.IsEmpty() then
+                Error(NewDocCorrectionErr, DocHeader.ID, DocHeader."Vendor No.", DocHeader."Form No.", DocHeader."Period No.");
+        end;
+
+        if (DocHeader."IRIS Submission Status" = DocHeader."IRIS Submission Status"::None) or
+           (DocHeader."IRIS Submission ID" = '') or (DocHeader."IRIS Record ID" = '')
+        then
+            Error(MissingCorrectionDetailsErr, DocHeader.ID, DocHeader."Vendor No.", DocHeader."Form No.", DocHeader."Period No.");
     end;
 
     procedure IsSendOriginalAllowed(var Transmission: Record "Transmission IRIS"): Boolean
@@ -143,7 +171,9 @@ codeunit 10056 "Process Transmission IRIS"
 
         exit(((Transmission.Status = Enum::"Transmission Status IRIS"::Rejected) and not PrevSendIsCorrection) or
             (Transmission.Status = Enum::"Transmission Status IRIS"::"Partially Accepted") or
-            (TransmHasRejectedSubmissions and not PrevSendIsCorrection));
+            (TransmHasRejectedSubmissions and
+             (not PrevSendIsCorrection or
+              (Transmission.Status in [Transmission.Status::Accepted, Transmission.Status::"Accepted with Errors"]))));
     end;
 
     procedure IsSendCorrectionAllowed(var Transmission: Record "Transmission IRIS"): Boolean
@@ -197,6 +227,9 @@ codeunit 10056 "Process Transmission IRIS"
             StatusFilter := TB.ToText(1, TB.Length() - 1);
     end;
 
+    #endregion
+
+    #region Sending
     procedure SendOriginal(var Transmission: Record "Transmission IRIS")
     var
         IRSFormsFacade: Codeunit "IRS Forms Facade";
@@ -267,6 +300,16 @@ codeunit 10056 "Process Transmission IRIS"
         SubmitTransmissionAndProcessResponse(Transmission, TransmissionType, CorrectionToZeroMode);
     end;
 
+    procedure SendTwoStepZeroCorrection(var Transmission: Record "Transmission IRIS")
+    var
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        DocHeader.SetRange("IRIS Transmission Document ID", Transmission."Document ID");
+        DocHeader.SetFilter(Status, GetFormDocToSendStatusFilter());
+        DocHeader.ModifyAll("IRIS Needs Correction", true);
+        SendCorrection(Transmission, true);
+    end;
+
     local procedure SubmitTransmissionAndProcessResponse(var Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; CorrectionToZeroMode: Boolean)
     var
         TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary;
@@ -296,6 +339,9 @@ codeunit 10056 "Process Transmission IRIS"
         RequestAcknowledgementAndUpdateTransmission(Transmission, ReceiptID, UniqueTransmissionId);
     end;
 
+    #endregion
+
+    #region Status Requests
     procedure RequestStatus(ReceiptID: Text[100]; UniqueTransmissionId: Text[100]; var TransmissionStatus: Text)
     var
         TransmissionLog: Record "Transmission Log IRIS";
@@ -429,6 +475,9 @@ codeunit 10056 "Process Transmission IRIS"
         exit(true);
     end;
 
+    #endregion
+
+    #region Transmission History
     local procedure CreateTransmissionLog(var TransmissionLog: Record "Transmission Log IRIS"; var Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; CorrectionToZeroMode: Boolean; UniqueTransmissionId: Text[100]; HttpStatusCode: Integer; var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var TransmissionContentBlob: Codeunit "Temp Blob"; var ResponseContentBlob: Codeunit "Temp Blob")
     var
         BlobInStream: InStream;
@@ -539,6 +588,9 @@ codeunit 10056 "Process Transmission IRIS"
         TransmissionLog.Modify(true);
     end;
 
+    #endregion
+
+    #region Error Information
     procedure SetTransmissionErrors(TransmissionDocumentID: Integer; UniqueTransmissionId: Text[100]; SubmissionsStatus: Dictionary of [Text, Text]; var TempErrorInfo: Record "Error Information IRIS" temporary)
     var
         ErrorInfo: Record "Error Information IRIS";
@@ -651,6 +703,9 @@ codeunit 10056 "Process Transmission IRIS"
         ErrorInfoPage.Run();
     end;
 
+    #endregion
+
+    #region Transmission Status Updates
     local procedure UpdateReceiptID(var Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; ReceiptID: Text[100])
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
@@ -671,8 +726,12 @@ codeunit 10056 "Process Transmission IRIS"
         if TempIRS1099FormDocHeader.FindSet() then
             repeat
                 IRS1099FormDocHeader.Get(TempIRS1099FormDocHeader.ID);
-                IRS1099FormDocHeader."IRIS Last Receipt ID" := ReceiptID;
-                IRS1099FormDocHeader.Modify(true);
+                if (IRS1099FormDocHeader.Status <> IRS1099FormDocHeader.Status::Abandoned) and
+                   (IRS1099FormDocHeader."IRIS Last Receipt ID" <> ReceiptID)
+                then begin
+                    IRS1099FormDocHeader."IRIS Last Receipt ID" := ReceiptID;
+                    IRS1099FormDocHeader.Modify(true);
+                end;
             until TempIRS1099FormDocHeader.Next() = 0;
     end;
 
@@ -710,23 +769,34 @@ codeunit 10056 "Process Transmission IRIS"
         if (TransmissionLog."Line ID" = 0) or
            ((TransmissionLog."Receipt ID" <> '') and (TransmissionLog."Receipt ID" = Transmission."Receipt ID"))
         then
-            UpdateSubmissionsStatusAndReceiptId(Transmission, SubmissionsStatus);
+            UpdateSubmissionsStatusAndReceiptId(Transmission, SubmissionsStatus, TransmissionLog);
         ProcessCorrectedDocuments(Transmission, SubmissionsStatus, TransmissionLog);
     end;
 
-    local procedure UpdateSubmissionsStatusAndReceiptId(var Transmission: Record "Transmission IRIS"; SubmissionsStatus: Dictionary of [Text, Text])
+    local procedure UpdateSubmissionsStatusAndReceiptId(var Transmission: Record "Transmission IRIS"; SubmissionsStatus: Dictionary of [Text, Text]; TransmissionLog: Record "Transmission Log IRIS")
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLogLine: Record "Transmission Log Line IRIS";
         CurrSubmissionStatus: Enum "Transmission Status IRIS";
         SubmissionStatusText: Text;
     begin
         IRS1099FormDocHeader.SetRange("IRIS Transmission Document ID", Transmission."Document ID");
-        IRS1099FormDocHeader.SetRange("IRIS Last Receipt ID", Transmission."Receipt ID");       // update only form documents that were sent in this transmission
+        IRS1099FormDocHeader.SetRange("IRIS Last Receipt ID", Transmission."Receipt ID");
+        IRS1099FormDocHeader.SetFilter(Status, '<>%1', IRS1099FormDocHeader.Status::Abandoned);
+        TransmissionLogLine.SetRange("Transmission Log ID", TransmissionLog."Line ID");
 
         if not IRS1099FormDocHeader.FindSet(true) then
             exit;
 
         repeat
+            if TransmissionLog."Line ID" <> 0 then begin
+                TransmissionLogLine.SetRange("IRS 1099 Form Document ID", IRS1099FormDocHeader.ID);
+                TransmissionLogLine.SetRange("Submission ID", IRS1099FormDocHeader."IRIS Submission ID");
+                TransmissionLogLine.SetRange("Record ID", IRS1099FormDocHeader."IRIS Record ID");
+                if TransmissionLogLine.IsEmpty() then
+                    continue;
+            end;
+
             if not SubmissionsStatus.Get(IRS1099FormDocHeader."IRIS Submission ID", SubmissionStatusText) then
                 continue;
 
@@ -754,6 +824,8 @@ codeunit 10056 "Process Transmission IRIS"
 
         until IRS1099FormDocHeader.Next() = 0;
     end;
+
+    #endregion
 
     #region Update Form Documents
     procedure Update(var Transmission: Record "Transmission IRIS")
@@ -818,6 +890,10 @@ codeunit 10056 "Process Transmission IRIS"
         DocumentID: Integer;
         DependentEligibilityChanges: Text;
     begin
+        LockTransmission(Transmission);
+        if Transmission.Status = Transmission.Status::Rejected then
+            Error(CannotUpdateRejectedTransmissionErr);
+
         TempDocLine.Reset();
         TempDocLine.SetRange("Line Action", "IRS 1099 Form Doc. Line Action"::Update);
         if TempDocLine.FindSet() then
@@ -960,6 +1036,7 @@ codeunit 10056 "Process Transmission IRIS"
     var
         TempDocHeaderToAdd: Record "IRS 1099 Form Doc. Header" temporary;
     begin
+        LockTransmission(Transmission);
         CollectReleasedFormDocsToAdd(Transmission, TempDocHeaderToAdd);
         exit(AddSelectedFormDocsToTransmission(Transmission, TempDocHeaderToAdd));
     end;
@@ -1000,6 +1077,18 @@ codeunit 10056 "Process Transmission IRIS"
                     DocsCount += 1;
                 end;
             until TempDocHeaderToAdd.Next() = 0;
+    end;
+
+    local procedure LockTransmission(var Transmission: Record "Transmission IRIS")
+    var
+        SelectedSystemId: Guid;
+    begin
+        SelectedSystemId := Transmission.SystemId;
+        Transmission.LockTable();
+        if not Transmission.Get(Transmission."Document ID") then
+            Error(TransmissionChangedErr);
+        if Transmission.SystemId <> SelectedSystemId then
+            Error(TransmissionChangedErr);
     end;
 
     procedure GetIRS1099FormDocsToUpdate(var TempFormDocLineToUpdate: Record "IRS 1099 Form Doc. Line" temporary; var TempFormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail" temporary; PeriodNo: Text[4])
@@ -1334,6 +1423,9 @@ codeunit 10056 "Process Transmission IRIS"
         TempDetails.Copy(TempNewDetails, true);
     end;
 
+    #endregion
+
+    #region Document Status Updates
     local procedure ProcessCorrectedDocuments(Transmission: Record "Transmission IRIS"; SubmissionsStatus: Dictionary of [Text, Text]; TransmissionLog: Record "Transmission Log IRIS")
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
@@ -1393,6 +1485,153 @@ codeunit 10056 "Process Transmission IRIS"
                     IRS1099FormDocHeader.Status := Enum::"IRS 1099 Form Doc. Status"::"In Progress";
                 IRS1099FormDocHeader.Modify(true);
             until TempDocHeader.Next() = 0;
+    end;
+
+    #endregion
+
+    #region Sandbox Transmission Removal
+    internal procedure RemoveSandboxTransmission(var Transmission: Record "Transmission IRIS"; DeleteDocuments: Boolean): Boolean
+    var
+        TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary;
+        Snapshot: Dictionary of [Text, BigInteger];
+        Question: Text;
+        HistoryCount: Integer;
+        SelectedSystemId: Guid;
+    begin
+        if not EnvironmentInformation.IsSandbox() or
+           (Transmission.CurrentCompany() <> CompanyName()) or Transmission.IsTemporary()
+        then
+            Error(SandboxRemovalOnlyErr);
+
+        SelectedSystemId := Transmission.SystemId;
+        if not Transmission.Get(Transmission."Document ID") then
+            Error(SandboxRemovalChangedErr);
+        if Transmission.SystemId <> SelectedSystemId then
+            Error(SandboxRemovalChangedErr);
+        CollectSandboxRemovalRecords(Transmission, TempDocHeader, Snapshot, HistoryCount);
+        if DeleteDocuments then
+            Question := DeleteSandboxTransmissionQst
+        else
+            Question := ResetSandboxTransmissionQst;
+        if not ConfirmMgt.GetResponseOrDefault(
+             StrSubstNo(Question, Transmission."Document ID", Transmission."Period No.", TempDocHeader.Count(), HistoryCount), false)
+        then
+            exit(false);
+
+        ApplySandboxRemoval(Transmission, DeleteDocuments, Snapshot);
+        exit(true);
+    end;
+
+    local procedure CollectSandboxRemovalRecords(Transmission: Record "Transmission IRIS"; var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var Snapshot: Dictionary of [Text, BigInteger]; var HistoryCount: Integer)
+    var
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+        TransmissionLogLine: Record "Transmission Log Line IRIS";
+        ErrorInformation: Record "Error Information IRIS";
+    begin
+        Snapshot.Add(Format(Transmission.RecordId()), Transmission.SystemRowVersion);
+        DocHeader.SetRange("IRIS Transmission Document ID", Transmission."Document ID");
+        if DocHeader.FindSet() then
+            repeat
+                AddSandboxRemovalDocHeader(Transmission, DocHeader, TempDocHeader, Snapshot);
+            until DocHeader.Next() = 0;
+
+        TransmissionLog.SetRange("Transmission Document ID", Transmission."Document ID");
+        HistoryCount := TransmissionLog.Count();
+        if TransmissionLog.FindSet() then
+            repeat
+                Snapshot.Add(Format(TransmissionLog.RecordId()), TransmissionLog.SystemRowVersion);
+                TransmissionLogLine.SetRange("Transmission Log ID", TransmissionLog."Line ID");
+                if TransmissionLogLine.FindSet() then
+                    repeat
+                        Snapshot.Add(Format(TransmissionLogLine.RecordId()), TransmissionLogLine.SystemRowVersion);
+                        if DocHeader.Get(TransmissionLogLine."IRS 1099 Form Document ID") then
+                            AddSandboxRemovalDocHeader(Transmission, DocHeader, TempDocHeader, Snapshot);
+                    until TransmissionLogLine.Next() = 0;
+            until TransmissionLog.Next() = 0;
+
+        ErrorInformation.SetRange("Transmission Document ID", Transmission."Document ID");
+        if ErrorInformation.FindSet() then
+            repeat
+                Snapshot.Add(Format(ErrorInformation.RecordId()), ErrorInformation.SystemRowVersion);
+            until ErrorInformation.Next() = 0;
+    end;
+
+    local procedure AddSandboxRemovalDocHeader(Transmission: Record "Transmission IRIS"; DocHeader: Record "IRS 1099 Form Doc. Header"; var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var Snapshot: Dictionary of [Text, BigInteger])
+    begin
+        if (DocHeader."Period No." <> Transmission."Period No.") or
+           not (DocHeader."IRIS Transmission Document ID" in [0, Transmission."Document ID"])
+        then
+            Error(SandboxRemovalConflictErr, DocHeader.ID);
+        if TempDocHeader.Get(DocHeader.ID) then
+            exit;
+        TempDocHeader := DocHeader;
+        TempDocHeader.Insert();
+        Snapshot.Add(Format(DocHeader.RecordId()), DocHeader.SystemRowVersion);
+    end;
+
+    [CommitBehavior(CommitBehavior::Error)]
+    local procedure ApplySandboxRemoval(var Transmission: Record "Transmission IRIS"; DeleteDocuments: Boolean; ConfirmedSnapshot: Dictionary of [Text, BigInteger])
+    var
+        TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary;
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+        TransmissionLogLine: Record "Transmission Log Line IRIS";
+        ErrorInformation: Record "Error Information IRIS";
+        CurrentSnapshot: Dictionary of [Text, BigInteger];
+        RecordKey: Text;
+        HistoryCount: Integer;
+    begin
+        Transmission.LockTable();
+        DocHeader.LockTable();
+        TransmissionLog.LockTable();
+        TransmissionLogLine.LockTable();
+        ErrorInformation.LockTable();
+        if not Transmission.Get(Transmission."Document ID") then
+            Error(SandboxRemovalChangedErr);
+        CollectSandboxRemovalRecords(Transmission, TempDocHeader, CurrentSnapshot, HistoryCount);
+        if CurrentSnapshot.Count() <> ConfirmedSnapshot.Count() then
+            Error(SandboxRemovalChangedErr);
+        foreach RecordKey in ConfirmedSnapshot.Keys() do begin
+            if not CurrentSnapshot.ContainsKey(RecordKey) then
+                Error(SandboxRemovalChangedErr);
+            if CurrentSnapshot.Get(RecordKey) <> ConfirmedSnapshot.Get(RecordKey) then
+                Error(SandboxRemovalChangedErr);
+        end;
+
+        if TempDocHeader.FindSet() then
+            repeat
+                DocHeader.Get(TempDocHeader.ID);
+                DocHeader."IRIS Transmission Document ID" := 0;
+                DocHeader."IRIS Submission ID" := '';
+                DocHeader."IRIS Record ID" := '';
+                DocHeader."IRIS Last Receipt ID" := '';
+                DocHeader."IRIS Last Accepted Receipt ID" := '';
+                DocHeader."IRIS Submission Status" := DocHeader."IRIS Submission Status"::None;
+                DocHeader."IRIS Needs Correction" := false;
+                DocHeader."IRIS Updated Not Sent" := false;
+                DocHeader."IRIS Corrected" := false;
+                DocHeader."IRIS Corrected to Zeros" := false;
+                DocHeader."Allow Correction" := false;
+                if DeleteDocuments or (DocHeader.Status <> DocHeader.Status::Abandoned) then
+                    DocHeader.Status := DocHeader.Status::Open;
+                DocHeader.Modify(true);
+                if DeleteDocuments then
+                    DocHeader.Delete(true);
+            until TempDocHeader.Next() = 0;
+
+        TransmissionLog.SetRange("Transmission Document ID", Transmission."Document ID");
+        if TransmissionLog.FindSet() then
+            repeat
+                TransmissionLogLine.SetRange("Transmission Log ID", TransmissionLog."Line ID");
+                TransmissionLogLine.DeleteAll(true);
+            until TransmissionLog.Next() = 0;
+        TransmissionLog.DeleteAll(true);
+        ErrorInformation.SetRange("Transmission Document ID", Transmission."Document ID");
+        ErrorInformation.DeleteAll(true);
+        Transmission.Status := Transmission.Status::None;
+        Transmission.Modify(true);
+        Transmission.Delete(true);
     end;
 
     #endregion

@@ -146,19 +146,19 @@ end;
         FormBoxNo: Code[10];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] A statement filter treats parentheses in a form box number as literal characters.
+        // [SCENARIO 653992] A statement filter treats parentheses in a form box number as literal characters.
         Initialize();
 
-        // [GIVEN] Form box "B" contains parentheses and belongs to form "F" in period "P".
+        // [GIVEN] Form Box number contains parentheses and belongs to existing form and reporting period.
         FormBoxNo := 'NEC-01 (A)';
         PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate());
         LibraryIRS1099FormBox.CreateSpecificFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo, FormBoxNo);
 
-        // [WHEN] A statement line is created for form box "B".
+        // [WHEN] Statement line is created for Form Box.
         IRSFormsData.AddFormStatementLine(PeriodNo, FormNo, FormBoxNo, 10000, 'Form box with parentheses');
 
-        // [THEN] The stored view filters exclusively on form box "B" and agrees with the display expression.
+        // [THEN] Stored view filters exclusively on Form Box and agrees with display expression.
         IRS1099FormStatementLine.Get(PeriodNo, FormNo, 10000);
         VerifyStatementLineFormBoxFilter(IRS1099FormStatementLine, FormBoxNo);
     end;
@@ -175,7 +175,7 @@ end;
         // [SCENARIO 653992] Configurable supplemental rows retain text codes, signs, labels and user ordering.
         Initialize();
 
-        // [GIVEN] Document D has separately selected disclosures and custom statement configuration.
+        // [GIVEN] Form Document has separately selected disclosures and custom statement configuration.
         CreateSupplementalStatement(IRS1099FormDocHeader, 'NEC');
         StatementLine.Get('2026', 'NEC', 17500);
         StatementLine.Description := 'My overtime';
@@ -188,7 +188,7 @@ end;
         StatementLine."Print with" := StatementLine."Print with"::"Opposite Sign";
         StatementLine.Modify(true);
 
-        // [WHEN] The generic statement dataset is generated.
+        // [WHEN] Generic statement dataset is generated.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
         // [THEN] Labels, amount signs, text codes and row ordering are respected.
@@ -213,7 +213,7 @@ end;
         // [SCENARIO 653992] Eligible rents do not qualify other-income disclosures; backup withholding does.
         Initialize();
 
-        // [GIVEN] Document D has eligible rents and excluded other income with valid disclosures.
+        // [GIVEN] Form Document has eligible rents and excluded other income with valid disclosures.
         CreateSupplementalStatement(IRS1099FormDocHeader, 'MISC');
         ParentIRS1099FormDocLine.Get('2026', IRS1099FormDocHeader."Vendor No.", 'MISC', IRS1099FormDocHeader.ID, 0);
         ParentIRS1099FormDocLine."Minimum Reportable Amount" := 2000;
@@ -225,14 +225,14 @@ end;
         IRS1099FormDocLine.Modify(true);
         IRSFormsData.AddFormStatementLine('2026', 'MISC', 'MISC-01', 10000, 'Rents');
 
-        // [WHEN] The statement is generated without backup withholding.
+        // [WHEN] Statement is generated without backup withholding.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
         // [THEN] Only rents are included.
         Assert.AreEqual(1, Lines.Count(), 'Rent does not qualify excluded other-income disclosures.');
         VerifyDatasetLine(Lines, 0, 'MISC-01 - Rents', '2500');
 
-        // [GIVEN] Document D now has backup withholding.
+        // [GIVEN] Form Document now has backup withholding.
         IRS1099FormDocLine.Init();
         IRS1099FormDocLine."Line No." := 2;
         LibraryIRS1099Document.MockFormDocumentLineForVendor(IRS1099FormDocLine, IRS1099FormDocHeader.ID, '2026', IRS1099FormDocHeader."Vendor No.", 'MISC', 'MISC-04');
@@ -240,7 +240,7 @@ end;
         IRS1099FormDocLine.Modify(true);
         LibraryIRS1099Document.RecalculateIncludeIn1099(IRS1099FormDocHeader.ID);
 
-        // [WHEN] The dataset is regenerated with refreshed parent eligibility.
+        // [WHEN] Dataset is regenerated with refreshed parent eligibility.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
         // [THEN] Disclosures follow their own now-reportable parent.
@@ -264,13 +264,13 @@ end;
         // [SCENARIO 653992] Statement suppression never deletes saved zero-tip codes.
         Initialize();
 
-        // [GIVEN] Document D retains occupation codes after its tips are cleared.
+        // [GIVEN] Form Document retains occupation codes after its tips are cleared.
         CreateSupplementalStatement(IRS1099FormDocHeader, 'NEC');
         TipsSupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01B');
         TipsSupplementalLine.Validate(Amount, 0);
         TipsSupplementalLine.Modify(true);
 
-        // [WHEN] The statement dataset is generated.
+        // [WHEN] Statement dataset is generated.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
         // [THEN] Suppressed codes remain stored.
@@ -284,7 +284,7 @@ end;
 
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
-        // [THEN] The original text codes are reportable again.
+        // [THEN] Original text codes are reportable again.
         Assert.AreEqual(4, Lines.Count(), 'Positive reportable tips restore the stored codes.');
         VerifyDatasetLine(Lines, 2, 'NEC-01C - Treasury tipped occupation codes (box 1c)', '101, 000');
     end;
@@ -304,7 +304,7 @@ end;
         // [SCENARIO 653992] Statements project cents per document, preserving configured signs and raw stored eligibility.
         Initialize();
 
-        // [GIVEN] D has tips rounding to zero, independent overtime rounding up, and an opposite-sign overtime row.
+        // [GIVEN] Form Document has tips rounding to zero, independent overtime rounding up, and opposite-sign overtime row.
         CreateSupplementalStatement(IRS1099FormDocHeader, 'NEC');
         TipsSupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01B');
         TipsSupplementalLine.Validate(Amount, 0.004);
@@ -316,10 +316,10 @@ end;
         StatementLine."Print with" := StatementLine."Print with"::"Opposite Sign";
         StatementLine.Modify(true);
 
-        // [WHEN] The generic statement dataset is generated.
+        // [WHEN] Generic statement dataset is generated.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
-        // [THEN] Rounded zero tips hide codes but retain the raw disclosure and its stored eligibility.
+        // [THEN] Rounded zero tips hide codes but retain raw disclosure and its stored eligibility.
         Assert.AreEqual(3, Lines.Count(), 'Only the parent and two projected amounts are printed.');
         VerifyDatasetLine(Lines, 0, 'NEC-01 - Nonemployee Compensation (box 1a)', '5000');
         VerifyDatasetLine(Lines, 1, 'NEC-01B - Cash tips (box 1b)', '0');
@@ -333,13 +333,13 @@ end;
         Assert.AreEqual('101', CodesSupplementalLine."Occupation Code 1", 'The first saved code remains unchanged.');
         Assert.AreEqual('000', CodesSupplementalLine."Occupation Code 2", 'Leading zeros remain stored.');
 
-        // [GIVEN] D's tips now round up and overtime rounds down.
+        // [GIVEN] Form Document's tips now round up and overtime rounds down.
         TipsSupplementalLine.Validate(Amount, 0.006);
         TipsSupplementalLine.Modify(true);
         OvertimeSupplementalLine.Validate(Amount, 0.004);
         OvertimeSupplementalLine.Modify(true);
 
-        // [WHEN] The statement is regenerated.
+        // [WHEN] Statement is regenerated.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
         // [THEN] Codes return without changing their text and overtime remains independently projected.
@@ -362,7 +362,7 @@ end;
         // [SCENARIO 653992] An empty row description uses the editable definition, not a form box or guessed type.
         Initialize();
 
-        // [GIVEN] Definition B has a custom label and its statement row has no override.
+        // [GIVEN] Supplemental definition has custom label and its statement row has no override.
         CreateSupplementalStatement(IRS1099FormDocHeader, 'NEC');
         StatementLine.Get('2026', 'NEC', 15000);
         StatementLine.Description := '';
@@ -371,10 +371,10 @@ end;
         SupplementalBox.Description := 'My tipped occupations';
         SupplementalBox.Modify(true);
 
-        // [WHEN] The statement dataset is generated.
+        // [WHEN] Statement dataset is generated.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
-        // [THEN] The definition supplies the label and text value kind.
+        // [THEN] Definition supplies label and text value kind.
         VerifyDatasetLine(Lines, 2, 'NEC-01C - My tipped occupations', '101, 000');
     end;
 
@@ -390,7 +390,7 @@ end;
         // [SCENARIO 653992] Printing uses the shared reporting boundary even when a populated custom box is not selected.
         Initialize();
 
-        // [GIVEN] Document D has a populated unmapped custom supplemental line.
+        // [GIVEN] Form Document has populated unmapped custom supplemental line.
         CreateSupplementalStatement(IRS1099FormDocHeader, 'NEC');
         SupplementalBox."Period No." := '2026';
         SupplementalBox."Form No." := 'NEC';
@@ -402,10 +402,10 @@ end;
         SupplementalLine.Validate(Amount, 10);
         SupplementalLine.Insert(true);
 
-        // [WHEN] The statement dataset is generated.
+        // [WHEN] Statement dataset is generated.
         asserterror LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
 
-        // [THEN] The common reporting validator rejects the unsupported values.
+        // [THEN] Common reporting validator rejects unsupported values.
         Assert.ExpectedError('contains values that cannot be reported in IRIS XML');
         Assert.ExpectedErrorCode('Dialog');
     end;
@@ -423,7 +423,7 @@ end;
         // [SCENARIO 653992] Report years and recipient instructions follow each document, not the work date.
         Initialize();
 
-        // [GIVEN] Documents D1 and D2 belong to different years and forms.
+        // [GIVEN] NEC and MISC Form Documents belong to 2025 and 2026 respectively.
         IRSFormsData.AddReportingPeriodsWithForms(2025);
         IRSFormsData.AddReportingPeriodsWithForms(2026);
         DocHeader2025.Get(LibraryIRS1099Document.MockFormDocumentForVendor('2025', LibraryPurchase.CreateVendorNo(), 'NEC', Enum::"IRS 1099 Form Doc. Status"::Open));
@@ -437,19 +437,19 @@ end;
         IRS1099FormDocLine.Modify(true);
         Commit();
 
-        // [WHEN] D1 is rendered with an unrelated work date.
+        // [WHEN] NEC Form Document is rendered with unrelated work date.
         SavedWorkDate := WorkDate();
         WorkDate(20240101D);
         DocHeader2025.SetRecFilter();
         LibraryReportDataset.RunReportAndLoad(Report::"IRS 1099 Print", DocHeader2025, '');
         WorkDate(SavedWorkDate);
 
-        // [THEN] Its dataset identifies 2025 and the corrected NEC box 3.
+        // [THEN] Its dataset identifies 2025 and corrected NEC box 3.
         LibraryReportDataset.AssertElementWithValueExists('Report_Year', 2025);
         LibraryReportDataset.AssertElementWithValueExists('Instruction_Header', 'Box 1.');
         LibraryReportDataset.AssertElementWithValueExists('Instruction_Description', 'Shows your total compensation of excess golden parachute payments subject to a 20% excise tax. See your tax return instructions for where to report.');
 
-        // [WHEN] D2 is rendered under that same unrelated work date.
+        // [WHEN] MISC Form Document is rendered under that same unrelated work date.
         WorkDate(20240101D);
         DocHeader2026.SetRecFilter();
         LibraryReportDataset.RunReportAndLoad(Report::"IRS 1099 Print", DocHeader2026, '');

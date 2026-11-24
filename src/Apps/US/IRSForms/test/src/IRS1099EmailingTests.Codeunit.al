@@ -402,7 +402,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [SCENARIO 653992] Both recipient copies use the document year and the explicitly regenerated cached PDF.
         Initialize();
 
-        // [GIVEN] Synthetic payer P and fresh year-specific setup use the existing test email connector.
+        // [GIVEN] Synthetic payer and fresh year-specific setup use existing test email connector.
         SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
         IRSFormsData.AddReportingPeriodsWithForms(2025);
@@ -455,7 +455,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [SCENARIO 653992] Emailing suppressed disclosures does not erase the excluded amounts or zero-tip codes.
         Initialize();
 
-        // [GIVEN] MISC document D has qualifying rents but an excluded saved other-income parent.
+        // [GIVEN] MISC Form Document has qualifying rents but excluded saved other-income parent.
         SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
         IRSFormsData.AddReportingPeriodsWithForms(2026);
@@ -480,12 +480,12 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         Commit();
         VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
 
-        // [THEN] The selected disclosure values still belong to D.
+        // [THEN] Selected disclosure values still belong to Form Document.
         SupplementalLine.Get(IRS1099FormDocHeader.ID, 'MISC-13A');
         Assert.AreEqual(100, SupplementalLine.Amount, 'Excluded tips remain stored.');
         VerifyStoredOccupationCodes(IRS1099FormDocHeader.ID, 'MISC-13B');
 
-        // [GIVEN] The parent qualifies again but outgoing tips round to zero while overtime rounds up.
+        // [GIVEN] Parent qualifies again but outgoing tips round to zero while overtime rounds up.
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Open;
         IRS1099FormDocHeader.Modify();
         ParentIRS1099FormDocLine.Get('2026', IRS1099FormDocHeader."Vendor No.", 'MISC', IRS1099FormDocHeader.ID, 0);
@@ -509,7 +509,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         Commit();
         VerifyEmailCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
 
-        // [THEN] The attachment source projects cents without codes, while rendering/sending retains raw disclosures.
+        // [THEN] Attachment source projects cents without codes, while rendering/sending retains raw disclosures.
         VerifyFractionalEmailDataset(Lines);
         SupplementalLine.Get(IRS1099FormDocHeader.ID, 'MISC-13A');
         Assert.AreEqual(0.004, SupplementalLine.Amount, 'Email generation does not round saved tips.');
@@ -531,13 +531,13 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [SCENARIO 653992] Standard next-year MISC setup produces both recipient attachments without disclosures.
         Initialize();
 
-        // [GIVEN] D is an ordinary 2027 MISC document after copying standard 2026 setup.
+        // [GIVEN] Ordinary 2027 MISC Form Document exists after copying standard 2026 setup.
         SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
         CreateCopiedOrdinaryStatement(IRS1099FormDocHeader, 'MISC');
         Commit();
 
-        // [WHEN] Both recipient PDFs are explicitly regenerated and sent through the connector mock.
+        // [WHEN] Both recipient PDFs are explicitly regenerated and sent through connector mock.
         RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
         RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
@@ -564,13 +564,13 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [SCENARIO 653992] Standard next-year NEC setup produces both recipient attachments without disclosures.
         Initialize();
 
-        // [GIVEN] D is an ordinary 2027 NEC document after copying standard 2026 setup.
+        // [GIVEN] Ordinary 2027 NEC Form Document exists after copying standard 2026 setup.
         SetSyntheticStatementPayer(SavedCompanyInformation);
         LibraryEmail.SetUpEmailAccount();
         CreateCopiedOrdinaryStatement(IRS1099FormDocHeader, 'NEC');
         Commit();
 
-        // [WHEN] Both recipient PDFs are explicitly regenerated and sent through the connector mock.
+        // [WHEN] Both recipient PDFs are explicitly regenerated and sent through connector mock.
         RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy B");
         RegenerateCopy(IRS1099FormDocHeader, Enum::"IRS 1099 Form Report Type"::"Copy 2");
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;

@@ -30,6 +30,11 @@ codeunit 148001 "Library IRS 1099 Document"
         exit(ProcessTransmission.UpdateIRS1099FormDocuments(TempDocLine, TempDetails));
     end;
 
+    procedure CopySupplementalLines(SourceDocumentID: Integer; TargetDocumentID: Integer)
+    begin
+        Supplemental.CopyFromDocument(SourceDocumentID, TargetDocumentID);
+    end;
+
     procedure CreateFormDocuments(ReportingDate: Date)
     begin
         CreateFormDocuments(ReportingDate, ReportingDate, '', '');

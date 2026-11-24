@@ -23,6 +23,11 @@ page 10074 "IRS 1099 Doc. Suppl. Lines"
                 {
                     ToolTip = 'Specifies the supplemental box for this line. You can select boxes for the document year and form that have a parent document line and have not already been added.';
 
+                    trigger OnValidate()
+                    begin
+                        SetSupplementalBoxDescription();
+                    end;
+
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         SupplBox: Record "IRS 1099 Suppl. Box";
@@ -33,11 +38,18 @@ page 10074 "IRS 1099 Doc. Suppl. Lines"
                         if SupplBoxes.RunModal() = Action::LookupOK then begin
                             SupplBoxes.GetRecord(SupplBox);
                             Rec.Validate("Supplemental Box No.", SupplBox."No.");
+                            SetSupplementalBoxDescription();
                             Text := SupplBox."No.";
                             exit(true);
                         end;
                         exit(false);
                     end;
+                }
+                field(Description; SupplementalBoxDescription)
+                {
+                    Caption = 'Description';
+                    ToolTip = 'Specifies the description of the supplemental box for this document''s reporting period and form.';
+                    Editable = false;
                 }
                 field("Parent Form Box No."; Rec."Parent Form Box No.")
                 {
@@ -77,9 +89,29 @@ page 10074 "IRS 1099 Doc. Suppl. Lines"
     var
         Supplemental: Codeunit "IRS 1099 Supplemental";
     begin
+        SetSupplementalBoxDescription();
         ReportingExplanation := Supplemental.GetExclusionExplanation(Rec);
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Clear(SupplementalBoxDescription);
     end;
 
     var
         ReportingExplanation: Text;
+        SupplementalBoxDescription: Text[250];
+
+    local procedure SetSupplementalBoxDescription()
+    var
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        SupplBox: Record "IRS 1099 Suppl. Box";
+    begin
+        Clear(SupplementalBoxDescription);
+        if Rec."Supplemental Box No." = '' then
+            exit;
+        DocHeader.Get(Rec."Document ID");
+        SupplBox.Get(DocHeader."Period No.", DocHeader."Form No.", Rec."Supplemental Box No.");
+        SupplementalBoxDescription := SupplBox.Description;
+    end;
 }
