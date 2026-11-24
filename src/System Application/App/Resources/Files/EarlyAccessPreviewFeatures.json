@@ -8,7 +8,7 @@
     },
     {
         "FeatureName": "Add subcontracting suggestions to an existing purchase order",
-        "Description": "In the Subcontracting app, open Subcontracting Worksheets. On a new suggestion, choose Assign purchase order and select a compatible open order for the vendor. Accept the suggestion and run Carry Out Action Message, then check the selected order for the new line.",
+        "Description": "You can add new subcontracting worksheet suggestions to a compatible open purchase order for the same vendor, keeping related work on one order.",
         "Category": "Supply chain management",
         "HelpURL": "",
         "VideoURL": "",
