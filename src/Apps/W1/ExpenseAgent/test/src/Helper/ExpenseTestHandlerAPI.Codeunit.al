@@ -116,6 +116,21 @@ codeunit 148307 "Expense Test Handler API"
         exit(GetCorporateCardTransactionJson(CorpCardTrans));
     end;
 
+    /// <summary>
+    /// Blocks or unblocks a corporate card, so tests can make adding its expenses to a report fail and then retry.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_SetCorporateCardBlocked?company=..." -d "{\"cardId\": \"E2E-EU0001-4321\", \"blocked\": true}"
+    /// </summary>
+    [ServiceEnabled]
+    procedure SetCorporateCardBlocked(cardId: Code[50]; blocked: Boolean): Text[50]
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.Get(cardId);
+        CorpCard.Validate(Blocked, blocked);
+        CorpCard.Modify(true);
+        exit('Corporate card updated');
+    end;
+
     local procedure FindOrCreateCorporateCard(ExpenseUserId: Guid; LastFourDigits: Text[4]; var CorpCard: Record "EA Corp Card")
     var
         ExpenseUser: Record "Expense User";
