@@ -7,9 +7,8 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines]
-// Card transactions become expense report lines before a receipt exists. These tests describe the target behavior
-// (changes B1, B3, B4, B5 and B7 of the corporate card report line design). Tests that need a change that is not
-// implemented yet fail until the change lands; they are intentionally not disabled.
+// Card transactions become expense report lines before a receipt exists. These tests describe the target behavior.
+// Tests that need a change that is not implemented yet fail until the change lands; they are intentionally not disabled.
 codeunit 148373 "EA Card Report Line Tests"
 {
     Subtype = Test;
@@ -34,7 +33,7 @@ codeunit 148373 "EA Card Report Line Tests"
         MaxAmountTok: Label 'must not exceed', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
-    // B1: an open card expense without a category can be added to a report
+    // An open card expense without a category can be added to a report
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -44,7 +43,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B1: A card expense created from a transaction can be added to a report while it is open and has no category.
+        // [SCENARIO] A card expense created from a transaction can be added to a report while it is open and has no category.
         Initialize();
 
         // [GIVEN] An open card expense of 20 without a category.
@@ -69,7 +68,7 @@ codeunit 148373 "EA Card Report Line Tests"
         CorpCard: Record "EA Corp Card";
         ExpenseReportHeader: Record "Expense Report Header";
     begin
-        // [SCENARIO] B1: Only card expenses are relaxed; an open manual expense must still be released first.
+        // [SCENARIO] Only card expenses are relaxed; an open manual expense must still be released first.
         Initialize();
 
         // [GIVEN] An open manual expense paid with the card.
@@ -90,7 +89,7 @@ codeunit 148373 "EA Card Report Line Tests"
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
     begin
-        // [SCENARIO] B1: A manual expense linked to a transaction keeps the normal flow and must be released first.
+        // [SCENARIO] A manual expense linked to a transaction keeps the normal flow and must be released first.
         Initialize();
 
         // [GIVEN] An open manual expense linked to a card transaction.
@@ -111,7 +110,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B1: The relaxed add does not relax report release; the user must set a category first.
+        // [SCENARIO] The relaxed add does not relax report release; the user must set a category first.
         Initialize();
 
         // [GIVEN] A card expense without a category on an open report.
@@ -134,7 +133,7 @@ codeunit 148373 "EA Card Report Line Tests"
         OtherExpense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
     begin
-        // [SCENARIO] B1: A card expense of another expense user cannot be added to the report.
+        // [SCENARIO] A card expense of another expense user cannot be added to the report.
         Initialize();
 
         // [GIVEN] A report of the first expense user and a card expense of another expense user.
@@ -150,7 +149,7 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // B3: a category change on a card line keeps the card values
+    // A category change on a card line keeps the card values
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -161,7 +160,7 @@ codeunit 148373 "EA Card Report Line Tests"
         EmployeePaidCategory: Record "Expense Category";
         PaymentMethodCode: Code[10];
     begin
-        // [SCENARIO] B3: Changing the category on a card line keeps the amount, currency, reimbursement type and payment method.
+        // [SCENARIO] Changing the category on a card line keeps the amount, currency, reimbursement type and payment method.
         Initialize();
 
         // [GIVEN] A card line of 20 and an employee-paid category.
@@ -189,7 +188,7 @@ codeunit 148373 "EA Card Report Line Tests"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B3: Clearing the category on a card line keeps the card amount and currency.
+        // [SCENARIO] Clearing the category on a card line keeps the card amount and currency.
         Initialize();
 
         // [GIVEN] A card line of 20.
@@ -214,7 +213,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B3 regression: A category change on a line that is not linked to a card transaction still resets the amount.
+        // [SCENARIO] Regression: A category change on a line that is not linked to a card transaction still resets the amount.
         Initialize();
 
         // [GIVEN] A standalone line of 20 without a card transaction.
@@ -235,7 +234,7 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // B4: "Receipt not needed" is recalculated on lines
+    // "Receipt not needed" is recalculated on lines
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -245,7 +244,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseCategory: Record "Expense Category";
     begin
-        // [SCENARIO] B4: Setting a category whose no-receipt limit is above the line amount marks the line as not needing a receipt.
+        // [SCENARIO] Setting a category whose no-receipt limit is above the line amount marks the line as not needing a receipt.
         Initialize();
         SetAllowNoReceipt(true);
 
@@ -269,7 +268,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseCategory: Record "Expense Category";
     begin
-        // [SCENARIO] B4: Changing to a category whose limit is below the line amount requires a receipt again.
+        // [SCENARIO] Changing to a category whose limit is below the line amount requires a receipt again.
         Initialize();
         SetAllowNoReceipt(true);
 
@@ -295,7 +294,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseCategory: Record "Expense Category";
     begin
-        // [SCENARIO] B4: Without Allow No Receipt, a category limit never removes the receipt requirement.
+        // [SCENARIO] Without Allow No Receipt, a category limit never removes the receipt requirement.
         Initialize();
         SetAllowNoReceipt(false);
 
@@ -319,7 +318,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseCategory: Record "Expense Category";
     begin
-        // [SCENARIO] B4: Like on the expense, a lost receipt declaration is kept when the category limit is below the amount.
+        // [SCENARIO] Like on the expense, a lost receipt declaration is kept when the category limit is below the amount.
         Initialize();
         SetAllowNoReceipt(true);
 
@@ -339,7 +338,7 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // B5: receipt matching finds card lines on open reports
+    // Receipt matching finds card lines on open reports
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -348,7 +347,7 @@ codeunit 148373 "EA Card Report Line Tests"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B5: A receipt uploaded through the general flow finds the card expense that is already on an open report.
+        // [SCENARIO] A receipt uploaded through the general flow finds the card expense that is already on an open report.
         Initialize();
 
         // [GIVEN] A card line of 20 without a receipt on an open report.
@@ -366,7 +365,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B5: Card expenses on a report that is no longer open are not candidates.
+        // [SCENARIO] Card expenses on a report that is no longer open are not candidates.
         Initialize();
 
         // [GIVEN] A card line of 20 on a released report.
@@ -386,7 +385,7 @@ codeunit 148373 "EA Card Report Line Tests"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B5: A card line that already has a receipt is not a candidate.
+        // [SCENARIO] A card line that already has a receipt is not a candidate.
         Initialize();
 
         // [GIVEN] A card line of 20 with a receipt on an open report.
@@ -406,7 +405,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseUser: Record "Expense User";
     begin
-        // [SCENARIO] B5: Checking a receipt against a card expense that is on an open report returns the expense.
+        // [SCENARIO] Checking a receipt against a card expense that is on an open report returns the expense.
         Initialize();
 
         // [GIVEN] A card line of 20 without a receipt on an open report.
@@ -422,7 +421,7 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // B7: removing a card line returns the expense to the pending list; card expenses cannot be deleted
+    // Removing a card line returns the expense to the pending list; card expenses cannot be deleted
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -433,7 +432,7 @@ codeunit 148373 "EA Card Report Line Tests"
         CorpCardTrans: Record "EA Corp Card Trans";
         FeedNo: Integer;
     begin
-        // [SCENARIO] B7: "Remove from report" deletes the card line and puts the expense back in the pending list.
+        // [SCENARIO] "Remove from report" deletes the card line and puts the expense back in the pending list.
         Initialize();
 
         // [GIVEN] A card line on an open report.
@@ -461,7 +460,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportLine: Record "Expense Report Line";
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
-        // [SCENARIO] B7 regression: Deleting a line of a manual expense still sets the expense back to Released.
+        // [SCENARIO] Regression: Deleting a line of a manual expense still sets the expense back to Released.
         Initialize();
 
         // [GIVEN] A released manual card-paid expense on an open report.
@@ -485,7 +484,7 @@ codeunit 148373 "EA Card Report Line Tests"
     var
         Expense: Record Expense;
     begin
-        // [SCENARIO] B7: A card expense cannot be deleted, so its transaction never points to a missing expense.
+        // [SCENARIO] A card expense cannot be deleted, so its transaction never points to a missing expense.
         Initialize();
 
         // [GIVEN] An open card expense that is not on a report.
@@ -505,7 +504,7 @@ codeunit 148373 "EA Card Report Line Tests"
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] B7 + B1: After "Remove from report" the open card expense can be added to a report again.
+        // [SCENARIO] After "Remove from report" the open card expense can be added to a report again.
         Initialize();
 
         // [GIVEN] A card line that was removed from its report.
@@ -530,7 +529,7 @@ codeunit 148373 "EA Card Report Line Tests"
         CorpCardTrans: Record "EA Corp Card Trans";
         FeedNo: Integer;
     begin
-        // [SCENARIO] B7: Deleting a whole draft report keeps its card expenses and puts them back in the pending list,
+        // [SCENARIO] Deleting a whole draft report keeps its card expenses and puts them back in the pending list,
         // so no card transaction points to a deleted expense.
         Initialize();
 
@@ -818,7 +817,7 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     // Creates a card expense and adds it to an open report through the existing released path, so the line exists
-    // regardless of change B1.
+    // even before open card expenses can be added to a report.
     local procedure CreateCardLine(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line"; CardId: Code[50])
     var
         ExpenseCategory: Record "Expense Category";
