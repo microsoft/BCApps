@@ -116,9 +116,8 @@ page 7233 "Master Data Synch. Tables"
                 field(TableFilterValue; TableFilter)
                 {
                     ApplicationArea = Suite;
-                    Caption = 'Table Filter';
-                    ToolTip = 'Specifies the filter on the table in the current company to control which records should be synchronized.';
-                    visible = false;
+                    Caption = 'Local Table Filter';
+                    ToolTip = 'Specifies a filter on the table in the current company to control which records should be synchronized. Match-based coupling does not couple records that this filter excludes, and does not create a new record when the only matching record is excluded.';
 
                     trigger OnAssistEdit()
                     var
