@@ -45,6 +45,12 @@ page 6994 "Exp. Per Diem Partial Settings"
                     ToolTip = 'Specifies the percentage of the full per diem rate applied to partial days.';
                     Enabled = PerDiemEnabled;
                 }
+                field("Partial Day Rounding Precision"; Rec."Partial Day Rounding Precision")
+                {
+                    Caption = 'Partial day rounding precision';
+                    ToolTip = 'Specifies the rounding precision applied to the calculated partial-day per diem amount, for example 0.01, 0.10, or 1. If the field is empty, the partial-day amount is not rounded.';
+                    Enabled = PerDiemEnabled;
+                }
             }
             group(MealReductionGroup)
             {
@@ -94,6 +100,7 @@ page 6994 "Exp. Per Diem Partial Settings"
         TargetExpenseAgentSetup."Partial Day Rules" := Rec."Partial Day Rules";
         TargetExpenseAgentSetup."Min Hours for Partial Per Diem" := Rec."Min Hours for Partial Per Diem";
         TargetExpenseAgentSetup."Percentage For Partial Day" := Rec."Percentage For Partial Day";
+        TargetExpenseAgentSetup."Partial Day Rounding Precision" := Rec."Partial Day Rounding Precision";
         TargetExpenseAgentSetup."Reduction for Breakfast %" := Rec."Reduction for Breakfast %";
         TargetExpenseAgentSetup."Reduction for Lunch %" := Rec."Reduction for Lunch %";
         TargetExpenseAgentSetup."Reduction for Dinner %" := Rec."Reduction for Dinner %";

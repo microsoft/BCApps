@@ -368,6 +368,18 @@ codeunit 139757 "Library - Master Data Mgt."
         exit(MDMHttpSourceTransport.UnwrapODataValueForTest(ResponseBody));
     end;
 
+    /// <summary>Classifies a failed source response the way the HTTP transport does, using the saved connection details.</summary>
+    /// <param name="StatusCode">The HTTP status code of the failed response.</param>
+    /// <param name="ResponseBody">The raw response body.</param>
+    /// <param name="FailureReason">Returns the reason token the transport logs to telemetry.</param>
+    /// <returns>The message the user sees.</returns>
+    procedure DescribeHttpTransportFailure(StatusCode: Integer; ResponseBody: Text; var FailureReason: Text): Text
+    var
+        MDMHttpSourceTransport: Codeunit "MDM Http Source Transport";
+    begin
+        exit(MDMHttpSourceTransport.DescribeRequestFailureForTest(StatusCode, ResponseBody, FailureReason));
+    end;
+
     /// <summary>Checks whether the inline media cache holds an entry for a record field.</summary>
     /// <param name="SystemId">The SystemId of the source record.</param>
     /// <param name="FieldNo">The field number of the media/blob field.</param>

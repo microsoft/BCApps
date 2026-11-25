@@ -10,6 +10,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Assert: Codeunit Assert;
         LibrarySalesLib: Codeunit "Library - Sales";
         WizardPrivacyNoticeOpenCount: Integer;
+        ConfirmQuestions: List of [Text];
         InvalidSourceHostErr: Label 'not a valid Business Central endpoint', Locked = true;
         // Test certificates are generated at run time, so no certificate, private key, or password is checked in.
         [NonDebuggable]
@@ -379,6 +380,233 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvErrorsWhenSourceCannotReadTable()
+    var
+        Customer: Record Customer;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 656413] When the source's registered app can't read the table, the sync stops with an error that
+        //                   tells the source admin to grant read permission, instead of failing without a usable message.
+        Initialize();
+        // [GIVEN] a cross-environment setup whose source reports that its app can't read the Customer table
+        LibrarySalesLib.CreateCustomer(Customer);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedResponse('{"tableId":18,"tableAvailable":true,"readPermission":false,"records":[],"hasMore":false}');
+
+        // [WHEN] the subsidiary reads a customer from the source
+        asserterror LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
+
+        // [THEN] the error tells the source admin to grant read permission
+        Assert.ExpectedError('grant it read permission to this table');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvFullSynchReviewErrorsWhenSourceCannotReadTable()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 656413] The full-synch review doesn't treat an unreadable source table as empty (which would skip it).
+        Initialize();
+        // [GIVEN] a Customer mapping whose source reports that its app can't read the table
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedResponse('{"tables":[{"tableId":18,"tableAvailable":true,"readPermission":false}]}');
+
+        // [WHEN] the full-synch review checks whether the source table has records
+        asserterror LibraryMasterDataMgt.GetIntegrationRecRefCount(IntegrationTableMapping);
+
+        // [THEN] it stops with the read-permission error instead of reporting an empty table
+        Assert.ExpectedError('grant it read permission to this table');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportExplainsFailedResponses()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        FailureReason: Text;
+        FailureMessage: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO 660237] A failed source response is explained by its cause, telling the 404s apart by the OData error code.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [GIVEN] a 404 for a company that doesn't exist [THEN] the message names the company to check
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(404, ODataErrorBody('Internal_DataNotFoundFilter'), FailureReason);
+        Assert.AreEqual('CompanyNotFound', FailureReason, 'Wrong reason for an unknown company');
+        Assert.IsTrue(StrPos(FailureMessage, 'The company ''CRONUS'' does not exist') > 0, 'Unexpected message: ' + FailureMessage);
+
+        // [GIVEN] a 404 for the service segment [THEN] the source is missing the MDM service
+        LibraryMasterDataMgt.DescribeHttpTransportFailure(404, ODataErrorBody('BadRequest_NotFound'), FailureReason);
+        Assert.AreEqual('SourceApiNotFound', FailureReason, 'Wrong reason for a missing service');
+
+        // [GIVEN] a 404 without an OData error body [THEN] the environment wasn't found
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(404, '', FailureReason);
+        Assert.AreEqual('EnvironmentNotFound', FailureReason, 'Wrong reason for an unknown environment');
+        Assert.IsTrue(StrPos(FailureMessage, 'CONTOSO-PROD was not found') > 0, 'Unexpected message: ' + FailureMessage);
+
+        // [GIVEN] a 404 whose error code isn't a platform code [THEN] it is ignored rather than trusted
+        LibraryMasterDataMgt.DescribeHttpTransportFailure(404, ODataErrorBody('not a code'), FailureReason);
+        Assert.AreEqual('EnvironmentNotFound', FailureReason, 'A malformed error code should be ignored');
+
+        // [GIVEN] a 401 [THEN] the message points at the app registration on the source
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(401, '', FailureReason);
+        Assert.AreEqual('NotAuthenticated', FailureReason, 'Wrong reason for HTTP 401');
+        Assert.IsTrue(StrPos(FailureMessage, '11111111-2222-3333-4444-555555555555') > 0, 'The message should name the client ID: ' + FailureMessage);
+
+        // [GIVEN] a 403 [THEN] the message points at the permission set
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(403, '', FailureReason);
+        Assert.AreEqual('AccessDenied', FailureReason, 'Wrong reason for HTTP 403');
+        Assert.IsTrue(StrPos(FailureMessage, 'Master Data Mgt. - Cross Environment') > 0, 'The message should name the permission set: ' + FailureMessage);
+
+        // [GIVEN] any other status [THEN] the generic message with the status code
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(500, '', FailureReason);
+        Assert.AreEqual('HttpError', FailureReason, 'Wrong reason for HTTP 500');
+        Assert.AreEqual('The source environment returned HTTP 500.', FailureMessage, 'Unexpected message for HTTP 500');
+
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('RecordingConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardFinishAsksWhenConnectionFails()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO 660237] Finish checks the connection; when it fails, the user can go back and correct the details.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        Clear(ConfirmQuestions);
+        // [GIVEN] a source that can't be reached
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('not a capabilities response');
+
+        // [WHEN] the user completes the wizard and chooses not to finish anyway
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the user is told why, and is not asked to enable synchronization; the wizard stays open on Finish
+        Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'could not be verified') > 0, 'Unexpected question: ' + ConfirmQuestions.Get(1));
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'Could not connect to the source environment') > 0, 'The question should include the reason: ' + ConfirmQuestions.Get(1));
+        Assert.IsTrue(ConnectionDetails.ActionFinish.Enabled(), 'The wizard should stay open so the details can be corrected');
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('RecordingConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardFinishReportsSourceConsentRequired()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Privacy]
+        // [SCENARIO] Finish tells the user when the source hasn't approved sharing, instead of leaving it to the first sync.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        Clear(ConfirmQuestions);
+        // [GIVEN] a reachable source that hasn't approved the privacy notice
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('{"version":1,"features":["records","lastModifiedPerTable"],"consentRequired":true}');
+
+        // [WHEN] the user completes the wizard
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the question names the missing approval on the source
+        Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'has not approved sharing its master data') > 0, 'The question should name the missing approval: ' + ConfirmQuestions.Get(1));
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('RecordingConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardFinishRejectsCapabilitiesWithoutVersion()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A JSON response without the contract version isn't from the source API, so Finish doesn't treat it as a connection.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        Clear(ConfirmQuestions);
+        // [GIVEN] a source that answers GetCapabilities with a JSON object that has no version
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('{"features":["records","lastModifiedPerTable"]}');
+
+        // [WHEN] the user completes the wizard
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the connection is reported as failed rather than verified
+        Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'Could not connect to the source environment') > 0, 'The question should report the failed connection: ' + ConfirmQuestions.Get(1));
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    local procedure ODataErrorBody(ErrorCode: Text) Body: Text
+    var
+        ErrorObject: JsonObject;
+        Envelope: JsonObject;
+    begin
+        ErrorObject.Add('code', ErrorCode);
+        ErrorObject.Add('message', 'The source''s own message, which must never be used.');
+        Envelope.Add('error', ErrorObject);
+        Envelope.WriteTo(Body);
+    end;
+
+    [Test]
     procedure CrossEnvIntegrationRecRefCountReportsExistence()
     var
         Customer: Record Customer;
@@ -406,6 +634,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         PrivacyNotice: Codeunit "Privacy Notice";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
         AzureADTenant: Codeunit "Azure AD Tenant";
         ConnectionDetails: TestPage "MDM Connection Details";
     begin
@@ -414,6 +643,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Initialize();
         // Pre-approve so ticking consent doesn't open the notice dialog in this configuration-focused test.
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate(); // a reachable source, so Finish's connection check passes
 
         ConnectionDetails.OpenEdit();
         // Welcome step: consent is pre-approved above, so Next advances without prompting.
@@ -519,6 +749,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         JobQueueEntry: Record "Job Queue Entry";
         PrivacyNotice: Codeunit "Privacy Notice";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
         EnvironmentTriggers: Codeunit "Environment Triggers";
         EmptyRecordId: RecordId;
         ConnectionDetails: TestPage "MDM Connection Details";
@@ -530,6 +761,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         //            disables cross-environment synchronization, keeping the rest of the connection for re-entry.
         Initialize();
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate(); // a reachable source, so Finish's connection check passes
 
         // [GIVEN] a cross-environment connection saved through the wizard, so the secret is really in Isolated Storage
         ConnectionDetails.OpenEdit();
@@ -856,6 +1088,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         PrivacyNotice: Codeunit "Privacy Notice";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
         ConnectionDetails: TestPage "MDM Connection Details";
     begin
         // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
@@ -863,6 +1096,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         //            and lets the user finish without uploading the certificate again.
         Initialize();
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate(); // a reachable source, so Finish's connection check passes
         // [GIVEN] a cross-environment connection that authenticates with a certificate
         SetCrossEnvConnectionDetails();
         LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
@@ -2102,6 +2336,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     [ConfirmHandler]
     procedure ConfirmHandlerNo(Question: Text; var Reply: Boolean)
     begin
+        Reply := false;
+    end;
+
+    [ConfirmHandler]
+    procedure RecordingConfirmHandlerNo(Question: Text; var Reply: Boolean)
+    begin
+        ConfirmQuestions.Add(Question);
         Reply := false;
     end;
 
