@@ -977,30 +977,33 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure ReleasingReportChecksAllRulesOnCardLineWaitingForReceipt()
+    procedure ReleasingReportChecksMerchantOnCardLineWaitingForReceipt()
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseCategory: Record "Expense Category";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
-        // [SCENARIO] Releasing a report checks all rules, also on card lines still waiting for a receipt.
+        // [SCENARIO] Report release enforces the merchant rule even when the card receipt is still missing.
         Initialize();
-        EnableReceiptNoRule();
+        EnableReceiptAndMerchantRules();
 
         // [GIVEN] A card line with a category but without receipt on an open report.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), '');
         AddCardExpenseToReport(Expense, ExpenseReportLine);
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
         ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
         ExpenseReportLine.Description := 'CONTOSO COFFEE';
         ExpenseReportLine.Modify(true);
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+        AssertCardLineMerchantNotReceiptNoViolation(ExpenseReportLine);
 
         // [WHEN] The report is released.
         ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
         asserterror Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpenseReportHeader);
 
-        // [THEN] Release fails because the line breaks the receipt number rule.
+        // [THEN] Release rejects the outstanding rule violation.
         Assert.ExpectedError(RuleViolationPresentOnLineErr);
     end;
 
