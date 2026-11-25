@@ -1337,7 +1337,7 @@ table 6907 "Expense Report Line"
     begin
         if Rec.IsTemporary() then
             exit;
-        if StoredExpenseReportLine."Credit Card Feed No." = 0 then
+        if not StoredExpenseReportLine.IsLinkedToCardTransaction() then
             exit;
 
         if Rec.Amount <> StoredExpenseReportLine.Amount then
@@ -1353,6 +1353,15 @@ table 6907 "Expense Report Line"
             Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Payment Method Code"));
         if Rec."Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id" then
             Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Corporate Card Id"));
+    end;
+
+    /// <summary>
+    /// A line linked to a corporate card transaction keeps the transaction's amount, currency, date, merchant, payment method
+    /// and card.
+    /// </summary>
+    internal procedure IsLinkedToCardTransaction(): Boolean
+    begin
+        exit(Rec."Credit Card Feed No." <> 0);
     end;
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
