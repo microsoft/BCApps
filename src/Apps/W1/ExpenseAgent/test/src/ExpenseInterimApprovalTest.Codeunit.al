@@ -136,6 +136,8 @@ codeunit 148346 "Expense Interim Approval Test"
     begin
         // [SCENARIO] An open report is submitted with a comment and routed to the selected interim approver.
         Initialize();
+
+        // [GIVEN] An open report with eligible interim and final approvers.
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
@@ -166,6 +168,8 @@ codeunit 148346 "Expense Interim Approval Test"
     begin
         // [SCENARIO] A released report is submitted and routed to the interim approver's active alternate.
         Initialize();
+
+        // [GIVEN] A released report and active alternate coverage for its interim approver.
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
@@ -195,6 +199,8 @@ codeunit 148346 "Expense Interim Approval Test"
     begin
         // [SCENARIO] An invalid interim approver rolls back release, submission, and the submission comment.
         Initialize();
+
+        // [GIVEN] An open report with its initial state committed.
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
@@ -227,6 +233,8 @@ codeunit 148346 "Expense Interim Approval Test"
     begin
         // [SCENARIO] Failed submission rolls back release, interim assignment, and its activity entry.
         Initialize();
+
+        // [GIVEN] An open report whose final approver has no approval user ID.
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
@@ -264,6 +272,8 @@ codeunit 148346 "Expense Interim Approval Test"
     begin
         // [SCENARIO] Disabled interim approvals prevent the combined operation from submitting the report.
         Initialize();
+
+        // [GIVEN] A released report with interim approver assignments disabled.
         EnableAgent(true);
         CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
         CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);

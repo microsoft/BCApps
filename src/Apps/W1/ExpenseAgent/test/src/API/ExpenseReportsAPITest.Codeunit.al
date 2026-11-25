@@ -217,6 +217,8 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] The action returns the handoff outcome even though the report leaves the acting approver's view.
         Initialize();
+
+        // [GIVEN] A submitted report in the interim approver's view.
         CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
         ReportURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(InterimApprover.SystemId), Page::"Approver View API", ApproverViewsServiceNameTok, ExpenseReportsServiceNameTok);
@@ -245,6 +247,8 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] Approval of the final stage reports completion and no next approver.
         Initialize();
+
+        // [GIVEN] An interim-approved report awaiting its final approver.
         CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
         ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
 
@@ -267,10 +271,14 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] A report without an interim stage completes in one approval action.
         Initialize();
+
+        // [GIVEN] A submitted report without an interim approver.
         CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, false);
 
+        // [WHEN] The final approver approves through the outcome-returning action.
         Outcome := InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOutcomeActionTok, false);
 
+        // [THEN] Approval is complete and no next approver is returned.
         AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Approved', true, '');
         RestoreApprovalSetup();
     end;
@@ -288,13 +296,17 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] The outcome identifies the active final alternate, not the configured primary approver.
         Initialize();
+
+        // [GIVEN] A submitted report with an interim approver and a final alternate.
         CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
         CreateApprover(FinalAlternate);
         ExpenseReportApprovalMgmt.AssignAlternateApprover(ExpenseReportHeader, FinalAlternate."No.", Submitter."No.");
         ExpenseReportHeader.TestField("Primary Final Approver No.", FinalApprover."No.");
 
+        // [WHEN] The interim approver approves through the outcome-returning action.
         Outcome := InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), InterimApprover."No.", ApproveWithOutcomeActionTok, false);
 
+        // [THEN] The outcome routes the report to the active final alternate.
         AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Interim_x0020_Approved', false, FinalAlternate."No.");
         RestoreApprovalSetup();
     end;
@@ -311,10 +323,15 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] The policy-override action returns the same handoff and completion contract.
         Initialize();
+
+        // [GIVEN] A submitted report with interim and final approval stages.
         CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
 
+        // [WHEN] The interim approver approves with an explicit policy override.
         InterimOutcome := InvokeApprovalOutcome(
             GetReportURL(ExpenseReportHeader.SystemId), InterimApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
+
+        // [WHEN] The final approver approves with an explicit policy override.
         FinalOutcome := InvokeApprovalOutcome(
             GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
 
@@ -338,6 +355,8 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] Only an explicit policy override permits approval with unevaluated policies.
         Initialize();
+
+        // [GIVEN] A submitted report with a policy that has not been evaluated.
         CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, false);
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Evaluate Policies" := true;
@@ -347,15 +366,24 @@ codeunit 148329 "Expense Reports API Test"
         LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseReportLine."Expense Category", 'Approval outcome validation policy');
         Assert.AreEqual(Enum::"Expense Policy Status"::"Not Evaluated", ExpenseReportLine.GetPolicyStatus(), 'The report must require policy evaluation before approval.');
 
+        // [WHEN] Approval is requested without the policy-override parameter.
         asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOutcomeActionTok, false);
+
+        // [THEN] Approval is rejected because policy evaluation is not current.
         Assert.ExpectedError(PolicyEvaluationNotCurrentCodeTok);
+
+        // [WHEN] The policy-override action is called with the override disabled.
         asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, false);
+
+        // [THEN] Approval is rejected and the report remains pending.
         Assert.ExpectedError(PolicyEvaluationNotCurrentCodeTok);
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
         ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::"Pending Approval");
 
+        // [WHEN] The same report is approved with an explicit policy override.
         Outcome := InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
 
+        // [THEN] Approval completes.
         AssertApprovalOutcome(Outcome, ExpenseReportHeader.SystemId, 'Approved', true, '');
         RestoreApprovalSetup();
     end;
@@ -370,11 +398,20 @@ codeunit 148329 "Expense Reports API Test"
     begin
         // [SCENARIO] An outcome action does not bypass the active-approver check.
         Initialize();
+
+        // [GIVEN] A submitted report awaiting its interim approver.
         CreateApprovalReport(Submitter, InterimApprover, FinalApprover, ExpenseReportHeader, true);
 
+        // [WHEN] The inactive final approver calls the standard outcome action.
         asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOutcomeActionTok, false);
+
+        // [THEN] The action rejects the inactive approver.
         Assert.ExpectedError(StrSubstNo(ActorNotActiveApproverErr, InterimApprover."No."));
+
+        // [WHEN] The inactive final approver calls the policy-override outcome action.
         asserterror InvokeApprovalOutcome(GetReportURL(ExpenseReportHeader.SystemId), FinalApprover."No.", ApproveWithOverrideAndOutcomeActionTok, true);
+
+        // [THEN] The override also rejects the inactive approver.
         Assert.ExpectedError(StrSubstNo(ActorNotActiveApproverErr, InterimApprover."No."));
 
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
