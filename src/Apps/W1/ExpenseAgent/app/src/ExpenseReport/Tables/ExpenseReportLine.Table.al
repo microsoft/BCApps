@@ -1320,7 +1320,7 @@ table 6907 "Expense Report Line"
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
-        CardLineSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense report line created from a corporate card transaction.', Comment = '%1 = field caption';
+        CardLineSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense report line linked to a corporate card transaction.', Comment = '%1 = field caption';
 
     local procedure CheckCorporateCardSourceFields()
     var
@@ -1333,19 +1333,12 @@ table 6907 "Expense Report Line"
         CheckCorporateCardSourceFields(StoredExpenseReportLine);
     end;
 
-    // A line linked to a CorporateCard-source expense keeps the card transaction values once its feed link is stored.
+    // Expense-backed lines keep their card transaction values regardless of the expense's source.
     local procedure CheckCorporateCardSourceFields(StoredExpenseReportLine: Record "Expense Report Line")
-    var
-        Expense: Record Expense;
     begin
         if Rec.IsTemporary() then
             exit;
         if (StoredExpenseReportLine."Credit Card Feed No." = 0) or (StoredExpenseReportLine."Expense No." = '') then
-            exit;
-        Expense.SetLoadFields(Source);
-        if not Expense.Get(StoredExpenseReportLine."Expense No.") then
-            exit;
-        if Expense.Source <> Expense.Source::CorporateCard then
             exit;
 
         if Rec.Amount <> StoredExpenseReportLine.Amount then
