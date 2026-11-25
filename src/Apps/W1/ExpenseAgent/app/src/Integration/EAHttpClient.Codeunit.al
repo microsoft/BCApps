@@ -14,6 +14,7 @@ using System.Security.AccessControl;
 using System.Security.Authentication;
 using System.Security.Encryption;
 using System.Telemetry;
+using System.Text;
 using System.Utilities;
 
 codeunit 6941 "EA Http Client"
@@ -60,7 +61,8 @@ codeunit 6941 "EA Http Client"
         ExpenseAppBaseUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365219', Locked = true;
         ExpenseAppBaseUrlTieTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365220', Locked = true;
         ErpScopeHeaderTok: Label 'X-ERP-Scope', Locked = true;
-        ErpScopeNamespaceTok: Label '7d8f2d5b0e565f2d9b396ce7f2f54844', Locked = true;
+        // Network-order bytes of UUID 7d8f2d5b-0e56-5f2d-9b39-6ce7f2f54844.
+        ErpScopeNamespaceBase64Tok: Label 'fY8tWw5WXy2bOWzn8vVIRA==', Locked = true;
         ErpScopeErpCodeTok: Label 'business-central', Locked = true;
         ErpScopeTenantIdTok: Label 'tenant_id', Locked = true;
         ErpScopeEnvironmentNameTok: Label 'environment_name', Locked = true;
@@ -657,64 +659,25 @@ codeunit 6941 "EA Http Client"
             '|' + EncodeScopeComponent(NormalizeScopeComponent(EnvironmentName, ErpScopeEnvironmentNameTok)) +
             '|' + EncodeScopeComponent(CanonicalizeScopeCompanyId(NormalizeScopeComponent(CompanyId, ErpScopeCompanyIdTok)));
 
-        exit(GenerateNameBasedUuid(ErpScopeNamespaceTok, ScopeName));
+        exit(GenerateNameBasedUuid(ScopeName));
     end;
 
     local procedure NormalizeScopeComponent(Value: Text; ComponentName: Text): Text
     var
         Result: Text;
+        WhitespaceCharacters: Text;
+        WhitespaceCharacter: Char;
     begin
-        Result := TrimAsciiWhitespace(Value);
+        WhitespaceCharacter := 9;
+        WhitespaceCharacters := ' ' + Format(WhitespaceCharacter);
+        WhitespaceCharacter := 10;
+        WhitespaceCharacters += Format(WhitespaceCharacter);
+        WhitespaceCharacter := 13;
+        WhitespaceCharacters += Format(WhitespaceCharacter);
+        Result := DelChr(Value, '<>', WhitespaceCharacters);
         if Result = '' then
             Error(ErpScopeIdentityMissingErr, ComponentName);
-        exit(LowerCaseAscii(Result));
-    end;
-
-    local procedure TrimAsciiWhitespace(Value: Text): Text
-    var
-        StartPos: Integer;
-        EndPos: Integer;
-    begin
-        // AL evaluates both operands of 'and', so bounds are checked before indexing.
-        StartPos := 1;
-        EndPos := StrLen(Value);
-        while StartPos <= EndPos do begin
-            if not IsAsciiWhitespace(Value[StartPos]) then
-                break;
-            StartPos += 1;
-        end;
-        while EndPos >= StartPos do begin
-            if not IsAsciiWhitespace(Value[EndPos]) then
-                break;
-            EndPos -= 1;
-        end;
-        if StartPos > EndPos then
-            exit('');
-        exit(CopyStr(Value, StartPos, EndPos - StartPos + 1));
-    end;
-
-    local procedure IsAsciiWhitespace(Character: Char): Boolean
-    var
-        CharCode: Integer;
-    begin
-        CharCode := Character;
-        exit(CharCode in [9, 10, 13, 32]);
-    end;
-
-    local procedure LowerCaseAscii(Value: Text): Text
-    var
-        Result: Text;
-        CharCode: Integer;
-        Index: Integer;
-    begin
-        // Only A-Z are lowercased; other characters must stay untouched to match the service calculation.
-        Result := Value;
-        for Index := 1 to StrLen(Result) do begin
-            CharCode := Result[Index];
-            if (CharCode >= 65) and (CharCode <= 90) then
-                Result[Index] := CharCode + 32;
-        end;
-        exit(Result);
+        exit(ConvertStr(Result, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'));
     end;
 
     local procedure CanonicalizeScopeCompanyId(NormalizedCompanyId: Text): Text
@@ -729,11 +692,7 @@ codeunit 6941 "EA Http Client"
             else
                 Remainder := CopyStr(Remainder, 6);
 
-        while Remainder.StartsWith('{') or Remainder.StartsWith('}') do
-            Remainder := CopyStr(Remainder, 2);
-        while Remainder.EndsWith('{') or Remainder.EndsWith('}') do
-            Remainder := CopyStr(Remainder, 1, StrLen(Remainder) - 1);
-
+        Remainder := DelChr(Remainder, '<>', '{}');
         HexDigits := DelChr(Remainder, '=', '-');
         if (StrLen(HexDigits) <> 32) or (DelChr(HexDigits, '=', '0123456789abcdef') <> '') then
             exit(NormalizedCompanyId);
@@ -743,35 +702,30 @@ codeunit 6941 "EA Http Client"
 
     local procedure EncodeScopeComponent(Value: Text): Text
     var
-        Utf8Bytes: List of [Integer];
+        TempBlob: Codeunit "Temp Blob";
+        Utf8OutStream: OutStream;
     begin
-        AppendUtf8Bytes(Value, Utf8Bytes);
-        exit(Format(Utf8Bytes.Count(), 0, 9) + ':' + Value);
+        ValidateUnicodeText(Value);
+        TempBlob.CreateOutStream(Utf8OutStream);
+        WriteUtf8Bytes(Value, Utf8OutStream);
+        exit(Format(TempBlob.Length(), 0, 9) + ':' + Value);
     end;
 
-    local procedure GenerateNameBasedUuid(NamespaceHex: Text; Name: Text): Text
+    local procedure GenerateNameBasedUuid(Name: Text): Text
     var
         TempBlob: Codeunit "Temp Blob";
         CryptographyManagement: Codeunit "Cryptography Management";
+        Base64Convert: Codeunit "Base64 Convert";
         HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
-        NameBytes: List of [Integer];
-        ByteValue: Byte;
-        ByteCode: Integer;
         HashOutStream: OutStream;
         HashInStream: InStream;
         Hash: Text;
-        Index: Integer;
+        VariantNibble: Integer;
     begin
         // RFC 4122 version 5: SHA-1 over the namespace bytes (network order) followed by the UTF-8 name.
-        for Index := 1 to StrLen(NamespaceHex) div 2 do
-            NameBytes.Add(HexToInteger(CopyStr(NamespaceHex, Index * 2 - 1, 2)));
-        AppendUtf8Bytes(Name, NameBytes);
-
         TempBlob.CreateOutStream(HashOutStream);
-        foreach ByteCode in NameBytes do begin
-            ByteValue := ByteCode;
-            HashOutStream.Write(ByteValue);
-        end;
+        Base64Convert.FromBase64(ErpScopeNamespaceBase64Tok, HashOutStream);
+        WriteUtf8Bytes(Name, HashOutStream);
         TempBlob.CreateInStream(HashInStream);
 
         Hash := CopyStr(LowerCase(CryptographyManagement.GenerateHash(HashInStream, HashAlgorithmType::SHA1)), 1, 32);
@@ -779,86 +733,42 @@ codeunit 6941 "EA Http Client"
             Error(ErpScopeInvalidTextErr);
 
         // Set the version (5) and the RFC 4122 variant bits.
-        Hash := CopyStr(Hash, 1, 12) +
-            IntegerToHex((HexToInteger(CopyStr(Hash, 13, 2)) mod 16) + 80) +
-            CopyStr(Hash, 15, 2) +
-            IntegerToHex((HexToInteger(CopyStr(Hash, 17, 2)) mod 64) + 128) +
-            CopyStr(Hash, 19);
+        VariantNibble := (StrPos('0123456789abcdef', CopyStr(Hash, 17, 1)) - 1) mod 4;
+        Hash := CopyStr(Hash, 1, 12) + '5' + CopyStr(Hash, 14, 3) +
+            CopyStr('89ab', VariantNibble + 1, 1) + CopyStr(Hash, 18);
 
         exit(FormatHyphenatedUuid(Hash));
     end;
 
-    local procedure AppendUtf8Bytes(Value: Text; var Utf8Bytes: List of [Integer])
+    local procedure WriteUtf8Bytes(Value: Text; OutputStream: OutStream)
     var
-        CodePoint: Integer;
+        Base64Convert: Codeunit "Base64 Convert";
+    begin
+        // Decode the UTF-8 conversion into raw bytes without adding a byte-order mark.
+        Base64Convert.FromBase64(Base64Convert.ToBase64(Value, TextEncoding::UTF8), OutputStream);
+    end;
+
+    local procedure ValidateUnicodeText(Value: Text)
+    var
+        CharacterCode: Integer;
         LowSurrogate: Integer;
         Index: Integer;
     begin
         Index := 1;
         while Index <= StrLen(Value) do begin
-            CodePoint := Value[Index];
-            if (CodePoint >= 55296) and (CodePoint <= 56319) then begin
+            CharacterCode := Value[Index];
+            if (CharacterCode >= 55296) and (CharacterCode <= 56319) then begin
                 if Index = StrLen(Value) then
                     Error(ErpScopeInvalidTextErr);
                 LowSurrogate := Value[Index + 1];
                 if (LowSurrogate < 56320) or (LowSurrogate > 57343) then
                     Error(ErpScopeInvalidTextErr);
-                CodePoint := 65536 + (CodePoint - 55296) * 1024 + (LowSurrogate - 56320);
                 Index += 1;
             end else
-                if (CodePoint >= 56320) and (CodePoint <= 57343) then
+                if (CharacterCode >= 56320) and (CharacterCode <= 57343) then
                     Error(ErpScopeInvalidTextErr);
-
-            AppendUtf8CodePoint(CodePoint, Utf8Bytes);
             Index += 1;
         end;
-    end;
-
-    local procedure AppendUtf8CodePoint(CodePoint: Integer; var Utf8Bytes: List of [Integer])
-    begin
-        case true of
-            CodePoint < 128:
-                AddByte(Utf8Bytes, CodePoint);
-            CodePoint < 2048:
-                begin
-                    AddByte(Utf8Bytes, 192 + CodePoint div 64);
-                    AddByte(Utf8Bytes, 128 + CodePoint mod 64);
-                end;
-            CodePoint < 65536:
-                begin
-                    AddByte(Utf8Bytes, 224 + CodePoint div 4096);
-                    AddByte(Utf8Bytes, 128 + (CodePoint div 64) mod 64);
-                    AddByte(Utf8Bytes, 128 + CodePoint mod 64);
-                end;
-            else begin
-                AddByte(Utf8Bytes, 240 + CodePoint div 262144);
-                AddByte(Utf8Bytes, 128 + (CodePoint div 4096) mod 64);
-                AddByte(Utf8Bytes, 128 + (CodePoint div 64) mod 64);
-                AddByte(Utf8Bytes, 128 + CodePoint mod 64);
-            end;
-        end;
-    end;
-
-    local procedure AddByte(var Bytes: List of [Integer]; Value: Integer)
-    begin
-        Bytes.Add(Value);
-    end;
-
-    local procedure HexToInteger(HexText: Text): Integer
-    var
-        Result: Integer;
-        Index: Integer;
-    begin
-        for Index := 1 to StrLen(HexText) do
-            Result := Result * 16 + StrPos('0123456789abcdef', LowerCase(CopyStr(HexText, Index, 1))) - 1;
-        exit(Result);
-    end;
-
-    local procedure IntegerToHex(Value: Integer): Text
-    var
-        HexDigitsTok: Label '0123456789abcdef', Locked = true;
-    begin
-        exit(CopyStr(HexDigitsTok, Value div 16 + 1, 1) + CopyStr(HexDigitsTok, Value mod 16 + 1, 1));
     end;
 
     local procedure FormatHyphenatedUuid(HexDigits: Text): Text

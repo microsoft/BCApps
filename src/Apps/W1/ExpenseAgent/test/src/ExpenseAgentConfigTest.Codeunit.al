@@ -339,13 +339,22 @@ codeunit 148361 "Expense Agent Config. Test"
     var
         EAHttpClient: Codeunit "EA Http Client";
         ExpectedScopeId: Text;
+        Whitespace: Text;
+        WhitespaceCharacter: Char;
     begin
         // [SCENARIO] ASCII whitespace, ASCII case and the company GUID format do not change the scope
         ExpectedScopeId := '2433efa5-0404-5e0a-ab5e-77a8083344e9';
         Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId('  72F988BF-86F1-41AF-91AB-2D7CD011DB47' + Tab(), '  ProDuction ', ' 11111111-2222-3333-4444-555555555555 '), 'Whitespace and case must be ignored.');
+        WhitespaceCharacter := 13;
+        Whitespace := Format(WhitespaceCharacter);
+        WhitespaceCharacter := 10;
+        Whitespace += Format(WhitespaceCharacter) + Tab() + ' ';
+        Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId(Whitespace + '72F988BF-86F1-41AF-91AB-2D7CD011DB47' + Whitespace, Whitespace + 'ProDuction' + Whitespace, Whitespace + '11111111-2222-3333-4444-555555555555' + Whitespace), 'Only leading and trailing ASCII whitespace must be ignored.');
         Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId('72f988bf-86f1-41af-91ab-2d7cd011db47', 'production', '{11111111-2222-3333-4444-555555555555}'), 'Braces must be ignored.');
         Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId('72f988bf-86f1-41af-91ab-2d7cd011db47', 'production', 'urn:uuid:11111111-2222-3333-4444-555555555555'), 'The URN prefix must be ignored.');
+        Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId('72f988bf-86f1-41af-91ab-2d7cd011db47', 'production', 'urn:uuid:{{11111111--2222-3333-4444-555555555555}}'), 'Repeated braces and hyphens must be ignored.');
         Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId('72f988bf-86f1-41af-91ab-2d7cd011db47', 'production', '11111111222233334444555555555555'), 'Missing hyphens must be ignored.');
+        Assert.AreEqual('cd72c104-3374-51c3-a84d-d76055db8f83', EAHttpClient.CalculateCompanyScopeId('tenant', 'ab' + Tab() + 'c', 'company'), 'Whitespace inside a value must be preserved.');
     end;
 
     [Test]
@@ -362,6 +371,44 @@ codeunit 148361 "Expense Agent Config. Test"
             '4da78c66-53e1-559d-88a8-9a5137589dd3',
             EAHttpClient.CalculateCompanyScopeId('CONTOSO', 'Ünïcode-ENV', 'company-Ä-😀'),
             'The company scope of non-ASCII values is incorrect.');
+        Assert.AreEqual(
+            'b32bbbb8-5d85-5628-a755-96517fc38039',
+            EAHttpClient.CalculateCompanyScopeId('TENANT', '€|漢', 'company-😀'),
+            'The company scope must use the UTF-8 byte length without a byte-order mark.');
+    end;
+
+    [Test]
+    procedure CompanyScopeIdPreservesNonAsciiWhitespace()
+    var
+        EAHttpClient: Codeunit "EA Http Client";
+        NonBreakingSpace: Char;
+        EnvironmentName: Text;
+    begin
+        // [SCENARIO] Non-ASCII whitespace is part of the scope identity
+        NonBreakingSpace := 160;
+        EnvironmentName := Format(NonBreakingSpace) + 'ENV' + Format(NonBreakingSpace);
+        Assert.AreEqual('c02a7c41-5664-5e30-b920-5b066f4269e1', EAHttpClient.CalculateCompanyScopeId('TENANT', EnvironmentName, 'company'), 'Non-ASCII whitespace must not be trimmed.');
+    end;
+
+    [Test]
+    procedure CompanyScopeIdRejectsInvalidUnicode()
+    var
+        EAHttpClient: Codeunit "EA Http Client";
+        InvalidText: Text[2];
+    begin
+        // [SCENARIO] Unpaired UTF-16 surrogates must not be silently replaced during UTF-8 conversion
+        InvalidText := 'a';
+        InvalidText[1] := 55296;
+        asserterror EAHttpClient.CalculateCompanyScopeId('tenant', InvalidText, 'company');
+        Assert.ExpectedError('invalid characters');
+        InvalidText := 'ab';
+        InvalidText[1] := 55296;
+        asserterror EAHttpClient.CalculateCompanyScopeId('tenant', InvalidText, 'company');
+        Assert.ExpectedError('invalid characters');
+        InvalidText := 'a';
+        InvalidText[1] := 56320;
+        asserterror EAHttpClient.CalculateCompanyScopeId('tenant', InvalidText, 'company');
+        Assert.ExpectedError('invalid characters');
     end;
 
     [Test]
