@@ -118,6 +118,7 @@ report 1407 "Bank Account Statement"
             }
             column(BankAccNo_BankAccStmt; "Bank Account No.")
             {
+                IncludeCaption = true;
             }
             column(BankAccStmtCapt; BankAccStmtCaptLbl)
             {
@@ -135,6 +136,30 @@ report 1407 "Bank Account Statement"
             {
             }
             column(CompletedPayments_SectionTitleCaption; CompletedPayments_SectionTitleLbl)
+            {
+            }
+            column(StatementCalculationsCaption; StatementCalculationsLbl)
+            {
+            }
+            column(GLBalanceAtDateLCYCaption; GLBalanceAtDateLCYCaptionTxt)
+            {
+            }
+            column(GLBalanceAtDateLCY; GLBalanceAtPostingDate)
+            {
+            }
+            column(PostingDate_BankAccStmtLineCaption; StmtLinePostingDateLbl)
+            {
+            }
+            column(EntryNo_BankAccStmtLineCaption; StmtLineEntryNoLbl)
+            {
+            }
+            column(Cleared_BankAccStmtLineCaption; StmtLineClearedLbl)
+            {
+            }
+            column(DifferenceGLBankCaption; DifferenceGLBankLbl)
+            {
+            }
+            column(DifferenceGLBank; GLBankDifference)
             {
             }
             dataitem("Bank Account Statement Line"; "Bank Account Statement Line")
@@ -177,6 +202,20 @@ report 1407 "Bank Account Statement"
                 column(ValueDate_BankAccStmtLine; Format("Value Date"))
                 {
                 }
+                column(PostingDate_BankAccStmtLine; PostingDateText)
+                {
+                }
+                column(EntryNo_BankAccStmtLine; EntryNoText)
+                {
+                }
+                column(Cleared_BankAccStmtLine; ClearedText)
+                {
+                }
+
+                trigger OnAfterGetRecord()
+                begin
+                    GetAppliedEntryInfo("Bank Account Statement Line");
+                end;
             }
             #region [Outstanding Bank Transaction]
             column(Print_Outstanding_Transactions; PrintOutstandingTransactions)
@@ -273,8 +312,12 @@ report 1407 "Bank Account Statement"
                 G_L_BalanceCaptionTxt := G_L_BalanceCaptionLbl;
                 if "Bank Account Statement"."Statement Date" <> 0D then
                     G_L_BalanceCaptionTxt := G_L_BalanceCaptionTxt + AtLbl + format("Statement Date");
+                GLBalanceAtDateLCYCaptionTxt := G_L_BalanceCaptionTxt + LCYSuffixLbl;
 
                 GLBalanceAtPostingDate := BankAccReconTest.GetGLAccountBalanceLCYForBankStatement("Bank Account Statement");
+                // G/L balance after the differences posted with the statement, minus the bank balance adjusted for outstanding items. Zero when reconciled.
+                GLBankDifference := GLBalanceAtPostingDate + "Total Pos. Diff. at Posting" + "Total Neg. Diff. at Posting" -
+                    ("Statement Ending Balance" + "Outstd. Payments at Posting" + "Outstd. Transact. at Posting");
 
                 if PrintOutstandingTransactions then
                     GatherOutstandingTransactions("Bank Account No.");
@@ -316,6 +359,14 @@ report 1407 "Bank Account Statement"
             LayoutFile = './Bank/Reports/BankAccountStatement.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Bank/Reports/BankAccountStatementBody.docx';
+            Caption = 'Body-only: Bank Account Statement Word';
+            Summary = 'Landscape orientated. Shows the statement balances, G/L balance, and outstanding transactions, followed by the statement lines with transaction date, posting date, entry number, cleared status, applied entries, applied amount, and statement amount.';
+        }
     }
 
     labels
@@ -333,7 +384,11 @@ report 1407 "Bank Account Statement"
         BankAccReconTest: Codeunit "Bank Acc. Recon. Test";
         BankAccStmtFilter: Text;
         G_L_BalanceCaptionTxt: Text;
+        GLBalanceAtDateLCYCaptionTxt: Text;
         CurrencyCodeCaption: Text;
+        EntryNoText: Text[250];
+        PostingDateText: Text[250];
+        ClearedText: Text[30];
         BankAccStmtCaptLbl: Label 'Bank Account Statement';
         CurrReportPAGENOCaptLbl: Label 'Page';
         BnkAccStmtLinTrstnDteCaptLbl: Label 'Transaction Date';
@@ -362,9 +417,58 @@ report 1407 "Bank Account Statement"
         Outstanding_Check_DescriptionLbl: Label 'Description';
         Outstanding_Check_AmountLbl: Label 'Statement Amount';
         AtLbl: Label ' at ', Comment = 'used to build the construct a string like balance at 31-12-2020';
+        LCYSuffixLbl: Label ' (LCY)', Comment = 'Appended to the G/L balance caption, for example "G/L Balance at 31-12-2020 (LCY)". LCY = local currency.';
+        StatementCalculationsLbl: Label 'Statement Calculations';
+        StmtLinePostingDateLbl: Label 'Posting Date';
+        StmtLineEntryNoLbl: Label 'Entry No.';
+        StmtLineClearedLbl: Label 'Cleared';
+        DifferenceGLBankLbl: Label 'Difference G/L vs. Bank';
         CurrencyCode: Code[20];
         PrintOutstandingTransactions: Boolean;
         GLBalanceAtPostingDate: Decimal;
+        GLBankDifference: Decimal;
+
+    local procedure GetAppliedEntryInfo(BankAccountStatementLine: Record "Bank Account Statement Line")
+    var
+        BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
+        AllCleared: Boolean;
+        EntryNoList: Text;
+        PostingDateList: Text;
+        PostingDateTxt: Text;
+    begin
+        EntryNoText := '';
+        PostingDateText := '';
+        ClearedText := '';
+
+        BankAccountLedgerEntry.SetLoadFields("Entry No.", "Posting Date", Open, "Statement Status");
+        BankAccountLedgerEntry.SetCurrentKey("Statement No.", "Statement Line No.");
+        BankAccountLedgerEntry.SetRange("Bank Account No.", BankAccountStatementLine."Bank Account No.");
+        BankAccountLedgerEntry.SetRange("Statement No.", BankAccountStatementLine."Statement No.");
+        BankAccountLedgerEntry.SetRange("Statement Line No.", BankAccountStatementLine."Statement Line No.");
+        if not BankAccountLedgerEntry.FindSet() then
+            exit;
+
+        AllCleared := true;
+        repeat
+            if EntryNoList <> '' then
+                EntryNoList += ', ';
+            EntryNoList += Format(BankAccountLedgerEntry."Entry No.", 0, 9);
+
+            PostingDateTxt := Format(BankAccountLedgerEntry."Posting Date");
+            if StrPos(PostingDateList, PostingDateTxt) = 0 then begin
+                if PostingDateList <> '' then
+                    PostingDateList += ', ';
+                PostingDateList += PostingDateTxt;
+            end;
+
+            if BankAccountLedgerEntry.Open or (BankAccountLedgerEntry."Statement Status" <> BankAccountLedgerEntry."Statement Status"::Closed) then
+                AllCleared := false;
+        until BankAccountLedgerEntry.Next() = 0;
+
+        EntryNoText := CopyStr(EntryNoList, 1, MaxStrLen(EntryNoText));
+        PostingDateText := CopyStr(PostingDateList, 1, MaxStrLen(PostingDateText));
+        ClearedText := Format(AllCleared);
+    end;
 
     local procedure GatherOutstandingTransactions(BankAccountNo: Code[20])
     var
