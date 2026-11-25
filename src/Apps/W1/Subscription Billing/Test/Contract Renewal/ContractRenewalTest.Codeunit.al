@@ -263,6 +263,51 @@ codeunit 139692 "Contract Renewal Test"
         until ContractRenewalLine.Next() = 0;
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CreateContractRenewalQuotesFromCodeRejectsTemporaryRecord()
+    var
+        ContractRenewalLine: Record "Sub. Contract Renewal Line";
+        TempSubContractRenewalLine: Record "Sub. Contract Renewal Line" temporary;
+        SalesHeader: Record "Sales Header";
+        SelectContractRenewal: Report "Select Contract Renewal";
+        CreateContractRenewal: Codeunit "Create Sub. Contract Renewal";
+        CreatedSalesQuoteNos: List of [Code[20]];
+        RenewalLineCount: Integer;
+        SalesQuoteCount: Integer;
+    begin
+        // [SCENARIO] Creating contract renewal quotes from code with a temporary record is rejected, so stored renewal lines outside the temporary selection are not renewed
+        Initialize();
+        DeleteAllContracts();
+
+        // [GIVEN] Two customer contracts with stored contract renewal lines
+        CreateBaseData();
+        CreateBaseData(true);
+        Commit(); // close transaction before report is called
+
+        AddVendorServices := false;
+        SelectContractRenewal.Run();
+        RenewalLineCount := ContractRenewalLine.Count();
+        SalesHeader.SetRange("Document Type", SalesHeader."Document Type"::Quote);
+        SalesQuoteCount := SalesHeader.Count();
+
+        // [GIVEN] A temporary record that contains only one of the stored renewal lines
+        ContractRenewalLine.FindFirst();
+        TempSubContractRenewalLine := ContractRenewalLine;
+        TempSubContractRenewalLine.Insert(false);
+
+        // [WHEN] The renewal quotes are created from code with the temporary record
+        asserterror CreateContractRenewal.CreateContractRenewalQuotes(TempSubContractRenewalLine, CreatedSalesQuoteNos);
+
+        // [THEN] An error is raised and no sales quote is created
+        Assert.ExpectedError('Temporary records are not supported.');
+        Assert.AreEqual(SalesQuoteCount, SalesHeader.Count(), 'No Sales Quote should be created from a temporary record.');
+
+        // [THEN] The stored renewal lines are not consumed
+        ContractRenewalLine.Reset();
+        Assert.AreEqual(RenewalLineCount, ContractRenewalLine.Count(), 'The stored Contract Renewal Lines should not be changed.');
+    end;
+
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     [Test]
     procedure RunContractRenewalMgtWithAddVendorServicesIncludesVendorLines()

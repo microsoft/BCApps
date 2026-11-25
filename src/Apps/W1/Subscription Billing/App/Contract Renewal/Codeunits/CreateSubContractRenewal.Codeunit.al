@@ -77,10 +77,15 @@ codeunit 8002 "Create Sub. Contract Renewal"
     /// <remarks>
     /// The transaction is committed before each contract is processed.
     /// </remarks>
-    /// <param name="SubContractRenewalLine">The contract renewal lines to process. The filters on the record are applied; the record itself is not changed.</param>
+    /// <param name="SubContractRenewalLine">The contract renewal lines to process. Must not be a temporary record; the filters on the record are applied to the stored contract renewal lines, so a record without filters processes all of them. The record itself is not changed.</param>
     /// <param name="CreatedSalesQuoteNos">Returns the numbers of the sales quotes that were created.</param>
     procedure CreateContractRenewalQuotes(var SubContractRenewalLine: Record "Sub. Contract Renewal Line"; var CreatedSalesQuoteNos: List of [Code[20]])
+    var
+        TemporaryRecordNotSupportedErr: Label 'Contract renewal quotes can only be created from stored contract renewal lines. Temporary records are not supported.';
     begin
+        if SubContractRenewalLine.IsTemporary() then
+            Error(TemporaryRecordNotSupportedErr);
+
         Clear(CreatedSalesQuoteNos);
         CreateContractRenewalQuotesPerContract(SubContractRenewalLine, false);
 
