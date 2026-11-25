@@ -415,6 +415,7 @@ codeunit 148373 "EA Card Report Line Tests"
 
         // [GIVEN] An open card expense that is not on a report.
         CreateCardExpense(Expense, CardIdTok);
+        Commit();
 
         // [WHEN] The expense is deleted.
         asserterror Expense.Delete(true);
