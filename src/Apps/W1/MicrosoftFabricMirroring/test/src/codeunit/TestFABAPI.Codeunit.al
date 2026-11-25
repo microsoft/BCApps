@@ -4,7 +4,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Fabric;
 
-codeunit 140013 "Test FAB API"
+codeunit 140014 "Test FAB API"
 {
     //[FEATURE] Fabric mirroring API
     Subtype = Test;

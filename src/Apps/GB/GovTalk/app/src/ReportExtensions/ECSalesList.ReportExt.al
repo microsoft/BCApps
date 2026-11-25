@@ -13,9 +13,7 @@ using System.Utilities;
 
 reportextension 10504 "EC Sales List" extends "EC Sales List"
 {
-#if CLEAN27
     RDLCLayout = './src/ReportExtensions/ECSalesListGB.rdlc';
-#endif
     dataset
     {
         modify("VAT Entry")
@@ -23,15 +21,7 @@ reportextension 10504 "EC Sales List" extends "EC Sales List"
             RequestFilterFields = "VAT Bus. Posting Group", "VAT Prod. Posting Group", "VAT Reporting Date", "EU Service";
 
             trigger OnBeforePostDataItem()
-#if not CLEAN27
-            var
-                GovTalk: Codeunit GovTalk;
-#endif
             begin
-#if not CLEAN27
-                if not GovTalk.IsEnabled() then
-                    exit;
-#endif
                 UpdateXMLFileRTCGB();
             end;
         }
@@ -52,12 +42,6 @@ reportextension 10504 "EC Sales List" extends "EC Sales List"
     {
         layout
         {
-#if not CLEAN27
-            modify("Create XML File")
-            {
-                Visible = false;
-            }
-#endif
             addafter(ReportLayout)
             {
                 field("Create XML File GB"; "Create XML File")
@@ -65,20 +49,9 @@ reportextension 10504 "EC Sales List" extends "EC Sales List"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create XML File';
                     ToolTip = 'Specifies the calculated tax and base amounts, and creates the sales VAT advance notification XML document that will be sent to the tax authority.';
-#if not CLEAN27
-                    Visible = CreateXMLVisible;
-#endif
 
                     trigger OnValidate()
-#if not CLEAN27
-                    var
-                        GovTalk: Codeunit GovTalk;
-#endif
                     begin
-#if not CLEAN27
-                        if not GovTalk.IsEnabled() then
-                            exit;
-#endif
                         CreateXMLFileOnAfterValidate();
                     end;
                 }
@@ -87,34 +60,13 @@ reportextension 10504 "EC Sales List" extends "EC Sales List"
 
         trigger OnOpenPage()
         begin
-#if not CLEAN27
-            CreateXMLVisible := GovTalk.IsEnabled();
-#endif
             XMLFileEnable := "Create XML File";
         end;
     }
 
-#if not CLEAN27
-    rendering
-    {
-        layout(GBlocalizationLayout)
-        {
-            Type = RDLC;
-            Caption = 'EC Sales List GB localization';
-            LayoutFile = './src/ReportExtensions/ECSalesListGB.rdlc';
-            ObsoleteState = Pending;
-            ObsoleteReason = 'Feature GovTalk will be enabled by default in version 30.0.';
-            ObsoleteTag = '27.0';
-        }
-    }
-#endif
 
     trigger OnPostReport()
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         if "Create XML File" then
             SaveXMLFileGB();
     end;
@@ -123,10 +75,6 @@ reportextension 10504 "EC Sales List" extends "EC Sales List"
     var
         PeriodEnd: Date;
     begin
-#if not CLEAN27
-        if not GovTalk.IsEnabled() then
-            exit;
-#endif
         PeriodStart := "VAT Entry".GetRangeMin("Posting Date");
         PeriodEnd := "VAT Entry".GetRangeMax("Posting Date");
 
@@ -143,10 +91,6 @@ reportextension 10504 "EC Sales List" extends "EC Sales List"
 
     var
         Calendar: Record Date;
-#if not CLEAN27
-        GovTalk: Codeunit GovTalk;
-        CreateXMLVisible: Boolean;
-#endif
         XMLOut: DotNet XmlDocument;
         XMLCurrNode: DotNet XmlNode;
         Attribute: DotNet XmlAttribute;

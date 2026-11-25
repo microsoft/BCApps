@@ -4,13 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
+/// <summary>
+/// Adds released expenses to expense reports as expense report lines, including their participants, itemizations, per diem lines, VAT specifications and attachments.
+/// </summary>
 codeunit 6983 "Create Expense Report"
 {
-    Access = Internal;
-
     var
         ShowExpenseReportQst: Label 'The Expense Report is created as number %1.\\ Do you want to open it now ?', Comment = '%1 - Expense Report No.';
         ShowExpenseReportUpdateQst: Label 'The Expense Report is updated with your expense as number %1.\\ Do you want to open it now ?', Comment = '%1 - Expense Report No.';
@@ -19,7 +21,7 @@ codeunit 6983 "Create Expense Report"
     /// Adds selected expenses to an expense report as lines
     /// </summary>
     /// <param name="ExpenseReportHeader">Target expense report header</param>
-    procedure AddExpensesToReport(var ExpenseReportHeader: Record "Expense Report Header")
+    internal procedure AddExpensesToReport(var ExpenseReportHeader: Record "Expense Report Header")
     var
         Expense: Record Expense;
         Expenses: Page Expenses;
@@ -42,7 +44,7 @@ codeunit 6983 "Create Expense Report"
         LoopThruExpenseToAddInReport(Expense, ExpenseReportHeader);
     end;
 
-    procedure AddExpensesToReport(var Expense: Record Expense)
+    internal procedure AddExpensesToReport(var Expense: Record Expense)
     var
         ExpenseReportHeader: Record "Expense Report Header";
         AddExpensesToExpenseReport: Page "Add Expenses To Expense Report";
@@ -169,6 +171,8 @@ codeunit 6983 "Create Expense Report"
     /// <param name="Expense">Source expense</param>
     /// <param name="ExpenseReportLine">Target expense report line</param>
     local procedure CopyExpenseFieldsToReportLine(Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
     begin
         ExpenseReportLine.Validate("Expense No.", Expense."No.");
         ExpenseReportLine.Validate("Expense Date", Expense."Expense Date");
@@ -182,8 +186,13 @@ codeunit 6983 "Create Expense Report"
         if ExpenseReportLine."Expense Subcategory Code" <> '' then
             ExpenseReportLine.Validate(Description, ExpenseReportLine.UpdatePostingDescription());
         ExpenseReportLine.Validate("Receipt Entry", Expense."Receipt Entry");
-        ExpenseReportLine.Validate("VAT Bus. Posting Group", Expense."VAT Bus. Posting Group");
-        ExpenseReportLine.Validate("VAT Prod. Posting Group", Expense."VAT Prod. Posting Group");
+        // Unresolved VAT mappings must not prevent submission; posting validates the accounting setup.
+        ExpenseReportLine."VAT Bus. Posting Group" := Expense."VAT Bus. Posting Group";
+        ExpenseReportLine."VAT Prod. Posting Group" := Expense."VAT Prod. Posting Group";
+        if ExpenseReportLine."VAT Prod. Posting Group" <> '' then
+            if VATPostingSetup.Get(ExpenseReportLine."VAT Bus. Posting Group", ExpenseReportLine."VAT Prod. Posting Group") then
+                if VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Normal VAT" then
+                    ExpenseReportLine.CopyFromVATPostingSetup(VATPostingSetup);
         ExpenseReportLine.Validate("Unit of Measure Code", Expense."Unit of Measure Code");
         ExpenseReportLine.Validate(Justification, Expense.Justification);
         ExpenseReportLine.Validate("Merchant Name", Expense."Merchant Name");
@@ -201,6 +210,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine."Starting Point" := Expense."Starting Point";
         ExpenseReportLine."Ending Point" := Expense."Ending Point";
         ExpenseReportLine."Credit Card Feed No." := Expense."Credit Card Feed No.";
+        ExpenseReportLine."Corporate Card Id" := Expense."Corporate Card Id";
         ExpenseReportLine.Validate("Reimbursement Type", Expense."Reimbursement Type");
         ExpenseReportLine.Validate("Expense Detail Required", Expense."Expense Detail Required");
         ExpenseReportLine.Validate("Expense Currency Code", Expense."Currency Code");
@@ -220,6 +230,14 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine."Amount without VAT" := ExpenseReportLine.Amount - ExpenseReportLine."VAT Amount";
         ExpenseReportLine."Applied Rule Id" := Expense."Applied Rule Id";
         ExpenseReportLine."Expense Ext. Doc. No." := Expense."Expense Ext. Doc. No.";
+        ExpenseReportLine."No Receipt Type" := Expense."No Receipt Type";
+        ExpenseReportLine."No Receipt Reason" := Expense."No Receipt Reason";
+        ExpenseReportLine."No Receipt Declaration ID" := Expense."No Receipt Declaration ID";
+        ExpenseReportLine."Compliance Status" := Expense."Compliance Status";
+        ExpenseReportLine."No Receipt Generated At" := Expense."No Receipt Generated At";
+        ExpenseReportLine."No Receipt Generated By" := Expense."No Receipt Generated By";
+
+        OnAfterCopyExpenseFieldsToReportLine(Expense, ExpenseReportLine);
     end;
 
     /// <summary>
@@ -259,10 +277,14 @@ codeunit 6983 "Create Expense Report"
     end;
 
     /// <summary>
-    /// Adds a single expense to an expense report as a line
+    /// Adds a released expense to an expense report as a new expense report line. The expense's participants, itemizations, per diem lines, VAT specifications and attachments are copied to the line, the expense rules are evaluated and any violations are recorded, and the expense is marked as submitted on the report.
     /// </summary>
-    /// <param name="Expense">Source expense</param>
-    /// <param name="ExpenseReportHeader">Target expense report header</param>
+    /// <remarks>
+    /// The expense must be released, belong to the same expense user as the report, and not already be on an expense report. No user interface is shown.
+    /// </remarks>
+    /// <param name="Expense">The expense to add.</param>
+    /// <param name="ExpenseReportHeader">The expense report to add the expense to.</param>
+    /// <returns>The created expense report line.</returns>
     procedure AddSingleExpenseToExpenseReport(Expense: Record Expense; ExpenseReportHeader: Record "Expense Report Header"): Record "Expense Report Line"
     var
         ExpenseReportLine: Record "Expense Report Line";
@@ -282,7 +304,6 @@ codeunit 6983 "Create Expense Report"
         Expense.TestField("Expense User No.", ExpenseReportHeader."Expense User No.");
         Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
-        Expense.TestField("VAT Bus. Posting Group", ExpenseReportHeader."VAT Bus. Posting Group");
     end;
 
     local procedure CopyAttachments(Expense: Record Expense; ExpenseReportLine: Record "Expense Report Line")
@@ -313,9 +334,6 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLineVATSpec.DeleteAll();
 
         repeat
-            ExpenseVATSpec.TestField("VAT Bus. Posting Group");
-            ExpenseVATSpec.TestField("VAT Prod. Posting Group");
-
             ExpenseReportLineVATSpec.Init();
             ExpenseReportLineVATSpec."Document No." := ExpenseReportLine."Document No.";
             ExpenseReportLineVATSpec."Document Line No." := ExpenseReportLine."Line No.";
@@ -351,5 +369,19 @@ codeunit 6983 "Create Expense Report"
             ExpenseReportLine."VAT Liable" := true;
             ExpenseReportLine.Modify();
         end;
+    end;
+
+    /// <summary>
+    /// Raised after the fields of an expense are copied to a new expense report line, before the line amounts are recalculated and the line is saved.
+    /// </summary>
+    /// <remarks>
+    /// Use this event to copy values from fields that an extension adds to the Expense table to the corresponding fields on the Expense Report Line table. Changes to the expense report line are saved by the caller. The event is raised inside the transaction that adds the expense to the report.
+    /// </remarks>
+    /// <param name="Expense">The expense that is added to the expense report.</param>
+    /// <param name="ExpenseReportLine">The new expense report line. Changes to this record are saved.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCopyExpenseFieldsToReportLine(Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
+    begin
     end;
 }

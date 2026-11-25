@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies which date is used to find the currency exchange rate for expenses.
+/// </summary>
 enum 6904 "Expense Exchange Rate"
 {
-    Access = Internal;
     Extensible = false;
     Caption = 'Expense Exchange Rate';
 

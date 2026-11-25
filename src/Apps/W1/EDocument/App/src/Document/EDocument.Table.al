@@ -698,13 +698,6 @@ table 6121 "E-Document"
         if EDocumentService.Get(GetEDocumentServiceStatus()."E-Document Service Code") then;
     end;
 
-#if not CLEAN27
-    [Obsolete('Use flow field "Import Processing Status"', '27.0')]
-    procedure GetEDocumentImportProcessingStatus(): Enum "Import E-Doc. Proc. Status"
-    begin
-        exit(GetEDocumentServiceStatus()."Import Processing Status");
-    end;
-#endif
     internal procedure ToString(): Text
     begin
         exit(StrSubstNo(ToStringLbl, SystemId, "Document Record ID", "Workflow Step Instance ID", "Job Queue Entry ID"));

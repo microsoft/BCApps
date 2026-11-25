@@ -4062,6 +4062,77 @@ codeunit 137158 "SCM Orders V"
         Assert.AreEqual(Contact[2]."No.", Task."Contact No.", UpdateTaskErr);
     end;
 
+    [Test]
+    [HandlerFunctions('SalesListPageHandler')]
+    [Scope('OnPrem')]
+    procedure DropShipmentPostedFromSalesOrderCopiesHeaderReferencesToPurchRcptLines()
+    var
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        // [FEATURE] [Drop Shipment]
+        // [SCENARIO 657281] Posted purchase receipt lines created by posting a drop shipment from the sales order get "Your Reference", "Vendor Order No." and "Vendor Shipment No." from the purchase order.
+        Initialize();
+
+        // [GIVEN] Sales order with a "Drop Shipment" line and a purchase order linked to it.
+        CreateDropShipmentSalesAndPurchase(SalesHeader, PurchaseHeader);
+
+        // [GIVEN] Purchase order has "Your Reference" = "YR", "Vendor Order No." = "VON" and "Vendor Shipment No." = "VSN".
+        PurchaseHeader.Find();
+        PurchaseHeader.Validate("Your Reference", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Validate("Vendor Order No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Validate("Vendor Shipment No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] Post shipment from the sales order, which posts the purchase receipt automatically.
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] Each posted purchase receipt line has "Your Reference" = "YR", "Vendor Order No." = "VON" and "Vendor Shipment No." = "VSN".
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.FindSet();
+        repeat
+            PurchRcptLine.TestField("Your Reference", PurchaseHeader."Your Reference");
+            PurchRcptLine.TestField("Vendor Order No.", PurchaseHeader."Vendor Order No.");
+            PurchRcptLine.TestField("Vendor Shipment No.", PurchaseHeader."Vendor Shipment No.");
+        until PurchRcptLine.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('SalesListPageHandler')]
+    [Scope('OnPrem')]
+    procedure DropShipmentPostedFromPurchaseOrderCopiesHeaderReferencesToSalesShptLines()
+    var
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+    begin
+        // [FEATURE] [Drop Shipment]
+        // [SCENARIO 657281] Posted sales shipment lines created by posting a drop shipment from the purchase order get "External Document No." and "Your Reference" from the sales order.
+        Initialize();
+
+        // [GIVEN] Sales order with a "Drop Shipment" line and a purchase order linked to it.
+        CreateDropShipmentSalesAndPurchase(SalesHeader, PurchaseHeader);
+
+        // [GIVEN] Sales order has "External Document No." = "EDN" and "Your Reference" = "YR".
+        SalesHeader.Find();
+        SalesHeader.Validate("External Document No.", LibraryUtility.GenerateGUID());
+        SalesHeader.Validate("Your Reference", LibraryUtility.GenerateGUID());
+        SalesHeader.Modify(true);
+
+        // [WHEN] Post receipt from the purchase order, which posts the sales shipment automatically.
+        PurchaseHeader.Find();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] Each posted sales shipment line has "External Document No." = "EDN" and "Your Reference" = "YR".
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentLine.FindSet();
+        repeat
+            SalesShipmentLine.TestField("External Document No.", SalesHeader."External Document No.");
+            SalesShipmentLine.TestField("Your Reference", SalesHeader."Your Reference");
+        until SalesShipmentLine.Next() = 0;
+    end;
+
     local procedure Initialize()
     var
         SalesHeader: Record "Sales Header";

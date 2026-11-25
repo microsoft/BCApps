@@ -24,6 +24,8 @@ codeunit 140011 "Test FAB Config Package"
         PackageLine: Record "Fabric Config Package Line";
         FabricTableClaim: Record "Fabric Table Claim";
     begin
+        // Required selections persist across cleanup.
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
         TenantFabricTables.DeleteAll(false);
         PackageLine.DeleteAll(false);
         Pkg.DeleteAll(false);
@@ -161,6 +163,7 @@ codeunit 140011 "Test FAB Config Package"
 
         //[THEN] Table 27 is added and the total count is two
         Assert.IsTrue(TenantFabricTables.Get(27), 'Expected table 27 to be added.');
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
         Assert.AreEqual(2, TenantFabricTables.Count(), 'Expected exactly two selected tables.');
     end;
 
@@ -424,7 +427,7 @@ codeunit 140011 "Test FAB Config Package"
         Pkg.Get('MS-STD');
         FabricConfigPkgMgt.Activate(Pkg);
         //[GIVEN] The platform table is filled to the maximum capacity
-        for i := 1 to FabricPlatformMgt.MaxTableCount() - 1 do begin
+        for i := 1 to FabricPlatformMgt.MaxTableCount() - FabricPlatformMgt.SelectedTableCount() do begin
             TenantFabricTables.Init();
             TenantFabricTables."Table ID" := 100000 + i; // Arbitrary IDs distinct from tables 18 and 27
             TenantFabricTables.Insert(false);
@@ -537,7 +540,7 @@ codeunit 140011 "Test FAB Config Package"
         Initialize();
         //[GIVEN] The platform table is already at its maximum capacity
         // IDs beyond any real table are not validated, so existing virtual or external tables cannot reject the insert.
-        for i := 1 to FabricPlatformMgt.MaxTableCount() do begin
+        for i := 1 to FabricPlatformMgt.MaxTableCount() - FabricPlatformMgt.SelectedTableCount() do begin
             TenantFabricTables.Init();
             TenantFabricTables."Table ID" := 900000000 + i;
             TenantFabricTables.Insert(false);
@@ -769,81 +772,68 @@ codeunit 140011 "Test FAB Config Package"
     end;
 
     [Test]
-    procedure EnsureMsStdPackageRegistersBuiltInPackage()
+    procedure RegisterBuiltInDomainPackages()
     var
         FabricInstall: Codeunit "Fabric Install";
-        ExpectedTableIds: List of [Integer];
     begin
-        //[SCENARIO] Install/upgrade registers the built-in MS-STD configuration package
+        //[SCENARIO] Register built-in domain packages on install/upgrade
         //[GIVEN] Initialize
         Initialize();
-        //[GIVEN] The independently defined curated table set
-        CreateExpectedMsStdTableIds(ExpectedTableIds);
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
-        //[WHEN] The built-in package is (re)registered, as happens on install/upgrade
-        FabricInstall.EnsureMsStdPackage();
+        //[WHEN] Register built-in domain packages
+        FabricInstall.EnsureMicrosoftPackages();
 
-        //[THEN] The package header and its full curated table set are registered
-        VerifyMsStdPackageRegistered(ExpectedTableIds);
+        //[THEN] Nine inactive domain packages are registered without selecting tables
+        VerifyMicrosoftPackagesRegistered();
     end;
 
-    local procedure CreateExpectedMsStdTableIds(var ExpectedTableIds: List of [Integer])
-    var
-        TableIdsText: Text;
-        TableIdText: Text;
-        TableId: Integer;
-    begin
-        // Independent snapshot of the curated set; registration may skip unavailable tables.
-        TableIdsText :=
-            '3,4,9,10,13,14,15,17,18,21,23,25,27,32,36,37,38,39,79,84,85,90,91,92,93,94,95,96,98,99,110,111,112,113,114,115,120,121,122,123,' +
-            '124,125,152,156,160,167,169,179,181,182,184,185,186,189,200,203,204,205,208,213,220,222,224,230,231,240,241,242,246,250,251,252,253,254,255,256,257,258,259,260,' +
-            '270,271,272,281,284,285,287,288,289,291,292,293,294,295,296,297,298,299,300,301,302,303,304,305,306,308,309,310,311,312,313,314,315,317,318,319,320,321,322,323,' +
-            '324,325,326,330,333,334,336,337,339,340,341,348,349,350,351,352,354,363,379,380,402,403,404,454,455,456,457,458,471,472,477,480,570,840,841,847,900,901,1001,1003,' +
-            '1850,1851,1853,2224,5050,5051,5053,5054,5058,5091,5092,5093,5094,5107,5108,5109,5110,5200,5203,5207,5222,5404,5405,5406,5407,5409,5410,5600,5601,5604,5606,5607,5612,5617,5644,5645,5647,5714,5722,5740,' +
-            '5741,5744,5745,5746,5747,5767,5777,5800,5802,5832,5896,5900,5902,5940,5990,5991,5992,5993,5994,5995,6210,6211,6212,6216,6219,6226,6505,6635,7132,7134,7160,7300,7311,7312,7354,7500,7501,7505,8019,8052,' +
-            '8063,8066,8072,36951,36952,36953,36954,36955,99000754,99000756,99000757,99000758,99000763,99000765,99000777,99000829';
-        Clear(ExpectedTableIds);
-        foreach TableIdText in TableIdsText.Split(',') do begin
-            Evaluate(TableId, TableIdText);
-            ExpectedTableIds.Add(TableId);
-        end;
-    end;
-
-    local procedure VerifyMsStdPackageRegistered(ExpectedTableIds: List of [Integer])
+    local procedure VerifyMicrosoftPackagesRegistered()
     var
         Pkg: Record "Fabric Config Package";
-        PackageLine: Record "Fabric Config Package Line";
-        AllObj: Record AllObjWithCaption;
-        TableId: Integer;
-        ExpectedLineCount: Integer;
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricTableClaim: Record "Fabric Table Claim";
     begin
-        Assert.IsTrue(Pkg.Get('MS-STD'), 'Expected the MS-STD package header to exist.');
-        Assert.AreEqual('Microsoft Standard', Pkg.Description, 'Expected the package description to match.');
-        Assert.AreEqual('1.0', Pkg.Version, 'Expected the package version to match.');
+        Assert.AreEqual(9, Pkg.Count(), 'Expected nine built-in domain packages.');
+        Assert.IsFalse(Pkg.Get('MS-STD'), 'Expected no legacy MS-STD package on fresh registration.');
+        TenantFabricTables.SetFilter("Table ID", '<>%1&<>%2', Database::"Tenant Fabric Export Details", Database::"Tenant Fabric Export Summary");
+        Assert.IsTrue(TenantFabricTables.IsEmpty(), 'Expected registration not to select non-required tables.');
+        Assert.IsTrue(FabricTableClaim.IsEmpty(), 'Expected registration not to add table claims.');
 
-        PackageLine.SetRange("Package Code", 'MS-STD');
-        foreach TableId in ExpectedTableIds do
-            if AllObj.Get(AllObj."Object Type"::Table, TableId) then begin
-                VerifyPackageLineExists(PackageLine, TableId);
-                ExpectedLineCount += 1;
-            end;
-        Assert.AreEqual(ExpectedLineCount, PackageLine.Count(), 'Expected exactly the available curated MS-STD tables to be registered.');
-
-        VerifyPackageLineExists(PackageLine, 18);   // Customer
-        VerifyPackageLineExists(PackageLine, 27);   // Item
-        VerifyPackageLineExists(PackageLine, 79);   // Company Information
-        VerifyPackageLineExists(PackageLine, 91);   // User Setup
-        VerifyPackageLineExists(PackageLine, 5050);  // Contact
+        VerifyMicrosoftPackageRegistered('MS-FIN', 'Microsoft Finance', 15);
+        VerifyMicrosoftPackageRegistered('MS-INV', 'Microsoft Inventory', 27);
+        VerifyMicrosoftPackageRegistered('MS-INV-VAL', 'Microsoft Inventory Valuation', 5802);
+        VerifyMicrosoftPackageRegistered('MS-MFG', 'Microsoft Manufacturing', 5405);
+        VerifyMicrosoftPackageRegistered('MS-PROJ', 'Microsoft Projects', 167);
+        VerifyMicrosoftPackageRegistered('MS-PUR', 'Microsoft Purchase', 38);
+        VerifyMicrosoftPackageRegistered('MS-SALES', 'Microsoft Sales', 36);
+        VerifyMicrosoftPackageRegistered('MS-SUB-BILL', 'Microsoft Subscription Billing', 8052);
+        VerifyMicrosoftPackageRegistered('MS-SUST', 'Microsoft Sustainability', 6210);
     end;
 
-    local procedure VerifyPackageLineExists(var PackageLine: Record "Fabric Config Package Line"; TableId: Integer)
+    local procedure VerifyMicrosoftPackageRegistered(PackageCode: Code[20]; ExpectedDescription: Text[100]; TableId: Integer)
     var
-        ExpectedTableLbl: Label 'Expected table %1 to be part of the MS-STD package.', Locked = true;
+        Pkg: Record "Fabric Config Package";
+        ExpectedPackageLbl: Label 'Expected package %1 to be registered.', Locked = true;
     begin
-        Assert.IsTrue(PackageLine.Get('MS-STD', TableId), StrSubstNo(ExpectedTableLbl, TableId));
+        Assert.IsTrue(Pkg.Get(PackageCode), StrSubstNo(ExpectedPackageLbl, PackageCode));
+        Assert.AreEqual(ExpectedDescription, Pkg.Description, 'Expected the package description to match.');
+        Assert.AreEqual('1.0', Pkg.Version, 'Expected the package version to match.');
+        Assert.IsFalse(Pkg.Active, 'Expected the registered package to be inactive.');
+        VerifyPackageLineMatchesInstalledTable(PackageCode, TableId);
+    end;
+
+    local procedure VerifyPackageLineMatchesInstalledTable(PackageCode: Code[20]; TableId: Integer)
+    var
+        PackageLine: Record "Fabric Config Package Line";
+        AllObj: Record AllObjWithCaption;
+        TableInstalled: Boolean;
+        ExpectedTableLbl: Label 'Expected table %1 presence in package %2 to match its installed state (%3).', Comment = '%1 = table ID, %2 = package code, %3 = installed state', Locked = true;
+    begin
+        TableInstalled := AllObj.Get(AllObj."Object Type"::Table, TableId);
+        Assert.AreEqual(TableInstalled, PackageLine.Get(PackageCode, TableId), StrSubstNo(ExpectedTableLbl, TableId, PackageCode, TableInstalled));
     end;
 
     #region Handlers

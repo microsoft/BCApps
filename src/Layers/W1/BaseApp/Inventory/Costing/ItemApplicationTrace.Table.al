@@ -14,11 +14,11 @@ table 5812 "Item Application Trace"
 
     fields
     {
-        field(1; "From Entry No."; Integer)
+        field(1; "From Entry No."; BigInteger)
         {
 
         }
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
 
         }
@@ -102,7 +102,7 @@ table 5812 "Item Application Trace"
             until AppliedItemLedgerEntry.Next() = 0;
     end;
 
-    procedure AddChain(FromItemLedgerEntryNo: Integer; var ItemApplicationTrace: Record "Item Application Trace")
+    procedure AddChain(FromItemLedgerEntryNo: BigInteger; var ItemApplicationTrace: Record "Item Application Trace")
     begin
         if ItemApplicationTrace.FindSet() then
             repeat

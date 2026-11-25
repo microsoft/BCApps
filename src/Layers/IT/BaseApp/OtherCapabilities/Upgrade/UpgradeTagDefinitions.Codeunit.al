@@ -187,6 +187,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
         PerCompanyUpgradeTags.Add(GetRemittanceAdviceReportSelectionUpgradeTag());
         PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetQtyReadyToStartUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1308,5 +1309,10 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetProdDefinitionDisplaySetupUpgradeTag(): Code[250]
     begin
         exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
+    end;
+
+    internal procedure GetQtyReadyToStartUpgradeTag(): Code[250]
+    begin
+        exit('MS-619338-QtyReadyToStart-20261104');
     end;
 }
