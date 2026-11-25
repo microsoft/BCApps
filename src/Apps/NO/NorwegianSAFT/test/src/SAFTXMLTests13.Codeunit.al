@@ -1541,7 +1541,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         // [GIVEN] Vendor Ledger Entry with "Entry No."  = "X", "Currency Code" = EUR, "Transaction No." = "Y", Amount = 0.1 and "Amount (LCY)" = 0
         LibraryERM.CreateCurrency(Currency);
         SAFTTestHelper.MockVendLedgEntry(
-            GLEntryNo, SAFTExportHeader."Starting Date", Vendor."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, ExchangeRate, "Gen. Journal Document Type"::Invoice);
+            GLEntryNo, SAFTExportHeader."Starting Date", Vendor."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, 1 / ExchangeRate, "Gen. Journal Document Type"::Invoice);
 
         // [WHEN] Export G/L Entries to the XML file
         LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
@@ -1611,7 +1611,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         // [GIVEN] Customer Ledger Entry with "Entry No."  = "X", "Currency Code" = EUR, "Transaction No." = "Y", Amount = 0.1 and "Amount (LCY)" = 0
         LibraryERM.CreateCurrency(Currency);
         SAFTTestHelper.MockCustLedgEntry(
-            GLEntryNo, SAFTExportHeader."Starting Date", Customer."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, ExchangeRate, "Gen. Journal Document Type"::Invoice);
+            GLEntryNo, SAFTExportHeader."Starting Date", Customer."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, 1 / ExchangeRate, "Gen. Journal Document Type"::Invoice);
 
         // [WHEN] Export G/L Entries to the XML file
         LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
@@ -3179,20 +3179,24 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:Description', 'Merverdiavgift');
         NotApplicationVATCode := SAFTExportMgt.GetNotApplicableVATCode();
         // Verify first VAT Posting Setup with no standard tax codes
-        VerifySingleVATPostingSetup(
-            TempXMLBuffer, VATPostingSetup."Sales SAF-T Tax Code", VATPostingSetup.Description,
-            VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
-        VerifySingleVATPostingSetup(
-            TempXMLBuffer, VATPostingSetup."Purchase SAF-T Tax Code", VATPostingSetup.Description,
-            VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
-        VATPostingSetup.Next();
-        repeat
+        if VATPostingSetup."Sales VAT Account" <> '' then
             VerifySingleVATPostingSetup(
                 TempXMLBuffer, VATPostingSetup."Sales SAF-T Tax Code", VATPostingSetup.Description,
-                VATPostingSetup."VAT %", VATPostingSetup."Sale VAT Reporting Code", false, 100);
+                VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
+        if VATPostingSetup."Purchase VAT Account" <> '' then
             VerifySingleVATPostingSetup(
                 TempXMLBuffer, VATPostingSetup."Purchase SAF-T Tax Code", VATPostingSetup.Description,
-                VATPostingSetup."VAT %", VATPostingSetup."Purch. VAT Reporting Code", false, 100);
+                VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
+        VATPostingSetup.Next();
+        repeat
+            if VATPostingSetup."Sales VAT Account" <> '' then
+                VerifySingleVATPostingSetup(
+                    TempXMLBuffer, VATPostingSetup."Sales SAF-T Tax Code", VATPostingSetup.Description,
+                    VATPostingSetup."VAT %", VATPostingSetup."Sale VAT Reporting Code", false, 100);
+            if VATPostingSetup."Purchase VAT Account" <> '' then
+                VerifySingleVATPostingSetup(
+                    TempXMLBuffer, VATPostingSetup."Purchase SAF-T Tax Code", VATPostingSetup.Description,
+                    VATPostingSetup."VAT %", VATPostingSetup."Purch. VAT Reporting Code", false, 100);
         until VATPostingSetup.Next() = 0;
     end;
 

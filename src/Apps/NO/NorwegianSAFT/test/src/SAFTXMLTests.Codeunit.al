@@ -2115,20 +2115,24 @@ codeunit 148103 "SAF-T XML Tests"
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:Description', 'Merverdiavgift');
         NotApplicationVATCode := SAFTExportMgt.GetNotApplicableVATCode();
         // Verify first VAT Posting Setup with no standard tax codes
-        VerifySingleVATPostingSetup(
-            TempXMLBuffer, VATPostingSetup."Sales SAF-T Tax Code", VATPostingSetup.Description,
-            VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
-        VerifySingleVATPostingSetup(
-            TempXMLBuffer, VATPostingSetup."Purchase SAF-T Tax Code", VATPostingSetup.Description,
-            VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
-        VATPostingSetup.Next();
-        repeat
+        if VATPostingSetup."Sales VAT Account" <> '' then
             VerifySingleVATPostingSetup(
                 TempXMLBuffer, VATPostingSetup."Sales SAF-T Tax Code", VATPostingSetup.Description,
-                VATPostingSetup."VAT %", VATPostingSetup."Sale VAT Reporting Code", false, 100);
+                VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
+        if VATPostingSetup."Purchase VAT Account" <> '' then
             VerifySingleVATPostingSetup(
                 TempXMLBuffer, VATPostingSetup."Purchase SAF-T Tax Code", VATPostingSetup.Description,
-                VATPostingSetup."VAT %", VATPostingSetup."Purch. VAT Reporting Code", false, 100);
+                VATPostingSetup."VAT %", NotApplicationVATCode, false, 100);
+        VATPostingSetup.Next();
+        repeat
+            if VATPostingSetup."Sales VAT Account" <> '' then
+                VerifySingleVATPostingSetup(
+                    TempXMLBuffer, VATPostingSetup."Sales SAF-T Tax Code", VATPostingSetup.Description,
+                    VATPostingSetup."VAT %", VATPostingSetup."Sale VAT Reporting Code", false, 100);
+            if VATPostingSetup."Purchase VAT Account" <> '' then
+                VerifySingleVATPostingSetup(
+                    TempXMLBuffer, VATPostingSetup."Purchase SAF-T Tax Code", VATPostingSetup.Description,
+                    VATPostingSetup."VAT %", VATPostingSetup."Purch. VAT Reporting Code", false, 100);
         until VATPostingSetup.Next() = 0;
     end;
 
