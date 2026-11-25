@@ -75,7 +75,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the date the expense occurred.';
-                    Editable = Rec.Source <> Rec.Source::CorporateCard;
+                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec.Source <> Rec.Source::CorporateCard);
 
                     trigger OnValidate()
                     begin
@@ -105,14 +105,14 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Currency of the Amount.';
-                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
+                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec.Source <> Rec.Source::CorporateCard) and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
                     Importance = Promoted;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total amount in the expense currency.';
-                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec.Source <> Rec.Source::CorporateCard) and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
                     Importance = Promoted;
 
                     trigger OnValidate()
@@ -155,7 +155,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the vendor or merchant for this expense.';
-                    Editable = Rec.Source <> Rec.Source::CorporateCard;
+                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec.Source <> Rec.Source::CorporateCard);
                 }
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
                 {
@@ -360,7 +360,7 @@ page 6988 "Expense"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment method used for this expense.';
                     Importance = Standard;
-                    Editable = Rec.Source <> Rec.Source::CorporateCard;
+                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec.Source <> Rec.Source::CorporateCard);
 
                     trigger OnValidate()
                     begin
