@@ -6,6 +6,7 @@ namespace Microsoft.Finance.AuditFileExport;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Utilities;
@@ -215,13 +216,15 @@ codeunit 10672 "SAF-T Mapping Helper"
     end;
 
     local procedure GLAccNetChangeIsNotZero(GLAccount: Record "G/L Account"; StartingDate: Date; EndingDate: Date; IncludeIncomingBalance: Boolean): Boolean
+    var
+        GLEntry: Record "G/L Entry";
     begin
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
         if (GLAccount."Income/Balance" = GLAccount."Income/Balance"::"Income Statement") or (not IncludeIncomingBalance) then
-            GLAccount.SetRange("Date Filter", StartingDate, EndingDate)
+            GLEntry.SetRange("Posting Date", StartingDate, EndingDate)
         else
-            GLAccount.SetRange("Date Filter", 0D, ClosingDate(EndingDate));
-        GLAccount.CalcFields("Debit Amount", "Credit Amount");
-        exit((abs(GLAccount."Debit Amount") + abs(GLAccount."Credit Amount")) <> 0)
+            GLEntry.SetRange("Posting Date", 0D, ClosingDate(EndingDate));
+        exit(not Glentry.IsEmpty);
     end;
 
     procedure UpdateMasterDataWithNoSeries()
@@ -409,7 +412,6 @@ codeunit 10672 "SAF-T Mapping Helper"
         SAFTGLAccountMapping.SetRange("Category No.", '');
         SAFTGLAccountMapping.Setrange("G/L Entries Exists", true);
         if not SAFTGLAccountMapping.IsEmpty() then begin
-            SAFTGLAccountMapping.findfirst();
             SAFTMappingRange.Get(MappingRangeCode);
             LogError(SAFTMappingRange, Mapping13NotDoneErr);
             exit;
