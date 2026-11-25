@@ -251,13 +251,13 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
-    procedure CanConsumeWithoutSuppliedExpenseUserEntraIdIsRejected()
+    procedure CanConsumeV2WithoutSuppliedExpenseUserEntraIdIsRejected()
     var
         ExpenseUser: Record "Expense User";
         ExpenseUserConsAPI: Page "Expense User Cons. API";
         ExpenseUserEntraId: Guid;
     begin
-        // [SCENARIO] Quota evaluation requires a supplied Entra ID even when a stored ID exists
+        // [SCENARIO] V2 quota evaluation requires a supplied Entra ID even when a stored ID exists
         Initialize();
 
         // [GIVEN] An expense user with a stored Entra ID
@@ -266,7 +266,7 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseUserConsAPI.SetRecord(ExpenseUser);
 
         // [WHEN] The bound action checks consumption quota without a supplied Entra ID
-        asserterror ExpenseUserConsAPI.CanConsume(ExpenseUserEntraId);
+        asserterror ExpenseUserConsAPI.CanConsumeV2(ExpenseUserEntraId);
 
         // [THEN] The missing supplied Entra ID is rejected without using the stored ID
         Assert.ExpectedError('Expense User Entra ID must be provided.');

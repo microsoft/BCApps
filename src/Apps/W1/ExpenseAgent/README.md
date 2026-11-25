@@ -2,15 +2,20 @@
 
 # Expense Agent consumption reporting
 
+The `expenseCapabilities` API always advertises `ConsumptionV2` as enabled,
+indicating support for `LogAIConsumptionV2` and `CanConsumeV2`.
+
 `userConsumptions` exposes `LogAIConsumptionV2`. The request contains a `model`
 object with model usage and a `v1` object with `usage` and `usageType`.
 The action submits both consumption pipelines; the platform selects which one
 records the event. The V2 platform payload retains the top-level `model` object
 and excludes the `v1` object.
 
-The bound `userConsumptions({id})/Microsoft.NAV.canConsume` action requires an
-`expenseUserEntraId` GUID in its request body. Both quota checks and recording
-use the API-supplied Entra ID, not the stored ID or the integration session's
+The legacy `userConsumptions({id})/Microsoft.NAV.canConsume` action retains its
+empty request body and evaluates quota using the integration session's principal.
+The new `userConsumptions({id})/Microsoft.NAV.canConsumeV2` action requires an
+`expenseUserEntraId` GUID in its request body. V2 quota checks and recording use
+the API-supplied Entra ID, not the stored ID or the integration session's
 principal. A missing or empty supplied ID returns an error. If a nonblank stored
 Entra ID differs from the supplied ID, the action emits error-level telemetry
 and continues recording with the supplied ID. A blank stored ID doesn't prevent

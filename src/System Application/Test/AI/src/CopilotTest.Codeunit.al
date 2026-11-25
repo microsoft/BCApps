@@ -5,6 +5,7 @@ using System.Environment.Consumption;
 using System.TestLibraries.AI;
 using System.TestLibraries.Utilities;
 
+// [FEATURE] [Copilot]
 codeunit 132683 "Copilot Test"
 {
     Subtype = Test;
@@ -379,14 +380,13 @@ codeunit 132683 "Copilot Test"
     end;
 
     [Test]
-    procedure TestIsAIConsumptionRecorded()
+    procedure TestIsAIConsumptionRecordedFlow()
     var
         AIConsumptionLogEntry: Record "AI Consumption Log Entry";
         CopilotQuota: Codeunit "Copilot Quota";
         ConsumptionId: Guid;
     begin
-        // [FEATURE] [Copilot] [Consumption]
-        // [SCENARIO] Consumption lookup distinguishes missing, recorded, and unrelated IDs
+        // [SCENARIO] Consumption lookup flow observes an ID becoming recorded and excludes unrelated IDs
         // [GIVEN] A consumption ID without a ledger entry
         ConsumptionId := CreateGuid();
 

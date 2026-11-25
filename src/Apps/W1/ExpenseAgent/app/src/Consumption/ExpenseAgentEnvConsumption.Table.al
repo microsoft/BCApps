@@ -277,6 +277,7 @@ table 6969 "Expense Agent Env. Consumption"
         end;
 
         UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
+        UserAIConsumptionData.SetLoadFields("Consumption DateTime", "Actions", "Copilot Studio Feature", "Copilot Studio Feature Quantity", "Copilot Studio Feature Display Name", "Copilot Credits", "Company Name", "Processed For Billing");
         if not UserAIConsumptionData.FindFirst() then
             exit(false);
 

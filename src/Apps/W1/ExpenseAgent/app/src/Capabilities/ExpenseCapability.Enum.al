@@ -121,4 +121,12 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Active Approver Routing', Locked = true;
     }
+
+    /// <summary>
+    /// V2 consumption reporting and principal-aware quota checks are supported.
+    /// </summary>
+    value(12; ConsumptionV2)
+    {
+        Caption = 'Consumption V2', Locked = true;
+    }
 }

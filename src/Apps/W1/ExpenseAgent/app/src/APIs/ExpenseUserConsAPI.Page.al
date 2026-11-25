@@ -59,7 +59,7 @@ page 6968 "Expense User Cons. API"
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
-        MismatchingEntraIdsTelemetryErr: Label 'The stored Expense User Entra ID differs from the ID supplied for consumption reporting. Submitting on behalf of another user is not supported.', Locked = true;
+        MismatchingEntraIdsTelemetryErr: Label 'The stored Expense User Entra ID differs from the ID supplied for consumption reporting. Submitting on behalf of another user is not supported, but consumption reporting continues using the supplied Entra ID.', Locked = true;
         LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent.', Locked = true;
         ConsumptionSourceTypeErr: Label 'Consumption Source Type must be provided and valid.';
         AgentConversationSessionIdOrTurnInteractionIdErr: Label 'Agent Session ID and Interaction ID must be provided.';
@@ -170,7 +170,15 @@ page 6968 "Expense User Cons. API"
 
     [ServiceEnabled]
     [NonDebuggable]
-    procedure CanConsume(ExpenseUserEntraId: Guid): Boolean
+    procedure CanConsume(): Boolean
+    begin
+        ExpenseAgentAPIValidation.VerifyAgentAccess();
+        exit(ExpenseConsumptionHandler.CanConsume());
+    end;
+
+    [ServiceEnabled]
+    [NonDebuggable]
+    procedure CanConsumeV2(ExpenseUserEntraId: Guid): Boolean
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
         if IsNullGuid(ExpenseUserEntraId) then
