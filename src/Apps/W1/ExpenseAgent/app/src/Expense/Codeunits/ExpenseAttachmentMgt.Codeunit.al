@@ -21,7 +21,6 @@ codeunit 6989 "Expense Attachment Mgt."
         CannotImportAndDeleteAttachmentOnPostedExpenseReportErr: Label 'You cannot import and delete attachments on %1 %2, %3 %4.', Comment = '%1 = Posted Expense Report No., %2 = P-ER000001, %3 = Line No., %4 = 10000';
         CannotUpdateAndDeleteAttachmentOnExpenseErr: Label 'You cannot update and delete attachment on an %1 %2 that is part of an %3 %4.', Comment = '%1 = Expense No., %2 = EXP100001, %3 = Expense Report No., %4 = ER100001';
         CannotUpdateAndDeleteAttachmentOnExpenseReportErr: Label 'You cannot update and delete attachment on an %1 %2, %3 %4 that is part of an %5 %6.', Comment = '%1 = Expense Report No., %2 = ER100001, %3 = Line No., %4 = 10000, %5 = Expense No., %6 = EXP100001';
-        CannotUpdateAndDeleteCardReceiptErr: Label 'You cannot update or delete the receipt of corporate card expense %1.', Comment = '%1 = Expense No.';
 
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterInsertEvent, '', true, true)]
     local procedure OnAfterInsertEvent(var Rec: Record "Document Attachment")
@@ -253,9 +252,6 @@ codeunit 6989 "Expense Attachment Mgt."
                 Expense."No.",
                 Expense.FieldCaption("Expense Report No."),
                 Expense."Expense Report No.");
-
-        if DocumentAttachment."Card Receipt Data Hash" <> '' then
-            Error(CannotUpdateAndDeleteCardReceiptErr, Expense."No.");
 
         if Expense.Status <> Expense.Status::Open then
             Error(CannotUpdateAndDeleteAttachmentIfOpenStatusErr, ExpenseReportLine.FieldCaption("Expense No."), Expense."No.", Expense.FieldCaption(Status));

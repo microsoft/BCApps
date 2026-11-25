@@ -7,7 +7,6 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using System.IO;
-using System.Security.Encryption;
 
 /// <summary>
 /// Applies staged receipt data to a corporate card expense that is waiting for a receipt and, when the expense is on an
@@ -16,8 +15,8 @@ using System.Security.Encryption;
 /// Scalar fields are filled only where the target is empty. Participants and VAT specification lines are added only to a
 /// target that has none. Itemization is added to the line when it has none, and to the expense only when its category
 /// requires itemization. Expense policies flag any data that does not fit.
-/// A card expense gets one receipt. The applied receipt is locked and stores a fingerprint of the receipt data: applying
-/// identical receipt data again changes nothing, and any other receipt data is rejected.
+/// Only a missing receipt can be applied. The expense keeps its original status, and subsequent attachment changes follow
+/// the normal expense status and expense report restrictions.
 /// </summary>
 codeunit 7450 "EA Card Receipt Data Apply"
 {
@@ -36,7 +35,6 @@ codeunit 7450 "EA Card Receipt Data Apply"
     /// </summary>
     internal procedure GetCardExpense(ExpenseSystemId: Guid; var Expense: Record Expense)
     var
-        CardReceipt: Record "Document Attachment";
         ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
     begin
         if not Expense.GetBySystemId(ExpenseSystemId) then
@@ -44,47 +42,29 @@ codeunit 7450 "EA Card Receipt Data Apply"
         if (Expense.Source <> Expense.Source::CorporateCard) or (Expense."Credit Card Feed No." = 0) then
             Error(NotCardExpenseErr, Expense."No.");
 
-        // A retry of the applied receipt is accepted where the receipt itself could be applied; Apply then compares the data.
-        if FindCardReceipt(Expense, CardReceipt) then begin
-            if not CanRetryCardReceipt(Expense) then
-                Error(NotWaitingForReceiptErr, Expense."No.");
-            exit;
-        end;
-
         if not ReceiptExpenseMatch.IsWaitingForReceipt(Expense) then
             Error(NotWaitingForReceiptErr, Expense."No.");
-        if (Expense."Expense Report No." = '') and Expense."Receipt Attached" then
+        if Expense."Receipt Attached" then
             Error(ReceiptAlreadyAttachedErr, Expense."No.");
     end;
 
     /// <summary>
-    /// Applies the receipt data to the expense and its expense report line, then deletes the receipt data.
-    /// When the expense already has a receipt from receipt data, identical receipt data only deletes the receipt data and
-    /// other receipt data is rejected.
+    /// Applies the missing receipt and its data to the expense and its expense report line, preserves the expense status,
+    /// then deletes the receipt data.
     /// </summary>
     internal procedure Apply(var CardReceiptData: Record "EA Card Receipt Data")
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         DocumentAttachment: Record "Document Attachment";
-        AppliedReceipt: Record "Document Attachment";
         ExpenseVATLineNos: Dictionary of [Integer, Integer];
         OriginalStatus: Enum "Expense Status";
-        ReceiptDataHash: Text[64];
         OnReport: Boolean;
     begin
         GetCardExpense(CardReceiptData."Expense SystemId", Expense);
         CardReceiptData.CalcFields("Attachment Content");
         if (CardReceiptData."File Name" = '') or (not CardReceiptData."Attachment Content".HasValue()) then
             Error(ReceiptRequiredErr);
-
-        ReceiptDataHash := GetReceiptDataHash(CardReceiptData);
-        if FindCardReceipt(Expense, AppliedReceipt) then begin
-            if AppliedReceipt."Card Receipt Data Hash" <> ReceiptDataHash then
-                Error(ReceiptAlreadyAttachedErr, Expense."No.");
-            CardReceiptData.Delete(true);
-            exit;
-        end;
 
         OnReport := Expense."Expense Report No." <> '';
         if OnReport then
@@ -95,7 +75,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
         if OriginalStatus <> Expense.Status::Open then
             SetExpenseStatus(Expense, Expense.Status::Open);
 
-        AttachReceiptToExpense(CardReceiptData, Expense, ReceiptDataHash, DocumentAttachment);
+        AttachReceiptToExpense(CardReceiptData, Expense, DocumentAttachment);
         Expense.Get(Expense."No.");
         FillExpenseFields(CardReceiptData, Expense);
         Expense.Modify(true);
@@ -140,90 +120,9 @@ codeunit 7450 "EA Card Receipt Data Apply"
         Expense.Modify(false);
     end;
 
-    local procedure FindCardReceipt(Expense: Record Expense; var DocumentAttachment: Record "Document Attachment"): Boolean
-    begin
-        DocumentAttachment.SetRange("Table ID", Database::Expense);
-        DocumentAttachment.SetRange("No.", Expense."No.");
-        DocumentAttachment.SetFilter("Card Receipt Data Hash", '<>%1', '');
-        exit(DocumentAttachment.FindFirst());
-    end;
-
-    local procedure CanRetryCardReceipt(Expense: Record Expense): Boolean
-    var
-        ExpenseReportHeader: Record "Expense Report Header";
-    begin
-        if Expense."Expense Report No." = '' then
-            exit(Expense.Status in [Expense.Status::Open, Expense.Status::Released]);
-        if Expense.Status <> Expense.Status::Submitted then
-            exit(false);
-        ExpenseReportHeader.SetLoadFields(Status);
-        if not ExpenseReportHeader.Get(Expense."Expense Report No.") then
-            exit(false);
-        exit(ExpenseReportHeader.Status = ExpenseReportHeader.Status::Open);
-    end;
-
-    // Fingerprint of everything that the receipt data applies: the receipt content, the staged values and the staged
-    // participants, itemization and VAT specification lines. Record identifiers and system fields are left out, so the
-    // same receipt staged again has the same fingerprint.
-    local procedure GetReceiptDataHash(var CardReceiptData: Record "EA Card Receipt Data"): Text[64]
-    var
-        CryptographyManagement: Codeunit "Cryptography Management";
-        ReceiptDataRecordRef: RecordRef;
-        ContentInStream: InStream;
-        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
-        Payload: TextBuilder;
-    begin
-        CardReceiptData.CalcFields("Attachment Content");
-        CardReceiptData."Attachment Content".CreateInStream(ContentInStream);
-        AppendHashValue(Payload, CryptographyManagement.GenerateHash(ContentInStream, HashAlgorithmType::SHA256));
-        ReceiptDataRecordRef.GetTable(CardReceiptData);
-        AppendHashRecord(Payload, ReceiptDataRecordRef);
-        AppendHashLines(Payload, Database::"EA Card Receipt Participant", CardReceiptData.Id);
-        AppendHashLines(Payload, Database::"EA Card Receipt Item", CardReceiptData.Id);
-        AppendHashLines(Payload, Database::"EA Card Receipt VAT Spec.", CardReceiptData.Id);
-        exit(CopyStr(LowerCase(CryptographyManagement.GenerateHash(Payload.ToText(), HashAlgorithmType::SHA256)), 1, 64));
-    end;
-
-    // Field 1 of each receipt data line table is the receipt data Id.
-    local procedure AppendHashLines(var Payload: TextBuilder; TableNo: Integer; ReceiptDataId: Guid)
-    var
-        LinesRecordRef: RecordRef;
-    begin
-        LinesRecordRef.Open(TableNo);
-        LinesRecordRef.Field(1).SetRange(ReceiptDataId);
-        AppendHashValue(Payload, Format(LinesRecordRef.Count()));
-        if LinesRecordRef.FindSet() then
-            repeat
-                AppendHashRecord(Payload, LinesRecordRef);
-            until LinesRecordRef.Next() = 0;
-        LinesRecordRef.Close();
-    end;
-
-    local procedure AppendHashRecord(var Payload: TextBuilder; HashRecordRef: RecordRef)
-    var
-        HashFieldRef: FieldRef;
-        FieldIndex: Integer;
-    begin
-        for FieldIndex := 1 to HashRecordRef.FieldCount() do begin
-            HashFieldRef := HashRecordRef.FieldIndex(FieldIndex);
-            if (HashFieldRef.Number() > 1) and (HashFieldRef.Number() < HashRecordRef.SystemIdNo()) and
-               (HashFieldRef.Class() = FieldClass::Normal) and (HashFieldRef.Type() <> FieldType::Blob)
-            then
-                AppendHashValue(Payload, Format(HashFieldRef.Number()) + '=' + Format(HashFieldRef.Value(), 0, 9));
-        end;
-    end;
-
-    // Length-prefixed, so values that contain separators cannot make two different payloads equal.
-    local procedure AppendHashValue(var Payload: TextBuilder; Value: Text)
-    begin
-        Payload.Append(Format(StrLen(Value)));
-        Payload.Append(':');
-        Payload.Append(Value);
-    end;
-
     // Imports the content directly instead of through ImportFromStream, because the attachment restriction on that
     // event blocks expenses that are on an expense report.
-    local procedure AttachReceiptToExpense(var CardReceiptData: Record "EA Card Receipt Data"; Expense: Record Expense; ReceiptDataHash: Text[64]; var DocumentAttachment: Record "Document Attachment")
+    local procedure AttachReceiptToExpense(var CardReceiptData: Record "EA Card Receipt Data"; Expense: Record Expense; var DocumentAttachment: Record "Document Attachment")
     var
         FileManagement: Codeunit "File Management";
         ContentInStream: InStream;
@@ -237,7 +136,6 @@ codeunit 7450 "EA Card Receipt Data Apply"
         DocumentAttachment.Validate("File Name", CopyStr(FileManagement.GetFileNameWithoutExtension(CardReceiptData."File Name"), 1, MaxStrLen(DocumentAttachment."File Name")));
         CardReceiptData."Attachment Content".CreateInStream(ContentInStream);
         DocumentAttachment."Document Reference ID".ImportStream(ContentInStream, '', '', CardReceiptData."File Name");
-        DocumentAttachment."Card Receipt Data Hash" := ReceiptDataHash;
         DocumentAttachment.Insert(true);
     end;
 

@@ -641,6 +641,72 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
+    procedure ReceiptDataCannotBeAppliedAgainToSubmittedExpense()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CardReceiptData: Record "EA Card Receipt Data";
+        RetryCardReceiptData: Record "EA Card Receipt Data";
+    begin
+        // [SCENARIO] The missing-receipt exception cannot be used again after a receipt has been applied.
+        Initialize();
+
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CreateCardReceiptData(RetryCardReceiptData, Expense);
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        asserterror CardReceiptDataApply.Apply(RetryCardReceiptData);
+
+        Assert.ExpectedError(StrSubstNo(NotWaitingForReceiptErr, Expense."No."));
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Submitted);
+        Assert.AreEqual(1, CountAttachments(Database::Expense, Expense."No.", 0), 'The expense must keep its single receipt.');
+        Assert.AreEqual(1, CountAttachments(Database::"Expense Report Line", ExpenseReportLine."Document No.", ExpenseReportLine."Line No."), 'The line must keep its single receipt.');
+    end;
+
+    [Test]
+    procedure AppliedCardReceiptCanBeReplacedAfterRemovingLine()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CardReceiptData: Record "EA Card Receipt Data";
+        DocumentAttachment: Record "Document Attachment";
+        ReplacementInStream: InStream;
+    begin
+        // [SCENARIO] A receipt follows the normal attachment rules once its expense is open and no longer on a report.
+        Initialize();
+
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptDataApply.Apply(CardReceiptData);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Submitted);
+
+        ExpenseReportLine.Delete(true);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField("Expense Report No.", '');
+        DocumentAttachment.SetRange("Table ID", Database::Expense);
+        DocumentAttachment.SetRange("No.", Expense."No.");
+        DocumentAttachment.FindFirst();
+
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData.CalcFields("Attachment Content");
+        CardReceiptData."Attachment Content".CreateInStream(ReplacementInStream);
+        DocumentAttachment.ImportFromStream(ReplacementInStream, 'replacement.pdf');
+        DocumentAttachment.Modify(true);
+        DocumentAttachment.Delete(true);
+
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField("Receipt Attached", false);
+        Assert.AreEqual(0, CountAttachments(Database::Expense, Expense."No.", 0), 'The open expense must allow its receipt to be deleted.');
+    end;
+
+    [Test]
     procedure ApplyReceiptDataAddsItemizationToLineWhenCategoryDoesNotRequireIt()
     var
         Expense: Record Expense;
