@@ -46,7 +46,8 @@ table 31273 "Compensation Line CZC"
         field(20; "Source No."; Code[20])
         {
             Caption = 'Source No.';
-            TableRelation = if ("Source Type" = const(Customer)) Customer."No." else
+            TableRelation =
+            if ("Source Type" = const(Customer)) Customer."No." else
             if ("Source Type" = const(Vendor)) Vendor."No.";
             DataClassification = CustomerContent;
 
@@ -59,7 +60,8 @@ table 31273 "Compensation Line CZC"
         field(22; "Posting Group"; Code[20])
         {
             Caption = 'Posting Group';
-            TableRelation = if ("Source Type" = const(Customer)) "Customer Posting Group" else
+            TableRelation =
+            if ("Source Type" = const(Customer)) "Customer Posting Group" else
             if ("Source Type" = const(Vendor)) "Vendor Posting Group";
             DataClassification = CustomerContent;
 
@@ -88,7 +90,8 @@ table 31273 "Compensation Line CZC"
         field(25; "Source Entry No."; Integer)
         {
             Caption = 'Source Entry No.';
-            TableRelation = if ("Source Type" = const(Customer)) "Cust. Ledger Entry"."Entry No." where(Open = const(true)) else
+            TableRelation =
+            if ("Source Type" = const(Customer)) "Cust. Ledger Entry"."Entry No." where(Open = const(true)) else
             if ("Source Type" = const(Vendor)) "Vendor Ledger Entry"."Entry No." where(Open = const(true));
             DataClassification = CustomerContent;
 
@@ -108,7 +111,10 @@ table 31273 "Compensation Line CZC"
                             CustLedgerEntry.SetRange("Compensation Amount (LCY) CZC", 0);
                             if not CompensationsSetup."Including Entries with On Hold" then
                                 CustLedgerEntry.SetRange("On Hold", '');
+#if not CLEAN30
                             OnSourceEntryNoLookupOnAfterCustLedgerEntryFilter(CustLedgerEntry);
+#endif
+                            OnSourceEntryNoLookupOnAfterCustLedgerEntryFilters(CustLedgerEntry);
                             if CustLedgerEntry.FindSet() then
                                 repeat
                                     if not CustLedgerEntry.RelatedToAdvanceLetterCZL() then
@@ -131,7 +137,10 @@ table 31273 "Compensation Line CZC"
                             VendorLedgerEntry.SetRange("Compensation Amount (LCY) CZC", 0);
                             if not CompensationsSetup."Including Entries with On Hold" then
                                 VendorLedgerEntry.SetRange("On Hold", '');
+#if not CLEAN30
                             OnSourceEntryNoLookupOnAfterCustLedgerEntryFilter(CustLedgerEntry);
+#endif
+                            OnSourceEntryNoLookupOnAfterVendorLedgerEntryFilters(VendorLedgerEntry);
                             if VendorLedgerEntry.FindSet() then
                                 repeat
                                     if not VendorLedgerEntry.RelatedToAdvanceLetterCZL() then
@@ -663,8 +672,21 @@ table 31273 "Compensation Line CZC"
             Error(RelatedToAdvanceLetterErr, VendorLedgerEntry.TableCaption(), VendorLedgerEntry."Entry No.");
     end;
 
+#if not CLEAN30
+    [Obsolete('Use OnSourceEntryNoLookupOnAfterCustLedgerEntryFilters for customer entries or OnSourceEntryNoLookupOnAfterVendorLedgerEntryFilters for vendor entries instead.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnSourceEntryNoLookupOnAfterCustLedgerEntryFilter(CustLedgerEntry: Record "Cust. Ledger Entry")
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSourceEntryNoLookupOnAfterCustLedgerEntryFilters(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSourceEntryNoLookupOnAfterVendorLedgerEntryFilters(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
     end;
 
