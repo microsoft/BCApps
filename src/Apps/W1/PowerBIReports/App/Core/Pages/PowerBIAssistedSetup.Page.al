@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.PowerBIReports;
 
+using Microsoft.Foundation.Company;
 using System.DateTime;
 using System.Environment;
 using System.Environment.Configuration;
+using System.Integration.PowerBI;
 using System.Security.User;
 using System.Utilities;
 
@@ -15,6 +17,7 @@ page 36950 "PowerBI Assisted Setup"
     PageType = NavigatePage;
     Caption = 'Power BI Content Assisted Setup';
     SourceTable = "PowerBI Reports Setup";
+    Permissions = tabledata "Company Information" = rm;
 
     layout
     {
@@ -222,6 +225,33 @@ page 36950 "PowerBI Assisted Setup"
                     Caption = 'I would like to';
                     ToolTip = 'Specifies whether to manually configure report settings or deploy pre-built reports.';
                     OptionCaption = 'Deploy out-of-the-box reports,Configure report settings';
+                }
+                field(PowerBIWorkspace; PowerBIWorkspaceDisplayName)
+                {
+                    ApplicationArea = All;
+                    AssistEdit = true;
+                    Caption = 'Power BI Workspace';
+                    Editable = false;
+                    ToolTip = 'Specifies the Power BI workspace that the out-of-the-box reports are deployed to.';
+
+                    trigger OnAssistEdit()
+                    var
+                        CompanyInformation: Record "Company Information";
+                        NewWorkspaceId: Guid;
+                        NewWorkspaceName: Text[200];
+                    begin
+                        CompanyInformation.Get();
+                        NewWorkspaceId := CompanyInformation."Power BI Workspace Id";
+                        NewWorkspaceName := CompanyInformation."Power BI Workspace Name";
+                        if not PowerBIWorkspaceMgt.LookupTargetWorkspace(NewWorkspaceId, NewWorkspaceName) then
+                            exit;
+
+                        CompanyInformation.Validate("Power BI Workspace Id", NewWorkspaceId);
+                        CompanyInformation.Validate("Power BI Workspace Name", NewWorkspaceName);
+                        CompanyInformation.Modify(true);
+                        UpdatePowerBIWorkspaceDisplayName();
+                        CurrPage.Update(false);
+                    end;
                 }
             }
             group(Step5)
@@ -777,6 +807,7 @@ page 36950 "PowerBI Assisted Setup"
                 trigger OnAction()
                 begin
                     if (CurrentStep = Steps::ReportChoice) and (ReportSetupChoice = ReportSetupChoice::"Deploy out-of-the-box reports") then begin
+                        PowerBIWorkspaceMgt.CheckTargetWorkspaceAllowsDeployment();
                         GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"PowerBI Assisted Setup");
                         CurrPage.Close();
                         exit;
@@ -810,6 +841,7 @@ page 36950 "PowerBI Assisted Setup"
         TimeZoneSelection: Codeunit "Time Zone Selection";
         EnvironmentInformation: Codeunit "Environment Information";
         SetupHelper: Codeunit "Power BI Report Setup";
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
         Steps: Option Intro,DateTableConfig,UTCOffset,WorkingDays,ReportChoice,Setting,Finish;
         PrevStep: Option;
         CurrentStep: Option;
@@ -836,13 +868,12 @@ page 36950 "PowerBI Assisted Setup"
         ShowLessTxt: Label 'Show Less';
         AdminPermissionRequiredErr: Label 'Setting up Power BI requires the ''%1'' permission set (or equivalent) that your account doesn''t have. Ask your administrator to assign the permission set to you.', Comment = '%1 = permission set name';
         PermisionSetNameTok: Label 'Power BI Core Admin', Locked = true;
-        IsEvalCompany: Boolean;
+        PowerBIWorkspaceDisplayName: Text[200];
         ReportSetupChoice: Option "Deploy out-of-the-box reports","Configure report settings";
 
     trigger OnOpenPage()
     var
         UserSetup: Record "User Setup";
-        CurrentCompany: Record Company;
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
         if not PowerBIReportsSetup.WritePermission() then
@@ -853,9 +884,6 @@ page 36950 "PowerBI Assisted Setup"
         end;
         if NavApp.GetCurrentModuleInfo(AppInfo) then
             AssistedSetupComplete := GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"PowerBI Assisted Setup");
-
-        CurrentCompany.Get(CompanyName());
-        IsEvalCompany := CurrentCompany."Evaluation Company";
 
         if UserSetup.Get(UserId()) then
             TestEmailAddress := UserSetup."E-Mail";
@@ -869,6 +897,7 @@ page 36950 "PowerBI Assisted Setup"
                 CalendarType := CalendarType::Weekly;
         end;
 
+        UpdatePowerBIWorkspaceDisplayName();
         LoadTopBanners();
         TakeStep(0);
     end;
@@ -882,10 +911,6 @@ page 36950 "PowerBI Assisted Setup"
 
         PrevStep := CurrentStep;
         CurrentStep := CurrentStep + Step;
-
-        // Skip ReportChoice for non-evaluation companies
-        if (CurrentStep = Steps::ReportChoice) and (not IsEvalCompany) then
-            CurrentStep := CurrentStep + Step;
 
         NextEnabled := false;
         BackEnabled := true;
@@ -963,6 +988,11 @@ page 36950 "PowerBI Assisted Setup"
 
     procedure IsDeployOOBReportsSelected(): Boolean
     begin
-        exit(IsEvalCompany and (ReportSetupChoice = ReportSetupChoice::"Deploy out-of-the-box reports"));
+        exit(ReportSetupChoice = ReportSetupChoice::"Deploy out-of-the-box reports");
+    end;
+
+    local procedure UpdatePowerBIWorkspaceDisplayName()
+    begin
+        PowerBIWorkspaceDisplayName := PowerBIWorkspaceMgt.GetTargetWorkspaceDisplayName();
     end;
 }

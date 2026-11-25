@@ -1738,10 +1738,7 @@ codeunit 90 "Purch.-Post"
         if IsHandled then
             exit;
 
-        if (QtyToBeInvoicedBase <> 0) and (PurchaseLine.Type = PurchaseLine.Type::Item) then
-            Factor := QtyToBeInvoicedBase / PurchaseLine."Qty. to Invoice (Base)"
-        else
-            Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
+        Factor := QtyToBeInvoiced / PurchaseLine."Qty. to Invoice";
         OnPostItemJnlLineOnAfterSetFactor(PurchaseLine, Factor, GenJnlLineExtDocNo, ItemJnlLine);
         ItemJnlLine.Amount := PurchaseLine.Amount * Factor + RemAmt;
         if not PurchaseLine."Item Charge Has Non.Ded. VAT" then
@@ -6535,7 +6532,7 @@ codeunit 90 "Purch.-Post"
                 QtyToBeInvoiced := RemQtyToBeInvoiced - PurchLine."Qty. to Receive";
                 QtyToBeInvoicedBase := RemQtyToBeInvoicedBase - PurchLine."Qty. to Receive (Base)";
             end;
-        if Abs(QtyToBeInvoiced) > Abs(PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced") then begin
+        if Abs(QtyToBeInvoiced) >= Abs(PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced") then begin
             QtyToBeInvoiced := PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced";
             QtyToBeInvoicedBase := PurchRcptLine."Quantity (Base)" - PurchRcptLine."Qty. Invoiced (Base)";
         end;
@@ -7244,6 +7241,8 @@ codeunit 90 "Purch.-Post"
         SalesShptLine."Qty. Invoiced (Base)" := 0;
         SalesShptLine."Order No." := SalesOrderLine."Document No.";
         SalesShptLine."Order Line No." := SalesOrderLine."Line No.";
+        SalesShptLine."External Document No." := SalesShptHeader."External Document No.";
+        SalesShptLine."Your Reference" := SalesShptHeader."Your Reference";
         SalesShptLine."Qty. Shipped Not Invoiced" :=
           SalesShptLine.Quantity - SalesShptLine."Quantity Invoiced";
         if SalesShptLine.Quantity <> 0 then begin
@@ -7679,6 +7678,8 @@ codeunit 90 "Purch.-Post"
                                 SalesShptLine."Document No." := SalesShptHeader."No.";
                                 SalesShptLine."Order No." := SalesOrderLine."Document No.";
                                 SalesShptLine."Order Line No." := SalesOrderLine."Line No.";
+                                SalesShptLine."External Document No." := SalesShptHeader."External Document No.";
+                                SalesShptLine."Your Reference" := SalesShptHeader."Your Reference";
                                 Clear(IsHandled);
                                 OnBeforeSalesShptLineInsert(SalesShptLine, SalesShptHeader, SalesOrderLine, SuppressCommit, TempDropShptPostBuffer, IsHandled);
                                 if not IsHandled then
@@ -8340,6 +8341,7 @@ codeunit 90 "Purch.-Post"
     local procedure PostUpdateOrderNo(var PurchInvHeader: Record "Purch. Inv. Header")
     var
         PurchInvLine: Record "Purch. Inv. Line";
+        OrderNo: Code[20];
     begin
         if PurchInvHeader."No." = '' then
             exit;
@@ -8356,13 +8358,33 @@ codeunit 90 "Purch.-Post"
         PurchInvLine.SetFilter("Order No.", '<>%1', '');
         if not PurchInvLine.FindFirst() then
             exit;
+        OrderNo := PurchInvLine."Order No.";
+
 
         // If all the lines have the same 'Order No.' then set 'Order No.' field on the header
-        PurchInvLine.SetFilter("Order No.", '<>%1', PurchInvLine."Order No.");
-        if PurchInvLine.IsEmpty() then begin
-            PurchInvHeader.Validate("Order No.", PurchInvLine."Order No.");
-            PurchInvHeader.Modify(true);
-        end;
+        PurchInvLine.SetFilter("Order No.", '<>%1', OrderNo);
+        if PurchInvLine.FindSet() then
+            repeat
+                if not IsInvoiceRoundingLine(PurchInvHeader."Vendor Posting Group", PurchInvLine) then
+                    exit;
+            until PurchInvLine.Next() = 0;
+
+        PurchInvHeader.Validate("Order No.", OrderNo);
+        PurchInvHeader.Modify(true);
+    end;
+
+    local procedure IsInvoiceRoundingLine(VendorPostingGroupCode: Code[20]; PurchInvLine: Record "Purch. Inv. Line"): Boolean
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        if (PurchInvLine."Order No." <> '') or
+           (PurchInvLine.Type <> PurchInvLine.Type::"G/L Account") or
+           not PurchInvLine."System-Created Entry"
+        then
+            exit(false);
+
+        VendorPostingGroup.Get(VendorPostingGroupCode);
+        exit(PurchInvLine."No." = VendorPostingGroup."Invoice Rounding Account");
     end;
 
     /// <summary>

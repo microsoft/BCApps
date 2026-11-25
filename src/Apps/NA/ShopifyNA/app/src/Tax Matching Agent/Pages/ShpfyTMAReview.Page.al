@@ -9,9 +9,9 @@ using Microsoft.Finance.SalesTax;
 
 /// <summary>
 /// Page Shpfy TMA Review (ID 30471).
-/// Card view that lets a human review — and adjust — what Tax Matching Agent did for a
+/// Card view that lets a human review — and adjust — what Shopify Tax Matching did for a
 /// single Shopify order: the resolved Tax Area (with the platform AI confidence indicator),
-/// the ship-to context the Tax Matching Agent reasoned over, and each tax line with the item it taxes and
+/// the ship-to context used for matching, and each tax line with the item it taxes and
 /// its matched Tax Jurisdiction Code. The Tax Jurisdiction on each line is editable, and each
 /// line shows Business Central's Tax Detail rate next to Shopify's rate (a difference is
 /// highlighted). The Approve action rebuilds the Tax Area from the (possibly edited) line
@@ -42,12 +42,12 @@ page 30471 "Shpfy TMA Review"
                 field("Shopify Order No."; Rec."Shopify Order No.")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the Shopify order that the Tax Matching Agent matched tax for.';
+                    ToolTip = 'Specifies the Shopify order that Shopify Tax Matching matched tax for.';
                 }
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the Tax Area that the Tax Matching Agent resolved for this order from the matched tax jurisdictions. The AI confidence indicator shows how confident the Tax Matching Agent was about the resolved Tax Area.';
+                    ToolTip = 'Specifies the Tax Area that Shopify Tax Matching resolved for this order from the matched tax jurisdictions. The AI confidence indicator shows how confident the AI was about the resolved Tax Area.';
                 }
                 field("Tax Liable"; Rec."Tax Liable")
                 {
@@ -67,7 +67,7 @@ page 30471 "Shpfy TMA Review"
                     MultiLine = true;
                     Visible = RateConflict;
                     StyleExpr = RateConflictStyleTxt;
-                    ToolTip = 'Explains that one or more matched tax rates differ from Business Central and what approving the order will do.';
+                    ToolTip = 'Explains that one or more Shopify rates differ from the corresponding Tax Detail Rates and what approving the order will do.';
                 }
             }
             part(TaxLines; "Shpfy TMA Order Tax Lines Part")
@@ -83,17 +83,17 @@ page 30471 "Shpfy TMA Review"
                 field("Ship-to Country/Region Code"; Rec."Ship-to Country/Region Code")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the ship-to country/region the Tax Matching Agent used as geographic context when matching tax jurisdictions.';
+                    ToolTip = 'Specifies the ship-to country/region Shopify Tax Matching used as geographic context when matching tax jurisdictions.';
                 }
                 field("Ship-to County"; Rec."Ship-to County")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the ship-to state/county the Tax Matching Agent used as geographic context when matching tax jurisdictions.';
+                    ToolTip = 'Specifies the ship-to state/county Shopify Tax Matching used as geographic context when matching tax jurisdictions.';
                 }
                 field("Ship-to City"; Rec."Ship-to City")
                 {
                     Editable = false;
-                    ToolTip = 'Specifies the ship-to city the Tax Matching Agent used as geographic context when matching tax jurisdictions.';
+                    ToolTip = 'Specifies the ship-to city Shopify Tax Matching used as geographic context when matching tax jurisdictions.';
                 }
             }
         }
@@ -109,7 +109,7 @@ page 30471 "Shpfy TMA Review"
                 Caption = 'Approve';
                 Image = Approve;
                 Visible = Rec."Tax Match Applied" and not Rec."Tax Match Reviewed" and (ReviewRequired or Rec."Tax Rate Conflict" or Rec."Tax Match Incomplete");
-                ToolTip = 'Confirms the tax match for this order and approves it. The Tax Area is (re)built from the Tax Jurisdiction Codes on the tax lines below — including any you changed — and the order is released so a Sales Document can be created. Review the per-line Business Central rates against Shopify''s (differences are highlighted) before approving.';
+                ToolTip = 'Confirms the tax match for this order and approves it. The Tax Area is (re)built from the Tax Jurisdiction Codes on the tax lines below, including any you changed, and the order is released so a Sales Document can be created. Review the per-line Tax Detail Rates against Shopify''s rates (differences are highlighted) before approving.';
 
                 trigger OnAction()
                 begin
@@ -186,7 +186,7 @@ page 30471 "Shpfy TMA Review"
         CloseWithoutApproveQst: Label 'The tax match for this order has not been approved. The Sales Document will not be created until it is approved. Close without approving?';
         DiscardChangesQst: Label 'You have changed one or more Tax Jurisdictions but have not approved the match. If you close now, your changes will be discarded. Close without approving?';
         UndoApprovalQst: Label 'Undo the approval for this order? It will be held for review again and no Sales Document will be created until it is approved once more.';
-        RateConflictGuidanceMsg: Label 'One or more tax lines have a rate that differs from Business Central''s Tax Detail (highlighted in red). Approving accepts Business Central''s rates for this order. To use a different rate, correct the Tax Detail, or change the Tax Jurisdiction on the line, before approving.';
+        RateConflictGuidanceMsg: Label 'One or more Shopify rates differ from the corresponding Tax Detail Rates (highlighted in red). Approving accepts the Tax Detail Rates for this order. To use a different rate, update the Tax Detail or change the Tax Jurisdiction on the line before approving.';
         UnmatchedLinesErr: Label 'One or more tax lines do not have a Tax Jurisdiction Code. Assign a Tax Jurisdiction to every tax line before approving, so the order''s tax is fully resolved.';
         NoTaxAreaErr: Label 'A Tax Area could not be resolved for the selected Tax Jurisdictions. Turn on Auto Create Tax Areas on the Shopify Shop Card, or create a Tax Area that covers these jurisdictions, then approve again. The order stays held for review until then.';
         LineKeyTok: Label '%1|%2', Locked = true, Comment = '%1 = Parent Id, %2 = Line No.';

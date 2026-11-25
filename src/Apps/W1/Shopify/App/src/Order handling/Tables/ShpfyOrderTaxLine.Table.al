@@ -28,7 +28,9 @@ table 30122 "Shpfy Order Tax Line"
             DataClassification = SystemMetadata;
             Editable = false;
         }
-        field(3; Title; Code[20])
+#pragma warning disable AS0086 // false positive on extending the field length on internal table
+        field(3; Title; Code[100])
+#pragma warning restore AS0086
         {
             Caption = 'Title';
             DataClassification = SystemMetadata;

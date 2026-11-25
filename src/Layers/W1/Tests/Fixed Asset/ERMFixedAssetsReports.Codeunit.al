@@ -1200,6 +1200,7 @@ codeunit 134978 "ERM Fixed Assets Reports"
     [Scope('OnPrem')]
     procedure ReclassifyBookValue02()
     var
+        DepreciationBook: Record "Depreciation Book";
         FixedAsset: Record "Fixed Asset";
         FixedAsset2: Record "Fixed Asset";
         GenJournalLine: Record "Gen. Journal Line";
@@ -1213,25 +1214,25 @@ codeunit 134978 "ERM Fixed Assets Reports"
         // 1. Setup: Create 2 Fixed Assets, Create FA Depreciation Books, Create and Post FA G/L Journal Lines with FA Posting Type
         // Acquisition cost and Depreciation for first Fixed Asset, create and Post Reclassify Journal.
         Initialize();
-        SetDepreciationBook();
+        CreateReclassificationBook(DepreciationBook);
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
         LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset2);
         CreateFADepreciationBook(
-          FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", LibraryFixedAsset.GetDefaultDeprBook());
+          FADepreciationBook, FixedAsset."No.", FixedAsset."FA Posting Group", DepreciationBook.Code);
         CreateFADepreciationBook(
-          FADepreciationBook, FixedAsset2."No.", FixedAsset2."FA Posting Group", LibraryFixedAsset.GetDefaultDeprBook());
+          FADepreciationBook, FixedAsset2."No.", FixedAsset2."FA Posting Group", DepreciationBook.Code);
         AcquisitionCostAmount := LibraryRandom.RandDec(1000, 2);  // Using Random Number Generator for Amount.
         DepreciationCostAmount := AcquisitionCostAmount / 2;  // using 2 for partial Depreciation Amount.
-        CreateAndPostFAGLJournalLine(FixedAsset."No.", GenJournalLine."FA Posting Type"::"Acquisition Cost", AcquisitionCostAmount);
-        CreateAndPostFAGLJournalLine(FixedAsset."No.", GenJournalLine."FA Posting Type"::Depreciation, -DepreciationCostAmount);
+        CreateAndPostFAGLJournalLine(FixedAsset."No.", GenJournalLine."FA Posting Type"::"Acquisition Cost", AcquisitionCostAmount, DepreciationBook.Code);
+        CreateAndPostFAGLJournalLine(FixedAsset."No.", GenJournalLine."FA Posting Type"::Depreciation, -DepreciationCostAmount, DepreciationBook.Code);
 
-        CreateAndPostFAReclassJournal(LibraryFixedAsset.GetDefaultDeprBook(), FixedAsset."No.", FixedAsset2."No.");
+        CreateAndPostFAReclassJournal(DepreciationBook.Code, FixedAsset."No.", FixedAsset2."No.");
 
         // 2. Exercise: Run Fixed Asset Book Value 02 Report with Reclassify as True.
         LibraryLowerPermissions.SetO365FAView();
         LibraryLowerPermissions.AddJournalsEdit();
         FixedAsset.SetFilter("No.", '%1|%2', FixedAsset."No.", FixedAsset2."No.");
-        RunFixedAssetBookValue02Report(FixedAsset, LibraryFixedAsset.GetDefaultDeprBook(), GroupTotals::" ", true, false, true);
+        RunFixedAssetBookValue02Report(FixedAsset, DepreciationBook.Code, GroupTotals::" ", true, false, true);
 
         // 3. Verify: Verify values on Fixed Asset Book Value 02 Report.
         LibraryReportValidation.OpenFile();
@@ -1498,6 +1499,11 @@ codeunit 134978 "ERM Fixed Assets Reports"
     end;
 
     local procedure CreateAndPostFAGLJournalLine(FANo: Code[20]; FAPostingType: Enum "Gen. Journal Line FA Posting Type"; Amount: Decimal)
+    begin
+        CreateAndPostFAGLJournalLine(FANo, FAPostingType, Amount, LibraryFixedAsset.GetDefaultDeprBook());
+    end;
+
+    local procedure CreateAndPostFAGLJournalLine(FANo: Code[20]; FAPostingType: Enum "Gen. Journal Line FA Posting Type"; Amount: Decimal; DepreciationBookCode: Code[10])
     var
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
@@ -1507,6 +1513,8 @@ codeunit 134978 "ERM Fixed Assets Reports"
           GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name, GenJournalLine."Document Type"::" ",
           GenJournalLine."Account Type"::"Fixed Asset", FANo, Amount);
         PostingSetupFAGLJournalLine(GenJournalLine, FAPostingType);
+        GenJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
+        GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
 
@@ -1529,6 +1537,8 @@ codeunit 134978 "ERM Fixed Assets Reports"
         LibraryFixedAsset.CreateFAReclassJournal(
           FAReclassJournalLine, FAReclassJournalBatch."Journal Template Name", FAReclassJournalBatch.Name);
         UpdateFAReclassJournal(FAReclassJournalLine, FixedAssetNo, FixedAssetNo2);
+        FAReclassJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
+        FAReclassJournalLine.Modify(true);
         CODEUNIT.Run(CODEUNIT::"FA Reclass. Transfer Batch", FAReclassJournalLine);
 
         UpdateDocumentNo(GenJournalLine, DepreciationBookCode);
@@ -1692,11 +1702,17 @@ codeunit 134978 "ERM Fixed Assets Reports"
 
     local procedure UpdateFAJournalSetup(var FAJournalSetup: Record "FA Journal Setup")
     var
-        FAJournalSetup2: Record "FA Journal Setup";
+        FAJournalBatch: Record "FA Journal Batch";
+        GenJournalBatch: Record "Gen. Journal Batch";
     begin
-        FAJournalSetup2.SetRange("Depreciation Book Code", LibraryFixedAsset.GetDefaultDeprBook());
-        FAJournalSetup2.FindFirst();
-        FAJournalSetup.TransferFields(FAJournalSetup2, false);
+        CreateFAJournalBatch(FAJournalBatch);
+        CreateGeneralJournalBatch(GenJournalBatch);
+        GenJournalBatch.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
+        GenJournalBatch.Modify(true);
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
+        FAJournalSetup.Validate("Gen. Jnl. Template Name", GenJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("Gen. Jnl. Batch Name", GenJournalBatch.Name);
         FAJournalSetup.Modify(true);
     end;
 
@@ -1796,13 +1812,13 @@ codeunit 134978 "ERM Fixed Assets Reports"
         Assert.IsTrue(LibraryReportValidation.CheckIfValueExists(GroupTotalTxt + ' ' + FieldValue), StrSubstNo(ExistErr, FieldValue));
     end;
 
-    local procedure SetDepreciationBook()
+    local procedure CreateReclassificationBook(var DepreciationBook: Record "Depreciation Book")
     var
-        DepreciationBook: Record "Depreciation Book";
-        FASetup: Record "FA Setup";
+        DefaultDepreciationBook: Record "Depreciation Book";
     begin
-        FASetup.Get();
-        DepreciationBook.Get(FASetup."Default Depr. Book");
+        CreateDepreciationJournalSetup(DepreciationBook);
+        DefaultDepreciationBook.Get(LibraryFixedAsset.GetDefaultDeprBook());
+        DepreciationBook.TransferFields(DefaultDepreciationBook, false);
         DepreciationBook.Validate("Use Rounding in Periodic Depr.", false);
         DepreciationBook.Modify();
     end;
@@ -1833,4 +1849,3 @@ codeunit 134978 "ERM Fixed Assets Reports"
         Sleep(200);
     end;
 }
-

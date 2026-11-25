@@ -21,6 +21,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 codeunit 10860 "Payment Management"
 {
@@ -1045,7 +1046,9 @@ codeunit 10860 "Payment Management"
     begin
         PaymentHeader.TestField("Account Type", PaymentHeader."Account Type"::"Bank Account");
         DirectDebitCollection.CreateRecord(PaymentHeader."No.", PaymentHeader."Account No.", PaymentHeader."Partner Type");
+#pragma warning disable AL0432
         DirectDebitCollection."Source Table ID" := DATABASE::"Payment Header";
+#pragma warning restore AL0432
         DirectDebitCollection.Modify();
         DirectDebitCollectionEntry.SetRange("Direct Debit Collection No.", DirectDebitCollection."No.");
         Commit();
@@ -1074,17 +1077,24 @@ codeunit 10860 "Payment Management"
     local procedure PostInvPostingBuffer(): Integer
     var
         GLEntry: Record "G/L Entry";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+        UsePaymentManagementAppErr: Label 'Use the Payment Management FR app to post payment slips when the Payment feature is enabled.';
     begin
+        if FeatureKeyManagement.IsPaymentManagementEnabled() then
+            Error(UsePaymentManagementAppErr);
+
         GenJnlLine.Init();
         GenJnlLine."Posting Date" := PaymentHeader."Posting Date";
         GenJnlLine."Document Date" := PaymentHeader."Document Date";
         GenJnlLine.Description := InvPostingBuffer[1].Description;
         GenJnlLine."Reason Code" := Step."Reason Code";
         PaymentClass.Get(PaymentHeader."Payment Class");
+#pragma warning disable AL0432
         GenJnlLine."Delayed Unrealized VAT" :=
           (PaymentClass."Unrealized VAT Reversal" = PaymentClass."Unrealized VAT Reversal"::Delayed);
         GenJnlLine."Realize VAT" := Step."Realize VAT";
         GenJnlLine."Created from No." := InvPostingBuffer[1]."Created from No.";
+#pragma warning restore AL0432
         GenJnlLine."Document Type" := InvPostingBuffer[1]."Document Type";
         GenJnlLine."Document No." := InvPostingBuffer[1]."Document No.";
         GenJnlLine."Account Type" := InvPostingBuffer[1]."Account Type";

@@ -23,7 +23,7 @@ codeunit 10803 "FA Reports FR"
     var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
     begin
-        Enabled := FeatureManagementFacade.IsEnabled(FeatureKeyIdTok);
+        Enabled := FeatureManagementFacade.IsEnabled(FeatureKeyIdTok, false);
     end;
 
     procedure GetFeatureKeyId(): Text

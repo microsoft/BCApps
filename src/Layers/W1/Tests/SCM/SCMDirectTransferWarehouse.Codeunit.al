@@ -1449,6 +1449,392 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TransferFromNonDirectRouteChangeFlow()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] A source-first route-change flow preserves non-direct line transit through an unmatched pair.
+        // [GIVEN] A non-direct order with an item line and a route for two replacement locations.
+        Initialize();
+        CreateRoutesWithExistingTransferLine(TransferHeader, TransferLine, TransferRoute, false);
+
+        // [WHEN] The source changes, leaving an unmatched location pair.
+        TransferHeader.Validate("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] Header transit clears, but the non-direct line retains its transit.
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+
+        // [WHEN] The destination changes to complete the replacement route.
+        TransferHeader.Validate("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] Both locations change without defaulting any unshipped quantity for receipt.
+        TransferHeader.TestField("Direct Transfer", false);
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferLine.TestField("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferLine.TestField("Direct Transfer", false);
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Ship", 1);
+        TransferLine.TestField("Qty. to Receive", 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferToNonDirectRouteChangeFlow()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] A destination-first route-change flow preserves non-direct line transit through an unmatched pair.
+        // [GIVEN] A non-direct order with an item line and a route for two replacement locations.
+        Initialize();
+        CreateRoutesWithExistingTransferLine(TransferHeader, TransferLine, TransferRoute, false);
+
+        // [WHEN] The destination changes, leaving an unmatched location pair.
+        TransferHeader.Validate("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] Header transit clears, but the non-direct line retains its transit.
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+
+        // [WHEN] The source changes to complete the replacement route.
+        TransferHeader.Validate("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] Both locations change without defaulting any unshipped quantity for receipt.
+        TransferHeader.TestField("Direct Transfer", false);
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferLine.TestField("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferLine.TestField("Direct Transfer", false);
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Ship", 1);
+        TransferLine.TestField("Qty. to Receive", 0);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferFromDirectRouteChangeFlow()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] A source-first route-change flow synchronizes direct mode through an unmatched pair.
+        // [GIVEN] A direct shipment-and-receipt order with an item line and a route for two replacement locations.
+        Initialize();
+        CreateRoutesWithExistingTransferLine(TransferHeader, TransferLine, TransferRoute, true);
+
+        // [WHEN] The source changes, leaving an unmatched location pair.
+        TransferHeader.Validate("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] The header and line become non-direct and no unshipped quantity defaults for receipt.
+        TransferHeader.TestField("Direct Transfer", false);
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Direct Transfer", false);
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Receive", 0);
+        TransferLine.TestField("Qty. to Receive (Base)", 0);
+
+        // [WHEN] The destination changes to complete the replacement route.
+        TransferHeader.Validate("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] Both locations change and the direct line again defaults matching shipment and receipt quantities.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferLine.TestField("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferLine.TestField("Direct Transfer", true);
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Ship", 1);
+        TransferLine.TestField("Qty. to Receive", 1);
+        TransferLine.TestField("Qty. to Ship (Base)", 1);
+        TransferLine.TestField("Qty. to Receive (Base)", 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferToDirectRouteChangeFlow()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] A destination-first route-change flow synchronizes direct mode through an unmatched pair.
+        // [GIVEN] A direct shipment-and-receipt order with an item line and a route for two replacement locations.
+        Initialize();
+        CreateRoutesWithExistingTransferLine(TransferHeader, TransferLine, TransferRoute, true);
+
+        // [WHEN] The destination changes, leaving an unmatched location pair.
+        TransferHeader.Validate("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] The header and line become non-direct and no unshipped quantity defaults for receipt.
+        TransferHeader.TestField("Direct Transfer", false);
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Direct Transfer", false);
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Receive", 0);
+        TransferLine.TestField("Qty. to Receive (Base)", 0);
+
+        // [WHEN] The source changes to complete the replacement route.
+        TransferHeader.Validate("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferHeader.Modify(true);
+
+        // [THEN] Both locations change and the direct line again defaults matching shipment and receipt quantities.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("Transfer-from Code", TransferRoute."Transfer-from Code");
+        TransferLine.TestField("Transfer-to Code", TransferRoute."Transfer-to Code");
+        TransferLine.TestField("Direct Transfer", true);
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Ship", 1);
+        TransferLine.TestField("Qty. to Receive", 1);
+        TransferLine.TestField("Qty. to Ship (Base)", 1);
+        TransferLine.TestField("Qty. to Receive (Base)", 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferFromRouteSetsShipmentReceiptTransit()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [SCENARIO 650215] Selecting the source last inherits the shipment-and-receipt route's in-transit code.
+        // [GIVEN] A shipment-and-receipt transfer route with an in-transit location.
+        Initialize();
+        CreateShipmentReceiptRouteWithTransit(TransferRoute);
+
+        // [WHEN] The source location is selected last on the transfer order.
+        CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, false);
+
+        // [THEN] The header is set to direct transfer with shipment-and-receipt posting and the route's in-transit code.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferToRouteSetsShipmentReceiptTransit()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [SCENARIO 650215] Selecting the destination last inherits the shipment-and-receipt route's in-transit code.
+        // [GIVEN] A shipment-and-receipt transfer route with an in-transit location.
+        Initialize();
+        CreateShipmentReceiptRouteWithTransit(TransferRoute);
+
+        // [WHEN] The destination location is selected last on the transfer order.
+        CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, true);
+
+        // [THEN] The header is set to direct transfer with shipment-and-receipt posting and the route's in-transit code.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RouteShipmentReceiptTransitDefaultsQuantities()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Item: Record Item;
+    begin
+        // [SCENARIO 650215] A new direct shipment-and-receipt line with inherited transit defaults matching quantities.
+        Initialize();
+
+        // [GIVEN] A direct shipment-and-receipt order with transit and an item.
+        CreateShipmentReceiptRouteWithTransit(TransferRoute);
+        LibraryInventory.CreateItem(Item);
+        CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, true);
+
+        // [WHEN] An item line is created without overriding the route's transit or receipt quantity.
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 10);
+
+        // [THEN] Both ship and receipt quantities default to ten, including base quantities.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("Qty. to Ship", 10);
+        TransferLine.TestField("Qty. to Receive", 10);
+        TransferLine.TestField("Qty. to Ship (Base)", 10);
+        TransferLine.TestField("Qty. to Receive (Base)", 10);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RouteShipmentReceiptTransitAlignsQuantityChanges()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] Changing shipment quantity on a direct line with transit also changes receipt quantity.
+        Initialize();
+
+        // [GIVEN] A direct shipment-and-receipt order with transit and a line for ten items.
+        CreateShipmentReceiptRouteWithTransit(TransferRoute);
+        CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, true);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, LibraryInventory.CreateItemNo(), 10);
+
+        // [WHEN] The shipment quantity is reduced to five.
+        TransferLine.Validate("Qty. to Ship", 5);
+        TransferLine.Modify(true);
+
+        // [THEN] The read-only receipt quantity follows the shipment quantity.
+        TransferLine.TestField("Qty. to Ship", 5);
+        TransferLine.TestField("Qty. to Receive", 5);
+        TransferLine.TestField("Qty. to Ship (Base)", 5);
+        TransferLine.TestField("Qty. to Receive (Base)", 5);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RouteShipmentReceiptTransitPostsAlignedQuantities()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Item: Record Item;
+        TransferOrderPostYesNo: Codeunit "TransferOrder-Post (Yes/No)";
+    begin
+        // [SCENARIO 650215] A direct shipment-and-receipt order with inherited transit posts normally with a reduced shipment quantity.
+        Initialize();
+
+        // [GIVEN] An order with transit, ten items in stock, and an item line whose shipment quantity is reduced to five.
+        CreateShipmentReceiptRouteWithTransit(TransferRoute);
+        CreateItemWithPositiveInventory(Item, TransferRoute."Transfer-from Code", 10);
+        CreateTransferHeaderFromRoute(TransferHeader, TransferRoute, true);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 10);
+        TransferLine.Validate("Qty. to Ship", 5);
+        TransferLine.Modify(true);
+
+        // [WHEN] The order is posted through the normal Post action.
+        TransferOrderPostYesNo.Run(TransferHeader);
+
+        // [THEN] Shipment and receipt documents are posted and five items reach the destination.
+        VerifyTransferShipmentAndReceiptPosted(TransferHeader."No.");
+        VerifyItemLedgerEntriesForTransfer(Item."No.", TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code", -5, 5);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferFromRouteUpdatesShipmentReceiptTransit()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] Changing the source updates the header and existing line to the new route's in-transit code.
+        // [GIVEN] A transfer order with an existing line and a new shipment-and-receipt route.
+        Initialize();
+
+        // [WHEN] The source location is changed to use the new route.
+        ChangeTransferRouteWithExistingLine(
+            TransferHeader, TransferLine, TransferRoute, true, Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [THEN] The header and existing line use the new route's shipment-and-receipt settings.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferToRouteUpdatesShipmentReceiptTransit()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] Changing the destination updates the header and existing line to the new route's in-transit code.
+        // [GIVEN] A transfer order with an existing line and a new shipment-and-receipt route.
+        Initialize();
+
+        // [WHEN] The destination location is changed to use the new route.
+        ChangeTransferRouteWithExistingLine(
+            TransferHeader, TransferLine, TransferRoute, false, Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [THEN] The header and existing line use the new route's shipment-and-receipt settings.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferFromRouteClearsDirectTransferTransit()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] A source change to Direct Transfer posting clears transit on the header and existing line.
+        // [GIVEN] A transfer order with an existing line and a new direct transfer route.
+        Initialize();
+
+        // [WHEN] The source location is changed to use the direct transfer route.
+        ChangeTransferRouteWithExistingLine(
+            TransferHeader, TransferLine, TransferRoute, true, Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+
+        // [THEN] The header and existing line use direct transfer posting with no in-transit code.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.TestField("In-Transit Code", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TransferToRouteClearsDirectTransferTransit()
+    var
+        TransferRoute: Record "Transfer Route";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [SCENARIO 650215] A destination change to Direct Transfer posting clears transit on the header and existing line.
+        // [GIVEN] A transfer order with an existing line and a new direct transfer route.
+        Initialize();
+
+        // [WHEN] The destination location is changed to use the direct transfer route.
+        ChangeTransferRouteWithExistingLine(
+            TransferHeader, TransferLine, TransferRoute, false, Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+
+        // [THEN] The header and existing line use direct transfer posting with no in-transit code.
+        TransferHeader.TestField("Direct Transfer", true);
+        TransferHeader.TestField("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.TestField("In-Transit Code", '');
+        TransferLine.TestField("In-Transit Code", '');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure ReceiptAndShipmentModeRequiresMatchingQuantities()
     var
         TransferHeader: Record "Transfer Header";
@@ -1802,6 +2188,277 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         VerifyItemLedgerEntriesForTransfer(Item."No.", LocationFrom.Code, LocationTo.Code, -Quantity, Quantity);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectManualDirectTransferWithPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Warehouse]
+        // [SCENARIO] A manually selected direct transfer can be deselected for a put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" has two unposted direct lines and a put-away destination.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, false, true, false);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectManualDirectTransferWithReceiveAndPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Warehouse]
+        // [SCENARIO] A manually selected direct transfer can be deselected for a receipt and put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" has two unposted direct lines and a receipt and put-away destination.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, false, true, true);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectRouteDirectTransferWithPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Transfer Route] [Warehouse]
+        // [SCENARIO] A route-initialized direct transfer can be deselected for a put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" inherits direct posting from its route and has two unposted lines.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, true, true, false);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectRouteDirectTransferWithReceiveAndPutaway()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Transfer Route] [Warehouse]
+        // [SCENARIO] A route-initialized direct transfer can be deselected for a receipt and put-away destination.
+        Initialize();
+
+        // [GIVEN] Order "T" inherits direct posting from its route and has two unposted lines.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, true, true, true);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectDirectTransferWithoutWarehouseRequirements()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer]
+        // [SCENARIO] Deselecting a direct transfer without warehouse requirements still requires in-transit handling.
+        Initialize();
+
+        // [GIVEN] Order "T" has two unposted direct lines and no warehouse requirements.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
+        CreateTransferForDeselection(TransferHeader, false, false, false);
+
+        // [WHEN] Direct Transfer is deselected.
+        TransferHeader.Validate("Direct Transfer", false);
+        Commit();
+
+        // [THEN] Header and lines are non-direct and release requires an in-transit location.
+        VerifyDeselectedTransferAndRelease(TransferHeader);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectDirectTransferRejectsPartiallyShippedLines()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer]
+        // [SCENARIO] Deselecting a partially posted direct transfer retains the shipped-quantity safeguard.
+        Initialize();
+
+        // [GIVEN] Order "T" has shipped five of ten items.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 10);
+        CreateDirectTransferOrder(
+            TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', 10,
+            TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferLine.Validate("Qty. to Ship", 5);
+        TransferLine.Modify(true);
+        LibraryInventory.PostTransferHeader(TransferHeader, true, false);
+        LibraryInventory.ReopenTransferOrder(TransferHeader);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        Assert.AreEqual(5, TransferLine."Quantity Shipped", 'The fixture must be partially shipped.');
+
+        // [WHEN] Direct Transfer is deselected.
+        asserterror TransferHeader.Validate("Direct Transfer", false);
+
+        // [THEN] The line cannot be reinitialized after shipment.
+        Assert.ExpectedError('Quantity Shipped must be equal to ''0''');
+        Assert.ExpectedErrorCode('TestField');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DeselectDirectTransferRetainsWarehouseLineProtection()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+    begin
+        // [FEATURE] [AI test 0.3] [Direct Transfer] [Warehouse Shipment]
+        // [SCENARIO] Deselecting a direct transfer cannot reinitialize a warehouse-protected line.
+        Initialize();
+
+        // [GIVEN] Order "T" has a warehouse shipment for its unposted line.
+        SetDirectTransferPostingMode(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+        CreateLocationWithWarehouseSetup(LocationFrom, false, false, false, false, true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 10);
+        CreateDirectTransferOrder(
+            TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', 10,
+            TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        LibraryWarehouse.CreateWhseShipmentFromTO(TransferHeader);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, TransferHeader."No.");
+        LibraryInventory.ReopenTransferOrder(TransferHeader);
+
+        // [WHEN] Direct Transfer is deselected.
+        asserterror TransferHeader.Validate("Direct Transfer", false);
+
+        // [THEN] Existing warehouse source-line protection rejects the change.
+        Assert.ExpectedError('must not be changed when a Warehouse Shipment Line');
+        Assert.ExpectedErrorCode('NCLCSRTS:TableErrorStr');
+    end;
+
+    local procedure CreateRoutesWithExistingTransferLine(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; var TransferRoute: Record "Transfer Route"; DirectTransfer: Boolean)
+    var
+        LocationFrom: array[2] of Record Location;
+        LocationTo: array[2] of Record Location;
+        LocationInTransit: Record Location;
+        Index: Integer;
+    begin
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        for Index := 1 to 2 do begin
+            LibraryWarehouse.CreateLocation(LocationFrom[Index]);
+            LibraryWarehouse.CreateLocation(LocationTo[Index]);
+            LibraryWarehouse.CreateAndUpdateTransferRoute(
+                TransferRoute, LocationFrom[Index].Code, LocationTo[Index].Code, LocationInTransit.Code, '', '');
+            if DirectTransfer then begin
+                TransferRoute.Validate("Direct Transfer", true);
+                TransferRoute.Validate("Direct Transfer Posting", TransferRoute."Direct Transfer Posting"::"Shipment and Receipt");
+                TransferRoute.Modify(true);
+            end;
+        end;
+        LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom[1].Code, LocationTo[1].Code, LocationInTransit.Code);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, LibraryInventory.CreateItemNo(), 1);
+        TransferHeader.SetHideValidationDialog(true);
+    end;
+
+    local procedure CreateShipmentReceiptRouteWithTransit(var TransferRoute: Record "Transfer Route")
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+    begin
+        LibraryWarehouse.CreateTransferLocations(LocationFrom, LocationTo, LocationInTransit);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(
+            TransferRoute, LocationFrom.Code, LocationTo.Code, LocationInTransit.Code, '', '');
+        TransferRoute.Validate("Direct Transfer", true);
+        TransferRoute.Validate("Direct Transfer Posting", TransferRoute."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferRoute.Modify(true);
+    end;
+
+    local procedure CreateTransferHeaderFromRoute(var TransferHeader: Record "Transfer Header"; TransferRoute: Record "Transfer Route"; TransferFromFirst: Boolean)
+    begin
+        LibraryInventory.CreateTransferHeader(TransferHeader, '', '', '');
+        if TransferFromFirst then begin
+            TransferHeader.Validate("Transfer-from Code", TransferRoute."Transfer-from Code");
+            TransferHeader.Validate("Transfer-to Code", TransferRoute."Transfer-to Code");
+        end else begin
+            TransferHeader.Validate("Transfer-to Code", TransferRoute."Transfer-to Code");
+            TransferHeader.Validate("Transfer-from Code", TransferRoute."Transfer-from Code");
+        end;
+        TransferHeader.Modify(true);
+    end;
+
+    local procedure ChangeTransferRouteWithExistingLine(var TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line"; var TransferRoute: Record "Transfer Route"; ChangeTransferFrom: Boolean; DirectTransferPosting: Enum "Direct Transfer Posting Type")
+    var
+        Location: Record Location;
+        LocationInTransit: Record Location;
+        Item: Record Item;
+    begin
+        // [GIVEN] A shipment-and-receipt transfer with an existing line using the original in-transit location.
+        CreateShipmentReceiptRouteWithTransit(TransferRoute);
+        LibraryInventory.CreateTransferHeader(
+            TransferHeader, TransferRoute."Transfer-from Code", TransferRoute."Transfer-to Code", TransferRoute."In-Transit Code");
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 1);
+        TransferLine.TestField("In-Transit Code", TransferRoute."In-Transit Code");
+
+        // [GIVEN] A route for a different source or destination, with a different in-transit location.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        if ChangeTransferFrom then
+            LibraryWarehouse.CreateAndUpdateTransferRoute(
+                TransferRoute, Location.Code, TransferRoute."Transfer-to Code", LocationInTransit.Code, '', '')
+        else
+            LibraryWarehouse.CreateAndUpdateTransferRoute(
+                TransferRoute, TransferRoute."Transfer-from Code", Location.Code, LocationInTransit.Code, '', '');
+        TransferRoute.Validate("Direct Transfer", true);
+        TransferRoute.Validate("Direct Transfer Posting", DirectTransferPosting);
+        TransferRoute.Modify(true);
+
+        // [WHEN] The corresponding location on the existing transfer order is changed.
+        TransferHeader.SetHideValidationDialog(true);
+        if ChangeTransferFrom then
+            TransferHeader.Validate("Transfer-from Code", Location.Code)
+        else
+            TransferHeader.Validate("Transfer-to Code", Location.Code);
+        TransferHeader.Modify(true);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+    end;
+
     local procedure Initialize()
     var
         InventorySetup: Record "Inventory Setup";
@@ -1815,6 +2472,82 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
 
         isInitialized := true;
         Commit();
+    end;
+
+    local procedure CreateTransferForDeselection(var TransferHeader: Record "Transfer Header"; UseTransferRoute: Boolean; RequirePutaway: Boolean; RequireReceive: Boolean)
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferLine: Record "Transfer Line";
+        TransferRoute: Record "Transfer Route";
+    begin
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        CreateLocationWithWarehouseSetup(LocationTo, false, RequirePutaway, false, RequireReceive, false);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, 100);
+        if UseTransferRoute then begin
+            LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, LocationFrom.Code, LocationTo.Code, '', '', '');
+            TransferRoute.Validate("Direct Transfer", true);
+            TransferRoute.Validate("Direct Transfer Posting", TransferRoute."Direct Transfer Posting"::"Direct Transfer");
+            TransferRoute.Modify(true);
+            LibraryInventory.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, '');
+            LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 10);
+        end else
+            CreateDirectTransferOrder(
+                TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', 10,
+                TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 20);
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Open, TransferHeader.Status, 'The transfer must be open.');
+        Assert.AreEqual(true, TransferHeader."Direct Transfer", 'The transfer must initially be direct.');
+        Assert.AreEqual(
+            TransferHeader."Direct Transfer Posting"::"Direct Transfer", TransferHeader."Direct Transfer Posting",
+            'The initial posting mode must allow inbound warehouse handling.');
+        VerifyTransferLinesDirect(TransferHeader."No.", true);
+    end;
+
+    local procedure VerifyTransferLinesDirect(TransferOrderNo: Code[20]; ExpectedDirectTransfer: Boolean)
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.SetRange("Document No.", TransferOrderNo);
+        Assert.RecordCount(TransferLine, 2);
+        TransferLine.FindSet();
+        repeat
+            Assert.AreEqual(ExpectedDirectTransfer, TransferLine."Direct Transfer", 'Every line must follow the header.');
+            Assert.AreEqual(0, TransferLine."Quantity Shipped", 'The transfer line must remain unshipped.');
+            Assert.AreEqual(0, TransferLine."Quantity Received", 'The transfer line must remain unreceived.');
+            Assert.IsTrue(TransferLine.Quantity > 0, 'The transfer line must retain its positive quantity.');
+        until TransferLine.Next() = 0;
+        TransferLine.CalcSums(Quantity);
+        Assert.AreEqual(30, TransferLine.Quantity, 'The total transfer quantity must be retained.');
+    end;
+
+    local procedure VerifyDeselectedTransferAndRelease(var TransferHeader: Record "Transfer Header")
+    var
+        LocationInTransit: Record Location;
+    begin
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(false, TransferHeader."Direct Transfer", 'The persisted header must no longer be direct.');
+        Assert.AreEqual(
+            TransferHeader."Direct Transfer Posting"::" ", TransferHeader."Direct Transfer Posting",
+            'The persisted direct posting mode must be cleared.');
+        Assert.AreEqual('', TransferHeader."In-Transit Code", 'Deselection must not invent an in-transit location.');
+        VerifyTransferLinesDirect(TransferHeader."No.", false);
+
+        asserterror LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        Assert.ExpectedError('In-Transit Code must have a value');
+        Assert.ExpectedErrorCode('TestField');
+
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Open, TransferHeader.Status, 'Release without in-transit must fail.');
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        TransferHeader.Validate("In-Transit Code", LocationInTransit.Code);
+        TransferHeader.Modify(true);
+        LibraryInventory.ReleaseTransferOrder(TransferHeader);
+        TransferHeader.Get(TransferHeader."No.");
+        Assert.AreEqual(TransferHeader.Status::Released, TransferHeader.Status, 'A valid in-transit location must permit release.');
+        VerifyTransferLinesDirect(TransferHeader."No.", false);
     end;
 
     local procedure SetDirectTransferPostingMode(PostingMode: Enum "Direct Transfer Posting Type")

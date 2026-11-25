@@ -4,9 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.Currency;
+
+/// <summary>
+/// Stores the itemized lines of a posted expense report line.
+/// </summary>
 table 6919 "Posted Exp. Rep. Line Item"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line Itemization';
     DataClassification = CustomerContent;
     LookupPageId = "Posted Exp. Rep. Line Items";
@@ -58,17 +62,25 @@ table 6919 "Posted Exp. Rep. Line Item"
         }
         field(11; "Daily Rate"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Daily Rate';
         }
         field(12; "Amount"; Decimal)
         {
-            AutoFormatType = 0;
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
             Caption = 'Amount';
         }
         field(13; "Refundable"; Boolean)
         {
             Caption = 'Refundable';
+            Editable = false;
+        }
+        field(14; "Currency Code"; Code[10])
+        {
+            Caption = 'Currency Code';
+            TableRelation = Currency;
             Editable = false;
         }
     }

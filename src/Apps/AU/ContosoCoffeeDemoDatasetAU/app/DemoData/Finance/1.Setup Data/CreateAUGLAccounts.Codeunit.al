@@ -131,6 +131,9 @@ codeunit 17107 "Create AU GL Accounts"
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '3060');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '7135');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '4950');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.AssetsName(), '1001');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.CurrentAssetsName(), '1002');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.LiquidAssetsName(), '1003');

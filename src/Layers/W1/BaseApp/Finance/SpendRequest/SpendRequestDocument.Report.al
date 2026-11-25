@@ -6,6 +6,9 @@ namespace Microsoft.Finance.SpendRequest;
 
 using Microsoft.HumanResources.Employee;
 
+/// <summary>
+/// Prints spend request documents.
+/// </summary>
 report 6850 "Spend Request Document"
 {
     Caption = 'Spend Request';

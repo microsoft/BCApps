@@ -211,6 +211,89 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         Assert.AreEqual(Quantity, WarehouseActivityLine.Quantity, 'Quantity (in purchase unit of measure) must still reflect the full quantity');
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure SerialTrackedNotLastOperation_ActivityLineIsNotSplit()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] Serial tracking must not split a non-physical NotLastOperation Inventory Put-away line.
+        Initialize();
+        Quantity := 2;
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateSerialTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[1]."No.");
+        SubcWarehouseLibrary.CreateLocationWithInvtPutAwaySetup(Location);
+
+        Vendor.Get(WorkCenter[1]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[1]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [WHEN] Create Inventory Put-away from the NotLastOperation purchase order.
+        SubcWarehouseLibrary.CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader, WarehouseActivityHeader);
+
+        // [THEN] The non-physical line keeps the full quantity without tracking or serial splitting.
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        Assert.AreEqual(1, WarehouseActivityLine.Count(), 'Serial-tracked NotLastOperation must create exactly one Inventory Put-away line.');
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual("Subc. Purchase Line Type"::NotLastOperation, WarehouseActivityLine."Subc. Purchase Line Type", 'Activity Line should be marked as Not Last Operation');
+        Assert.AreEqual(Quantity, WarehouseActivityLine.Quantity, 'The Inventory Put-away line must keep the full source quantity.');
+        Assert.AreEqual(0, WarehouseActivityLine."Qty. per Unit of Measure", 'NotLastOperation activity line must keep Qty. per Unit of Measure = 0');
+        Assert.AreEqual(0, WarehouseActivityLine."Qty. (Base)", 'NotLastOperation activity line must keep Qty. (Base) = 0');
+        Assert.AreEqual('', WarehouseActivityLine."Serial No.", 'Serial No. must remain blank for a non-physical operation.');
+        Assert.AreEqual('', WarehouseActivityLine."Lot No.", 'Lot No. must remain blank for a non-physical operation.');
+        Assert.AreEqual('', WarehouseActivityLine."Package No.", 'Package No. must remain blank for a non-physical operation.');
+
+        // [WHEN] Post the Inventory Put-away.
+        LibraryWarehouse.AutoFillQtyHandleWhseActivity(WarehouseActivityHeader);
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] Capacity is posted without physical item or warehouse entries.
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Location Code", Location.Code);
+        Assert.RecordIsEmpty(ItemLedgerEntry);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        Assert.RecordIsEmpty(WarehouseEntry);
+        SubcWarehouseLibrary.VerifyCapacityLedgerEntry(WorkCenter[1]."No.", Quantity);
+    end;
+
+    [Test]
+    procedure NotLastOperation_DoesNotOverrideHandledSerialInsertion()
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        SubcInvtPutAwayExt: Codeunit "Subc. Invt. Put-away Ext";
+    begin
+        WarehouseActivityLine."Subc. Purchase Line Type" := "Subc. Purchase Line Type"::NotLastOperation;
+
+        Assert.IsFalse(
+            SubcInvtPutAwayExt.ShouldInsertFullQuantityForNotLastOperation(WarehouseActivityLine, true),
+            'A NotLastOperation subscriber must preserve an IsHandled value set by an earlier subscriber.');
+    end;
+
     [HandlerFunctions('MessageHandler')]
     [Test]
     procedure PostLastOperation_BinMandatoryLocation_NoDuplicateWarehouseEntry()

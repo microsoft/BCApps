@@ -22,9 +22,11 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 
+/// <summary>
+/// Stores the lines of a posted expense report as history after the expense report has been posted.
+/// </summary>
 table 6916 "Posted Expense Report Line"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line';
     DataClassification = CustomerContent;
     LookupPageId = "Posted Expense Report Lines";
@@ -133,7 +135,8 @@ table 6916 "Posted Expense Report Line"
         field(21; "Account No."; Code[20])
         {
             Caption = 'Account No.';
-            TableRelation = if ("Account Type" = const(" ")) "Standard Text"
+            TableRelation =
+            if ("Account Type" = const(" ")) "Standard Text"
             else
             if ("Account Type" = const(Resource)) Resource
             else
@@ -217,14 +220,16 @@ table 6916 "Posted Expense Report Line"
             AutoFormatType = 1;
             Caption = 'Non-Refundable Amount';
         }
-        field(36; "Starting Point"; Text[50])
+#pragma warning disable AS0086
+        field(36; "Starting Point"; Text[2048])
         {
             Caption = 'Starting Point';
         }
-        field(37; "Ending Point"; Text[50])
+        field(37; "Ending Point"; Text[2048])
         {
             Caption = 'Ending Point';
         }
+#pragma warning restore AS0086
         field(38; "Non-Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatType = 1;
@@ -327,7 +332,60 @@ table 6916 "Posted Expense Report Line"
         }
         field(51; "Credit Card Feed No."; Integer)
         {
+            Access = Internal;
             Caption = 'Credit Card Feed No.';
+        }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Access = Internal;
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id";
+            Editable = false;
+            ToolTip = 'Specifies the corporate card used to pay for the posted expense.';
+        }
+        field(108; "Card Payable Account No."; Code[20])
+        {
+            Access = Internal;
+            Caption = 'Card Payable Account No.';
+            DataClassification = AccountData;
+            TableRelation = "G/L Account"."No.";
+            Editable = false;
+        }
+        field(109; "Card Liability Amount"; Decimal)
+        {
+            Access = Internal;
+            Caption = 'Card Liability Amount';
+            DataClassification = AccountData;
+            AutoFormatType = 1;
+            AutoFormatExpression = Rec."Card Liability Currency Code";
+            Editable = false;
+        }
+        field(110; "Card Liability Amount (LCY)"; Decimal)
+        {
+            Access = Internal;
+            Caption = 'Card Liability Amount (LCY)';
+            DataClassification = AccountData;
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            Editable = false;
+        }
+        field(111; "Card Liability Currency Code"; Code[10])
+        {
+            Access = Internal;
+            Caption = 'Card Liability Currency Code';
+            DataClassification = AccountData;
+            TableRelation = Currency.Code;
+            Editable = false;
+        }
+        field(112; "Card Liability Currency Factor"; Decimal)
+        {
+            Access = Internal;
+            Caption = 'Card Liability Currency Factor';
+            DataClassification = AccountData;
+            AutoFormatType = 0;
+            DecimalPlaces = 0 : 15;
+            Editable = false;
         }
         field(52; "Applied Rule Id"; Guid)
         {
@@ -454,12 +512,14 @@ table 6916 "Posted Expense Report Line"
         }
         field(102; "Policies Evaluated At"; DateTime)
         {
+            Access = Internal;
             Caption = 'Policies Evaluated At';
             DataClassification = CustomerContent;
             Editable = false;
         }
         field(106; "Policy Status At Posting"; Enum "Expense Policy Status")
         {
+            Access = Internal;
             Caption = 'Policy Status At Posting';
             DataClassification = CustomerContent;
             Editable = false;
@@ -482,12 +542,28 @@ table 6916 "Posted Expense Report Line"
         {
             Clustered = true;
         }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
+        key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
+        {
+        }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
+        key(CorporateCard; "Corporate Card Id")
+        {
+        }
     }
 
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         DimMgt: Codeunit DimensionManagement;
 
+    /// <summary>
+    /// Gets the reimbursement currency code from the posted expense report header.
+    /// </summary>
+    /// <returns>The reimbursement currency code, or an empty value if the posted expense report header does not exist.</returns>
     procedure GetReimbursementCurrencyCode(): Code[10]
     begin
         if PostedExpenseReportHeader.Get("Document No.") then
@@ -496,6 +572,10 @@ table 6916 "Posted Expense Report Line"
         exit('');
     end;
 
+    /// <summary>
+    /// Opens the dimension set of the posted expense report line and updates the global dimension codes.
+    /// </summary>
+    /// <returns>True if the dimension set was changed; otherwise, false.</returns>
     procedure ShowDimensions() IsChanged: Boolean
     var
         OldDimSetID: Integer;
@@ -507,6 +587,9 @@ table 6916 "Posted Expense Report Line"
         IsChanged := OldDimSetID <> "Dimension Set ID";
     end;
 
+    /// <summary>
+    /// Opens the comment lines of the posted expense report line.
+    /// </summary>
     procedure ShowLineComments()
     var
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
@@ -525,5 +608,30 @@ table 6916 "Posted Expense Report Line"
     internal procedure GetPolicyStatus(): Enum "Expense Policy Status"
     begin
         exit(Rec."Policy Status At Posting");
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 }

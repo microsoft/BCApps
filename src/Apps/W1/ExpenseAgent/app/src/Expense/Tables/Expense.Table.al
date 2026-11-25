@@ -16,12 +16,15 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Utilities;
 
+/// <summary>
+/// Stores a single expense, such as a receipt, that an expense user has incurred and that can later be included in an expense report.
+/// </summary>
 table 6900 Expense
 {
-    Access = Internal;
     Caption = 'Expense';
     DataClassification = CustomerContent;
     LookupPageId = Expenses;
@@ -162,6 +165,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
 
                 if "Expense Date" <> xRec."Expense Date" then begin
                     ClearRuleId();
@@ -182,11 +186,13 @@ table 6900 Expense
         field(10; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency code of the amount.';
             TableRelation = "Currency";
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -200,6 +206,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 UpdateAmount();
                 ApplyRule();
             end;
@@ -249,6 +256,7 @@ table 6900 Expense
         }
         field(16; "Extraction Confidence"; Integer)
         {
+            Access = Internal;
             Caption = 'Extraction Confidence';
         }
         field(17; "Shortcut Dimension 1 Code"; Code[20])
@@ -425,7 +433,8 @@ table 6900 Expense
                 ApplyRule();
             end;
         }
-        field(28; "Starting Point"; Text[50])
+#pragma warning disable AS0086
+        field(28; "Starting Point"; Text[2048])
         {
             Caption = 'Starting Point';
 
@@ -434,7 +443,7 @@ table 6900 Expense
                 TestStatusOpen();
             end;
         }
-        field(29; "Ending Point"; Text[50])
+        field(29; "Ending Point"; Text[2048])
         {
             Caption = 'Ending Point';
 
@@ -443,22 +452,11 @@ table 6900 Expense
                 TestStatusOpen();
             end;
         }
+#pragma warning restore AS0086
         field(53; "Round Trip"; Boolean)
         {
             Caption = 'Round Trip';
             ToolTip = 'Specifies whether the mileage expense is a round trip. When enabled, the distance is doubled for reimbursement calculation.';
-
-            trigger OnValidate()
-            begin
-                TestStatusOpen();
-                ApplyRule();
-            end;
-        }
-        field(63; "Vehicle Type"; Code[20])
-        {
-            Caption = 'Vehicle Type';
-            TableRelation = "Expense Vehicle Type";
-            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
 
             trigger OnValidate()
             begin
@@ -498,11 +496,39 @@ table 6900 Expense
         }
         field(33; "Credit Card Feed No."; Integer)
         {
+            Access = Internal;
             Caption = 'Credit Card Feed No.';
+
+            trigger OnValidate()
+            var
+                CorpCardTrans: Record "EA Corp Card Trans";
+            begin
+                TestStatusOpen();
+                if "Credit Card Feed No." <> 0 then begin
+                    CorpCardTrans.Get("Credit Card Feed No.");
+                    if "Corporate Card Id" = '' then
+                        "Corporate Card Id" := CorpCardTrans."Card Id";
+                    CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
+                end;
+            end;
+        }
+        field(107; "Corporate Card Id"; Code[50])
+        {
+            Access = Internal;
+            Caption = 'Corporate Card';
+            DataClassification = AccountData;
+            TableRelation = "EA Corp Card"."Card Id";
+            ToolTip = 'Specifies the corporate card used to pay for this expense, independently of whether a feed transaction has arrived.';
 
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
+            end;
+
+            trigger OnLookup()
+            begin
+                CorpCardSelectionMgt.LookupCard(Rec);
             end;
         }
         field(34; "Dimension Set ID"; Integer)
@@ -719,12 +745,38 @@ table 6900 Expense
             TableRelation = "Expense Vendor";
             Editable = false;
         }
+        field(63; "Vehicle Type"; Code[20])
+        {
+            Caption = 'Vehicle Type';
+            TableRelation = "Expense Vehicle Type";
+            ToolTip = 'Specifies the vehicle type used for this mileage expense. The mileage rate matching this vehicle type is applied, or the generic rate when no vehicle-specific rate exists.';
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                ApplyRule();
+            end;
+        }
+        field(64; Source; Enum "Expense Source")
+        {
+            Access = Internal;
+            Caption = 'Source';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies how the expense was originally created.';
+            Editable = false;
+        }
     }
     keys
     {
         key(PK; "No.")
         {
             Clustered = true;
+        }
+        key(CreditCardFeedNo; "Credit Card Feed No.")
+        {
+        }
+        key(CorporateCard; "Corporate Card Id")
+        {
         }
     }
     fieldgroups
@@ -749,13 +801,25 @@ table 6900 Expense
             Rec."Created Date-Time" := CurrentDateTime;
 
         SetExpenseUserOnCreate();
+        CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
 
         if CalledFromExpenseAgent then
             EAKPITrack.UpdateExpenseEntry(Rec);
     end;
 
     trigger OnModify()
+    var
+        StoredExpense: Record Expense;
     begin
+        StoredExpense := xRec;
+        CheckCorporateCardSourceFields(StoredExpense);
+        if ("Corporate Card Id" <> StoredExpense."Corporate Card Id") or
+           ("Expense User No." <> StoredExpense."Expense User No.") or
+           ("Expense Date" <> StoredExpense."Expense Date") or
+           ("Reimbursement Type" <> StoredExpense."Reimbursement Type") or
+           ("Credit Card Feed No." <> StoredExpense."Credit Card Feed No.")
+        then
+            CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
         UpdateExpenseUserOnModify();
     end;
 
@@ -786,6 +850,7 @@ table 6900 Expense
         NoSeries: Codeunit "No. Series";
         DimMgt: Codeunit DimensionManagement;
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         HideValidationDialog: Boolean;
         SkipRuleApplication: Boolean;
         CalledFromExpenseAgent: Boolean;
@@ -794,6 +859,7 @@ table 6900 Expense
         CannotModifyWithParticipantsErr: Label 'You cannot modify %1 field of expense %2 because it has associated participants.', Comment = '%1 = Field Name, %2 = Expense No.';
         CannotModifyWithItemizationErr: Label 'You cannot modify %1 field of expense %2 because it has associated itemizations.', Comment = '%1 = Field Name, %2 = Expense No.';
         DeleteAssociatedRecordsQst: Label 'If you change %1, the existing %2 details will be deleted.\\Do you want to continue?', Comment = '%1 = Field Name, %2 = Expense Detail Required';
+        SubcategoryBlankedMsg: Label 'The expense category of expense %1 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense No.';
         OnlyUseExpenseLocationWithPerDiemErr: Label 'The selected Expense Location %1 and Expense Category %2 can only be used with per diem expenses on Expense No. %3.', Comment = '%1 = Expense Location, %2 = Expense Category, %3 = Expense No.';
         InvalidEndingDateErr: Label 'Ending Date and Time cannot be earlier than Starting Date and Time.';
         NonRefundableAmountGreaterThanAmountErr: Label '%1 cannot be greater than Amount.', Comment = '%1 = Field Caption';
@@ -801,7 +867,13 @@ table 6900 Expense
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 = Expense User No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
+        CorporateCardSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense created from a corporate card transaction.', Comment = '%1 = field caption';
+        ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
+    /// <summary>
+    /// Lets the user select a number series for the expense and assigns the next number from the selected series.
+    /// </summary>
+    /// <returns>True if a number series was selected and a new number was assigned; otherwise, false.</returns>
     procedure AssistEdit() Result: Boolean
     begin
         ExpenseAgentSetup.GetRecordOnce();
@@ -849,6 +921,11 @@ table 6900 Expense
         Rec."Modified By Exp. User Id" := ExpenseUser.SystemId;
     end;
 
+    /// <summary>
+    /// Validates a shortcut dimension value and updates the dimension set of the expense.
+    /// </summary>
+    /// <param name="FieldNumber">The number of the shortcut dimension field (1-8).</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension value code to validate.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         DimensionManagement: Codeunit DimensionManagement;
@@ -858,6 +935,12 @@ table 6900 Expense
             Modify();
     end;
 
+    /// <summary>
+    /// Releases the current expense as the current user, unless it is already released.
+    /// </summary>
+    /// <remarks>
+    /// The transaction is committed after a successful release, so earlier changes made by the caller cannot be rolled back by a later error.
+    /// </remarks>
     procedure PerformManualRelease()
     var
         ReleaseExpenseDoc: Codeunit "Release Expense Document";
@@ -869,6 +952,9 @@ table 6900 Expense
         Commit();
     end;
 
+    /// <summary>
+    /// Opens the dimension set of the expense for editing and saves any changes.
+    /// </summary>
     procedure ShowDocDim()
     var
         OldDimSetID: Integer;
@@ -883,6 +969,13 @@ table 6900 Expense
             Modify();
     end;
 
+    /// <summary>
+    /// Releases the selected expenses as the current user in a batch. Expenses that are already released are skipped.
+    /// </summary>
+    /// <param name="Expense">The set of expenses to release.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualRelease(var Expense: Record Expense)
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -900,6 +993,13 @@ table 6900 Expense
         Expense.FilterGroup(PrevFilterGroup);
     end;
 
+    /// <summary>
+    /// Reopens the selected expenses as the current user in a batch. Expenses that are already open are skipped.
+    /// </summary>
+    /// <param name="Expense">The set of expenses to reopen.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualReopen(var Expense: Record Expense)
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -914,7 +1014,7 @@ table 6900 Expense
 
 #if not CLEAN29
     [Obsolete('This function is no longer used.', '29.0')]
-    procedure FilterByUserId(FilterUserId: Code[50])
+    internal procedure FilterByUserId(FilterUserId: Code[50])
     begin
     end;
 #endif
@@ -926,17 +1026,25 @@ table 6900 Expense
         Rec.SetRange("Expense User No.", ExpenseUser.GetExpenseUserNoByCurrentUser());
     end;
 
+    /// <summary>
+    /// Specifies whether confirmation dialogs are suppressed when fields on the expense are validated.
+    /// </summary>
+    /// <param name="NewHideValidationDialog">True to suppress confirmation dialogs; otherwise, false.</param>
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         HideValidationDialog := NewHideValidationDialog;
     end;
 
+    /// <summary>
+    /// Gets whether confirmation dialogs are suppressed when fields on the expense are validated.
+    /// </summary>
+    /// <returns>True if confirmation dialogs are suppressed; otherwise, false.</returns>
     procedure GetHideValidationDialog(): Boolean
     begin
         exit(HideValidationDialog);
     end;
 
-    procedure GetStatusStyleText() StatusStyleText: Text
+    internal procedure GetStatusStyleText() StatusStyleText: Text
     begin
         if Status = Status::Open then
             StatusStyleText := 'Favorable'
@@ -944,12 +1052,39 @@ table 6900 Expense
             StatusStyleText := 'Strong';
     end;
 
+    /// <summary>
+    /// Checks that the status of the expense is Open and raises an error if it is not.
+    /// </summary>
     procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Status::Open);
     end;
 
-    procedure GetRuleStyleText() StatusStyleText: Text
+    local procedure CheckCorporateCardSourceFields()
+    var
+        StoredExpense: Record Expense;
+    begin
+        CheckCorporateCardSourceFields(StoredExpense);
+    end;
+
+    local procedure CheckCorporateCardSourceFields(var StoredExpense: Record Expense)
+    begin
+        if Rec.IsTemporary() or IsNullGuid(Rec.SystemId) then
+            exit;
+        if not StoredExpense.GetBySystemId(Rec.SystemId) then
+            exit;
+        if StoredExpense.Source <> StoredExpense.Source::CorporateCard then
+            exit;
+
+        if Rec.Amount <> StoredExpense.Amount then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption(Amount));
+        if Rec."Expense Date" <> StoredExpense."Expense Date" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
+        if Rec."Currency Code" <> StoredExpense."Currency Code" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Currency Code"));
+    end;
+
+    internal procedure GetRuleStyleText() StatusStyleText: Text
     begin
         if IsNullGuid("Applied Rule Id") then
             StatusStyleText := 'Attention'
@@ -1010,30 +1145,36 @@ table 6900 Expense
 
     local procedure ConfirmAndDeleteAssociatedRecords(FieldCaption: Text)
     var
+        ExpenseCategory: Record "Expense Category";
         ConfirmManagement: Codeunit "Confirm Management";
+        KeepItemization: Boolean;
     begin
-        if not HasAssociatedRecords() then
-            exit;
+        if Rec."Expense Category" <> '' then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                KeepItemization := ExpenseCategory.IsItemizationRequired();
 
-        if not HideValidationDialog then
+        if HasAssociatedRecords(KeepItemization) and not HideValidationDialog then
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(DeleteAssociatedRecordsQst, FieldCaption, Rec."Expense Detail Required"), true) then
                 Error('');
 
-        DeleteAssociatedRecords();
+        DeleteAssociatedRecords(KeepItemization);
     end;
 
-    local procedure HasAssociatedRecords(): Boolean
+    local procedure HasAssociatedRecords(KeepItemization: Boolean): Boolean
     var
         ExpenseParticipant: Record "Expense Participant";
         ExpenseItemization: Record "Expense Itemization";
         ExpensePerDiem: Record "Expense Per Diem";
     begin
+        if not KeepItemization then begin
+            ExpenseItemization.SetRange("Expense No.", Rec."No.");
+            if not ExpenseItemization.IsEmpty() then
+                exit(true);
+        end;
+
         case Rec."Expense Detail Required" of
             Rec."Expense Detail Required"::Itemize:
-                begin
-                    ExpenseItemization.SetRange("Expense No.", Rec."No.");
-                    exit(not ExpenseItemization.IsEmpty());
-                end;
+                exit(false);
             Rec."Expense Detail Required"::Participants:
                 begin
                     ExpenseParticipant.SetRange("Expense No.", Rec."No.");
@@ -1047,14 +1188,48 @@ table 6900 Expense
         end;
     end;
 
-    local procedure DeleteAssociatedRecords()
+    local procedure DeleteAssociatedRecords(KeepItemization: Boolean)
     begin
         DeleteExpenseParticipant();
-        DeleteExpenseItemization();
         DeleteExpensePerDiem();
+
+        if KeepItemization then
+            ClearItemizationSubcategory()
+        else
+            DeleteExpenseItemization();
     end;
 
-    procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
+    local procedure ClearItemizationSubcategory()
+    var
+        ExpenseItemization: Record "Expense Itemization";
+    begin
+        ExpenseItemization.SetRange("Expense No.", Rec."No.");
+        ExpenseItemization.SetFilter("Expense Subcategory Code", '<>%1', '');
+        if not ExpenseItemization.IsEmpty() and not HideValidationDialog then
+            SendSubcategoryBlankedNotification();
+
+        ExpenseItemization.SetRange("Expense Subcategory Code");
+        ExpenseItemization.ModifyAll("Expense Category Code", Rec."Expense Category", false);
+        ExpenseItemization.ModifyAll("Expense Subcategory Code", '', false);
+    end;
+
+    local procedure SendSubcategoryBlankedNotification()
+    var
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        NotificationToSend: Notification;
+    begin
+        NotificationToSend.Id := GetSubcategoryBlankedNotificationId();
+        NotificationToSend.Recall();
+        NotificationToSend.Message(StrSubstNo(SubcategoryBlankedMsg, Rec."No."));
+        NotificationLifecycleMgt.SendNotification(NotificationToSend, Rec.RecordId);
+    end;
+
+    local procedure GetSubcategoryBlankedNotificationId(): Guid
+    begin
+        exit('c3f1d6a2-7b84-4e0f-9a35-5d2e8b1f4c71');
+    end;
+
+    internal procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
     var
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
@@ -1069,7 +1244,7 @@ table 6900 Expense
         end;
     end;
 
-    procedure ApplyRule()
+    internal procedure ApplyRule()
     var
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
@@ -1087,7 +1262,7 @@ table 6900 Expense
         Rec.SetSkipRuleApplication(false);
     end;
 
-    procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
+    internal procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
     begin
         SkipRuleApplication := NewSkipRuleApplication;
     end;
@@ -1095,6 +1270,7 @@ table 6900 Expense
     /// <summary>
     /// Initializes the dimensions for the Expense.
     /// </summary>
+    /// <param name="FieldNo">The number of the field whose value change triggers the default dimension update.</param>
     procedure CreateDimFromDefaultDim(FieldNo: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -1107,7 +1283,7 @@ table 6900 Expense
     /// Creates dimensions from default dimension sources for the expense.
     /// </summary>
     /// <param name="DefaultDimSource">List of dictionaries containing dimension source data.</param>
-    procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    local procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
         "Shortcut Dimension 1 Code" := '';
         "Shortcut Dimension 2 Code" := '';
@@ -1149,15 +1325,21 @@ table 6900 Expense
             exit('');
     end;
 
-    procedure CheckExpensePrerequisitesBeforeUsing()
+    internal procedure CheckExpensePrerequisitesBeforeUsing()
     begin
         Rec.TestField("No.");
         Rec.TestField("Expense User No.");
         Rec.TestField("Expense Category");
     end;
 
+    /// <summary>
+    /// Recalculates the reimbursable, refundable, and local currency amounts of the expense based on the amount, the non-refundable amount, and the reimbursement type.
+    /// </summary>
     procedure UpdateAmount()
+    var
+        ExpenseCurrency: Record Currency;
     begin
+        ExpenseCurrency.Initialize(Rec."Currency Code");
         GeneralLedgerSetup.GetRecordOnce();
         UpdateCurrencyFactor();
 
@@ -1227,7 +1409,7 @@ table 6900 Expense
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, Rec."Currency Code") then
                 Rec."Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, Rec."Currency Code")
             else
-                UpdateCurrencyExchangeRates.ShowMissingExchangeRatesNotification("Currency Code");
+                Error(ReceiptDatedBeforeExchRateErr, CurrencyDate, Rec."Currency Code");
         end else
             Rec."Currency Factor" := 0;
     end;
@@ -1252,6 +1434,8 @@ table 6900 Expense
             exit;
         end;
 
+        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
+
         if ExpenseCategory."Expense Detail Required" <> ExpenseCategory."Expense Detail Required"::"Per Diem" then
             Rec.Validate("Expense Location", '');
 
@@ -1262,8 +1446,6 @@ table 6900 Expense
         Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
         if ExpenseCategory."Default Payment Method" <> '' then
             Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
-
-        Rec.Validate("Expense Detail Required", ExpenseCategory."Expense Detail Required");
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
@@ -1276,6 +1458,9 @@ table 6900 Expense
         Rec.UpdateAmount();
     end;
 
+    /// <summary>
+    /// Opens the itemization lines of the expense for the expense category of the expense.
+    /// </summary>
     procedure ShowItemization()
     var
         ExpenseItemization: Record "Expense Itemization";
@@ -1286,6 +1471,9 @@ table 6900 Expense
         Page.RunModal(Page::"Expense Itemizations", ExpenseItemization);
     end;
 
+    /// <summary>
+    /// Opens the participants of the expense.
+    /// </summary>
     procedure ShowParticipants()
     var
         ExpenseParticipant: Record "Expense Participant";
@@ -1295,6 +1483,9 @@ table 6900 Expense
         Page.RunModal(Page::"Expense Participants", ExpenseParticipant);
     end;
 
+    /// <summary>
+    /// Opens the per diem lines of the expense.
+    /// </summary>
     procedure ShowPerDiem()
     var
         ExpensePerDiem: Record "Expense Per Diem";
@@ -1309,7 +1500,7 @@ table 6900 Expense
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
     end;
 
-    procedure GetVATAmounts(var VATAmount: Decimal; var VATAmountLCY: Decimal): Boolean
+    internal procedure GetVATAmounts(var VATAmount: Decimal; var VATAmountLCY: Decimal): Boolean
     var
         ExpenseVATSpecification: Record "Expense VAT Specification";
     begin
@@ -1394,5 +1585,30 @@ table 6900 Expense
                 ExpenseVATSpec := TempExpenseVATSpec;
                 ExpenseVATSpec.Insert();
             until TempExpenseVATSpec.Next() = 0;
+    end;
+
+    internal procedure IsItemizationRequired(): Boolean
+    begin
+        if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize then
+            exit(true);
+
+        exit(Rec.IsEnforcedItemizationRequired());
+    end;
+
+    internal procedure IsEnforcedItemizationRequired(): Boolean
+    var
+        ExpensePolicy: Record "Expense Policy";
+    begin
+        if (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Itemize) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage) or
+           (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or
+           (Rec."Expense Category" = '')
+        then
+            exit(false);
+
+        ExpensePolicy.SetRange("Expense Category Code", Rec."Expense Category");
+        ExpensePolicy.SetRange(Enabled, true);
+        ExpensePolicy.SetFilter("Policy Text", '<>%1', '');
+        exit(not ExpensePolicy.IsEmpty());
     end;
 }

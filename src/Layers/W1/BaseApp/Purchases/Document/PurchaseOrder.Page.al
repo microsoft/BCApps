@@ -103,7 +103,7 @@ page 50 "Purchase Order"
                             if Rec."Buy-from Vendor No." <> Vendor."No." then
                                 error('');
                             IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
-                            CurrPage.Update();
+                            CurrPage.SaveRecord();
                         end;
                     end;
 
@@ -1777,7 +1777,6 @@ page 50 "Purchase Order"
                     begin
                         Rec.PerformManualRelease();
                         GetSourceDocInbound.CreateFromPurchOrder(Rec);
-
                         if not Rec.Find('=><') then
                             Rec.Init();
                     end;
@@ -1795,7 +1794,6 @@ page 50 "Purchase Order"
                     begin
                         Rec.PerformManualRelease();
                         Rec.CreateInvtPutAwayPick();
-
                         if not Rec.Find('=><') then
                             Rec.Init();
                     end;
@@ -2311,7 +2309,6 @@ page 50 "Purchase Order"
             LookupStateManager.ClearSavedRecord();
 
         Rec."Responsibility Center" := UserMgt.GetPurchasesFilter();
-
         if (not DocNoVisible) and (Rec."No." = '') then begin
             Rec.SetBuyFromVendorFromFilter();
             Rec.SelectDefaultRemitAddress(Rec);
@@ -2433,7 +2430,6 @@ page 50 "Purchase Order"
         IsSaaS := EnvironmentInfo.IsSaaS();
 
         Rec.SetSecurityFilterOnRespCenter();
-
         if (Rec."No." <> '') and (Rec."Buy-from Vendor No." = '') then
             DocumentIsPosted := (not Rec.Get(Rec."Document Type", Rec."No."));
 
@@ -2488,16 +2484,13 @@ page 50 "Purchase Order"
         OnPostDocumentBeforeNavigateAfterPosting(Rec, PostingCodeunitID, Navigate, DocumentIsPosted, IsHandled);
         if IsHandled then
             exit;
-
         if PostingCodeunitID <> CODEUNIT::"Purch.-Post (Yes/No)" then
             exit;
-
         case Navigate of
             Enum::"Navigate After Posting"::"Posted Document":
                 begin
                     if InstructionMgt.IsEnabled(InstructionMgt.ShowPostedConfirmationMessageCode()) then
                         ShowPostedConfirmationMessage();
-
                     if DocumentIsScheduledForPosting or DocumentIsPosted then
                         CurrPage.Close();
                 end;
@@ -2659,7 +2652,6 @@ page 50 "Purchase Order"
         OnBeforeValidateShippingOption(Rec, ShipToOptions.AsInteger(), IsHandled);
         if IsHandled then
             exit;
-
         case ShipToOptions of
             ShipToOptions::"Default (Company Address)",
             ShipToOptions::"Custom Address":
@@ -2716,7 +2708,6 @@ page 50 "Purchase Order"
                     else
                         ShipToOptions := ShipToOptions::"Custom Address";
             end;
-
             case true of
                 (Rec."Pay-to Vendor No." = Rec."Buy-from Vendor No.") and Rec.BuyFromAddressEqualsPayToAddress():
                     PayToOptions := PayToOptions::"Default (Vendor)";

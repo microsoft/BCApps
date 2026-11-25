@@ -1433,6 +1433,7 @@ table 36 "Sales Header"
             trigger OnValidate()
             var
                 Customer: Record Customer;
+                CustomerToValidate: Record Customer;
                 VATRegistrationLog: Record "VAT Registration Log";
                 VATRegistrationNoFormat: Record "VAT Registration No. Format";
                 VATRegNoSrvConfig: Record "VAT Reg. No. Srv Config";
@@ -1469,7 +1470,6 @@ table 36 "Sales Header"
                 if not VATRegistrationNoFormat.Test("VAT Registration No.", ApplicableCountryCode, Customer."No.", DATABASE::Customer) then
                     exit;
 
-                ApplicableCountryCode := Customer."Country/Region Code";
                 if ApplicableCountryCode = '' then
                     ApplicableCountryCode := VATRegistrationNoFormat."Country/Region Code";
 
@@ -1481,8 +1481,11 @@ table 36 "Sales Header"
                     exit;
                 end;
 
+                // Validate the number entered on the document, not the one stored on the customer card.
+                CustomerToValidate := Customer;
+                CustomerToValidate."VAT Registration No." := "VAT Registration No.";
                 VATRegistrationLogMgt.CheckVIESForVATNo(
-                    ResultRecRef, VATRegistrationLog, Customer, Customer."No.",
+                    ResultRecRef, VATRegistrationLog, CustomerToValidate, Customer."No.",
                     ApplicableCountryCode, VATRegistrationLog."Account Type"::Customer.AsInteger());
 
                 if VATRegistrationLog.Status = VATRegistrationLog.Status::Valid then begin
@@ -3646,10 +3649,20 @@ table 36 "Sales Header"
                       RespCenter.TableCaption(), UserSetupMgt.GetSalesFilter("Assigned User ID"));
             end;
         }
+#if not CLEANSCHEMA33
         field(10801; "VAT Paid on Debits"; Boolean)
         {
             Caption = 'VAT Paid on Debits';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN30
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#endif
         }
+#endif
     }
 
     keys

@@ -90,13 +90,14 @@ codeunit 99000854 "Inventory Profile Offsetting"
         LocationMandatoryTxt: Label 'Location is mandatory.';
         MissingStockkeepingUnitTxt: Label 'Missing stockkeeping unit.';
         MinimalSupplyPlannedTxt: Label '%1: %2 The item is planned to cover the exact demand.', Comment = '%1: Attention, %2: Reason';
+        ReorderQtyMustBePositiveErr: Label 'must be greater than 0 when %1 is %2', Comment = '%1 = Reordering Policy field caption, %2 = Reordering Policy value';
         PlanToDate: Date;
         OverflowLevel: Decimal;
         ExceedROPqty: Decimal;
         NextStateTxt: Label 'StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop';
         NextState: Option StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop;
         LotAccumulationPeriodStartDate: Date;
-        PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
+        PlanningParametersTakenFromItemCardTxt: Label '%1: No stockkeeping unit exists for Item %2 at Location %3. The item was planned using planning parameters from the Item Card, as configured by Missing SKU Planning Policy.', Comment = '%1: Attention, %2: Item No., %3: Location Code';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
 
 #if not CLEAN27
@@ -2466,7 +2467,9 @@ codeunit 99000854 "Inventory Profile Offsetting"
         PurchaseLine: Record "Purchase Line";
         TransLine: Record "Transfer Line";
         CurrentSupplyInvtProfile: Record "Inventory Profile";
+        StockkeepingUnit: Record "Stockkeeping Unit";
         PlanLineNo: Integer;
+        PlanningWarningText: Text[200];
         RecalculationRequired: Boolean;
         IsHandled: Boolean;
     begin
@@ -2542,7 +2545,16 @@ codeunit 99000854 "Inventory Profile Offsetting"
                         PlanningTransparency.LogWarning(
                            0, ReqLine, DummyInventoryProfileTrackBuffer."Warning Level",
                            StrSubstNo(MinimalSupplyPlannedTxt, DummyInventoryProfileTrackBuffer."Warning Level", MissingStockkeepingUnitTxt));
-                end;
+                end else
+                    if IsMissingSKUPlanningPolicyItemCard(ReqLine."Location Code") and
+                       not StockkeepingUnit.Get(ReqLine."Location Code", ReqLine."No.", ReqLine."Variant Code")
+                    then begin
+                        DummyInventoryProfileTrackBuffer."Warning Level" := DummyInventoryProfileTrackBuffer."Warning Level"::Attention;
+                        PlanningWarningText := CopyStr(
+                            StrSubstNo(PlanningParametersTakenFromItemCardTxt, DummyInventoryProfileTrackBuffer."Warning Level", ReqLine."No.", ReqLine."Location Code"),
+                            1, MaxStrLen(PlanningWarningText));
+                        PlanningTransparency.LogWarning(0, ReqLine, DummyInventoryProfileTrackBuffer."Warning Level", PlanningWarningText);
+                    end;
 
                 OnMaintainPlanningLineOnBeforeReqLineInsert(
                   ReqLine, SupplyInvtProfile, PlanToDate, CurrForecast, NewPhase, Direction, DemandInvtProfile, ExcludeForecastBefore);
@@ -2768,25 +2780,29 @@ codeunit 99000854 "Inventory Profile Offsetting"
                 end;
             TempSKU."Reordering Policy"::"Fixed Reorder Qty.":
                 begin
-                    if TempSKU."Reorder Quantity" = 0 then
+                    if TempSKU."Reorder Quantity" <= 0 then
                         if SKU.Get(TempSKU."Location Code", TempSKU."Item No.", TempSKU."Variant Code") then begin
                             if PlanningResiliency then
                                 ReqLine.SetResiliencyError(
                                   StrSubstNo(
-                                    Text004, SKU.FieldCaption("Reorder Quantity"), 0, SKU.TableCaption(),
+                                    Text004, SKU.FieldCaption("Reorder Quantity"), SKU."Reorder Quantity", SKU.TableCaption(),
                                     SKU."Location Code", SKU."Item No.", SKU."Variant Code",
                                     SKU.FieldCaption("Reordering Policy"), SKU."Reordering Policy"),
                                   Database::"Stockkeeping Unit", SKU.GetPosition());
                             TempSKU.TestField("Reorder Quantity");
+                            if TempSKU."Reorder Quantity" < 0 then
+                                SKU.FieldError("Reorder Quantity", StrSubstNo(ReorderQtyMustBePositiveErr, SKU.FieldCaption("Reordering Policy"), SKU."Reordering Policy"));
                         end else
                             if Item.Get(TempSKU."Item No.") then begin
                                 if PlanningResiliency then
                                     ReqLine.SetResiliencyError(
                                       StrSubstNo(
-                                        Text005, Item.FieldCaption("Reorder Quantity"), 0, Item.TableCaption(),
+                                        Text005, Item.FieldCaption("Reorder Quantity"), Item."Reorder Quantity", Item.TableCaption(),
                                         Item."No.", Item.FieldCaption("Reordering Policy"), Item."Reordering Policy"),
                                       Database::Item, Item.GetPosition());
                                 Item.TestField("Reorder Quantity");
+                                if Item."Reorder Quantity" < 0 then
+                                    Item.FieldError("Reorder Quantity", StrSubstNo(ReorderQtyMustBePositiveErr, Item.FieldCaption("Reordering Policy"), Item."Reordering Policy"));
                             end;
 
                     QtyToOrder := TempSKU."Reorder Quantity";
@@ -4564,11 +4580,6 @@ codeunit 99000854 "Inventory Profile Offsetting"
                 if PlanningResiliency then begin
                     Item.Get(SKU."Item No.");
                     case Location."Missing SKU Planning Policy" of
-                        Enum::"Missing SKU Planning Policy"::"Item Card":
-                            begin
-                                ReqLine.SetResiliencyError(StrSubstNo(PlanningParametersTakenFromItemCardTxt, Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy", SKU."Item No.", SKU."Location Code"), Database::Item, Item.GetPosition());
-                                PlanningSkippedForMissingSKUPolicy := true;
-                            end;
                         Enum::"Missing SKU Planning Policy"::"Dont Plan":
                             begin
                                 ReqLine.SetResiliencyError(StrSubstNo(SKUNotPlannedTxt, SKU."Item No.", SKU."Location Code", Location.FieldCaption("Missing SKU Planning Policy"), Location."Missing SKU Planning Policy"), Database::Item, Item.GetPosition());

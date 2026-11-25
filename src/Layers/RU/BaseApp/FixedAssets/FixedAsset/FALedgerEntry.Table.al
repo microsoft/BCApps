@@ -507,6 +507,25 @@ table 5601 "FA Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
+        field(5865; "Derogatory Excluded"; Boolean)
+        {
+            Caption = 'Exclude Derogatory';
+            ToolTip = 'Specifies whether the entry is excluded from derogatory depreciation calculations.';
+            Editable = false;
+        }
+        field(5866; "Derogatory Source Entry No."; Integer)
+        {
+            Caption = 'Derogatory Source Entry No.';
+            ToolTip = 'Specifies the source fixed asset ledger entry linked to this derogatory entry.';
+            Editable = false;
+            TableRelation = "FA Ledger Entry"."Entry No.";
+        }
+        field(5867; "Legacy Derogatory Ambiguous"; Boolean)
+        {
+            Caption = 'Legacy Derogatory Ambiguous';
+            ToolTip = 'Specifies whether multiple matches prevented a unique historical derogatory link for this entry.';
+            Editable = false;
+        }
         field(6210; "Non-Ded. VAT FA Cost"; Boolean)
         {
             Caption = 'Non-Deductible VAT FA Cost';
@@ -635,11 +654,11 @@ table 5601 "FA Ledger Entry"
             SumIndexFields = Amount, Quantity;
             IncludedFields = Amount;
         }
-        key(Key3; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date", "Part of Book Value", "Reclassification Entry", "FA Location Code", "Global Dimension 1 Code", "Global Dimension 2 Code", "Initial Acquisition", "Employee No.", "Depr. Bonus", "Depr. Group Elimination")
+        key(Key3; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "FA Posting Date", "Part of Book Value", "Reclassification Entry", "FA Location Code", "Global Dimension 1 Code", "Global Dimension 2 Code", "Initial Acquisition", "Employee No.", "Depr. Bonus", "Depr. Group Elimination", "Derogatory Excluded")
         {
-            SumIndexFields = Amount, Quantity, "Depr. Amount w/o Normalization";
+            SumIndexFields = Amount, Quantity, "Depr. Amount w/o Normalization", "Debit Amount", "Credit Amount";
         }
-        key(Key4; "FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date")
+        key(Key4; "FA No.", "Depreciation Book Code", "Part of Book Value", "FA Posting Date", "Derogatory Excluded")
         {
             SumIndexFields = Amount, Quantity;
         }
@@ -647,7 +666,7 @@ table 5601 "FA Ledger Entry"
         {
             SumIndexFields = Amount, Quantity;
         }
-        key(Key6; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date")
+        key(Key6; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Derogatory Excluded")
         {
             SumIndexFields = Amount, Quantity;
         }
@@ -684,6 +703,9 @@ table 5601 "FA Ledger Entry"
         key(Key16; "Depreciation Book Code", "FA Posting Date", "FA Posting Category", "FA Posting Type", "Belonging to Manufacturing", "FA Type", "Depreciation Group", "Depr. Bonus", "Depr. Group Elimination", "Tax Difference Code", Quantity, "Reclassification Entry", "Depr. Bonus Recovery Date", "Depr. Bonus %", "FA No.")
         {
             SumIndexFields = Amount, "Sales Gain Amount", "Sales Loss Amount";
+        }
+        key(Key17; "Derogatory Source Entry No.", "Depreciation Book Code")
+        {
         }
     }
 
@@ -828,6 +850,8 @@ table 5601 "FA Ledger Entry"
                 FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::"Salvage Value";
             "FA Posting Type"::"Bonus Depreciation":
                 FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::"Bonus Depreciation";
+            "FA Posting Type"::Derogatory:
+                FAJnlLine."FA Posting Type" := FAJnlLine."FA Posting Type"::Derogatory;
             else
                 OnAfterConvertPostingTypeElse(FAJnlLine, Rec);
         end;

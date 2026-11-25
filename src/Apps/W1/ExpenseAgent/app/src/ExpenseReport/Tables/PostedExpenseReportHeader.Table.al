@@ -15,9 +15,11 @@ using Microsoft.Inventory.Location;
 using System.Globalization;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores the header of a posted expense report as history after the expense report has been posted.
+/// </summary>
 table 6915 "Posted Expense Report Header"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Header';
     DataCaptionFields = "No.", Description;
     DataClassification = CustomerContent;
@@ -304,6 +306,12 @@ table 6915 "Posted Expense Report Header"
         {
             Clustered = true;
         }
+        key(SpendRequestNo; "Spend Request No.")
+        {
+        }
+        key(SpendRequestExpenseUser; "Spend Request No.", "Expense User No.")
+        {
+        }
         key(ExpenseUser; "Expense User No.", "No.")
         {
         }
@@ -336,6 +344,9 @@ table 6915 "Posted Expense Report Header"
     var
         EntryRecIDLbl: Label '%1 %2', Locked = true;
 
+    /// <summary>
+    /// Shows the dimension set of the posted expense report.
+    /// </summary>
     procedure ShowDimensions()
     var
         DimMgt: Codeunit DimensionManagement;
@@ -343,6 +354,9 @@ table 6915 "Posted Expense Report Header"
         DimMgt.ShowDimensionSet(Rec."Dimension Set ID", StrSubstNo(EntryRecIDLbl, Rec.TableCaption(), Rec."No."));
     end;
 
+    /// <summary>
+    /// Opens the employee card of the employee related to the expense user of the posted expense report.
+    /// </summary>
     procedure ShowEmployeeCard()
     var
         Employee: Record Employee;

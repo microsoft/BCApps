@@ -23,6 +23,30 @@ codeunit 139511 "SAF-T Tests"
         IsInitialized: Boolean;
 
     [Test]
+    procedure SAFTVisibilityIsSelectedThroughInterface()
+    var
+        AuditFileExportPageVisibility: Interface "Audit File Export Page Visibility";
+        FieldVisibility: Dictionary of [Text, Boolean];
+        ActionVisibility: Dictionary of [Text, Boolean];
+    begin
+        FieldVisibility.Set('Contact', true);
+        FieldVisibility.Set('SplitByMonth', true);
+        ActionVisibility.Set('DataCheck', true);
+        AuditFileExportPageVisibility := "Audit File Export Format"::SAFT;
+
+        AuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
+
+        Assert.IsFalse(FieldVisibility.Get('Contact'), 'SAF-T must hide the contact through the selected format interface.');
+        Assert.IsTrue(FieldVisibility.Get('SplitByMonth'), 'SAF-T must retain monthly splitting.');
+        Assert.IsTrue(ActionVisibility.Get('DataCheck'), 'SAF-T must retain data check.');
+
+        FieldVisibility.Set('Contact', true);
+        AuditFileExportPageVisibility := "Audit File Export Format"::None;
+        AuditFileExportPageVisibility.GetUIVisibility(FieldVisibility, ActionVisibility);
+        Assert.IsTrue(FieldVisibility.Get('Contact'), 'SAF-T must not hide the contact for another format.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandlerYes,MessageHandler')]
     procedure ExportMasterFiles()
     var

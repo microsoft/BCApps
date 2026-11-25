@@ -198,6 +198,20 @@ codeunit 20520 "Subc. Prod. Order Rtng. Ext."
         ProdOrderRoutingLine."Transfer Description 2" := RoutingLine."Transfer Description 2";
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", OnAfterCopyFromPlanningRoutingLine, '', false, false)]
+    local procedure OnAfterCopyFromPlanningRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PlanningRoutingLine: Record "Planning Routing Line")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        ProdOrderRoutingLine."Transfer WIP Item" := PlanningRoutingLine."Transfer WIP Item";
+        ProdOrderRoutingLine."Transfer Description" := PlanningRoutingLine."Transfer Description";
+        ProdOrderRoutingLine."Transfer Description 2" := PlanningRoutingLine."Transfer Description 2";
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Prod. Order Route Management", OnCalculateOnBeforeProdOrderRtngLineLoopIteration, '', false, false)]
     local procedure CheckSubcontractingOnCalculateOnBeforeProdOrderRtngLineLoopIteration(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
     begin

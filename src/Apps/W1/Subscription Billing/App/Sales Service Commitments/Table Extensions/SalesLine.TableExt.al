@@ -67,6 +67,10 @@ tableextension 8054 "Sales Line" extends "Sales Line"
                 if xRec."No." = Rec."No." then
                     exit;
                 CheckAndDeleteServiceCommitmentsForSalesLine(Rec, xRec);
+                // During Explode BOM the Subscription Lines are added from OnExplodeBOMCompLinesOnAfterToSalesLineInsert,
+                // where the line is inserted and the quantity is set. Adding them here as well offers the Subscription Packages twice per component.
+                if SalesServiceCommitmentMgmt.IsSalesLineBeingExploded(Rec) then
+                    exit;
                 SalesServiceCommitmentMgmt.AddSalesServiceCommitmentsForSalesLine(Rec, false);
             end;
         }
@@ -156,6 +160,9 @@ tableextension 8054 "Sales Line" extends "Sales Line"
     }
     var
         BillingLineExist, IsBillingLineCached : Boolean;
+        CachedBillingLineDocumentType: Enum "Sales Document Type";
+        CachedBillingLineDocumentNo: Code[20];
+        CachedBillingLineNo: Integer;
     trigger OnDelete()
     begin
         DeleteSalesServiceCommitment();
@@ -189,7 +196,15 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         Rec."Sell-to Customer No." := SourceSalesHeader."Sell-to Customer No.";
     end;
 
-    internal procedure DeleteSalesServiceCommitment()
+    /// <summary>
+    /// Deletes the Sales Subscription Lines that belong to this Sales Line.
+    /// Call this whenever a Sales Line is removed without running its triggers (Delete(false), DeleteAll(false)),
+    /// because the OnDelete() trigger of this table extension does not fire in that case and the
+    /// Sales Subscription Lines would be left behind as orphaned records.
+    /// Temporary records and document types that cannot carry Sales Subscription Lines are skipped,
+    /// so the call is safe for any Sales Line.
+    /// </summary>
+    procedure DeleteSalesServiceCommitment()
     var
         SalesServiceCommitment: Record "Sales Subscription Line";
     begin
@@ -331,13 +346,27 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         exit(SalesServiceCommitment."Linked to No.");
     end;
 
-    internal procedure IsLineAttachedToBillingLine(): Boolean
+    /// <summary>
+    /// Checks whether this sales line is linked to a Subscription Billing Line.
+    /// The result is cached per line, so repeated calls on the same line do not re-query the database.
+    /// </summary>
+    /// <returns>True if a Billing Line exists for this line's document type, document number and line number; otherwise false.</returns>
+    procedure IsLineAttachedToBillingLine(): Boolean
     var
         BillingLine: Record "Billing Line";
     begin
-        if not IsBillingLineCached then begin
+        // Refresh the cached result whenever the record points at a different line, so external callers
+        // that reuse the same record variable across lines never receive a stale value from a previous line.
+        if (not IsBillingLineCached) or
+            (CachedBillingLineDocumentType <> Rec."Document Type") or
+            (CachedBillingLineDocumentNo <> Rec."Document No.") or
+            (CachedBillingLineNo <> Rec."Line No.")
+        then begin
             BillingLine.FilterBillingLineOnDocumentLine(BillingLine.GetBillingDocumentTypeFromSalesDocumentType(Rec."Document Type"), Rec."Document No.", Rec."Line No.");
             BillingLineExist := not BillingLine.IsEmpty();
+            CachedBillingLineDocumentType := Rec."Document Type";
+            CachedBillingLineDocumentNo := Rec."Document No.";
+            CachedBillingLineNo := Rec."Line No.";
             IsBillingLineCached := true;
         end;
 

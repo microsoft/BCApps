@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies which additional details must be provided for an expense, such as itemization, participants, per diem, or mileage.
+/// </summary>
 enum 6905 "Expense Detail Needed"
 {
-    Access = Internal;
     Caption = 'Expense Detail Needed';
 
     value(0; " ") { Caption = 'None'; }

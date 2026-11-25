@@ -482,6 +482,76 @@ codeunit 132437 "Permission Import Export Tests"
         LibraryAssert.AreEqual('Tenant Permission: Type=<>Include', Format(TenantPermission."Security Filter"), 'Security Filter is not set correctly.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ExportImportSystemPermissionSetUsingOverwriteOption()
+    var
+        TenantPermission: Record "Tenant Permission";
+        TenantPermissionSet: Record "Tenant Permission Set";
+        TenantPermissionSetRel: Record "Tenant Permission Set Rel.";
+        MetadataPermissionSet: Record "Metadata Permission Set";
+        RelatedMetadataPermissionSet: Record "Metadata Permission Set";
+        TempBlob: Codeunit "Temp Blob";
+        ImportPermissionSets: XmlPort "Import Permission Sets";
+        OutStr: OutStream;
+        InStr: InStream;
+        ZeroGuid: Guid;
+    begin
+        // [FEATURE] [Import] [XMLPORT] [Permission Set] [Tenant Permission Set]
+        // [SCENARIO] System permission set is exported and imported twice using the overwrite option. Permissions and relations not in the file are removed.
+
+        Initialize();
+
+        // [GIVEN] System PS "Permission Set C" with permission to "Tenant Permission" table, exported to XML
+        MetadataPermissionSet.SetRange("Role ID", 'Permission Set C');
+        TempBlob.CreateOutStream(OutStr);
+        Xmlport.Export(Xmlport::"Export Permission Sets System", OutStr, MetadataPermissionSet);
+
+        // [GIVEN] The exported permission set is imported as a tenant permission set
+        TempBlob.CreateInStream(InStr);
+        ImportPermissionSets.SetSource(InStr);
+        ImportPermissionSets.SetUpdatePermissions(false);
+        ImportPermissionSets.Import();
+        LibraryAssert.IsTrue(TenantPermissionSet.Get(ZeroGuid, 'Permission Set C'), 'Permission Set C is missing');
+
+        // [GIVEN] The imported tenant permission set gets an additional permission, a lowered permission and an additional relation
+        TenantPermission.Get(ZeroGuid, 'Permission Set C', TenantPermission."Object Type"::"Table Data", Database::"Tenant Permission");
+        TenantPermission."Read Permission" := TenantPermission."Read Permission"::Indirect;
+        TenantPermission.Modify();
+
+        TenantPermission.Init();
+        TenantPermission."App ID" := ZeroGuid;
+        TenantPermission."Role ID" := 'Permission Set C';
+        TenantPermission."Object Type" := TenantPermission."Object Type"::"Table Data";
+        TenantPermission."Object ID" := Database::"Metadata Permission";
+        TenantPermission."Read Permission" := TenantPermission."Read Permission"::Yes;
+        TenantPermission.Insert();
+
+        RelatedMetadataPermissionSet.SetRange("Role ID", 'Permission Set A');
+        RelatedMetadataPermissionSet.FindFirst();
+        TenantPermissionSetRel.Init();
+        TenantPermissionSetRel."App ID" := ZeroGuid;
+        TenantPermissionSetRel."Role ID" := 'Permission Set C';
+        TenantPermissionSetRel."Related App ID" := RelatedMetadataPermissionSet."App ID";
+        TenantPermissionSetRel."Related Role ID" := RelatedMetadataPermissionSet."Role ID";
+        TenantPermissionSetRel.Insert();
+
+        // [WHEN] The original system permission set is imported again using the overwrite option
+        TempBlob.CreateInStream(InStr);
+        Clear(ImportPermissionSets);
+        ImportPermissionSets.SetSource(InStr);
+        ImportPermissionSets.SetUpdatePermissions(false);
+        ImportPermissionSets.Import();
+
+        // [THEN] The tenant permission set matches the file: the lowered permission is restored, the additional permission and relation are removed
+        LibraryAssert.IsTrue(TenantPermission.Get(ZeroGuid, 'Permission Set C', TenantPermission."Object Type"::"Table Data", Database::"Tenant Permission"), 'Included permission to Set C is missing');
+        LibraryAssert.AreEqual(TenantPermission."Read Permission"::Yes, TenantPermission."Read Permission", 'Read permission is not set correctly.');
+        LibraryAssert.IsFalse(TenantPermission.Get(ZeroGuid, 'Permission Set C', TenantPermission."Object Type"::"Table Data", Database::"Metadata Permission"), 'Permission not in the file should be removed');
+        TenantPermissionSetRel.SetRange("App ID", ZeroGuid);
+        TenantPermissionSetRel.SetRange("Role ID", 'Permission Set C');
+        LibraryAssert.RecordIsEmpty(TenantPermissionSetRel);
+    end;
+
     local procedure Initialize()
     var
         TenantPermission: Record "Tenant Permission";

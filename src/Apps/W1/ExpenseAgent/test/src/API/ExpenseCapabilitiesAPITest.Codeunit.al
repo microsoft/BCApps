@@ -23,6 +23,7 @@ codeunit 148318 "Expense Capabilities API Test"
         ServiceNameTok: Label 'expenseCapabilities', Locked = true;
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
         ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
+        TravelRequestCapabilityNameTok: Label 'travelRequest', Locked = true;
 
     [Test]
     procedure CapabilitiesProjectsEnabledViaAPI()
@@ -98,6 +99,27 @@ codeunit 148318 "Expense Capabilities API Test"
     end;
 
     [Test]
+    procedure TravelRequestCapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // Excluded in BCApps CI until authenticated OData execution in a dedicated test company
+        // with disabled isolation is available; then remove this method's DisabledTest.json entry.
+        // [SCENARIO] Travel requests are advertised when the supporting APIs are installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] TravelRequest is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, TravelRequestCapabilityNameTok, true),
+            'Response must contain an enabled travelRequest capability row.');
+    end;
+
+    [Test]
     procedure CapabilitiesProjectsDisabledViaAPI()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -151,6 +173,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // Enable Evaluate Policies too so the aiAssistedPolicyEvaluation capability is not reported
         // disabled, keeping the "no capability disabled" assertion below valid.
         ExpenseAgentSetup."Evaluate Policies" := true;
+        ExpenseAgentSetup."Require Corporate Card" := false;
         ExpenseAgentSetup.Modify();
         Commit();
 
@@ -164,6 +187,10 @@ codeunit 148318 "Expense Capabilities API Test"
         Assert.IsTrue(
             ResponseContainsCapabilityState(ResponseText, 'aiAssistedPolicyEvaluation', true),
             'Response must contain an enabled aiAssistedPolicyEvaluation capability row.');
+        // [THEN] CreditCardFeed advertises backend support even when card selection is optional.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, 'creditCardFeed', true),
+            'Response must contain an enabled creditCardFeed capability row independently of mandatory card selection.');
         LibraryExpenseAgent.RestoreExpenseAgentSetup();
         Commit();
     end;

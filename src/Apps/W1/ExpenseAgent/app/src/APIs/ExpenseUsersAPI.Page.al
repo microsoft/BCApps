@@ -62,6 +62,14 @@ page 6918 "Expense Users API"
                 {
                     Caption = 'Employee Status';
                 }
+                field(approvalLimitLCY; Rec."Approval Limit (LCY)")
+                {
+                    Caption = 'Approval Limit (LCY)';
+                }
+                field(unlimitedApproval; Rec."Unlimited Approval")
+                {
+                    Caption = 'Unlimited Approval';
+                }
 
                 part(employees; "Employees API")
                 {
@@ -81,6 +89,13 @@ page 6918 "Expense Users API"
                     EntityName = 'expenseReport';
                     EntitySetName = 'expenseReports';
                     SubPageLink = "Expense User No." = field("No.");
+                }
+
+                part(travelRequests; "Travel Requests API")
+                {
+                    EntityName = 'travelRequest';
+                    EntitySetName = 'travelRequests';
+                    SubPageLink = "Requested By User Id Filter" = field(SystemId);
                 }
 
                 part(activityHistory; "Expense Activity Log API")

@@ -23,7 +23,8 @@ table 45 "G/L Register"
 {
     Caption = 'G/L Register';
     LookupPageID = "G/L Registers";
-    Permissions = TableData "G/L Register" = rimd;
+    Permissions = TableData "G/L Entry" = m,
+                  TableData "G/L Register" = rimd;
     DataClassification = CustomerContent;
 
     fields
@@ -141,6 +142,11 @@ table 45 "G/L Register"
             FieldClass = FlowField;
             ToolTip = 'Specifies the number of general ledger transactions in this register.';
         }
+        field(10700; "Posting Date"; Date)
+        {
+            Caption = 'Posting Date';
+            ClosingDates = true;
+        }
     }
 
     keys
@@ -155,14 +161,17 @@ table 45 "G/L Register"
         key(Key3; "Source Code", "Journal Batch Name", "Creation Date")
         {
         }
-        key(key4; "From Entry No.", "To Entry No.")
+        key(Key4; "Posting Date")
+        {
+        }
+        key(key6; "From Entry No.", "To Entry No.")
         {
             IncludedFields = "Creation Date", SystemCreatedAt;
         }
-        key(key5; "Source Code", "Journal Batch Name", SystemCreatedAt)
+        key(key7; "Source Code", "Journal Batch Name", SystemCreatedAt)
         {
         }
-        key(key6; SystemCreatedAt)
+        key(key8; SystemCreatedAt)
         {
         }
     }

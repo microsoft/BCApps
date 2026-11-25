@@ -52,6 +52,7 @@ permissionset 20501 "Subcontract. - Objs"
         codeunit "Subc. Transfer Header Ext." = X,
         codeunit "Subc. Transfer Line Ext." = X,
         codeunit "Subc. Transfer Management" = X,
+        codeunit "Subc. Transfer Shipment Data" = X,
         codeunit "Subc. Transfer Rcpt Line Ext." = X,
         codeunit "Subc. Transfer Shpt Line Ext." = X,
         codeunit "Subc. TransOrderPostRcpt Ext" = X,
@@ -78,6 +79,7 @@ permissionset 20501 "Subcontract. - Objs"
         codeunit "Subc. Feature Flag Handler" = X,
 #pragma warning restore AL0432
 #endif
+        codeunit "Subc. Feature Telemetry" = X,
         codeunit "Subc. Upgrade Tag Def. Ext." = X,
         codeunit "Subc. Worksheet Handler" = X,
         codeunit "Subc. Attachment Details Ext." = X,

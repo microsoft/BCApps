@@ -7379,6 +7379,9 @@ codeunit 80 "Sales-Post"
         PurchRcptLine."Qty. Invoiced (Base)" := 0;
         PurchRcptLine."Order No." := PurchOrderLine."Document No.";
         PurchRcptLine."Order Line No." := PurchOrderLine."Line No.";
+        PurchRcptLine."Vendor Order No." := PurchRcptHeader."Vendor Order No.";
+        PurchRcptLine."Vendor Shipment No." := PurchRcptHeader."Vendor Shipment No.";
+        PurchRcptLine."Your Reference" := PurchRcptHeader."Your Reference";
         PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity - PurchRcptLine."Quantity Invoiced";
         if PurchRcptLine.Quantity <> 0 then begin
             PurchRcptLine."Item Rcpt. Entry No." := DropShptPostBuffer."Item Shpt. Entry No.";
@@ -7814,8 +7817,12 @@ codeunit 80 "Sales-Post"
     procedure CheckIfReverseChargeApplies(SalesHeader: Record "Sales Header"): Boolean
     var
         SalesLine2: Record "Sales Line";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         TotalAmount: Decimal;
     begin
+        if FeatureKeyManagement.IsVATReverseChargeEnabled() then
+            exit(false);
+
         GLSetup.Get();
         SalesSetup.Get();
         if not GLSetup."Threshold applies" or (SalesHeader."VAT Registration No." = '') or

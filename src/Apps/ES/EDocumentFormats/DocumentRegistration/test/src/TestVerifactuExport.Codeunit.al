@@ -42,6 +42,14 @@ codeunit 148004 "Test Verifactu Export"
         TestServiceInvoiceLbl: Label 'Test Service Invoice %1', Comment = '%1 = Invoice number';
         TestServiceCreditMemoLbl: Label 'Test Service Credit Memo %1', Comment = '%1 = Credit memo number';
         NonTaxableBreakdownXPathLbl: Label '//*[local-name()="DetalleDesglose"][*[local-name()="CalificacionOperacion" and text()="%1"]]', Locked = true, Comment = '%1 = Operation qualification code';
+        RegisteredDocumentXPathLbl: Label '//*[local-name()="RegistroAlta"][*[local-name()="IDFactura"]/*[local-name()="NumSerieFactura" and text()="%1"]]', Locked = true, Comment = '%1 = Document number';
+        PostedBatchRecipientNameLbl: Label 'Posted bill-to recipient %1', Locked = true, Comment = '%1 = Invoice index';
+        PostedBatchRecipientVATLbl: Label 'B0000000%1', Locked = true, Comment = '%1 = Invoice index';
+        SistemaInformaticoXPathLbl: Label '//*[local-name()="SistemaInformatico"]', Locked = true;
+        SistemaInformaticoChildXPathLbl: Label '//*[local-name()="SistemaInformatico"]/*[local-name()="%1"]', Locked = true, Comment = '%1 = Child node name';
+        SistemaInformaticoIDOtroChildXPathLbl: Label '//*[local-name()="SistemaInformatico"]/*[local-name()="IDOtro"]/*[local-name()="%1"]', Locked = true, Comment = '%1 = IDOtro child node name';
+        XMLNodeNotFoundLbl: Label 'XML should contain node %1', Locked = true, Comment = '%1 = XPath';
+        XMLNodeUnexpectedValueLbl: Label 'Unexpected value of node %1', Locked = true, Comment = '%1 = XPath';
 
     #region SalesInvoice
     [Test]
@@ -273,8 +281,37 @@ codeunit 148004 "Test Verifactu Export"
 
         // [THEN] XML contains SistemaInformatico element with Business Central information
         Assert.IsTrue(XMLText.Contains('SistemaInformatico'), 'XML should contain SistemaInformatico');
-        Assert.IsTrue(XMLText.Contains('BusinessCentral'), 'XML should contain BusinessCentral');
+        Assert.IsTrue(XMLText.Contains('Dynamics 365 Business Central'), 'XML should contain Dynamics 365 Business Central');
         Assert.IsTrue(XMLText.Contains('NombreSistemaInformatico'), 'XML should contain NombreSistemaInformatico');
+    end;
+
+    [Test]
+    procedure ExportSalesInvoiceUsesMicrosoftProducerInformation()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        CompanyInformation: Record "Company Information";
+        XMLText: Text;
+    begin
+        // [SCENARIO 653145] Software producer identification is independent of the issuing company.
+        Initialize();
+
+        // [GIVEN] An issuing company other than Microsoft and a posted sales invoice.
+        CompanyInformation.Get();
+        CompanyInformation.Validate(Name, 'Test invoice issuer');
+        CompanyInformation.Validate("VAT Registration No.", 'B12345678');
+        CompanyInformation.Modify(true);
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", LibraryRandom.RandDecInRange(1000, 5000, 2), LibraryRandom.RandIntInRange(10, 25));
+
+        // [WHEN] The invoice is exported.
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] SistemaInformatico identifies Microsoft and Dynamics 365 Business Central, not the issuing company.
+        VerifySistemaInformatico(XMLText);
+
+        // [THEN] The issuing company's information remains in the XML.
+        VerifyCompanyInformation(CompanyInformation, XMLText);
     end;
     #endregion
 
@@ -1973,6 +2010,182 @@ codeunit 148004 "Test Verifactu Export"
     end;
     #endregion
 
+    [Test]
+    procedure ExportSalesInvoiceUsesPostedRecipient()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A sales invoice exports its posted bill-to identity, not the issuer or current customer.
+        Initialize();
+
+        // [GIVEN] Invoice "I" has a bill-to snapshot different from its sell-to and current customer "C".
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", 1000, 21);
+        SalesInvoiceHeader."Bill-to Name" := 'Posted invoice bill-to';
+        SalesInvoiceHeader."VAT Registration No." := 'B12345674';
+        SalesInvoiceHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Invoice "I" is exported.
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The recipient uses the snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, SalesInvoiceHeader."No.", SalesInvoiceHeader."Bill-to Name", SalesInvoiceHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    procedure ExportSalesCreditMemoUsesPostedRecipient()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A sales credit memo exports its own posted bill-to identity after the customer changes.
+        Initialize();
+
+        // [GIVEN] Credit memo "M" has its own bill-to snapshot and customer "C" subsequently changes.
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", 1000, 21);
+        CreatePostedSalesCreditMemo(SalesCrMemoHeader, SalesInvoiceHeader."No.", Customer."No.", 1000);
+        SalesCrMemoHeader."Bill-to Name" := 'Posted credit memo bill-to';
+        SalesCrMemoHeader."VAT Registration No." := 'B23456783';
+        SalesCrMemoHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Credit memo "M" is exported.
+        ExportCreditMemo(SalesCrMemoHeader, XMLText);
+
+        // [THEN] The recipient uses the credit memo snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, SalesCrMemoHeader."No.", SalesCrMemoHeader."Bill-to Name", SalesCrMemoHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ExportServiceInvoiceUsesPostedRecipient()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A service invoice exports its posted bill-to identity after the customer changes.
+        Initialize();
+
+        // [GIVEN] Service invoice "I" has its own bill-to snapshot and customer "C" subsequently changes.
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreateServiceDocWithLine(
+            ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Invoice,
+            ServiceLine.Type::"G/L Account", CreateGLAccountNo(), WorkDate(), Customer."No.");
+        ServiceHeader.Validate("Invoice Type", ServiceHeader."Invoice Type"::"F1 Invoice");
+        ServiceHeader.Validate("Special Scheme Code", ServiceHeader."Special Scheme Code"::"01 General");
+        ServiceHeader.Modify(true);
+        ServiceInvoiceHeader := PostServiceInvoice(ServiceHeader);
+        ServiceInvoiceHeader."Bill-to Name" := 'Posted service invoice bill-to';
+        ServiceInvoiceHeader."VAT Registration No." := 'B34567892';
+        ServiceInvoiceHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Service invoice "I" is exported.
+        ExportServiceInvoice(ServiceInvoiceHeader, XMLText);
+
+        // [THEN] The recipient uses the snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, ServiceInvoiceHeader."No.", ServiceInvoiceHeader."Bill-to Name", ServiceInvoiceHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure ExportServiceCreditMemoUsesPostedRecipient()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Customer: Record Customer;
+        XMLText: Text;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] A service credit memo exports its own posted bill-to identity after the customer changes.
+        Initialize();
+
+        // [GIVEN] Service invoice "I" and its credit memo "M" are posted for customer "C".
+        LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+        CreateServiceDocWithLine(
+            ServiceHeader, ServiceLine, ServiceHeader."Document Type"::Invoice,
+            ServiceLine.Type::"G/L Account", CreateGLAccountNo(), WorkDate(), Customer."No.");
+        ServiceHeader.Validate("Invoice Type", ServiceHeader."Invoice Type"::"F1 Invoice");
+        ServiceHeader.Validate("Special Scheme Code", ServiceHeader."Special Scheme Code"::"01 General");
+        ServiceHeader.Modify(true);
+        ServiceInvoiceHeader := PostServiceInvoice(ServiceHeader);
+        CreateServiceDocWithLine(
+            ServiceHeader, ServiceLine, ServiceHeader."Document Type"::"Credit Memo",
+            ServiceLine.Type::"G/L Account", CreateGLAccountNo(), WorkDate(), Customer."No.");
+        ServiceHeader.Validate("Invoice Type", ServiceHeader."Invoice Type"::"R1 Corrected Invoice");
+        ServiceHeader.Validate("Special Scheme Code", ServiceHeader."Special Scheme Code"::"01 General");
+        ServiceHeader.Validate("Corrected Invoice No.", ServiceInvoiceHeader."No.");
+        ServiceHeader.Modify(true);
+        ServiceCrMemoHeader := PostServiceCreditMemo(ServiceHeader);
+
+        // [GIVEN] Credit memo "M" has its own bill-to snapshot and customer "C" subsequently changes.
+        ServiceCrMemoHeader."Bill-to Name" := 'Posted service credit memo bill-to';
+        ServiceCrMemoHeader."VAT Registration No." := 'B45678901';
+        ServiceCrMemoHeader.Modify();
+        ChangeCustomerIdentityAfterPosting(Customer);
+
+        // [WHEN] Service credit memo "M" is exported.
+        ExportServiceCreditMemo(ServiceCrMemoHeader, XMLText);
+
+        // [THEN] The recipient uses the credit memo snapshot and issuer nodes still identify the company.
+        VerifyExportedRecipient(
+            XMLText, ServiceCrMemoHeader."No.", ServiceCrMemoHeader."Bill-to Name", ServiceCrMemoHeader."VAT Registration No.");
+    end;
+
+    [Test]
+    procedure ExportSalesInvoiceBatchKeepsRecipientsSeparate()
+    var
+        SalesInvoiceHeader: array[3] of Record "Sales Invoice Header";
+        Customer: Record Customer;
+        ParsedXMLDocument: XmlDocument;
+        RegisteredDocuments: XmlNodeList;
+        XMLText: Text;
+        InvoiceIndex: Integer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO] Each invoice in a mixed-customer batch retains its own posted recipient.
+        Initialize();
+
+        // [GIVEN] Three invoices have different customers and different posted bill-to identities.
+        for InvoiceIndex := 1 to ArrayLen(SalesInvoiceHeader) do begin
+            LibrarySales.CreateCustomerWithCountryCodeAndVATRegNo(Customer);
+            CreatePostedSalesInvoice(SalesInvoiceHeader[InvoiceIndex], Customer."No.", 1000, 21);
+            SalesInvoiceHeader[InvoiceIndex]."Bill-to Name" := StrSubstNo(PostedBatchRecipientNameLbl, InvoiceIndex);
+            SalesInvoiceHeader[InvoiceIndex]."VAT Registration No." := StrSubstNo(PostedBatchRecipientVATLbl, InvoiceIndex);
+            SalesInvoiceHeader[InvoiceIndex].Modify();
+            ChangeCustomerIdentityAfterPosting(Customer);
+        end;
+
+        // [WHEN] The invoices are exported in one batch.
+        ExportInvoiceBatch(SalesInvoiceHeader, XMLText);
+
+        // [THEN] Exactly three documents retain their own recipients and the common issuer.
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectNodes('//*[local-name()="RegistroAlta"]', RegisteredDocuments), 'Export should contain registered documents');
+        Assert.AreEqual(ArrayLen(SalesInvoiceHeader), RegisteredDocuments.Count(), 'Batch should contain exactly the selected invoices');
+        for InvoiceIndex := 1 to ArrayLen(SalesInvoiceHeader) do
+            VerifyExportedRecipient(
+                XMLText, SalesInvoiceHeader[InvoiceIndex]."No.",
+                SalesInvoiceHeader[InvoiceIndex]."Bill-to Name", SalesInvoiceHeader[InvoiceIndex]."VAT Registration No.");
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Test Verifactu Export");
@@ -1984,6 +2197,58 @@ codeunit 148004 "Test Verifactu Export"
         EDocumentService.Get(LibraryEdocument.CreateService("E-Document Format"::Verifactu, "Service Integration"::"Verifactu Service"));
         IsInitialized := true;
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Test Verifactu Export");
+    end;
+
+    local procedure ChangeCustomerIdentityAfterPosting(var Customer: Record Customer)
+    begin
+        Customer.Name := 'Changed customer master';
+        Customer."VAT Registration No." := 'B98765432';
+        Customer.Modify();
+    end;
+
+    local procedure VerifyExportedRecipient(XMLText: Text; DocumentNo: Code[20]; ExpectedName: Text; ExpectedVATRegistrationNo: Text)
+    var
+        CompanyInformation: Record "Company Information";
+        ParsedXMLDocument: XmlDocument;
+        DocumentXMLNodes: XmlNodeList;
+        DocumentXMLNode: XmlNode;
+        IssuerXMLNode: XmlNode;
+        RecipientXMLNode: XmlNode;
+    begin
+        CompanyInformation.Get();
+        Assert.AreNotEqual(CompanyInformation.Name, ExpectedName, 'Recipient name must differ from issuer name');
+        Assert.AreNotEqual(CompanyInformation."VAT Registration No.", ExpectedVATRegistrationNo, 'Recipient NIF must differ from issuer NIF');
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(
+            ParsedXMLDocument.SelectSingleNode('//*[local-name()="Cabecera"]/*[local-name()="ObligadoEmision"]', IssuerXMLNode),
+            'Export should contain the header issuer');
+        VerifyIdentityXMLValue(IssuerXMLNode, '*[local-name()="NombreRazon"]', CompanyInformation.Name, 'Header issuer name should remain unchanged');
+        VerifyIdentityXMLValue(IssuerXMLNode, '*[local-name()="NIF"]', CompanyInformation."VAT Registration No.", 'Header issuer NIF should remain unchanged');
+        Assert.IsTrue(
+            ParsedXMLDocument.SelectNodes(StrSubstNo(RegisteredDocumentXPathLbl, DocumentNo), DocumentXMLNodes),
+            'Export should contain the requested registered document');
+        Assert.AreEqual(1, DocumentXMLNodes.Count(), 'Document number should identify exactly one registration');
+        DocumentXMLNodes.Get(1, DocumentXMLNode);
+        VerifyIdentityXMLValue(DocumentXMLNode, '*[local-name()="NombreRazonEmisor"]', CompanyInformation.Name, 'Document issuer name should remain unchanged');
+        VerifyIdentityXMLValue(
+            DocumentXMLNode, '*[local-name()="IDFactura"]/*[local-name()="IDEmisorFactura"]',
+            CompanyInformation."VAT Registration No.", 'Document issuer NIF should remain unchanged');
+        Assert.IsTrue(
+            DocumentXMLNode.SelectSingleNode('*[local-name()="Destinatarios"]/*[local-name()="IDDestinatario"]', RecipientXMLNode),
+            'Document should contain its recipient');
+        VerifyIdentityXMLValue(RecipientXMLNode, '*[local-name()="NombreRazon"]', ExpectedName, 'Recipient name should come from the posted bill-to snapshot');
+        VerifyIdentityXMLValue(RecipientXMLNode, '*[local-name()="NIF"]', ExpectedVATRegistrationNo, 'Recipient NIF should come from the posted header snapshot');
+    end;
+
+    local procedure VerifyIdentityXMLValue(ParentXMLNode: XmlNode; XPath: Text; ExpectedValue: Text; FailureMessage: Text)
+    var
+        ValueXMLNodes: XmlNodeList;
+        ValueXMLNode: XmlNode;
+    begin
+        Assert.IsTrue(ParentXMLNode.SelectNodes(XPath, ValueXMLNodes), FailureMessage);
+        Assert.AreEqual(1, ValueXMLNodes.Count(), 'Identity field should occur exactly once');
+        ValueXMLNodes.Get(1, ValueXMLNode);
+        Assert.AreEqual(ExpectedValue, ValueXMLNode.AsXmlElement().InnerText(), FailureMessage);
     end;
 
     local procedure ExportInvoice(SalesInvoiceHeader: Record "Sales Invoice Header"; var XMLText: Text)
@@ -2537,6 +2802,43 @@ codeunit 148004 "Test Verifactu Export"
         Assert.IsTrue(XMLText.Contains(CompanyInformation."VAT Registration No."), 'XML should contain VAT number');
     end;
 
+    local procedure VerifySistemaInformatico(XMLText: Text)
+    var
+        ParsedXMLDocument: XmlDocument;
+        SistemaInformaticoXMLNodes: XmlNodeList;
+        NIFXMLNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectNodes(SistemaInformaticoXPathLbl, SistemaInformaticoXMLNodes), 'XML should contain SistemaInformatico');
+        Assert.AreEqual(1, SistemaInformaticoXMLNodes.Count(), 'XML should contain exactly one SistemaInformatico');
+
+        VerifySistemaInformaticoNodeValue(XMLText, 'NombreRazon', 'Microsoft Corporation');
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoIDOtroChildXPathLbl, 'CodigoPais'), 'US');
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoIDOtroChildXPathLbl, 'IDType'), '04');
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoIDOtroChildXPathLbl, 'ID'), '91-1144442');
+        VerifySistemaInformaticoNodeValue(XMLText, 'NombreSistemaInformatico', 'Dynamics 365 Business Central');
+        VerifySistemaInformaticoNodeValue(XMLText, 'IdSistemaInformatico', 'BC');
+
+        Assert.IsFalse(
+            ParsedXMLDocument.SelectSingleNode(StrSubstNo(SistemaInformaticoChildXPathLbl, 'NIF'), NIFXMLNode),
+            'SistemaInformatico should not contain the company NIF');
+    end;
+
+    local procedure VerifySistemaInformaticoNodeValue(XMLText: Text; NodeName: Text; ExpectedValue: Text)
+    begin
+        VerifyXMLNodeValue(XMLText, StrSubstNo(SistemaInformaticoChildXPathLbl, NodeName), ExpectedValue);
+    end;
+
+    local procedure VerifyXMLNodeValue(XMLText: Text; XPath: Text; ExpectedValue: Text)
+    var
+        ParsedXMLDocument: XmlDocument;
+        ValueXMLNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(ParsedXMLDocument.SelectSingleNode(XPath, ValueXMLNode), StrSubstNo(XMLNodeNotFoundLbl, XPath));
+        Assert.AreEqual(ExpectedValue, ValueXMLNode.AsXmlElement().InnerText(), StrSubstNo(XMLNodeUnexpectedValueLbl, XPath));
+    end;
+
     local procedure VerifyDocumentNumber(DocumentNo: Code[20]; XMLText: Text)
     begin
         Assert.IsTrue(XMLText.Contains(DocumentNo), 'XML should contain document number');
@@ -2598,5 +2900,11 @@ codeunit 148004 "Test Verifactu Export"
             Position := StrPos(SourceText, SearchText);
         end;
         exit(Count);
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 }
