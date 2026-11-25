@@ -33,12 +33,12 @@ table 5625 "Maintenance Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
         }
-        field(2; "G/L Entry No."; Integer)
+        field(2; "G/L Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'G/L Entry No.';
@@ -294,14 +294,14 @@ table 5625 "Maintenance Ledger Entry"
             Caption = 'Reversed';
             ToolTip = 'Specifies whether the entry has been part of a reverse transaction (correction) made by the Reverse function.';
         }
-        field(51; "Reversed by Entry No."; Integer)
+        field(51; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
             ToolTip = 'Specifies the number of the correcting entry.';
             TableRelation = "Maintenance Ledger Entry";
         }
-        field(52; "Reversed Entry No."; Integer)
+        field(52; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -380,6 +380,14 @@ table 5625 "Maintenance Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
+        field(95; "G/L Register No."; Integer)
+        {
+            Caption = 'G/L Register No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+            TableRelation = "G/L Register";
+            ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
+        }
         field(5865; "Derogatory Source Entry No."; Integer)
         {
             Caption = 'Derogatory Source Entry No.';
@@ -444,7 +452,7 @@ table 5625 "Maintenance Ledger Entry"
     var
         DimMgt: Codeunit DimensionManagement;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

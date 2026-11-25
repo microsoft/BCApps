@@ -57,8 +57,28 @@ page 48507 "Fabric API Setup"
                         end;
                     end;
                 }
-                field(fabricDataNamespace; Rec."Fabric Data Namespace") { Caption = 'Fabric Data Namespace'; }
-                field(fabricLoggingNamespace; Rec."Fabric Logging Namespace") { Caption = 'Fabric Logging Namespace'; }
+                field(fabricDataNamespace; Rec."Fabric Data Namespace")
+                {
+                    Caption = 'Fabric Data Namespace';
+
+                    trigger OnValidate()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        FabricPlatformMgt.NormalizeNamespace(Rec."Fabric Data Namespace");
+                    end;
+                }
+                field(fabricLoggingNamespace; Rec."Fabric Logging Namespace")
+                {
+                    Caption = 'Fabric Logging Namespace';
+
+                    trigger OnValidate()
+                    var
+                        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+                    begin
+                        FabricPlatformMgt.NormalizeNamespace(Rec."Fabric Logging Namespace");
+                    end;
+                }
                 field(minutesBetweenExports; Rec."Minutes Between Exports") { Caption = 'Minutes Between Exports'; }
                 field(maxConsecutiveFailedRuns; Rec."Max Consecutive Failed Runs")
                 {
@@ -134,6 +154,17 @@ page 48507 "Fabric API Setup"
     begin
         FabricPlatformMgt.DisableExport();
         SetActionResponse(ActionContext);
+    end;
+
+    // Bound to the setup singleton so import stays reachable when no configuration package exists.
+    [ServiceEnabled]
+    [Caption('Import a configuration package from its JSON definition')]
+    [Scope('Cloud')]
+    procedure ImportPackage(PackageJson: Text; var ActionContext: WebServiceActionContext)
+    var
+        FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+    begin
+        FabricConfigPkgMgt.ImportPackageFromApi(PackageJson, ActionContext);
     end;
 
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext)

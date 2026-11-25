@@ -26,9 +26,9 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     begin
         UpgradeRemoveLegacyPrivacyNotice();
         // Registered on every upgrade (not gated by an upgrade tag) so environments provisioned
-        // through the app-sync/upgrade path still get the capability registered. RegisterCapability
-        // is idempotent via IsCapabilityRegistered, so it is a no-op when already registered and
-        // leaves the admin's activation state untouched.
+        // through the app-sync/upgrade path still get the capability registered, and existing
+        // preview registrations are moved to generally available. ModifyCapability reactivates
+        // the capability only when its availability changes.
         InstallExpenseAgentSetup.RegisterCapability();
     end;
 
@@ -38,6 +38,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         UpgradeEnableCommunicationDefault();
         UpgradeMigratePostedExpRepLineCanceled();
         UpgradeMigrateExpenseUserUnlimitedApproval();
+        UpgradeExpenseVendorNoSeries();
     end;
 
     local procedure UpgradeClearStaleCopyCompanyState()
@@ -124,6 +125,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         PerCompanyUpgradeTags.Add(GetEnableCommunicationDefaultUpgradeTag());
         PerCompanyUpgradeTags.Add(GetMigratePostedExpRepLineCanceledTag());
         PerCompanyUpgradeTags.Add(GetMigrateExpenseUserUnlimitedApprovalTag());
+        PerCompanyUpgradeTags.Add(GetExpenseVendorNoSeriesUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
@@ -209,6 +211,25 @@ codeunit 6978 "Upgrade Expense Agent Setup"
             until ExpenseUser.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetMigrateExpenseUserUnlimitedApprovalTag());
+    end;
+
+    internal procedure UpgradeExpenseVendorNoSeries()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetExpenseVendorNoSeriesUpgradeTag()) then
+            exit;
+
+        if ExpenseAgentSetup.Get() then
+            ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
+
+        UpgradeTag.SetUpgradeTag(GetExpenseVendorNoSeriesUpgradeTag());
+    end;
+
+    internal procedure GetExpenseVendorNoSeriesUpgradeTag(): Code[250]
+    begin
+        exit('MS-658051-ExpenseVendorNoSeries-20261105');
     end;
 
     local procedure GetRemoveLegacyPrivacyNoticeUpgradeTag(): Code[250]

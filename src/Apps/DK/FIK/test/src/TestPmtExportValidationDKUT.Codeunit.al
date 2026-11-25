@@ -923,6 +923,7 @@ codeunit 148027 "TestPmtExport Validation DK UT"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure GenJnlLineTransferCurrencyIsNotSupported();
     var
         Currency: Record Currency;
@@ -952,6 +953,9 @@ codeunit 148027 "TestPmtExport Validation DK UT"
         GenJnlLine.MODIFY(TRUE);
 
         // Exercise
+        COMMIT();
+        GenJnlLine.SETRANGE("Journal Template Name", GenJnlLine."Journal Template Name");
+        GenJnlLine.SETRANGE("Journal Batch Name", GenJnlLine."Journal Batch Name");
         ASSERTERROR CODEUNIT.RUN(CODEUNIT::"Exp. Flat File Validation", GenJnlLine);
 
         // Pre-Verify
@@ -965,6 +969,7 @@ codeunit 148027 "TestPmtExport Validation DK UT"
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
     procedure GenJnlLineCustRefund();
     var
         GenJnlBatch: Record "Gen. Journal Batch";
@@ -990,6 +995,9 @@ codeunit 148027 "TestPmtExport Validation DK UT"
         PaymentTypeValidation := FORMAT(PaymentMethod.PaymentTypeValidation);
 
         // Exercise
+        Commit();
+        GenJnlLine.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
+        GenJnlLine.SetRange("Journal Batch Name", GenJnlLine."Journal Batch Name");
         ASSERTERROR CODEUNIT.RUN(CODEUNIT::"Exp. Flat File Validation", GenJnlLine);
 
         // Verify

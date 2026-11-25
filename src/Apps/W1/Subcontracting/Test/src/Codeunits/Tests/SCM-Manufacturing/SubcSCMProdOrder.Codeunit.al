@@ -881,6 +881,82 @@ codeunit 139997 "Subc SCM Prod. Order"
         ProdOrderLine.OpenItemTrackingLines();
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UndoIntermediateThenLastSubcontractingOperationOnSameReceipt()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        FirstOperationNo: Code[10];
+        LastOperationNo: Code[10];
+        ReceiptNo: Code[20];
+    begin
+        // [SCENARIO 653934] Undo the last subcontracting operation after an earlier operation on the same receipt was undone
+        Initialize();
+
+        // [GIVEN] Serial routing with subcontracted operations "O1" and "O2" for the same vendor, both received on one receipt "R"
+        ReceiptNo := ReceiveTwoSubcontractingOperationsOnOneReceipt(Item, ProductionOrder, FirstOperationNo, LastOperationNo);
+
+        // [GIVEN] Receipt line for "O1" is undone
+        UndoSubcontractingReceiptLine(ReceiptNo, FirstOperationNo);
+
+        // [WHEN] Undo receipt line for "O2"
+        UndoSubcontractingReceiptLine(ReceiptNo, LastOperationNo);
+
+        // [THEN] Capacity of each operation and the finished output are reversed exactly once
+        VerifyTwoSubcontractingOperationsUndone(Item."No.", ProductionOrder, ReceiptNo, FirstOperationNo, LastOperationNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UndoLastThenIntermediateSubcontractingOperationOnSameReceipt()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        FirstOperationNo: Code[10];
+        LastOperationNo: Code[10];
+        ReceiptNo: Code[20];
+    begin
+        // [SCENARIO 653934] Undo an earlier subcontracting operation after the last operation on the same receipt was undone
+        Initialize();
+
+        // [GIVEN] Serial routing with subcontracted operations "O1" and "O2" for the same vendor, both received on one receipt "R"
+        ReceiptNo := ReceiveTwoSubcontractingOperationsOnOneReceipt(Item, ProductionOrder, FirstOperationNo, LastOperationNo);
+
+        // [GIVEN] Receipt line for "O2" is undone
+        UndoSubcontractingReceiptLine(ReceiptNo, LastOperationNo);
+
+        // [WHEN] Undo receipt line for "O1"
+        UndoSubcontractingReceiptLine(ReceiptNo, FirstOperationNo);
+
+        // [THEN] Capacity of each operation and the finished output are reversed exactly once
+        VerifyTwoSubcontractingOperationsUndone(Item."No.", ProductionOrder, ReceiptNo, FirstOperationNo, LastOperationNo);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UndoAllSubcontractingOperationsOnSameReceiptAtOnce()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        FirstOperationNo: Code[10];
+        LastOperationNo: Code[10];
+        ReceiptNo: Code[20];
+    begin
+        // [SCENARIO 653934] Undo all subcontracting operation lines of one receipt in a single action
+        Initialize();
+
+        // [GIVEN] Serial routing with subcontracted operations "O1" and "O2" for the same vendor, both received on one receipt "R"
+        ReceiptNo := ReceiveTwoSubcontractingOperationsOnOneReceipt(Item, ProductionOrder, FirstOperationNo, LastOperationNo);
+
+        // [WHEN] Undo both receipt lines of "R" together
+        PurchRcptLine.SetRange("Document No.", ReceiptNo);
+        LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
+
+        // [THEN] Capacity of each operation and the finished output are reversed exactly once
+        VerifyTwoSubcontractingOperationsUndone(Item."No.", ProductionOrder, ReceiptNo, FirstOperationNo, LastOperationNo);
+    end;
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Subc SCM Prod. Order");
@@ -1491,6 +1567,113 @@ codeunit 139997 "Subc SCM Prod. Order"
         CapacityLedgerEntry.TestField("Invoiced Quantity", 0);
     end;
 
+    local procedure ReceiveTwoSubcontractingOperationsOnOneReceipt(var Item: Record Item; var ProductionOrder: Record "Production Order"; var FirstOperationNo: Code[10]; var LastOperationNo: Code[10]): Code[20]
+    var
+        FirstWorkCenter: Record "Work Center";
+        LastWorkCenter: Record "Work Center";
+        WorkCenter: Record "Work Center";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        RequisitionLine: Record "Requisition Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemLineCount: Integer;
+    begin
+        CreateItem(Item);
+        CreateWorkCenter(FirstWorkCenter, true);
+        CreateWorkCenter(LastWorkCenter, false);
+        LastWorkCenter.Validate("Subcontractor No.", FirstWorkCenter."Subcontractor No.");
+        LastWorkCenter.Modify(true);
+
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        CreateRoutingLine(RoutingLine, RoutingHeader, FirstWorkCenter."No.");
+        FirstOperationNo := RoutingLine."Operation No.";
+        CreateRoutingLine(RoutingLine, RoutingHeader, LastWorkCenter."No.");
+        LastOperationNo := RoutingLine."Operation No.";
+        LibraryManufacturing.UpdateRoutingStatus(RoutingHeader, RoutingHeader.Status::Certified);
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Modify(true);
+
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", 10, '', '');
+
+        WorkCenter.SetFilter("No.", '%1|%2', FirstWorkCenter."No.", LastWorkCenter."No.");
+        SubcManagementLibrary.CalculateSubcontractOrder(WorkCenter);
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", Item."No.");
+        Assert.RecordCount(RequisitionLine, 2);
+        RequisitionLine.FindSet();
+        repeat
+            RequisitionLine.Validate("Accept Action Message", true);
+            RequisitionLine.Modify(true);
+        until RequisitionLine.Next() = 0;
+        LibraryPlanning.CarryOutAMSubcontractWksh(RequisitionLine);
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseLine.SetRange("Document No.", PurchaseLine."Document No.");
+        Assert.RecordCount(PurchaseLine, 2);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+
+        PurchRcptLine.SetRange("Document No.", PurchaseHeader."Last Receiving No.");
+        PurchRcptLine.FindSet();
+        repeat
+            if PurchRcptLine.Type = PurchRcptLine.Type::Item then
+                ItemLineCount += 1;
+        until PurchRcptLine.Next() = 0;
+        Assert.AreEqual(2, ItemLineCount, 'Both subcontracting operations must be received on one receipt.');
+        exit(PurchaseHeader."Last Receiving No.");
+    end;
+
+    local procedure UndoSubcontractingReceiptLine(ReceiptNo: Code[20]; OperationNo: Code[10])
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        LineNo: Integer;
+    begin
+        // AL evaluates both operands of OR, so Next() still runs after a match; keep the matched line number.
+        PurchRcptLine.SetRange("Document No.", ReceiptNo);
+        PurchRcptLine.FindSet();
+        repeat
+            if (PurchRcptLine.Type = PurchRcptLine.Type::Item) and (PurchRcptLine.Quantity > 0) and
+               (not PurchRcptLine.Correction) and (PurchRcptLine."Operation No." = OperationNo)
+            then
+                LineNo := PurchRcptLine."Line No.";
+        until (LineNo <> 0) or (PurchRcptLine.Next() = 0);
+        Assert.AreNotEqual(0, LineNo, 'Original receipt line for the operation was not found.');
+        PurchRcptLine.SetRange("Line No.", LineNo);
+        LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
+    end;
+
+    local procedure VerifyTwoSubcontractingOperationsUndone(ItemNo: Code[20]; ProductionOrder: Record "Production Order"; ReceiptNo: Code[20]; FirstOperationNo: Code[10]; LastOperationNo: Code[10])
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        VerifyReleasedProdOrderLine(ItemNo, ProductionOrder.Quantity, 0);
+        VerifyOutputItemLedgerEntryAfterUndo(ItemNo, 0);
+
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetFilter(Quantity, '<0');
+        Assert.RecordCount(ItemLedgerEntry, 1);
+
+        VerifySubcontractingOperationCapacityReversed(ReceiptNo, FirstOperationNo);
+        VerifySubcontractingOperationCapacityReversed(ReceiptNo, LastOperationNo);
+    end;
+
+    local procedure VerifySubcontractingOperationCapacityReversed(ReceiptNo: Code[20]; OperationNo: Code[10])
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        CapacityLedgerEntry.SetRange("Document No.", ReceiptNo);
+        CapacityLedgerEntry.SetRange("Operation No.", OperationNo);
+        Assert.RecordCount(CapacityLedgerEntry, 2);
+        CapacityLedgerEntry.CalcSums(Quantity, "Output Quantity");
+        CapacityLedgerEntry.TestField(Quantity, 0);
+        CapacityLedgerEntry.TestField("Output Quantity", 0);
+    end;
     // Handler procedures
 
     [ModalPageHandler]

@@ -90,6 +90,8 @@ report 12135 "Fiscal Inventory Valuation"
             trigger OnAfterGetRecord()
             begin
                 InvValMethod := '';
+                UnitCost := 0;
+                InvValue := 0;
                 CalcFields("Net Change");
                 if ItemCostHistory.Get("No.", CompetenceDate) then begin
                     case CostType of
