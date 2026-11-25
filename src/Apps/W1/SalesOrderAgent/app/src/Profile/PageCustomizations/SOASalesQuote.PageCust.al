@@ -95,10 +95,6 @@ pagecustomization "SOA Sales Quote" customizes "Sales Quote"
         {
             Visible = true;
         }
-        modify("Salesperson Code")
-        {
-            Visible = true;
-        }
         modify("Order Date")
         {
             Visible = true;

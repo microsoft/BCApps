@@ -268,7 +268,6 @@ codeunit 4587 "SOA Impl"
     internal procedure EnsureBusinessIQPrivacyNoticeApproval()
     var
         PrivacyNoticeStatus: Record "Privacy Notice";
-        PrivacyNotice: Codeunit "Privacy Notice";
         AIServiceName: Interface "AI Service Name";
         EmptyGuid: Guid;
         PrivacyApprovalRequiredErr: Label 'An administrator must approve Azure OpenAI for everyone in Privacy Notices Status before using Sales Order Agent with Business Skills.';
@@ -280,9 +279,6 @@ codeunit 4587 "SOA Impl"
             if PrivacyNoticeStatus.Enabled then
                 exit;
 
-        if not PrivacyNotice.CanCurrentUserApproveForOrganization() then
-            Error(PrivacyApprovalRequiredErr);
-
-        PrivacyNotice.SetApprovalState(AIServiceName.GetServiceId(), Enum::"Privacy Notice Approval State"::Agreed);
+        Error(PrivacyApprovalRequiredErr);
     end;
 }

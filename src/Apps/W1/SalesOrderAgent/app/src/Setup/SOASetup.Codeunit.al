@@ -74,12 +74,14 @@ codeunit 4400 "SOA Setup"
         TempSOASetup."User Security ID" := AgentSetup.SaveChanges(AgentSetupBuffer);
         AgentFeatureMgt.SetBusinessIQEnabled(TempSOASetup."User Security ID", TempSOASetup."Use Business IQ");
         UpdateInstructions(TempSOASetup);
+
         if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
             if TempSOASetup."Email Monitoring" then
                 UpdateSyncDateTime(TempSOASetup, true);
             UpdateSOASetupActivationDT(TempSOASetup);
         end;
         UpdateSOASetup(TempSOASetup);
+
         if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
             EnableItemSearch();
             if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") then
@@ -172,6 +174,7 @@ codeunit 4400 "SOA Setup"
     begin
         if not SOASetup.FindSet() then
             exit(0);
+
         repeat
             if not IsAgentArchived(SOASetup."User Security ID") then
                 NonArchivedCount += 1;
@@ -185,6 +188,7 @@ codeunit 4400 "SOA Setup"
     begin
         if not SOASetup.FindSet() then
             exit(false);
+
         repeat
             if not IsAgentArchived(SOASetup."User Security ID") then
                 exit(true);
@@ -227,6 +231,7 @@ codeunit 4400 "SOA Setup"
     begin
         if IsNullGuid(AgentUserSecurityID) then
             exit(false);
+
         if not AgentRec.ReadPermission() then
             exit(true);
 
@@ -250,6 +255,7 @@ codeunit 4400 "SOA Setup"
     begin
         if IsNullGuid(AgentUserSecurityID) then
             exit(false);
+
         if not AgentRec.ReadPermission() then
             exit(true);
 
@@ -299,6 +305,7 @@ codeunit 4400 "SOA Setup"
             SOAImpl.EnsureBusinessIQPrivacyNoticeApproval();
 
         EnsureAgentIdentityDefaults(TempSOASetup);
+
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
             CreateAgent(AgentSetupBuffer, TempSOASetup)
         else begin
@@ -323,6 +330,7 @@ codeunit 4400 "SOA Setup"
                 else
                     if TempSOASetup."Use Business IQ" then
                         SOAInstructions.UpdateBusinessSkills();
+
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
                 EnableItemSearch();
                 if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") and Schedule then
@@ -350,6 +358,7 @@ codeunit 4400 "SOA Setup"
         AgentUserSecurityID := TempSOASetup."User Security ID";
         if IsNullGuid(AgentUserSecurityID) then
             AgentUserSecurityID := AgentSetupBuffer."User Security ID";
+
         if IsNullGuid(AgentUserSecurityID) then
             exit;
 
@@ -455,6 +464,7 @@ codeunit 4400 "SOA Setup"
         else
             TelemetryCustomDimension.Add('HasEmailAccountId', 'false');
         TelemetryCustomDimension.Add('EmailConnector', Format(TempSOASetup."Email Connector"));
+
         if (AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled) then
             FeatureTelemetry.LogUptake('0000QB5', GetFeatureName(), Enum::"Feature Uptake Status"::"Set up", TelemetryCustomDimension)
         else
@@ -519,8 +529,10 @@ codeunit 4400 "SOA Setup"
         CurrentSOASetup.ReadIsolation := IsolationLevel::ReadCommitted;
         if not CurrentSOASetup.Get(SOASetup.RecordId) then
             exit(true);
+
         if CurrentSOASetup."Instructions Last Sync At" = 0DT then
             exit(true);
+
         if CurrentDateTime > CurrentSOASetup."Instructions Last Sync At" + GetSOAInstructionsSyncPeriod() then //last sync was more than 30 minutes ago
             exit(true);
 
@@ -592,6 +604,7 @@ codeunit 4400 "SOA Setup"
             SetSOASetupDefaults(TempSOASetup, AgentUserSecurityID);
             exit;
         end;
+
         if IsNullGuid(TempSOASetup."User Security ID") then begin
             SOASetup.SetRange("User Security ID", AgentUserSecurityID);
             if SOASetup.FindFirst() then begin
@@ -605,6 +618,7 @@ codeunit 4400 "SOA Setup"
             SetSOASetupDefaults(TempSOASetup, AgentUserSecurityID);
             exit;
         end;
+
         if SOASetup.GetBasedOnAgentUserSecurityID(TempSOASetup."User Security ID", false) then begin
             SOASetup.CalcFields("Email Template");
             TempSOASetup := SOASetup;
@@ -623,8 +637,10 @@ codeunit 4400 "SOA Setup"
         CurrentSOASetup.SetAutoCalcFields(State);
         if not CurrentSOASetup.Get(SOASetup.RecordId) then
             exit(false);
+
         if not (CurrentSOASetup.State = CurrentSOASetup.State::Enabled) then
             exit(false);
+
         if SOASetup."Email Account ID" <> CurrentSOASetup."Email Account ID" then
             exit(false);
         if SOASetup."Use Business IQ" <> CurrentSOASetup."Use Business IQ" then
@@ -643,6 +659,7 @@ codeunit 4400 "SOA Setup"
     begin
         if SOASetup."Agent Name" = '' then
             Error(AgentNameRequiredErr);
+
         if SOASetup."Agent Initials" = '' then
             Error(AgentInitialsRequiredErr);
 
@@ -668,6 +685,7 @@ codeunit 4400 "SOA Setup"
         OtherSOASetup.SetRange("Email Account ID", SOASetup."Email Account ID");
         OtherSOASetup.SetRange("Email Connector", SOASetup."Email Connector");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
+
         if SOASetup."Email Folder Id" = '' then begin
             OtherSOASetup.SetRange("Email Folder Id", '');
             if FindFirstNonArchivedSetup(OtherSOASetup) then
@@ -703,6 +721,7 @@ codeunit 4400 "SOA Setup"
     internal procedure GetAgentTaskUserInterventionSuggestions(AgentTaskUserInterventionRequestDetails: Record "Agent User Int Request Details"; var AgentTaskUserInterventionSuggestion: Record "Agent Task User Int Suggestion")
     begin
         Clear(AgentTaskUserInterventionSuggestion);
+
         case AgentTaskUserInterventionRequestDetails.Type of
             AgentTaskUserInterventionRequestDetails.Type::ReviewMessage:
                 begin
@@ -714,6 +733,7 @@ codeunit 4400 "SOA Setup"
                         AgentTaskUserInterventionSuggestion.Instructions := StrSubstNo(SOAInterventionSuggestionInstructionsLbl, SOAInterventionSuggestionQuoteLockedLbl);
                         AgentTaskUserInterventionSuggestion.Insert();
                     end;
+
                     if (AgentTaskUserInterventionRequestDetails."Page ID" = Page::"Sales Order") then begin
                         AgentTaskUserInterventionSuggestion.Init();
                         AgentTaskUserInterventionSuggestion.Code := GetUpdatedOrderInterventionSuggestionCode();
@@ -733,6 +753,7 @@ codeunit 4400 "SOA Setup"
                         AgentTaskUserInterventionSuggestion.Instructions := SOAItemAvailabilityInterventionSuggestionInstructionsLbl;
                         AgentTaskUserInterventionSuggestion.Insert();
                     end;
+
                     if AgentTaskUserInterventionRequestDetails."Page ID" = Page::"Customer List" then begin
                         AgentTaskUserInterventionSuggestion.Init();
                         AgentTaskUserInterventionSuggestion.Code := SOACustomerInterventionSuggestionCodeLbl;
@@ -748,6 +769,7 @@ codeunit 4400 "SOA Setup"
                         AgentTaskUserInterventionSuggestion.Instructions := SOAContactInterventionSuggestionInstructionsLbl;
                         AgentTaskUserInterventionSuggestion.Insert();
                     end;
+
                     if AgentTaskUserInterventionRequestDetails."Page ID" = Page::"Contact List" then begin
                         AgentTaskUserInterventionSuggestion.Init();
                         AgentTaskUserInterventionSuggestion.Code := SOAContactInterventionSuggestionCodeLbl;
@@ -778,6 +800,7 @@ codeunit 4400 "SOA Setup"
         FormatRegion: Text[80];
     begin
         Clear(AgentTaskPageContext);
+
         case AgentTaskPageContextRequest."Page ID" of
             Page::"Sales Quote",
             Page::"Sales Order":
@@ -811,6 +834,7 @@ codeunit 4400 "SOA Setup"
             if LanguageSelection.FindFirst() then
                 FormatID := LanguageSelection."Language ID";
         end;
+
         if CurrencyCode <> '' then begin
             if Currency.Get(CurrencyCode) then
                 SetAgentTaskPageContext(Currency.Code, Currency.GetCurrencySymbol(), LanguageID, FormatID, AgentTaskPageContext)
@@ -831,6 +855,7 @@ codeunit 4400 "SOA Setup"
         ContactFilter: Text;
     begin
         ContactFilter := SOAFiltersImpl.GetSecurityFiltersForContacts(AgentTaskID);
+
         if ContactFilter <> '' then begin
             CustomerFilter := SOAFiltersImpl.GetSecurityFiltersForCustomers(ContactFilter);
             TaskContact.SetFilter("No.", ContactFilter);
@@ -839,6 +864,7 @@ codeunit 4400 "SOA Setup"
                 FormatRegion := TaskContact."Format Region";
             end;
         end;
+
         if (CustomerFilter <> '') and (CustomerFilter <> SOAFiltersImpl.GetExcludeAllFilter()) then begin
             TaskCustomer.SetFilter("No.", CustomerFilter);
             if TaskCustomer.FindFirst() then begin
@@ -914,6 +940,7 @@ codeunit 4400 "SOA Setup"
     begin
         if TempSOASetup."Agent Name" = '' then
             TempSOASetup."Agent Name" := GetDefaultSOAAgentName();
+
         if TempSOASetup."Agent Initials" = '' then
             TempSOASetup."Agent Initials" := GetDefaultSOAInitials();
     end;
@@ -957,6 +984,7 @@ codeunit 4400 "SOA Setup"
         CandidateIndex := FirstAvailableNameIndex;
         if FirstAvailableInitialsIndex > CandidateIndex then
             CandidateIndex := FirstAvailableInitialsIndex;
+
         while CandidateIndex <= MaxAgentIdentitySuffix() do begin
             if not AgentNameExists(BuildSOAAgentName(CandidateIndex)) and
                not InitialsExists(BuildSOAAgentInitials(CandidateIndex))
@@ -1012,6 +1040,7 @@ codeunit 4400 "SOA Setup"
             Suffix := ' ' + Format(Index);
 
         MaxBaseLength := 50 - StrLen(Suffix);
+
         if MaxBaseLength < 1 then
             MaxBaseLength := 1;
 
@@ -1070,8 +1099,10 @@ codeunit 4400 "SOA Setup"
         if TempSOASetup."Email Monitoring" and not IsNullGuid(TempSOASetup."Email Account ID") then begin
             if StateChanged or MailboxChanged then
                 UpdateSyncDateTime(TempSOASetup, IsFirstActivation);
+
             if ValidateEmailConnectionStatus(TempSOASetup) then
                 exit;
+
             if GuiAllowed() then begin
                 GeneralError := true;
                 if EnvironmentInformation.IsSandbox() then begin
@@ -1084,6 +1115,7 @@ codeunit 4400 "SOA Setup"
                             Error(SOAAttemptedConnectionHttpRequestFailedErr);
                         end;
                 end;
+
                 if GeneralError then
                     Error(SOAAttemptedConnectionFailedErr);
             end;
@@ -1100,15 +1132,18 @@ codeunit 4400 "SOA Setup"
             exit;
 
         EmailsCount := GetEmailsCount(TempSOASetup);
+
         if EmailsCount = 0 then begin
             TempSOASetup."Earliest Sync At" := CurrentDateTime();
             TempSOASetup."Last Sync At" := TempSOASetup."Earliest Sync At";
             exit;
         end;
+
         if EmailsCount < SOAEmailSetup.GetMaxNoOfEmails() then
             ConfirmMessage := StrSubstNo(NewEmailsSinceDeactivationLbl, Format(EmailsCount), Format(TempSOASetup."Last Sync At"))
         else
             ConfirmMessage := StrSubstNo(NewEmailsSinceDeactivationLbl, Format(EmailsCount) + '+', Format(TempSOASetup."Last Sync At"));
+
         if Confirm(ConfirmMessage, true) then
             TempSOASetup."Earliest Sync At" := TempSOASetup."Activated At"
         else

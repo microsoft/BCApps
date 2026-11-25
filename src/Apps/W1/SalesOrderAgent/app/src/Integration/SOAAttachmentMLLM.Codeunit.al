@@ -60,6 +60,7 @@ codeunit 4421 "SOA Attachment MLLM"
             CanonicalContent := ExistingContent;
             exit(true);
         end;
+
         if not TryExtractAttachmentContent(AgentTaskMessageAttachment, CanonicalContent, FailureReason) then begin
             // Never propagate raw runtime error text. It can contain attachment or record data, and the reason is written to telemetry.
             if FailureReason = '' then
@@ -136,7 +137,7 @@ codeunit 4421 "SOA Attachment MLLM"
         end;
         Prompt := SecretText.SecretStrSubstNo(PromptTemplate, SecurityPrompt);
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT55ChatPreview());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresPreview());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Sales Order Agent");
 
         AOAIChatCompletionParams.SetTemperature(0);
@@ -170,10 +171,12 @@ codeunit 4421 "SOA Attachment MLLM"
             FailureReason := ExtractionResponseEmptyErr;
             Error(ExtractionResponseEmptyErr);
         end;
+
         if not ResponseJson.ReadFrom(ExtractedContent) then begin
             FailureReason := ExtractionResponseInvalidJsonErr;
             Error(ExtractionResponseInvalidJsonErr);
         end;
+
         if ResponseJson.Get('content', ContentToken) and ContentToken.IsValue() and not ContentToken.AsValue().IsNull() then begin
             ExtractedContent := ContentToken.AsValue().AsText();
             Clear(ResponseJson);
@@ -182,6 +185,7 @@ codeunit 4421 "SOA Attachment MLLM"
                 Error(ExtractionResponseInvalidJsonErr);
             end;
         end;
+
         if not HasExpectedSchema(ResponseJson) then begin
             FailureReason := ExtractionResponseInvalidSchemaErr;
             Error(ExtractionResponseInvalidSchemaErr);

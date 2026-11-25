@@ -39,7 +39,6 @@ permissionset 4405 "SOA - Edit"
                              "D365 CUSTOMER, VIEW",
                              "D365 ITEM, VIEW",
                              "D365 ITEM AVAIL CALC",
-                             "D365 PURCH DOC, EDIT",
                              "D365 SALES DOC, EDIT",
                              "D365 SALES DOC, POST",
                              "LOCAL",
