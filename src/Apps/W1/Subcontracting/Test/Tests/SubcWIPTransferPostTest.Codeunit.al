@@ -858,7 +858,6 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         Vendor: Record Vendor;
         WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
         WorkCenter: Record "Work Center";
-        LibraryPurchase: Codeunit "Library - Purchase";
         Index: Integer;
     begin
         // [GIVEN] Two distinct subcontracting operations on the same production routing
