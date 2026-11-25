@@ -123,6 +123,7 @@ table 7431 "EA Corp Card Settlement Line"
     trigger OnInsert()
     begin
         CheckSettlementOpen();
+        TestField("Statement Entry No.");
         CheckStatementForSave(0);
     end;
 
@@ -158,12 +159,12 @@ table 7431 "EA Corp Card Settlement Line"
     var
         CorpCardStatement: Record "EA Corp Card Statement";
     begin
-        TestField("Statement Entry No.");
         CorpCardStatement.ReadIsolation := IsolationLevel::UpdLock;
         // Every membership writer locks the existing statement, even when no line exists yet.
         if (PreviousStatementEntryNo <> 0) and (PreviousStatementEntryNo < "Statement Entry No.") then
             CorpCardStatement.Get(PreviousStatementEntryNo);
-        CorpCardStatement.Get("Statement Entry No.");
+        if "Statement Entry No." <> 0 then
+            CorpCardStatement.Get("Statement Entry No.");
         if PreviousStatementEntryNo > "Statement Entry No." then
             CorpCardStatement.Get(PreviousStatementEntryNo);
     end;

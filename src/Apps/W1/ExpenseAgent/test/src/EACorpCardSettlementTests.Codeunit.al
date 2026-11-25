@@ -95,7 +95,7 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardTrans."Amount (LCY)" := 14.7225;
         CorpCardTrans.Modify(true);
 
-        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', 'SETTLEMENT-LCY', '', 14.72);
+        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', GenerateSettlementNo(), '', 14.72);
         AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
 
         CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
@@ -169,7 +169,7 @@ codeunit 148360 EACorpCardSettlementTests
 
         // [GIVEN] Two settlement lines were validated for the same statement before the first line was saved.
         CreateSettlement(FirstSettlement, 2000);
-        CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
+        CreateSettlement(SecondSettlement, 2000);
         CreateStatement(CorpCardStatement, 'STMT-CLAIM', 2000, CorpCardStatement.Status::Validated);
         FirstLine."Settlement Entry No." := FirstSettlement."Settlement Entry No.";
         FirstLine."Line No." := 10000;
@@ -201,6 +201,77 @@ codeunit 148360 EACorpCardSettlementTests
     end;
 
     [Test]
+    procedure ClearingSettlementLineReleasesStatement()
+    var
+        FirstSettlement: Record "EA Corp Card Settlement";
+        SecondSettlement: Record "EA Corp Card Settlement";
+        SettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        Initialize();
+        CreateSettlement(FirstSettlement, 2000);
+        CreateSettlement(SecondSettlement, 2000);
+        CreateStatement(CorpCardStatement, 'STMT-CLEAR', 2000, CorpCardStatement.Status::Validated);
+        AddStatement(FirstSettlement, CorpCardStatement, 10000);
+        SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
+
+        SettlementLine.Validate("Statement Entry No.", 0);
+        SettlementLine.Modify(true);
+
+        SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
+        Assert.AreEqual(0, SettlementLine."Statement Entry No.", 'Clearing the statement must be persisted.');
+        Assert.AreEqual('', SettlementLine."Statement No.", 'Clearing the statement must clear its number snapshot.');
+        Assert.AreEqual(0D, SettlementLine."Statement Date", 'Clearing the statement must clear its date snapshot.');
+        Assert.AreEqual('', SettlementLine."Currency Code", 'Clearing the statement must clear its currency snapshot.');
+        Assert.AreEqual(0, SettlementLine."Statement Amount", 'Clearing the statement must clear its amount snapshot.');
+        AddStatement(SecondSettlement, CorpCardStatement, 10000);
+    end;
+
+    [Test]
+    procedure ClearedSettlementLinesCanBeModifiedRenamedAndDeleted()
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        SettlementLine: Record "EA Corp Card Settlement Line";
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        Initialize();
+        CreateSettlement(CorpCardSettlement, 2000);
+        CreateStatement(CorpCardStatement, 'STMT-CLEAR-DELETE', 2000, CorpCardStatement.Status::Validated);
+        AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
+        SettlementLine.Get(CorpCardSettlement."Settlement Entry No.", 10000);
+        SettlementLine.Validate("Statement Entry No.", 0);
+        SettlementLine.Modify(true);
+
+        SettlementLine.Modify(true);
+        SettlementLine.Rename(CorpCardSettlement."Settlement Entry No.", 20000);
+        SettlementLine.Delete(true);
+        AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
+        SettlementLine.Get(CorpCardSettlement."Settlement Entry No.", 10000);
+        SettlementLine.Validate("Statement Entry No.", 0);
+        SettlementLine.Modify(true);
+        CorpCardSettlement.Delete(true);
+
+        SettlementLine.SetRange("Settlement Entry No.", CorpCardSettlement."Settlement Entry No.");
+        Assert.IsTrue(SettlementLine.IsEmpty(), 'Deleting an open settlement must remove its cleared statement lines.');
+    end;
+
+    [Test]
+    procedure NewSettlementLineRequiresStatement()
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        SettlementLine: Record "EA Corp Card Settlement Line";
+    begin
+        Initialize();
+        CreateSettlement(CorpCardSettlement, 2000);
+        SettlementLine."Settlement Entry No." := CorpCardSettlement."Settlement Entry No.";
+        SettlementLine."Line No." := 10000;
+
+        asserterror SettlementLine.Insert(true);
+
+        Assert.ExpectedError('Statement Entry No.');
+    end;
+
+    [Test]
     procedure SavingPreviouslyValidatedReassignmentRechecksOwnership()
     var
         FirstSettlement: Record "EA Corp Card Settlement";
@@ -215,7 +286,7 @@ codeunit 148360 EACorpCardSettlementTests
 
         // [GIVEN] A line's reassignment was validated before another settlement claimed the target statement.
         CreateSettlement(FirstSettlement, 2000);
-        CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
+        CreateSettlement(SecondSettlement, 2000);
         CreateStatement(FirstStatement, 'STMT-ORIGINAL', 2000, FirstStatement.Status::Validated);
         CreateStatement(SecondStatement, 'STMT-REASSIGN', 2000, SecondStatement.Status::Validated);
         AddStatement(FirstSettlement, FirstStatement, 10000);
@@ -249,7 +320,7 @@ codeunit 148360 EACorpCardSettlementTests
 
         // [GIVEN] Two settlements and a statement line belonging to the first settlement.
         CreateSettlement(FirstSettlement, 2000);
-        CorpCardTestLib.CreateSettlement(SecondSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 2000);
+        CreateSettlement(SecondSettlement, 2000);
         CreateStatement(CorpCardStatement, 'STMT-RENAME', 2000, CorpCardStatement.Status::Validated);
         AddStatement(FirstSettlement, CorpCardStatement, 10000);
         SettlementLine.Get(FirstSettlement."Settlement Entry No.", 10000);
@@ -368,7 +439,7 @@ codeunit 148360 EACorpCardSettlementTests
 
         // [GIVEN] A ready-to-post settlement whose statement also has a legacy membership in another settlement.
         CreateSettlement(CorpCardSettlement, 3000);
-        CorpCardTestLib.CreateSettlement(OtherSettlement, 'TEST', 'SETTLEMENT-002', 'USD', 3000);
+        CreateSettlement(OtherSettlement, 3000);
         CreateStatement(CorpCardStatement, 'STMT-DUP-OWNER', 3000, CorpCardStatement.Status::Validated);
         AddStatement(CorpCardSettlement, CorpCardStatement, 10000);
         CorpCardSettlementMgt.SetReadyToPost(CorpCardSettlement);
@@ -670,8 +741,6 @@ codeunit 148360 EACorpCardSettlementTests
         CorpCardStatement.Get(CorpCardStatement."Statement Entry No.");
 
         CreateSettlement(ReplacementSettlement, 3000);
-        ReplacementSettlement."Settlement No." := 'SETTLEMENT-002';
-        ReplacementSettlement.Modify(true);
         AddStatement(ReplacementSettlement, CorpCardStatement, 10000);
         CorpCardSettlementMgt.SetReadyToPost(ReplacementSettlement);
         CorpCardSettlementMgt.PostSettlement(ReplacementSettlement);
@@ -843,7 +912,18 @@ codeunit 148360 EACorpCardSettlementTests
 
     local procedure CreateSettlement(var CorpCardSettlement: Record "EA Corp Card Settlement"; SettlementAmount: Decimal)
     begin
-        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', 'SETTLEMENT-001', 'USD', SettlementAmount);
+        CorpCardTestLib.CreateSettlement(CorpCardSettlement, 'TEST', GenerateSettlementNo(), 'USD', SettlementAmount);
+    end;
+
+    local procedure GenerateSettlementNo() SettlementNo: Code[50]
+    var
+        CorpCardSettlement: Record "EA Corp Card Settlement";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        repeat
+            SettlementNo := LibraryUtility.GenerateGUID();
+            CorpCardSettlement.SetRange("Settlement No.", SettlementNo);
+        until CorpCardSettlement.IsEmpty();
     end;
 
     local procedure CreateStatement(var CorpCardStatement: Record "EA Corp Card Statement"; StatementNo: Code[50]; StatementAmount: Decimal; Status: Enum "EA Corp Card Stmt Status")
