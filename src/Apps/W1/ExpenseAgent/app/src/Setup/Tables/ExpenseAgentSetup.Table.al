@@ -16,9 +16,11 @@ using System.Security.AccessControl;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Stores the company-wide setup for expense management, such as number series, expense rules, currency handling, rounding, mileage and per diem calculation.
+/// </summary>
 table 6930 "Expense Agent Setup"
 {
-    Access = Internal;
     Extensible = false;
     ReplicateData = false;
     InherentEntitlements = RIMDX;
@@ -57,6 +59,7 @@ table 6930 "Expense Agent Setup"
         }
         field(6; "Enable Agent"; Boolean)
         {
+            Access = Internal;
             Caption = 'Enable agent';
             ToolTip = 'Specifies whether the agent is enabled to process expense submissions from email and calendar.';
 
@@ -85,6 +88,7 @@ table 6930 "Expense Agent Setup"
         }
         field(9; "If Exp. Is Older Than Allowed"; Enum "Expense Age Handling")
         {
+            Access = Internal;
             Caption = 'If expense is older than allowed';
             ToolTip = 'Specifies how the system handles expenses older than the allowed date: warn, require justification, or block submission.';
         }
@@ -143,11 +147,13 @@ table 6930 "Expense Agent Setup"
         }
         field(15; "Create Exp. Rep. Automatically"; Boolean)
         {
+            Access = Internal;
             Caption = 'Create Expense Reports Automatically';
             ToolTip = 'Specifies whether the system automatically creates expense reports according to the selected frequency.';
         }
         field(16; "When to Create Expense Reports"; Enum "Expense Report Frequency")
         {
+            Access = Internal;
             Caption = 'When To Create Expense Reports';
             ToolTip = 'Specifies how often the system automatically creates expense reports, for example daily or weekly.';
 
@@ -181,6 +187,7 @@ table 6930 "Expense Agent Setup"
         }
         field(17; "Custom Report Creation Formula"; DateFormula)
         {
+            Access = Internal;
             Caption = 'Custom Formula For Expense Report Creation';
             ToolTip = 'Specifies a custom date formula used when creating expense reports automatically.';
 
@@ -192,16 +199,19 @@ table 6930 "Expense Agent Setup"
         }
         field(18; "Communication Channel"; Enum "Expense Communication Channel")
         {
+            Access = Internal;
             Caption = 'Communication Channel';
             ToolTip = 'Specifies the communication channel used to send expense notifications.';
         }
         field(19; "System Communication Channel"; Text[100])
         {
+            Access = Internal;
             Caption = 'System Communication Channel';
             ToolTip = 'Specifies the identifier or email address used as the system communication channel.';
         }
         field(20; "Approval Reminder After"; DateFormula)
         {
+            Access = Internal;
             Caption = 'Approval Reminder After';
             ToolTip = 'Specifies how long to wait before sending approval reminders for pending expense reports.';
         }
@@ -296,6 +306,7 @@ table 6930 "Expense Agent Setup"
         }
         field(29; "Time Tolerance for Calendar"; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Time Tolerance for Calendar';
             ToolTip = 'Specifies the allowed time deviation when matching calendar events to expenses.';
@@ -307,6 +318,7 @@ table 6930 "Expense Agent Setup"
         }
         field(31; "Evaluate Policies"; Boolean)
         {
+            Access = Internal;
             Caption = 'Evaluate policies';
             DataClassification = SystemMetadata;
             InitValue = true;
@@ -322,6 +334,7 @@ table 6930 "Expense Agent Setup"
         }
         field(32; "Submitter-run Evaluation"; Boolean)
         {
+            Access = Internal;
             Caption = 'Allow submitters to evaluate policies';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether submitters can preventively run policy evaluation before submitting expense reports. This evaluation will consume additional AI credits.';
@@ -368,39 +381,55 @@ table 6930 "Expense Agent Setup"
         }
         field(42; "Only Shortest Route"; Boolean)
         {
+            Access = Internal;
             Caption = 'Only Shortest Route';
             ToolTip = 'Specifies whether only the shortest route is shown for mileage expenses. When enabled, alternative routes are not displayed on the map and only the shortest route is used for distance calculation.';
         }
+        field(43; "Partial Day Rounding Precision"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Partial Day Rounding Precision';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            ToolTip = 'Specifies the rounding precision applied to the calculated partial-day per diem amount, for example 0.01, 0.10, or 1. Amounts are rounded to the nearest increment. If the field is empty, the partial-day amount is not rounded.';
+        }
         field(52; "User Security ID"; Guid)
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
         }
         field(53; "Email Account ID"; Guid)
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
         }
         field(54; "Email Connector"; Enum "Email Connector")
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
         }
         field(60; "Email Address"; Text[250])
         {
+            Access = Internal;
             Caption = 'Email Address';
             ToolTip = 'Specifies the email address used by the agent.';
         }
         field(61; "Email Folder"; Text[2048])
         {
+            Access = Internal;
             Caption = 'Email Folder';
             ToolTip = 'Specifies the email folder the agent monitors.';
         }
         field(62; "Email Folder Id"; Text[2048])
         {
+            Access = Internal;
             Caption = 'Email Folder Id';
             ToolTip = 'Specifies the unique identifier of the email folder the agent monitors.';
             DataClassification = SystemMetadata;
         }
         field(76; "Open Report Notif. Freq."; Enum "Expense Report Frequency")
         {
+            Access = Internal;
             Caption = 'Open Report Notification Frequency';
             ToolTip = 'Specifies how often the system should send notifications for open expense reports (Daily, Weekly, etc.).';
             InitValue = Daily;
@@ -436,6 +465,7 @@ table 6930 "Expense Agent Setup"
         }
         field(80; "Enable Approval Workflow"; Boolean)
         {
+            Access = Internal;
             Caption = 'Use traditional approval workflow';
             ToolTip = 'Specifies whether expense reports use the traditional approval workflow instead of the Expense Agent approval experience.';
 
@@ -449,6 +479,7 @@ table 6930 "Expense Agent Setup"
         }
         field(81; "Day of Week"; Enum "Day of Week")
         {
+            Access = Internal;
             Caption = 'Day of Week';
             ToolTip = 'Specifies the day of the week used when expense reports are created weekly.';
 
@@ -461,6 +492,7 @@ table 6930 "Expense Agent Setup"
         }
         field(82; "Day In A Month"; Integer)
         {
+            Access = Internal;
             Caption = 'Day In A Month';
             ToolTip = 'Specifies the day of the month used when expense reports are created monthly.';
 
@@ -476,16 +508,19 @@ table 6930 "Expense Agent Setup"
         }
         field(83; "Expense Report Grouping"; Enum "Expense Reports Grouping")
         {
+            Access = Internal;
             Caption = 'Expense Report Grouping';
             ToolTip = 'Specifies how expense reports are grouped when they are created automatically.';
         }
         field(84; "Enable Open Report Notif."; Boolean)
         {
+            Access = Internal;
             Caption = 'Enable Open Report Notifications';
             ToolTip = 'Specifies whether the system sends periodic notifications for open expense reports. Notifications are only sent when a mailbox is configured.';
         }
         field(85; "Notif. Day of Week"; Enum "Day of Week")
         {
+            Access = Internal;
             Caption = 'Notification Day of Week';
             ToolTip = 'Specifies the day of the week for weekly open report notifications.';
 
@@ -498,6 +533,7 @@ table 6930 "Expense Agent Setup"
         }
         field(86; "Notif. Day In A Month"; Integer)
         {
+            Access = Internal;
             Caption = 'Notification Day In A Month';
             ToolTip = 'Specifies the day of the month for monthly open report notifications.';
 
@@ -513,6 +549,7 @@ table 6930 "Expense Agent Setup"
         }
         field(87; "Custom Notif. Formula"; DateFormula)
         {
+            Access = Internal;
             Caption = 'Custom Notification Formula';
             ToolTip = 'Specifies a custom date formula to use for open report notification scheduling.';
 
@@ -525,12 +562,14 @@ table 6930 "Expense Agent Setup"
         }
         field(88; "Enable Approval Notif."; Boolean)
         {
+            Access = Internal;
             Caption = 'Notify users about approval updates';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the system sends email notifications when expense reports are submitted, approved, or rejected. Notifications are only sent when an email account is configured.';
         }
         field(89; "Enable Email with Receipts"; Boolean)
         {
+            Access = Internal;
             Caption = 'Process incoming emails with receipts';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the agent reads its mailbox and processes incoming emails containing expense receipts. Receipts are only processed when a mailbox is configured.';
@@ -579,16 +618,19 @@ table 6930 "Expense Agent Setup"
         }
         field(96; "Noreply Email Account ID"; Guid)
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
             Caption = 'Noreply Email Account ID';
         }
         field(97; "Noreply Email Connector"; Enum "Email Connector")
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
             Caption = 'Noreply Email Connector';
         }
         field(98; "Noreply Email Address"; Text[250])
         {
+            Access = Internal;
             Caption = 'Noreply Email Address';
             ToolTip = 'Specifies the noreply email address used for outgoing messages. If empty, the main email account is used.';
             DataClassification = SystemMetadata;
@@ -679,21 +721,25 @@ table 6930 "Expense Agent Setup"
         }
         field(106; "Allow No Receipt"; Boolean)
         {
+            Access = Internal;
             Caption = 'Allow No Receipt';
             ToolTip = 'Specifies whether users can replace a missing original receipt with a system-generated no receipt declaration.';
         }
         field(120; "Enable Project Fields"; Boolean)
         {
+            Access = Internal;
             Caption = 'Enable project fields';
             ToolTip = 'Specifies whether project and project task fields are visible in the expense web app for submitters.';
         }
         field(121; "Project Visibility"; Enum "Expense Project Visibility")
         {
+            Access = Internal;
             Caption = 'Project visibility';
             ToolTip = 'Specifies which projects are visible to submitters: only projects assigned to the user, or all active projects.';
         }
         field(122; "Enable Communication"; Boolean)
         {
+            Access = Internal;
             Caption = 'Send emails to users';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the agent sends outgoing emails to users: welcome emails, reimbursement notifications, approval updates, and unsubmitted-report reminders. Turn this off to stop all outgoing emails. Incoming receipt processing is controlled separately.';
@@ -708,12 +754,14 @@ table 6930 "Expense Agent Setup"
         }
         field(123; "Corp Card Create Mode"; Enum "EA Corp Card Create Mode")
         {
+            Access = Internal;
             Caption = 'Corp Card Create Mode';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies how expense entries are created from imported corporate card transactions.';
         }
         field(124; "Corp Card Date Match Window"; Integer)
         {
+            Access = Internal;
             Caption = 'Corp Card Date Match Window (Days)';
             DataClassification = SystemMetadata;
             MinValue = 0;
@@ -721,6 +769,7 @@ table 6930 "Expense Agent Setup"
         }
         field(125; "Corp Card Amount Tolerance"; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Corp Card Amount Tolerance';
             DataClassification = SystemMetadata;
@@ -729,12 +778,14 @@ table 6930 "Expense Agent Setup"
         }
         field(126; "Corp Card Auto Create Draft"; Boolean)
         {
+            Access = Internal;
             Caption = 'Corp Card Auto Create Draft';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether draft expenses are automatically created when imported corporate card transactions are not matched.';
         }
         field(127; "Corp Card Default Provider"; Code[20])
         {
+            Access = Internal;
             Caption = 'Corp Card Default Provider';
             DataClassification = SystemMetadata;
             TableRelation = "EA Corp Card Provider".Code;
@@ -742,12 +793,14 @@ table 6930 "Expense Agent Setup"
         }
         field(128; "Require Corporate Card"; Boolean)
         {
+            Access = Internal;
             Caption = 'Require Corporate Card';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether a corporate card must be selected for credit-card expenses before release or posting. This also applies to existing unposted expenses and expense reports.';
         }
         field(150; "Use Canary Endpoint"; Boolean)
         {
+            Access = Internal;
             Caption = 'Canary';
             DataClassification = SystemMetadata;
             Editable = false;
