@@ -675,12 +675,19 @@ codeunit 6941 "EA Http Client"
         StartPos: Integer;
         EndPos: Integer;
     begin
+        // AL evaluates both operands of 'and', so bounds are checked before indexing.
         StartPos := 1;
         EndPos := StrLen(Value);
-        while (StartPos <= EndPos) and IsAsciiWhitespace(Value[StartPos]) do
+        while StartPos <= EndPos do begin
+            if not IsAsciiWhitespace(Value[StartPos]) then
+                break;
             StartPos += 1;
-        while (EndPos >= StartPos) and IsAsciiWhitespace(Value[EndPos]) do
+        end;
+        while EndPos >= StartPos do begin
+            if not IsAsciiWhitespace(Value[EndPos]) then
+                break;
             EndPos -= 1;
+        end;
         if StartPos > EndPos then
             exit('');
         exit(CopyStr(Value, StartPos, EndPos - StartPos + 1));
@@ -722,9 +729,9 @@ codeunit 6941 "EA Http Client"
             else
                 Remainder := CopyStr(Remainder, 6);
 
-        while (StrLen(Remainder) > 0) and (Remainder[1] in ['{', '}']) do
+        while Remainder.StartsWith('{') or Remainder.StartsWith('}') do
             Remainder := CopyStr(Remainder, 2);
-        while (StrLen(Remainder) > 0) and (Remainder[StrLen(Remainder)] in ['{', '}']) do
+        while Remainder.EndsWith('{') or Remainder.EndsWith('}') do
             Remainder := CopyStr(Remainder, 1, StrLen(Remainder) - 1);
 
         HexDigits := DelChr(Remainder, '=', '-');
