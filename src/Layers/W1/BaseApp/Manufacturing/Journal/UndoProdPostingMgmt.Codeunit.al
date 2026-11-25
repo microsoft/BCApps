@@ -87,6 +87,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
     local procedure ReverseOutputItemLedgerEntry(ItemLedgerEntry: Record "Item Ledger Entry")
     var
+        Item: Record Item;
         ItemJnlLine: Record "Item Journal Line";
         ProductionOrder: Record "Production Order";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
@@ -96,6 +97,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         RunTime: Decimal;
         StopTime: Decimal;
         ScrapValue: Decimal;
+        OutputQuantity: Decimal;
         IsHandled: Boolean;
         CapacityLedgerEntryNo: BigInteger;
     begin
@@ -117,6 +119,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ItemJnlLine.Validate("Document No.", ItemLedgerEntry."Document No.");
         ItemJnlLine.Validate("Location Code", ItemLedgerEntry."Location Code");
         ItemJnlLine.Validate("Unit of Measure Code", ItemLedgerEntry."Unit of Measure Code");
+        ItemJnlLine."Qty. per Unit of Measure" := ItemLedgerEntry."Qty. per Unit of Measure";
         ItemJnlLine."Dimension Set ID" := ItemLedgerEntry."Dimension Set ID";
         ItemJnlLine."Shortcut Dimension 1 Code" := ItemLedgerEntry."Global Dimension 1 Code";
         ItemJnlLine."Shortcut Dimension 2 Code" := ItemLedgerEntry."Global Dimension 2 Code";
@@ -132,11 +135,19 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
 
         IsHandled := false;
         OnReverseOutputItemLedgerEntryOnBeforeValidateOutputQuantity(ItemJnlLine, ItemLedgerEntry, IsHandled);
-        if not IsHandled then
-            ItemJnlLine.Validate(
-                "Output Quantity", -Abs(UnitOfMeasureManagement.CalcQtyFromBase(
-                    ItemLedgerEntry."Item No.", ItemLedgerEntry."Variant Code", ItemLedgerEntry."Unit of Measure Code",
-                    ItemLedgerEntry.Quantity, ItemLedgerEntry."Qty. per Unit of Measure")));
+        if not IsHandled then begin
+            OutputQuantity := -Abs(UnitOfMeasureManagement.CalcQtyFromBase(
+                ItemLedgerEntry."Item No.", ItemLedgerEntry."Variant Code", ItemLedgerEntry."Unit of Measure Code",
+                ItemLedgerEntry.Quantity, ItemLedgerEntry."Qty. per Unit of Measure"));
+            if OutputQuantity = 0 then begin
+                Item.Get(ItemLedgerEntry."Item No.");
+                ItemJnlLine.Validate("Unit of Measure Code", Item."Base Unit of Measure");
+                OutputQuantity := -Abs(ItemLedgerEntry.Quantity);
+            end;
+            ItemJnlLine.Validate("Output Quantity", OutputQuantity);
+            ItemJnlLine."Output Quantity (Base)" := -Abs(ItemLedgerEntry.Quantity);
+            ItemJnlLine."Quantity (Base)" := ItemJnlLine."Output Quantity (Base)";
+        end;
 
         ItemJnlLine.Validate(Description, ItemLedgerEntry.Description);
         if ItemLedgerEntry.TrackingExists() then
@@ -453,7 +464,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ReservationEntry."Item No." := ItemLedgerEntry."Item No.";
         ReservationEntry."Variant Code" := ItemLedgerEntry."Variant Code";
         ReservationEntry."Location Code" := ItemLedgerEntry."Location Code";
-        ReservationEntry.Quantity := -Abs(ItemLedgerEntry.Quantity);
+        ReservationEntry.Quantity := ItemJnlLine.Quantity;
         ReservationEntry."Quantity (Base)" := -Abs(ItemLedgerEntry.Quantity);
         ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
         ReservationEntry."Creation Date" := ItemLedgerEntry."Posting Date";
@@ -463,7 +474,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ReservationEntry."Source Batch Name" := ItemJnlLine."Journal Batch Name";
         ReservationEntry."Expected Receipt Date" := ItemLedgerEntry."Posting Date";
         ReservationEntry."Created By" := UserId();
-        ReservationEntry."Qty. per Unit of Measure" := ItemLedgerEntry."Qty. per Unit of Measure";
+        ReservationEntry."Qty. per Unit of Measure" := ItemJnlLine."Qty. per Unit of Measure";
         ReservationEntry."Qty. to Handle (Base)" := -Abs(ItemLedgerEntry.Quantity);
         ReservationEntry."Qty. to Invoice (Base)" := -Abs(ItemLedgerEntry.Quantity);
         ReservationEntry."Lot No." := ItemLedgerEntry."Lot No.";

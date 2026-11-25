@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// Stores the subcategories of an expense category, including their default VAT and posting settings.
+/// </summary>
 table 6929 "Expense Subcategory"
 {
-    Access = Internal;
     Caption = 'Expense Subcategory';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Subcategories";

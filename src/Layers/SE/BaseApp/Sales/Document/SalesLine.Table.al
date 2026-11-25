@@ -5738,11 +5738,14 @@ table 37 "Sales Line"
         if SalesHeader."Document Type" <> SalesHeader."Document Type"::Invoice then begin
             OutstandingAmountExclTax := CalculateOutstandingAmountExclTax();
             "Prepayment VAT Difference" := 0;
-            if not PrePaymentLineAmountEntered then begin
-                "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
-                "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
-                CapPrepmtLineAmountAfterOverDeduction();
-            end;
+            if not PrePaymentLineAmountEntered then
+                if IsFullyPrepaidWithUnchangedAmount() then
+                    "Prepmt. Line Amount" := "Prepmt. Amt. Inv."
+                else begin
+                    "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
+                    "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
+                    CapPrepmtLineAmountAfterOverDeduction();
+                end;
             PrePaymentLineAmountEntered := false;
         end;
 
@@ -11236,6 +11239,13 @@ table 37 "Sales Line"
     local procedure CheckReceiptOrderStatus()
     begin
         OnCheckReceiptOrderStatus(Rec);
+    end;
+
+    local procedure IsFullyPrepaidWithUnchangedAmount(): Boolean
+    begin
+        exit(
+          ("Prepayment %" = 100) and ("Prepmt. Amt. Inv." <> 0) and
+          ("Line Amount" - "Inv. Discount Amount" = "Prepmt. Amt. Inv."));
     end;
 
     local procedure CapPrepmtLineAmountAfterOverDeduction()
