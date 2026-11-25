@@ -1105,14 +1105,22 @@ codeunit 10778 "Verifactu Export"
     begin
         DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
         DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, SpecialSchemeCode));
+        GetVATBreakdownQualification(
+            DocumentNo, PostingDate, IsCreditMemo, SpecialSchemeCode, VATBusPostingGroup, VATProdPostingGroup, VATIdentifier,
+            VATPercentage, VATAmount, IsIntraCommunity, OperationQualification, ExemptionCode);
+        AddVATBreakdownNodes(DetalleIVAXMLNode, OperationQualification, ExemptionCode, VATPercentage, BaseAmount, VATAmount);
+        DesgloseXMLNode.Add(DetalleIVAXMLNode);
+    end;
+
+    local procedure GetVATBreakdownQualification(DocumentNo: Code[20]; PostingDate: Date; IsCreditMemo: Boolean; SpecialSchemeCode: Text; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATIdentifier: Code[20]; VATPercentage: Decimal; VATAmount: Decimal; IsIntraCommunity: Boolean; var OperationQualification: Text; var ExemptionCode: Text)
+    begin
         OperationQualification := GetOperationQualification(DocumentNo, PostingDate, VATBusPostingGroup, VATProdPostingGroup, VATIdentifier, IsCreditMemo);
+        ExemptionCode := '';
         if OperationQualification = 'S1' then
             ExemptionCode := GetExemptionCode(VATBusPostingGroup, VATProdPostingGroup, SpecialSchemeCode, VATAmount, IsIntraCommunity);
         OnAfterGetVATBreakdownQualification(
             DocumentNo, PostingDate, IsCreditMemo, SpecialSchemeCode, VATBusPostingGroup, VATProdPostingGroup, VATPercentage,
             OperationQualification, ExemptionCode);
-        AddVATBreakdownNodes(DetalleIVAXMLNode, OperationQualification, ExemptionCode, VATPercentage, BaseAmount, VATAmount);
-        DesgloseXMLNode.Add(DetalleIVAXMLNode);
     end;
 
     local procedure AddVATBreakdownNodes(var DetalleIVAXMLNode: XmlElement; OperationQualification: Text; ExemptionCode: Text; VATPercentage: Decimal; BaseAmount: Decimal; VATAmount: Decimal)
@@ -1251,7 +1259,10 @@ codeunit 10778 "Verifactu Export"
             Prefix := CountryRegionCode;
         if (Prefix = '') or (VATRegistrationNo = '') or VATRegistrationNo.StartsWith(Prefix) then
             exit(VATRegistrationNo);
-        exit(CopyStr(Prefix + VATRegistrationNo, 1, 20));
+        // AEAT limits ID to 20 characters; never truncate the identifier.
+        if StrLen(Prefix + VATRegistrationNo) > MaxStrLen(VATRegistrationNo) then
+            exit(VATRegistrationNo);
+        exit(Prefix + VATRegistrationNo);
     end;
 
     local procedure GetRecipientCountryRegionCode(VATCountryRegionCode: Code[10]; BillToCountryRegionCode: Code[10]): Code[10]
