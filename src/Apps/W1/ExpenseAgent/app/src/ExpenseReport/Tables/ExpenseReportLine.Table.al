@@ -1333,12 +1333,11 @@ table 6907 "Expense Report Line"
         CheckCorporateCardSourceFields(StoredExpenseReportLine);
     end;
 
-    // Expense-backed lines keep their card transaction values regardless of the expense's source.
     local procedure CheckCorporateCardSourceFields(StoredExpenseReportLine: Record "Expense Report Line")
     begin
         if Rec.IsTemporary() then
             exit;
-        if (StoredExpenseReportLine."Credit Card Feed No." = 0) or (StoredExpenseReportLine."Expense No." = '') then
+        if StoredExpenseReportLine."Credit Card Feed No." = 0 then
             exit;
 
         if Rec.Amount <> StoredExpenseReportLine.Amount then

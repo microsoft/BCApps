@@ -111,6 +111,7 @@ page 6999 "Expense Report SubPage"
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = Rec."Credit Card Feed No." = 0;
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -146,6 +147,7 @@ page 6999 "Expense Report SubPage"
                 field("Expense Date"; Rec."Expense Date")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = Rec."Credit Card Feed No." = 0;
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -154,7 +156,7 @@ page 6999 "Expense Report SubPage"
                 field("Expense Currency Code"; Rec."Expense Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
+                    Editable = (Rec."Credit Card Feed No." = 0) and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
 
                     trigger OnValidate()
                     begin
@@ -169,7 +171,7 @@ page 6999 "Expense Report SubPage"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Editable = (Rec."Credit Card Feed No." = 0) and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
 
                     trigger OnValidate()
                     begin

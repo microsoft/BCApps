@@ -104,8 +104,14 @@ codeunit 148358 EACorpCardPostTests
 
         // [GIVEN] A matched manual report line has a different amount, with mandatory card selection disabled.
         CreateLinkedCardExpenseReport(ExpenseReportHeader, ExpenseReportLine, CorpCardTrans, BankAccount);
-        ExpenseReportLine.Validate(Amount, CorpCardTrans.Amount + 10);
-        ExpenseReportLine.Modify(true);
+        Commit();
+        asserterror ExpenseReportLine.Validate(Amount, CorpCardTrans.Amount + 10);
+        Assert.ExpectedError(ExpenseReportLine.FieldCaption(Amount));
+
+        // Seed a historical mismatch to exercise the independent release check.
+        ExpenseReportLine.Get(ExpenseReportHeader."No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.Amount := CorpCardTrans.Amount + 10;
+        ExpenseReportLine.Modify(false);
         Commit();
 
         // [WHEN] The report is released.

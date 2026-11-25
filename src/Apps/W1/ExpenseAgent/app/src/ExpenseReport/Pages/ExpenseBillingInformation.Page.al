@@ -68,6 +68,7 @@ page 6961 "Expense Billing Information"
                 field("Merchant Name"; Rec."Merchant Name")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = Rec."Credit Card Feed No." = 0;
                     ToolTip = 'Specifies the merchant name associated with the expense report.';
                 }
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
