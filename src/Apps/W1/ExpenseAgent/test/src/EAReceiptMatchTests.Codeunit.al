@@ -1262,8 +1262,10 @@ codeunit 148370 EAReceiptMatchTests
         // [SCENARIO] A card expense whose receipt was lost gets a no receipt declaration, is added with the card action, and its
         // report can be released.
         Initialize();
+        // Rules are off: this case checks the declaration at release; rule checks on a lost-receipt line are covered elsewhere.
         ExpenseAgentSetup.Get();
         ExpenseAgentSetup."Allow No Receipt" := true;
+        ExpenseAgentSetup."Use Rules" := false;
         ExpenseAgentSetup.Modify();
 
         // [GIVEN] An open card expense with a category, a description and a no receipt declaration.
