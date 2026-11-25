@@ -26,6 +26,7 @@ codeunit 134123 "Price List Line UT"
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         PriceListLinesServiceNameTxt: Label 'PriceListLinesODataTest', Locked = true;
         PriceListLineODataKeyTxt: Label 'Price_List_Code=''%1'',Line_No=%2', Locked = true;
+        RecordIdentificationTxt: Label '%1=''%2'',%3=''%4''', Locked = true;
         StartingDateErr: Label 'Starting Date %1 cannot be after Ending Date %2.', Comment = '%1 and %2 - dates';
         CampaignDateErr: Label 'If Source Type is Campaign, then you can only change Starting Date and Ending Date from the Campaign Card.';
         AssetTypeForUOMErr: Label 'Product Type must be equal to Item or Resource.';
@@ -3839,6 +3840,9 @@ codeunit 134123 "Price List Line UT"
         PriceListHeader: Record "Price List Header";
         PriceListLine: Record "Price List Line";
         RequestBody: JsonObject;
+        RequestBodyText: Text;
+        ResponseText: Text;
+        TargetURL: Text;
     begin
         // [FEATURE] [Edit in Excel] [Unit Of Measure]
         // [SCENARIO 657859] Inserting a price list line via OData with a "Unit of Measure Code" that does not belong to the product is rejected.
@@ -3857,9 +3861,18 @@ codeunit 134123 "Price List Line UT"
         RequestBody.Add('Price_List_Code', PriceListHeader.Code);
         RequestBody.Add('Product_No', Item."No.");
         RequestBody.Add('Unit_of_Measure_Code_Lookup', ItemUnitofMeasure.Code);
-        asserterror PostPriceListLineViaOData(RequestBody);
+        RequestBody.WriteTo(RequestBodyText);
+        TargetURL := GetPriceListLinesODataURL('', 0);
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, RequestBodyText, ResponseText, 400);
 
-        // [THEN] The request fails and no line is inserted in 'PL'
+        // [THEN] The request fails because 'UOM' is not a unit of measure of item 'I'
+        Assert.ExpectedError(ItemUnitofMeasure.TableCaption());
+        Assert.ExpectedError(
+            StrSubstNo(
+                RecordIdentificationTxt,
+                ItemUnitofMeasure.FieldCaption("Item No."), Item."No.", ItemUnitofMeasure.FieldCaption(Code), ItemUnitofMeasure.Code));
+
+        // [THEN] No line is inserted in 'PL'
         PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
         Assert.RecordIsEmpty(PriceListLine);
     end;
@@ -4019,10 +4032,14 @@ codeunit 134123 "Price List Line UT"
 
     local procedure GetPriceListLinesODataURL(PriceListCode: Code[20]; LineNo: Integer): Text
     var
+        TenantWebService: Record "Tenant Web Service";
+        WebServiceManagement: Codeunit "Web Service Management";
         RecordKey: Text;
     begin
-        // EnsureWebServiceExist commits, so the test data is visible to the OData session
-        LibraryGraphMgt.EnsureWebServiceExist(PriceListLinesServiceNameTxt, Page::"Price List Lines");
+        // Publish a tenant web service, as Edit in Excel does: the application database can be mounted as read-only, so "Web Service" records cannot be inserted.
+        // Commit so the web service and the test data are visible to the OData session.
+        WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Page, Page::"Price List Lines", PriceListLinesServiceNameTxt, true);
+        Commit();
         if PriceListCode <> '' then
             RecordKey := StrSubstNo(PriceListLineODataKeyTxt, PriceListCode, Format(LineNo, 0, 9));
         exit(LibraryGraphMgt.CreateTargetURL(RecordKey, Page::"Price List Lines", PriceListLinesServiceNameTxt));
