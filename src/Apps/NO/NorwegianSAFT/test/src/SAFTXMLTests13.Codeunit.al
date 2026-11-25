@@ -1030,6 +1030,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         AmountLCY := LibraryRandom.RandDec(100, 2);
         ExchangeRate := round(1 / LibraryRandom.RandIntInRange(5, 10), 0.00001);
         Amount := Round(AmountLCY / ExchangeRate);
+        ExchangeRate := Round(AmountLCY / Amount, 0.00001);
         GLEntry.SetCurrentKey("Transaction No.");
         if GLEntry.FindLast() then;
         TransactionNo := GLEntry."Transaction No." + 1;
@@ -1069,7 +1070,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
 
         // [GIVEN] Vendor Ledger Entry with "Entry No."  = "X", "Transaction No." = "Y", Amount = 80 and "Amount (LCY)" = 100
         SAFTTestHelper.MockVendLedgEntry(
-            GLEntryNo, SAFTExportHeader."Starting Date", Vendor."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, AmountLCY / Amount, "Gen. Journal Document Type"::Invoice);
+            GLEntryNo, SAFTExportHeader."Starting Date", Vendor."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, Amount / AmountLCY, "Gen. Journal Document Type"::Invoice);
 
         // [GIVEN] Two credit G/L entries with negative vendor currency amounts, one using the entry-number fallback
         TransactionNo += 1;
@@ -1084,7 +1085,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
                 '', GLEntry."Source Type"::Vendor.AsInteger(), Vendor."No.", '', 0, -AmountLCY);
         SAFTTestHelper.MockVendLedgEntry(
             GLEntryNo, SAFTExportHeader."Starting Date", Vendor."No.", TransactionNo, Currency.Code,
-            -Amount, -Amount, -AmountLCY, AmountLCY / Amount, "Gen. Journal Document Type"::Invoice);
+            -Amount, -Amount, -AmountLCY, Amount / AmountLCY, "Gen. Journal Document Type"::Invoice);
 
         // [WHEN] Export G/L Entries to the XML file
         LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
@@ -1162,6 +1163,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         AmountLCY := LibraryRandom.RandDec(100, 2);
         ExchangeRate := round(1 / LibraryRandom.RandIntInRange(5, 10), 0.00001);
         Amount := Round(AmountLCY / ExchangeRate);
+        ExchangeRate := Round(AmountLCY / Amount, 0.00001);
         TransactionNo := GetLastUsedTransactionNo() + 1;
         GLEntryNo :=
             SAFTTestHelper.MockGLEntry(
@@ -1199,7 +1201,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
 
         // [GIVEN] Customer Ledger Entry with "Entry No."  = "X", "Transaction No." = "Y", Amount = 80 and "Amount (LCY)" = 100
         SAFTTestHelper.MockCustLedgEntry(
-            GLEntryNo, SAFTExportHeader."Starting Date", Customer."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, AmountLCY / Amount, "Gen. Journal Document Type"::Invoice);
+            GLEntryNo, SAFTExportHeader."Starting Date", Customer."No.", TransactionNo, Currency.Code, Amount, Amount, AmountLCY, Amount / AmountLCY, "Gen. Journal Document Type"::Invoice);
 
         // [GIVEN] Two credit G/L entries with negative customer currency amounts, one using the entry-number fallback
         TransactionNo += 1;
@@ -1214,7 +1216,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
                 '', GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", '', 0, -AmountLCY);
         SAFTTestHelper.MockCustLedgEntry(
             GLEntryNo, SAFTExportHeader."Starting Date", Customer."No.", TransactionNo, Currency.Code,
-            -Amount, -Amount, -AmountLCY, AmountLCY / Amount, "Gen. Journal Document Type"::Payment);
+            -Amount, -Amount, -AmountLCY, Amount / AmountLCY, "Gen. Journal Document Type"::Payment);
 
         // [WHEN] Export G/L Entries to the XML file
         LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
