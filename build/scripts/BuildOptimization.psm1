@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
-    Test-skip logic for CI/CD build optimization.
+    Churn-based test proposals for CI/CD build optimization.
 .DESCRIPTION
-    Determines whether a test app should be skipped based on which files changed
-    and the app dependency graph. Called from RunTestsInBcContainer.ps1.
+    Logs affected test app proposals using changed files and registered app dependencies.
+    The parallel test dispatcher continues to run the full candidate bucket.
 #>
 
 $ErrorActionPreference = "Stop"
@@ -79,13 +79,13 @@ function Get-AppDependencyGraph {
 
 <#
 .SYNOPSIS
-    Maps a file to its deepest compiled root, or nearest manifest when no graph is supplied.
+    Maps a file to its deepest registered root in the supplied graph.
 .PARAMETER FilePath
     Path to the changed file (absolute or relative to BaseFolder).
 .PARAMETER BaseFolder
     Root of the repository.
 .PARAMETER Graph
-    When supplied, map to the deepest compiled root in this graph instead of a nested manifest.
+    Explicit dependency graph containing registered app roots.
 .OUTPUTS
     The app ID (lowercase GUID) or $null if the file is not inside any app folder.
 #>
@@ -97,6 +97,7 @@ function Get-AppForFile {
         [string] $FilePath,
         [Parameter(Mandatory)]
         [string] $BaseFolder,
+        [Parameter(Mandatory)]
         [hashtable] $Graph
     )
 
@@ -105,33 +106,15 @@ function Get-AppForFile {
     }
     $FilePath = [System.IO.Path]::GetFullPath($FilePath)
 
-    if ($PSBoundParameters.ContainsKey('Graph')) {
-        $owner = $null
-        foreach ($node in $Graph.Values) {
-            $root = $node.AppFolder.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
-            if ($FilePath.StartsWith($root, [StringComparison]::OrdinalIgnoreCase) -and
-                ($null -eq $owner -or $node.AppFolder.Length -gt $owner.AppFolder.Length)) {
-                $owner = $node
-            }
+    $owner = $null
+    foreach ($node in $Graph.Values) {
+        $root = $node.AppFolder.TrimEnd('\', '/') + [System.IO.Path]::DirectorySeparatorChar
+        if ($FilePath.StartsWith($root, [StringComparison]::OrdinalIgnoreCase) -and
+            ($null -eq $owner -or $node.AppFolder.Length -gt $owner.AppFolder.Length)) {
+            $owner = $node
         }
-        if ($owner) { return $owner.Id }
-        return $null
     }
-
-    $dir = [System.IO.Path]::GetDirectoryName($FilePath)
-    $baseFolderNorm = [System.IO.Path]::GetFullPath($BaseFolder).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
-
-    while ($dir -and $dir.Length -ge $baseFolderNorm.Length) {
-        $candidate = Join-Path $dir 'app.json'
-        if (Test-Path $candidate) {
-            $json = Get-Content -Path $candidate -Raw | ConvertFrom-Json
-            if ($json.id) { return $json.id.ToLowerInvariant() }
-        }
-        $parent = [System.IO.Path]::GetDirectoryName($dir)
-        if ($parent -eq $dir) { break }
-        $dir = $parent
-    }
-
+    if ($owner) { return $owner.Id }
     return $null
 }
 
@@ -498,9 +481,8 @@ function Test-FullBuildPatternsMatch {
 .SYNOPSIS
     Computes the set of app names affected by changed files.
 .DESCRIPTION
-    Pure computation — no caching or side effects. Returns a PSCustomObject with
-    two properties: RunAll (bool) and AppNames (string[]). The caller is responsible
-    for persisting/reading the result to avoid recomputing across process invocations.
+    Reads Git changes and registered manifests, logs the analysis, and returns
+    RunAll (bool) and AppNames (string[]). Missing Git commits may be fetched.
     Selective results also retain Tests-NewObjects-Internal regardless of dependency changes.
 .PARAMETER BaseFolder
     Root of the repository.
@@ -574,56 +556,6 @@ function Get-AffectedAppNames {
 
 <#
 .SYNOPSIS
-    Determines whether tests for a given app should be skipped.
-.DESCRIPTION
-    Reads the cached affected-apps JSON file written by a prior call in the same
-    CI job. If the file doesn't exist, computes the result and writes the cache.
-    Returns $true to skip, $false to run.
-.PARAMETER AppName
-    The display name of the test app (from $parameters["appName"]).
-.PARAMETER BaseFolder
-    Root of the repository.
-.PARAMETER CacheFile
-    Path to the JSON cache file. Defaults to $TEMP/BuildOptimization_AffectedApps.json.
-.OUTPUTS
-    $true if the test app should be skipped, $false if it should run.
-#>
-function Test-ShouldSkipTestApp {
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param(
-        [Parameter(Mandatory)]
-        [string] $AppName,
-        [Parameter(Mandatory)]
-        [string] $BaseFolder,
-        [string] $CacheFile = (Join-Path ([System.IO.Path]::GetTempPath()) 'BuildOptimization_AffectedApps.json')
-    )
-
-    # Read or compute affected apps
-    if (Test-Path $CacheFile) {
-        Write-Host "BUILD OPTIMIZATION: Reading cached result from $CacheFile"
-        $result = Get-Content $CacheFile -Raw | ConvertFrom-Json
-    } else {
-        $result = Get-AffectedAppNames -BaseFolder $BaseFolder
-        $result | ConvertTo-Json -Compress | Set-Content -Path $CacheFile -Force
-        Write-Host "BUILD OPTIMIZATION: Cache written to $CacheFile"
-    }
-
-    if ($result.RunAll) {
-        Write-Host "BUILD OPTIMIZATION: RUNNING tests for '$AppName'"
-        return $false
-    }
-
-    if ($result.AppNames -notcontains $AppName) {
-        Write-Host "BUILD OPTIMIZATION: SKIPPING tests for '$AppName' - not in affected set"
-        return $true
-    }
-    Write-Host "BUILD OPTIMIZATION: RUNNING tests for '$AppName'"
-    return $false
-}
-
-<#
-.SYNOPSIS
     Logs the churn-based test proposal and returns all candidate apps unchanged.
 .PARAMETER AppNamesToTest
     Candidate test app names in dispatch order; returned unchanged in logging-only mode.
@@ -678,4 +610,4 @@ function Get-SelectedTestApps {
     return $AppNamesToTest
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp, Get-SelectedTestApps
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Get-SelectedTestApps

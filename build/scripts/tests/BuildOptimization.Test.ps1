@@ -37,23 +37,23 @@ Describe "BuildOptimization" {
 
     Context "Get-AppForFile" {
         It "maps E-Document Core file" {
-            $result = Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/src/SomeFile.al' -BaseFolder $baseFolder
+            $result = Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/src/SomeFile.al' -BaseFolder $baseFolder -Graph $graph
             $result | Should -Be 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
         }
 
-        It "maps Email module file" {
-            $result = Get-AppForFile -FilePath 'src/System Application/App/Email/src/SomeFile.al' -BaseFolder $baseFolder
-            $result | Should -Be '9c4a2cf2-be3a-4aa3-833b-99a5ffd11f25'
+        It "maps Email module files to the registered System Application root" {
+            $result = Get-AppForFile -FilePath 'src/System Application/App/Email/src/SomeFile.al' -BaseFolder $baseFolder -Graph $graph
+            $result | Should -Be '63ca2fa4-4f03-4f2b-a480-172fef340d3f'
         }
 
         It "returns null for non-app file" {
-            $result = Get-AppForFile -FilePath 'build/scripts/BuildOptimization.psm1' -BaseFolder $baseFolder
+            $result = Get-AppForFile -FilePath 'build/scripts/BuildOptimization.psm1' -BaseFolder $baseFolder -Graph $graph
             $result | Should -BeNullOrEmpty
         }
 
         It "handles absolute paths" {
             $absPath = Join-Path $baseFolder 'src/Apps/W1/EDocument/App/src/SomeFile.al'
-            $result = Get-AppForFile -FilePath $absPath -BaseFolder $baseFolder
+            $result = Get-AppForFile -FilePath $absPath -BaseFolder $baseFolder -Graph $graph
             $result | Should -Be 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
         }
     }
@@ -214,9 +214,9 @@ Describe "BuildOptimization" {
                 $result.AppNames | Should -Contain 'E-Document for Germany Tests'
 
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/W1/EDocument/App/Changed.al') }
-                $cache = Join-Path $TestDrive 'all-country-skip.json'
-                Test-ShouldSkipTestApp -AppName 'E-Document for Germany Tests' -BaseFolder $baseFolder -CacheFile $cache |
-                    Should -BeFalse
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Contain 'E-Document for Germany Tests'
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -823,64 +823,46 @@ Describe "BuildOptimization" {
             @($result.AppNames | Where-Object { $_ -eq 'Tests-NewObjects-Internal' }).Count | Should -Be 1
         }
 
-        It "never skips NewObjects through the shared helper or its cached result" {
-            $cache = Join-Path $TestDrive 'mandatory-newobjects.json'
-            Test-ShouldSkipTestApp -AppName 'Tests-NewObjects-Internal' -BaseFolder $baseFolder -CacheFile $cache |
-                Should -BeFalse
-            Test-ShouldSkipTestApp -AppName 'Tests-NewObjects-Internal' -BaseFolder $baseFolder -CacheFile $cache |
-                Should -BeFalse
-            Should -Invoke -ModuleName BuildOptimization Get-AffectedApps -Times 1 -Exactly
-        }
     }
 
-    Context "Test-ShouldSkipTestApp" {
-        BeforeAll {
-            $cacheFile = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Test_$([System.Guid]::NewGuid()).json"
-        }
-        BeforeEach {
-            Remove-Item $cacheFile -ErrorAction SilentlyContinue
-        }
-        AfterAll {
-            Remove-Item $cacheFile -ErrorAction SilentlyContinue
-        }
-
-        It "returns false when not in CI" {
+    Context "Get-AffectedAppNames fallbacks" {
+        It "runs all apps when not in CI" {
             $saved = $env:GITHUB_ACTIONS
             try {
                 $env:GITHUB_ACTIONS = $null
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:GITHUB_ACTIONS = $saved
             }
         }
 
-        It "returns false for workflow_dispatch" {
+        It "runs all apps for workflow_dispatch" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             try {
                 $env:GITHUB_ACTIONS = 'true'
                 $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
             }
         }
 
-        It "returns false when BUILD_OPTIMIZATION_DISABLED is true" {
+        It "runs all apps when BUILD_OPTIMIZATION_DISABLED is true" {
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
             $savedActions = $env:GITHUB_ACTIONS
             try {
                 $env:BUILD_OPTIMIZATION_DISABLED = 'true'
                 $env:GITHUB_ACTIONS = 'true'
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
                 $env:GITHUB_ACTIONS = $savedActions
             }
         }
 
-        It "returns false when changed files match fullBuildPatterns" {
+        It "runs all apps when changed files match fullBuildPatterns" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
@@ -889,7 +871,7 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = 'pull_request'
                 $env:BUILD_OPTIMIZATION_DISABLED = $null
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { return @('build/scripts/SomeScript.ps1') }
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -897,7 +879,7 @@ Describe "BuildOptimization" {
             }
         }
 
-        It "returns true (skip) when changed files affect only E-Document and AppName is Shopify" {
+        It "proposes E-Document but not Shopify for an E-Document change" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
@@ -908,7 +890,10 @@ Describe "BuildOptimization" {
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
                     return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
                 }
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeTrue
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Not -Contain 'Shopify'
+                $result.AppNames | Should -Contain 'E-Document Core'
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -916,28 +901,5 @@ Describe "BuildOptimization" {
             }
         }
 
-        It "reads from cache file on second call without recomputing" {
-            $savedActions = $env:GITHUB_ACTIONS
-            $savedEvent = $env:GITHUB_EVENT_NAME
-            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
-            try {
-                $env:GITHUB_ACTIONS = 'true'
-                $env:GITHUB_EVENT_NAME = 'pull_request'
-                $env:BUILD_OPTIMIZATION_DISABLED = $null
-                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
-                    return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
-                }
-                # First call computes and writes cache file
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeTrue
-                Test-Path $cacheFile | Should -BeTrue
-                # Second call reads from cache — Get-ChangedFilesForCI not called again
-                Test-ShouldSkipTestApp -AppName 'E-Document Core' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
-                Should -Invoke -ModuleName BuildOptimization Get-ChangedFilesForCI -Times 1 -Exactly
-            } finally {
-                $env:GITHUB_ACTIONS = $savedActions
-                $env:GITHUB_EVENT_NAME = $savedEvent
-                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
-            }
-        }
     }
 }
