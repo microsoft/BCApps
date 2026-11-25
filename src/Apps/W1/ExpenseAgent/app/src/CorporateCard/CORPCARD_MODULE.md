@@ -151,7 +151,7 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7447 | EA Corp Card Selection Mgt | Validates employee-card ownership, eligibility, and selection; formats compact card labels | ValidateExpenseCard, ValidateReportLine, LookupCard, LookupReportLineCard, GetCardDisplay |
 | 7448 | EA Corp Card Expense Match | Matches selected-card expenses across lifecycle states and links feed provenance without reposting | MatchExistingExpense, LinkExpense |
 | 7449 | EA Corp Card Liability Mgt | Transfers and reverses an already-posted manual expense liability | TransferLiability, ReverseLiability |
-| 7438 | EA Receipt Expense Match | Read-only matching of extracted receipt data to a card-created expense waiting for a receipt | SetPendingCardExpenseFilters, FindMatchingExpense, CheckMatchingExpense |
+| 7438 | EA Receipt Expense Match | Read-only matching of extracted receipt data to a card-created expense waiting for a receipt | FindMatchingExpense, CheckMatchingExpense |
 
 ### Corporate Card Pages and Page Extensions
 
@@ -547,18 +547,18 @@ Use the returned internal `corporateCardId` when creating or updating an eligibl
 
 The `expenses` API exposes a read-only `source` field. `Manual` is the default, including for existing expenses. Drafts created from imported corporate card transactions have source `CorporateCard`. Matching a transaction to an existing expense does not change its source.
 
-Once a `CorporateCard`-source expense is stored, its card fields cannot be changed, including through receipt extraction/API updates: amount, expense date, currency, merchant name, payment method and corporate card. The Expense Card shows these fields as read-only. Updates that retain these values and updates to other receipt details, such as category, description, participants, itemization and justification, remain allowed. `Manual`-source expenses are not subject to this restriction, even after matching to a transaction.
+Once an expense is created from a corporate card transaction or matched to one, its amount, expense date, currency, merchant name, payment method and corporate card cannot be changed. A matched manual expense keeps its `Manual` source. Category, description, participants, itemization and justification remain editable under the ordinary document-status rules.
 
-The same fields are locked on an expense report line once it is stored with a card transaction link (`Credit Card Feed No.`) and an `Expense No.`: amount, expense currency, expense date, merchant name, payment method and corporate card. This includes lines copied from `Manual`-source expenses that were matched to a transaction; their underlying manual expenses retain their existing editing rules. Lines without a feed link and standalone report lines retain their existing behavior. Release still checks a feed-linked line's card, currency and amount against the transaction. Per diem or mileage calculations that would change the amount or currency of a locked card expense or card line are rejected.
+The same fields are locked on every report line with a nonzero `Credit Card Feed No.`, including standalone lines and lines copied from a matched manual expense. Release and posting still independently check a linked line against the transaction. Per diem or mileage calculations that would change a locked amount or currency are rejected. A feed-linked line does not require a receipt number, even after attachment or at report release; attachment, merchant and other applicable policy checks still run.
 
-The `expenses` API exposes a read-only, filterable `pendingCardExpense` flag (a FlowField, so it is always current). It is `true` for a corporate-card-created expense that is still open and waiting for a receipt: source `CorporateCard`, linked to a card transaction, no receipt, no **No Receipt Type**, status `Open`, and not on an expense report. Expenses marked *Lost Receipt* or *Receipt not needed* are `false`. Use it to split an expense user's expenses into card expenses waiting for a receipt and all others:
+The `expenses` API exposes a read-only, filterable `cardExpenseAwaitingReport` FlowField. It is `true` when the expense has `CorporateCard` source, a nonzero feed number, no report and status `Open` or `Released`. It indicates whether the expense awaits a **report**, not a receipt: an attachment or no-receipt declaration does not change the result. A matched manual expense is `false`.
 
 ```http
-GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/expenses?$filter=pendingCardExpense eq true
-GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=pendingCardExpense eq false;$orderby=systemCreatedAt desc;$top=50)
+GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/expenses?$filter=cardExpenseAwaitingReport eq true
+GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=cardExpenseAwaitingReport eq false;$orderby=systemCreatedAt desc;$top=50)
 ```
 
-Clients can detect support by checking for the `pendingCardExpense` property on the `expense` entity in `$metadata`.
+Clients can detect support by checking for the `cardExpenseAwaitingReport` property on the `expense` entity in `$metadata`. It replaces `pendingCardExpense`.
 
 ### Adding a Card Expense Before Its Category Is Known
 
@@ -569,7 +569,7 @@ POST .../expenseReports({reportId})/Microsoft.NAV.addCardExpenseToReport
 { "expenseId": "{expenseId}" }
 ```
 
-The action accepts only `CorporateCard`-source expenses that are not already on a report. It releases an open expense without requiring its category, then adds it as a submitted report line; a released expense can be added directly. It does not relax the report's release requirements or change the standard `addExpense` action.
+The action accepts only `CorporateCard`-source expenses that are not already on a report. It releases an open expense without requiring its category, then adds it as a submitted report line; a released expense can be added directly. Standard add requires a released expense. Standard expense release and report release still require a category.
 
 ### Receipt Matching (Card Expense Matches API)
 
@@ -593,7 +593,7 @@ When there is no match, the client creates the expense as usual.
 
 For a matched released expense or an expense already on an open report, use the **Card Receipt Data API** below. Do not reopen it or use the ordinary attachments API to bypass its status or report restrictions.
 
-When the user picks a pending card expense (`pendingCardExpense eq true`) and submits a receipt for it, the client can check that the extracted receipt really fits that expense by posting the same data with its `expenseId`:
+When the user picks an off-report card expense (`cardExpenseAwaitingReport eq true`) that still needs a receipt, the client can check that the extracted receipt fits that expense by posting the same data with its `expenseId`:
 
 ```http
 POST .../expenseUsers({expenseUserId})/cardExpenseMatches
@@ -618,7 +618,7 @@ This action is an exception only for applying a missing receipt. It temporarily 
 
 ### Deleting and Moving Card Expenses
 
-Direct deletion of any expense with a nonzero `Credit Card Feed No.` is rejected by the expense table's delete trigger, regardless of its source, so the transaction cannot be left referencing a missing expense. Deleting a report line is a separate operation: it retains the underlying expense and its transaction link. The existing removal behavior returns a `CorporateCard` expense to **Open** and a manual expense to **Released**.
+Direct deletion of any expense with a nonzero `Credit Card Feed No.` is rejected by the expense table's delete trigger, regardless of its source. Deleting its report line, directly or by deleting the open report, leaves the unposted expense **Released**, off-report and still linked to the original transaction.
 
 Moving a line between open reports for the same expense user copies its card fields and child records to the target, including the attachment's **Document Reference ID**, before deleting the source with `Delete(true)`. The operation then points the underlying expense at the target report and restores **Submitted** within the same transaction. The moved line retains its feed link and receipt; moving does not leave the expense off a report.
 
