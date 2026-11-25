@@ -335,8 +335,8 @@ codeunit 6989 "Expense Attachment Mgt."
         if not Expense.Get(DocumentAttachment."No.") then
             exit;
 
-        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
         UpdateReceiptAttachedOnExpense(Expense, DocumentAttachment);
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
     end;
 
     local procedure CheckAndUpdateAttachmentOnExpenseReportLine(DocumentAttachment: Record "Document Attachment")
@@ -346,8 +346,8 @@ codeunit 6989 "Expense Attachment Mgt."
         if not ExpenseReportLine.Get(DocumentAttachment."No.", DocumentAttachment."Line No.") then
             exit;
 
-        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
         UpdateReceiptAttachedOnExpenseReportLine(ExpenseReportLine, DocumentAttachment);
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
     end;
 
     local procedure UpdateReceiptAttachedOnExpense(var Expense: Record Expense; DocumentAttachment: Record "Document Attachment")

@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Projects.Project.Job;
+using System.Utilities;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching]
 codeunit 148370 EAReceiptMatchTests
@@ -34,6 +35,9 @@ codeunit 148370 EAReceiptMatchTests
         ReceiptNoMandatoryOnReportLineErr: Label 'Receipt No. is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         MerchantNameMandatoryOnReportLineErr: Label 'Merchant Name is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
+        ExpenseDocumentAttachmentMandatoryMsg: Label 'Document Attachment is mandatory on Expense No. %1', Comment = '%1 = Expense No.';
+        ERLDocumentAttachmentMandatoryMsg: Label 'Document Attachment is mandatory on Expense Report No. %1 Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
+        ItemizationTotalMismatchErr: Label 'Itemization total %1 must be equal to expense amount %2.', Comment = '%1 = Itemization total amount, %2 = Expense amount';
 
     [Test]
     procedure ReceiptMatchesCardExpenseWithinDateWindow()
@@ -949,9 +953,83 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
 
-        // [THEN] Neither has the receipt number violation.
+        // [THEN] Neither has the receipt number violation, and the missing receipt is not reported when the category doesn't enforce it.
         Assert.IsFalse(HasExpenseViolation(Expense, StrSubstNo(ReceiptNoMandatoryOnExpenseErr, Expense."No.")), 'A card expense waiting for a receipt must not require a receipt number.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line waiting for a receipt must not require a receipt number.');
+        Assert.IsFalse(HasExpenseViolation(Expense, StrSubstNo(ExpenseDocumentAttachmentMandatoryMsg, Expense."No.")), 'A card expense must report a missing receipt only when its category enforces it.');
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ERLDocumentAttachmentMandatoryMsg, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line must report a missing receipt only when its category enforces it.');
+    end;
+
+    [Test]
+    procedure CardLineWaitingForReceiptSkipsItemizationTotal()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [SCENARIO] The itemization total is checked on a card line only once it has a receipt.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card line waiting for a receipt, with a category that requires itemization and no items.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::Itemize);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Modify(true);
+
+        // [WHEN] The line is validated against the rules.
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] The line has no itemization total violation.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ItemizationTotalMismatchErr, 0, ExpenseReportLine.Amount)), 'A card line waiting for a receipt must not check the itemization total.');
+
+        // [WHEN] The line gets a receipt and is validated again.
+        ExpenseReportLine."Receipt Attached" := true;
+        ExpenseReportLine.Modify();
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [THEN] The line has the itemization total violation.
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ItemizationTotalMismatchErr, 0, ExpenseReportLine.Amount)), 'A card line with a receipt must check the itemization total.');
+    end;
+
+    [Test]
+    procedure ReceiptAttachedDirectlyToCardLineRunsAllRules()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        DocumentAttachment: Record "Document Attachment";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        TempBlob: Codeunit "Temp Blob";
+        LineRecordRef: RecordRef;
+        ReceiptInStream: InStream;
+        ReceiptOutStream: OutStream;
+    begin
+        // [SCENARIO] Attaching a receipt directly to a card line checks the line against all rules right away.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card line waiting for a receipt on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [WHEN] A receipt is attached directly to the line.
+        TempBlob.CreateOutStream(ReceiptOutStream);
+        ReceiptOutStream.WriteText('Receipt');
+        TempBlob.CreateInStream(ReceiptInStream);
+        LineRecordRef.GetTable(ExpenseReportLine);
+        DocumentAttachment.InitFieldsFromRecRef(LineRecordRef);
+        DocumentAttachment.SaveAttachmentFromStream(ReceiptInStream, LineRecordRef, 'receipt.txt');
+
+        // [THEN] The missing receipt violation is gone; a card line never requires a receipt number, also with a receipt (R13).
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Receipt Attached", true);
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ERLDocumentAttachmentMandatoryMsg, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line with a receipt must not report a missing receipt.');
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line must not require a receipt number, also with a receipt.');
     end;
 
     [Test]
@@ -1112,6 +1190,35 @@ codeunit 148370 EAReceiptMatchTests
 
         // [THEN] An error says the card transaction is missing.
         Assert.ExpectedTestFieldError(Expense.FieldCaption("Credit Card Feed No."), '');
+    end;
+
+    [Test]
+    procedure ReportWithCardLineWaitingForReceiptCanBeReleased()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseCategory: Record "Expense Category";
+    begin
+        // [SCENARIO] Releasing a report doesn't check the receipt number on card lines still waiting for a receipt.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card line with a category but without receipt on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Description := 'CONTOSO COFFEE';
+        ExpenseReportLine.Modify(true);
+
+        // [WHEN] The report is released.
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpenseReportHeader);
+
+        // [THEN] The report is released.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
     end;
 
     local procedure EnableReceiptNoRule()
