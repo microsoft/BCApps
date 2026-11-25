@@ -196,8 +196,9 @@ codeunit 7057 "WHT Exp. Report Post Handler"
 
                 if WHTEmployeeCalc.ResolveWHTGroupComponents(WorkGenJnlLine, WHTGroupCode) then begin
                     if WHTExpReportBuffer."WHT Amount (LCY)" <> 0 then
-                        PostWHTGroup(WorkGenJnlLine, WHTGroupCode, WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
-                    WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(WorkGenJnlLine, WHTExpReportBuffer."Threshold Base Amount (LCY)");
+                        PostWHTGroup(WorkGenJnlLine, WHTGroupCode, WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine)
+                    else
+                        WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(WorkGenJnlLine, WHTExpReportBuffer."Threshold Base Amount (LCY)");
                 end else
                     PostWHTSingle(WorkGenJnlLine, WHTExpReportBuffer."WHT Amount (LCY)", WHTExpReportBuffer."WHT Base Amount (LCY)", WHTExpReportBuffer."Threshold Base Amount (LCY)", NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
             until WHTExpReportBuffer.Next() = 0;
@@ -240,8 +241,10 @@ codeunit 7057 "WHT Exp. Report Post Handler"
         WHTEmployeeCalc: Codeunit "WHT Employee Calculation";
         CompoundBase: Decimal;
         ComponentWHT: Decimal;
+        ThresholdAccumBaseAmount: Decimal;
     begin
         CompoundBase := WHTBaseAmount;
+        ThresholdAccumBaseAmount := ThresholdBaseAmount;
 
         WHTGroupLine.SetCurrentKey("Group Code", "Component Order");
         WHTGroupLine.SetRange("Group Code", WHTGroupCode);
@@ -259,13 +262,18 @@ codeunit 7057 "WHT Exp. Report Post Handler"
                         GenJnlPostLine.InsertGLEntry(GenJnlLine, GLEntry, true);
                     end;
 
-                    WHTEmployeeCalc.InsertEmployeeWHTComponentEntry(
-                        GenJnlLine, WHTGroupLine, ComponentWHT, WHTBaseAmount, ThresholdBaseAmount, NextTransactionNo, NextTaxEntryNo);
+                    if WHTEmployeeCalc.InsertEmployeeWHTComponentEntry(
+                        GenJnlLine, WHTGroupLine, ComponentWHT, WHTBaseAmount, ThresholdAccumBaseAmount, NextTransactionNo, NextTaxEntryNo) <> 0
+                    then
+                        ThresholdAccumBaseAmount := 0;
                 end;
 
                 if ParentSetup."Calculation Method" = ParentSetup."Calculation Method"::Compound then
                     CompoundBase := CompoundBase + ComponentWHT;
             until WHTGroupLine.Next() = 0;
+
+        if ThresholdAccumBaseAmount <> 0 then
+            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, ThresholdAccumBaseAmount);
     end;
 
     local procedure CheckWithholdingTaxDisabled(): Boolean
