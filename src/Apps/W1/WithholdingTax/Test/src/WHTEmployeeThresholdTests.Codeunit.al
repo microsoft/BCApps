@@ -343,6 +343,67 @@ codeunit 148323 "WHT Employee Threshold Tests"
     end;
 
     [Test]
+    procedure DocumentThresholdJournalLinesEmployeeAccountFirst()
+    begin
+        // [SCENARIO 657603] Posting a journal with two employee lines of one document deducts the Document threshold once.
+        PostDocumentThresholdJournalLines(true);
+    end;
+
+    [Test]
+    procedure DocumentThresholdJournalLinesGLAccountFirst()
+    begin
+        // [SCENARIO 657603] Posting a journal with two G/L lines with employee balancing accounts of one document deducts the Document threshold once.
+        PostDocumentThresholdJournalLines(false);
+    end;
+
+    local procedure PostDocumentThresholdJournalLines(EmployeeIsAccount: Boolean)
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        GenJournalLine: array[2] of Record "Gen. Journal Line";
+        WithholdingTaxEntry: Record "Withholding Tax Entry";
+        EmployeeLedgerEntry: Record "Employee Ledger Entry";
+        EmployeeNo: Code[20];
+        GLAccountNo: Code[20];
+    begin
+        Initialize();
+
+        // [GIVEN] Document threshold 1,000, 20 % withholding and "Tax Only Amount Above Threshold" enabled.
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, "Withholding Calculation Base"::Gross, "Withholding Threshold Base"::Document, true);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+        GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
+
+        // [GIVEN] One journal batch with two lines of 1,500 each with the same document number.
+        CreateEmployeeJournalLine(GenJournalLine[1], WHTPostingSetup, EmployeeNo, GLAccountNo, EmployeeIsAccount, 1500);
+        CreateNextEmployeeJournalLine(GenJournalLine[2], GenJournalLine[1], GenJournalLine[1].Amount);
+
+        // [WHEN] Post the journal.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine[1]);
+
+        // [THEN] The first line withholds 100 on 500, the second 300 on 1,500, 400 in total.
+        WithholdingTaxEntry.SetRange("Employee No.", EmployeeNo);
+        WithholdingTaxEntry.SetRange("Document No.", GenJournalLine[1]."Document No.");
+        Assert.RecordCount(WithholdingTaxEntry, 2);
+        WithholdingTaxEntry.SetRange(Amount, -100);
+        WithholdingTaxEntry.SetRange(Base, 500);
+        Assert.RecordCount(WithholdingTaxEntry, 1);
+        WithholdingTaxEntry.SetRange(Amount, -300);
+        WithholdingTaxEntry.SetRange(Base, 1500);
+        Assert.RecordCount(WithholdingTaxEntry, 1);
+
+        // [THEN] The employee entries total 3,000 with 400 withheld.
+        EmployeeLedgerEntry.SetRange("Employee No.", EmployeeNo);
+#pragma warning disable AA0210
+        EmployeeLedgerEntry.SetRange("Document No.", GenJournalLine[1]."Document No.");
+#pragma warning restore AA0210
+        EmployeeLedgerEntry.CalcSums("Withholding Tax Amount");
+        Assert.AreEqual(-400, EmployeeLedgerEntry."Withholding Tax Amount", StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption("Withholding Tax Amount")));
+
+        // [THEN] On both account sides the G/L account is credited with 2,600 and the withholding tax account with 400.
+        VerifyGLAmount(GLAccountNo, GenJournalLine[1]."Document No.", -2600);
+        VerifyGLAmount(WHTPostingSetup."Payable Wthldg. Tax Acc. Code", GenJournalLine[1]."Document No.", -400);
+    end;
+
+    [Test]
     procedure BufferedLinesAccumulateOriginalBases()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
@@ -491,6 +552,63 @@ codeunit 148323 "WHT Employee Threshold Tests"
 
         // [THEN] The period accumulates the original base 3,000 once.
         VerifyAccumulatedBase(EmployeeNo, 3000);
+
+        UnbindSubscription(WHTEmplGroupTestSubscr);
+    end;
+
+    [Test]
+    procedure ReverseGroupedEntriesRemovesOriginalBaseOnce()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        ComponentWHTPostingSetup: array[2] of Record "Withholding Tax Posting Setup";
+        GenJournalLine: array[2] of Record "Gen. Journal Line";
+        WithholdingTaxEntry: Record "Withholding Tax Entry";
+        WHTEmployeeCalculation: Codeunit "WHT Employee Calculation";
+        WHTEmplGroupTestSubscr: Codeunit "WHT Empl. Group Test Subscr.";
+        EmployeeNo: Code[20];
+        GLAccountNo: Code[20];
+        WHTGroupCode: Code[20];
+    begin
+        // [SCENARIO 657603] Reversing the entries of a grouped transaction removes its original base from the period exactly once.
+        Initialize();
+
+        // [GIVEN] Total in Period threshold 1,000 with "Tax Only Amount Above Threshold" enabled and a group with two Simple 20 % components.
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, "Withholding Calculation Base"::Gross, "Withholding Threshold Base"::"Total Period", true);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+        GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
+        CreateComponentWHTPostingSetup(ComponentWHTPostingSetup[1], WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        CreateComponentWHTPostingSetup(ComponentWHTPostingSetup[2], WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+        WHTGroupCode := CreateWHTGroup(ComponentWHTPostingSetup[1]."Wthldg. Tax Prod. Post. Group");
+        AddWHTGroupLine(WHTGroupCode, ComponentWHTPostingSetup[2]."Wthldg. Tax Prod. Post. Group", 2);
+        WHTEmplGroupTestSubscr.SetWHTGroupCode(WHTGroupCode);
+        BindSubscription(WHTEmplGroupTestSubscr);
+
+        // [GIVEN] Grouped transaction of 3,000 posted with two component withholding entries.
+        CreateEmployeeJournalLine(GenJournalLine[1], WHTPostingSetup, EmployeeNo, GLAccountNo, true, 3000);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine[1]);
+        VerifyAccumulatedBase(EmployeeNo, 3000);
+
+        // [WHEN] Reverse the threshold accumulation of each withholding entry of the transaction.
+#pragma warning disable AA0210
+        WithholdingTaxEntry.SetRange("Employee No.", EmployeeNo);
+#pragma warning restore AA0210
+        WithholdingTaxEntry.SetRange("Document No.", GenJournalLine[1]."Document No.");
+        Assert.RecordCount(WithholdingTaxEntry, 2);
+        WithholdingTaxEntry.FindSet();
+        repeat
+            WHTEmployeeCalculation.ReverseThresholdAccumulator(WithholdingTaxEntry);
+        until WithholdingTaxEntry.Next() = 0;
+
+        // [THEN] The original base 3,000 is removed once and the period is back to zero.
+        VerifyAccumulatedBase(EmployeeNo, 0);
+
+        // [WHEN] Post a grouped transaction of 500 in the same period.
+        CreateEmployeeJournalLine(GenJournalLine[2], WHTPostingSetup, EmployeeNo, GLAccountNo, true, 500);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine[2]);
+
+        // [THEN] 500 is below the threshold and nothing is withheld.
+        VerifyGroupedPostedAmounts(ComponentWHTPostingSetup, 2, GenJournalLine[2]."Document No.", EmployeeNo, GLAccountNo, 500, 0, 500);
+        VerifyAccumulatedBase(EmployeeNo, 500);
 
         UnbindSubscription(WHTEmplGroupTestSubscr);
     end;
@@ -725,6 +843,17 @@ codeunit 148323 "WHT Employee Threshold Tests"
 
         VerifyGLAmount(GLAccountNo, DocumentNo, -(EmployeeAmount - ExpectedWHTAmount));
         VerifyGLAmount(WHTPostingSetup."Payable Wthldg. Tax Acc. Code", DocumentNo, -ExpectedWHTAmount);
+    end;
+
+    local procedure CreateNextEmployeeJournalLine(var GenJournalLine: Record "Gen. Journal Line"; PreviousGenJournalLine: Record "Gen. Journal Line"; LineAmount: Decimal)
+    begin
+        LibraryJournals.CreateGenJournalLine(
+          GenJournalLine, PreviousGenJournalLine."Journal Template Name", PreviousGenJournalLine."Journal Batch Name", PreviousGenJournalLine."Document Type",
+          PreviousGenJournalLine."Account Type", PreviousGenJournalLine."Account No.", PreviousGenJournalLine."Bal. Account Type", PreviousGenJournalLine."Bal. Account No.", LineAmount);
+        GenJournalLine.Validate("Document No.", PreviousGenJournalLine."Document No.");
+        GenJournalLine."Wthldg. Tax Bus. Post. Group" := PreviousGenJournalLine."Wthldg. Tax Bus. Post. Group";
+        GenJournalLine."Wthldg. Tax Prod. Post. Group" := PreviousGenJournalLine."Wthldg. Tax Prod. Post. Group";
+        GenJournalLine.Modify(true);
     end;
 
     local procedure VerifyGLAmount(GLAccountNo: Code[20]; DocumentNo: Code[20]; ExpectedAmount: Decimal)

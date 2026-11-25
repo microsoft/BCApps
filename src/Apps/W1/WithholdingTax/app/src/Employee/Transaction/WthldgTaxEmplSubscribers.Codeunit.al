@@ -86,7 +86,6 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
                 exit;
 
             PostEmployeeWHTGroupEntries(GenJnlLine, WHTGroupCode, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
-            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, Abs(GenJnlLine.Amount));
             exit;
         end;
 
@@ -115,8 +114,10 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         WHTEmployeeCalc: Codeunit "WHT Employee Calculation";
         CompoundBase: Decimal;
         ComponentWHT: Decimal;
+        ThresholdAccumBaseAmount: Decimal;
     begin
         CompoundBase := WHTBaseAmount;
+        ThresholdAccumBaseAmount := Abs(GenJnlLine.Amount);
 
         WHTGroupLine.SetCurrentKey("Group Code", "Component Order");
         WHTGroupLine.SetRange("Group Code", WHTGroupCode);
@@ -135,13 +136,18 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
                         GenJnlPostLine.InsertGLEntry(GenJnlLine, GLEntry, true);
                     end;
 
-                    WHTEmployeeCalc.InsertEmployeeWHTComponentEntry(
-                        GenJnlLine, WHTGroupLine, ComponentWHT, WHTBaseAmount, NextTransactionNo, NextTaxEntryNo);
+                    if WHTEmployeeCalc.InsertEmployeeWHTComponentEntry(
+                        GenJnlLine, WHTGroupLine, ComponentWHT, WHTBaseAmount, ThresholdAccumBaseAmount, NextTransactionNo, NextTaxEntryNo) <> 0
+                    then
+                        ThresholdAccumBaseAmount := 0;
                 end;
 
                 if ParentSetup."Calculation Method" = ParentSetup."Calculation Method"::Compound then
                     CompoundBase := CompoundBase + ComponentWHT;
             until WHTGroupLine.Next() = 0;
+
+        if ThresholdAccumBaseAmount <> 0 then
+            WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, ThresholdAccumBaseAmount);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeInitGLEntryForGLAcc, '', false, false)]

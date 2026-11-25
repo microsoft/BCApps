@@ -443,6 +443,12 @@ table 6788 "Withholding Tax Entry"
             AutoFormatExpression = Rec."Currency Code";
             Editable = false;
         }
+        field(114; "Threshold Prod. Post. Group"; Code[20])
+        {
+            Caption = 'Threshold Prod. Post. Group';
+            Editable = false;
+            TableRelation = "Wthldg. Tax Prod. Post. Group";
+        }
         field(28101; "Pymt. Disc. Diff. Base"; Decimal)
         {
             AutoFormatType = 1;
