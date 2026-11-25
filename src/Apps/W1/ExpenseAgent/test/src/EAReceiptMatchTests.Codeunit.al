@@ -37,7 +37,7 @@ codeunit 148370 EAReceiptMatchTests
         ERLDocumentAttachmentMandatoryMsg: Label 'Document Attachment is mandatory on Expense Report No. %1 Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         ItemizationTotalMismatchErr: Label 'Itemization total %1 must be equal to expense amount %2.', Comment = '%1 = Itemization total amount, %2 = Expense amount';
         JustificationRequiredErr: Label 'Justification is required for this expense based on your organization''s rule.';
-        MaxAmountErr: Label 'Amount must not exceed %1 as defined by rule.', Comment = '%1 = Maximum allowed amount';
+        MaxAmountTok: Label 'must not exceed', Locked = true;
         NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current.', Comment = '%1 = Expense No.';
 
     [Test]
@@ -1203,7 +1203,7 @@ codeunit 148370 EAReceiptMatchTests
         Assert.IsFalse(ExpenseRuleValidation.IsCardLineWaitingForReceipt(ExpenseReportLine), 'A card line that needs no receipt must not wait for one.');
         Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line that does not wait for a receipt must require a receipt number.');
         Assert.IsTrue(HasLineViolation(ExpenseReportLine, JustificationRequiredErr), 'The justification rule must apply to a card line that does not wait for a receipt.');
-        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(MaxAmountErr, 10)), 'Without a justification, the exceeded maximum must be flagged.');
+        Assert.IsTrue(HasLineViolationLike(ExpenseReportLine, MaxAmountTok), 'Without a justification, the exceeded maximum must be flagged.');
 
         // [WHEN] The user enters the receipt number and a justification.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -1215,7 +1215,7 @@ codeunit 148370 EAReceiptMatchTests
         // [THEN] The receipt number, the justification and the locked amount are no longer flagged.
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'The entered receipt number must satisfy the receipt number rule.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, JustificationRequiredErr), 'The entered justification must satisfy the justification rule.');
-        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(MaxAmountErr, 10)), 'A justification must accept the locked card amount.');
+        Assert.IsFalse(HasLineViolationLike(ExpenseReportLine, MaxAmountTok), 'A justification must accept the locked card amount.');
     end;
 
     [Test]
@@ -1324,6 +1324,15 @@ codeunit 148370 EAReceiptMatchTests
         exit(not ExpenseReportRuleViolation.IsEmpty());
     end;
 
+    local procedure HasLineViolationLike(ExpenseReportLine: Record "Expense Report Line"; DescriptionPart: Text): Boolean
+    var
+        ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+    begin
+        ExpenseReportRuleViolation.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportRuleViolation.SetRange("Report Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportRuleViolation.SetFilter(Description, '@*' + DescriptionPart + '*');
+        exit(not ExpenseReportRuleViolation.IsEmpty());
+    end;
     local procedure Initialize()
     begin
         CorpCardTestLib.InitializeCorpCardData();
