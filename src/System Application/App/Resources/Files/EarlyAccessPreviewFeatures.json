@@ -2,8 +2,16 @@
     {
         "FeatureName": "Edit with Copilot",
         "Description": "Delegate real work to Copilot, such as creating or updating records or running actions in Business Central.",
-        "Category": "Other",
+        "Category": "AI",
         "HelpURL": "https://aka.ms/editBCwithCopilot",
-        "VideoURL": ""
+        "VideoURL": "https://youtu.be/RtG0l-4zlCI",
+        "ReleaseVersion": "30.0",
+        "GettingStartedSteps": [
+            "Ensure your tenant has an eligible Microsoft 365 subscription, Microsoft Copilot is enabled in Business Central, and you have a Business Central Essentials or Premium license. A Microsoft Copilot license is not required, but is highly recommended.",
+            "To get started, open the Copilot pane and type your task to Copilot: it can create, edit or delete records, and use actions on pages, including fields and objects from your extensions.",
+            "For example, ask Copilot to create a new Purchase Order from a demo Vendor and for some demo Items.",
+            "Changes are saved immediately, and Copilot will summarize what it changed in the Copilot pane.",
+            "Use Send feedback in the Copilot menu or the thumbs-up or thumbs-down controls to share feedback."
+        ]
     }
 ]
