@@ -8,6 +8,7 @@ namespace System.Test.Apps;
 using System.Apps;
 using System.Environment.Configuration;
 using System.Media;
+using System.Security.AccessControl;
 using System.TestLibraries.Apps;
 using System.TestLibraries.Environment;
 using System.TestLibraries.Security.AccessControl;
@@ -63,8 +64,7 @@ codeunit 133100 "Extension Management Test"
     begin
         // [SCENARIO] SaaS users receive the migration notification only while legacy PTE upload is available.
         // [GIVEN] Extension management permissions and a SaaS environment.
-        PermissionsMock.Set('Exten. Mgt. - Admin');
-        PermissionsMock.Assign('Exten. Mgt. UI Test');
+        SetExtensionManagementPagePermissions();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         LibraryVariableStorage.Clear();
 #if not CLEAN30
@@ -89,8 +89,7 @@ codeunit 133100 "Extension Management Test"
     begin
         // [SCENARIO] On-premises users do not receive the PTE upload migration notification.
         // [GIVEN] Extension management permissions and an on-premises environment.
-        PermissionsMock.Set('Exten. Mgt. - Admin');
-        PermissionsMock.Assign('Exten. Mgt. UI Test');
+        SetExtensionManagementPagePermissions();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         LibraryVariableStorage.Clear();
 
@@ -115,6 +114,19 @@ codeunit 133100 "Extension Management Test"
         // [THEN] The hyperlink handler verifies the documentation URL.
     end;
 #endif
+
+    local procedure SetExtensionManagementPagePermissions()
+    var
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+    begin
+        PermissionsMock.Set('Exten. Mgt. - Admin');
+        PermissionsMock.Assign('Exten. Mgt. UI Test');
+
+        // Base Application page extensions need data permissions only when that application is installed.
+        AggregatePermissionSet.SetRange("Role ID", 'D365 Basic - Read');
+        if not AggregatePermissionSet.IsEmpty() then
+            PermissionsMock.Assign('D365 Basic - Read');
+    end;
 
     local procedure SetNavAppIds()
     begin

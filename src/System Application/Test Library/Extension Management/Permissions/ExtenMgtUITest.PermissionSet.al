@@ -6,11 +6,13 @@
 namespace System.TestLibraries.Apps;
 
 using System.Environment.Configuration;
+using System.Security.AccessControl;
 
 permissionset 135108 "Exten. Mgt. UI Test"
 {
     Access = Internal;
     Assignable = true;
 
-    Permissions = tabledata "User Personalization" = R;
+    Permissions = tabledata "User Personalization" = R,
+                  tabledata "Aggregate Permission Set" = R;
 }
