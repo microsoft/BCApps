@@ -436,8 +436,8 @@ codeunit 148370 EAReceiptMatchTests
         // [GIVEN] An open card expense without a category.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
         ClearCategory(Expense);
-        Expense.CalcFields("Pending Card Expense");
-        Expense.TestField("Pending Card Expense", true);
+        Expense.CalcFields("Card Expense Awaiting Report");
+        Expense.TestField("Card Expense Awaiting Report", true);
 
         // [WHEN] The card-specific add releases and adds the expense in one operation.
         AddCardExpenseToReport(Expense, ExpenseReportLine);
@@ -447,8 +447,8 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseReportLine.TestField("Credit Card Feed No.", Expense."Credit Card Feed No.");
         Expense.Get(Expense."No.");
         Expense.TestField(Status, Expense.Status::Submitted);
-        Expense.CalcFields("Pending Card Expense");
-        Expense.TestField("Pending Card Expense", false);
+        Expense.CalcFields("Card Expense Awaiting Report");
+        Expense.TestField("Card Expense Awaiting Report", false);
     end;
 
     [Test]
@@ -502,8 +502,8 @@ codeunit 148370 EAReceiptMatchTests
         Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
         Expense.TestField("Credit Card Feed No.", ExpenseReportLine."Credit Card Feed No.");
-        Expense.CalcFields("Pending Card Expense");
-        Expense.TestField("Pending Card Expense", true);
+        Expense.CalcFields("Card Expense Awaiting Report");
+        Expense.TestField("Card Expense Awaiting Report", true);
     end;
 
     [Test]

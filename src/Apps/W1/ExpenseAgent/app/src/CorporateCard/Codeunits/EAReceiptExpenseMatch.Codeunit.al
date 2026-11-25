@@ -22,18 +22,6 @@ codeunit 7438 "EA Receipt Expense Match"
         AmountRequiredErr: Label 'The receipt amount must be specified.';
 
     /// <summary>
-    /// Returns true when the expense is a card-created expense waiting to be added to an expense report.
-    /// Keep in sync with the Expense field "Pending Card Expense", which exposes the same rule through the expenses API.
-    /// </summary>
-    internal procedure IsPendingCardExpense(Expense: Record Expense): Boolean
-    begin
-        exit((Expense.Source = Expense.Source::CorporateCard) and
-             (Expense."Credit Card Feed No." <> 0) and
-             (Expense.Status = Expense.Status::Open) and
-             (Expense."Expense Report No." = ''));
-    end;
-
-    /// <summary>
     /// Returns the SystemId of the card expense that the receipt belongs to, or an empty GUID when none matches.
     /// Candidates must have the same expense user, currency and exact amount, and an expense date within the
     /// Corp Card Date Match Window. When CardLast4 is four digits, the expense must also be paid with one of the user's cards

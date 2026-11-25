@@ -144,7 +144,7 @@ codeunit 148371 "EA Receipt Match API Tests"
     end;
 
     [Test]
-    procedure ExpensesAPIPendingCardExpenseIsTrueOnlyForOpenCardExpenseNotOnReport()
+    procedure ExpensesAPICardExpenseAwaitingReportIncludesOpenAndReleasedExpenses()
     var
         PendingExpense: Record Expense;
         ExpenseWithReceipt: Record Expense;
@@ -156,7 +156,7 @@ codeunit 148371 "EA Receipt Match API Tests"
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] pendingCardExpense is true for open card expenses linked to a transaction that are not on a report, whatever their receipt.
+        // [SCENARIO] An open or released off-report card expense awaits a report regardless of its receipt.
         Initialize();
 
         // [GIVEN] A card expense without a receipt, one with a receipt, one declared as lost receipt, one released, one no longer linked to its transaction and a manual expense paid with the card.
@@ -169,13 +169,14 @@ codeunit 148371 "EA Receipt Match API Tests"
         CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
         Commit();
 
-        // [WHEN] The expenses of the expense user are filtered on pendingCardExpense eq true.
+        // [WHEN] The expense user's expenses are filtered to those awaiting a report.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
-            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(GetUserScopedURL(PendingExpense, ExpensesServiceNameTok), '$filter=pendingCardExpense eq true'), 200);
+            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(GetUserScopedURL(PendingExpense, ExpensesServiceNameTok), '$filter=cardExpenseAwaitingReport eq true'), 200);
 
-        // [THEN] Only the open card expenses linked to a transaction are returned.
+        // [THEN] Only the open or released card-origin expenses linked to a transaction are returned.
         GetExpenseIds(ResponseText, 'value', ExpenseIds);
-        Assert.AreEqual(3, ExpenseIds.Count(), 'Only open card expenses linked to a transaction must be pending.');
+        Assert.AreEqual(4, ExpenseIds.Count(), 'Only open or released off-report card expenses linked to a transaction must be returned.');
+        Assert.IsTrue(ExpenseIds.Contains(ReleasedExpense.SystemId), 'A released off-report card expense must await a report.');
         Assert.IsTrue(ExpenseIds.Contains(PendingExpense.SystemId), 'The card expense without a receipt must be pending.');
         Assert.IsTrue(ExpenseIds.Contains(ExpenseWithReceipt.SystemId), 'The card expense with a receipt must be pending.');
         Assert.IsTrue(ExpenseIds.Contains(LostReceiptExpense.SystemId), 'The card expense declared as lost receipt must be pending.');
