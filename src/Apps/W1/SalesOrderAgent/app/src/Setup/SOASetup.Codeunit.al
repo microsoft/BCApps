@@ -1156,7 +1156,7 @@ codeunit 4400 "SOA Setup"
         if LowerCase(FileMIMEType) in
             ['image/jpeg', 'image/jpg', 'image/png', 'image/gif',
              'application/jpeg', 'application/jpg', 'application/png', 'application/gif'] then
-            exit(false);
+            exit(true);
 
         exit(false);
     end;
