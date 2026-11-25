@@ -260,7 +260,7 @@ codeunit 148374 "EA Card Report Line API Tests"
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
-        LineExpense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
         ResponseText: Text;
     begin
         // [SCENARIO] A receipt from the general upload flow is matched to the card line that is already on an open report.
@@ -274,10 +274,13 @@ codeunit 148374 "EA Card Report Line API Tests"
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateMatchRequest(WorkDate(), 20), ResponseText, 201);
 
-        // [THEN] The response identifies the expense, which is the expense of the report line.
+        // [THEN] The response identifies the expense, which is the expense on that open report line.
         Assert.AreEqual(Expense.SystemId, GetGuidProperty(ResponseText, 'expenseId'), 'The card expense on the open report must match.');
-        LineExpense.Get(ExpenseReportLine."Expense No.");
-        Assert.AreEqual(LineExpense.SystemId, GetGuidProperty(ResponseText, 'expenseId'), 'The response must identify the expense of the report line.');
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Expense No.", Expense."No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", Expense."Credit Card Feed No.");
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);
         CompleteTest();
     end;
 
