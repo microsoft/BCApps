@@ -6,7 +6,7 @@ Describe "BuildOptimization" {
         $script:baseFolder = Get-BaseFolder
         $appJsonPaths = @(Get-ApplicationGroup -GroupName All -SkipCountryCheck -SkipLanguagePacks |
             Select-Object -ExpandProperty AppJsonPath -Unique)
-        $graph = Get-AppDependencyGraph -AppJsonPaths $appJsonPaths
+        $script:graph = Get-AppDependencyGraph -AppJsonPaths $appJsonPaths
     }
 
     Context "Get-AppDependencyGraph" {
