@@ -49,6 +49,7 @@ codeunit 137055 "SCM Warehouse Pick"
         PickNotFoundErr: Label 'Pick should be created for reserved Sales Order %1', Comment = '%1 = Document No.';
         ShippedQtyMismatchErr: Label 'Expected %1 units to be shipped for the sales order.', Comment = '%1 - Quantity';
         UnexpectedQtyOfLotInBinErr: Label 'Unexpected quantity of lot %1 in bin %2.', Comment = '%1 - Lot No.; %2 - Bin Code';
+        UnexpectedPickedQtyOfLotErr: Label 'Unexpected picked quantity of lot %1 from bin %2.', Comment = '%1 - Lot No.; %2 - Bin Code';
 
     [Test]
     [HandlerFunctions('ReservationPageHandler')]
@@ -3512,6 +3513,80 @@ codeunit 137055 "SCM Warehouse Pick"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure BasicWarehousePickAfterTwoShipmentsDeletedFromSharedBinAndStockPartiallyReturned()
+    var
+        Location: Record Location;
+        PickBin: Record Bin;
+        SharedShipmentBin: Record Bin;
+        SecondShipmentBin: Record Bin;
+        Item: Record Item;
+        FirstSalesHeader: Record "Sales Header";
+        OtherSalesHeader: Record "Sales Header";
+        CompetingSalesHeader: Record "Sales Header";
+        FirstSalesLine: Record "Sales Line";
+        OtherSalesLine: Record "Sales Line";
+        CompetingSalesLine: Record "Sales Line";
+        FirstWarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        OtherWarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        CompetingWarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        TempTrackingSpecification: Record "Tracking Specification" temporary;
+        TempWarehouseActivityLine: Record "Warehouse Activity Line" temporary;
+        WarehouseAvailabilityMgt: Codeunit "Warehouse Availability Mgt.";
+        LotNo: Code[50];
+        SecondLotNo: Code[50];
+    begin
+        // [SCENARIO 653921] Stock left in a shared alternate shipment bin is credited only once across source lines whose shipments were deleted.
+        Initialize();
+
+        // [GIVEN] A basic FEFO warehouse with an empty default shipment bin and alternate shipment bins SD1 and SD2; 100 units of lot L1 in COOL1.
+        CreateBasicLocationWithAlternateShipmentBins(Location, PickBin, SharedShipmentBin, SecondShipmentBin);
+        CreateLotItemWithInventoryInBin(Item, LotNo, Location.Code, PickBin.Code, 100);
+
+        // [GIVEN] Order A for 60 and order B for 10 are picked into SD1 and become reserved.
+        CreateSalesOrderAndRegisterPickToBin(
+            FirstSalesHeader, FirstSalesLine, FirstWarehouseShipmentHeader, Item."No.", Location.Code, 60, SharedShipmentBin.Code, LotNo, PickBin);
+        CreateSalesOrderAndRegisterPickToBin(
+            OtherSalesHeader, OtherSalesLine, OtherWarehouseShipmentHeader, Item."No.", Location.Code, 10, SharedShipmentBin.Code, LotNo, PickBin);
+
+        // [GIVEN] Both warehouse shipments are deleted and 60 units are reclassified back to COOL1; 10 units remain in SD1.
+        DeleteWarehouseShipment(FirstWarehouseShipmentHeader);
+        DeleteWarehouseShipment(OtherWarehouseShipmentHeader);
+        ReclassifyLotBetweenBins(Item."No.", Location.Code, SharedShipmentBin.Code, PickBin.Code, LotNo, CalcDate('<1M>', WorkDate()), 60);
+        VerifyQuantityOnBin(Location.Code, PickBin.Code, Item."No.", LotNo, 90);
+        VerifyQuantityOnBin(Location.Code, SharedShipmentBin.Code, Item."No.", LotNo, 10);
+
+        // [GIVEN] 50 free units of a later-expiring lot L2 are in COOL1.
+        SecondLotNo := LibraryUtility.GenerateGUID();
+        CreateAndPostItemJnlLineWithLotAndExpiration(Item."No.", Location.Code, PickBin.Code, SecondLotNo, CalcDate('<2M>', WorkDate()), 50);
+
+        // [THEN] Total staged credit for L1 does not exceed the 10 units in SD1.
+        TempTrackingSpecification."Lot No." := LotNo;
+        Assert.AreEqual(
+            10,
+            WarehouseAvailabilityMgt.CalcReservQtyOnPicksShipsWithItemTracking(
+                TempWarehouseActivityLine, TempTrackingSpecification, Location.Code, Item."No.", ''),
+            'Stock in a shared bin must not be credited more than once across deleted shipments.');
+
+        // [WHEN] Create Pick is run for a competing order for 50 into SD2.
+        CreateSalesOrderWithShipmentToBin(
+            CompetingSalesHeader, CompetingSalesLine, CompetingWarehouseShipmentHeader, Item."No.", Location.Code, 50, SecondShipmentBin.Code);
+        LibraryWarehouse.CreatePick(CompetingWarehouseShipmentHeader);
+
+        // [THEN] Only the 30 free units of L1 are picked from COOL1 and the remaining 20 come from L2; both reservations are untouched.
+        VerifyPickTakeQtyForLot(CompetingSalesLine, LotNo, PickBin.Code, 30);
+        VerifyPickTakeQtyForLot(CompetingSalesLine, SecondLotNo, PickBin.Code, 20);
+        FirstSalesLine.Find();
+        FirstSalesLine.CalcFields("Reserved Qty. (Base)");
+        FirstSalesLine.TestField("Reserved Qty. (Base)", 60);
+        OtherSalesLine.Find();
+        OtherSalesLine.CalcFields("Reserved Qty. (Base)");
+        OtherSalesLine.TestField("Reserved Qty. (Base)", 10);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure BasicWarehousePickAfterLaterOrderPickedAndShippedFromSharedBin()
     var
@@ -3633,6 +3708,20 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseShipmentHeader.Modify();
         WarehouseShipmentHeader.Delete(true);
         Assert.IsFalse(WarehouseShipmentHeader.Find(), 'The warehouse shipment must be deleted.');
+    end;
+
+    local procedure VerifyPickTakeQtyForLot(SalesLine: Record "Sales Line"; LotNo: Code[50]; BinCode: Code[20]; ExpectedQty: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetSourceFilter(
+            Database::"Sales Line", SalesLine."Document Type".AsInteger(), SalesLine."Document No.", SalesLine."Line No.", -1, true);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Take);
+        WarehouseActivityLine.SetRange("Lot No.", LotNo);
+        WarehouseActivityLine.SetRange("Bin Code", BinCode);
+        WarehouseActivityLine.CalcSums("Qty. (Base)");
+        Assert.AreEqual(ExpectedQty, WarehouseActivityLine."Qty. (Base)", StrSubstNo(UnexpectedPickedQtyOfLotErr, LotNo, BinCode));
     end;
 
     local procedure ReclassifyLotBetweenBins(ItemNo: Code[20]; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; LotNo: Code[50]; ExpirationDate: Date; Quantity: Decimal)

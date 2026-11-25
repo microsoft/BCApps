@@ -1044,6 +1044,7 @@ codeunit 7314 "Warehouse Availability Mgt."
         QtyOnBin: Decimal;
         SourceQtyInBin: Decimal;
         OpenShipmentsQtyInBin: Decimal;
+        EarlierDeletedSourcesQtyInBin: Decimal;
     begin
         // Registered pick place entries remain after the warehouse shipment is deleted, so use them to find destination bins.
         // Only the bins that the credited source line was picked into count; stock picked by other source lines must not keep this credit.
@@ -1073,7 +1074,14 @@ codeunit 7314 "Warehouse Availability Mgt."
                         OpenShipmentsQtyInBin :=
                             CalcOtherOpenShipmentsQtyInBin(
                                 LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
-                        QtyOnBins += TypeHelper.Maximum(0, TypeHelper.Minimum(SourceQtyInBin, QtyOnBin - OpenShipmentsQtyInBin));
+                        EarlierDeletedSourcesQtyInBin := 0;
+                        if CalcQtyPickedOnWhseShipmentLine(SourceType, SourceSubType, SourceID, SourceRefNo) <= 0 then
+                            EarlierDeletedSourcesQtyInBin :=
+                                CalcEarlierDeletedShipmentSourcesQtyInBin(
+                                    LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup, WarehouseEntry."Entry No.");
+                        QtyOnBins +=
+                            TypeHelper.Maximum(
+                                0, TypeHelper.Minimum(SourceQtyInBin, QtyOnBin - OpenShipmentsQtyInBin - EarlierDeletedSourcesQtyInBin));
                     end;
                 end;
             until WarehouseEntry.Next() = 0;
@@ -1094,6 +1102,45 @@ codeunit 7314 "Warehouse Availability Mgt."
         WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
         WarehouseEntry.CalcSums("Qty. (Base)");
         exit(WarehouseEntry."Qty. (Base)");
+    end;
+
+    local procedure CalcEarlierDeletedShipmentSourcesQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; BeforeEntryNo: Integer) QtyInBin: Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        TypeHelper: Codeunit "Type Helper";
+        CheckedSources: List of [Text];
+        SourceKey: Text;
+    begin
+        // Stock left in a shared bin cannot be attributed to source lines of deleted shipments, so it is credited to them once, in pick order.
+        WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        WarehouseEntry.SetLoadFields("Source Type", "Source Subtype", "Source No.", "Source Line No.");
+        WarehouseEntry.SetFilter("Entry No.", '<%1', BeforeEntryNo);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Variant Code", VariantCode);
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Reference Document", WarehouseEntry."Reference Document"::Pick);
+        WarehouseEntry.SetRange("Whse. Document Type", WarehouseEntry."Whse. Document Type"::Shipment);
+        WarehouseEntry.SetFilter(Quantity, '>%1', 0);
+        WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        if WarehouseEntry.FindSet() then
+            repeat
+                SourceKey :=
+                    StrSubstNo('%1|%2|%3|%4', WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.");
+                if not CheckedSources.Contains(SourceKey) then begin
+                    CheckedSources.Add(SourceKey);
+                    if CalcQtyPickedOnWhseShipmentLine(
+                         WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.") <= 0
+                    then
+                        QtyInBin +=
+                            TypeHelper.Maximum(
+                                0,
+                                CalcSourceQtyInBin(
+                                    LocationCode, BinCode, ItemNo, VariantCode, WhseItemTrackingSetup,
+                                    WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No."));
+                end;
+            until WarehouseEntry.Next() = 0;
     end;
 
     local procedure CalcOtherOpenShipmentsQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: Integer) QtyInBin: Decimal
