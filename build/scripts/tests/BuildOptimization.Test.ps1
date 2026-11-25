@@ -3,8 +3,10 @@ Describe "BuildOptimization" {
         Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -Force
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
         Import-Module "$PSScriptRoot\..\ALAppBuild.psm1"
-        $baseFolder = Get-BaseFolder
-        $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
+        $script:baseFolder = Get-BaseFolder
+        $appJsonPaths = @(Get-ApplicationGroup -GroupName All -SkipCountryCheck -SkipLanguagePacks |
+            Select-Object -ExpandProperty AppJsonPath -Unique)
+        $graph = Get-AppDependencyGraph -AppJsonPaths $appJsonPaths
     }
 
     Context "Get-AppDependencyGraph" {
@@ -121,12 +123,12 @@ Describe "BuildOptimization" {
                 'src\System Application\App', 'src\System Application\Test',
                 'src\Apps\W1\EDocument\App', 'src\Apps\W1\EDocument\Test'
             ) | ForEach-Object { Join-Path $baseFolder "$_\app.json" }
-            $script:compiledGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths $script:compiledManifests
+            $script:compiledGraph = Get-AppDependencyGraph -AppJsonPaths $script:compiledManifests
         }
 
         It "keeps all-country registered roots without duplicate ID loss, including GDL source overrides" {
             $apps = @(ALAppBuild\Get-ApplicationGroup -GroupName All -SkipCountryCheck -SkipLanguagePacks)
-            $countryGraph = Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths $apps.AppJsonPath
+            $countryGraph = Get-AppDependencyGraph -AppJsonPaths $apps.AppJsonPath
             $countryGraph.Count | Should -Be $apps.Count
             $countryGraph['0d60b215-6ee1-4789-8e53-866cfa50c23c'].AppFolder |
                 Should -Be (Join-Path $baseFolder 'src\System Application\Test')
@@ -157,14 +159,15 @@ Describe "BuildOptimization" {
         }
 
         It "uses a component root only when it is declared in the compilation graph" {
-            $moduleGraph = Get-AppDependencyGraph -BaseFolder $baseFolder `
-                -AppJsonPaths @($script:compiledManifests + (Join-Path $baseFolder 'src\System Application\App\Email\app.json'))
+            $moduleGraph = Get-AppDependencyGraph -AppJsonPaths @(
+                $script:compiledManifests + (Join-Path $baseFolder 'src\System Application\App\Email\app.json')
+            )
             Get-AppForFile -FilePath 'src/System Application/App/Email/Changed.al' -BaseFolder $baseFolder -Graph $moduleGraph |
                 Should -Be '9c4a2cf2-be3a-4aa3-833b-99a5ffd11f25'
         }
 
         It "does not silently overwrite duplicate compiled app identities" {
-            { Get-AppDependencyGraph -BaseFolder $baseFolder -AppJsonPaths @($script:compiledManifests[0], $script:compiledManifests[0]) } |
+            { Get-AppDependencyGraph -AppJsonPaths @($script:compiledManifests[0], $script:compiledManifests[0]) } |
                 Should -Throw '*Compiled app ID*occurs in both*'
         }
 
@@ -491,7 +494,7 @@ Describe "BuildOptimization" {
                 $files | Should -Contain 'src/Second/Code.al'
                 $files | Should -Contain '.github/config.json'
                 Test-FullBuildPatternsMatch -ChangedFiles $files -BaseFolder $baseFolder | Should -BeTrue
-                $renameGraph = Get-AppDependencyGraph -BaseFolder $repo -AppJsonPaths @(
+                $renameGraph = Get-AppDependencyGraph -AppJsonPaths @(
                     (Join-Path $repo 'src\First\app.json'), (Join-Path $repo 'src\Second\app.json')
                 )
                 $affected = @(Get-AffectedApps -ChangedFiles $files -BaseFolder $repo -Graph $renameGraph)
@@ -734,30 +737,23 @@ Describe "BuildOptimization" {
     }
 
     Context "BaseFolder must be repo root, not build/" {
-        It "graph is empty when BaseFolder points to build/ instead of repo root" {
-            # The old RunTestsInBcContainer.ps1 code computed BaseFolder as:
-            #   Join-Path $PSScriptRoot "../../.." from .AL-Go/ → resolves to build/
-            # This is wrong because app.json files live under src/ at the repo root.
-            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
-            $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
-            $wrongGraph.Count | Should -Be 0 -Because 'build/ contains no app.json files; BaseFolder must be the repo root'
+        It "builds an empty graph from an explicit empty manifest list" {
+            $emptyGraph = Get-AppDependencyGraph -AppJsonPaths @()
+            $emptyGraph.Count | Should -Be 0
         }
 
-        It "affected apps returns empty array with wrong BaseFolder, causing silent full-build" {
-            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
-            $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
+        It "uses an explicit empty graph without discovering apps" {
+            Mock -ModuleName BuildOptimization Get-AppDependencyGraph { throw 'Graph must be supplied by the caller.' }
+            $affected = @(Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/Changed.al') `
+                -BaseFolder $baseFolder -Graph @{})
+            $affected.Count | Should -Be 0
+            Should -Invoke -ModuleName BuildOptimization Get-AppDependencyGraph -Times 0
+        }
 
-            $changedFiles = @(
-                'src/Apps/W1/EDocument/App/src/Processing/Import/FinishDraft/EDocCreatePurchaseInvoice.Codeunit.al'
-            )
-            $affected = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $buildFolder -Graph $wrongGraph
-
-            # With wrong BaseFolder: graph is empty, unmapped src/ file returns @($Graph.Keys) = @()
-            # PowerShell unwraps empty arrays to $null through the pipeline, so wrap in @()
-            # Then 0 >= 0 is true, so Get-AffectedAppNames treats this as "full build"
-            # even though zero apps were actually identified
-            @($affected).Count | Should -Be 0 -Because 'empty graph means no apps can be found'
-            @($affected).Count -ge @($wrongGraph.Keys).Count | Should -BeTrue -Because 'this is the condition that triggers the false full-build (0 >= 0)'
+        It "does not map repository-relative files against the build directory" {
+            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path
+            Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/Changed.al' -BaseFolder $buildFolder -Graph $graph |
+                Should -BeNullOrEmpty
         }
 
         It "correct BaseFolder (repo root) finds apps for the same changed files" {

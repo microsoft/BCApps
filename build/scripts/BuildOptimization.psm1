@@ -25,11 +25,9 @@ Import-Module (Join-Path $PSScriptRoot 'ALAppBuild.psm1')
 
 <#
 .SYNOPSIS
-    Builds a dependency graph from compiled roots, or all manifests when roots are omitted.
-.PARAMETER BaseFolder
-    Root of the repository.
+    Builds a dependency graph from explicitly supplied registered manifests.
 .PARAMETER AppJsonPaths
-    Registered source manifests, including overrides; when omitted, discover manifests under BaseFolder.
+    Registered source manifests, including overrides; an empty list produces an empty graph.
 .OUTPUTS
     Hashtable keyed by lowercase app ID. Each value is a PSCustomObject with
     Id, Name, AppFolder, Dependencies (string[]), Dependents (List[string]).
@@ -39,24 +37,19 @@ function Get-AppDependencyGraph {
     [OutputType([hashtable])]
     param(
         [Parameter(Mandatory)]
-        [string] $BaseFolder,
+        [AllowEmptyCollection()]
         [string[]] $AppJsonPaths
     )
 
     $graph = @{}
-    $appJsonFiles = if ($PSBoundParameters.ContainsKey('AppJsonPaths')) {
-        $AppJsonPaths | ForEach-Object { Get-Item -LiteralPath $_ }
-    } else {
-        Get-ChildItem -Path $BaseFolder -Recurse -Filter 'app.json' -File |
-            Where-Object { $_.FullName -notmatch '[\\/]\.buildartifacts[\\/]' }
-    }
+    $appJsonFiles = $AppJsonPaths | ForEach-Object { Get-Item -LiteralPath $_ }
 
     foreach ($file in $appJsonFiles) {
         $json = Get-Content -Path $file.FullName -Raw | ConvertFrom-Json
         if (-not $json.id) { continue }
 
         $appId = $json.id.ToLowerInvariant()
-        if ($PSBoundParameters.ContainsKey('AppJsonPaths') -and $graph.ContainsKey($appId)) {
+        if ($graph.ContainsKey($appId)) {
             throw "Compiled app ID '$appId' occurs in both '$($graph[$appId].AppFolder)' and '$($file.DirectoryName)'."
         }
         $depIds = @()
@@ -154,7 +147,7 @@ function Get-AppForFile {
 .PARAMETER BaseFolder
     Root of the repository.
 .PARAMETER Graph
-    Pre-built dependency graph. If not provided, one is built from BaseFolder.
+    Explicit pre-built dependency graph.
 .OUTPUTS
     String array of affected app IDs (lowercase GUIDs).
 #>
@@ -166,13 +159,9 @@ function Get-AffectedApps {
         [string[]] $ChangedFiles,
         [Parameter(Mandatory)]
         [string] $BaseFolder,
-        [Parameter()]
+        [Parameter(Mandatory)]
         [hashtable] $Graph
     )
-
-    if (-not $Graph) {
-        $Graph = Get-AppDependencyGraph -BaseFolder $BaseFolder
-    }
 
     # Map changed files to apps
     $directlyChanged = [System.Collections.Generic.HashSet[string]]::new()
@@ -557,7 +546,7 @@ function Get-AffectedAppNames {
 
     $appJsonPaths = @(Get-ApplicationGroup -GroupName 'All' -SkipCountryCheck -SkipLanguagePacks |
         Select-Object -ExpandProperty AppJsonPath -Unique)
-    $graph = Get-AppDependencyGraph -BaseFolder $BaseFolder -AppJsonPaths $appJsonPaths
+    $graph = Get-AppDependencyGraph -AppJsonPaths $appJsonPaths
     $affectedIds = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $BaseFolder -Graph $graph
 
     # Full build triggered (unmapped src file or all apps affected)
