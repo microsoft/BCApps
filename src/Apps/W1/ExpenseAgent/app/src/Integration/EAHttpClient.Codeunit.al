@@ -12,6 +12,7 @@ using System.Azure.KeyVault;
 using System.Environment;
 using System.Security.AccessControl;
 using System.Security.Authentication;
+using System.Security.Encryption;
 using System.Telemetry;
 using System.Utilities;
 
@@ -58,6 +59,14 @@ codeunit 6941 "EA Http Client"
         ExpenseAppBaseUrlOnPremTxt: Label 'http://localhost:5173/', Locked = true;
         ExpenseAppBaseUrlProdTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365219', Locked = true;
         ExpenseAppBaseUrlTieTxt: Label 'https://go.microsoft.com/fwlink/?LinkId=2365220', Locked = true;
+        ErpScopeHeaderTok: Label 'X-ERP-Scope', Locked = true;
+        ErpScopeNamespaceTok: Label '7d8f2d5b0e565f2d9b396ce7f2f54844', Locked = true;
+        ErpScopeErpCodeTok: Label 'business-central', Locked = true;
+        ErpScopeTenantIdTok: Label 'tenant_id', Locked = true;
+        ErpScopeEnvironmentNameTok: Label 'environment_name', Locked = true;
+        ErpScopeCompanyIdTok: Label 'company_id', Locked = true;
+        ErpScopeIdentityMissingErr: Label 'The request to the Expense Agent service was blocked because the company scope could not be calculated: the %1 value is missing. Make sure the environment is connected to Microsoft Entra ID and that you are working in an existing company, and then try again.', Comment = '%1 = name of the missing identity value, for example tenant_id, environment_name or company_id';
+        ErpScopeInvalidTextErr: Label 'The request to the Expense Agent service was blocked because the company scope could not be calculated: an identity value contains invalid characters.';
 
     internal procedure GetExpenseAppBaseUrl(): Text
     var
@@ -130,6 +139,7 @@ codeunit 6941 "EA Http Client"
         RequestMessage.GetHeaders(Headers);
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
+        AddErpScopeHeader(Headers);
         AddAuthHeaders(Headers);
 
         IsSuccess := Client.Send(RequestMessage, ResponseMessage);
@@ -186,6 +196,7 @@ codeunit 6941 "EA Http Client"
         RequestMessage.GetHeaders(Headers);
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
+        AddErpScopeHeader(Headers);
         AddCorrelationHeader(Headers, CorrelationId);
         AddAuthHeaders(Headers);
 
@@ -239,6 +250,7 @@ codeunit 6941 "EA Http Client"
         RequestMessage.GetHeaders(Headers);
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
+        AddErpScopeHeader(Headers);
         AddCorrelationHeader(Headers, CorrelationId);
         AddAuthHeaders(Headers);
 
@@ -287,6 +299,7 @@ codeunit 6941 "EA Http Client"
         RequestMessage.GetHeaders(Headers);
         Headers.Add('Accept', 'application/json');
         Headers.Add('On-Behalf-Of', OnBehalfUser);
+        AddErpScopeHeader(Headers);
         AddCorrelationHeader(Headers, CorrelationId);
         AddAuthHeaders(Headers);
 
@@ -601,6 +614,249 @@ codeunit 6941 "EA Http Client"
         if IsNullGuid(CorrelationId) then
             exit;
         Headers.Add(CorrelationIdHeaderLbl, LowercaseGuid(CorrelationId));
+    end;
+
+    local procedure AddErpScopeHeader(var Headers: HttpHeaders)
+    var
+        ScopeId: Text;
+    begin
+        // Calculated before the header is touched so that a missing identity blocks the request.
+        ScopeId := GetCurrentCompanyScopeId();
+        if Headers.Contains(ErpScopeHeaderTok) then
+            Headers.Remove(ErpScopeHeaderTok);
+        Headers.Add(ErpScopeHeaderTok, ScopeId);
+    end;
+
+    /// <summary>
+    /// Calculates the Expense Agent scope of the current tenant, environment and company on the fly.
+    /// Uses the same identity values that are sent when the environment is registered with the service.
+    /// </summary>
+    internal procedure GetCurrentCompanyScopeId(): Text
+    var
+        Company: Record Company;
+        AzureADTenant: Codeunit "Azure AD Tenant";
+        EnvironmentInformation: Codeunit "Environment Information";
+        CompanyId: Text;
+    begin
+        if Company.Get(CompanyName()) then
+            if not IsNullGuid(Company.Id) then
+                CompanyId := Format(Company.Id, 0, 4);
+
+        exit(CalculateCompanyScopeId(AzureADTenant.GetAadTenantId(), EnvironmentInformation.GetEnvironmentName(), CompanyId));
+    end;
+
+    /// <summary>
+    /// Calculates the scope as a name-based (version 5) UUID over the normalized, length-prefixed identity values.
+    /// </summary>
+    internal procedure CalculateCompanyScopeId(TenantId: Text; EnvironmentName: Text; CompanyId: Text): Text
+    var
+        ScopeName: Text;
+    begin
+        ScopeName := ErpScopeErpCodeTok +
+            '|' + EncodeScopeComponent(NormalizeScopeComponent(TenantId, ErpScopeTenantIdTok)) +
+            '|' + EncodeScopeComponent(NormalizeScopeComponent(EnvironmentName, ErpScopeEnvironmentNameTok)) +
+            '|' + EncodeScopeComponent(CanonicalizeScopeCompanyId(NormalizeScopeComponent(CompanyId, ErpScopeCompanyIdTok)));
+
+        exit(GenerateNameBasedUuid(ErpScopeNamespaceTok, ScopeName));
+    end;
+
+    local procedure NormalizeScopeComponent(Value: Text; ComponentName: Text): Text
+    var
+        Result: Text;
+    begin
+        Result := TrimAsciiWhitespace(Value);
+        if Result = '' then
+            Error(ErpScopeIdentityMissingErr, ComponentName);
+        exit(LowerCaseAscii(Result));
+    end;
+
+    local procedure TrimAsciiWhitespace(Value: Text): Text
+    var
+        StartPos: Integer;
+        EndPos: Integer;
+    begin
+        StartPos := 1;
+        EndPos := StrLen(Value);
+        while (StartPos <= EndPos) and IsAsciiWhitespace(Value[StartPos]) do
+            StartPos += 1;
+        while (EndPos >= StartPos) and IsAsciiWhitespace(Value[EndPos]) do
+            EndPos -= 1;
+        if StartPos > EndPos then
+            exit('');
+        exit(CopyStr(Value, StartPos, EndPos - StartPos + 1));
+    end;
+
+    local procedure IsAsciiWhitespace(Character: Char): Boolean
+    var
+        CharCode: Integer;
+    begin
+        CharCode := Character;
+        exit(CharCode in [9, 10, 13, 32]);
+    end;
+
+    local procedure LowerCaseAscii(Value: Text): Text
+    var
+        Result: Text;
+        CharCode: Integer;
+        Index: Integer;
+    begin
+        // Only A-Z are lowercased; other characters must stay untouched to match the service calculation.
+        Result := Value;
+        for Index := 1 to StrLen(Result) do begin
+            CharCode := Result[Index];
+            if (CharCode >= 65) and (CharCode <= 90) then
+                Result[Index] := CharCode + 32;
+        end;
+        exit(Result);
+    end;
+
+    local procedure CanonicalizeScopeCompanyId(NormalizedCompanyId: Text): Text
+    var
+        Remainder: Text;
+        HexDigits: Text;
+    begin
+        Remainder := NormalizedCompanyId;
+        while Remainder.StartsWith('urn:') or Remainder.StartsWith('uuid:') do
+            if Remainder.StartsWith('urn:') then
+                Remainder := CopyStr(Remainder, 5)
+            else
+                Remainder := CopyStr(Remainder, 6);
+
+        while (StrLen(Remainder) > 0) and (Remainder[1] in ['{', '}']) do
+            Remainder := CopyStr(Remainder, 2);
+        while (StrLen(Remainder) > 0) and (Remainder[StrLen(Remainder)] in ['{', '}']) do
+            Remainder := CopyStr(Remainder, 1, StrLen(Remainder) - 1);
+
+        HexDigits := DelChr(Remainder, '=', '-');
+        if (StrLen(HexDigits) <> 32) or (DelChr(HexDigits, '=', '0123456789abcdef') <> '') then
+            exit(NormalizedCompanyId);
+
+        exit(FormatHyphenatedUuid(HexDigits));
+    end;
+
+    local procedure EncodeScopeComponent(Value: Text): Text
+    var
+        Utf8Bytes: List of [Integer];
+    begin
+        AppendUtf8Bytes(Value, Utf8Bytes);
+        exit(Format(Utf8Bytes.Count(), 0, 9) + ':' + Value);
+    end;
+
+    local procedure GenerateNameBasedUuid(NamespaceHex: Text; Name: Text): Text
+    var
+        TempBlob: Codeunit "Temp Blob";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+        NameBytes: List of [Integer];
+        ByteValue: Byte;
+        ByteCode: Integer;
+        HashOutStream: OutStream;
+        HashInStream: InStream;
+        Hash: Text;
+        Index: Integer;
+    begin
+        // RFC 4122 version 5: SHA-1 over the namespace bytes (network order) followed by the UTF-8 name.
+        for Index := 1 to StrLen(NamespaceHex) div 2 do
+            NameBytes.Add(HexToInteger(CopyStr(NamespaceHex, Index * 2 - 1, 2)));
+        AppendUtf8Bytes(Name, NameBytes);
+
+        TempBlob.CreateOutStream(HashOutStream);
+        foreach ByteCode in NameBytes do begin
+            ByteValue := ByteCode;
+            HashOutStream.Write(ByteValue);
+        end;
+        TempBlob.CreateInStream(HashInStream);
+
+        Hash := CopyStr(LowerCase(CryptographyManagement.GenerateHash(HashInStream, HashAlgorithmType::SHA1)), 1, 32);
+        if StrLen(Hash) <> 32 then
+            Error(ErpScopeInvalidTextErr);
+
+        // Set the version (5) and the RFC 4122 variant bits.
+        Hash := CopyStr(Hash, 1, 12) +
+            IntegerToHex((HexToInteger(CopyStr(Hash, 13, 2)) mod 16) + 80) +
+            CopyStr(Hash, 15, 2) +
+            IntegerToHex((HexToInteger(CopyStr(Hash, 17, 2)) mod 64) + 128) +
+            CopyStr(Hash, 19);
+
+        exit(FormatHyphenatedUuid(Hash));
+    end;
+
+    local procedure AppendUtf8Bytes(Value: Text; var Utf8Bytes: List of [Integer])
+    var
+        CodePoint: Integer;
+        LowSurrogate: Integer;
+        Index: Integer;
+    begin
+        Index := 1;
+        while Index <= StrLen(Value) do begin
+            CodePoint := Value[Index];
+            if (CodePoint >= 55296) and (CodePoint <= 56319) then begin
+                if Index = StrLen(Value) then
+                    Error(ErpScopeInvalidTextErr);
+                LowSurrogate := Value[Index + 1];
+                if (LowSurrogate < 56320) or (LowSurrogate > 57343) then
+                    Error(ErpScopeInvalidTextErr);
+                CodePoint := 65536 + (CodePoint - 55296) * 1024 + (LowSurrogate - 56320);
+                Index += 1;
+            end else
+                if (CodePoint >= 56320) and (CodePoint <= 57343) then
+                    Error(ErpScopeInvalidTextErr);
+
+            AppendUtf8CodePoint(CodePoint, Utf8Bytes);
+            Index += 1;
+        end;
+    end;
+
+    local procedure AppendUtf8CodePoint(CodePoint: Integer; var Utf8Bytes: List of [Integer])
+    begin
+        case true of
+            CodePoint < 128:
+                AddByte(Utf8Bytes, CodePoint);
+            CodePoint < 2048:
+                begin
+                    AddByte(Utf8Bytes, 192 + CodePoint div 64);
+                    AddByte(Utf8Bytes, 128 + CodePoint mod 64);
+                end;
+            CodePoint < 65536:
+                begin
+                    AddByte(Utf8Bytes, 224 + CodePoint div 4096);
+                    AddByte(Utf8Bytes, 128 + (CodePoint div 64) mod 64);
+                    AddByte(Utf8Bytes, 128 + CodePoint mod 64);
+                end;
+            else begin
+                AddByte(Utf8Bytes, 240 + CodePoint div 262144);
+                AddByte(Utf8Bytes, 128 + (CodePoint div 4096) mod 64);
+                AddByte(Utf8Bytes, 128 + (CodePoint div 64) mod 64);
+                AddByte(Utf8Bytes, 128 + CodePoint mod 64);
+            end;
+        end;
+    end;
+
+    local procedure AddByte(var Bytes: List of [Integer]; Value: Integer)
+    begin
+        Bytes.Add(Value);
+    end;
+
+    local procedure HexToInteger(HexText: Text): Integer
+    var
+        Result: Integer;
+        Index: Integer;
+    begin
+        for Index := 1 to StrLen(HexText) do
+            Result := Result * 16 + StrPos('0123456789abcdef', LowerCase(CopyStr(HexText, Index, 1))) - 1;
+        exit(Result);
+    end;
+
+    local procedure IntegerToHex(Value: Integer): Text
+    var
+        HexDigitsTok: Label '0123456789abcdef', Locked = true;
+    begin
+        exit(CopyStr(HexDigitsTok, Value div 16 + 1, 1) + CopyStr(HexDigitsTok, Value mod 16 + 1, 1));
+    end;
+
+    local procedure FormatHyphenatedUuid(HexDigits: Text): Text
+    begin
+        exit(CopyStr(HexDigits, 1, 8) + '-' + CopyStr(HexDigits, 9, 4) + '-' + CopyStr(HexDigits, 13, 4) + '-' + CopyStr(HexDigits, 17, 4) + '-' + CopyStr(HexDigits, 21, 12));
     end;
 
     [NonDebuggable]
