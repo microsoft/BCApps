@@ -1482,7 +1482,7 @@ codeunit 148370 EAReceiptMatchTests
         CardReceiptItem."Expense Subcategory Code" := ExpenseSubcategoryCode;
         CardReceiptItem."Start Date" := WorkDate();
         CardReceiptItem.Quantity := 1;
-        CardReceiptItem.Amount := ItemAmount;
+        CardReceiptItem."Daily Rate" := ItemAmount;
         CardReceiptItem.Insert(true);
     end;
 
