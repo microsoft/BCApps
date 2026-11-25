@@ -1027,11 +1027,11 @@ codeunit 148370 EAReceiptMatchTests
         DocumentAttachment.InitFieldsFromRecRef(LineRecordRef);
         DocumentAttachment.SaveAttachmentFromStream(ReceiptInStream, LineRecordRef, 'receipt.txt');
 
-        // [THEN] The missing receipt violation is gone; a card line never requires a receipt number, also with a receipt (R13).
+        // [THEN] The missing receipt violation is gone and the receipt number rule applies.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         ExpenseReportLine.TestField("Receipt Attached", true);
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ERLDocumentAttachmentMandatoryMsg, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line with a receipt must not report a missing receipt.');
-        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line must not require a receipt number, also with a receipt.');
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line with a receipt must require a receipt number.');
     end;
 
     [Test]
@@ -1234,8 +1234,9 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseRuleCondition: Record "Expense Rule Condition";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
-        // [SCENARIO] A card line that will never get a receipt needs no receipt number. Its locked amount exceeds the maximum,
-        // so the rule asks for a justification, and once the user enters one the report can be released.
+        // [SCENARIO] A card line that will never get a receipt is checked against all rules, including the receipt number. Its
+        // locked amount exceeds the maximum, so the rule asks for a justification; with the receipt number and a justification
+        // entered, the report can be released.
         Initialize();
         EnableReceiptNoRule();
 
@@ -1260,20 +1261,22 @@ codeunit 148370 EAReceiptMatchTests
         // [WHEN] The line is validated against the rules.
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
 
-        // [THEN] Neither waits for a receipt, no receipt number is required, and the justification and the maximum are flagged.
+        // [THEN] Neither waits for a receipt, so the receipt number, the justification and the maximum are all flagged.
         Assert.IsFalse(ExpenseRuleValidation.IsCardExpenseWaitingForReceipt(Expense), 'A card expense that needs no receipt must not wait for one.');
         Assert.IsFalse(ExpenseRuleValidation.IsCardLineWaitingForReceipt(ExpenseReportLine), 'A card line that needs no receipt must not wait for one.');
-        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line must not require a receipt number.');
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line that does not wait for a receipt must require a receipt number.');
         Assert.IsTrue(HasLineViolation(ExpenseReportLine, JustificationRequiredErr), 'The justification rule must apply to a card line that does not wait for a receipt.');
         Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(MaxAmountErr, 10)), 'Without a justification, the exceeded maximum must be flagged.');
 
-        // [WHEN] The user enters a justification.
+        // [WHEN] The user enters the receipt number and a justification.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.Validate("Expense Ext. Doc. No.", 'R-0001');
         ExpenseReportLine.Validate(Justification, 'Client dinner');
         ExpenseReportLine.Modify(true);
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
 
-        // [THEN] Neither the justification nor the locked amount is flagged, and the report can be released.
+        // [THEN] Nothing is flagged, including the locked amount, and the report can be released.
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'The entered receipt number must satisfy the receipt number rule.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, JustificationRequiredErr), 'The entered justification must satisfy the justification rule.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(MaxAmountErr, 10)), 'A justification must accept the locked card amount.');
         ExpenseReportHeader.Get(ExpenseReportLine."Document No.");

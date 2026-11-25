@@ -181,8 +181,7 @@ codeunit 6902 "Expense Rule Validation"
         CheckAttachmentsOnExpenseReportLine(ExpenseReportLine);
         CheckForDuplicateExpenseReportLine(ExpenseReportLine);
         CheckEmployeePostingGroupOnExpenseReport(ExpenseReportLine);
-        // A card line never needs a receipt number, also after its receipt is attached.
-        if ExpenseAgentSetup."Receipt No. Mandatory" and (ExpenseReportLine."Credit Card Feed No." = 0) then
+        if ExpenseAgentSetup."Receipt No. Mandatory" and not WaitingForReceipt then
             if (ExpenseReportLine."Expense Ext. Doc. No." = '') and IsMerchantReceiptRequirementApplicable(ExpenseReportLine."Expense Detail Required") then
                 ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No."));
         if ExpenseAgentSetup."Merchant Name Mandatory" then
@@ -882,8 +881,8 @@ codeunit 6902 "Expense Rule Validation"
     end;
 
     /// <summary>
-    /// Validates the report line against the rules. A card line never needs a receipt number. While it waits for its receipt, the
-    /// category's detail requirement, the itemization total and the justification are not checked, because the receipt brings them.
+    /// Validates the report line against the rules. While a card line waits for its receipt, the receipt number, the category's
+    /// detail requirement, the itemization total and the justification are not checked, because the receipt brings them.
     /// </summary>
     procedure ValidateExpenseReportLineAgainstRule(var ExpenseReportLine: Record "Expense Report Line")
     var
