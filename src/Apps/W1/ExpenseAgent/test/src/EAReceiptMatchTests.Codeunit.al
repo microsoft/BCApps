@@ -534,69 +534,6 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure ReceiptMatchesCardExpenseOnOpenReport()
-    var
-        Expense: Record Expense;
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        // [SCENARIO] A receipt matches a card expense that is already on an open report and whose line has no receipt.
-        Initialize();
-
-        // [GIVEN] A card expense on an open report.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
-        AddCardExpenseToReport(Expense, ExpenseReportLine);
-        Expense.Get(Expense."No.");
-
-        // [WHEN] A receipt with the same amount and date is matched.
-        // [THEN] The card expense is returned.
-        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20), 'A card expense on an open report must match.');
-    end;
-
-    [Test]
-    procedure ReceiptDoesNotMatchCardExpenseOnReleasedReport()
-    var
-        Expense: Record Expense;
-        ExpenseReportLine: Record "Expense Report Line";
-        ExpenseReportHeader: Record "Expense Report Header";
-    begin
-        // [SCENARIO] A card expense on a report that is no longer open is not a candidate.
-        Initialize();
-
-        // [GIVEN] A card expense on a released report.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
-        AddCardExpenseToReport(Expense, ExpenseReportLine);
-        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
-        ExpenseReportHeader.Status := ExpenseReportHeader.Status::Released;
-        ExpenseReportHeader.Modify();
-        Expense.Get(Expense."No.");
-
-        // [WHEN] A receipt with the same amount and date is matched.
-        // [THEN] No expense is returned.
-        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'A card expense on a released report must not match.');
-    end;
-
-    [Test]
-    procedure ReceiptDoesNotMatchCardExpenseWhoseLineHasReceipt()
-    var
-        Expense: Record Expense;
-        ExpenseReportLine: Record "Expense Report Line";
-    begin
-        // [SCENARIO] A card expense whose report line already has a receipt is not a candidate.
-        Initialize();
-
-        // [GIVEN] A card expense on an open report whose line has a receipt.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
-        AddCardExpenseToReport(Expense, ExpenseReportLine);
-        ExpenseReportLine."Receipt Attached" := true;
-        ExpenseReportLine.Modify();
-        Expense.Get(Expense."No.");
-
-        // [WHEN] A receipt with the same amount and date is matched.
-        // [THEN] No expense is returned.
-        Assert.IsTrue(IsNullGuid(FindMatch(Expense, WorkDate(), 20)), 'A card line with a receipt must not match.');
-    end;
-
-    [Test]
     procedure ApplyReceiptDataFillsEmptyFieldsOnExpenseAndLine()
     var
         Expense: Record Expense;

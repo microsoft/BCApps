@@ -28,7 +28,6 @@ codeunit 148373 "EA Card Report Line Tests"
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
         AttachmentMandatoryTok: Label 'Document Attachment is mandatory', Locked = true;
         MerchantMandatoryTok: Label 'Merchant Name is mandatory', Locked = true;
-        ReceiptNoMandatoryTok: Label 'Receipt No. is mandatory', Locked = true;
         JustificationRequiredTok: Label 'Justification is required', Locked = true;
         DuplicateTok: Label 'already exists', Locked = true;
         MaxAmountTok: Label 'must not exceed', Locked = true;
@@ -601,8 +600,8 @@ codeunit 148373 "EA Card Report Line Tests"
     // ---------------------------------------------------------------------------------------------
     // Expense rules on card lines (Use Rules on, credit card feed on)
     // Kept as is: attachment enforcement, merchant name mandatory, justification conditions, and duplicate
-    // detection against non-card lines. Relaxed for card lines: duplicates between different card transactions,
-    // Receipt No. Mandatory, and amount conditions the user cannot fix because the card amount is locked.
+    // detection against non-card lines. Relaxed for card lines: duplicates between different card transactions, and amount
+    // conditions the user cannot fix because the card amount is locked. Receipt-dependent rules wait for the receipt (148370).
     // ---------------------------------------------------------------------------------------------
 
     [Test]
@@ -783,32 +782,6 @@ codeunit 148373 "EA Card Report Line Tests"
 
         // [THEN] It is not flagged as a duplicate.
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, DuplicateTok), 'Different card transactions must not be duplicates.');
-    end;
-
-    [Test]
-    procedure CardLineDoesNotNeedReceiptNumber()
-    var
-        Expense: Record Expense;
-        ExpenseReportLine: Record "Expense Report Line";
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-    begin
-        // [SCENARIO] Relaxed: the card transaction identifies the purchase, so Receipt No. Mandatory does not apply to card
-        // lines (a lost or not-needed receipt would otherwise block the report for good).
-        Initialize();
-        LibraryExpense.UpdateUseRulesInAgentSetup(true);
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup."Receipt No. Mandatory" := true;
-        ExpenseAgentSetup.Modify();
-
-        // [GIVEN] A card line without a receipt number.
-        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
-        ExpenseReportLine.TestField("Expense Ext. Doc. No.", '');
-
-        // [WHEN] The line is validated against the rules.
-        ValidateLineAgainstRules(ExpenseReportLine);
-
-        // [THEN] There is no receipt number violation.
-        Assert.IsFalse(HasLineViolation(ExpenseReportLine, ReceiptNoMandatoryTok), 'A card line must not need a receipt number.');
     end;
 
     [Test]
