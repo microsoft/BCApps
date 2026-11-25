@@ -1844,6 +1844,7 @@ table 21 "Cust. Ledger Entry"
         SalesInvLine.SetRange("Document No.", Rec."Document No.");
         SalesInvLine.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
         SalesInvLine.SetRange("VAT Prod. Posting Group", VATProdPostingGroup);
+        SalesInvLine.SetLoadFields("Amount Including VAT");
         if SalesInvLine.FindSet() then
             repeat
                 InvoicePartAmount += SalesInvLine."Amount Including VAT";
