@@ -2161,12 +2161,15 @@ codeunit 138025 "O365 Correct Purchase Invoice"
     local procedure CreateAndShipReturnOrderCopiedFromPostedInvoice(Vendor: Record Vendor; PurchInvHeader: Record "Purch. Inv. Header"): Code[20]
     var
         ReturnOrderPurchaseHeader: Record "Purchase Header";
+        ReasonCode: Record "Reason Code";
         CopyDocumentMgt: Codeunit "Copy Document Mgt.";
     begin
         LibraryPurchase.CreatePurchHeader(ReturnOrderPurchaseHeader, ReturnOrderPurchaseHeader."Document Type"::"Return Order", Vendor."No.");
         CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
         CopyDocumentMgt.CopyPurchDoc("Purchase Document Type From"::"Posted Invoice", PurchInvHeader."No.", ReturnOrderPurchaseHeader);
         ReturnOrderPurchaseHeader.Find();
+        LibraryERM.CreateReasonCode(ReasonCode);
+        ReturnOrderPurchaseHeader.Validate("Reason Code", ReasonCode.Code);
         ReturnOrderPurchaseHeader.Validate("Vendor Cr. Memo No.", LibraryUtility.GenerateGUID());
         ReturnOrderPurchaseHeader.Modify(true);
         exit(LibraryPurchase.PostPurchaseDocument(ReturnOrderPurchaseHeader, true, false));

@@ -47,8 +47,8 @@ codeunit 431 "IC Outbox Export"
                 exit;
 
         FeatureTelemetry.LogUptake('0000ILC', ICMapping.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000ILE', ICMapping.GetFeatureTelemetryName(), 'IC Outbox Export');
         RunOutboxTransactions(Rec);
+        FeatureTelemetry.LogUsage('0000ILE', ICMapping.GetFeatureTelemetryName(), 'IC Outbox Export');
     end;
 
     var
@@ -77,7 +77,6 @@ codeunit 431 "IC Outbox Export"
             exit;
 
         FeatureTelemetry.LogUptake('0000ILD', ICMapping.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000ILF', ICMapping.GetFeatureTelemetryName(), 'Run Outbox Transaction');
 
         CompanyInfo.Get();
         CopyICOutboxTransaction.Copy(ICOutboxTransaction);
@@ -91,6 +90,7 @@ codeunit 431 "IC Outbox Export"
           CopyICOutboxTransaction."Line Action"::"Return to Inbox");
         ReturnToInbox(CopyICOutboxTransaction);
         CancelTransaction(CopyICOutboxTransaction);
+        FeatureTelemetry.LogUsage('0000ILF', ICMapping.GetFeatureTelemetryName(), 'Run Outbox Transaction');
     end;
 
     local procedure ModifyAndRunOutboxTransactionNo(ICOutboxTransactionNo: Integer)

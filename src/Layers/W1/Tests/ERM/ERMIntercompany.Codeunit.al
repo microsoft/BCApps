@@ -65,31 +65,34 @@ codeunit 134151 "ERM Intercompany"
     [Scope('OnPrem')]
     procedure LegacyICDimensionCopiesTemporaryRecords()
     var
-        TempFromICDocDim: Record "IC Document Dimension" temporary;
+        FromICDocDim: Record "IC Document Dimension";
         TempToICDocDim: Record "IC Document Dimension" temporary;
         TempFromICJnlDim: Record "IC Inbox/Outbox Jnl. Line Dim." temporary;
         TempToICJnlDim: Record "IC Inbox/Outbox Jnl. Line Dim." temporary;
         DimensionManagement: Codeunit DimensionManagement;
     begin
-        TempFromICDocDim."Table ID" := Database::"IC Inbox Sales Header";
-        TempFromICDocDim."Transaction No." := 1;
-        TempFromICDocDim."Dimension Code" := 'A';
-        TempFromICDocDim.Insert();
-        TempFromICDocDim."Dimension Code" := 'B';
-        TempFromICDocDim.Insert();
+        Initialize();
+
+        // The legacy document APIs take the source by value, so it must not be temporary.
+        FromICDocDim."Table ID" := Database::"IC Inbox Sales Header";
+        FromICDocDim."Transaction No." := 1;
+        FromICDocDim."Dimension Code" := 'A';
+        FromICDocDim.Insert();
+        FromICDocDim."Dimension Code" := 'B';
+        FromICDocDim.Insert();
         DimensionManagement.SetICDocDimFilters(
-            TempFromICDocDim, TempFromICDocDim."Table ID", 1, '', TempFromICDocDim."Transaction Source", 0);
+            FromICDocDim, FromICDocDim."Table ID", 1, '', FromICDocDim."Transaction Source", 0);
 
         DimensionManagement.CopyICDocDimtoICDocDim(
-            TempFromICDocDim, TempToICDocDim, Database::"IC Outbox Sales Header", 1);
+            FromICDocDim, TempToICDocDim, Database::"IC Outbox Sales Header", 1);
         TempToICDocDim.TestField("Table ID", Database::"IC Outbox Sales Header");
         TempToICDocDim.TestField("Transaction Source", 1);
         Assert.AreEqual(2, TempToICDocDim.Count(), 'Both document dimensions must be copied into the temporary destination.');
         TempToICDocDim.DeleteAll();
 
         DimensionManagement.MoveICDocDimtoICDocDim(
-            TempFromICDocDim, TempToICDocDim, Database::"IC Outbox Sales Header", 1);
-        Assert.IsTrue(TempFromICDocDim.IsEmpty(), 'Moving dimensions must delete the original temporary records.');
+            FromICDocDim, TempToICDocDim, Database::"IC Outbox Sales Header", 1);
+        Assert.IsTrue(FromICDocDim.IsEmpty(), 'Moving dimensions must delete the original records.');
         Assert.AreEqual(2, TempToICDocDim.Count(), 'Moving dimensions must retain the temporary destination table.');
 
         TempFromICJnlDim."Dimension Code" := 'A';

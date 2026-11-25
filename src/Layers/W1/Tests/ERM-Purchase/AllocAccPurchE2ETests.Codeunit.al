@@ -233,6 +233,7 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
                 LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Allocation Account", OtherAllocationAccount."No.", 1)
             else
                 LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 1);
+            PurchaseLine."VAT Bus. Posting Group" := VATPostingSetup."VAT Bus. Posting Group";
             PurchaseLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
             if i = 3 then
                 PurchaseLine.Validate("Direct Unit Cost", 119)

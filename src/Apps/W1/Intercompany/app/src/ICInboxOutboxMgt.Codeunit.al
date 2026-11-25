@@ -93,7 +93,6 @@ codeunit 427 ICInboxOutboxMgt
             exit(0);
 
         FeatureTelemetry.LogUptake('0000IJ4', ICMapping.GetFeatureTelemetryName(), Enum::"Feature Uptake Status"::Used);
-        FeatureTelemetry.LogUsage('0000IJV', ICMapping.GetFeatureTelemetryName(), 'Creating Outbox Journal Transaction');
 
         ICTransactionNo := GetNextICTransactionNo();
 
@@ -115,6 +114,7 @@ codeunit 427 ICInboxOutboxMgt
         OnCreateOutboxJnlTransactionOnBeforeOutboxJnlTransactionInsert(OutboxJnlTransaction, TempGenJnlLine);
         OutboxJnlTransaction.Insert();
         OnInsertICOutboxTransaction(OutboxJnlTransaction, TempGenJnlLine);
+        FeatureTelemetry.LogUsage('0000IJV', ICMapping.GetFeatureTelemetryName(), 'Creating Outbox Journal Transaction');
         exit(ICTransactionNo);
     end;
 
