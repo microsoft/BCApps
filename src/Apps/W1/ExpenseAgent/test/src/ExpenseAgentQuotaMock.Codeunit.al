@@ -14,7 +14,9 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
     var
         TrialConsumptionIds: List of [Guid];
         V1ConsumptionIds: List of [Text];
+        V2ConsumptionIds: List of [Guid];
         V1RecordingEnabled: Boolean;
+        SkipV2Recording: Boolean;
         RemainingTrialQuota: Integer;
         PaidQuotaAvailable: Boolean;
         PaidQuotaCheckCount: Integer;
@@ -74,6 +76,11 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         exit(V1ConsumptionIds.Contains(UniqueId));
     end;
 
+    procedure IsV2ConsumptionRecorded(ConsumptionId: Guid): Boolean
+    begin
+        exit(V2ConsumptionIds.Contains(ConsumptionId));
+    end;
+
     procedure ReportTrialConsumption(ConsumptionId: Guid; Quota: Integer)
     begin
         TrialReportCount += 1;
@@ -116,11 +123,19 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         LastV2IsFeatureTrial := IsFeatureTrial;
         if FailV2Reporting then
             Error(V2ReportingFailedErr);
+        if not SkipV2Recording then
+            if not V2ConsumptionIds.Contains(ConsumptionId) then
+                V2ConsumptionIds.Add(ConsumptionId);
     end;
 
     internal procedure SetV1RecordingEnabled(IsEnabled: Boolean)
     begin
         V1RecordingEnabled := IsEnabled;
+    end;
+
+    internal procedure SetV2RecordingEnabled(IsEnabled: Boolean)
+    begin
+        SkipV2Recording := not IsEnabled;
     end;
 
     internal procedure SetFailV2Reporting(ShouldFail: Boolean)

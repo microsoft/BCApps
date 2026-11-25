@@ -225,6 +225,7 @@ table 6969 "Expense Agent Env. Consumption"
     var
         DifferentCompanyRecordTxt: Label 'Record belongs to company %1', Comment = '%1: a company name, such as "CRONUS W1"';
         DeletedRecordTxt: Label 'Deleted %1', Comment = '%1: a record caption, such as "Expense Report"';
+        DeletedExpenseOrInvalidReceiptTxt: Label 'Deleted expense or invalid receipt';
         RecordIdStringPatternTxt: Label '%1 %2', Comment = '%1: a record caption, such as "Expense Report"; %2: a record number, such as "ER123"';
 
     [NonDebuggable]
@@ -321,7 +322,7 @@ table 6969 "Expense Agent Env. Consumption"
         Expense.SetLoadFields("No.");
         if Expense.GetBySystemId(SourceSystemId) then
             exit(StrSubstNo(RecordIdStringPatternTxt, Expense.TableCaption(), Expense."No."));
-        exit(StrSubstNo(DeletedRecordTxt, Expense.TableCaption()));
+        exit(DeletedExpenseOrInvalidReceiptTxt);
     end;
 
     local procedure GetTaskDisplayNameForExpenseReport(DestinationCompany: Text[30]; SourceSystemId: Guid): Text

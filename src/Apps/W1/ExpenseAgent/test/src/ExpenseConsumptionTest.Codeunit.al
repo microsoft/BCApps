@@ -479,6 +479,123 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
+    procedure V2ProcessWithZeroV1UsageConsumesTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        AiConsumptionRequestJson: JsonObject;
+        V1Json: JsonObject;
+        ConsumptionId: Guid;
+    begin
+        // [SCENARIO] Recorded V2 PROCESS consumption decrements trial quota even when V1 usage is zero
+        Initialize();
+
+        // [GIVEN] One trial expense remains and the request has zero V1 usage
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        AiConsumptionRequestJson := CreateValidConsumptionJson();
+        V1Json := AiConsumptionRequestJson.GetObject('v1');
+        V1Json.Replace('usage', 0);
+        AiConsumptionRequestJson.Replace('v1', V1Json);
+
+        // [WHEN] V2 consumption is recorded for PROCESS
+        ConsumptionId := ExpenseConsumptionHandler.LogAIConsumptionV2(AiConsumptionRequestJson, 'Processed expense',
+            Enum::"Expense Agent Cons. Source"::Expense, CreateGuid(), 'PROCESS', 'CONSUMPTION TEST',
+            CreateGuid(), CreateGuid(), CreateGuid(), 'Expense user');
+
+        // [THEN] V1 is not called and the recorded V2 consumption decrements trial quota
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Zero usage must not be submitted to V1.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Model usage must still be submitted to V2.');
+        Assert.IsTrue(ExpenseAgentQuotaMock.IsV2ConsumptionRecorded(ConsumptionId), 'V2 consumption must be recorded.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Recorded V2 PROCESS consumption must decrement trial quota.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Recorded V2 consumption must consume the remaining trial expense.');
+        VerifyLastV2Trial(ExpenseAgentQuotaMock);
+    end;
+
+    [Test]
+    procedure V1OnlyProcessDoesNotConsumeTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+    begin
+        // [SCENARIO] PROCESS consumption recorded only in V1 does not decrement trial quota
+        Initialize();
+
+        // [GIVEN] Trial quota is available and V1 records the consumption
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+
+        // [WHEN] Both pipelines are offered PROCESS consumption
+        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PROCESS');
+
+        // [THEN] V1 records consumption without invoking V2 or decrementing trial quota
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive the positive usage.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Completed V1 consumption must not be recorded again in V2.');
+        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'V1 trial consumption must be excluded from billing.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1-only consumption must not decrement trial quota.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1-only consumption must preserve trial quota.');
+    end;
+
+    [Test]
+    procedure IgnoredV2ProcessDoesNotConsumeTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        AiConsumptionRequestJson: JsonObject;
+        V1Json: JsonObject;
+        ConsumptionId: Guid;
+    begin
+        // [SCENARIO] A V2 call that does not record consumption does not decrement trial quota
+        Initialize();
+
+        // [GIVEN] Trial quota is available, V1 usage is zero, and V2 recording is inactive
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseAgentQuotaMock.SetV2RecordingEnabled(false);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        AiConsumptionRequestJson := CreateValidConsumptionJson();
+        V1Json := AiConsumptionRequestJson.GetObject('v1');
+        V1Json.Replace('usage', 0);
+        AiConsumptionRequestJson.Replace('v1', V1Json);
+
+        // [WHEN] PROCESS consumption is submitted to V2
+        ConsumptionId := ExpenseConsumptionHandler.LogAIConsumptionV2(AiConsumptionRequestJson, 'Processed expense',
+            Enum::"Expense Agent Cons. Source"::Expense, CreateGuid(), 'PROCESS', 'CONSUMPTION TEST',
+            CreateGuid(), CreateGuid(), CreateGuid(), 'Expense user');
+
+        // [THEN] No V2 consumption is recorded and trial quota remains unchanged
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Zero usage must not be submitted to V1.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive the recording attempt.');
+        Assert.IsFalse(ExpenseAgentQuotaMock.IsV2ConsumptionRecorded(ConsumptionId), 'Inactive V2 recording must not create consumption.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'An ignored V2 call must not decrement trial quota.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Unrecorded V2 consumption must preserve trial quota.');
+    end;
+
+    [Test]
+    procedure FailedV2ProcessDoesNotConsumeTrial()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+    begin
+        // [SCENARIO] Failed V2 PROCESS recording does not decrement trial quota
+        Initialize();
+
+        // [GIVEN] Trial quota is available and V2 recording fails
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseAgentQuotaMock.SetFailV2Reporting(true);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+
+        // [WHEN] PROCESS consumption is submitted
+        asserterror LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PROCESS');
+
+        // [THEN] The failure is surfaced without decrementing trial quota
+        Assert.ExpectedError('V2 consumption reporting failed.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Failed V2 recording must not decrement trial quota.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Failed V2 recording must preserve trial quota.');
+    end;
+
+    [Test]
     procedure V2TrialReplayAfterExhaustionReportsBothWithoutCharging()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
@@ -786,6 +903,28 @@ codeunit 148299 "Expense Consumption Test"
 
         // [WHEN] [THEN] Drilldown loads the latest description without truncation
         VerifyBillingDescription(ExpenseAgentEnvConsumption, Description);
+    end;
+
+    [Test]
+    procedure MissingExpenseDisplayNameIncludesInvalidReceipt()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        TaskShortName: Text[30];
+        TaskLongName: Text;
+    begin
+        // [SCENARIO] Missing expense sources can represent deleted expenses or invalid receipts
+        Initialize();
+
+        // [GIVEN] A consumption source that does not identify an existing expense
+        ExpenseAgentEnvConsumption."Consumption Source Type" := Enum::"Expense Agent Cons. Source"::Expense;
+        ExpenseAgentEnvConsumption."Consumption Source System ID" := CreateGuid();
+
+        // [WHEN] The source display name is requested
+        ExpenseAgentEnvConsumption.GetTaskDisplayName(CompanyName(), TaskShortName, TaskLongName);
+
+        // [THEN] The label includes both explanations
+        Assert.AreEqual('Deleted expense or invalid receipt', TaskLongName, 'Missing expense sources must not be described only as deleted.');
+        Assert.AreEqual(CopyStr(TaskLongName, 1, MaxStrLen(TaskShortName)), TaskShortName, 'The short name must retain its existing length limit.');
     end;
 
     local procedure VerifyV2NonProcessingOperationDoesNotIncrementTrial(Operation: Code[50])

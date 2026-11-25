@@ -7,9 +7,11 @@ indicating support for `LogAIConsumptionV2` and `CanConsumeV2`.
 
 `userConsumptions` exposes `LogAIConsumptionV2`. The request contains a `model`
 object with model usage and a `v1` object with `usage` and `usageType`.
-The action submits both consumption pipelines; the platform selects which one
-records the event. The V2 platform payload retains the top-level `model` object
-and excludes the `v1` object.
+The action submits V1 only when `v1.usage` is greater than zero and submits V2
+model usage independently. The platform selects which pipeline records the
+event. The V2 platform payload retains the top-level `model` object and excludes
+the `v1` object. The legacy V1-only action ignores zero usage without creating
+a companion record or reporting consumption.
 
 The legacy `userConsumptions({id})/Microsoft.NAV.canConsume` action retains its
 empty request body and evaluates quota using the integration session's principal.
@@ -35,10 +37,11 @@ After the V1 call, the action checks whether that ledger contains the text key
 and skips V2 recording if it does. This prevents a completed V1 event from being
 recorded again in V2 when a retry crosses the billing cutover.
 
-Trial events are reported to both pipelines without billing. Only the `PROCESS`
-operation increments the feature-trial counter, once per consumption ID.
-All other operations, including report matching and policy evaluation, don't
-increment it. This trial-counting rule applies to both the legacy and V2 actions.
+Trial events are excluded from billing. V1 consumption never decrements trial
+allowance. Only a `PROCESS` event confirmed in the V2 consumption ledger
+increments the feature-trial counter, once per consumption ID, even when V1
+usage is zero. Other operations, failed V2 submissions, and submissions that
+don't create a V2 ledger entry don't increment it.
 
 The billing overview reads V2 details from `AI Consumption Log Entry` by
 `SystemId`, or V1 details from `User AI Consumption Data` by the text key.
@@ -48,6 +51,7 @@ V2 consumption principal's display name.
 V2 Actions stays empty. List rendering doesn't load description blobs from
 either ledger. Description drilldown looks up the current V2 entry, or the V1
 entry when no V2 entry exists, and loads the full text on demand.
+Missing expense sources display "Deleted expense or invalid receipt".
 
 The companion table's V1 lookup FlowFields are obsolete as of 30.0.
 Use `GetBillingDetails` to read billing details from the active ledger.

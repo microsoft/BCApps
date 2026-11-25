@@ -59,19 +59,15 @@ codeunit 6969 "Expense Consumption Handler"
         ExpenseUserNo: Code[20]): Guid
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
-        IsTrial: Boolean;
     begin
+        if Usage = 0 then
+            exit;
+
         GetOrCreateConsumption(ExpenseAgentEnvConsumption, Usage, CopilotQuotaUsageType,
             ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo);
-        IsTrial := ExpenseAgentEnvConsumption."Is Feature Trial";
 
-        // Increment the trial count if this is a trial consumption.
-        // Notice platform allows over-reporting trials, so the tenant can use a little
-        // more credit without issues (we don't need to use locks or similar)
-        if IsTrial then
-            IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation)
-        else
-            QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription, ExpenseAgentEnvConsumption."Consumption Unique ID", false);
+        QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription,
+            ExpenseAgentEnvConsumption."Consumption Unique ID", ExpenseAgentEnvConsumption."Is Feature Trial");
 
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
@@ -106,15 +102,17 @@ codeunit 6969 "Expense Consumption Handler"
         // The platform records V2 consumption in a separate transaction. Persist its idempotency ID first.
         Commit();
 
-        QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, Truncate(ActionsSummary), ActionsSummary,
-            ExpenseAgentEnvConsumption."Consumption Unique ID", ExpenseAgentEnvConsumption."Is Feature Trial");
+        if Usage > 0 then
+            QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, Truncate(ActionsSummary), ActionsSummary,
+                ExpenseAgentEnvConsumption."Consumption Unique ID", ExpenseAgentEnvConsumption."Is Feature Trial");
         if not QuotaProvider.IsConsumptionLogged(ExpenseAgentEnvConsumption."Consumption Unique ID") then
             QuotaProvider.RecordConsumption(ExpenseAgentEnvConsumption.SystemId, AgentConversationSessionId,
                 AgentTurnInteractionId, ConsumptionUsagePayload, ExpenseUserEntraId, ExpenseUserDisplayName,
                 ActionsSummary, ExpenseAgentEnvConsumption."Is Feature Trial");
 
         if ExpenseAgentEnvConsumption."Is Feature Trial" then
-            IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation);
+            if QuotaProvider.IsV2ConsumptionRecorded(ExpenseAgentEnvConsumption.SystemId) then
+                IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation);
 
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;

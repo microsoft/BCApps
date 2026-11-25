@@ -46,6 +46,11 @@ codeunit 6923 "Expense Agent Quota Impl." implements "Expense Agent Quota"
         exit(CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId));
     end;
 
+    procedure IsV2ConsumptionRecorded(ConsumptionId: Guid): Boolean
+    begin
+        exit(CopilotQuota.IsAIConsumptionRecorded(ConsumptionId));
+    end;
+
     procedure ReportTrialConsumption(ConsumptionId: Guid; Quota: Integer)
     begin
         CopilotFeatureTrial.ReportNonRecurringFeatureTrialQuota(ConsumptionId, ExpenseAgentFeatureTrialIdTok, Enum::"Copilot Capability"::"Expense Agent",

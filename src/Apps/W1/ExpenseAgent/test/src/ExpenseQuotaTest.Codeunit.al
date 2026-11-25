@@ -19,7 +19,7 @@ codeunit 148298 "Expense Quota Test"
         Assert: Codeunit Assert;
 
     [Test]
-    procedure RetryingTrialConsumptionAfterExhaustionDoesNotChargePaidQuota()
+    procedure RetryingV1TrialConsumptionDoesNotConsumeTrialQuota()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
@@ -29,15 +29,15 @@ codeunit 148298 "Expense Quota Test"
         SecondConsumptionId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] Retrying the final trial expense does not report paid consumption
+        // [SCENARIO] V1 trial consumption and retries do not consume trial quota or report paid usage
         InitializeQuotaProvider(ExpenseConsumptionHandler, ExpenseAgentQuotaMock, 1, true);
         ConsumptionSourceSystemId := CreateGuid();
 
         FirstConsumptionId := ExpenseConsumptionHandler.LogAIConsumption(
             1, Enum::"Copilot Quota Usage Type"::"Autonomous Action", 'Processed expense', 'Processed expense',
             Enum::"Expense Agent Cons. Source"::Expense, ConsumptionSourceSystemId, 'PROCESS', 'QUOTA TEST');
-        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'The first consumption should exhaust the trial quota.');
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'The first consumption should be reported as trial usage.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1 consumption must preserve trial quota.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1 consumption must not decrement trial quota.');
 
         SecondConsumptionId := ExpenseConsumptionHandler.LogAIConsumption(
             1, Enum::"Copilot Quota Usage Type"::"Autonomous Action", 'Processed expense', 'Processed expense',
@@ -48,11 +48,25 @@ codeunit 148298 "Expense Quota Test"
         Assert.IsTrue(ExpenseAgentEnvConsumption."Is Feature Trial", 'The retry should remain classified as trial consumption.');
         ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", ConsumptionSourceSystemId);
         Assert.AreEqual(1, ExpenseAgentEnvConsumption.Count(), 'The retry should not create another consumption record.');
-        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetTrialReportCount(), 'The retry should use trial reporting.');
-        Assert.AreEqual(FirstConsumptionId, ExpenseAgentQuotaMock.GetLastTrialConsumptionId(), 'Trial reporting should reuse the original idempotency ID.');
-        Assert.AreEqual(50, ExpenseAgentQuotaMock.GetLastTrialQuota(), 'Trial reporting should use the configured trial limit.');
-        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'The retry should not consume additional trial quota.');
+        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 consumption must be submitted on both requests.');
+        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'V1 trial consumption must be excluded from billing.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1 retries must not decrement trial quota.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1 retries must preserve trial quota.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetPaidReportCount(), 'The trial retry must not report paid consumption.');
+    end;
+
+    [Test]
+    procedure ZeroV1TrialConsumptionIsNotReported()
+    begin
+        // [SCENARIO] Zero V1 usage is ignored while trial quota is available
+        VerifyZeroV1ConsumptionIsNotReported(1);
+    end;
+
+    [Test]
+    procedure ZeroV1PaidConsumptionIsNotReported()
+    begin
+        // [SCENARIO] Zero V1 usage is ignored after trial quota is exhausted
+        VerifyZeroV1ConsumptionIsNotReported(0);
     end;
 
     [Test]
@@ -185,6 +199,32 @@ codeunit 148298 "Expense Quota Test"
         Assert.IsFalse(ExpenseConsumptionHandler.CanConsume(SecondPrincipalId), 'Unavailable paid quota should prevent consumption.');
         Assert.AreEqual(SecondPrincipalId, ExpenseAgentQuotaMock.GetLastPaidQuotaPrincipalId(), 'The second quota check must use the second expense user''s principal.');
         Assert.AreEqual(2, ExpenseAgentQuotaMock.GetPaidQuotaCheckCount(), 'Each expense user must have a separate quota check.');
+    end;
+
+    local procedure VerifyZeroV1ConsumptionIsNotReported(RemainingTrialQuota: Integer)
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        ConsumptionId: Guid;
+    begin
+        InitializeQuotaProvider(ExpenseConsumptionHandler, ExpenseAgentQuotaMock, RemainingTrialQuota, true);
+        SourceId := CreateGuid();
+
+        // [WHEN] Zero usage is reported for PROCESS
+        ConsumptionId := ExpenseConsumptionHandler.LogAIConsumption(
+            0, Enum::"Copilot Quota Usage Type"::"Autonomous Action", 'Processed expense', 'Processed expense',
+            Enum::"Expense Agent Cons. Source"::Expense, SourceId, 'PROCESS', 'QUOTA TEST');
+
+        // [THEN] No consumption or trial usage is recorded
+        Assert.IsTrue(IsNullGuid(ConsumptionId), 'Zero V1 usage must not return a consumption ID.');
+        ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", SourceId);
+        Assert.IsTrue(ExpenseAgentEnvConsumption.IsEmpty(), 'Zero V1 usage must not create a companion record.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Zero usage must not be sent to V1.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'The V1 action must not report V2 consumption.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Zero V1 usage must not decrement trial quota.');
+        Assert.AreEqual(RemainingTrialQuota, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Zero V1 usage must preserve trial quota.');
     end;
 
     local procedure InitializeQuotaProvider(
