@@ -3,14 +3,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.AI.Workspace;
+namespace System.AI.Troubleshooting;
 
-page 2041 "Troubleshooting Session Card"
+using System.AI.Workspace;
+using System.Security.AccessControl;
+
+page 7786 "Troubleshooting Session Card"
 {
     ApplicationArea = All;
     Caption = 'Troubleshooting Session';
     PageType = Card;
     SourceTable = "Troubleshooting Session Entry";
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Editable = false;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -19,7 +24,7 @@ page 2041 "Troubleshooting Session Card"
     Extensible = false;
     RefreshOnActivate = true;
     AboutTitle = 'About this troubleshooting session';
-    AboutText = 'Review the saved report for this conversation. The details are shown as plain JSON without additional truncation. Access to the report is checked by the platform for its owner and every represented company.';
+    AboutText = 'Review the saved report for this conversation. The platform limits access to reports based on their owner and the companies they cover.';
 
     layout
     {
@@ -53,10 +58,10 @@ page 2041 "Troubleshooting Session Card"
                     Caption = 'Revision';
                     ToolTip = 'Specifies the source revision of the saved report. Revisions increase as follow-up answers are saved and can contain gaps.';
                 }
-                field(OwnerUserSecurityId; Rec."Owner User Security Id")
+                field(OwnerName; OwnerName)
                 {
-                    Caption = 'Owner User Security ID';
-                    ToolTip = 'Specifies the security identifier of the user who owns the troubleshooting conversation.';
+                    Caption = 'Owner';
+                    ToolTip = 'Specifies the name of the user who owns the troubleshooting conversation, if available.';
                     Importance = Additional;
                 }
             }
@@ -66,37 +71,9 @@ page 2041 "Troubleshooting Session Card"
                 field(Details; DetailsText)
                 {
                     Caption = 'Details (JSON)';
-                    ToolTip = 'Specifies the full saved report as plain JSON, including conversation history, the latest response, and coverage limitations. No additional truncation is applied by this page.';
+                    ToolTip = 'Specifies the saved report as JSON, including conversation history, the latest response, and coverage limitations.';
+                    ExtendedDatatype = RichContent;
                     MultiLine = true;
-                }
-            }
-        }
-    }
-
-    actions
-    {
-        area(Processing)
-        {
-            action(Refresh)
-            {
-                Caption = 'Refresh';
-                Image = Refresh;
-                ToolTip = 'Update the page to show the latest saved troubleshooting report.';
-
-                trigger OnAction()
-                begin
-                    CurrPage.Update(false);
-                end;
-            }
-        }
-        area(Promoted)
-        {
-            group(Category_Process)
-            {
-                Caption = 'Process';
-
-                actionref(Refresh_Promoted; Refresh)
-                {
                 }
             }
         }
@@ -106,20 +83,41 @@ page 2041 "Troubleshooting Session Card"
     var
         DetailsContent: BigText;
         DetailsStream: InStream;
+        ReportJson: Text;
     begin
         Clear(DetailsText);
+        Clear(OwnerName);
         if IsNullGuid(Rec."Troubleshooting Id") then
             exit;
 
+        OwnerName := GetOwnerName();
         Rec.CalcFields(Details);
         if not Rec.Details.HasValue() then
             exit;
 
         Rec.Details.CreateInStream(DetailsStream, TextEncoding::UTF8);
         DetailsContent.Read(DetailsStream);
-        DetailsContent.GetSubText(DetailsText, 1);
+        DetailsContent.GetSubText(ReportJson, 1);
+        // Encode report content so customer text is displayed, never interpreted as markup.
+        DetailsText := '<pre>' + ReportJson.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;') + '</pre>';
     end;
 
     var
         DetailsText: Text;
+        OwnerName: Text;
+
+    local procedure GetOwnerName(): Text
+    var
+        User: Record User;
+    begin
+        if not User.ReadPermission() then
+            exit('');
+
+        if not User.Get(Rec."Owner User Security Id") then
+            exit('');
+
+        if User."Full Name" <> '' then
+            exit(User."Full Name");
+        exit(User."User Name");
+    end;
 }

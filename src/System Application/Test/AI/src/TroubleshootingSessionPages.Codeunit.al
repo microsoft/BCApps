@@ -3,9 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.AI.Workspace;
+namespace System.Test.AI;
 
-codeunit 139495 "Troubleshooting Session Pages"
+using System.AI.Troubleshooting;
+
+codeunit 132691 "Troubleshooting Session Pages"
 {
     Subtype = Test;
 
@@ -37,7 +39,7 @@ codeunit 139495 "Troubleshooting Session Pages"
             Error('The troubleshooting session card must remain read-only when opened for editing.');
         if SessionCard.TroubleshootingId.Editable() or SessionCard.Status.Editable() or
            SessionCard.FirstSavedAt.Editable() or SessionCard.LastSavedAt.Editable() or
-           SessionCard.Revision.Editable() or SessionCard.OwnerUserSecurityId.Editable() or
+           SessionCard.Revision.Editable() or SessionCard.OwnerName.Editable() or
            SessionCard.Details.Editable()
         then
             Error('Troubleshooting session card fields must remain read-only.');
@@ -48,13 +50,12 @@ codeunit 139495 "Troubleshooting Session Pages"
 
     [Test]
     [Scope('OnPrem')]
-    procedure EmptyListCanRefresh()
+    procedure ListRespectsConversationFilter()
     var
         Sessions: TestPage "Troubleshooting Sessions";
     begin
         Sessions.OpenView();
         Sessions.Filter.SetFilter("Troubleshooting Id", Format(CreateGuid()));
-        Sessions.Refresh.Invoke();
         if Sessions.First() then
             Error('The troubleshooting session list must respect its conversation filter.');
         Sessions.Close();
@@ -68,7 +69,6 @@ codeunit 139495 "Troubleshooting Session Pages"
     begin
         SessionCard.OpenView();
         SessionCard.Filter.SetFilter("Troubleshooting Id", Format(CreateGuid()));
-        SessionCard.Refresh.Invoke();
         if SessionCard.First() then
             Error('The troubleshooting session card must respect its conversation filter.');
         SessionCard.Details.AssertEquals('');

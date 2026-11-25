@@ -3,9 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.AI.Workspace;
+namespace System.AI.Troubleshooting;
 
-page 2040 "Troubleshooting Sessions"
+using System.AI.Workspace;
+
+page 7785 "Troubleshooting Sessions"
 {
     ApplicationArea = All;
     Caption = 'Troubleshooting Sessions';
@@ -14,6 +16,8 @@ page 2040 "Troubleshooting Sessions"
     SourceTableView = sorting(SystemCreatedAt, "Troubleshooting Id") order(descending);
     CardPageId = "Troubleshooting Session Card";
     UsageCategory = History;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     AdditionalSearchTerms = 'troubleshooting reports,Copilot,diagnostics';
     Editable = false;
     InsertAllowed = false;
@@ -61,35 +65,6 @@ page 2040 "Troubleshooting Sessions"
                     Caption = 'Owner User Security ID';
                     ToolTip = 'Specifies the security identifier of the user who owns the troubleshooting conversation.';
                     Visible = false;
-                }
-            }
-        }
-    }
-
-    actions
-    {
-        area(Processing)
-        {
-            action(Refresh)
-            {
-                Caption = 'Refresh';
-                Image = Refresh;
-                ToolTip = 'Update the page to show the latest saved troubleshooting reports.';
-
-                trigger OnAction()
-                begin
-                    CurrPage.Update(false);
-                end;
-            }
-        }
-        area(Promoted)
-        {
-            group(Category_Process)
-            {
-                Caption = 'Process';
-
-                actionref(Refresh_Promoted; Refresh)
-                {
                 }
             }
         }
