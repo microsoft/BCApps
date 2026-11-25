@@ -302,6 +302,9 @@ page 6996 "Expense Agent Setup"
                 field("Display Anti-Corruption attestation"; Rec."Enable Anti-Corp. Statement")
                 {
                 }
+                field("Allow No Receipt"; Rec."Allow No Receipt")
+                {
+                }
                 field("Management Rules Applied"; Rec."Management Rules Applied")
                 {
                     Importance = Additional;
@@ -424,6 +427,9 @@ page 6996 "Expense Agent Setup"
                 {
                 }
                 field("Percentage For Partial Day"; Rec."Percentage For Partial Day")
+                {
+                }
+                field("Partial Day Rounding Precision"; Rec."Partial Day Rounding Precision")
                 {
                 }
                 field("Reduction for Breakfast %"; Rec."Reduction for Breakfast %")

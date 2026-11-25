@@ -495,6 +495,19 @@ page 6910 "Expense Report"
         }
         area(Navigation)
         {
+            action(OpenExpenseApp)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open Expense App';
+                Image = LinkWeb;
+                Visible = AgentEnabled and (ExpenseAppUrl <> '');
+                ToolTip = 'Opens the Expense App dashboard.';
+
+                trigger OnAction()
+                begin
+                    Hyperlink(ExpenseAppUrl);
+                end;
+            }
             group("Expense")
             {
                 Caption = 'Expense';
@@ -680,6 +693,14 @@ page 6910 "Expense Report"
                 {
                 }
             }
+            group(Category_Navigate)
+            {
+                Caption = 'Navigate';
+
+                actionref(OpenExpenseApp_Promoted; OpenExpenseApp)
+                {
+                }
+            }
             group(Category_Expense)
             {
                 Caption = 'Expense';
@@ -711,9 +732,11 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
+        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAppUrl := EAHttpClient.GetExpenseAppBaseUrl();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
             ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
@@ -761,6 +784,7 @@ page 6910 "Expense Report"
         SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
         AgentEnabled: Boolean;
+        ExpenseAppUrl: Text;
         AssignInterimApproverEnabled: Boolean;
 
     protected var

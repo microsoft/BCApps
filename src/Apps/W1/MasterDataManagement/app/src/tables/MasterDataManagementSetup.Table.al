@@ -170,18 +170,20 @@ table 7230 "Master Data Management Setup"
     end;
 
     trigger OnModify()
-    var
-        IsEnabledChanged: Boolean;
     begin
         if IsTemporary() then
+            exit;
+
+        // Enabling and disabling have side effects and ask questions (reset the configuration, keep the couplings), so run them
+        // only on an actual change. Saving the record again without changing the state, for example when a page saves a record
+        // that was re-read after the connection wizard enabled synchronization, must not repeat them.
+        if not IsEnabledStateChanging() then
             exit;
 
         if "Is Enabled" then
             EnableConnection()
         else
             DisableConnection();
-
-        GetConfigurationUpdates(IsEnabledChanged);
     end;
 
     trigger OnDelete()
@@ -438,14 +440,14 @@ table 7230 "Master Data Management Setup"
         Session.LogMessage('0000VAX', CrossEnvEnabledTelemetryTxt, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
-    local procedure GetConfigurationUpdates(var IsEnabledChanged: Boolean)
+    // Compares with the stored record, not xRec: a page that re-reads the record and saves it still holds the earlier xRec.
+    local procedure IsEnabledStateChanging(): Boolean
     var
-        MasterDataManagementSetup: Record "Master Data Management Setup";
+        StoredMasterDataManagementSetup: Record "Master Data Management Setup";
     begin
-        IsEnabledChanged := "Is Enabled" <> xRec."Is Enabled";
-        if not IsEnabledChanged then
-            if MasterDataManagementSetup.Get() then
-                IsEnabledChanged := "Is Enabled" <> MasterDataManagementSetup."Is Enabled";
+        if not StoredMasterDataManagementSetup.Get("Primary Key") then
+            exit(true);
+        exit(StoredMasterDataManagementSetup."Is Enabled" <> "Is Enabled");
     end;
 
     local procedure DisableConnection()

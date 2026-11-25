@@ -7,6 +7,7 @@ namespace Microsoft.FixedAssets;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Posting;
+using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.Period;
 using System.Utilities;
 
@@ -16,6 +17,40 @@ codeunit 31247 "Calc. Normal Depr. Handler CZF"
     var
         DepreciationCalculation: Codeunit "Depreciation Calculation";
         AcquisitionDate: Date;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Normal Depreciation", OnAfterGetDeprBooks, '', false, false)]
+    local procedure IgnoreTaxEndingBookValueOnAfterGetDeprBooks(var FADepreciationBook: Record "FA Depreciation Book")
+    var
+        FASetup: Record "FA Setup";
+    begin
+        if FADepreciationBook."Tax Deprec. Group Code CZF" = '' then
+            exit;
+        if FASetup.Get() then
+            if FASetup."Incl. Ending Book Value CZF" then begin
+                // Change only the working record; keep the stored individual and default ending book values.
+                FADepreciationBook."Ending Book Value" := 0;
+                FADepreciationBook."Ignore Def. Ending Book Value" := true;
+            end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Normal Depreciation", OnGetDepreciationCalculationBase, '', false, false)]
+    local procedure ReduceBaseOnAfterGetDepreciationCalculationBase(FADepreciationBook: Record "FA Depreciation Book"; EndingBookValue: Decimal; DeprMethod: Enum "FA Depr. Method Internal"; var CalculationBase: Decimal)
+    var
+        FASetup: Record "FA Setup";
+    begin
+        // Depreciation below zero keeps its original base; this is a localization rule, not a standard restriction.
+        if DeprMethod = DeprMethod::"Below Zero" then
+            exit;
+        if (EndingBookValue = 0) or IsTaxDeprBook(FADepreciationBook) then
+            exit;
+        if FASetup.Get() then
+            if FASetup."Incl. Ending Book Value CZF" then begin
+                // Only change the formula's base, not the book value used by the final depreciation limit.
+                CalculationBase -= EndingBookValue;
+                if CalculationBase < 0 then
+                    CalculationBase := 0;
+            end;
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Calculate Normal Depreciation", 'OnAfterTransferValues2', '', false, false)]
     local procedure SetTaxDepreciationOnAfterTransferValues(FADepreciationBook: Record "FA Depreciation Book"; var DeprMethod: Enum "FA Depr. Method Internal")
@@ -99,7 +134,6 @@ codeunit 31247 "Calc. Normal Depr. Handler CZF"
         end;
         TempNoDays := NumberOfDays;
         TempToDate := DateLastDepr;
-
         if TempNoDays < DaysInFiscalYear then
             TempFaktor := TempNoDays / DaysInFiscalYear
         else
@@ -112,7 +146,6 @@ codeunit 31247 "Calc. Normal Depr. Handler CZF"
         FALedgerEntry.SetRange("FA No.", FADepreciationBook."FA No.");
         FALedgerEntry.SetRange("Depreciation Book Code", FADepreciationBook."Depreciation Book Code");
         FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Appreciation);
-
         if DateFromProjection <> 0D then
             TempFromDate := DateFromProjection
         else
@@ -146,7 +179,6 @@ codeunit 31247 "Calc. Normal Depr. Handler CZF"
             DateLastAppr := FALedgerEntry."FA Posting Date";
         FALedgerEntry.SetRange("FA Posting Date", CalcEndOfFiscalYear(AcquisitionDate) + 1, UntilDate);
         if FALedgerEntry.FindFirst() then;
-
         if FADepreciationBook."Sum. Deprec. Entries From CZF" <> '' then begin
             TaxDeprAmount :=
               CalcDepreciatedAmount(FADepreciationBook."FA No.", FADepreciationBook."Sum. Deprec. Entries From CZF", TempFromDate, UntilDate);
@@ -200,7 +232,6 @@ codeunit 31247 "Calc. Normal Depr. Handler CZF"
                         TaxDeprAmount := TempBookValue / RemainingLife * TempNoDays;
                 end;
         end;
-
         if TaxDepreciationGroupCZF."Depreciation Type" <> TaxDepreciationGroupCZF."Depreciation Type"::"Straight-line Intangible" then
             if FADepreciationBook."Prorated CZF" then
                 if DateFromProjection = 0D then

@@ -16,6 +16,7 @@ codeunit 144001 "VAT Report"
         VariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
         Assert: Codeunit Assert;
         IncorrectNoOfReportLinesErr: Label 'The number of report lines is incorrect.';
         IncorrectVATReportLineAmtErr: Label 'The amount in the VAT Report line is incorrect.';
@@ -2934,6 +2935,36 @@ codeunit 144001 "VAT Report"
         // [THEN] No zmZeile nodes exist in the exported XML (DE correction line is skipped)
         InitXMLReaderForVIESReport(TempBlob);
         LibraryXPathXMLReader.VerifyXmlNodeCountByXPath('//zm:zms/zm:unternehmer/zm:zm/zm:zmZeile', 0);
+    end;
+
+    [Test]
+    procedure ExportReleasedVATReportSetsStatusExported()
+    var
+        VATReportHeader: Record "VAT Report Header";
+        VATReportExport: Codeunit "VAT Report Export";
+        TestPeriodStart: Date;
+        TestPeriodEnd: Date;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 659121] Exporting a released VAT Report via VIES ELMA XML changes its status to Exported.
+        Initialize();
+
+        // [GIVEN] Released VAT Report with BOP User Account ID configured.
+        SetupVATReportScenario(VATReportHeader, TestPeriodStart, TestPeriodEnd);
+
+        // [GIVEN] File download is intercepted.
+        LibraryFileMgtHandler.SetBeforeDownloadFromStreamHandlerActivated(true);
+        BindSubscription(LibraryFileMgtHandler);
+
+        // [WHEN] VAT Report is exported.
+        VATReportExport.Export(VATReportHeader);
+
+        // [THEN] Status of the VAT Report is Exported.
+        VATReportHeader.Get(VATReportHeader."No.");
+        Assert.AreEqual(VATReportHeader.Status::Exported, VATReportHeader.Status, 'VAT Report status must be Exported after export.');
+
+        UnbindSubscription(LibraryFileMgtHandler);
+        Cleanup(VATReportHeader."No.", TestPeriodStart, TestPeriodEnd);
     end;
 
     local procedure Initialize()
