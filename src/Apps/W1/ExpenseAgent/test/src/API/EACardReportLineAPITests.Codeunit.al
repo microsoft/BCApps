@@ -13,10 +13,8 @@ using System.Utilities;
 // receipt flow are Expense Agent entry points; without the Expense Agent, card expenses follow the standard BC flow.
 // A receipt is attached through cardReceiptData: the receipt data is posted for the card expense, the receipt file is
 // uploaded to its attachmentContent stream, and the Microsoft.NAV.apply action applies it. cardExpenseMatches identifies
-// the matched card expense through expenseId. The cardExpenseAwaitingReport field (replaces pendingCardExpense) is a
-// PLACEHOLDER for a field that does not exist yet. Names and payloads are defined once in the labels and request
-// builders below, so they can be aligned with the final API in one place. Tests that need an unimplemented change
-// fail until the change lands; they are intentionally not disabled.
+// the matched card expense through expenseId. The cardExpenseAwaitingReport field marks card expenses that wait for a report.
+// Names and payloads are defined once in the labels and request builders below.
 codeunit 148374 "EA Card Report Line API Tests"
 {
     Subtype = Test;
@@ -40,7 +38,6 @@ codeunit 148374 "EA Card Report Line API Tests"
         AttachmentContentPathTok: Label '/attachmentContent', Locked = true;
         ApplyActionPathTok: Label '/Microsoft.NAV.apply', Locked = true;
         AddCardExpenseToReportActionTok: Label 'Microsoft.NAV.addCardExpenseToReport', Locked = true;
-        // Placeholder for a field that does not exist yet.
         CardExpenseAwaitingReportFieldTok: Label 'cardExpenseAwaitingReport', Locked = true;
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
         OtherCardIdTok: Label 'CORPCARD-0002', Locked = true;

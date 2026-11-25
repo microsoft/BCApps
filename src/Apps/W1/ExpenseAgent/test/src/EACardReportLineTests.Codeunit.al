@@ -9,8 +9,7 @@ using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines]
-// Card transactions become expense report lines before a receipt exists. These tests describe the target behavior.
-// Tests that need a change that is not implemented yet fail until the change lands; they are intentionally not disabled.
+// Card transactions become expense report lines before a receipt exists.
 codeunit 148373 "EA Card Report Line Tests"
 {
     Subtype = Test;
