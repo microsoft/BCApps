@@ -6,12 +6,13 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
+using System.Agents.Internal;
 
 enumextension 3304 "PA Agent Metadata" extends "Agent Metadata Provider"
 {
     value(3303; "Payables Agent")
     {
         Caption = 'Payables Agent', Locked = true;
-        Implementation = IAgentFactory = "Payables Agent Metadata", IAgentMetadata = "Payables Agent Metadata", IAgentTaskExecution = "PA Agent Task Execution", IAgentArchiving = "Payables Agent Metadata";
+        Implementation = IAgentFactory = "Payables Agent Metadata", IAgentMetadata = "Payables Agent Metadata", IAgentTaskExecution = "PA Agent Task Execution", IAgentArchiving = "Payables Agent Metadata", IAgentExperimental = "Payables Agent Metadata";
     }
 }

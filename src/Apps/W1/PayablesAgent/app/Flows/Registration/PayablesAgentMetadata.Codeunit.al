@@ -7,12 +7,13 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.Utilities;
 using System.Agents;
+using System.Agents.Internal;
 using System.AI;
 using System.Environment;
 using System.Reflection;
 using System.Security.AccessControl;
 
-codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory, IAgentArchiving
+codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory, IAgentArchiving, IAgentExperimental
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -121,6 +122,12 @@ codeunit 3352 "Payables Agent Metadata" implements IAgentMetadata, IAgentFactory
     procedure IsArchivingSupported(): Boolean
     begin
         exit(false);
+    end;
+    #endregion
+    #region IAgentExperimental
+    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
+    begin
+        exit(Feature = Feature::BusinessIQ);
     end;
     #endregion
     #region Other
