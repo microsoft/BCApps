@@ -256,6 +256,8 @@ report 813 "Inventory Picking List"
     labels
     {
         ItemTrackingLbl = 'Item Tracking';
+        LotNoLbl = 'Lot No.';
+        SerialNoLbl = 'Serial No.';
         OrderNoLbl = 'Order No.';
         SalespersonNameCaption = 'Salesperson Name';
         LineNetWeightLbl = 'Net Weight (Line)';
