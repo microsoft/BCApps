@@ -2237,14 +2237,20 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             repeat
                 Assert.AreEqual(ProductionOrder[1]."No.", TransferLine."Subc. Prod. Order No.", 'PO-A return line must reference PO-A''s production order.');
             until TransferLine.Next() = 0;
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", false);
+#pragma warning restore AA0210
         TransferLine.CalcSums(Quantity);
         Assert.AreEqual(ComponentQuantity[1], TransferLine.Quantity, 'PO-A component return quantity must match its posted outbound components.');
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
         TransferLine.FindFirst();
         Assert.AreEqual(10, TransferLine.Quantity, 'PO-A WIP return quantity must match PO-A.');
 
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item");
+#pragma warning restore AA0210
         OtherReturnLineCount := TransferLine.Count();
         TransferLine.CalcSums(Quantity);
         OtherReturnQuantity := TransferLine.Quantity;
@@ -2269,11 +2275,15 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
                 Assert.AreEqual(PurchaseHeader[2]."No.", TransferLine."Subc. Purch. Order No.", 'Return line must reference PO-B.');
             until TransferLine.Next() = 0;
 
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", false);
+#pragma warning restore AA0210
         Assert.RecordCount(TransferLine, ComponentLineCount[2]);
         TransferLine.CalcSums(Quantity);
         Assert.AreEqual(ComponentQuantity[2], TransferLine.Quantity, 'PO-B component return quantity must match its posted outbound components.');
+#pragma warning disable AA0210
         TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
         Assert.RecordCount(TransferLine, 1);
         TransferLine.FindFirst();
         Assert.AreEqual(15, TransferLine.Quantity, 'PO-B WIP return quantity must match PO-B.');
