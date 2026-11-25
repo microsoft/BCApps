@@ -218,6 +218,8 @@ codeunit 10041 "IRS 1099 Form Box Calc. Impl." implements "IRS 1099 Form Box Cal
     end;
 
     local procedure FinalizeVendFormBoxBuffer(var TempVendFormBoxBuffer: Record "IRS 1099 Vend. Form Box Buffer" temporary; var EntryNo: Integer; PeriodNo: Code[20])
+    var
+        Supplemental: Codeunit "IRS 1099 Supplemental";
     begin
         AddAdjustmentsToVendFormBoxBuffer(TempVendFormBoxBuffer, EntryNo, PeriodNo);
         TempVendFormBoxBuffer.Reset();
@@ -231,6 +233,7 @@ codeunit 10041 "IRS 1099 Form Box Calc. Impl." implements "IRS 1099 Form Box Cal
             TempVendFormBoxBuffer."Include In 1099" := TempVendFormBoxBuffer."Reporting Amount" >= TempVendFormBoxBuffer."Minimum Reportable Amount";
             TempVendFormBoxBuffer.Modify();
         until TempVendFormBoxBuffer.Next() = 0;
+        Supplemental.RecalculateBufferIncludeIn1099(TempVendFormBoxBuffer);
     end;
 
     local procedure FindVendFormBoxBuffer(var TempVendFormBoxBuffer: Record "IRS 1099 Vend. Form Box Buffer" temporary; PeriodNo: Code[20]; VendorNo: Code[20]; FormNo: Code[20]; FormBoxNo: Code[20]): Boolean

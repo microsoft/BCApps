@@ -86,7 +86,7 @@ codeunit 148004 "Library IRS 1099 Form Box"
         IRS1099FormStatementLine.Validate("Line No.", StatementLineNo);
         IRS1099FormStatementLine.Validate("Print Value Type", Enum::"IRS 1099 Print Value Type"::Amount);
         IRS1099FormStatementLine.Validate("Row No.", FormBoxNo);
-        IRS1099FormStatementLine.Validate("Description", Description);
+        IRS1099FormStatementLine.Validate("Description", CopyStr(Description, 1, MaxStrLen(IRS1099FormStatementLine.Description)));
         IRS1099FormStatementLine.Insert(true);
     end;
 
