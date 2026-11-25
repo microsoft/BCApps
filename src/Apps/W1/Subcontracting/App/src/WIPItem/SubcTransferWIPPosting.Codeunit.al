@@ -493,6 +493,7 @@ codeunit 20541 "Subc. Transfer WIP Posting"
     local procedure AssignFieldsFromTransferLine(var SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry"; var TransferLine: Record "Transfer Line"; IsShipment: Boolean)
     var
         Item: Record Item;
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
         SubcontractorWIPLedgerEntry."Item No." := TransferLine."Item No.";
         Item.SetLoadFields("Base Unit of Measure");
@@ -505,10 +506,17 @@ codeunit 20541 "Subc. Transfer WIP Posting"
         SubcontractorWIPLedgerEntry."Routing No." := TransferLine."Subc. Routing No.";
         SubcontractorWIPLedgerEntry."Routing Reference No." := TransferLine."Subc. Routing Reference No.";
         SubcontractorWIPLedgerEntry."Operation No." := TransferLine."Subc. Operation No.";
-        if IsShipment and not (SubcontractorWIPLedgerEntry."In Transit") then
-            if TransferLine."Prev. Operation No." <> '' then
-                SubcontractorWIPLedgerEntry."Operation No." := TransferLine."Prev. Operation No.";
         SubcontractorWIPLedgerEntry."Work Center No." := TransferLine."Subc. Work Center No.";
+        if IsShipment and not (SubcontractorWIPLedgerEntry."In Transit") then
+            if TransferLine."Prev. Operation No." <> '' then begin
+                SubcontractorWIPLedgerEntry."Operation No." := TransferLine."Prev. Operation No.";
+                ProdOrderRoutingLine.SetLoadFields("Work Center No.");
+                ProdOrderRoutingLine.Get(
+                    SubcontractorWIPLedgerEntry."Prod. Order Status", SubcontractorWIPLedgerEntry."Prod. Order No.",
+                    SubcontractorWIPLedgerEntry."Routing Reference No.", SubcontractorWIPLedgerEntry."Routing No.",
+                    SubcontractorWIPLedgerEntry."Operation No.");
+                SubcontractorWIPLedgerEntry."Work Center No." := ProdOrderRoutingLine."Work Center No.";
+            end;
         SubcontractorWIPLedgerEntry.Description := TransferLine.Description;
         SubcontractorWIPLedgerEntry."Description 2" := TransferLine."Description 2";
     end;
