@@ -850,48 +850,48 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         Item: Record Item;
         Location: array[3] of Record Location;
         InTransitLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: array[2] of Record "Prod. Order Routing Line";
         ProductionOrder: Record "Production Order";
         RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
         WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
-        WorkCenter: Record "Work Center";
+        WorkCenter: array[2] of Record "Work Center";
         Index: Integer;
     begin
-        // [GIVEN] Two distinct subcontracting operations on the same production routing
-        LibraryInventory.CreateItem(Item);
-        LibraryManufacturing.CreateProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 10);
-        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
-        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[1]);
-        LibraryManufacturing.CreateProdOrderLine(
-            ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", Item."No.", '', Location[1].Code, 10);
-        ProdOrderLine."Routing No." := RoutingHeader."No.";
-        ProdOrderLine."Routing Reference No." := ProdOrderLine."Line No.";
-        ProdOrderLine.Modify();
-        for Index := 1 to 2 do begin
-            LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[Index + 1]);
-            LibraryPurchase.CreateVendor(Vendor);
-            Vendor."Subc. Location Code" := Location[Index + 1].Code;
-            Vendor.Modify();
-            LibraryManufacturing.CreateWorkCenter(WorkCenter);
-            WorkCenter.Validate("Subcontractor No.", Vendor."No.");
-            WorkCenter.Modify(true);
+        // [GIVEN] Two subcontracting work centers whose vendors have distinct subcontracting locations
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
 
-            ProdOrderRoutingLine[Index].Init();
-            ProdOrderRoutingLine[Index].Status := ProductionOrder.Status;
-            ProdOrderRoutingLine[Index]."Prod. Order No." := ProductionOrder."No.";
-            ProdOrderRoutingLine[Index]."Routing Reference No." := ProdOrderLine."Routing Reference No.";
-            ProdOrderRoutingLine[Index]."Routing No." := RoutingHeader."No.";
-            ProdOrderRoutingLine[Index]."Operation No." := Format(Index * 10);
-            ProdOrderRoutingLine[Index].Type := ProdOrderRoutingLine[Index].Type::"Work Center";
-            ProdOrderRoutingLine[Index]."No." := WorkCenter."No.";
-            ProdOrderRoutingLine[Index]."Work Center No." := WorkCenter."No.";
-            ProdOrderRoutingLine[Index]."Transfer WIP Item" := true;
-            ProdOrderRoutingLine[Index].Insert();
+        // [GIVEN] A certified routing with a WIP-transfer operation at each subcontractor
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        for Index := 1 to 2 do begin
+            LibraryManufacturing.CreateRoutingLine(
+                RoutingHeader, RoutingLine, '', Format(Index * 10), RoutingLine.Type::"Work Center", WorkCenter[Index]."No.");
+            RoutingLine."Transfer WIP Item" := true;
+            RoutingLine.Modify(true);
+            Vendor.Get(WorkCenter[Index]."Subcontractor No.");
+            Location[Index + 1].Get(Vendor."Subc. Location Code");
         end;
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        // [GIVEN] A released production order refreshed from that routing
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[1]);
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 10, Location[1].Code);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        for Index := 1 to 2 do
+            ProdOrderRoutingLine[Index].Get(
+                ProductionOrder.Status, ProductionOrder."No.", ProdOrderLine."Routing Reference No.", ProdOrderLine."Routing No.", Format(Index * 10));
 
         // [GIVEN] Ten pieces have been received at the first subcontractor, without a previous operation
         CreateAndPostRoutingWIPTransfer(
