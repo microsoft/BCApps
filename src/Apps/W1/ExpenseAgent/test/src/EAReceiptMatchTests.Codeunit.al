@@ -780,6 +780,60 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
+    procedure ApplyReceiptDataToReleasedCardExpenseNotOnReport()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        CardReceiptData: Record "EA Card Receipt Data";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+        FeedNo: Integer;
+        CardId: Code[50];
+    begin
+        // [SCENARIO] The missing receipt can be applied to a card expense that was released but not added to a report.
+        Initialize();
+
+        // [GIVEN] A categorized card expense with a user description, released through the standard flow and not on a report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Validate(Description, 'User description');
+        Expense.Modify(true);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField("Expense Report No.", '');
+        Expense.TestField("Receipt Attached", false);
+        Expense.TestField(Justification, '');
+        FeedNo := Expense."Credit Card Feed No.";
+        CardId := Expense."Corporate Card Id";
+
+        // [GIVEN] Receipt data with a justification and another description.
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData.Justification := 'Receipt justification';
+        CardReceiptData.Description := 'Receipt description';
+        CardReceiptData.Modify();
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The expense stays released, off the report and on the same transaction, with one receipt.
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField("Expense Report No.", '');
+        Expense.TestField("Credit Card Feed No.", FeedNo);
+        Expense.TestField("Corporate Card Id", CardId);
+        Expense.TestField("Receipt Attached", true);
+        Assert.AreEqual(1, CountAttachments(Database::Expense, Expense."No.", 0), 'The receipt must be attached to the expense once.');
+
+        // [THEN] The empty justification is filled, and the user's description is kept.
+        Expense.TestField(Justification, 'Receipt justification');
+        Expense.TestField(Description, 'User description');
+    end;
+
+    [Test]
     procedure ReceiptDataCannotBeStagedForManualExpense()
     var
         Expense: Record Expense;
