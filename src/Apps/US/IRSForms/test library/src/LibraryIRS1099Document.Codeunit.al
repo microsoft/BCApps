@@ -108,14 +108,12 @@ codeunit 148001 "Library IRS 1099 Document"
 
     procedure CreateSupplementalBox(PeriodNo: Code[20]; FormNo: Code[20]; BoxNo: Code[20])
     var
-        ReportingPeriod: Record "IRS Reporting Period";
         SupplBox: Record "IRS 1099 Suppl. Box";
     begin
         SupplBox."Period No." := PeriodNo;
         SupplBox."Form No." := FormNo;
         SupplBox."No." := BoxNo;
-        ReportingPeriod.Get(PeriodNo);
-        Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), FormNo, BoxNo, SupplBox."Parent Form Box No.",
+        Supplemental.GetMapping(PeriodNo, FormNo, BoxNo, SupplBox."Parent Form Box No.",
             SupplBox."XML Element Name", SupplBox."Value Type");
         SupplBox.Description := BoxNo;
         SupplBox.Insert(true);

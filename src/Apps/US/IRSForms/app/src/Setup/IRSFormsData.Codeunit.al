@@ -214,7 +214,6 @@ codeunit 10039 "IRS Forms Data"
 
     internal procedure GetSupplBoxSetupConflictMessage(SupplBox: Record "IRS 1099 Suppl. Box"; TargetCompany: Text): Text
     var
-        ReportingPeriod: Record "IRS Reporting Period";
         Form: Record "IRS 1099 Form";
         FormBox: Record "IRS 1099 Form Box";
         ParentBoxNo: Code[20];
@@ -237,9 +236,7 @@ codeunit 10039 "IRS Forms Data"
             exit(StrSubstNo(MissingParentMsg, SupplBox."Parent Form Box No."));
         if FormBox.GetSupplBoxNoConflictMessage() <> '' then
             exit(FormBox.GetSupplBoxNoConflictMessage());
-        ReportingPeriod.ChangeCompany(TargetCompany);
-        ReportingPeriod.Get(SupplBox."Period No.");
-        if Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), SupplBox."Form No.", SupplBox."No.", ParentBoxNo, ElementName, ValueType) then begin
+        if Supplemental.GetMapping(SupplBox."Period No.", SupplBox."Form No.", SupplBox."No.", ParentBoxNo, ElementName, ValueType) then begin
             if (SupplBox."Parent Form Box No." <> ParentBoxNo) or (SupplBox."Value Type" <> ValueType) or
                (SupplBox."XML Element Name" <> ElementName)
             then
@@ -312,7 +309,6 @@ codeunit 10039 "IRS Forms Data"
 
     local procedure UpdateSupplStatementLine(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; DefaultLineNo: Integer; Description: Text[100]; var Details: Text)
     var
-        ReportingPeriod: Record "IRS Reporting Period";
         SupplBox: Record "IRS 1099 Suppl. Box";
         FormBox: Record "IRS 1099 Form Box";
         StatementLine: Record "IRS 1099 Form Statement Line";
@@ -329,9 +325,7 @@ codeunit 10039 "IRS Forms Data"
         FormBox.ChangeCompany(TargetCompany);
         if FormBox.Get(PeriodNo, FormNo, BoxNo) then
             exit;
-        ReportingPeriod.ChangeCompany(TargetCompany);
-        ReportingPeriod.Get(PeriodNo);
-        Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), FormNo, BoxNo, ParentBoxNo, ElementName, ValueType);
+        Supplemental.GetMapping(PeriodNo, FormNo, BoxNo, ParentBoxNo, ElementName, ValueType);
         if (SupplBox."Parent Form Box No." <> ParentBoxNo) or (SupplBox."XML Element Name" <> ElementName) or
            (SupplBox."Value Type" <> ValueType)
         then
@@ -434,7 +428,6 @@ codeunit 10039 "IRS Forms Data"
 
     local procedure UpdateSupplementalBox(PeriodNo: Code[20]; TargetCompany: Text; FormNo: Code[20]; BoxNo: Code[20]; Description: Text[250]; var Details: Text)
     var
-        ReportingPeriod: Record "IRS Reporting Period";
         SupplBox: Record "IRS 1099 Suppl. Box";
         FormBox: Record "IRS 1099 Form Box";
         ParentBoxNo: Code[20];
@@ -442,9 +435,7 @@ codeunit 10039 "IRS Forms Data"
         ValueType: Enum "IRS 1099 Supplemental Type";
         DependencyConflict: Text;
     begin
-        ReportingPeriod.ChangeCompany(TargetCompany);
-        ReportingPeriod.Get(PeriodNo);
-        Supplemental.GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), FormNo, BoxNo, ParentBoxNo, ElementName, ValueType);
+        Supplemental.GetMapping(PeriodNo, FormNo, BoxNo, ParentBoxNo, ElementName, ValueType);
         FormBox.ChangeCompany(TargetCompany);
         if FormBox.Get(PeriodNo, FormNo, BoxNo) then begin
             Details += StrSubstNo(SupplBoxNumberConflictMsg, TargetCompany, PeriodNo, BoxNo);

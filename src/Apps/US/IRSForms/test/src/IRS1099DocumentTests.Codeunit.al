@@ -3275,7 +3275,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Supplemental validation uses the period dates, not its identifier or a fixed year.
+        // [SCENARIO 653992] Supplemental validation accepts later single-year dates while retaining the numeric period's mappings.
         Initialize();
 
         // [GIVEN] Form Document has tips and occupation codes in single 2027 reporting period.
@@ -3783,6 +3783,35 @@ codeunit 148010 "IRS 1099 Document Tests"
         VerifyUnchangedSupplementalCopyTarget(TargetDocHeader.ID);
         VerifySupplementalCopySource(SourceDocHeader.ID);
         VerifyParentDocLineState(TargetDocHeader.ID, 50, true);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure SupplementalMappingUsesPeriodNumber()
+    var
+        SupplementalBox: Record "IRS 1099 Suppl. Box";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Supplemental mappings follow the period number even when the period dates identify a different year.
+        Initialize();
+
+        // [GIVEN] Period 2025 has 2026 dates and a standard NEC parent box.
+        LibraryIRSReportingPeriod.CreateSpecificReportingPeriod('2025', 20260101D, 20261231D);
+        LibraryIRS1099FormBox.CreateSpecificFormInReportingPeriod(20260101D, 20261231D, 'NEC');
+        LibraryIRS1099FormBox.CreateSpecificFormBoxInReportingPeriod(20260101D, 20261231D, 'NEC', 'NEC-01');
+        SupplementalBox."Period No." := '2025';
+        SupplementalBox."Form No." := 'NEC';
+        SupplementalBox."No." := 'NEC-01B';
+        SupplementalBox."Parent Form Box No." := 'NEC-01';
+        SupplementalBox."Value Type" := SupplementalBox."Value Type"::Amount;
+        SupplementalBox."XML Element Name" := 'CashTipsAmt';
+
+        // [WHEN] A supplemental mapping introduced in 2026 is saved.
+        asserterror SupplementalBox.Insert(true);
+
+        // [THEN] The 2025 mapping rejects the definition instead of using the period's 2026 dates.
+        Assert.ExpectedError('The setup for supplemental box NEC-01B does not meet the reporting requirements');
+        Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
     end;
 
