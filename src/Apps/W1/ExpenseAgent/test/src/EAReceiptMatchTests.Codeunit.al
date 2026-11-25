@@ -953,18 +953,18 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure ReceiptNotNeededCardLineGetsAllRules()
+    procedure ReceiptNotNeededCardLineKeepsMerchantRule()
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
-        // [SCENARIO] A card line that doesn't need a receipt is checked against all rules right away.
+        // [SCENARIO] A card line that doesn't need a receipt still needs its merchant.
         Initialize();
-        EnableReceiptNoRule();
+        EnableReceiptAndMerchantRules();
 
         // [GIVEN] A card line on an open report that doesn't need a receipt.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), '');
         AddCardExpenseToReport(Expense, ExpenseReportLine);
         ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Receipt not needed";
         ExpenseReportLine.Modify();
@@ -972,8 +972,8 @@ codeunit 148370 EAReceiptMatchTests
         // [WHEN] The line is validated against the rules.
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
 
-        // [THEN] The line has the receipt number violation.
-        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line that does not need a receipt must require a receipt number.');
+        // [THEN] Only the missing merchant, not the missing receipt number, is flagged.
+        AssertCardLineMerchantNotReceiptNoViolation(ExpenseReportLine);
     end;
 
     [Test]
