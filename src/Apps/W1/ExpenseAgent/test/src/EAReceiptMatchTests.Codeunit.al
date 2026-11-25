@@ -38,6 +38,7 @@ codeunit 148370 EAReceiptMatchTests
         ItemizationTotalMismatchErr: Label 'Itemization total %1 must be equal to expense amount %2.', Comment = '%1 = Itemization total amount, %2 = Expense amount';
         JustificationRequiredErr: Label 'Justification is required for this expense based on your organization''s rule.';
         MaxAmountErr: Label 'Amount must not exceed %1 as defined by rule.', Comment = '%1 = Maximum allowed amount';
+        NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current.', Comment = '%1 = Expense No.';
 
     [Test]
     procedure ReceiptMatchesCardExpenseWithinDateWindow()
@@ -1215,6 +1216,67 @@ codeunit 148370 EAReceiptMatchTests
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'The entered receipt number must satisfy the receipt number rule.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, JustificationRequiredErr), 'The entered justification must satisfy the justification rule.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(MaxAmountErr, 10)), 'A justification must accept the locked card amount.');
+    end;
+
+    [Test]
+    procedure LostReceiptCardLineCannotBeReleasedWithoutDeclaration()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO] A card line marked as lost receipt doesn't wait for a receipt, but the report needs a current no receipt
+        // declaration for it.
+        Initialize();
+
+        // [GIVEN] A card line on an open report, marked as lost receipt without a declaration.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Lost Receipt";
+        ExpenseReportLine."No Receipt Reason" := 'Receipt was lost';
+        ExpenseReportLine.Modify();
+
+        // [WHEN] The report is released.
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        asserterror Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpenseReportHeader);
+
+        // [THEN] Release asks for the declaration.
+        Assert.ExpectedError(StrSubstNo(NoReceiptDeclarationNotCurrentErr, Expense."No."));
+    end;
+
+    [Test]
+    procedure LostReceiptCardExpenseWithDeclarationCanBeReleasedOnReport()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+    begin
+        // [SCENARIO] A card expense whose receipt was lost gets a no receipt declaration, is added with the card action, and its
+        // report can be released.
+        Initialize();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Allow No Receipt" := true;
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] An open card expense with a description and a no receipt declaration.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        Expense.Validate(Description, 'Coffee with a client');
+        Expense.Modify(true);
+        NoReceiptDeclarationMgt.CreateDeclaration(Expense, 'Receipt was lost', true);
+        Expense.Get(Expense."No.");
+        Expense.TestField("No Receipt Type", Expense."No Receipt Type"::"Lost Receipt");
+
+        // [WHEN] The card expense is added to a report, and the report is released.
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseReportLine.TestField("No Receipt Type", ExpenseReportLine."No Receipt Type"::"Lost Receipt");
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpenseReportHeader);
+
+        // [THEN] The report is released.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
     end;
 
     local procedure EnableReceiptNoRule()

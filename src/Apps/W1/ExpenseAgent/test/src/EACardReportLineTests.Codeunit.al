@@ -29,6 +29,8 @@ codeunit 148373 "EA Card Report Line Tests"
         AttachmentMandatoryTok: Label 'Document Attachment is mandatory', Locked = true;
         MerchantMandatoryTok: Label 'Merchant Name is mandatory', Locked = true;
         JustificationRequiredTok: Label 'Justification is required', Locked = true;
+        ReceiptNoMandatoryTok: Label 'Receipt No. is mandatory', Locked = true;
+        RuleViolationPresentTok: Label 'There are one or more rule violations in this expense report.', Locked = true;
         DuplicateTok: Label 'already exists', Locked = true;
         MaxAmountTok: Label 'must not exceed', Locked = true;
         ReceiptFileNameTok: Label 'receipt.png', Locked = true;
@@ -782,6 +784,70 @@ codeunit 148373 "EA Card Report Line Tests"
 
         // [THEN] It is not flagged as a duplicate.
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, DuplicateTok), 'Different card transactions must not be duplicates.');
+    end;
+
+    [Test]
+    procedure CardLineWaitingForReceiptSkipsJustificationButCannotBeReleasedWithoutReceipt()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        // [SCENARIO] While a card line waits for its receipt, the justification waits too, but the missing receipt blocks
+        // the report when the category enforces attachments.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+
+        // [GIVEN] A card line of 20 waiting for its receipt, a category that enforces attachments, and a rule that needs a
+        // justification from 10.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        SetAttachmentEnforcement(ExpenseReportLine."Expense Category", Enum::"Expense Attachment Enforcement"::Error);
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseReportLine."Expense Category", '', WorkDate() - 30,
+            ExpenseRuleHeader."Justification Required"::"Against Conditions", '', '', ExpenseRuleCondition."Condition Type"::"At Least Justification Needed", 10);
+
+        // [WHEN] The line is validated against the rules.
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] Only the missing receipt is flagged, and the report cannot be released.
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, AttachmentMandatoryTok), 'A waiting card line must report the missing receipt.');
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, JustificationRequiredTok), 'A waiting card line must not need a justification yet.');
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        asserterror Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpenseReportHeader);
+        Assert.ExpectedError(RuleViolationPresentTok);
+    end;
+
+    [Test]
+    procedure CardLineSetToReceiptNotNeededByCategoryGetsAllRules()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // [SCENARIO] When the category's no-receipt limit marks a card line as not needing a receipt, the line no longer waits
+        // for one, so all rules apply, including Receipt No. Mandatory.
+        Initialize();
+        LibraryExpense.UpdateUseRulesInAgentSetup(true);
+        SetAllowNoReceipt(true);
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Receipt No. Mandatory" := true;
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] A card line of 20 without a receipt number and a card category with a no-receipt limit of 100.
+        CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        CreateCardCategory(ExpenseCategory, 100);
+
+        // [WHEN] The line category is changed to that category, and the line is validated against the rules.
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Modify(true);
+        ValidateLineAgainstRules(ExpenseReportLine);
+
+        // [THEN] The line doesn't need a receipt, and the receipt number is required.
+        ExpenseReportLine.TestField("No Receipt Type", ExpenseReportLine."No Receipt Type"::"Receipt not needed");
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, ReceiptNoMandatoryTok), 'A card line that doesn''t need a receipt must require a receipt number.');
     end;
 
     [Test]
