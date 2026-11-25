@@ -33,6 +33,7 @@ codeunit 148373 "EA Card Report Line Tests"
         DuplicateTok: Label 'already exists', Locked = true;
         MaxAmountTok: Label 'must not exceed', Locked = true;
         ReceiptFileNameTok: Label 'receipt.png', Locked = true;
+        CannotDeleteCardExpenseErr: Label 'You cannot delete expense %1 because it is linked to a corporate card transaction.', Comment = '%1 = Expense No.';
         OnePixelPngBase64Tok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
@@ -447,6 +448,7 @@ codeunit 148373 "EA Card Report Line Tests"
         asserterror Expense.Delete(true);
 
         // [THEN] The delete is blocked and the expense still exists.
+        Assert.ExpectedError(StrSubstNo(CannotDeleteCardExpenseErr, Expense."No."));
         Assert.IsTrue(Expense.Get(Expense."No."), 'The card expense must not be deleted.');
     end;
 
