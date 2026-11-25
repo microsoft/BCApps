@@ -39,7 +39,7 @@ codeunit 148099 "SAF-T Test Helper"
         SetupMasterData(NumberOfMasterDataRecords, true);
     end;
 
-    local procedure SetupMasterData(NumberOfMasterDataRecords: Integer; UpdateLCYCode: Boolean)
+    procedure SetupMasterData(NumberOfMasterDataRecords: Integer; UpdateLCYCode: Boolean)
     var
         TempGLAccount: Record "G/L Account" temporary;
     begin

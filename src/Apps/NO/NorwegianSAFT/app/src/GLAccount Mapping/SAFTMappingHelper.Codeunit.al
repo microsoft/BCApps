@@ -170,7 +170,7 @@ codeunit 10672 "SAF-T Mapping Helper"
             SAFTGLAccountMapping."Mapping Type" := SAFTMappingRange."Mapping Type";
             SAFTGLAccountMapping."G/L Account No." := GLAccount."No.";
             SAFTGLAccountMapping."G/L Entries Exists" :=
-                GLAccNetChangeIsNotZero(GLAccount, SAFTMappingRange."Starting Date", SAFTMappingRange."Ending Date",
+                GLAccHasEntriesInPeriod(GLAccount, SAFTMappingRange."Starting Date", SAFTMappingRange."Ending Date",
                 SAFTMappingRange."Include Incoming Balance");
             if not SAFTGLAccountMapping.find() then
                 SAFTGLAccountMapping.insert();
@@ -212,10 +212,10 @@ codeunit 10672 "SAF-T Mapping Helper"
     begin
         if not GLAccount.Get(GLAccNo) then
             exit(false);
-        exit(GLAccNetChangeIsNotZero(GLAccount, StartingDate, EndingDate, IncludeIncomingBalance));
+        exit(GLAccHasEntriesInPeriod(GLAccount, StartingDate, EndingDate, IncludeIncomingBalance));
     end;
 
-    local procedure GLAccNetChangeIsNotZero(GLAccount: Record "G/L Account"; StartingDate: Date; EndingDate: Date; IncludeIncomingBalance: Boolean): Boolean
+    local procedure GLAccHasEntriesInPeriod(GLAccount: Record "G/L Account"; StartingDate: Date; EndingDate: Date; IncludeIncomingBalance: Boolean): Boolean
     var
         GLEntry: Record "G/L Entry";
     begin
@@ -224,7 +224,7 @@ codeunit 10672 "SAF-T Mapping Helper"
             GLEntry.SetRange("Posting Date", StartingDate, EndingDate)
         else
             GLEntry.SetRange("Posting Date", 0D, ClosingDate(EndingDate));
-        exit(not Glentry.IsEmpty);
+        exit(not GLEntry.IsEmpty());
     end;
 
     procedure UpdateMasterDataWithNoSeries()
@@ -410,7 +410,7 @@ codeunit 10672 "SAF-T Mapping Helper"
         SAFTMappingHelper.UpdateGLEntriesExistStateForGLAccMapping(MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Mapping Range Code", MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Category No.", '');
-        SAFTGLAccountMapping.Setrange("G/L Entries Exists", true);
+        SAFTGLAccountMapping.SetRange("G/L Entries Exists", true);
         if not SAFTGLAccountMapping.IsEmpty() then begin
             SAFTMappingRange.Get(MappingRangeCode);
             LogError(SAFTMappingRange, Mapping13NotDoneErr);
