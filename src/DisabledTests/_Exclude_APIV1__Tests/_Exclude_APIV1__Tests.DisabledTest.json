@@ -23,5 +23,10 @@
     "codeunitId": 139729,
     "codeunitName": "APIV1 - Purchase Invoices E2E",
     "method": "TestPurchaseInvoiceWithPaymentDiscount"
+  },
+  {
+    "codeunitId": 139733,
+    "codeunitName": "APIV1 - Attachments E2E",
+    "method": "TestCreateGLEntryAttachment"
   }
 ]

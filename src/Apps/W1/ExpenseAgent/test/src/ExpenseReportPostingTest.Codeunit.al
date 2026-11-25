@@ -23,7 +23,6 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
-using System;
 using System.Automation;
 using System.Environment.Configuration;
 using System.Security.AccessControl;
@@ -7624,6 +7623,8 @@ codeunit 148302 "Expense Report Posting Test"
         CreateExpense(Expense, Refundable, CurrencyCode, Amount);
         Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
         Expense.Validate("Non-Refundable Amount", AmountReduction);
+        if Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card" then
+            Expense.Validate("Corporate Card Id", LibraryExpense.GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
 
         UpdateExpenseAccountInEmployeePostingGroup(ExpenseUser, Expense);
@@ -7678,6 +7679,8 @@ codeunit 148302 "Expense Report Posting Test"
         Expense.Validate("Non-Refundable Amount", AmountReduction);
         Expense.Validate("Job No.", JobTask."Job No.");
         Expense.Validate("Job Task No.", JobTask."Job Task No.");
+        if Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card" then
+            Expense.Validate("Corporate Card Id", LibraryExpense.GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
         Expense.Modify();
 
         UpdateExpenseAccountInEmployeePostingGroup(ExpenseUser, Expense);
@@ -8136,27 +8139,8 @@ codeunit 148302 "Expense Report Posting Test"
         TempBlob: Codeunit "Temp Blob";
     begin
         DocumentAttachment.Init();
-        CreateTempBLOBWithImageOfType(TempBlob, 'jpeg');
+        LibraryExpense.CreateTempBLOBWithImageOfType(TempBlob, Enum::"Image Format"::Jpeg);
         DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
-    end;
-
-    local procedure CreateTempBLOBWithImageOfType(var TempBlob: Codeunit "Temp Blob"; ImageType: Text)
-    var
-        ImageFormat: DotNet ImageFormat;
-        Bitmap: DotNet Bitmap;
-        InStr: InStream;
-    begin
-        TempBlob.CreateInStream(InStr);
-        Bitmap := Bitmap.Bitmap(1, 1);
-        case ImageType of
-            'png':
-                Bitmap.Save(InStr, ImageFormat.Png);
-            'jpeg':
-                Bitmap.Save(InStr, ImageFormat.Jpeg);
-            else
-                Bitmap.Save(InStr, ImageFormat.Bmp);
-        end;
-        Bitmap.Dispose();
     end;
 
     local procedure CheckIfDocAttachExist(TableNo: Integer; DocNo: Code[20]; LineNo: Integer): Boolean;

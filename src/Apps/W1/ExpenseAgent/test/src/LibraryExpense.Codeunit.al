@@ -16,6 +16,8 @@ using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Setup;
 using System.Agents;
+using System.Security.AccessControl;
+using System.Security.User;
 using System.Utilities;
 
 codeunit 148300 "Library - Expense"
@@ -33,6 +35,7 @@ codeunit 148300 "Library - Expense"
         AttachmentRetrievalFailureEnabled: Boolean;
         CorpCardDraftFailureEnabled: Boolean;
         CorpCardDraftFailedErr: Label 'Corporate card draft creation failed after inserting the expense.', Locked = true;
+        OnePixelPngBase64Lbl: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     internal procedure SetCorpCardDraftFailureEnabled(Enabled: Boolean)
     begin
@@ -111,6 +114,50 @@ codeunit 148300 "Library - Expense"
         ExpenseUser.Validate("No.", LibraryUtility.GenerateRandomCode(ExpenseUser.FieldNo("No."), Database::"Expense User"));
         ExpenseUser.Validate("Employee No.", LibraryHumanResource.CreateEmployeeNo());
         ExpenseUser.Insert(true);
+    end;
+
+    internal procedure CreateExpenseUserWithApprovalIdentity(var ExpenseUser: Record "Expense User"; CanApprove: Boolean)
+    var
+        UserSetup: Record "User Setup";
+        User: Record User;
+        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
+        UserEmail: Text[80];
+    begin
+        LibraryDocumentApprovals.CreateMockupUserSetup(UserSetup);
+        UserEmail := CopyStr(DelChr(LowerCase(Format(CreateGuid())), '=', '{}-') + '@test.local', 1, MaxStrLen(UserEmail));
+        User.SetRange("User Name", UserSetup."User ID");
+        if User.FindFirst() then begin
+            User."Authentication Email" := UserEmail;
+            User.Modify();
+        end else begin
+            User.Init();
+            User."User Security ID" := CreateGuid();
+            User."User Name" := UserSetup."User ID";
+            User."Authentication Email" := UserEmail;
+            User.Insert(true);
+        end;
+
+        CreateExpenseUser(ExpenseUser);
+        ExpenseUser.Validate("E-mail", UserEmail);
+        if CanApprove then begin
+            ExpenseUser.Validate("Can Approve", true);
+            ExpenseUser.Validate("Unlimited Approval", true);
+        end;
+        ExpenseUser.Validate("Entra Id", CreateGuid());
+        ExpenseUser.Modify();
+    end;
+
+    internal procedure CreateAlternateApproverCoverage(PrimaryApproverNo: Code[20]; AlternateApproverNo: Code[20]; StartDate: Date; EndDate: Date): Guid
+    var
+        ExpenseAlternateApprover: Record "Expense Alternate Approver";
+    begin
+        ExpenseAlternateApprover.Init();
+        ExpenseAlternateApprover.Validate("Primary Approver No.", PrimaryApproverNo);
+        ExpenseAlternateApprover.Validate("Alternate Approver No.", AlternateApproverNo);
+        ExpenseAlternateApprover.Validate("Effective Start Date", StartDate);
+        ExpenseAlternateApprover.Validate("Effective End Date", EndDate);
+        ExpenseAlternateApprover.Insert(true);
+        exit(ExpenseAlternateApprover.SystemId);
     end;
 
     procedure CreateEmployee(EmployeeNo: Code[20]): Code[20]
@@ -246,6 +293,26 @@ codeunit 148300 "Library - Expense"
 
     internal procedure CreateExpense(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[20]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
     begin
+        CreateExpense(Expense, ExpenseUserNo, ExpenseCategory, ExpenseSubCategory, LocationCode, Refundable, CurrencyCode, Amount, true);
+    end;
+
+    internal procedure CreateExpense(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20]; LocationCode: Code[20]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal; AssignCorporateCard: Boolean)
+    begin
+        InitializeExpense(Expense, ExpenseUserNo, ExpenseCategory, ExpenseSubCategory);
+        Expense.Insert(true);
+
+        if LocationCode <> '' then
+            Expense.Validate("Expense Location", LocationCode);
+        Expense.Validate("Currency Code", CurrencyCode);
+        Expense.Validate(Amount, Amount);
+        Expense.Validate(Refundable, Refundable);
+        if AssignCorporateCard and (Expense."Reimbursement Type" = Expense."Reimbursement Type"::"Credit Card") then
+            Expense.Validate("Corporate Card Id", GetCorporateCardForExpenseUser(Expense."Expense User No.", Expense."Expense Date"));
+        Expense.Modify();
+    end;
+
+    internal procedure InitializeExpense(var Expense: Record Expense; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; ExpenseSubCategory: Code[20])
+    begin
         Expense.Init();
         Expense.Validate(Description, LibraryUtility.GenerateRandomCode(Expense.FieldNo(Description), Database::"Expense"));
         Expense.Validate("Expense Ext. Doc. No.", LibraryUtility.GenerateRandomCode(Expense.FieldNo("Expense Ext. Doc. No."), Database::"Expense"));
@@ -254,14 +321,33 @@ codeunit 148300 "Library - Expense"
         Expense.Validate("Expense Category", ExpenseCategory);
         Expense.Validate("Expense Subcategory", ExpenseSubCategory);
         Expense.Validate("Expense Date", WorkDate());
-        Expense.Insert(true);
+    end;
 
-        if LocationCode <> '' then
-            Expense.Validate("Expense Location", LocationCode);
-        Expense.Validate("Currency Code", CurrencyCode);
-        Expense.Validate(Amount, Amount);
-        Expense.Validate(Refundable, Refundable);
-        Expense.Modify();
+    internal procedure GetCorporateCardForExpenseUser(ExpenseUserNo: Code[20]; ExpenseDate: Date): Code[50]
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardProvider: Record "EA Corp Card Provider";
+    begin
+        CorpCard.SetRange("Expense User No.", ExpenseUserNo);
+        CorpCard.SetRange(Blocked, false);
+        CorpCard.SetFilter("Valid From", '%1|..%2', 0D, ExpenseDate);
+        CorpCard.SetFilter("Valid To", '%1|%2..', 0D, ExpenseDate);
+        if CorpCard.FindFirst() then
+            exit(CorpCard."Card Id");
+
+        if not CorpCardProvider.Get('MANUAL-TEST') then begin
+            CorpCardProvider.Init();
+            CorpCardProvider.Code := 'MANUAL-TEST';
+            CorpCardProvider.Description := 'Manual corporate card test provider';
+            CorpCardProvider.Insert(true);
+        end;
+        CorpCard.Init();
+        CorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(CorpCard."Card Id"));
+        CorpCard."Provider Code" := CorpCardProvider.Code;
+        CorpCard."Expense User No." := ExpenseUserNo;
+        CorpCard."Masked Card No." := '**** 1234';
+        CorpCard.Insert(true);
+        exit(CorpCard."Card Id");
     end;
 
     internal procedure FindExpensePaymentMethod(var ExpensePaymentMethod: Record "Expense Payment Method"; ReimbursementType: Enum "Expense Reimbursement Type")
@@ -295,6 +381,11 @@ codeunit 148300 "Library - Expense"
     end;
 
     internal procedure CreateExpenseReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; PaymentMethodCode: Code[10]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal)
+    begin
+        CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUserNo, ExpenseCategory, PaymentMethodCode, Refundable, CurrencyCode, Amount, true);
+    end;
+
+    internal procedure CreateExpenseReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseUserNo: Code[20]; ExpenseCategory: Code[20]; PaymentMethodCode: Code[10]; Refundable: Boolean; CurrencyCode: Code[10]; Amount: Decimal; AssignCorporateCard: Boolean)
     var
         RecordRef: RecordRef;
     begin
@@ -313,6 +404,10 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLine.Validate("Amount", Amount);
         ExpenseReportLine.Validate("Expense Currency Code", CurrencyCode);
         ExpenseReportLine.Insert(true);
+        if AssignCorporateCard and (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card") then begin
+            ExpenseReportLine.Validate("Corporate Card Id", GetCorporateCardForExpenseUser(ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date"));
+            ExpenseReportLine.Modify();
+        end;
     end;
 
     internal procedure CreateExpenseReportLine(var ExpenseReportLine: Record "Expense Report Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseCategory: Code[20]; Billable: Boolean; BillableToCustomer: Code[20]; AccountType: Enum "Expense Line Type"; AccountNo: Code[20])
@@ -333,6 +428,10 @@ codeunit 148300 "Library - Expense"
         ExpenseReportLine.Validate("Account Type", AccountType);
         ExpenseReportLine.Validate("Account No.", AccountNo);
         ExpenseReportLine.Insert(true);
+        if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card" then begin
+            ExpenseReportLine.Validate("Corporate Card Id", GetCorporateCardForExpenseUser(ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date"));
+            ExpenseReportLine.Modify();
+        end;
     end;
 
     internal procedure CreateSpendRequest(var SpendRequest: Record "Spend Request")
@@ -821,5 +920,16 @@ codeunit 148300 "Library - Expense"
         LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
         ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
         ExpenseAgentSetup.Modify(true);
+    end;
+
+    internal procedure CreateTempBLOBWithImageOfType(var TempBlob: Codeunit "Temp Blob"; ImageFormat: Enum "Image Format")
+    var
+        Image: Codeunit Image;
+        OutStream: OutStream;
+    begin
+        Image.FromBase64(OnePixelPngBase64Lbl);
+        Image.SetFormat(ImageFormat);
+        TempBlob.CreateOutStream(OutStream);
+        Image.Save(OutStream);
     end;
 }

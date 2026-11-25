@@ -22,9 +22,11 @@ using System.Security.AccessControl;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Stores the header of an expense report that groups expenses of an expense user for approval and posting.
+/// </summary>
 table 6906 "Expense Report Header"
 {
-    Access = Internal;
     Caption = 'Expense Report Header';
     DataClassification = CustomerContent;
     DataCaptionFields = "No.", Description;
@@ -455,12 +457,21 @@ table 6906 "Expense Report Header"
                 end;
             end;
         }
+#if not CLEANSCHEMA30
         field(55; "Pending Approval By"; Code[20])
         {
             Caption = 'Pending Approval By';
             FieldClass = FlowFilter;
             TableRelation = "Expense User"."No.";
+            ObsoleteReason = 'Filter on the Approver Expense User No. field instead.';
+            ObsoleteTag = '30.0';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
         }
+#endif
         field(56; "Submitter Expense User No."; Code[20])
         {
             Caption = 'Submitter Expense User No.';
@@ -550,6 +561,7 @@ table 6906 "Expense Report Header"
         }
         field(72; "Alternate Approver No."; Code[20])
         {
+            Access = Internal;
             Caption = 'Alternate Approver No.';
             ToolTip = 'Specifies the alternate approver assigned to the expense report.';
             DataClassification = EndUserIdentifiableInformation;
@@ -558,6 +570,7 @@ table 6906 "Expense Report Header"
         }
         field(73; "Alternate Approver Name"; Text[100])
         {
+            Access = Internal;
             Caption = 'Alternate Approver Name';
             ToolTip = 'Specifies the name of the alternate approver assigned to the expense report.';
             Editable = false;
@@ -639,6 +652,9 @@ table 6906 "Expense Report Header"
         key(SpendRequestNo; "Spend Request No.", "Expense User No.")
         {
         }
+        key(ApproverStatus; "Approver Expense User No.", Status)
+        {
+        }
     }
 
     fieldgroups
@@ -718,6 +734,10 @@ table 6906 "Expense Report Header"
         PerDiemLineDescriptionTxt: Label 'Per diem for travel request %1, created on approval', Comment = '%1 = Travel Request No.', MaxLength = 100;
         PerDiemLineCreatedLbl: Label 'Per diem line created from approved travel request', Locked = true;
 
+    /// <summary>
+    /// Lets the user select a number series for the expense report and assigns the next number from the selected series.
+    /// </summary>
+    /// <returns>True if a number series was selected and a new number was assigned; otherwise, false.</returns>
     procedure AssistEdit() Result: Boolean
     begin
         ExpenseAgentSetup.GetRecordOnce();
@@ -728,6 +748,9 @@ table 6906 "Expense Report Header"
         end;
     end;
 
+    /// <summary>
+    /// Opens the dimension set of the expense report for editing and updates the dimensions on the report lines if they change.
+    /// </summary>
     procedure ShowDocDim()
     var
         OldDimSetID: Integer;
@@ -744,6 +767,11 @@ table 6906 "Expense Report Header"
         end;
     end;
 
+    /// <summary>
+    /// Validates a shortcut dimension value, updates the dimension set of the expense report, and updates the dimensions on the report lines if they change.
+    /// </summary>
+    /// <param name="FieldNumber">The number of the shortcut dimension field (1-8).</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension value code to validate.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         OldDimSetID: Integer;
@@ -847,7 +875,7 @@ table 6906 "Expense Report Header"
         end;
     end;
 
-    procedure ExpenseLinesExist(): Boolean
+    local procedure ExpenseLinesExist(): Boolean
     var
         ExpenseReportLine: Record "Expense Report Line";
     begin
@@ -856,7 +884,7 @@ table 6906 "Expense Report Header"
         exit(not ExpenseReportLine.IsEmpty());
     end;
 
-    procedure UpdateAllLineDim(NewParentDimSetID: Integer; OldParentDimSetID: Integer)
+    local procedure UpdateAllLineDim(NewParentDimSetID: Integer; OldParentDimSetID: Integer)
     var
         ExpenseReportLine: Record "Expense Report Line";
         xExpenseReportLine: Record "Expense Report Line";
@@ -904,9 +932,12 @@ table 6906 "Expense Report Header"
     end;
 
     /// <summary>
-    /// Releases the sales documents that are not yet released.
+    /// Releases the expense reports in the filter that are not already released, as the current user. Reports that are already released are skipped.
     /// </summary>
-    /// <param name="ExpenseReportHeader">Filtered Expenses to release.</param>
+    /// <param name="ExpenseReportHeader">The filtered expense reports to release.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualRelease(var ExpenseReportHeader: Record "Expense Report Header")
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -925,9 +956,12 @@ table 6906 "Expense Report Header"
     end;
 
     /// <summary>
-    /// Reopens sales documents that are not already open.
+    /// Reopens the expense reports in the filter that are not already open, as the current user. Reports that are pending approval or interim approved cannot be reopened until the approval process is cancelled.
     /// </summary>
-    /// <param name="ExpenseReportHeader">Filtered Expenses to reopen.</param>
+    /// <param name="ExpenseReportHeader">The filtered expense reports to reopen.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualReopen(var ExpenseReportHeader: Record "Expense Report Header")
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -947,7 +981,7 @@ table 6906 "Expense Report Header"
     /// The transaction is committed after pending approval.
     /// </remarks>
     /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
-    procedure PerformManualPendingApproval(SubmitterExpenseUserNo: Code[20])
+    internal procedure PerformManualPendingApproval(SubmitterExpenseUserNo: Code[20])
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
@@ -962,7 +996,7 @@ table 6906 "Expense Report Header"
     /// Releases and marks as pending approval in a single atomic operation.
     /// </summary>
     /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
-    procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20])
+    internal procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20])
     begin
         PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
     end;
@@ -972,7 +1006,7 @@ table 6906 "Expense Report Header"
     /// </summary>
     /// <param name="SubmitterExpenseUserNo">The expense user number of the submitter.</param>
     /// <param name="SubmissionComment">The optional comment supplied by the submitter.</param>
-    procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    internal procedure PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
@@ -986,7 +1020,7 @@ table 6906 "Expense Report Header"
     /// The transaction is committed after approval.
     /// </remarks>
     /// <param name="ApproverExpenseUserNo">The expense user number of the approver.</param>
-    procedure PerformManualApproved(ApproverExpenseUserNo: Code[20])
+    internal procedure PerformManualApproved(ApproverExpenseUserNo: Code[20])
     begin
         PerformManualApproved(ApproverExpenseUserNo, false);
     end;
@@ -996,7 +1030,7 @@ table 6906 "Expense Report Header"
     /// </summary>
     /// <param name="ApproverExpenseUserNo">The expense user number of the approver.</param>
     /// <param name="SkipPolicyValidation">Specifies whether approval can proceed with stale or unevaluated policies.</param>
-    procedure PerformManualApproved(ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
+    internal procedure PerformManualApproved(ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
@@ -1015,7 +1049,7 @@ table 6906 "Expense Report Header"
     /// </remarks>
     /// <param name="ApproverExpenseUserNo">The expense user number of the approver.</param>
     /// <param name="RejectReason">The reason for rejection.</param>
-    procedure PerformManualRejected(ApproverExpenseUserNo: Code[20]; RejectReason: Text)
+    internal procedure PerformManualRejected(ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
@@ -1026,7 +1060,7 @@ table 6906 "Expense Report Header"
         Commit();
     end;
 
-    procedure PerformManualRejectedAndReopen(ApproverExpenseUserNo: Code[20]; RejectReason: Text)
+    internal procedure PerformManualRejectedAndReopen(ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     var
         ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
     begin
@@ -1061,7 +1095,7 @@ table 6906 "Expense Report Header"
     /// Returns document status field style expression based on the status of the sales header.
     /// </summary>
     /// <returns>Status style expression.</returns>
-    procedure GetStatusStyleText() StatusStyleText: Text
+    internal procedure GetStatusStyleText() StatusStyleText: Text
     begin
         if Status = Status::Open then
             StatusStyleText := 'Favorable'
@@ -1155,7 +1189,7 @@ table 6906 "Expense Report Header"
         Rec."Modified By Exp. User Id" := ExpenseUser.SystemId;
     end;
 
-    procedure CreateDimFromDefaultDim(FieldNo: Integer)
+    internal procedure CreateDimFromDefaultDim(FieldNo: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
     begin
@@ -1176,7 +1210,7 @@ table 6906 "Expense Report Header"
         DimMgt.AddDimSource(DefaultDimSource, Database::"Salesperson/Purchaser", GetSalesPersonCodeFromEmployee());
     end;
 
-    procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    local procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     var
         SourceCodeSetup: Record "Source Code Setup";
         OldDimSetID: Integer;
@@ -1204,6 +1238,10 @@ table 6906 "Expense Report Header"
         end;
     end;
 
+    /// <summary>
+    /// Shows a preview of the entries that will be created when the expense report is posted.
+    /// </summary>
+    /// <param name="ExpenseReportHeader">The expense report to preview posting for.</param>
     procedure Preview(var ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpensePreviewPostMgt: Codeunit "Expense Preview Post Mgt.";
@@ -1216,7 +1254,7 @@ table 6906 "Expense Report Header"
     /// <summary>
     /// Updates currency factor on the report header
     /// </summary>
-    procedure UpdateCurrencyFactor()
+    local procedure UpdateCurrencyFactor()
     var
         UpdateCurrencyExchangeRates: Codeunit "Update Currency Exchange Rates";
     begin
@@ -1259,6 +1297,9 @@ table 6906 "Expense Report Header"
             exit('');
     end;
 
+    /// <summary>
+    /// Raises the event that lets subscribers check restrictions before the expense report is posted.
+    /// </summary>
     procedure CheckExpenseReportPostRestrictions()
     begin
         OnCheckExpenseReportPostRestrictions();
@@ -1289,7 +1330,7 @@ table 6906 "Expense Report Header"
         end;
     end;
 
-    procedure UpdateApproverID()
+    internal procedure UpdateApproverID()
     begin
         GetApproverId(Rec."Approver Expense User No.", Rec."Approver Expense User ID");
     end;
@@ -1377,7 +1418,7 @@ table 6906 "Expense Report Header"
     /// <summary>
     /// Assigns an optional interim approver who must approve before the final approver.
     /// </summary>
-    procedure AssignInterimApprover(NewApproverExpenseUserNo: Code[20])
+    internal procedure AssignInterimApprover(NewApproverExpenseUserNo: Code[20])
     begin
         AssignInterimApprover(NewApproverExpenseUserNo, '');
     end;
@@ -1389,7 +1430,7 @@ table 6906 "Expense Report Header"
         ExpenseReportApprovalMgmt.AssignInterimApprover(Rec, NewApproverExpenseUserNo, ActorExpenseUserNo);
     end;
 
-    procedure AssignAlternateApprover(ActorExpenseUserNo: Code[20])
+    internal procedure AssignAlternateApprover(ActorExpenseUserNo: Code[20])
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -1587,9 +1628,11 @@ table 6906 "Expense Report Header"
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
     begin
+        // Canceled reports no longer use the travel request, so they don't block a new report for it.
         PostedExpenseReportHeader.ReadIsolation := IsolationLevel::ReadCommitted;
         PostedExpenseReportHeader.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportHeader.SetRange("Expense User No.", TravelerExpenseUserNo);
+        PostedExpenseReportHeader.SetRange(Canceled, false);
         PostedExpenseReportHeader.SetLoadFields("No.");
         if PostedExpenseReportHeader.FindFirst() then begin
             PostedReportError := GetPostedTravelRequestReportError(
@@ -1600,6 +1643,7 @@ table 6906 "Expense Report Header"
         PostedExpenseReportLine.ReadIsolation := IsolationLevel::ReadCommitted;
         PostedExpenseReportLine.SetRange("Spend Request No.", SpendRequest."No.");
         PostedExpenseReportLine.SetRange("Expense User No.", TravelerExpenseUserNo);
+        PostedExpenseReportLine.SetRange("Is Canceled", false);
         PostedExpenseReportLine.SetLoadFields("Document No.", "Line No.");
         if PostedExpenseReportLine.FindFirst() then begin
             PostedReportError := GetPostedTravelRequestReportError(

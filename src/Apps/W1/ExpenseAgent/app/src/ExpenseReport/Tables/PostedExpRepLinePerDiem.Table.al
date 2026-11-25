@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Stores the daily per diem lines of a posted expense report line.
+/// </summary>
 table 6920 "Posted Exp. Rep. Line Per Diem"
 {
-    Access = Internal;
     Caption = 'Posted Expense Report Line Per Diem';
     DataClassification = CustomerContent;
     LookupPageId = "Posted Exp. Rep. Line Per Diem";

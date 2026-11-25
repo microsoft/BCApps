@@ -25,7 +25,7 @@ table 7134 "Item Budget Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -400,7 +400,7 @@ table 7134 "Item Budget Entry"
         exit(DefaultValue);
     end;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

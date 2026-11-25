@@ -8,9 +8,11 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
 
+/// <summary>
+/// Stores the employees and external persons who participated in an expense report line.
+/// </summary>
 table 6908 "Expense Report Line Particip."
 {
-    Access = Internal;
     Caption = 'Expense Report Line Participants';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Report Line Particips";

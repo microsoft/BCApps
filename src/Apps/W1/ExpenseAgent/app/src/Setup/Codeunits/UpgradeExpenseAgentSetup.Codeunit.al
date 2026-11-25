@@ -26,9 +26,9 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     begin
         UpgradeRemoveLegacyPrivacyNotice();
         // Registered on every upgrade (not gated by an upgrade tag) so environments provisioned
-        // through the app-sync/upgrade path still get the capability registered. RegisterCapability
-        // is idempotent via IsCapabilityRegistered, so it is a no-op when already registered and
-        // leaves the admin's activation state untouched.
+        // through the app-sync/upgrade path still get the capability registered, and existing
+        // preview registrations are moved to generally available. ModifyCapability reactivates
+        // the capability only when its availability changes.
         InstallExpenseAgentSetup.RegisterCapability();
     end;
 
