@@ -78,9 +78,9 @@ codeunit 148374 "EA Card Report Line API Tests"
 
         // [THEN] The report has a card line without a category and the expense is submitted on the report.
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
-        ExpenseReportLine.SetRange("Expense No.", Expense."No.");
         Assert.RecordCount(ExpenseReportLine, 1);
         ExpenseReportLine.FindFirst();
+        ExpenseReportLine.TestField("Expense No.", Expense."No.");
         ExpenseReportLine.TestField("Credit Card Feed No.", Expense."Credit Card Feed No.");
         ExpenseReportLine.TestField(Amount, Expense.Amount);
         ExpenseReportLine.TestField("Expense Category", '');

@@ -653,6 +653,7 @@ codeunit 148370 EAReceiptMatchTests
         CardReceiptData.CalcFields("Attachment Content");
         CardReceiptData."Attachment Content".CreateInStream(ReplacementInStream);
         DocumentAttachment.ImportFromStream(ReplacementInStream, 'replacement.pdf');
+        DocumentAttachment.Validate("File Name", 'replacement');
         DocumentAttachment.Modify(true);
         DocumentAttachment.Delete(true);
 
