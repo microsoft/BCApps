@@ -1,5 +1,7 @@
 namespace Microsoft.FabricExport;
 
+using System.Upgrade;
+
 codeunit 48528 "Fabric Upgrade"
 {
     Subtype = Upgrade;
