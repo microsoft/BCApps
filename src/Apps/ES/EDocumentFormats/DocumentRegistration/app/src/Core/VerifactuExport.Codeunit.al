@@ -1107,7 +1107,7 @@ codeunit 10778 "Verifactu Export"
         DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, SpecialSchemeCode));
         OperationQualification := GetOperationQualification(DocumentNo, PostingDate, VATBusPostingGroup, VATProdPostingGroup, VATIdentifier, IsCreditMemo);
         if OperationQualification = 'S1' then
-            ExemptionCode := GetExemptionCode(VATBusPostingGroup, VATProdPostingGroup, SpecialSchemeCode, VATPercentage, VATAmount, IsIntraCommunity);
+            ExemptionCode := GetExemptionCode(VATBusPostingGroup, VATProdPostingGroup, SpecialSchemeCode, VATAmount, IsIntraCommunity);
         OnAfterGetVATBreakdownQualification(
             DocumentNo, PostingDate, IsCreditMemo, SpecialSchemeCode, VATBusPostingGroup, VATProdPostingGroup, VATPercentage,
             OperationQualification, ExemptionCode);
@@ -1131,7 +1131,7 @@ codeunit 10778 "Verifactu Export"
             DetalleIVAXMLNode.Add(XmlElement.Create('CuotaRepercutida', XmlNamespaceSum1, Format(VATAmount, 0, 9)));
     end;
 
-    local procedure GetExemptionCode(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SpecialSchemeCode: Text; VATPercentage: Decimal; VATAmount: Decimal; IsIntraCommunity: Boolean): Text
+    local procedure GetExemptionCode(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SpecialSchemeCode: Text; VATAmount: Decimal; IsIntraCommunity: Boolean): Text
     var
         VATPostingSetup: Record "VAT Posting Setup";
         VATClause: Record "VAT Clause";
@@ -1158,7 +1158,7 @@ codeunit 10778 "Verifactu Export"
                 end;
 
         // Without an explicit exemption code, untaxed exports and intra-community supplies of goods are exempt under Art. 21 and Art. 25.
-        if (VATPercentage <> 0) or (VATAmount <> 0) then
+        if VATAmount <> 0 then
             exit('');
         if SpecialSchemeCode = ExportSpecialSchemeCodeTok then
             exit('E2');
