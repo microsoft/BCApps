@@ -28,6 +28,7 @@ codeunit 148370 EAReceiptMatchTests
         ReceiptRequiredErr: Label 'Upload the receipt file and its file name before you apply the receipt data.';
         ReceiptNoMandatoryOnExpenseErr: Label 'Receipt No. is mandatory on Expense No. %1', Comment = '%1 = Expense No.';
         ReceiptNoMandatoryOnReportLineErr: Label 'Receipt No. is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
+        MerchantNameMandatoryOnReportLineErr: Label 'Merchant Name is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
 
     [Test]
@@ -928,27 +929,27 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure CardLineGetsAllRulesAfterReceiptIsApplied()
+    procedure CardLineKeepsMerchantRuleAfterReceiptIsApplied()
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         CardReceiptData: Record "EA Card Receipt Data";
     begin
-        // [SCENARIO] Once the receipt is applied, the card line is checked against all rules.
+        // [SCENARIO] Applying the receipt retains merchant enforcement, but not receipt number enforcement.
         Initialize();
-        EnableReceiptNoRule();
+        EnableReceiptAndMerchantRules();
 
         // [GIVEN] A card expense on an open report, and receipt data without a receipt number.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), '');
         AddCardExpenseToReport(Expense, ExpenseReportLine);
         CreateCardReceiptData(CardReceiptData, Expense);
 
         // [WHEN] The receipt data is applied.
         CardReceiptDataApply.Apply(CardReceiptData);
 
-        // [THEN] The line has the receipt number violation.
+        // [THEN] Only the missing merchant, not the missing receipt number, is flagged.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line with a receipt must require a receipt number.');
+        AssertCardLineMerchantNotReceiptNoViolation(ExpenseReportLine);
     end;
 
     [Test]
@@ -1011,6 +1012,22 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseAgentSetup."Use Rules" := true;
         ExpenseAgentSetup."Receipt No. Mandatory" := true;
         ExpenseAgentSetup.Modify();
+    end;
+
+    local procedure EnableReceiptAndMerchantRules()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        EnableReceiptNoRule();
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Merchant Name Mandatory" := true;
+        ExpenseAgentSetup.Modify();
+    end;
+
+    local procedure AssertCardLineMerchantNotReceiptNoViolation(ExpenseReportLine: Record "Expense Report Line")
+    begin
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(MerchantNameMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line must require the missing merchant.');
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line must not require a receipt number.');
     end;
 
     local procedure HasExpenseViolation(Expense: Record Expense; Violation: Text): Boolean

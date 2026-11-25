@@ -94,14 +94,6 @@ codeunit 6902 "Expense Rule Validation"
         exit((Expense."Credit Card Feed No." <> 0) and not Expense."Receipt Attached" and (Expense."No Receipt Type" = Expense."No Receipt Type"::" "));
     end;
 
-    /// <summary>
-    /// A card report line waits for its receipt while it is linked to a card transaction, has no receipt and no no-receipt reason.
-    /// </summary>
-    procedure IsCardLineWaitingForReceipt(ExpenseReportLine: Record "Expense Report Line"): Boolean
-    begin
-        exit((ExpenseReportLine."Credit Card Feed No." <> 0) and not ExpenseReportLine."Receipt Attached" and (ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::" "));
-    end;
-
     procedure ShouldApplyRule(ExpenseDetailRequired: Enum "Expense Detail Needed"): Boolean
     begin
         ExpenseAgentSetup.GetRecordOnce();
@@ -168,7 +160,7 @@ codeunit 6902 "Expense Rule Validation"
         ValidateAmountsByDetailType(Expense);
     end;
 
-    local procedure InitialExpenseReportLineValidation(var ExpenseReportLine: Record "Expense Report Line"; CheckReceiptNo: Boolean)
+    local procedure InitialExpenseReportLineValidation(var ExpenseReportLine: Record "Expense Report Line")
     var
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
     begin
@@ -177,7 +169,7 @@ codeunit 6902 "Expense Rule Validation"
         CheckAttachmentsOnExpenseReportLine(ExpenseReportLine);
         CheckForDuplicateExpenseReportLine(ExpenseReportLine);
         CheckEmployeePostingGroupOnExpenseReport(ExpenseReportLine);
-        if ExpenseAgentSetup."Receipt No. Mandatory" and CheckReceiptNo then
+        if ExpenseAgentSetup."Receipt No. Mandatory" and (ExpenseReportLine."Credit Card Feed No." = 0) then
             if (ExpenseReportLine."Expense Ext. Doc. No." = '') and IsMerchantReceiptRequirementApplicable(ExpenseReportLine."Expense Detail Required") then
                 ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No."));
         if ExpenseAgentSetup."Merchant Name Mandatory" then
@@ -874,21 +866,12 @@ codeunit 6902 "Expense Rule Validation"
     end;
 
     procedure ValidateExpenseReportLineAgainstRule(var ExpenseReportLine: Record "Expense Report Line")
-    begin
-        ValidateExpenseReportLineAgainstRule(ExpenseReportLine, false);
-    end;
-
-    /// <summary>
-    /// Validates the report line against the rules. While a card line waits for its receipt, the receipt number is not checked,
-    /// because the receipt brings it; all other rules apply. FullValidation also checks the receipt number, which releasing the report requires.
-    /// </summary>
-    procedure ValidateExpenseReportLineAgainstRule(var ExpenseReportLine: Record "Expense Report Line"; FullValidation: Boolean)
     var
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
     begin
         ExpenseReportRuleViolation.ClearRuleViolations(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        InitialExpenseReportLineValidation(ExpenseReportLine, FullValidation or not IsCardLineWaitingForReceipt(ExpenseReportLine));
+        InitialExpenseReportLineValidation(ExpenseReportLine);
         if not ShouldApplyRule(ExpenseReportLine."Expense Detail Required") then
             exit;
         if not ExpenseRuleHeader.FindApplicableRule(ExpenseReportLine) then
