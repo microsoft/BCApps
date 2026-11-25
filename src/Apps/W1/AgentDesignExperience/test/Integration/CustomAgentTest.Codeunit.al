@@ -122,14 +122,14 @@ codeunit 133754 "Custom Agent Test"
     end;
 
     [Test]
-    procedure TestGetDescriptionReturnsEachAgentsCurrentSavedText()
+    procedure TestGetDescriptionReturnsEachAgentsOwnDescription()
     var
         CustomAgentSetup: Record "Custom Agent Setup";
         AgentMetadata: Interface IAgentMetadata;
         FirstDescription: Text;
         SecondDescription: Text;
     begin
-        // [SCENARIO] Discovery returns the latest saved description for each agent instance.
+        // [SCENARIO] Discovery returns the saved description of the requested agent instance.
         // [GIVEN] Two agents with different descriptions share the same metadata provider.
         Initialize();
         AgentMetadata := Enum::"Agent Metadata Provider"::"Custom Agent";
@@ -143,13 +143,31 @@ codeunit 133754 "Custom Agent Test"
         Assert.AreEqual(CustomAgentSetup.Description, FirstDescription, 'The first agent should return its own description.');
         CustomAgentSetup.Get(TestAgentId2);
         Assert.AreEqual(CustomAgentSetup.Description, SecondDescription, 'The second agent should return its own description.');
+    end;
 
-        // [WHEN] An edit is saved after the first lookup.
+    [Test]
+    procedure TestGetDescriptionReturnsSavedEditOnNextRead()
+    var
+        CustomAgentSetup: Record "Custom Agent Setup";
+        AgentMetadata: Interface IAgentMetadata;
+        PreviousDescription: Text;
+        CurrentDescription: Text;
+    begin
+        // [SCENARIO] Discovery reflects a saved description edit on the next read.
+        // [GIVEN] An agent's description was read through its metadata provider, and then a new description was saved.
+        Initialize();
+        AgentMetadata := Enum::"Agent Metadata Provider"::"Custom Agent";
+        PreviousDescription := AgentMetadata.GetDescription(TestAgentId2);
+        CustomAgentSetup.Get(TestAgentId2);
         CustomAgentSetup.Description := 'Updated description';
         CustomAgentSetup.Modify(true);
 
-        // [THEN] The same provider returns the edit on the next lookup.
-        Assert.AreEqual(CustomAgentSetup.Description, AgentMetadata.GetDescription(TestAgentId2), 'The next read should return the saved edit.');
+        // [WHEN] The description is read again.
+        CurrentDescription := AgentMetadata.GetDescription(TestAgentId2);
+
+        // [THEN] The saved edit is returned instead of the earlier value.
+        Assert.AreNotEqual(PreviousDescription, CurrentDescription, 'The next read should not return the earlier description.');
+        Assert.AreEqual(CustomAgentSetup.Description, CurrentDescription, 'The next read should return the saved edit.');
     end;
 
     [Test]
