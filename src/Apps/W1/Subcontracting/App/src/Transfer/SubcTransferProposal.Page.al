@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-page 20580 "Subc. Transfer Proposal"
+page 20582 "Subc. Transfer Proposal"
 {
     Caption = 'Subcontracting Transfer Proposal';
     PageType = List;

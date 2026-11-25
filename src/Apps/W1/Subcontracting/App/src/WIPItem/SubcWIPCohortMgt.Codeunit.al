@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Inventory.Transfer;
 
-codeunit 20580 "Subc. WIP Cohort Mgt."
+codeunit 20584 "Subc. WIP Cohort Mgt."
 {
     Access = Internal;
     SingleInstance = true;

@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-pageextension 20580 "Subc. Pstd. Trans. Shpt. Sub." extends "Posted Transfer Shpt. Subform"
+pageextension 20582 "Subc. Pstd. Trans. Shpt. Sub." extends "Posted Transfer Shpt. Subform"
 {
     layout
     {

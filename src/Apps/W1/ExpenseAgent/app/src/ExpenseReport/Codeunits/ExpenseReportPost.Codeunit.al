@@ -23,9 +23,11 @@ using System.Agents;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Posts released expense reports to the general ledger and creates the posted expense report and expense ledger entries.
+/// </summary>
 codeunit 6987 "Expense Report-Post"
 {
-    Access = Internal;
     TableNo = "Expense Report Header";
     Permissions = TableData "Expense Report Header" = rimd,
                   TableData "Expense Report Line" = rimd,
@@ -46,6 +48,8 @@ codeunit 6987 "Expense Report-Post"
                   TableData "Posted Exp. Policy Evaluation" = i,
                   TableData "Expense Category" = r,
                   TableData "Expense Posting Group" = r,
+                  TableData "EA Corp Card" = r,
+                  TableData "EA Corp Card Trans" = r,
                   TableData "Expense User" = r;
 
     trigger OnRun()
@@ -71,6 +75,8 @@ codeunit 6987 "Expense Report-Post"
         DisableNonDeductibleVATAfterPost: Boolean;
         AmountToEmployee: Decimal;
         AmountToEmployeeLCY: Decimal;
+        LinkedSpendRequestNos: List of [Code[20]];
+        ClosedByPostedExpenseReportTxt: Label 'Closed by posted expense report %1.', Comment = '%1 = Posted expense report number';
         CanPostExpenseReportQst: Label 'Do you want to post Expense Report %1?', Comment = '%1 = Expense Report No.';
         ExpenseReportWithStatusErr: Label 'Expense Report %1 cannot be posted because its status is %2.', Comment = '%1 = Document No., %2 = Status';
         SpendRequestStatusNotPostableErr: Label 'Expense report %1 cannot be posted because travel request %2 has status %3. The travel request must be approved.', Comment = '%1 = Expense Report No., %2 = Travel Request No., %3 = Travel Request Status';
@@ -88,6 +94,7 @@ codeunit 6987 "Expense Report-Post"
         PendingVATSpecTitleErr: Label 'VAT reclaim status is pending';
         PendingVATSpecDetailedErr: Label 'Open the VAT specification line and approve or reject the reclaim, and then retry posting the expense report.';
         RoundingDifferenceTooLargeErr: Label 'The difference between expense report line %1 and its posted amounts exceeds the currency rounding precision. The difference is %2 in reimbursement currency and %3 in local currency.', Comment = '%1 = Expense report line number, %2 = Difference in reimbursement currency, %3 = Difference in local currency';
+        NoReceiptMustBeApprovedErr: Label 'An expense report containing a no receipt declaration must be approved before it can be posted.';
         AgentVATSpecificationsPostedLbl: Label 'Agent-authored VAT specifications posted.', Locked = true;
         ShowItLbl: Label 'Show it';
         ShowTravelRequestLbl: Label 'Show travel request';
@@ -103,6 +110,11 @@ codeunit 6987 "Expense Report-Post"
         ExpenseAgentSetup.GetRecordOnce();
 
         GenJnlPostLine.SetIgnoreJournalTemplNameMandatoryCheck();
+
+        if HasNoReceiptLines(ExpenseReportHeader) and not PreviewMode then
+            if ExpenseReportHeader.Status <> ExpenseReportHeader.Status::Approved then
+                Error(NoReceiptMustBeApprovedErr);
+
         if (ExpenseAgentSetup."Enable Approval Workflow") or ExpenseAgentSetup."Enable Agent" then begin
             if not PreviewMode then
                 if ExpenseReportHeader.Status <> ExpenseReportHeader.Status::Approved then
@@ -124,10 +136,20 @@ codeunit 6987 "Expense Report-Post"
                 VATSetup.Modify();
                 DisableNonDeductibleVATAfterPost := false;
             end;
+
             LogAgentVATSpecificationUsage(AgentVATSpecificationCount);
         end;
         if PreviewMode then
             GenJnlPostPreview.ThrowError();
+    end;
+
+    local procedure HasNoReceiptLines(ExpenseReportHeader: Record "Expense Report Header"): Boolean
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.SetRange("No Receipt Type", ExpenseReportLine."No Receipt Type"::"Lost Receipt");
+        exit(not ExpenseReportLine.IsEmpty());
     end;
 
     local procedure GetAgentVATSpecificationCount(ExpenseReportNo: Code[20]): Integer
@@ -170,6 +192,7 @@ codeunit 6987 "Expense Report-Post"
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
     begin
         AmountToEmployee := 0;
+        OnBeforePostExpenseReport(ExpenseReportHeader);
         ValidateExpenseReportForPosting(ExpenseReportHeader);
         CreatePostedExpenseReport(ExpenseReportHeader);
         if not PreviewMode then
@@ -184,8 +207,24 @@ codeunit 6987 "Expense Report-Post"
         InsertPstdExpReportHeaderVATSpecs(ExpenseReportHeader."No.", PostedExpenseReportHeader."No.");
         if AmountToEmployee <> 0 then
             PostEmployeeEntry(ExpenseReportHeader);
-        if not PreviewMode then
+        if not PreviewMode then begin
             ExpenseActivityLogMgt.ReassignExpenseReportEntriesToPosted(ExpenseReportHeader, PostedExpenseReportHeader);
+            LogTravelRequestsClosedByPosting();
+        end;
+        OnAfterPostExpenseReport(ExpenseReportHeader, PostedExpenseReportHeader, PreviewMode);
+    end;
+
+    local procedure LogTravelRequestsClosedByPosting()
+    var
+        SpendRequest: Record "Spend Request";
+        TravelRequestApproval: Codeunit "Travel Request Approval";
+        SpendRequestNo: Code[20];
+    begin
+        // Posting only accepts approved travel requests, so a travel request that is closed now was closed by this posting.
+        foreach SpendRequestNo in LinkedSpendRequestNos do
+            if (SpendRequestNo <> '') and SpendRequest.Get(SpendRequestNo) then
+                TravelRequestApproval.LogTravelRequestClosed(
+                    SpendRequest, StrSubstNo(ClosedByPostedExpenseReportTxt, PostedExpenseReportHeader."No."));
     end;
 
     local procedure ValidateExpenseReportForPosting(var ExpenseReportHeader: Record "Expense Report Header")
@@ -269,19 +308,22 @@ codeunit 6987 "Expense Report-Post"
     local procedure ValidateExpenseReportLineForPosting(ExpenseReportHeader: Record "Expense Report Header")
     var
         ExpenseReportLine: Record "Expense Report Line";
-        CheckedSpendRequestNos: List of [Code[20]];
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
+        // The travel requests linked to the report are kept to log the ones that this posting closes.
+        Clear(LinkedSpendRequestNos);
         CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportHeader."Spend Request No.");
-        CheckedSpendRequestNos.Add(ExpenseReportHeader."Spend Request No.");
+        LinkedSpendRequestNos.Add(ExpenseReportHeader."Spend Request No.");
 
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
                 CheckMandatoryFields(ExpenseReportLine);
+                CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
                 ValidateVATSpecLinesForPosting(ExpenseReportLine, ExpenseReportHeader);
-                if not CheckedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
+                if not LinkedSpendRequestNos.Contains(ExpenseReportLine."Spend Request No.") then begin
                     CheckSpendRequestStatusForPosting(ExpenseReportHeader."No.", ExpenseReportLine."Spend Request No.");
-                    CheckedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
+                    LinkedSpendRequestNos.Add(ExpenseReportLine."Spend Request No.");
                 end;
             until ExpenseReportLine.Next() = 0
         else
@@ -606,6 +648,7 @@ codeunit 6987 "Expense Report-Post"
         CreateGenJournalLine(GenJournalLine, ExpenseReportHeader, PostedExpReportLine);
         SetupRefundableAccount(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
+        OnBeforePostExpenseGenJournalLine(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
         if ExpenseReportLine."Job No." <> '' then begin
             PostedExpReportLine."Job Ledger Entry No." := PostProjectJnlLine(PostedExpReportLine, PostedExpenseReportHeader, GenJournalLine);
             PostedExpReportLine.Modify();
@@ -642,6 +685,7 @@ codeunit 6987 "Expense Report-Post"
             SetupRefundableAccountForSpec(GenJournalLine, ExpenseReportLine, ExpenseReportLineVATSpec);
             SetupNonDeductibleVATForSpec(GenJournalLine, ExpenseReportLineVATSpec);
             SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
+            OnBeforePostExpenseGenJournalLine(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
             if ExpenseReportLine."Job No." <> '' then begin
                 if not ProjectJournalLineInitialized then begin
                     ProjectGenJournalLine := GenJournalLine;
@@ -687,8 +731,21 @@ codeunit 6987 "Expense Report-Post"
         CreateGenJournalLine(GenJournalLine, ExpenseReportHeader, PostedExpReportLine);
         SetupCompanyPaidAccount(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
+        OnBeforePostExpenseGenJournalLine(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
 
         GenJnlPostLine.RunWithCheck(GenJournalLine);
+
+        if (ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::"Credit Card") and
+           (GenJournalLine."Account Type" = GenJournalLine."Account Type"::"G/L Account")
+        then begin
+            PostedExpReportLine.Get(PostedExpReportLine."Document No.", PostedExpReportLine."Line No.");
+            PostedExpReportLine."Card Payable Account No." := GenJournalLine."Account No.";
+            PostedExpReportLine."Card Liability Amount" := GenJournalLine.Amount;
+            PostedExpReportLine."Card Liability Amount (LCY)" := GenJournalLine."Amount (LCY)";
+            PostedExpReportLine."Card Liability Currency Code" := GenJournalLine."Currency Code";
+            PostedExpReportLine."Card Liability Currency Factor" := GenJournalLine."Currency Factor";
+            PostedExpReportLine.Modify();
+        end;
 
         PostRoundingDifferenceOnCurrency(
             ExpenseReportHeader, ExpenseReportLine,
@@ -713,6 +770,7 @@ codeunit 6987 "Expense Report-Post"
         CreateGenJournalLine(GenJournalLine, ExpenseReportHeader, PostedExpReportLine);
         SetupNonRefundableAccount(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
+        OnBeforePostExpenseGenJournalLine(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
         if not ExpenseReportLine.Refundable then
             GlobalExpenseLedgerEntry.CopyFromGenJnlLine(GenJournalLine);
 
@@ -740,6 +798,7 @@ codeunit 6987 "Expense Report-Post"
             CreateGenJournalLineFromSpec(GenJournalLine, ExpenseReportHeader, ExpenseReportLine, ExpenseReportLineVATSpec, PostedExpenseReportLine);
             SetupNonRefundableAccountForSpec(GenJournalLine, ExpenseReportLine, ExpenseReportLineVATSpec);
             SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
+            OnBeforePostExpenseGenJournalLine(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
             if not GlobalEntryCopied then begin
                 if not ExpenseReportLine.Refundable then
                     GlobalExpenseLedgerEntry.CopyFromGenJnlLine(GenJournalLine);
@@ -1233,11 +1292,12 @@ codeunit 6987 "Expense Report-Post"
         GenJournalLine."Amount (LCY)" := AmountToPostLCY;
         GenJournalLine."Source Currency Amount" := AmountToPost;
         SetupSourceCodeAndDimensions(GenJournalLine, ExpenseReportLine."Dimension Set ID");
+        OnBeforePostExpenseGenJournalLine(GenJournalLine, ExpenseReportHeader, ExpenseReportLine);
         GenJournalLine."System-Created Entry" := true;
         GenJnlPostLine.RunWithCheck(GenJournalLine);
     end;
 
-    procedure UpdateVATAmount(
+    internal procedure UpdateVATAmount(
         var Amount: Decimal;
         var AmountLCY: Decimal;
         var VATAmount: Decimal;
@@ -1339,7 +1399,7 @@ codeunit 6987 "Expense Report-Post"
     /// Preview Mode ensures no transactions are committed to the database and no documents are sent.
     /// </summary>
     /// <param name="NewPreviewMode">The new value for the Preview Mode.</param>
-    procedure SetPreviewMode(NewPreviewMode: Boolean)
+    internal procedure SetPreviewMode(NewPreviewMode: Boolean)
     begin
         PreviewMode := NewPreviewMode;
     end;
@@ -1516,6 +1576,49 @@ codeunit 6987 "Expense Report-Post"
     [CommitBehavior(CommitBehavior::Ignore)]
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostEmployeeEntry(GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before an expense report is posted, before the built-in posting validation runs and before the posted expense report is created.
+    /// </summary>
+    /// <remarks>
+    /// Use this event to run additional checks, raising an error to stop posting, or to prepare data before posting. Changes made here are still checked by the built-in posting validation. The event is raised inside the posting transaction and also during posting preview.
+    /// </remarks>
+    /// <param name="ExpenseReportHeader">The expense report that is being posted.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostExpenseReport(var ExpenseReportHeader: Record "Expense Report Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after an expense report is posted: the posted expense report, its general ledger entries and its expense ledger entries are created. The draft expense report is deleted after this event.
+    /// </summary>
+    /// <remarks>
+    /// Use this event for follow-up actions on the posted document. The event is raised inside the posting transaction. During posting preview the event is also raised and all changes are rolled back; use the PreviewMode parameter to skip actions that must not run in preview.
+    /// </remarks>
+    /// <param name="ExpenseReportHeader">The expense report that was posted.</param>
+    /// <param name="PostedExpenseReportHeader">The posted expense report that was created.</param>
+    /// <param name="PreviewMode">Specifies whether the posting runs as a posting preview.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPostExpenseReport(ExpenseReportHeader: Record "Expense Report Header"; PostedExpenseReportHeader: Record "Posted Expense Report Header"; PreviewMode: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before a general journal line for an expense report line is posted. This covers the expense, VAT specification, company-paid, non-refundable and currency rounding lines of the expense report line; the employee entry has its own events.
+    /// </summary>
+    /// <remarks>
+    /// Use this event to set fields that an extension or localization adds to the Gen. Journal Line table, for example reporting fields that must reach the G/L entries. The line's accounts, amounts, dimensions and VAT fields are already set. The event is raised before the line is copied to the expense ledger entry and the project ledger, so values set here are also available in the Expense Ledger Entry OnAfterCopyFromGenJnlLine event. The event is raised inside the posting transaction.
+    /// </remarks>
+    /// <param name="GenJournalLine">The general journal line that will be posted. Changes to this record are posted.</param>
+    /// <param name="ExpenseReportHeader">The expense report that is being posted.</param>
+    /// <param name="ExpenseReportLine">The expense report line that the general journal line is posted for.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostExpenseGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; ExpenseReportHeader: Record "Expense Report Header"; ExpenseReportLine: Record "Expense Report Line")
     begin
     end;
 }

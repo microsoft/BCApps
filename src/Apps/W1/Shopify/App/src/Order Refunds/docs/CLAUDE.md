@@ -10,7 +10,7 @@ Refund lines are linked back to order lines via `Order Line Id` and carry a `Res
 
 If the refund is associated with a return, the module collects return locations from the Returns API to populate the `Location Id` on refund lines, since Shopify does not always include location data directly on the refund.
 
-Return-with-exchange needs a separate import path. Shopify puts the new exchange item on `Refund.return.exchangeLineItems`, not in `Refund.refundLineItems`. `ShpfyRefundsAPI` reads those exchange line items with `Refunds/GetRefundExchangeLines.graphql` and `Refunds/GetNextRefundExchangeLines.graphql`, then creates synthetic `Shpfy Refund Line` rows with a refund line id that is the negated order line id, negative quantity, negative subtotal and tax amounts, `Restock Type = Return`, and `"Is Exchange Item" = true`. Those rows let the credit memo offset the value of the exchange item without relying on the remaining-amount G/L balance line.
+Return-with-exchange needs a separate import path. Shopify puts the new exchange item on `Refund.return.exchangeLineItems`, not in `Refund.refundLineItems`. `ShpfyRefundsAPI` reads those exchange line items with `Refunds/GetRefundExchangeLines.graphql` and `Refunds/GetNextRefundExchangeLines.graphql`, then creates synthetic `Shpfy Refund Line` rows with a refund line id that is the negated order line id, negative quantity, negative subtotal and tax amounts, `Restock Type = Return`, and `"Is Exchange Item" = true`. Those rows let the credit memo offset the value of the exchange item without relying on the remaining-amount G/L balance line. Gift cards on an unverified POS return are the exception: order import invoices them, so no synthetic line is created and one left by an earlier import is deleted.
 
 The matching order lines are flagged by order import from `Order.returns.exchangeLineItems` through `Orders/GetOrderExchangeLineItems.graphql`. That keeps exchange items out of the BC sales invoice while the synthetic refund lines put the inventory and refund total back in balance during credit memo creation.
 
@@ -19,6 +19,8 @@ The refund header stores `Shop Code` directly (populated from the communication 
 *Updated: 2026-04-08 -- Shop Code, currency codes, error tracking, and CheckCanCreateDocument on refund header*
 
 *Updated: 2026-07-29 -- return-with-exchange refund lines and pending transaction guard*
+
+*Updated: 2026-11-13 -- unverified-return gift cards get no synthetic exchange refund line*
 
 ## Things to know
 

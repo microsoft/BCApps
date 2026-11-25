@@ -6,11 +6,47 @@ namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Purchases.Document;
 
 codeunit 149928 "Subc. WIP Upgrade Fixture"
 {
     Access = Internal;
     Subtype = Upgrade;
+
+    [CommitBehavior(CommitBehavior::Error)]
+    internal procedure UseLegacySummaryOrder(var ProductionOrder: Record "Production Order")
+    var
+        Lineage: Record "Subc. WIP Lineage";
+        RoutingLine: Record "Prod. Order Routing Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        PurchaseLine: Record "Purchase Line";
+        Transfer: DataTransfer;
+        EmptyGuid: Guid;
+    begin
+        Entry.SetProductionOrderFilter(ProductionOrder, false);
+        if not Entry.IsEmpty() then
+            Error('Prepare the summary cohort before posting WIP.');
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        if not PurchaseLine.IsEmpty() then
+            Error('Prepare the summary cohort before creating purchase lines.');
+        // The summary's pre-activation receipt fixtures intentionally retain unsplit legacy custody.
+        // Restrict this upgrade-only fixture to the freshly created order, never company-wide activation.
+        Lineage.Get(ProductionOrder."Subc. WIP Lineage ID");
+        Lineage.Cohort := Lineage.Cohort::Legacy;
+        Lineage.Modify();
+        Transfer.SetTables(Database::"Production Order", Database::"Production Order");
+        Transfer.AddSourceFilter(ProductionOrder.FieldNo(Status), '%1', ProductionOrder.Status);
+        Transfer.AddSourceFilter(ProductionOrder.FieldNo("No."), '%1', ProductionOrder."No.");
+        Transfer.AddConstantValue("Subc. WIP Cohort"::Legacy, ProductionOrder.FieldNo("Subc. WIP Cohort"));
+        Transfer.CopyFields();
+        Clear(Transfer);
+        Transfer.SetTables(Database::"Prod. Order Routing Line", Database::"Prod. Order Routing Line");
+        Transfer.AddSourceFilter(RoutingLine.FieldNo(Status), '%1', ProductionOrder.Status);
+        Transfer.AddSourceFilter(RoutingLine.FieldNo("Prod. Order No."), '%1', ProductionOrder."No.");
+        Transfer.AddConstantValue(EmptyGuid, RoutingLine.FieldNo("Subc. WIP Lineage ID"));
+        Transfer.CopyFields();
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+    end;
 
     [CommitBehavior(CommitBehavior::Error)]
     internal procedure RestorePreactivationColumns()
