@@ -602,6 +602,64 @@ codeunit 139595 "Report Layouts Test"
         AssertBlobEquals(ExpectedBlob, ExportedBlob);
     end;
 
+    local procedure GetStandardSalesQuoteWordLayoutNames() LayoutNames: List of [Text]
+    begin
+        LayoutNames.Add('StandardSalesQuote.docx');
+        LayoutNames.Add('StandardSalesQuoteBlue.docx');
+        LayoutNames.Add('StandardSalesQuoteBlueThemable.docx');
+        LayoutNames.Add('StandardSalesQuoteEmail.docx');
+    end;
+
+    local procedure FindShippedLayout(var ReportLayoutList: Record "Report Layout List"; ReportID: Integer; LayoutName: Text)
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportID);
+        ReportLayoutList.SetRange("User Defined", false);
+        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+        ReportLayoutList.SetRange(Name, LayoutName);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), StrSubstNo(ShippedLayoutMustExistErr, LayoutName));
+    end;
+
+    local procedure ExportShippedLayout(ReportLayoutList: Record "Report Layout List"; var ExportedBlob: Codeunit "Temp Blob")
+    var
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        ShippedBlob: Codeunit "Temp Blob";
+        ExportedFileName: Text;
+        WithEncoding: Boolean;
+    begin
+        ReportLayoutList.Layout.ExportStream(ShippedBlob.CreateOutStream(TextEncoding::UTF8));
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.EnableExportCapture();
+        ReportLayoutsImpl.ExportReportLayout(ReportLayoutList, false);
+        UnbindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsTest.GetExportedLayout(ExportedBlob, ExportedFileName, WithEncoding);
+        Assert.IsFalse(WithEncoding, 'A plain export must not use the UTF8 export path.');
+        AssertBlobEquals(ShippedBlob, ExportedBlob);
+    end;
+
+    local procedure UploadShippedLayoutExport(LayoutName: Text[250]; LayoutBlob: Codeunit "Temp Blob"; FileName: Text; ReplaceExisting: Boolean)
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        ReturnReportID: Integer;
+        ReturnLayoutName: Text;
+    begin
+        BindSubscription(ReportLayoutsTest);
+        ReportLayoutsTest.SetLayoutUpload(LayoutBlob, FileName);
+        if ReplaceExisting then
+            ReportLayoutsImpl.ReplaceLayout(
+                Report::"Standard Sales - Quote", LayoutName, LayoutName, ReportLayoutList."Layout Format"::Word, ReturnReportID, ReturnLayoutName)
+        else
+            ReportLayoutsImpl.InsertNewLayout(
+                Report::"Standard Sales - Quote", LayoutName, LayoutName, ReportLayoutList."Layout Format"::Word,
+                true, false, Enum::"Excel Sheet Configuration"::Default, ReturnReportID, ReturnLayoutName);
+        UnbindSubscription(ReportLayoutsTest);
+
+        Assert.AreEqual(1, ReportLayoutsTest.GetUploadCount(), 'The exported layout must be uploaded exactly once.');
+    end;
+
     local procedure ImportLayoutTestCore(LayoutFormat: Text; FileName: Text; AvailableInAllCompanies: Boolean; CreateBlankLayout: Boolean)
     var
         TenantReportLayout: Record "Tenant Report Layout";
@@ -890,11 +948,16 @@ codeunit 139595 "Report Layouts Test"
     end;
 
     local procedure AssertLayoutCanBePrepared(LayoutFormat: Text; LayoutBlob: Codeunit "Temp Blob")
+    begin
+        AssertLayoutCanBePrepared(Report::TestReportLayoutsReport, LayoutFormat, LayoutBlob);
+    end;
+
+    local procedure AssertLayoutCanBePrepared(ReportID: Integer; LayoutFormat: Text; LayoutBlob: Codeunit "Temp Blob")
     var
         PreparedStream: InStream;
         ValidationResult: Boolean;
     begin
-        ValidationResult := Report.ValidateAndPrepareLayout(Report::TestReportLayoutsReport, LayoutBlob.CreateInStream(TextEncoding::UTF8), PreparedStream, GetFileTestLayoutType(LayoutFormat));
+        ValidationResult := Report.ValidateAndPrepareLayout(ReportID, LayoutBlob.CreateInStream(TextEncoding::UTF8), PreparedStream, GetFileTestLayoutType(LayoutFormat));
         if not ValidationResult then
             Error(LayoutCouldNotBePreparedErr, GetLastErrorText());
     end;
@@ -2197,6 +2260,72 @@ codeunit 139595 "Report Layouts Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure TestStandardSalesQuoteWordLayoutsReimportAsNewLayout()
+    var
+        ShippedLayoutNames: List of [Text];
+        ShippedLayoutName: Text;
+    begin
+        // [SCENARIO 659715] An unchanged export of each shipped Standard Sales - Quote Word layout is accepted as a new layout
+        ShippedLayoutNames := GetStandardSalesQuoteWordLayoutNames();
+        foreach ShippedLayoutName in ShippedLayoutNames do
+            ReimportShippedLayoutTestCore(ShippedLayoutName, false);
+    end;
+
+    [Test]
+    procedure TestStandardSalesQuoteWordLayoutsReimportAsReplacement()
+    var
+        ShippedLayoutNames: List of [Text];
+        ShippedLayoutName: Text;
+    begin
+        // [SCENARIO 659715] An unchanged export of each shipped Standard Sales - Quote Word layout can replace a user-defined layout
+        ShippedLayoutNames := GetStandardSalesQuoteWordLayoutNames();
+        foreach ShippedLayoutName in ShippedLayoutNames do
+            ReimportShippedLayoutTestCore(ShippedLayoutName, true);
+    end;
+
+    local procedure ReimportShippedLayoutTestCore(ShippedLayoutName: Text; ReplaceExisting: Boolean)
+    var
+        ShippedReportLayoutList: Record "Report Layout List";
+        TenantReportLayout: Record "Tenant Report Layout";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        ExportedBlob: Codeunit "Temp Blob";
+        StoredBlob: Codeunit "Temp Blob";
+        RoundTripLayoutName: Text[250];
+        ReturnReportID: Integer;
+        ReturnLayoutName: Text;
+        EmptyGuid: Guid;
+    begin
+        // [GIVEN] A Word layout shipped with report Standard Sales - Quote, exported without changes
+        FindShippedLayout(ShippedReportLayoutList, Report::"Standard Sales - Quote", ShippedLayoutName);
+        ExportShippedLayout(ShippedReportLayoutList, ExportedBlob);
+
+        RoundTripLayoutName := CopyStr(RoundTripLayoutPrefixTxt + ShippedLayoutName, 1, MaxStrLen(RoundTripLayoutName));
+        if TenantReportLayout.Get(Report::"Standard Sales - Quote", RoundTripLayoutName, EmptyGuid) then
+            TenantReportLayout.Delete(true);
+        // [GIVEN] For replacement, a user-defined Word layout for the same report
+        if ReplaceExisting then
+            ReportLayoutsImpl.InsertNewLayout(
+                Report::"Standard Sales - Quote", RoundTripLayoutName, RoundTripLayoutName, ShippedReportLayoutList."Layout Format"::Word,
+                true, true, Enum::"Excel Sheet Configuration"::Default, ReturnReportID, ReturnLayoutName);
+
+        // [WHEN] The unchanged export is uploaded as a new layout or as a replacement of the user-defined layout
+        UploadShippedLayoutExport(RoundTripLayoutName, ExportedBlob, ShippedLayoutName, ReplaceExisting);
+
+        // [THEN] The imported layout is stored and remains valid for the source report
+        Assert.IsTrue(
+            TenantReportLayout.Get(Report::"Standard Sales - Quote", RoundTripLayoutName, EmptyGuid),
+            StrSubstNo(RoundTripLayoutMustExistErr, ShippedLayoutName));
+        Assert.AreEqual(ShippedReportLayoutList."Layout Format", TenantReportLayout."Layout Format", 'The imported layout must remain a Word layout.');
+        TenantReportLayout.Layout.ExportStream(StoredBlob.CreateOutStream(TextEncoding::UTF8));
+        Assert.IsTrue(StoredBlob.HasValue(), 'The imported layout must not be empty.');
+        // Import validation may rewrite the Word package, so binary equality is not required.
+        AssertLayoutCanBePrepared(Report::"Standard Sales - Quote", 'Word', StoredBlob);
+
+        TenantReportLayout.Delete(true);
+    end;
+
+
     [ModalPageHandler]
     procedure CopyObsoleteExtensionLayoutHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
     begin
@@ -2239,6 +2368,9 @@ codeunit 139595 "Report Layouts Test"
         LayoutCouldNotBePreparedErr: Label 'The layout could not be prepared. %1', Comment = '%1 = layout validation error';
         ExtensionInstalledTestLayoutMustExistErr: Label 'The extension-installed test layout %1 must exist.', Comment = '%1 = layout name';
         TheTestReportMustProvideBuiltInLayoutErr: Label 'The test report must provide a built-in %1 layout.', Comment = '%1 = layout name';
+        ShippedLayoutMustExistErr: Label 'The shipped Word layout %1 must exist.', Comment = '%1 = layout name';
+        RoundTripLayoutMustExistErr: Label 'The reimported export of %1 must be stored as a user-defined layout.', Comment = '%1 = layout name';
+        RoundTripLayoutPrefixTxt: Label 'RoundTrip ', Locked = true;
         InsertedLayoutContextTxt: Text;
         UploadedLayoutFileName: Text;
         ExportedLayoutFileName: Text;
