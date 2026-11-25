@@ -56,7 +56,7 @@ codeunit 137405 "SCM Item Tracking"
         FieldNotFoundErr: Label 'The field with ID';
         FieldNotFoundCodeErr: Label 'TestFieldNotFound';
         BeforeExpirationDateShortErr: Label 'Expiration Date is before the posting date';
-        CannotChangeItemWhseEntriesExistErr: Label 'You cannot change %1 because there are one or more warehouse entries for this item.', Comment = '%1: Changed field name';
+        CannotChangeItemRecordsExistErr: Label 'You cannot change %1 for item %2 because one or more %3 records exist.', Comment = '%1 - Changed field name, %2 - Item No., %3 - Table caption';
         CannotChangeITWhseEntriesExistErr: Label 'You cannot change %1 because there are one or more warehouse entries for item %2.', Comment = '%1: Changed field name; %2: Item No.';
         LotNoMustNotBeBlankErr: Label 'Lot No. must not be blank.';
         SerialNoMustNotBeBlankErr: Label 'Serial No. must not be blank.';
@@ -4049,12 +4049,14 @@ codeunit 137405 "SCM Item Tracking"
     end;
 
     [Test]
+    [HandlerFunctions('WarehouseTrackingErrorsPageHandler')]
     [Scope('OnPrem')]
     procedure CannotSelectNewItemTrackingCodeWithEnabledLotWhseTrkg()
     var
         ItemTrackingCodeWithoutWhse: Record "Item Tracking Code";
         ItemTrackingCodeWithWhse: Record "Item Tracking Code";
         Item: Record Item;
+        WarehouseEntry: Record "Warehouse Entry";
     begin
         // [FEATURE] [Warehouse Item Tracking] [Item] [UT]
         // [SCENARIO 368394] A user cannot change item tracking code on item when warehouse entries exist for the item and "Lot Warehouse Tracking" setting changes.
@@ -4067,20 +4069,26 @@ codeunit 137405 "SCM Item Tracking"
 
         LibraryInventory.CreateTrackedItem(Item, '', '', ItemTrackingCodeWithoutWhse.Code);
         MockWarehouseEntry(Item."No.");
+        Commit();
 
+        LibraryVariableStorage.Enqueue(
+            StrSubstNo(CannotChangeItemRecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseEntry.TableCaption()));
         asserterror Item.Validate("Item Tracking Code", ItemTrackingCodeWithWhse.Code);
 
-        Assert.ExpectedErrorCode('Dialog');
-        Assert.ExpectedError(StrSubstNo(CannotChangeItemWhseEntriesExistErr, Item.FieldCaption("Item Tracking Code")));
+        Item.Get(Item."No.");
+        Item.TestField("Item Tracking Code", ItemTrackingCodeWithoutWhse.Code);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
+    [HandlerFunctions('WarehouseTrackingErrorsPageHandler')]
     [Scope('OnPrem')]
     procedure CannotSelectNewItemTrackingCodeWithDisabledSNWhseTrkg()
     var
         ItemTrackingCodeWithoutWhse: Record "Item Tracking Code";
         ItemTrackingCodeWithWhse: Record "Item Tracking Code";
         Item: Record Item;
+        WarehouseEntry: Record "Warehouse Entry";
     begin
         // [FEATURE] [Warehouse Item Tracking] [Item] [UT]
         // [SCENARIO 368394] A user cannot change item tracking code on item when warehouse entries exist for the item and "SN Warehouse Tracking" setting changes.
@@ -4093,11 +4101,15 @@ codeunit 137405 "SCM Item Tracking"
 
         LibraryInventory.CreateTrackedItem(Item, '', '', ItemTrackingCodeWithWhse.Code);
         MockWarehouseEntry(Item."No.");
+        Commit();
 
+        LibraryVariableStorage.Enqueue(
+            StrSubstNo(CannotChangeItemRecordsExistErr, Item.FieldCaption("Item Tracking Code"), Item."No.", WarehouseEntry.TableCaption()));
         asserterror Item.Validate("Item Tracking Code", ItemTrackingCodeWithoutWhse.Code);
 
-        Assert.ExpectedErrorCode('Dialog');
-        Assert.ExpectedError(StrSubstNo(CannotChangeItemWhseEntriesExistErr, Item.FieldCaption("Item Tracking Code")));
+        Item.Get(Item."No.");
+        Item.TestField("Item Tracking Code", ItemTrackingCodeWithWhse.Code);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -8003,6 +8015,22 @@ codeunit 137405 "SCM Item Tracking"
         ItemLedgerEntry.SetRange("Lot No.", LotNo);
         ItemLedgerEntry.CalcSums(Quantity);
         exit(ItemLedgerEntry.Quantity);
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure WarehouseTrackingErrorsPageHandler(var ErrorMessages: TestPage "Error Messages")
+    var
+        ExpectedErrorMessage: Text;
+        ErrorMessageFound: Boolean;
+    begin
+        ExpectedErrorMessage := LibraryVariableStorage.DequeueText();
+        if ErrorMessages.First() then
+            repeat
+                ErrorMessageFound := ErrorMessageFound or (ErrorMessages.Description.Value = ExpectedErrorMessage);
+            until not ErrorMessages.Next();
+        Assert.IsTrue(ErrorMessageFound, ExpectedErrorMessage);
+        ErrorMessages.OK().Invoke();
     end;
 
     [ModalPageHandler]

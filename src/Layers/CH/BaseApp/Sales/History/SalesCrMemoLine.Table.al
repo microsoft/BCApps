@@ -1291,7 +1291,9 @@ table 115 "Sales Cr.Memo Line"
         ItemLedgerEntry.TestField(Positive, false);
         ItemLedgerEntry.TestField("Item No.", "No.");
         ItemLedgerEntry.TestField("Variant Code", "Variant Code");
-        ItemLedgerEntry.CheckTrackingDoesNotExist(RecordId, FieldCaption("Appl.-from Item Entry"));
+        ItemLedgerEntry.CheckTrackingDoesNotExist(
+            RecordId, FieldCaption("Appl.-from Item Entry"), "No.",
+            "Appl.-from Item Entry", true);
     end;
 
     /// <summary>
