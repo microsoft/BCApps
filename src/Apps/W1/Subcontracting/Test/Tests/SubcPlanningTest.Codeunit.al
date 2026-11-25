@@ -561,6 +561,13 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
+    procedure VendorSuppliedCompNonworkingDueDatesOnCreationAndReschedule()
+    begin
+        // [SCENARIO 650504] Nonworking component due dates remain exact after standard purchase scheduling.
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 6);
+    end;
+
+    [Test]
     [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
     procedure AmbiguousLegacyDuplicateComponentsInReverseOrderAreNotMigrated()
     begin
@@ -620,7 +627,7 @@ codeunit 139996 "Subc. Planning Test"
             UnchangedBlankSourceDateErr);
     end;
 
-    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30]; ReverseLegacyLines: Boolean; Scenario: Option Standard,MixedLegacy,ManualDates,DuplicateLegacy,MissingAndOrphaned,LegacyDates)
+    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30]; ReverseLegacyLines: Boolean; Scenario: Option Standard,MixedLegacy,ManualDates,DuplicateLegacy,MissingAndOrphaned,LegacyDates,NonworkingDueDates)
     var
         Item: Record Item;
         ComponentItem: Record Item;
@@ -745,6 +752,13 @@ codeunit 139996 "Subc. Planning Test"
         ProdOrderComponent2."Remaining Qty. (Base)" += 5;
         ProdOrderComponent2."Due Date" := CalcDate('<1D>', ComponentDueDate);
         ProdOrderComponent2.Insert();
+
+        if Scenario = Scenario::NonworkingDueDates then begin
+            BaseCalendarChange.Validate(Date, ProdOrderComponent."Due Date");
+            BaseCalendarChange.Insert(true);
+            BaseCalendarChange.Validate(Date, ProdOrderComponent2."Due Date");
+            BaseCalendarChange.Insert(true);
+        end;
 
         // [GIVEN] A subcontracting purchase order created via the requisition worksheet
         SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
@@ -880,7 +894,13 @@ codeunit 139996 "Subc. Planning Test"
                 ProdOrderComponent."Due Date" := CalcDate('<' + Format(30 + ExpectedComponentCount) + 'D>', WorkDate())
             else
                 ProdOrderComponent."Due Date" := OriginalPurchaseLine[ExpectedComponentCount]."Subc. Last Comp. Due Date";
+            if Scenario = Scenario::NonworkingDueDates then
+                ProdOrderComponent."Due Date" := CalcDate('<' + Format(40 + ExpectedComponentCount) + 'D>', WorkDate());
             ProdOrderComponent.Modify();
+            if Scenario = Scenario::NonworkingDueDates then begin
+                BaseCalendarChange.Validate(Date, ProdOrderComponent."Due Date");
+                BaseCalendarChange.Insert(true);
+            end;
         until ProdOrderComponent.Next() = 0;
 
         // [WHEN] CalculateSubcontracts is run again and carried out (reschedule path)
@@ -967,8 +987,8 @@ codeunit 139996 "Subc. Planning Test"
                     ProdOrderComponent."Due Date",
                     PurchaseLineComp."Expected Receipt Date",
                     RescheduledComponentPurchaseLineDateErr);
-                if Scenario = Scenario::LegacyDates then begin
-                    Assert.IsTrue(PurchaseLineComp."Subc. Comp. Date Initialized", 'The first synchronization must initialize the legacy date baseline.');
+                if Scenario in [Scenario::LegacyDates, Scenario::NonworkingDueDates] then begin
+                    Assert.IsTrue(PurchaseLineComp."Subc. Comp. Date Initialized", 'Synchronization must initialize the component date baseline.');
                     Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Subc. Last Comp. Due Date", ChangedSourceDateBaselineErr);
                     Assert.AreEqual(0D, PurchaseLineComp."Promised Receipt Date", ChangedSourceDatePromiseErr);
                 end;

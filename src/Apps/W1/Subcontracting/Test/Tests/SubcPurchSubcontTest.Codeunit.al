@@ -66,6 +66,11 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ServiceLineExpectedReceiptDateAssertMsg: Label 'The service line must retain the routing operation ending date.';
         VendorSuppliedComponentAssertMsg: Label 'Expected to find a vendor-supplied production order component.';
         ComponentPurchaseLineAssertMsg: Label 'Expected to find the purchase line linked to the production order.';
+        MultiDaySubcontractedOperationAssertMsg: Label 'The subcontracted operation must span multiple days to reproduce bug 650504.';
+        InitialComponentDateSyncAssertMsg: Label 'The first synchronization must align component dates.';
+        UnchangedComponentDueDateAssertMsg: Label 'An unchanged component due date must not recalculate the purchase dates.';
+        ComponentDateInitializedAssertMsg: Label 'The component date baseline must be initialized.';
+        ScheduledComponentRequirementAssertMsg: Label 'The scheduled component requirement must differ from the service completion date.';
 
     [Test]
     procedure VendorLocationWithBinMandatoryThrowsError()
@@ -1197,7 +1202,91 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     
     [Test]
     procedure VendorSuppliedComponentPurchaseLineUsesComponentDates()
+    begin
+        VerifyVendorSuppliedComponentPurchaseDates(false, false);
+    end;
+
+    [Test]
+    procedure VendorSuppliedComponentDirectPurchaseUsesComponentDates()
+    begin
+        VerifyVendorSuppliedComponentPurchaseDates(true, false);
+    end;
+
+    [Test]
+    procedure MultiDayRoutingWorksheetPurchaseUsesScheduledComponentDates()
+    begin
+        VerifyVendorSuppliedComponentPurchaseDates(false, true);
+    end;
+
+    [Test]
+    procedure MultiDayRoutingDirectPurchaseUsesScheduledComponentDates()
+    begin
+        VerifyVendorSuppliedComponentPurchaseDates(true, true);
+    end;
+
+    [Test]
+    procedure NonworkingComponentDueDateSurvivesStandardCalendarRoundTrip()
     var
+        BaseCalendar: Record "Base Calendar";
+        BaseCalendarChange: Record "Base Calendar Change";
+        ComponentItem: Record Item;
+        Location: Record Location;
+        TempProdOrderComponent: Record "Prod. Order Component" temporary;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+        ComponentDueDate: Date;
+    begin
+        // [SCENARIO 650504] Standard scheduling moves a nonworking due date forward; component synchronization restores it.
+        Initialize();
+        LibraryInventory.CreateItem(ComponentItem);
+        Evaluate(ComponentItem."Safety Lead Time", '<0D>');
+        ComponentItem.Modify(true);
+        LibraryPurchase.CreateVendor(Vendor);
+        Evaluate(Vendor."Lead Time Calculation", '<5D>');
+        Vendor.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        BaseCalendar.Code := CopyStr(
+            LibraryUtility.GenerateRandomCode(BaseCalendar.FieldNo(Code), Database::"Base Calendar"),
+            1, MaxStrLen(BaseCalendar.Code));
+        BaseCalendar.Insert(true);
+        ComponentDueDate := DMY2Date(10, 12, 2026);
+        BaseCalendarChange."Base Calendar Code" := BaseCalendar.Code;
+        BaseCalendarChange.Validate(Date, ComponentDueDate);
+        BaseCalendarChange.Nonworking := true;
+        BaseCalendarChange.Insert(true);
+        Location."Base Calendar Code" := BaseCalendar.Code;
+        Evaluate(Location."Inbound Whse. Handling Time", '<1D>');
+        Location.Modify(true);
+        LibraryPurchase.CreatePurchaseDocumentWithItem(
+            PurchaseHeader, PurchaseLine, PurchaseHeader."Document Type"::Order,
+            Vendor."No.", ComponentItem."No.", 1, Location.Code, 0D);
+
+        PurchaseLine.Validate("Expected Receipt Date", ComponentDueDate);
+        Assert.AreEqual(DMY2Date(9, 12, 2026), PurchaseLine."Planned Receipt Date", 'Standard backward scheduling must use December 9.');
+        Assert.AreEqual(DMY2Date(11, 12, 2026), PurchaseLine."Expected Receipt Date", 'The standard calendar round trip must reproduce the drift to December 11.');
+        Assert.AreEqual(DMY2Date(4, 12, 2026), PurchaseLine."Order Date", 'Standard scheduling must apply five days of purchase lead time.');
+
+        TempProdOrderComponent."Due Date" := ComponentDueDate;
+        Assert.IsTrue(
+            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLine, TempProdOrderComponent),
+            InitialComponentDateSyncAssertMsg);
+        Assert.AreEqual(ComponentDueDate, PurchaseLine."Expected Receipt Date", ComponentExpectedReceiptDateAssertMsg);
+        Assert.AreEqual(DMY2Date(9, 12, 2026), PurchaseLine."Planned Receipt Date", PlannedReceiptDateAssertMsg);
+        Assert.AreEqual(DMY2Date(4, 12, 2026), PurchaseLine."Order Date", ComponentOrderDateAssertMsg);
+        Assert.AreEqual(PurchaseLine."Planned Receipt Date", PurchaseLine."Requested Receipt Date", 'The requested receipt date must match the planned receipt date.');
+        Assert.AreEqual(ComponentDueDate, PurchaseLine."Subc. Last Comp. Due Date", 'The baseline must match the preserved component requirement.');
+        Assert.IsTrue(PurchaseLine."Subc. Comp. Date Initialized", ComponentDateInitializedAssertMsg);
+        Assert.IsFalse(
+            SubcPurchaseOrderCreator.SetVendorSuppliedComponentPurchaseDates(PurchaseLine, TempProdOrderComponent),
+            UnchangedComponentDueDateAssertMsg);
+        Assert.AreEqual(ComponentDueDate, PurchaseLine."Expected Receipt Date", ComponentExpectedReceiptDateAssertMsg);
+    end;
+
+    local procedure VerifyVendorSuppliedComponentPurchaseDates(DirectCreation: Boolean; MultiDayRouting: Boolean)
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
         ReqWkshTemplate: Record "Req. Wksh. Template";
         RequisitionLine: Record "Requisition Line";
         RequisitionWkshName: Record "Requisition Wksh. Name";
@@ -1211,15 +1300,19 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
         Item: Record Item;
         WorkCenter: array[2] of Record "Work Center";
         MachineCenter: array[2] of Record "Machine Center";
         Vendor: Record Vendor;
         CalendarManagement: Codeunit "Calendar Management";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
         ComponentDueDate: Date;
         ExpectedOrderDate: Date;
         ExpectedPlannedReceiptDate: Date;
         FoundRecord: Boolean;
+        CapacityIndex: Integer;
     begin
         // [SCENARIO 650504] Vendor-supplied component purchase lines use component requirement dates and standard purchase scheduling.
         Initialize();
@@ -1228,6 +1321,33 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         SetupSubContractingProdOrder(
             Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder,
             "Component Supply Method"::"Vendor-Supplied", LibraryRandom.RandIntInRange(1, 10));
+        if MultiDayRouting then begin
+            for CapacityIndex := 1 to 2 do begin
+                LibraryManufacturing.CalculateWorkCenterCalendar(WorkCenter[CapacityIndex], CalcDate('<-1Y>', WorkDate()), WorkDate());
+                LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[CapacityIndex], CalcDate('<-1Y>', WorkDate()), WorkDate());
+            end;
+            ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+            ProdOrderRoutingLine.FindFirst();
+            RoutingHeader.Get(Item."Routing No.");
+            RoutingHeader.Validate(Status, RoutingHeader.Status::"Under Development");
+            RoutingHeader.Modify(true);
+            RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+            RoutingLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+            RoutingLine.FindFirst();
+            LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+            RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+            RoutingLine.Validate("Run Time", 1440);
+            RoutingLine.Modify(true);
+            RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+            RoutingHeader.Modify(true);
+            LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+            ProdOrderRoutingLine.FindFirst();
+            Assert.IsTrue(
+                ProdOrderRoutingLine."Ending Date" > ProdOrderRoutingLine."Starting Date",
+                MultiDaySubcontractedOperationAssertMsg);
+        end;
         BaseCalendar.Code := CopyStr(
             LibraryUtility.GenerateRandomCode(BaseCalendar.FieldNo(Code), Database::"Base Calendar"),
             1, MaxStrLen(BaseCalendar.Code));
@@ -1253,11 +1373,21 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Evaluate(ComponentItem."Lead Time Calculation", '<10D>');
         Evaluate(ComponentItem."Safety Lead Time", '<3D>');
         ComponentItem.Modify(true);
-        ComponentDueDate := CalcDate('<30D>', WorkDate());
+        if MultiDayRouting then begin
+            ComponentDueDate := ProdOrderComponent."Due Date";
+            ProdOrderComponent.TestField("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+            Assert.AreNotEqual(
+                ProdOrderRoutingLine."Ending Date", ComponentDueDate,
+                ScheduledComponentRequirementAssertMsg);
+        end else
+            ComponentDueDate := CalcDate('<30D>', WorkDate());
         BaseCalendarChange."Base Calendar Code" := BaseCalendar.Code;
         BaseCalendarChange.Validate(Date, CalcDate('<-2D>', ComponentDueDate));
         BaseCalendarChange.Description := 'Handling calendar test';
         BaseCalendarChange.Nonworking := true;
+        BaseCalendarChange.Insert(true);
+        BaseCalendarChange.Validate(Date, ComponentDueDate);
+        BaseCalendarChange.Description := 'Nonworking component due date';
         BaseCalendarChange.Insert(true);
         CustomizedCalendarChange[1].SetSource(
             CustomizedCalendarChange[1]."Source Type"::Location, HomeLocation.Code, '', BaseCalendar.Code);
@@ -1269,10 +1399,21 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ProdOrderComponent."Due Date" := ComponentDueDate;
         ProdOrderComponent.Modify(true);
 
-        // [WHEN] A subcontracting purchase order is created by carrying out the requisition worksheet
-        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
-        SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
-        SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+        // [WHEN] A subcontracting purchase order is created directly or by carrying out the requisition worksheet
+        if DirectCreation then begin
+            SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+            ProdOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
+            ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+            ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+            ProdOrderRoutingLine.FindFirst();
+            Assert.AreEqual(
+                1, SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine),
+                'Direct routing creation must create one subcontracting purchase order.');
+        end else begin
+            SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+            SubcontractingMgmtLibrary.CalculateSubcontractsAndFindReqLine(RequisitionWkshName, ProductionOrder."No.", RequisitionLine);
+            SubcontractingMgmtLibrary.CarryOutSubcontractingAction(RequisitionLine);
+        end;
 
         // [THEN] The component purchase line uses the component due date and its calculated order schedule
         PurchaseLine.Reset();

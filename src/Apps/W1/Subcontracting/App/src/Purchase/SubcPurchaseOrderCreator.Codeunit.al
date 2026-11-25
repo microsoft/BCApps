@@ -283,6 +283,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
 
     /// <summary>
     /// Aligns purchase dates on the first synchronization, then recalculates only when the component due date changes.
+    /// Preserves the component due date as the expected receipt date after standard calendar scheduling.
     /// </summary>
     internal procedure SetVendorSuppliedComponentPurchaseDates(var PurchaseLine: Record "Purchase Line"; ProdOrderComponent: Record "Prod. Order Component"): Boolean
     begin
@@ -297,6 +298,8 @@ codeunit 20557 "Subc. Purchase Order Creator"
             PurchaseLine.Validate("Expected Receipt Date", ProdOrderComponent."Due Date");
             if PurchaseLine."Requested Receipt Date" <> PurchaseLine."Planned Receipt Date" then
                 PurchaseLine."Requested Receipt Date" := PurchaseLine."Planned Receipt Date";
+            // Standard forward scheduling can move a nonworking component due date to a later working day.
+            PurchaseLine."Expected Receipt Date" := ProdOrderComponent."Due Date";
         end;
         PurchaseLine."Subc. Last Comp. Due Date" := ProdOrderComponent."Due Date";
         PurchaseLine."Subc. Comp. Date Initialized" := true;
