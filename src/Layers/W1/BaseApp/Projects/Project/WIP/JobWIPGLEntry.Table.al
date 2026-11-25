@@ -19,7 +19,7 @@ table 1005 "Job WIP G/L Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             ToolTip = 'Specifies the number of the entry, as assigned from the specified number series when the entry was created.';
@@ -93,7 +93,7 @@ table 1005 "Job WIP G/L Entry"
         {
             Caption = 'Description';
         }
-        field(14; "G/L Entry No."; Integer)
+        field(14; "G/L Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'G/L Entry No.';
@@ -126,7 +126,7 @@ table 1005 "Job WIP G/L Entry"
             Caption = 'Project Complete';
             ToolTip = 'Specifies whether a project is complete. This check box is selected if the Project WIP G/L Entry was created for a Project with a Completed status.';
         }
-        field(20; "Job WIP Total Entry No."; Integer)
+        field(20; "Job WIP Total Entry No."; BigInteger)
         {
             Caption = 'Project WIP Total Entry No.';
             ToolTip = 'Specifies the entry number from the associated project WIP total.';
@@ -249,7 +249,7 @@ table 1005 "Job WIP G/L Entry"
     var
         DimMgt: Codeunit DimensionManagement;
 
-    procedure GetLastEntryNo(): Integer;
+    procedure GetLastEntryNo(): BigInteger;
     var
         FindRecordManagement: Codeunit "Find Record Management";
     begin

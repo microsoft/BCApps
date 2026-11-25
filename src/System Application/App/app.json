@@ -13,6 +13,16 @@
   "dependencies": [],
   "internalsVisibleTo": [
     {
+      "id": "b7e3a1d0-4f8c-4e2a-9c6b-1d3e5f7a9b0c",
+      "name": "Business IQ",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "8e362160-8fc5-4b6f-b694-324bceeb2450",
+      "name": "Business Skills Test",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "0d60b215-6ee1-4789-8e53-866cfa50c23c",
       "name": "System Application Test",
       "publisher": "Microsoft"
@@ -25,6 +35,11 @@
     {
       "id": "5afe217e-507a-40b4-9aa5-f4325b6e8230",
       "name": "Agent Test Library",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "bebde88d-6846-479d-8b30-b9f8940fdcf8",
+      "name": "Business Skills Test Library",
       "publisher": "Microsoft"
     }
   ],

@@ -49,7 +49,7 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterPostEmployee, '', false, false)]
-    local procedure OnAfterPostEmployee(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; sender: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnAfterPostEmployee(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: BigInteger; var NextTaxEntryNo: Integer; sender: Codeunit "Gen. Jnl.-Post Line")
     var
         WHTEmployeeCalc: Codeunit "WHT Employee Calculation";
     begin
