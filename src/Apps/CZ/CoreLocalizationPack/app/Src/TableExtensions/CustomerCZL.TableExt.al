@@ -10,6 +10,7 @@ using Microsoft.Finance.VAT.Registration;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Receivables;
+using System.Utilities;
 
 tableextension 11701 "Customer CZL" extends Customer
 {
@@ -122,7 +123,6 @@ tableextension 11701 "Customer CZL" extends Customer
 
     trigger OnDelete()
     begin
-        UnreliablePayerMgtCZL.UpdateUnreliablePayerEntriesOnDelete(Rec);
         RegistrationLogMgtCZL.DeleteCustomerLog(Rec);
     end;
 
@@ -131,51 +131,36 @@ tableextension 11701 "Customer CZL" extends Customer
         RegistrationNoMgtCZL: Codeunit "Registration No. Mgt. CZL";
         UnreliablePayerMgtCZL: Codeunit "Unreliable Payer Mgt. CZL";
         RegistrationNo: Text[20];
+        ImportSuccessfulQst: Label 'Import was successful. Do you want to open unreliable payer entries page?';
 
-    // procedure ImportUnrPayerStatusCZL()
-    // var
-    //     UnreliablePayerEntry: Record "Unreliable Payer Entry CZL";
-    //     ConfirmManagement: Codeunit "Confirm Management";
-    // begin
-    //     if not UnreliablePayerMgtCZL.ImportUnrPayerStatusForVendor(Rec) then
-    //         exit;
-    //     if not ConfirmManagement.GetResponse(ImportSuccessfulQst, true) then
-    //         exit;
+    procedure ImportUnrPayerStatusCZL()
+    var
+        ConfirmManagement: Codeunit "Confirm Management";
+    begin
+        if not UnreliablePayerMgtCZL.ImportUnrPayerStatusForCustomer(Rec) then
+            exit;
+        if not ConfirmManagement.GetResponse(ImportSuccessfulQst, true) then
+            exit;
 
-    //     Commit();
-    //     UnreliablePayerEntry.SetRange("Vendor No.", "No.");
-    //     UnreliablePayerEntry."Vendor No." := "No.";
-    //     Page.RunModal(Page::"Unreliable Payer Entries CZL", UnreliablePayerEntry);
-    // end;
+        Commit();
+        ShowUnreliableEntriesCZL();
+    end;
 
     procedure IsUnreliablePayerCheckPossibleCZL(): Boolean
     begin
         if "Disable Unreliab. Check CZL" then
             exit(false);
-        if not UnreliablePayerMgtCZL.IsUnreliablePayerServiceEnabled() then
-            exit(false);
-        exit(UnreliablePayerMgtCZL.IsVATRegNoExportPossible("VAT Registration No.", "Country/Region Code"));
+        exit(UnreliablePayerMgtCZL.IsUnreliablePayerCheckPossible("VAT Registration No.", "Country/Region Code"));
     end;
 
     procedure GetUnreliablePayerStatusCZL(): Enum "Unreliable Payer Status CZL"
     begin
-        exit(UnreliablePayerMgtCZL.GetUnreliablePayerStatusCZL("VAT Registration No."));
+        exit(UnreliablePayerMgtCZL.GetLastUnreliablePayerStatus("VAT Registration No."));
     end;
 
     procedure ShowUnreliableEntriesCZL()
-    var
-        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
-        UnreliablePayerEntriesCZL: Page "Unreliable Payer Entries CZL";
-        UnreliablePayerEntriesCZLCaptionTok: Label '%1 - %2', Comment = '%1 = Vendor No., %2 = Page caption', Locked = true;
     begin
-        UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.", "Vendor No.", "Check Date");
-        UnreliablePayerEntryCZL.FilterGroup(2);
-        UnreliablePayerEntryCZL.SetRange("VAT Registration No.", Rec."VAT Registration No.");
-        UnreliablePayerEntryCZL.FilterGroup(0);
-        UnreliablePayerEntriesCZL.SetTableView(UnreliablePayerEntryCZL);
-        UnreliablePayerEntriesCZL.SetUnreliablePayerNoCZL(Rec."No.");
-        UnreliablePayerEntriesCZL.Caption := StrSubstNo(UnreliablePayerEntriesCZLCaptionTok, Rec."No.", UnreliablePayerEntriesCZL.Caption);
-        UnreliablePayerEntriesCZL.RunModal();
+        UnreliablePayerMgtCZL.ShowUnreliablePayerEntries("VAT Registration No.");
     end;
 
     procedure CheckOpenCustomerLedgerEntriesCZL()

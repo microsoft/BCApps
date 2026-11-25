@@ -99,8 +99,6 @@ xmlport 11760 "Unreliable Payer List CZL"
                 UnreliablePayerEntryCZL."VAT Registration No." := TempUnreliablePayerEntryCZL."VAT Registration No.";
                 UnreliablePayerEntryCZL."Tax Office Number" := TempUnreliablePayerEntryCZL."Tax Office Number";
                 UnreliablePayerEntryCZL.Type := UnreliablePayerEntryCZL.Type::Payer;
-                UnreliablePayerEntryCZL."Vendor No." := UnreliablePayerMgtCZL.GetVendFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
-                UnreliablePayerEntryCZL."Customer No." := UnreliablePayerMgtCZL.GetCustFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
                 if UnreliablePayerEntryCZL."Entry No." > 0 then
                     UnreliablePayerEntryCZL.Modify()
                 else begin

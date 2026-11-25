@@ -154,8 +154,6 @@ xmlport 11759 "Unreliable Payer Status CZL"
                 UnreliablePayerEntryCZL."VAT Registration No." := Temp1UnreliablePayerEntryCZL."VAT Registration No.";
                 UnreliablePayerEntryCZL."Tax Office Number" := Temp1UnreliablePayerEntryCZL."Tax Office Number";
                 UnreliablePayerEntryCZL.Type := UnreliablePayerEntryCZL.Type::Payer;
-                UnreliablePayerEntryCZL."Vendor No." := UnreliablePayerMgtCZL.GetVendFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
-                UnreliablePayerEntryCZL."Customer No." := UnreliablePayerMgtCZL.GetCustFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
                 if UnreliablePayerEntryCZL."Entry No." > 0 then
                     UnreliablePayerEntryCZL.Modify()
                 else begin
@@ -187,8 +185,6 @@ xmlport 11759 "Unreliable Payer Status CZL"
                         UnreliablePayerEntryCZL."Full Bank Account No." := Temp2UnreliablePayerEntryCZL."Full Bank Account No.";
                         UnreliablePayerEntryCZL."Bank Account Type" := Temp2UnreliablePayerEntryCZL."Bank Account Type";
                         UnreliablePayerEntryCZL.Type := UnreliablePayerEntryCZL.Type::"Bank Account";
-                        UnreliablePayerEntryCZL."Vendor No." := UnreliablePayerMgtCZL.GetVendFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
-                        UnreliablePayerEntryCZL."Customer No." := UnreliablePayerMgtCZL.GetCustFromVATRegNo(UnreliablePayerEntryCZL."VAT Registration No.");
                         if UnreliablePayerEntryCZL."Entry No." > 0 then
                             UnreliablePayerEntryCZL.Modify()
                         else begin

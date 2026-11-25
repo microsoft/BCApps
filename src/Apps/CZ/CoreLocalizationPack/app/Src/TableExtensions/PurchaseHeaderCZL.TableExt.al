@@ -247,7 +247,7 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
             CalcFormula = lookup("Unreliable Payer Entry CZL".Status where("VAT Registration No." = field("VAT Registration No."),
                                                                                         Type = const(Payer),
                                                                                         "Check Date" = field("Last Unreliab. Check Date CZL")));
-            Caption = 'VAT Unreliable Payer';
+            Caption = 'VAT Unreliable Payer (Obsolete)';
             Editable = false;
             FieldClass = FlowField;
             OptionCaption = ' ,NO,YES,NOTFOUND';
@@ -354,10 +354,11 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
         Vendor: Record Vendor;
         CheckPossible: Boolean;
     begin
+        Vendor.SetLoadFields("Disable Unreliab. Check CZL");
         if not Vendor.Get("Pay-to Vendor No.") then
             exit(false);
         CheckPossible := not Vendor."Disable Unreliab. Check CZL" and
-                            UnreliablePayerMgtCZL.IsVATRegNoExportPossible("VAT Registration No.", "Pay-to Country/Region Code");
+                            UnreliablePayerMgtCZL.IsUnreliablePayerCheckPossible(GetVATRegistrationNo(), "Pay-to Country/Region Code");
         OnBeforeIsUnreliablePayerCheckPossibleCZL(Rec, CheckPossible);
         exit(CheckPossible);
     end;
@@ -378,12 +379,14 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
 
     procedure GetUnreliablePayerStatusCZL(): Enum "Unreliable Payer Status CZL"
     begin
-        exit(UnreliablePayerMgtCZL.GetUnreliablePayerStatusCZL("VAT Registration No."));
+        exit(UnreliablePayerMgtCZL.GetLastUnreliablePayerStatus(GetVATRegistrationNo()));
     end;
 
     procedure IsPublicBankAccountCZL(): Boolean
     begin
-        exit(UnreliablePayerMgtCZL.IsPublicBankAccount("Pay-To Vendor No.", "VAT Registration No.", "Bank Account No. CZL", "IBAN CZL"));
+        if not IsUnreliablePayerCheckPossibleCZL() then
+            exit(false);
+        exit(UnreliablePayerMgtCZL.IsPublicBankAccount(GetVATRegistrationNo(), "Bank Account No. CZL", "IBAN CZL"));
     end;
 
     local procedure CheckCurrencyExchangeRateCZL(CurrencyDate: Date)
@@ -395,6 +398,18 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
             exit;
         if not CurrencyExchangeRate.CurrencyExchangeRateExist("Currency Code", CurrencyDate) then
             Error(CurrExchRateNotExistsErr, CurrencyExchangeRate.TableCaption, "Currency Code", CurrencyDate);
+    end;
+
+    local procedure GetVATRegistrationNo(): Text[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        if "VAT Registration No." <> '' then
+            exit("VAT Registration No.");
+        Vendor.SetLoadFields("VAT Registration No.");
+        if Vendor.Get("Pay-to Vendor No.") then
+            exit(Vendor."VAT Registration No.");
+        exit('');
     end;
 
     procedure UpdateVATCurrencyFactorCZLByCurrencyFactorCZL()

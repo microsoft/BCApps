@@ -78,7 +78,7 @@ report 11759 "Unreliable Payer List CZL"
                 }
                 trigger OnAfterGetRecord()
                 begin
-                    PublicBankAccount := UnreliablePayerMgtCZL.IsPublicBankAccount("Vendor No.", VendorVATRegistrationNoCZL(), "Bank Account No.", IBAN);
+                    PublicBankAccount := IsPublicBankAccountCZL();
 
                     SecondUnreliablePayerEntryCZL.SetRange("VAT Registration No.", VendorVATRegistrationNoCZL());
                     SecondUnreliablePayerEntryCZL.SetFilter("Full Bank Account No.", '%1|%2', "Bank Account No.", IBAN);
@@ -133,10 +133,7 @@ report 11759 "Unreliable Payer List CZL"
                     VendorBankAccount.SetRange("Vendor No.", "No.");
                     if VendorBankAccount.FindSet() then
                         repeat
-                            PublicBankAccount := UnreliablePayerMgtCZL.IsPublicBankAccount(VendorBankAccount."Vendor No.",
-                                VendorBankAccount.VendorVATRegistrationNoCZL(),
-                                VendorBankAccount."Bank Account No.", VendorBankAccount.IBAN);
-                            if not PublicBankAccount then
+                            if not VendorBankAccount.IsPublicBankAccountCZL() then
                                 WarningText := NonPublicLbl;
                         until (VendorBankAccount.Next() = 0) or (WarningText <> '');
                 end;
