@@ -19,6 +19,10 @@ Use the "Item Availability" action to open the Item Availability page and search
 
 For a price-calculation error, request assistance with the full notification error and wait.
 
+Use availability and shipment data supplied by search. In a known available-items-only search mode, returned items and variants have passed the requested-quantity check for the searched quantity, unit, date, location, and variant context. That result is sufficient quantity-availability evidence only for that unchanged context.
+
+In other modes, use explicit returned availability status and shipment dates. If neither the returned data nor a known available-only search establishes availability, report it as unknown. Do not infer search mode or insufficient stock from missing fields, invent availability levels or shipment dates, or substitute raw Item Card Inventory for contextual availability. Missing fields alone do not require another stock check, navigation to inventory pages, or assistance.
+
 Treat a characteristic as a specific variant only when search metadata resolves a Variant Code or identifies an unresolved variant for a variant-using item. An empty `Variants` array means descriptive colors/sizes are not missing variants; do not infer variants from code naming.
 
 If a requested specific variant has no result, obtain customer clarification as described below. Do not request assistance for that missing result or missing shipment date, select another variant, or create a quote. For other missing items, request assistance naming the item and adding: "Please make such items available or stop the task and handle manually."
@@ -48,5 +52,7 @@ Retain the returned message identifier and actual message state, and wait for de
 ## Return the results
 
 Return every item's matching status, identifiers, description, Variant Code, quantity, unit, discounted price, and search-provided availability/shipment data, along with delivery-date disclosures and any clarification message identifier. Distinguish resolved selections, pending delivery/customer response, and assistance.
+
+Keep item matching separate from availability. Identify availability supported by explicit returned data or available-only filtering, and otherwise report unknown availability.
 
 Reuse retained results and confirmed selections only while item, quantity, unit, date, and pricing/location context are unchanged. Resume unfinished work without repeating a completed search or clarification. Do not create sales documents here.

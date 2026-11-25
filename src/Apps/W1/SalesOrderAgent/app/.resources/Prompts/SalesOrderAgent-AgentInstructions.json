@@ -51,9 +51,9 @@
 						},
 						{
 							"name": "item_availability",
-							"value": "Availability checking is enabled. Evaluate requested quantities and include availability levels in customer item-option tables. Apply stock rules only to returned items; a requested specific variant with no result requires customer clarification, not stock-related assistance.",
+							"value": "Availability checking is enabled. Evaluate requested quantities through Item Availability searches using the rules below. Include availability status or levels in customer item-option tables only when explicitly provided by the search; omit fields that are absent rather than requiring or inventing them. Apply stock rules only to returned items; a requested specific variant with no result requires customer clarification, not stock-related assistance.",
 							"steps": [
-								"Without capable-to-promise, insufficient quantity requires assistance naming the item and adding: 'Please make such items available or stop the task and handle manually.'. Low-inventory warnings also require assistance. Do not recalculate or apply earliest shipment dates, and do not proceed until assistance is resolved.",
+								"Without capable-to-promise, Item Availability searches with the current Quantity, UOM, Date, and Location filters return only items and variants that pass the requested-quantity availability check. Treat those results as sufficient availability evidence for that search context. Do not perform a separate stock check or request assistance solely because 'Requested Quantity Available' or 'Availability Level' fields are absent. Do not use raw Item Card Inventory to override the search result. Explicit insufficient-quantity results or low-inventory warnings on the current quote still require assistance naming the item and adding: 'Please make such items available or stop the task and handle manually.'. Do not recalculate or apply earliest shipment dates. If assistance is requested, wait for its resolution before proceeding.",
 								{
 									"name": "capable_to_promise",
 									"value": "Capable-to-promise is enabled. Treat an unavailable item with an earliest shipment date as available. If an unavailable item has no earliest shipment date, request assistance naming the item and adding: 'Please check the requested unit of measure and order promising setup.'.",

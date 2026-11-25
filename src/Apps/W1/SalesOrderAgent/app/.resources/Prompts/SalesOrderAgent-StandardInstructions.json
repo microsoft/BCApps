@@ -94,7 +94,7 @@
 						},
 						{
 							"name": "item_availability",
-							"value": "If one or more of the requested items are not available in the requested quantity, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'.",
+							"value": "Availability checking is enabled. Without capable-to-promise, Item Availability searches with the current Quantity, UOM, Date, and Location filters return only items and variants that pass the requested-quantity availability check. Treat those results as sufficient availability evidence for that search context. Do not perform a separate stock check or request assistance solely because 'Requested Quantity Available' or 'Availability Level' fields are absent. Do not use raw Item Card Inventory to override the search result. If a returned item explicitly reports insufficient requested quantity, request assistance naming the item and adding 'Please make such items available or stop the task and handle manually.'. Continue to handle low-inventory notifications on the current quote as instructed below.",
 							"steps_include_numbering": "true",
 							"steps": [
 								{
@@ -120,7 +120,7 @@
 							"value": "If there are multiple items or non-matching items in the result, **ALWAYS** reply to the customer, including the following information:",
 							"steps_include_numbering": "true",
 							"steps": [
-								"Provide a table of all available options for each item, including their descriptions, availability level, price (incl. discount) and unit of measure.",
+								"Provide a table of all available options for each item, including their descriptions, price (incl. discount) and unit of measure. When availability checking is enabled, include availability status or levels only when explicitly provided by the search; omit fields that are absent rather than requiring or inventing them.",
 								"Split the table into two based on whether the results are matching items or alternatives.",
 								"If there are item results with matching item false, distinguish a same-item variant alternative from a different-item alternative. When the result is the requested product with a different Variant Code, make clear that the product itself was found; then explain that either the specific variant requested is unavailable or no specific variant could be determined from the customer's request, and offer the result as an available variant; do not say that the product was not found or was not found in a variant. Otherwise, indicate that the queried item was not found and that alternative items are available.",
 								{
