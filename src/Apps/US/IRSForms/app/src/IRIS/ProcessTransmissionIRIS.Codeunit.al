@@ -1404,6 +1404,7 @@ codeunit 10056 "Process Transmission IRIS"
 
             // restore transmission related fields from the original document
             if IRS1099FormDocHeader.Get(SourceDocumentID) then begin
+                TempFormDocHeader."IRIS Submission Status" := IRS1099FormDocHeader."IRIS Submission Status";
                 TempFormDocHeader."IRIS Submission ID" := IRS1099FormDocHeader."IRIS Submission ID";
                 TempFormDocHeader."IRIS Record ID" := IRS1099FormDocHeader."IRIS Record ID";
                 TempFormDocHeader."IRIS Last Receipt ID" := IRS1099FormDocHeader."IRIS Last Receipt ID";

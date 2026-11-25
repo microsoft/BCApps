@@ -94,10 +94,13 @@ codeunit 10040 "IRS 1099 Supplemental"
     procedure ValidateSupplementalLines(DocumentID: Integer)
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
-        ReportingPeriod: Record "IRS Reporting Period";
         SupplLine: Record "IRS 1099 Doc. Suppl. Line";
         CodesSupplLine: Record "IRS 1099 Doc. Suppl. Line";
         SupplBox: Record "IRS 1099 Suppl. Box";
+        HelperIRIS: Codeunit "Helper IRIS";
+        MappingResource: JsonObject;
+        SupplementalMappings: JsonObject;
+        FormMappings: JsonArray;
         ParentBoxNo: Code[20];
         ElementName: Text[100];
         ValueType: Enum "IRS 1099 Supplemental Type";
@@ -105,17 +108,19 @@ codeunit 10040 "IRS 1099 Supplemental"
         DocHeader.Get(DocumentID);
         SupplLine.SetRange("Document ID", DocumentID);
         if SupplLine.FindSet() then begin
-            ReportingPeriod.Get(DocHeader."Period No.");
+            MappingResource := HelperIRIS.GetAmtXmlElementsFileContent(DocHeader."Period No.");
+            SupplementalMappings := MappingResource.GetObject('SupplementalMappings', true);
+            FormMappings := SupplementalMappings.GetArray(DocHeader."Form No.", true);
             repeat
                 ValidateLine(SupplLine);
                 SupplBox.Get(DocHeader."Period No.", DocHeader."Form No.", SupplLine."Supplemental Box No.");
-                ValidateSupplBoxSetup(SupplBox);
+                ValidateSupplBoxSetup(SupplBox, SupplBox.CurrentCompany(), FormMappings);
                 if (SupplBox."Parent Form Box No." <> SupplLine."Parent Form Box No.") or
                    (SupplBox."Value Type" <> SupplLine."Value Type")
                 then
                     Error(MappingErr, SupplLine."Supplemental Box No.");
                 if HasValues(SupplLine) and
-                   not GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), DocHeader."Form No.", SupplLine."Supplemental Box No.", ParentBoxNo, ElementName, ValueType)
+                   not GetMapping(FormMappings, SupplLine."Supplemental Box No.", ParentBoxNo, ElementName, ValueType)
                 then
                     Error(UnsupportedMappingErr, DocumentID, SupplLine."Supplemental Box No.");
                 if (SupplBox."XML Element Name" = 'CashTipsAmt') and (SupplLine.Amount > 0) then begin
@@ -261,8 +266,20 @@ codeunit 10040 "IRS 1099 Supplemental"
 
     procedure ValidateSupplBoxSetup(SupplBox: Record "IRS 1099 Suppl. Box"; TargetCompany: Text)
     var
+        HelperIRIS: Codeunit "Helper IRIS";
+        MappingResource: JsonObject;
+        SupplementalMappings: JsonObject;
+        FormMappings: JsonArray;
+    begin
+        MappingResource := HelperIRIS.GetAmtXmlElementsFileContent(SupplBox."Period No.");
+        SupplementalMappings := MappingResource.GetObject('SupplementalMappings', true);
+        FormMappings := SupplementalMappings.GetArray(SupplBox."Form No.", true);
+        ValidateSupplBoxSetup(SupplBox, TargetCompany, FormMappings);
+    end;
+
+    local procedure ValidateSupplBoxSetup(SupplBox: Record "IRS 1099 Suppl. Box"; TargetCompany: Text; FormMappings: JsonArray)
+    var
         FormBox: Record "IRS 1099 Form Box";
-        ReportingPeriod: Record "IRS Reporting Period";
         ExpectedParent: Code[20];
         ExpectedElement: Text[100];
         ExpectedType: Enum "IRS 1099 Supplemental Type";
@@ -274,9 +291,7 @@ codeunit 10040 "IRS 1099 Supplemental"
         FormBox.Get(SupplBox."Period No.", SupplBox."Form No.", SupplBox."Parent Form Box No.");
         if FormBox.Get(SupplBox."Period No.", SupplBox."Form No.", SupplBox."No.") then
             Error(MappingErr, SupplBox."No.");
-        ReportingPeriod.ChangeCompany(TargetCompany);
-        ReportingPeriod.Get(SupplBox."Period No.");
-        if GetMapping(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9), SupplBox."Form No.", SupplBox."No.", ExpectedParent, ExpectedElement, ExpectedType) then begin
+        if GetMapping(FormMappings, SupplBox."No.", ExpectedParent, ExpectedElement, ExpectedType) then begin
             if (SupplBox."Parent Form Box No." <> ExpectedParent) or
                (SupplBox."XML Element Name" <> ExpectedElement) or
                (SupplBox."Value Type" <> ExpectedType)
@@ -310,7 +325,18 @@ codeunit 10040 "IRS 1099 Supplemental"
     procedure GetMapping(TaxYear: Text; FormNo: Code[20]; BoxNo: Code[20]; var ParentBoxNo: Code[20]; var ElementName: Text[100]; var ValueType: Enum "IRS 1099 Supplemental Type"): Boolean
     var
         HelperIRIS: Codeunit "Helper IRIS";
-        FormMappings: JsonObject;
+        MappingResource: JsonObject;
+        SupplementalMappings: JsonObject;
+        FormMappings: JsonArray;
+    begin
+        MappingResource := HelperIRIS.GetAmtXmlElementsFileContent(TaxYear);
+        SupplementalMappings := MappingResource.GetObject('SupplementalMappings', true);
+        FormMappings := SupplementalMappings.GetArray(FormNo, true);
+        exit(GetMapping(FormMappings, BoxNo, ParentBoxNo, ElementName, ValueType));
+    end;
+
+    local procedure GetMapping(FormMappings: JsonArray; BoxNo: Code[20]; var ParentBoxNo: Code[20]; var ElementName: Text[100]; var ValueType: Enum "IRS 1099 Supplemental Type"): Boolean
+    var
         Mapping: JsonObject;
         MappingToken: JsonToken;
         ValueTypeText: Text;
@@ -318,8 +344,7 @@ codeunit 10040 "IRS 1099 Supplemental"
         Clear(ParentBoxNo);
         Clear(ElementName);
         ValueType := ValueType::Amount;
-        FormMappings := HelperIRIS.GetAmtXmlElementsFileContent(TaxYear).GetObject('SupplementalMappings', true);
-        foreach MappingToken in FormMappings.GetArray(FormNo, true) do begin
+        foreach MappingToken in FormMappings do begin
             Mapping := MappingToken.AsObject();
             if Mapping.GetText('FormBoxNo') = BoxNo then begin
                 ParentBoxNo := CopyStr(Mapping.GetText('ParentFormBoxNo'), 1, MaxStrLen(ParentBoxNo));
@@ -358,7 +383,6 @@ codeunit 10040 "IRS 1099 Supplemental"
     procedure ValidateTypedValues(SupplLine: Record "IRS 1099 Doc. Suppl. Line"; ValueType: Enum "IRS 1099 Supplemental Type")
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
-        ReportingPeriod: Record "IRS Reporting Period";
         HelperIRIS: Codeunit "Helper IRIS";
         OccupationCodes: List of [Text];
     begin
@@ -374,8 +398,7 @@ codeunit 10040 "IRS 1099 Supplemental"
             exit;
 
         DocHeader.Get(SupplLine."Document ID");
-        ReportingPeriod.Get(DocHeader."Period No.");
-        OccupationCodes := HelperIRIS.GetOccupationCodes(Format(Date2DMY(ReportingPeriod."Starting Date", 3), 0, 9));
+        OccupationCodes := HelperIRIS.GetOccupationCodes(DocHeader."Period No.");
         ValidateOccupationCode(SupplLine."Occupation Code 1", SupplLine."Supplemental Box No.", OccupationCodes);
         ValidateOccupationCode(SupplLine."Occupation Code 2", SupplLine."Supplemental Box No.", OccupationCodes);
     end;

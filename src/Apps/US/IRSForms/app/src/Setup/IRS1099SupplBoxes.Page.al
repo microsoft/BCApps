@@ -29,6 +29,7 @@ page 10073 "IRS 1099 Suppl. Boxes"
                 }
                 field("No."; Rec."No.")
                 {
+                    ShowMandatory = true;
                     ToolTip = 'Specifies the supplemental box number. It must differ from the form box numbers for this period and form.';
                 }
                 field(Description; Rec.Description)

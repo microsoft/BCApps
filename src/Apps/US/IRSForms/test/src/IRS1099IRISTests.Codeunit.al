@@ -3130,46 +3130,39 @@ codeunit 148022 "IRS 1099 IRIS Tests"
 
     [Test]
     [HandlerFunctions('OfflineHttpHandler,SelectNewBoxUpdateHandler,UpdateTransmissionMessageHandler,ConfirmYes')]
-    procedure CorrectionRejectsCopiedIdentifiersWithoutSubmission()
+    procedure CorrectionAcceptsUpdatedAcceptedSource()
     var
         Transmission: Record "Transmission IRIS";
         SourceDocHeader: Record "IRS 1099 Form Doc. Header";
         DocHeader: Record "IRS 1099 Form Doc. Header";
         TransmissionLog: Record "Transmission Log IRIS";
-        RequestCount: Integer;
-        AttemptCount: Integer;
+        Payload: Codeunit "Temp Blob";
+        AcceptedRecordReference: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Copied filing identifiers do not make a recreated document a previously sent return.
+        // [SCENARIO 653992] Adding a box to an accepted return preserves its eligibility for correction.
         Initialize();
 
         // [GIVEN] Updating sent source document creates unsent replacement document with inherited identifiers.
         CreateLifecycleTransmission(Transmission, SourceDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         LibraryIRS1099IRIS.SendOriginal(Transmission);
+        SourceDocHeader.Get(SourceDocHeader.ID);
+        AcceptedRecordReference := StrSubstNo('%1|%2|%3', SourceDocHeader."IRIS Last Accepted Receipt ID",
+            SourceDocHeader."IRIS Submission ID", SourceDocHeader."IRIS Record ID");
         SetTransmissionUpdateAdjustment(SourceDocHeader, 'NEC-01', 5000);
         SetTransmissionUpdateAdjustment(SourceDocHeader, 'NEC-03', 7000);
         LibraryVariableStorage.Enqueue(SourceDocHeader."Vendor No.");
         Commit();
         LibraryIRS1099Document.UpdateTransmission(Transmission);
         FindUnsentReplacement(SourceDocHeader, DocHeader);
-        Assert.AreNotEqual('', DocHeader."IRIS Record ID", 'The fixture must exercise copied filing identifiers.');
-        DocHeader."IRIS Needs Correction" := true;
-        DocHeader.Modify();
-        DocHeader.Get(DocHeader.ID);
-        RequestCount := OfflineRequestPaths.Count();
-        TransmissionLog.SetRange("Transmission Document ID", Transmission."Document ID");
-        AttemptCount := TransmissionLog.Count();
-        Commit();
+        // [WHEN] The updated return is sent as a correction.
+        LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
-        // [WHEN] Replacement document is sent as correction despite never appearing in send attempt.
-        asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
-
-        // [THEN] Actual document history, rather than inherited identifiers, determines diagnostic.
-        Assert.ExpectedError(NoRecordedCorrectionTxt);
-        Assert.ExpectedError('Clear Needs Correction');
-        Assert.ExpectedErrorCode('Dialog');
-        VerifyBlockedCorrection(DocHeader, Transmission, RequestCount, AttemptCount);
+        // [THEN] The correction reports the new box against the accepted source return, not as another original.
+        FindLastAttempt(Transmission, TransmissionLog);
+        WriteTextBlob(Payload, ReadAttemptContent(TransmissionLog, 20));
+        VerifyAcceptedUpdatedSource(SourceDocHeader, DocHeader, Payload, AcceptedRecordReference);
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -3604,6 +3597,44 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.ExpectedErrorCode('Dialog');
         VerifySandboxRemovalUnchanged();
         Assert.AreEqual(0, OfflineRequestPaths.Count(), 'Rejecting a stale selection must not make any HTTP request.');
+    end;
+
+    [Test]
+    procedure CorrectionRejectsCopiedIdentifiersWithoutSubmission()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+        RequestCount: Integer;
+        AttemptCount: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Copied filing identifiers alone do not make an unfiled document eligible for correction.
+        Initialize();
+
+        // [GIVEN] An unfiled document has copied identifiers but no submission status or send history.
+        CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
+        SetLifecycleReference(DocHeader, Transmission."Document ID", '1', '1', "Transmission Status IRIS"::None, true);
+        Transmission.Status := Transmission.Status::Accepted;
+        Transmission."Receipt ID" := 'ACCEPTED';
+        Transmission.Modify();
+        DocHeader.Get(DocHeader.ID);
+        InitializeOfflineTransport(Transmission);
+        RequestCount := OfflineRequestPaths.Count();
+        TransmissionLog.SetRange("Transmission Document ID", Transmission."Document ID");
+        AttemptCount := TransmissionLog.Count();
+        Commit();
+
+        // [WHEN] A correction is attempted.
+        asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+
+        // [THEN] The correction is blocked before XML generation or HTTP calls.
+        Assert.ExpectedError(NoRecordedCorrectionTxt);
+        Assert.ExpectedError('Clear Needs Correction');
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyBlockedCorrection(DocHeader, Transmission, RequestCount, AttemptCount);
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -4166,6 +4197,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryIRS1099FormBox.CreateSpecificFormInReportingPeriod(StartingDate, EndingDate, 'NEC');
         LibraryIRS1099FormBox.CreateSpecificFormBoxInReportingPeriod(StartingDate, EndingDate, 'NEC', 'NEC-01');
         LibraryIRS1099FormBox.CreateSpecificFormBoxInReportingPeriod(StartingDate, EndingDate, 'NEC', 'NEC-02');
+        LibraryIRS1099FormBox.CreateSpecificFormBoxInReportingPeriod(StartingDate, EndingDate, 'NEC', 'NEC-03');
         FormBox.Get(Format(Year), 'NEC', 'NEC-02');
         FormBox.Validate("Minimum Reportable Amount", 5000);
         FormBox.Modify();
@@ -5154,6 +5186,22 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.IsFalse(DocHeader."IRIS Needs Correction", 'An accepted zero correction is no longer pending.');
     end;
 
+    local procedure VerifyAcceptedUpdatedSource(var SourceDocHeader: Record "IRS 1099 Form Doc. Header"; var DocHeader: Record "IRS 1099 Form Doc. Header"; var Payload: Codeunit "Temp Blob"; AcceptedRecordReference: Text)
+    begin
+        InitXMLReader(Payload);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:TransmissionTypeCd', 'C');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:UniqueRecordId', AcceptedRecordReference);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:Form1099NECDetail/n1:ExcessParachutePaymentAmt', '7000');
+        DocHeader.Get(DocHeader.ID);
+        Assert.AreEqual(DocHeader.Status::Submitted, DocHeader.Status, 'The updated return must be submitted as a correction.');
+        Assert.IsTrue(DocHeader."IRIS Corrected", 'The accepted correction must be completed.');
+        Assert.IsFalse(DocHeader."IRIS Needs Correction", 'Accepted values no longer need correction.');
+        Assert.IsFalse(DocHeader."IRIS Updated Not Sent", 'The updated values have been sent.');
+        Assert.IsFalse(DocHeader."IRIS Corrected to Zeros", 'The updated return must not be zeroed.');
+        SourceDocHeader.Get(SourceDocHeader.ID);
+        Assert.AreEqual(SourceDocHeader.Status::Abandoned, SourceDocHeader.Status, 'The old local version remains abandoned.');
+    end;
+
     local procedure VerifyPendingZeroCorrection(var DocHeader: Record "IRS 1099 Form Doc. Header")
     begin
         DocHeader.Get(DocHeader.ID);
@@ -5166,7 +5214,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     begin
         ReplacementDocHeader.Get(ReplacementDocHeader.ID);
         Assert.AreEqual(ReplacementDocHeader.Status::Released, ReplacementDocHeader.Status, 'The replacement has not been submitted.');
-        Assert.AreEqual(ReplacementDocHeader."IRIS Submission Status"::None, ReplacementDocHeader."IRIS Submission Status", 'The original acknowledgment does not acknowledge the replacement.');
+        Assert.AreEqual(ReplacementDocHeader."IRIS Submission Status"::Accepted, ReplacementDocHeader."IRIS Submission Status", 'The replacement retains the accepted source filing status.');
         Assert.IsTrue(ReplacementDocHeader."IRIS Updated Not Sent", 'The replacement must retain its unsent values.');
         Assert.AreEqual(ExpectedModifiedAt, ReplacementDocHeader.SystemModifiedAt, 'An attempt must not write a document outside its logged membership.');
     end;

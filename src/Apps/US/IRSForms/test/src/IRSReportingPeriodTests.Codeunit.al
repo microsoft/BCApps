@@ -698,22 +698,22 @@ codeunit 148016 "IRS Reporting Period Tests"
         Commit();
         OtherCompany.Insert(true);
         ReportingPeriod.ChangeCompany(OtherCompany.Name);
-        ReportingPeriod."No." := 'OTHER2026';
-        ReportingPeriod."Starting Date" := 20260101D;
-        ReportingPeriod."Ending Date" := 20261231D;
+        ReportingPeriod."No." := '2027';
+        ReportingPeriod."Starting Date" := 20270101D;
+        ReportingPeriod."Ending Date" := 20271231D;
         ReportingPeriod.Insert();
 
         // [WHEN] That company's target setup is reconciled twice.
-        LibraryIRSReportingPeriod.UpdateAnnualSetup('OTHER2026', OtherCompany.Name);
-        Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('OTHER2026', OtherCompany.Name);
+        LibraryIRSReportingPeriod.UpdateAnnualSetup('2027', OtherCompany.Name);
+        Details := LibraryIRSReportingPeriod.UpdateAnnualSetup('2027', OtherCompany.Name);
         FormBox.ChangeCompany(OtherCompany.Name);
-        FormBox.Get('OTHER2026', 'NEC', 'NEC-01');
+        FormBox.Get('2027', 'NEC', 'NEC-01');
         OtherMinimum := FormBox."Minimum Reportable Amount";
         SupplementalBox.ChangeCompany(OtherCompany.Name);
-        SupplementalBox.SetRange("Period No.", 'OTHER2026');
+        SupplementalBox.SetRange("Period No.", '2027');
         SupplBoxCount := SupplementalBox.Count();
         StatementLine.ChangeCompany(OtherCompany.Name);
-        StatementLine.SetRange("Period No.", 'OTHER2026');
+        StatementLine.SetRange("Period No.", '2027');
         StatementLine.SetRange("Value Source", StatementLine."Value Source"::"Supplemental Line");
         StatementCount := StatementLine.Count();
         Commit();
@@ -2014,6 +2014,30 @@ codeunit 148016 "IRS Reporting Period Tests"
         Assert.AreEqual(1, StatementCount, 'Repeated cross-company copying must not duplicate selectors.');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure AnnualSetupRejectsNonYearPeriodNumber()
+    var
+        ReportingPeriod: Record "IRS Reporting Period";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Supplemental setup uses the numeric period number, not a year inferred from its dates.
+        Initialize();
+
+        // [GIVEN] Period P has 2026 dates but a non-year identifier.
+        ReportingPeriod."No." := 'OTHER2026';
+        ReportingPeriod."Starting Date" := 20260101D;
+        ReportingPeriod."Ending Date" := 20261231D;
+        ReportingPeriod.Insert();
+
+        // [WHEN] Annual supplemental setup is updated.
+        asserterror LibraryIRSReportingPeriod.UpdateAnnualSetup(ReportingPeriod."No.", CompanyName());
+
+        // [THEN] The shared tax-year validation rejects the identifier.
+        Assert.ExpectedError('The IRIS tax year OTHER2026 must contain four digits');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
     local procedure Initialize()
     begin
         LibraryLowerPermissions.StopLoggingNAVPermissions();
@@ -2042,8 +2066,13 @@ codeunit 148016 "IRS Reporting Period Tests"
     end;
 
     local procedure CreateBoxSetupTestPeriod(TargetCompany: Text) PeriodNo: Code[20]
+    var
+        ReportingPeriod: Record "IRS Reporting Period";
     begin
-        PeriodNo := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(PeriodNo));
+        ReportingPeriod.ChangeCompany(TargetCompany);
+        PeriodNo := '2100';
+        while ReportingPeriod.Get(PeriodNo) do
+            PeriodNo := IncStr(PeriodNo);
         CreateBoxSetupTestPeriodInCompany(PeriodNo, TargetCompany);
     end;
 

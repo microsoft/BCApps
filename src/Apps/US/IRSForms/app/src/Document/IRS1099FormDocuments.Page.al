@@ -290,7 +290,7 @@ page 10036 "IRS 1099 Form Documents"
     /// <summary>
     /// Shows document IDs when selecting a source for copying supplemental lines.
     /// </summary>
-    procedure SetSupplementalCopyLookup()
+    internal procedure SetSupplementalCopyLookup()
     begin
         DocumentIDVisible := true;
     end;
