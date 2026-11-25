@@ -105,21 +105,13 @@ table 7230 "Master Data Management Setup"
                 MasterDataMgtSetupDefault.UpdateChangeDetectorJob(Rec);
             end;
         }
-#if not CLEANSCHEMA33
+        // The request URL is built at runtime from the source environment name and this environment's tenant, so this
+        // field isn't read any more. It's kept unchanged in this release; it is obsoleted in 30.0.
         field(156; "Source Environment URL"; Text[250])
         {
             Caption = 'Source Environment URL';
             DataClassification = OrganizationIdentifiableInformation;
-            ObsoleteReason = 'The source request URL is no longer stored. It is built at runtime from the source environment name and the tenant of this environment.';
-#if not CLEAN30
-            ObsoleteState = Pending;
-            ObsoleteTag = '30.0';
-#else
-            ObsoleteState = Removed;
-            ObsoleteTag = '33.0';
-#endif
         }
-#endif
         field(157; "Source Company Name"; Text[100])
         {
             Caption = 'Source Company';
@@ -274,11 +266,7 @@ table 7230 "Master Data Management Setup"
     // Reverting to same-environment: drop the source connection details and the stored credentials.
     internal procedure ClearCrossEnvConnection()
     begin
-#if not CLEAN30
-#pragma warning disable AL0432
         "Source Environment URL" := '';
-#pragma warning restore AL0432
-#endif
         "Source Company Name" := '';
         "Source OAuth Client Id" := '';
         ClearSourceCredentials();

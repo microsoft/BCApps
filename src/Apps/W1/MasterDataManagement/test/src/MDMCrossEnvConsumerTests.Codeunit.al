@@ -106,12 +106,8 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [GIVEN] a cross-environment setup
         MasterDataManagementSetup.Get();
         MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
-#if not CLEAN30
-        // [GIVEN] the stored (obsolete) source URL was changed to point to another tenant's environment
-#pragma warning disable AL0432
+        // [GIVEN] the stored source URL was changed to point to another tenant's environment
         MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/00000000-0000-0000-0000-0000000000aa/OTHER-PROD';
-#pragma warning restore AL0432
-#endif
         MasterDataManagementSetup.Modify(false);
 
         // [WHEN] the transport builds the source URL
