@@ -807,6 +807,39 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
+    procedure ReceiptDataCannotBeAppliedToLostReceiptCardExpenseNotOnReport()
+    var
+        Expense: Record Expense;
+        CardReceiptData: Record "EA Card Receipt Data";
+    begin
+        // [SCENARIO] A released card expense that is not on a report and has a lost receipt is not waiting for a receipt.
+        Initialize();
+
+        // [GIVEN] A released card expense that is not on a report, with a lost receipt, and receipt data for it.
+        CreateReleasedCardExpenseNotOnReport(Expense);
+        CreateCardReceiptData(CardReceiptData, Expense);
+        Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
+        Expense.Modify();
+        Commit();
+
+        // [WHEN] Receipt data is staged for the expense.
+        asserterror CardReceiptDataApply.GetCardExpense(Expense.SystemId, Expense);
+
+        // [THEN] An error says the expense is not waiting for a receipt.
+        Assert.ExpectedError(StrSubstNo(NotWaitingForReceiptErr, Expense."No."));
+
+        // [WHEN] The receipt data is applied.
+        asserterror CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] An error says the expense is not waiting for a receipt, and nothing is attached.
+        Assert.ExpectedError(StrSubstNo(NotWaitingForReceiptErr, Expense."No."));
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField("Receipt Attached", false);
+        Assert.AreEqual(0, CountAttachments(Database::Expense, Expense."No.", 0), 'No receipt must be attached to the expense.');
+    end;
+
+    [Test]
     procedure ReceiptDataCannotBeStagedForManualExpense()
     var
         Expense: Record Expense;

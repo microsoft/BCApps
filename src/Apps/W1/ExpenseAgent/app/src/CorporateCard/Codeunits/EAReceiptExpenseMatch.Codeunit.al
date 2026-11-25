@@ -99,7 +99,7 @@ codeunit 7438 "EA Receipt Expense Match"
         ExpenseReportLine: Record "Expense Report Line";
     begin
         if Expense."Expense Report No." = '' then
-            exit(Expense.Status in [Expense.Status::Open, Expense.Status::Released]);
+            exit((Expense.Status in [Expense.Status::Open, Expense.Status::Released]) and (Expense."No Receipt Type" <> Expense."No Receipt Type"::"Lost Receipt"));
 
         if Expense.Status <> Expense.Status::Submitted then
             exit(false);
