@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
+using System.Utilities;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching]
 codeunit 148370 EAReceiptMatchTests
@@ -28,6 +29,8 @@ codeunit 148370 EAReceiptMatchTests
         ReceiptRequiredErr: Label 'Upload the receipt file and its file name before you apply the receipt data.';
         ReceiptNoMandatoryOnExpenseErr: Label 'Receipt No. is mandatory on Expense No. %1', Comment = '%1 = Expense No.';
         ReceiptNoMandatoryOnReportLineErr: Label 'Receipt No. is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
+        ExpenseDocumentAttachmentMandatoryMsg: Label 'Document Attachment is mandatory on Expense No. %1', Comment = '%1 = Expense No.';
+        ERLDocumentAttachmentMandatoryMsg: Label 'Document Attachment is mandatory on Expense Report No. %1 Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
         RuleViolationPresentOnLineErr: Label 'There are one or more rule violations in this expense report. Check the expenses marked for review before submitting again.';
 
     [Test]
@@ -800,9 +803,47 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
 
-        // [THEN] Neither has the receipt number violation.
+        // [THEN] Neither has the receipt number violation, and both report the missing receipt.
         Assert.IsFalse(HasExpenseViolation(Expense, StrSubstNo(ReceiptNoMandatoryOnExpenseErr, Expense."No.")), 'A card expense waiting for a receipt must not require a receipt number.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line waiting for a receipt must not require a receipt number.');
+        Assert.IsTrue(HasExpenseViolation(Expense, StrSubstNo(ExpenseDocumentAttachmentMandatoryMsg, Expense."No.")), 'A card expense waiting for a receipt must report the missing receipt.');
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ERLDocumentAttachmentMandatoryMsg, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line waiting for a receipt must report the missing receipt.');
+    end;
+
+    [Test]
+    procedure ReceiptAttachedDirectlyToCardLineRunsAllRules()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        DocumentAttachment: Record "Document Attachment";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        TempBlob: Codeunit "Temp Blob";
+        LineRecordRef: RecordRef;
+        ReceiptInStream: InStream;
+        ReceiptOutStream: OutStream;
+    begin
+        // [SCENARIO] Attaching a receipt directly to a card line checks the line against all rules right away.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card line waiting for a receipt on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
+
+        // [WHEN] A receipt is attached directly to the line.
+        TempBlob.CreateOutStream(ReceiptOutStream);
+        ReceiptOutStream.WriteText('Receipt');
+        TempBlob.CreateInStream(ReceiptInStream);
+        LineRecordRef.GetTable(ExpenseReportLine);
+        DocumentAttachment.InitFieldsFromRecRef(LineRecordRef);
+        DocumentAttachment.SaveAttachmentFromStream(ReceiptInStream, LineRecordRef, 'receipt.txt');
+
+        // [THEN] The missing receipt violation is gone and the receipt number rule applies.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Receipt Attached", true);
+        Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ERLDocumentAttachmentMandatoryMsg, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line with a receipt must not report a missing receipt.');
+        Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line with a receipt must require a receipt number.');
     end;
 
     [Test]

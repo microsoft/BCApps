@@ -63,7 +63,7 @@ codeunit 6902 "Expense Rule Validation"
     begin
         ExpenseRuleViolation.ClearRuleViolations(Expense."No.");
         if IsCardExpenseWaitingForReceipt(Expense) then begin
-            CheckAttachmentsOnExpense(Expense);
+            AddMissingAttachmentViolation(Expense);
             exit;
         end;
         InitialExpenseValidation(Expense);
@@ -861,9 +861,9 @@ codeunit 6902 "Expense Rule Validation"
     end;
 
     /// <summary>
-    /// Validates the report line against the rules. While a card line waits for its receipt, only the category's attachment
-    /// requirement is checked, because the receipt brings the receipt number, merchant and details. FullValidation runs all
-    /// rules regardless, which releasing the report requires.
+    /// Validates the report line against the rules. While a card line waits for its receipt, it only reports the missing
+    /// receipt, because the receipt brings the receipt number, merchant and details. FullValidation runs all rules regardless,
+    /// which releasing the report requires.
     /// </summary>
     procedure ValidateExpenseReportLineAgainstRule(var ExpenseReportLine: Record "Expense Report Line"; FullValidation: Boolean)
     var
@@ -872,7 +872,7 @@ codeunit 6902 "Expense Rule Validation"
     begin
         ExpenseReportRuleViolation.ClearRuleViolations(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         if not FullValidation and IsCardLineWaitingForReceipt(ExpenseReportLine) then begin
-            CheckAttachmentsOnExpenseReportLine(ExpenseReportLine);
+            AddMissingAttachmentViolation(ExpenseReportLine);
             exit;
         end;
         InitialExpenseReportLineValidation(ExpenseReportLine);
