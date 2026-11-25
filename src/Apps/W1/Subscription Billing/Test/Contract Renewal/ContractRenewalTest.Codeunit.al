@@ -308,6 +308,130 @@ codeunit 139692 "Contract Renewal Test"
         Assert.AreEqual(RenewalLineCount, ContractRenewalLine.Count(), 'The stored Contract Renewal Lines should not be changed.');
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CreateContractRenewalQuotesFromCodeChecksLinkedVendorLinesOutsideFilter()
+    var
+        ContractRenewalLine: Record "Sub. Contract Renewal Line";
+        VendorContractRenewalLine: Record "Sub. Contract Renewal Line";
+        SelectContractRenewal: Report "Select Contract Renewal";
+        CreateContractRenewal: Codeunit "Create Sub. Contract Renewal";
+        EmptyDateFormula: DateFormula;
+        CreatedSalesQuoteNos: List of [Code[20]];
+    begin
+        // [SCENARIO] Linked vendor renewal lines are checked as part of the contract, even if the caller's filters only select the customer contract
+        Initialize();
+        DeleteAllContracts();
+
+        // [GIVEN] A customer contract with renewal lines and a linked vendor renewal line
+        CreateBaseData();
+        Commit(); // close transaction before report is called
+
+        AddVendorServices := true;
+        SelectContractRenewal.Run();
+
+        // [GIVEN] The linked vendor renewal line has no Renewal Term
+        VendorContractRenewalLine.SetFilter("Linked to Sub. Line Entry No.", '<>0');
+        VendorContractRenewalLine.FindFirst();
+        VendorContractRenewalLine."Renewal Term" := EmptyDateFormula;
+        VendorContractRenewalLine.Modify(false);
+
+        // [WHEN] The renewal quotes are created from code, filtered on the customer contract only
+        ContractRenewalLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        CreateContractRenewal.CreateContractRenewalQuotes(ContractRenewalLine, CreatedSalesQuoteNos);
+
+        // [THEN] No quote is created, and the error is written to the linked vendor renewal line
+        Assert.AreEqual(0, CreatedSalesQuoteNos.Count(), 'No Sales Quote should be created when a linked vendor renewal line is invalid.');
+        VendorContractRenewalLine.Get(VendorContractRenewalLine."Subscription Line Entry No.");
+        Assert.AreNotEqual('', VendorContractRenewalLine."Error Message", 'The Error Message should be filled on the linked vendor renewal line.');
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CreateContractRenewalQuotesFromCodeContinuesAfterLineWithoutContractNo()
+    var
+        ContractRenewalLine: Record "Sub. Contract Renewal Line";
+        InvalidContractRenewalLine: Record "Sub. Contract Renewal Line";
+        SelectContractRenewal: Report "Select Contract Renewal";
+        CreateContractRenewal: Codeunit "Create Sub. Contract Renewal";
+        CreatedSalesQuoteNos: List of [Code[20]];
+    begin
+        // [SCENARIO] A customer renewal line without a contract number gets an error message, and the contracts are still processed
+        Initialize();
+        DeleteAllContracts();
+
+        // [GIVEN] Two customer contracts with two renewable customer subscription lines each
+        CreateBaseData();
+        CreateBaseData(true);
+        Commit(); // close transaction before report is called
+
+        AddVendorServices := false;
+        SelectContractRenewal.Run();
+
+        // [GIVEN] One customer renewal line of the first contract has no contract number
+        InvalidContractRenewalLine.SetFilter("Subscription Contract No.", '<>%1', CustomerContract."No.");
+        InvalidContractRenewalLine.FindFirst();
+        InvalidContractRenewalLine."Subscription Contract No." := '';
+        InvalidContractRenewalLine.Modify(false);
+
+        // [WHEN] The renewal quotes are created from code
+        ContractRenewalLine.Reset();
+        CreateContractRenewal.CreateContractRenewalQuotes(ContractRenewalLine, CreatedSalesQuoteNos);
+
+        // [THEN] No error is raised, and a quote is created for each contract from its remaining renewal lines
+        Assert.AreEqual(2, CreatedSalesQuoteNos.Count(), 'Expected one Sales Quote per Contract.');
+
+        // [THEN] The renewal line without a contract number contains an error message
+        InvalidContractRenewalLine.Get(InvalidContractRenewalLine."Subscription Line Entry No.");
+        Assert.AreNotEqual('', InvalidContractRenewalLine."Error Message", 'The Error Message should be filled on the renewal line without a contract number.');
+    end;
+
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure CreateContractRenewalQuotesFromCodeContinuesAfterLineWithoutEntryNo()
+    var
+        ContractRenewalLine: Record "Sub. Contract Renewal Line";
+        InvalidContractRenewalLine: Record "Sub. Contract Renewal Line";
+        SelectContractRenewal: Report "Select Contract Renewal";
+        CreateContractRenewal: Codeunit "Create Sub. Contract Renewal";
+        CreatedSalesQuoteNos: List of [Code[20]];
+        FailingContractNo: Code[20];
+    begin
+        // [SCENARIO] A customer renewal line without a Subscription Line Entry No. fails its contract with an error message, and the next contract is still processed
+        Initialize();
+        DeleteAllContracts();
+
+        // [GIVEN] Two customer contracts with renewable customer subscription lines
+        CreateBaseData();
+        FailingContractNo := CustomerContract."No.";
+        CreateBaseData(true);
+        Commit(); // close transaction before report is called
+
+        AddVendorServices := false;
+        SelectContractRenewal.Run();
+
+        // [GIVEN] The first contract has an additional renewal line without a Subscription Line Entry No.
+        ContractRenewalLine.SetRange("Subscription Contract No.", FailingContractNo);
+        ContractRenewalLine.FindFirst();
+        InvalidContractRenewalLine := ContractRenewalLine;
+        InvalidContractRenewalLine."Subscription Line Entry No." := 0;
+        InvalidContractRenewalLine.Insert(false);
+
+        // [WHEN] The renewal quotes are created from code
+        ContractRenewalLine.Reset();
+        CreateContractRenewal.CreateContractRenewalQuotes(ContractRenewalLine, CreatedSalesQuoteNos);
+
+        // [THEN] No error is raised, and only the quote for the second contract is created
+        Assert.AreEqual(1, CreatedSalesQuoteNos.Count(), 'Expected a Sales Quote only for the Contract without errors.');
+
+        // [THEN] The renewal lines of the first contract contain an error message
+        ContractRenewalLine.SetRange("Subscription Contract No.", FailingContractNo);
+        ContractRenewalLine.FindSet();
+        repeat
+            Assert.AreNotEqual('', ContractRenewalLine."Error Message", 'The Error Message should be filled for the Contract that failed.');
+        until ContractRenewalLine.Next() = 0;
+    end;
+
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     [Test]
     procedure RunContractRenewalMgtWithAddVendorServicesIncludesVendorLines()

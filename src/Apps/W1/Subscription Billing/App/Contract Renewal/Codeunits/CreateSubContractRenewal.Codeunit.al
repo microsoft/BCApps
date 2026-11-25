@@ -71,7 +71,7 @@ codeunit 8002 "Create Sub. Contract Renewal"
 
     /// <summary>
     /// Creates one contract renewal sales quote per customer subscription contract in the given contract renewal lines, without showing any dialogs, messages or pages.
-    /// Vendor contract renewal lines that are linked to the customer lines are included in the same quote.
+    /// Vendor contract renewal lines that are linked to the customer lines are included in the same quote, even if the filters on the record exclude them.
     /// If a quote cannot be created for a contract, the error is written to the "Error Message" field of that contract's renewal lines and the next contract is processed.
     /// </summary>
     /// <remarks>
@@ -100,8 +100,8 @@ codeunit 8002 "Create Sub. Contract Renewal"
     local procedure CreateContractRenewalQuotesPerContract(var ContractRenewalLine: Record "Sub. Contract Renewal Line"; ShowProgress: Boolean)
     var
         CustomerContractRenewalLine: Record "Sub. Contract Renewal Line";
-        LinkedContractRenewalLine: Record "Sub. Contract Renewal Line";
         TempContractRenewalLine: Record "Sub. Contract Renewal Line" temporary;
+        TempLineWithoutContractRenewalLine: Record "Sub. Contract Renewal Line" temporary;
         ContractNo: Code[20];
         Window: Dialog;
         ProgressTxt: Label 'Creating Sales Quotes ...';
@@ -110,7 +110,6 @@ codeunit 8002 "Create Sub. Contract Renewal"
         Clear(CurrentSalesHeader);
 
         ContractNo := '';
-        LinkedContractRenewalLine.Copy(ContractRenewalLine);
         CustomerContractRenewalLine.Copy(ContractRenewalLine);
         CustomerContractRenewalLine.SetCurrentKey("Linked to Sub. Contract No.", "Linked to Sub. Contr. Line No.");
         CustomerContractRenewalLine.SetRange(Partner, CustomerContractRenewalLine.Partner::Customer);
@@ -118,26 +117,20 @@ codeunit 8002 "Create Sub. Contract Renewal"
             if ShowProgress then
                 Window.Open(ProgressTxt);
             repeat
-                CustomerContractRenewalLine.TestField("Subscription Contract No.");
-                CustomerContractRenewalLine.TestField("Subscription Header No.");
-                CustomerContractRenewalLine.TestField("Subscription Line Entry No.");
-                if ContractNo = '' then
+                if CustomerContractRenewalLine."Subscription Contract No." = '' then begin
+                    AddCustomerLineWithLinkedLines(TempLineWithoutContractRenewalLine, CustomerContractRenewalLine);
+                    CallCreateSingleContractRenewalFromBatch(TempLineWithoutContractRenewalLine);
+                    TempLineWithoutContractRenewalLine.Reset();
+                    TempLineWithoutContractRenewalLine.DeleteAll(false);
+                end else begin
+                    if (ContractNo <> '') and (ContractNo <> CustomerContractRenewalLine."Subscription Contract No.") then begin
+                        CallCreateSingleContractRenewalFromBatch(TempContractRenewalLine);
+                        TempContractRenewalLine.Reset();
+                        TempContractRenewalLine.DeleteAll(false);
+                    end;
                     ContractNo := CustomerContractRenewalLine."Subscription Contract No.";
-                if ContractNo <> CustomerContractRenewalLine."Subscription Contract No." then begin
-                    CallCreateSingleContractRenewalFromBatch(TempContractRenewalLine);
-                    TempContractRenewalLine.Reset();
-                    TempContractRenewalLine.DeleteAll(false);
-                    ContractNo := CustomerContractRenewalLine."Subscription Contract No.";
+                    AddCustomerLineWithLinkedLines(TempContractRenewalLine, CustomerContractRenewalLine);
                 end;
-                TempContractRenewalLine := CustomerContractRenewalLine;
-                TempContractRenewalLine.Insert(false);
-                LinkedContractRenewalLine.SetRange("Subscription Header No.", CustomerContractRenewalLine."Subscription Header No.");
-                LinkedContractRenewalLine.SetRange("Linked to Sub. Line Entry No.", CustomerContractRenewalLine."Subscription Line Entry No.");
-                if LinkedContractRenewalLine.FindSet() then
-                    repeat
-                        TempContractRenewalLine := LinkedContractRenewalLine;
-                        TempContractRenewalLine.Insert(false);
-                    until LinkedContractRenewalLine.Next() = 0;
             until CustomerContractRenewalLine.Next() = 0;
             CallCreateSingleContractRenewalFromBatch(TempContractRenewalLine);
             TempContractRenewalLine.Reset();
@@ -145,6 +138,25 @@ codeunit 8002 "Create Sub. Contract Renewal"
             if ShowProgress then
                 Window.Close();
         end;
+    end;
+
+    local procedure AddCustomerLineWithLinkedLines(var TempContractRenewalLine: Record "Sub. Contract Renewal Line" temporary; CustomerContractRenewalLine: Record "Sub. Contract Renewal Line")
+    var
+        LinkedContractRenewalLine: Record "Sub. Contract Renewal Line";
+    begin
+        TempContractRenewalLine := CustomerContractRenewalLine;
+        TempContractRenewalLine.Insert(false);
+
+        if (CustomerContractRenewalLine."Subscription Line Entry No." = 0) or (CustomerContractRenewalLine."Subscription Header No." = '') then
+            exit;
+
+        LinkedContractRenewalLine.SetRange("Subscription Header No.", CustomerContractRenewalLine."Subscription Header No.");
+        LinkedContractRenewalLine.SetRange("Linked to Sub. Line Entry No.", CustomerContractRenewalLine."Subscription Line Entry No.");
+        if LinkedContractRenewalLine.FindSet() then
+            repeat
+                TempContractRenewalLine := LinkedContractRenewalLine;
+                TempContractRenewalLine.Insert(false);
+            until LinkedContractRenewalLine.Next() = 0;
     end;
 
     internal procedure OpenSalesQuotes()
