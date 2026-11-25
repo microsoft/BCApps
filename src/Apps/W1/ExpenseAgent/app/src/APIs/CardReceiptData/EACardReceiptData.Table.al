@@ -48,11 +48,6 @@ table 7427 "EA Card Receipt Data"
             Caption = 'Expense Category';
             ToolTip = 'Specifies the expense category to set when the expense or line has none.';
         }
-        field(21; "Expense Subcategory"; Code[20])
-        {
-            Caption = 'Expense Subcategory';
-            ToolTip = 'Specifies the expense subcategory to set when the expense has none.';
-        }
         field(22; Description; Text[100])
         {
             Caption = 'Description';
@@ -62,11 +57,6 @@ table 7427 "EA Card Receipt Data"
         {
             Caption = 'Justification';
             ToolTip = 'Specifies the justification to set when the expense or line has none.';
-        }
-        field(24; "Expense Time"; Time)
-        {
-            Caption = 'Expense Time';
-            ToolTip = 'Specifies the time on the receipt to set when the expense or line has none.';
         }
         field(25; "Merchant Registration No."; Text[50])
         {
@@ -82,36 +72,6 @@ table 7427 "EA Card Receipt Data"
         {
             Caption = 'Expense External Document No.';
             ToolTip = 'Specifies the receipt number to set when the expense or line has none.';
-        }
-        field(28; "VAT Bus. Posting Group"; Code[20])
-        {
-            Caption = 'VAT Bus. Posting Group';
-            ToolTip = 'Specifies the VAT business posting group to set when the expense or line has none.';
-        }
-        field(29; "VAT Prod. Posting Group"; Code[20])
-        {
-            Caption = 'VAT Prod. Posting Group';
-            ToolTip = 'Specifies the VAT product posting group to set when the expense or line has none.';
-        }
-        field(30; "Job No."; Code[20])
-        {
-            Caption = 'Project No.';
-            ToolTip = 'Specifies the project to set when the expense or line has none.';
-        }
-        field(31; "Job Task No."; Code[20])
-        {
-            Caption = 'Project Task No.';
-            ToolTip = 'Specifies the project task to set when the expense or line has none.';
-        }
-        field(32; Billable; Boolean)
-        {
-            Caption = 'Billable';
-            ToolTip = 'Specifies whether to mark the expense or line as billable. A value of false never clears it.';
-        }
-        field(33; "Billable to Customer"; Code[20])
-        {
-            Caption = 'Billable to Customer';
-            ToolTip = 'Specifies the customer to bill when the expense or line has none.';
         }
     }
 

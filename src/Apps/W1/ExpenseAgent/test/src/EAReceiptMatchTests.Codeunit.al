@@ -6,7 +6,6 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
-using Microsoft.Projects.Project.Job;
 using System.Utilities;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Receipt Matching]
@@ -22,7 +21,6 @@ codeunit 148370 EAReceiptMatchTests
         CorpCardTestLib: Codeunit EACorpCardTestLib;
         LibraryERM: Codeunit "Library - ERM";
         LibraryExpense: Codeunit "Library - Expense";
-        LibraryJob: Codeunit "Library - Job";
         ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
         CardReceiptDataApply: Codeunit "EA Card Receipt Data Apply";
         CannotDeleteCardExpenseErr: Label 'You cannot delete expense %1 because it is linked to a corporate card transaction.', Comment = '%1 = Expense No.';
@@ -839,32 +837,34 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure ReceiptDataCannotLeaveReleasedCardExpenseWithProjectButNoTask()
+    procedure ReleasedCardExpenseGoesThroughReleaseChecksWhenReceiptIsApplied()
     var
         Expense: Record Expense;
-        Job: Record Job;
+        CorpCard: Record "EA Corp Card";
         CardReceiptData: Record "EA Card Receipt Data";
     begin
         // [SCENARIO] Receipt data applied to a released card expense must pass the release checks before the expense is released again.
         Initialize();
 
-        // [GIVEN] A released card expense that is not on a report, and receipt data with a project but no project task.
+        // [GIVEN] A released card expense that is not on a report, whose card was blocked afterwards, and receipt data for it.
         CreateReleasedCardExpenseNotOnReport(Expense);
-        LibraryJob.CreateJob(Job);
+        CorpCard.Get(Expense."Corporate Card Id");
+        CorpCard.Blocked := true;
+        CorpCard.Modify();
         CreateCardReceiptData(CardReceiptData, Expense);
-        CardReceiptData."Job No." := Job."No.";
+        CardReceiptData.Justification := 'Receipt justification';
         CardReceiptData.Modify();
         Commit();
 
         // [WHEN] The receipt data is applied.
         asserterror CardReceiptDataApply.Apply(CardReceiptData);
 
-        // [THEN] The release check rejects the missing project task, and the expense stays released without the project or the receipt.
-        Assert.ExpectedTestFieldError(Expense.FieldCaption("Job Task No."), '');
+        // [THEN] The release check rejects the blocked card, and the expense stays released without the receipt or the justification.
+        Assert.ExpectedTestFieldError(CorpCard.FieldCaption(Blocked), Format(false));
         Expense.Get(Expense."No.");
         Expense.TestField(Status, Expense.Status::Released);
-        Expense.TestField("Job No.", '');
         Expense.TestField("Receipt Attached", false);
+        Expense.TestField(Justification, '');
     end;
 
     [Test]

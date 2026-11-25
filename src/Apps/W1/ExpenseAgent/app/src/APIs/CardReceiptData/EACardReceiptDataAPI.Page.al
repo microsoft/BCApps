@@ -53,10 +53,6 @@ page 7421 "EA Card Receipt Data API"
                 {
                     Caption = 'Expense Category';
                 }
-                field(expenseSubcategory; Rec."Expense Subcategory")
-                {
-                    Caption = 'Expense Subcategory';
-                }
                 field(description; Rec.Description)
                 {
                     Caption = 'Description';
@@ -64,10 +60,6 @@ page 7421 "EA Card Receipt Data API"
                 field(justification; Rec.Justification)
                 {
                     Caption = 'Justification';
-                }
-                field(expenseTime; Rec."Expense Time")
-                {
-                    Caption = 'Expense Time';
                 }
                 field(merchantRegistrationNo; Rec."Merchant Registration No.")
                 {
@@ -80,30 +72,6 @@ page 7421 "EA Card Receipt Data API"
                 field(expenseExtDocNo; Rec."Expense Ext. Doc. No.")
                 {
                     Caption = 'Expense External Document No.';
-                }
-                field(vatBusPostingGroup; Rec."VAT Bus. Posting Group")
-                {
-                    Caption = 'VAT Bus. Posting Group';
-                }
-                field(vatProdPostingGroup; Rec."VAT Prod. Posting Group")
-                {
-                    Caption = 'VAT Prod. Posting Group';
-                }
-                field(projectNo; Rec."Job No.")
-                {
-                    Caption = 'Project No.';
-                }
-                field(projectTaskNo; Rec."Job Task No.")
-                {
-                    Caption = 'Project Task No.';
-                }
-                field(billable; Rec.Billable)
-                {
-                    Caption = 'Billable';
-                }
-                field(billableToCustomer; Rec."Billable to Customer")
-                {
-                    Caption = 'Billable to Customer';
                 }
                 part(cardReceiptParticipants; "EA Card Receipt Particip. API")
                 {

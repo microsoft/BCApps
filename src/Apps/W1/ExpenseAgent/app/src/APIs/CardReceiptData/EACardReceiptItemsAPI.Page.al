@@ -30,10 +30,6 @@ page 7423 "EA Card Receipt Items API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(receiptDataId; Rec."Receipt Data Id")
-                {
-                    Caption = 'Receipt Data Id';
-                }
                 field(lineNo; Rec."Line No.")
                 {
                     Caption = 'Line No.';
@@ -57,10 +53,6 @@ page 7423 "EA Card Receipt Items API"
                 field(dailyRate; Rec."Daily Rate")
                 {
                     Caption = 'Daily Rate';
-                }
-                field(amount; Rec.Amount)
-                {
-                    Caption = 'Amount';
                 }
             }
         }

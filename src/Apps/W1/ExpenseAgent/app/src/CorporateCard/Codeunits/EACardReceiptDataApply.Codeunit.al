@@ -163,82 +163,32 @@ codeunit 7450 "EA Card Receipt Data Apply"
     begin
         if (Expense."Expense Category" = '') and (CardReceiptData."Expense Category" <> '') then
             Expense.Validate("Expense Category", CardReceiptData."Expense Category");
-        if (Expense."Expense Subcategory" = '') and (CardReceiptData."Expense Subcategory" <> '') and
-           (Expense."Expense Category" = CardReceiptData."Expense Category")
-        then
-            Expense.Validate("Expense Subcategory", CardReceiptData."Expense Subcategory");
         if (Expense.Description = '') and (CardReceiptData.Description <> '') then
             Expense.Validate(Description, CardReceiptData.Description);
         if (Expense.Justification = '') and (CardReceiptData.Justification <> '') then
             Expense.Validate(Justification, CardReceiptData.Justification);
-        if (Expense."Expense Time" = 0T) and (CardReceiptData."Expense Time" <> 0T) then
-            Expense.Validate("Expense Time", CardReceiptData."Expense Time");
         if (Expense."Expense Ext. Doc. No." = '') and (CardReceiptData."Expense Ext. Doc. No." <> '') then
             Expense.Validate("Expense Ext. Doc. No.", CardReceiptData."Expense Ext. Doc. No.");
         if (Expense."Merchant Registration No." = '') and (CardReceiptData."Merchant Registration No." <> '') then
             Expense.Validate("Merchant Registration No.", CardReceiptData."Merchant Registration No.");
         if (Expense."Merchant VAT Registration No." = '') and (CardReceiptData."Merchant VAT Registration No." <> '') then
             Expense.Validate("Merchant VAT Registration No.", CardReceiptData."Merchant VAT Registration No.");
-        if (Expense."VAT Bus. Posting Group" = '') and (CardReceiptData."VAT Bus. Posting Group" <> '') then
-            Expense.Validate("VAT Bus. Posting Group", CardReceiptData."VAT Bus. Posting Group");
-        if (Expense."VAT Prod. Posting Group" = '') and (CardReceiptData."VAT Prod. Posting Group" <> '') then
-            Expense.Validate("VAT Prod. Posting Group", CardReceiptData."VAT Prod. Posting Group");
-        // A project and a billable customer are mutually exclusive, so neither is filled when the other is already set.
-        if (Expense."Job No." = '') and (Expense."Billable to Customer" = '') and (CardReceiptData."Job No." <> '') then
-            Expense.Validate("Job No.", CardReceiptData."Job No.");
-        if (Expense."Job Task No." = '') and (CardReceiptData."Job Task No." <> '') and (Expense."Job No." = CardReceiptData."Job No.") then
-            Expense.Validate("Job Task No.", CardReceiptData."Job Task No.");
-        if (not Expense.Billable) and CardReceiptData.Billable then
-            Expense.Validate(Billable, true);
-        if (Expense."Billable to Customer" = '') and (Expense."Job No." = '') and (CardReceiptData."Billable to Customer" <> '') then
-            Expense.Validate("Billable to Customer", CardReceiptData."Billable to Customer");
     end;
 
     local procedure FillReportLineFields(CardReceiptData: Record "EA Card Receipt Data"; var ExpenseReportLine: Record "Expense Report Line")
-    var
-        ExpenseReportHeader: Record "Expense Report Header";
-        VATPostingSetup: Record "VAT Posting Setup";
     begin
         if (ExpenseReportLine."Expense Category" = '') and (CardReceiptData."Expense Category" <> '') then
             ExpenseReportLine.Validate("Expense Category", CardReceiptData."Expense Category");
-        if (ExpenseReportLine."Expense Subcategory Code" = '') and (CardReceiptData."Expense Subcategory" <> '') and
-           (ExpenseReportLine."Expense Category" = CardReceiptData."Expense Category")
-        then
-            ExpenseReportLine.Validate("Expense Subcategory Code", CardReceiptData."Expense Subcategory");
         if (ExpenseReportLine.Description = '') and (CardReceiptData.Description <> '') then
             ExpenseReportLine.Validate(Description, CardReceiptData.Description);
         if (ExpenseReportLine.Justification = '') and (CardReceiptData.Justification <> '') then
             ExpenseReportLine.Validate(Justification, CardReceiptData.Justification);
-        if (ExpenseReportLine."Expense Time" = 0T) and (CardReceiptData."Expense Time" <> 0T) then
-            ExpenseReportLine.Validate("Expense Time", CardReceiptData."Expense Time");
         if (ExpenseReportLine."Expense Ext. Doc. No." = '') and (CardReceiptData."Expense Ext. Doc. No." <> '') then
             ExpenseReportLine.Validate("Expense Ext. Doc. No.", CardReceiptData."Expense Ext. Doc. No.");
         if (ExpenseReportLine."Merchant Registration No." = '') and (CardReceiptData."Merchant Registration No." <> '') then
             ExpenseReportLine.Validate("Merchant Registration No.", CardReceiptData."Merchant Registration No.");
         if (ExpenseReportLine."Merchant VAT Registration No." = '') and (CardReceiptData."Merchant VAT Registration No." <> '') then
             ExpenseReportLine.Validate("Merchant VAT Registration No.", CardReceiptData."Merchant VAT Registration No.");
-        // A line must use the VAT business posting group of its expense report. Like Create Expense Report, unresolved VAT
-        // mappings are kept without validation so they don't block the line; posting validates the accounting setup.
-        if (ExpenseReportLine."VAT Bus. Posting Group" = '') and (CardReceiptData."VAT Bus. Posting Group" <> '') then begin
-            ExpenseReportHeader.SetLoadFields("VAT Bus. Posting Group");
-            ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
-            if ExpenseReportHeader."VAT Bus. Posting Group" = CardReceiptData."VAT Bus. Posting Group" then
-                ExpenseReportLine."VAT Bus. Posting Group" := CardReceiptData."VAT Bus. Posting Group";
-        end;
-        if (ExpenseReportLine."VAT Prod. Posting Group" = '') and (CardReceiptData."VAT Prod. Posting Group" <> '') then begin
-            ExpenseReportLine."VAT Prod. Posting Group" := CardReceiptData."VAT Prod. Posting Group";
-            if VATPostingSetup.Get(ExpenseReportLine."VAT Bus. Posting Group", ExpenseReportLine."VAT Prod. Posting Group") then
-                if VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Normal VAT" then
-                    ExpenseReportLine.CopyFromVATPostingSetup(VATPostingSetup);
-        end;
-        if (ExpenseReportLine."Job No." = '') and (ExpenseReportLine."Billable to Customer" = '') and (CardReceiptData."Job No." <> '') then
-            ExpenseReportLine.Validate("Job No.", CardReceiptData."Job No.");
-        if (ExpenseReportLine."Job Task No." = '') and (CardReceiptData."Job Task No." <> '') and (ExpenseReportLine."Job No." = CardReceiptData."Job No.") then
-            ExpenseReportLine.Validate("Job Task No.", CardReceiptData."Job Task No.");
-        if (not ExpenseReportLine.Billable) and CardReceiptData.Billable then
-            ExpenseReportLine.Validate(Billable, true);
-        if (ExpenseReportLine."Billable to Customer" = '') and (ExpenseReportLine."Job No." = '') and (CardReceiptData."Billable to Customer" <> '') then
-            ExpenseReportLine.Validate("Billable to Customer", CardReceiptData."Billable to Customer");
     end;
 
     local procedure AddExpenseParticipants(CardReceiptData: Record "EA Card Receipt Data"; Expense: Record Expense)
@@ -264,8 +214,6 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseParticipant."Participant Employee No." := CardReceiptParticipant."Participant Employee No.";
             ExpenseParticipant."Participant Name" := CardReceiptParticipant."Participant Name";
             ExpenseParticipant."Participant Organization" := CardReceiptParticipant."Participant Organization";
-            ExpenseParticipant."Participant Country/Region" := CardReceiptParticipant."Participant Country/Region";
-            ExpenseParticipant."Participant Title" := CardReceiptParticipant."Participant Title";
             ExpenseParticipant."Participant Email" := CardReceiptParticipant."Participant Email";
             ExpenseParticipant.Insert(true);
         until CardReceiptParticipant.Next() = 0;
@@ -295,8 +243,6 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLineParticip."Participant Employee No." := CardReceiptParticipant."Participant Employee No.";
             ExpenseReportLineParticip."Participant Name" := CardReceiptParticipant."Participant Name";
             ExpenseReportLineParticip."Participant Organization" := CardReceiptParticipant."Participant Organization";
-            ExpenseReportLineParticip."Participant Country/Region" := CardReceiptParticipant."Participant Country/Region";
-            ExpenseReportLineParticip."Participant Title" := CardReceiptParticipant."Participant Title";
             ExpenseReportLineParticip."Participant Email" := CardReceiptParticipant."Participant Email";
             ExpenseReportLineParticip.Insert(true);
         until CardReceiptParticipant.Next() = 0;
@@ -331,10 +277,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseItemization.Validate("Start Date", CardReceiptItem."Start Date");
             ExpenseItemization.Quantity := CardReceiptItem.Quantity;
             if CardReceiptItem."Daily Rate" <> 0 then
-                ExpenseItemization.Validate("Daily Rate", CardReceiptItem."Daily Rate")
-            else
-                if CardReceiptItem.Amount <> 0 then
-                    ExpenseItemization.Validate(Amount, CardReceiptItem.Amount);
+                ExpenseItemization.Validate("Daily Rate", CardReceiptItem."Daily Rate");
             ExpenseItemization.Insert(true);
         until CardReceiptItem.Next() = 0;
     end;
@@ -370,10 +313,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLineItem.Validate("Start Date", CardReceiptItem."Start Date");
             ExpenseReportLineItem.Quantity := CardReceiptItem.Quantity;
             if CardReceiptItem."Daily Rate" <> 0 then
-                ExpenseReportLineItem.Validate("Daily Rate", CardReceiptItem."Daily Rate")
-            else
-                if CardReceiptItem.Amount <> 0 then
-                    ExpenseReportLineItem.Validate(Amount, CardReceiptItem.Amount);
+                ExpenseReportLineItem.Validate("Daily Rate", CardReceiptItem."Daily Rate");
             ExpenseReportLineItem.Insert(true);
         until CardReceiptItem.Next() = 0;
     end;
@@ -399,12 +339,9 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseVATSpecification."VAT Base Amount" := CardReceiptVATSpec."VAT Base Amount";
             ExpenseVATSpecification."VAT Amount" := CardReceiptVATSpec."VAT Amount";
             ExpenseVATSpecification.Amount := CardReceiptVATSpec.Amount;
-            ExpenseVATSpecification."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", CardReceiptVATSpec."VAT Amount (LCY)", Expense."Currency Code", Expense."Currency Factor");
-            ExpenseVATSpecification."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", CardReceiptVATSpec."VAT Base Amount (LCY)", Expense."Currency Code", Expense."Currency Factor");
-            ExpenseVATSpecification."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, CardReceiptVATSpec."Amount (LCY)", Expense."Currency Code", Expense."Currency Factor");
-            ExpenseVATSpecification."VAT Bus. Posting Group" := CardReceiptVATSpec."VAT Bus. Posting Group";
-            ExpenseVATSpecification."VAT Prod. Posting Group" := CardReceiptVATSpec."VAT Prod. Posting Group";
-            ExpenseVATSpecification.Confidence := CardReceiptVATSpec.Confidence;
+            ExpenseVATSpecification."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", Expense."Currency Code", Expense."Currency Factor");
+            ExpenseVATSpecification."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", Expense."Currency Code", Expense."Currency Factor");
+            ExpenseVATSpecification."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, Expense."Currency Code", Expense."Currency Factor");
             ExpenseVATSpecification.Insert(true);
             ExpenseVATLineNos.Add(CardReceiptVATSpec."Line No.", ExpenseVATSpecification."Line No.");
         until CardReceiptVATSpec.Next() = 0;
@@ -443,13 +380,10 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLineVATSpec.Amount := CardReceiptVATSpec.Amount;
             ExpenseReportLineVATSpec."Currency Code" := ExpenseReportLine."Expense Currency Code";
             ExpenseReportLineVATSpec."Currency Factor" := ExpenseReportLine."Expense Currency Factor";
-            ExpenseReportLineVATSpec."VAT Bus. Posting Group" := CardReceiptVATSpec."VAT Bus. Posting Group";
-            ExpenseReportLineVATSpec."VAT Prod. Posting Group" := CardReceiptVATSpec."VAT Prod. Posting Group";
-            ExpenseReportLineVATSpec."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", CardReceiptVATSpec."VAT Amount (LCY)", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
-            ExpenseReportLineVATSpec."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", CardReceiptVATSpec."VAT Base Amount (LCY)", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
-            ExpenseReportLineVATSpec."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, CardReceiptVATSpec."Amount (LCY)", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
+            ExpenseReportLineVATSpec."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
+            ExpenseReportLineVATSpec."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
+            ExpenseReportLineVATSpec."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
             ExpenseReportLineVATSpec.Source := ExpenseReportLineVATSpec.Source::Agent;
-            ExpenseReportLineVATSpec.Confidence := CardReceiptVATSpec.Confidence;
             ExpenseReportLineVATSpec."Source Spec Line No." := SourceLineNo;
             if ExpenseSubcategory.Get(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code") then
                 ExpenseReportLineVATSpec.Validate("Reclaim %", ExpenseSubcategory."Default VAT Reclaim %")
@@ -467,10 +401,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
         end;
     end;
 
-    local procedure GetAmountLCY(Amount: Decimal; AmountLCY: Decimal; CurrencyCode: Code[10]; CurrencyFactor: Decimal): Decimal
+    local procedure GetAmountLCY(Amount: Decimal; CurrencyCode: Code[10]; CurrencyFactor: Decimal): Decimal
     begin
-        if AmountLCY <> 0 then
-            exit(AmountLCY);
         if CurrencyCode = '' then
             exit(Amount);
         if CurrencyFactor = 0 then
