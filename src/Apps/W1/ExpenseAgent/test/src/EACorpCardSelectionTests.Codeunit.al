@@ -389,10 +389,10 @@ codeunit 148364 EACorpCardSelectionTests
         // [SCENARIO] A manual expense must still match its linked feed amount when released, even when card selection is optional.
         Initialize();
 
-        // [GIVEN] A manually entered expense has been linked and then its amount is changed.
+        // [GIVEN] A legacy linked manual expense has an amount mismatch predating the edit lock.
         CreateLinkedManualExpense(Expense);
-        Expense.Validate(Amount, Expense.Amount + 10);
-        Expense.Modify(true);
+        Expense.Amount += 10;
+        Expense.Modify(false);
         Commit();
 
         // [WHEN] The expense is released.
