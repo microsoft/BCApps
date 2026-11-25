@@ -5347,6 +5347,67 @@ codeunit 136302 "Job Consumption Purchase"
         Assert.AreEqual(
             TotalGLAmount, TotalJobCost, StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), TotalGLAmount));
     end;
+
+    [Test]
+    procedure JobLedgerEntryTotalCostForGLAccLineInFCYWithoutChangedInvDiscAmountToInvoiceKeepsCurrencyRounding()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        GLAccountNo: Code[20];
+        CurrencyCode: Code[10];
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [G/L Account] [FCY] [Rounding]
+        // [SCENARIO 642385] Project ledger entry of a G/L Account line in foreign currency keeps the normal currency rounding when the invoice discount to invoice is not changed
+        Initialize();
+
+        // [GIVEN] Foreign currency "FCY" with "Currency Factor" = 3
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 3, 3);
+
+        // [GIVEN] Purchase invoice in "FCY" with a G/L Account line linked to a task of a project in local currency
+        // [GIVEN] The line has Quantity = 3000 and "Direct Unit Cost" = 1.00, so "Unit Cost (LCY)" = 0.33333
+        LibraryJob.CreateJob(Job);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 20);
+        LibraryPurchase.CreatePurchHeader(
+            PurchaseHeader, PurchaseHeader."Document Type"::Invoice,
+            LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        PurchaseHeader.Validate("Currency Code", CurrencyCode);
+        PurchaseHeader.Modify(true);
+        GLAccountNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Purchase);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", GLAccountNo, 3000);
+        PurchaseLine.Validate("Direct Unit Cost", 1);
+        PurchaseLine.Validate("Job No.", JobTask."Job No.");
+        PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Post the purchase invoice
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The amount of 3000.00 "FCY" is posted to the G/L account as 1000.00 LCY
+        // [THEN] Project ledger entry "Total Cost (LCY)" and "Total Cost" are equal to 1000.00
+        GLEntry.SetRange("Document No.", DocumentNo);
+        GLEntry.SetRange("G/L Account No.", GLAccountNo);
+        GLEntry.FindFirst();
+        Assert.AreEqual(1000, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), 1000));
+
+        JobLedgerEntry.SetRange("Document No.", DocumentNo);
+        JobLedgerEntry.SetRange("Job No.", JobTask."Job No.");
+        JobLedgerEntry.SetRange("No.", GLAccountNo);
+        JobLedgerEntry.FindFirst();
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
+    end;
+
     local procedure Initialize()
     var
         WarehouseEmployee: Record "Warehouse Employee";
