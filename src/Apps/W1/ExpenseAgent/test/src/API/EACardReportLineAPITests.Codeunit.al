@@ -45,6 +45,8 @@ codeunit 148374 "EA Card Report Line API Tests"
         ReceiptFileNameTok: Label 'receipt.png', Locked = true;
         OtherReceiptFileNameTok: Label 'other-receipt.jpg', Locked = true;
         RejectedByBusinessRuleTok: Label 'Response code is 400', Locked = true;
+        ExpenseOnReportAttachmentErr: Label 'You cannot update and delete attachment on an %1 %2 that is part of an %3 %4.', Comment = '%1 = Expense No. caption, %2 = expense number, %3 = Expense Report No. caption, %4 = report number';
+        LineAttachmentOfExpenseErr: Label 'You cannot update and delete attachment on an %1 %2, %3 %4 that is part of an %5 %6.', Comment = '%1 = Expense Report No. caption, %2 = report number, %3 = Line No. caption, %4 = line number, %5 = Expense No. caption, %6 = expense number';
         OnePixelPngBase64Tok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
 
     // ---------------------------------------------------------------------------------------------
@@ -439,8 +441,10 @@ codeunit 148374 "EA Card Report Line API Tests"
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
+        ReceiptDetails: JsonObject;
         ExpenseDate: Date;
         MerchantName: Text[100];
+        LineMerchantName: Text[100];
     begin
         // [SCENARIO] OCR values for amount, date, currency and merchant never change the card values.
         Initialize();
@@ -449,13 +453,22 @@ codeunit 148374 "EA Card Report Line API Tests"
         CreateCardLine(Expense, ExpenseReportLine);
         ExpenseDate := Expense."Expense Date";
         MerchantName := Expense."Merchant Name";
+        LineMerchantName := ExpenseReportLine."Merchant Name";
         Commit();
 
-        // [WHEN] A receipt is attached. cardReceiptData has no amount, date, currency or merchant properties, so OCR
-        // values for them cannot reach the card fields.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
+        // [WHEN] A receipt is attached with OCR values for amount, date, currency and merchant.
+        ReceiptDetails := CreateReceiptDetails('');
+        ReceiptDetails.Add('amount', 99);
+        ReceiptDetails.Add('expenseDate', Format(CalcDate('<-1D>', ExpenseDate), 0, 9));
+        ReceiptDetails.Add('currencyCode', 'EUR');
+        ReceiptDetails.Add('merchantName', 'OCR MERCHANT');
+        asserterror AttachCardReceipt(ExpenseReportLine, ReceiptDetails);
 
-        // [THEN] The expense and the line keep the card values.
+        // [THEN] cardReceiptData has no such properties, so the request is rejected.
+        AssertRejectedByBusinessRule();
+
+        // [THEN] Nothing is attached, and the expense and the line keep the card values.
+        Assert.AreEqual(0, CountExpenseAttachments(Expense), 'No receipt must be attached to the expense.');
         Expense.Get(Expense."No.");
         Expense.TestField(Amount, 20);
         Expense.TestField("Expense Date", ExpenseDate);
@@ -465,6 +478,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine.TestField(Amount, 20);
         ExpenseReportLine.TestField("Expense Date", ExpenseDate);
         ExpenseReportLine.TestField("Expense Currency Code", '');
+        ExpenseReportLine.TestField("Merchant Name", LineMerchantName);
         CompleteTest();
     end;
 
@@ -622,7 +636,9 @@ codeunit 148374 "EA Card Report Line API Tests"
         FindExpenseReceipt(Expense, DocumentAttachment);
         asserterror DocumentAttachment.Delete(true);
 
-        // [THEN] The receipt is still attached to the expense and the line.
+        // [THEN] The delete is rejected, and the receipt is still attached to the expense and the line.
+        Assert.ExpectedError(
+            StrSubstNo(ExpenseOnReportAttachmentErr, ExpenseReportLine.FieldCaption("Expense No."), Expense."No.", Expense.FieldCaption("Expense Report No."), Expense."Expense Report No."));
         VerifyReceiptAttached(Expense, ExpenseReportLine);
         CompleteTest();
     end;
@@ -652,6 +668,10 @@ codeunit 148374 "EA Card Report Line API Tests"
 
         // [THEN] Deleting the receipt from the line is rejected.
         asserterror LineReceipt.Delete(true);
+        Assert.ExpectedError(
+            StrSubstNo(
+                LineAttachmentOfExpenseErr, Expense.FieldCaption("Expense Report No."), ExpenseReportLine."Document No.",
+                ExpenseReportLine.FieldCaption("Line No."), ExpenseReportLine."Line No.", ExpenseReportLine.FieldCaption("Expense No."), Expense."No."));
         LineReceipt.SetRecFilter();
         Assert.RecordIsNotEmpty(LineReceipt);
         CompleteTest();
@@ -681,8 +701,9 @@ codeunit 148374 "EA Card Report Line API Tests"
         LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(GetLineURL(ExpenseReportLine), '', ResponseText, 204);
         asserterror LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(
             LibraryGraphMgt.CreateTargetURL(Format(Expense.SystemId), Page::"Expenses API", ExpensesServiceNameTok), '', ResponseText, 204);
+        AssertRejectedByBusinessRule();
 
-        // [THEN] The expense still exists, is released again and is still linked to its transaction.
+        // [THEN] The expense delete is rejected, and the expense still exists, is released again and is still linked to its transaction.
         Assert.IsTrue(Expense.Get(Expense."No."), 'The card expense must not be deleted.');
         Expense.TestField(Status, Expense.Status::Released);
         CorpCardTrans.Get(Expense."Credit Card Feed No.");

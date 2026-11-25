@@ -622,8 +622,10 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseReportLine: Record "Expense Report Line";
         CardReceiptData: Record "EA Card Receipt Data";
         DocumentAttachment: Record "Document Attachment";
+        ReplacedAttachment: Record "Document Attachment";
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         ReplacementInStream: InStream;
+        OriginalReceiptId: Guid;
     begin
         // [SCENARIO] A receipt follows the normal attachment rules once its expense is open and no longer on a report.
         Initialize();
@@ -647,6 +649,7 @@ codeunit 148370 EAReceiptMatchTests
         Assert.ExpectedError(StrSubstNo(OpenExpenseAttachmentErr, ExpenseReportLine.FieldCaption("Expense No."), Expense."No.", Expense.FieldCaption(Status)));
 
         DocumentAttachment.FindFirst();
+        OriginalReceiptId := DocumentAttachment."Document Reference ID".MediaId();
         Expense.Get(Expense."No.");
         ReleaseExpenseDocument.PerformManualReopen(Expense);
         CreateCardReceiptData(CardReceiptData, Expense);
@@ -655,6 +658,11 @@ codeunit 148370 EAReceiptMatchTests
         DocumentAttachment.ImportFromStream(ReplacementInStream, 'replacement.pdf');
         DocumentAttachment.Validate("File Name", 'replacement');
         DocumentAttachment.Modify(true);
+
+        ReplacedAttachment.CopyFilters(DocumentAttachment);
+        ReplacedAttachment.FindFirst();
+        ReplacedAttachment.TestField("File Name", 'replacement');
+        Assert.AreNotEqual(OriginalReceiptId, ReplacedAttachment."Document Reference ID".MediaId(), 'The open expense must store the replacement receipt.');
         DocumentAttachment.Delete(true);
 
         Expense.Get(Expense."No.");
