@@ -184,39 +184,42 @@ codeunit 148371 "EA Receipt Match API Tests"
     end;
 
     [Test]
-    procedure ExpenseUsersAPIExpandFiltersExpensesOnPendingCardExpenseBeforeTop()
+    procedure ExpenseUsersAPIExpandFiltersExpensesOnCardExpenseAwaitingReportBeforeTop()
     var
+        ManualExpense: Record Expense;
+        CorpCard: Record "EA Corp Card";
         ReleasedExpense: Record Expense;
         UnlinkedExpense: Record Expense;
         PendingExpense: Record Expense;
-        OtherPendingExpense: Record Expense;
         ExpenseUser: Record "Expense User";
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] Expanding the expenses of an expense user filtered on pendingCardExpense applies the filter before $top.
+        // [SCENARIO] The expanded awaiting-report filter applies before $top.
         Initialize();
 
         // [GIVEN] Two card expenses that are not pending, followed by two newer card expenses that are.
-        CreateReleasedCardExpense(ReleasedExpense);
+        CorpCard.Get(CardIdTok);
+        CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
         CreateUnlinkedCardExpense(UnlinkedExpense);
         CreateCardExpense(PendingExpense);
-        CreateCardExpense(OtherPendingExpense);
+        CreateReleasedCardExpense(ReleasedExpense);
         ExpenseUser.Get(PendingExpense."Expense User No.");
         Commit();
 
-        // [WHEN] The expense user is read with expenses expanded on pendingCardExpense eq false, newest first, top 2.
+        // [WHEN] Read the two newest expenses that do not await a report.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
             ResponseText,
             LibraryGraphMgt.AppendQueryParameterToTargetURL(
                 LibraryGraphMgt.CreateTargetURL(Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok),
-                '$expand=expenses($filter=pendingCardExpense eq false;$orderby=systemCreatedAt desc;$top=2)'),
+                '$expand=expenses($filter=cardExpenseAwaitingReport eq false;$orderby=systemCreatedAt desc;$top=2)'),
             200);
 
         // [THEN] The two expenses that are not pending are returned.
         GetExpenseIds(ResponseText, 'expenses', ExpenseIds);
         Assert.AreEqual(2, ExpenseIds.Count(), 'The filter must be applied before $top.');
-        Assert.IsTrue(ExpenseIds.Contains(ReleasedExpense.SystemId), 'The released expense must be returned.');
+        Assert.IsFalse(ExpenseIds.Contains(ReleasedExpense.SystemId), 'The released, linked card expense still awaits a report.');
+        Assert.IsTrue(ExpenseIds.Contains(ManualExpense.SystemId), 'The manual expense must be returned.');
         Assert.IsTrue(ExpenseIds.Contains(UnlinkedExpense.SystemId), 'The expense no longer linked to its transaction must be returned.');
         CompleteTest();
     end;
