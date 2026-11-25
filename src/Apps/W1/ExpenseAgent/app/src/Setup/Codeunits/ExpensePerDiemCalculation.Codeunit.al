@@ -31,6 +31,19 @@ codeunit 6911 "Expense Per Diem Calculation"
         TripStartDateTime: DateTime;
         TripEndDateTime: DateTime): Decimal
     var
+        PerDiemAmount: Decimal;
+    begin
+        PerDiemAmount := CalculatePerDiemAmount(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime);
+        OnAfterCalculatePerDiemForSingleDay(CurrentDate, BaseRate, TripStartDateTime, TripEndDateTime, ExpenseAgentSetup, PerDiemAmount);
+        exit(PerDiemAmount);
+    end;
+
+    local procedure CalculatePerDiemAmount(
+        CurrentDate: Date;
+        BaseRate: Decimal;
+        TripStartDateTime: DateTime;
+        TripEndDateTime: DateTime): Decimal
+    var
         DayStartTime, DayEndTime : DateTime;
         HoursInDay: Decimal;
         IsFirstDay, IsLastDay, HasOvernightBefore : Boolean;
@@ -112,7 +125,7 @@ codeunit 6911 "Expense Per Diem Calculation"
 
             // Use flat percentage if configured
             if ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Flat Percentage Of Full Rate" then
-                exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
+                exit(CalculatePartialDayAmount(BaseRate))
             else
                 exit(0); // Partial day rules not configured for flat percentage
         end;
@@ -156,7 +169,7 @@ codeunit 6911 "Expense Per Diem Calculation"
                     exit(BaseRate);
                 if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
                         (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
+                    exit(CalculatePartialDayAmount(BaseRate))
                 else
                     exit(0);
             end;
@@ -210,7 +223,7 @@ codeunit 6911 "Expense Per Diem Calculation"
                     exit(BaseRate);
                 if (ExpenseAgentSetup."Partial Day Rules" = ExpenseAgentSetup."Partial Day Rules"::"Based On Eligible Hours") and
                         (PeriodDurationHours >= (ExpenseAgentSetup."Min Hours for Partial Per Diem" - GetToleranceInHours(ExpenseAgentSetup."Min Hours for Partial Per Diem"))) then
-                    exit(BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100)
+                    exit(CalculatePartialDayAmount(BaseRate))
                 else
                     exit(0);
             end;
@@ -222,9 +235,37 @@ codeunit 6911 "Expense Per Diem Calculation"
         exit(0);
     end;
 
+    local procedure CalculatePartialDayAmount(BaseRate: Decimal): Decimal
+    var
+        PartialDayAmount: Decimal;
+    begin
+        PartialDayAmount := BaseRate * ExpenseAgentSetup."Percentage For Partial Day" / 100;
+        if ExpenseAgentSetup."Partial Day Rounding Precision" <> 0 then
+            PartialDayAmount := Round(PartialDayAmount, ExpenseAgentSetup."Partial Day Rounding Precision");
+        exit(PartialDayAmount);
+    end;
+
     local procedure GetToleranceInHours(Hours: Decimal): Decimal
     begin
         if Hours <> 0 then
             exit(Hours * 0.01); // 1% tolerance to avoid comparison issues ex- 5.98 Hours with 6 Hours
+    end;
+
+    /// <summary>
+    /// Raised after the per diem amount for a single day of a trip is calculated, before meal reductions are applied.
+    /// </summary>
+    /// <remarks>
+    /// Use this event to apply country-specific or company-specific per diem rules, for example a different partial-day rule. The event is raised for every calculation method, including when the method is None.
+    /// </remarks>
+    /// <param name="CurrentDate">The day that the per diem amount is calculated for.</param>
+    /// <param name="BaseRate">The full daily per diem rate.</param>
+    /// <param name="TripStartDateTime">The date and time when the trip starts.</param>
+    /// <param name="TripEndDateTime">The date and time when the trip ends.</param>
+    /// <param name="ExpenseAgentSetup">The expense management setup that holds the per diem calculation settings.</param>
+    /// <param name="PerDiemAmount">The calculated per diem amount for the day. Change this value to override the amount.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalculatePerDiemForSingleDay(CurrentDate: Date; BaseRate: Decimal; TripStartDateTime: DateTime; TripEndDateTime: DateTime; ExpenseAgentSetup: Record "Expense Agent Setup"; var PerDiemAmount: Decimal)
+    begin
     end;
 }

@@ -22,7 +22,7 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// Wire-version negotiation: returns the API contract version and the action/feature names this source
     /// supports, so a newer subsidiary only calls actions an older source actually implements.
     /// </summary>
-    /// <returns>A JSON object with the numeric contract 'version' and a 'features' array of supported action names.</returns>
+    /// <returns>A JSON object with the numeric contract 'version', a 'features' array of supported action names and, when this environment hasn't approved sharing, 'consentRequired'.</returns>
     [ServiceEnabled]
     procedure GetCapabilities(): Text
     var
@@ -34,6 +34,9 @@ codeunit 7241 "MDM Cross-Env Source API"
         Features.Add('records');
         Features.Add('lastModifiedPerTable');
         Capabilities.Add('features', Features);
+        // Lets the connection check report a missing approval when the connection is set up, not at the first sync.
+        if not IsSourceConsented() then
+            Capabilities.Add('consentRequired', true);
         Capabilities.WriteTo(ResultText);
         exit(ResultText);
     end;
@@ -42,7 +45,8 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// Returns a page of changed source records for the given table. FieldIds is a JSON array of field
     /// numbers. Selector is either a change-feed cursor { modifiedAt, systemId } or a targeted
     /// { systemIds } list. Response carries records, hasMore and (cursor mode) nextCursor. The table read
-    /// runs under the CALLER's permission set, so table-level access is enforced by permissions, not here.
+    /// runs under the CALLER's permission set, so table-level access is enforced by permissions, not here; a table
+    /// the caller can't read is reported as readPermission:false (no records) so the subsidiary can name the fix.
     /// </summary>
     /// <param name="TableId">The source table ID to read.</param>
     /// <param name="FieldIds">A JSON array of the field numbers to project.</param>
@@ -78,6 +82,10 @@ codeunit 7241 "MDM Cross-Env Source API"
         if not TryOpenTable(TableId, RecRef) then
             exit(WriteResponse(Response, false, Records, false));
         Response.Add('tableAvailable', true);
+        if not CanRead(TableId) then begin
+            Response.Add('readPermission', false);
+            exit(WriteResponse(Response, true, Records, false));
+        end;
 
         // Missing field => HALT that table's sync (no partial records); subsidiary logs a synch error.
         // Fields that exist but are media/blob/flow are skipped silently (media sync is deferred).
@@ -159,6 +167,18 @@ codeunit 7241 "MDM Cross-Env Source API"
     begin
         RecRef.Open(TableId);
         RecRef.ReadIsolation := IsolationLevel::ReadCommitted;
+    end;
+
+    // Without filters ReadPermission() tests for FULL read access, so a grant restricted by a security filter would fail it
+    // even though the caller can read its rows. Applying the caller's security filter first makes the check ask "can the
+    // caller read within its allowed range", which doesn't depend on whether the table holds any rows.
+    local procedure CanRead(TableId: Integer): Boolean
+    var
+        ProbeRecRef: RecordRef;
+    begin
+        ProbeRecRef.Open(TableId);
+        ProbeRecRef.SetPermissionFilter();
+        exit(ProbeRecRef.ReadPermission());
     end;
 
     // Media/infrastructure tables are only reachable inline (BuildMediaValue, tied to a record's media field). Never
@@ -624,7 +644,7 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// index tip (FindLast), so no scan and no summary table to maintain.
     /// </summary>
     /// <param name="TableIds">A JSON array of the source table IDs to probe.</param>
-    /// <returns>A JSON object with a 'tables' array of { tableId, tableAvailable, indexed, lastModifiedAt } entries.</returns>
+    /// <returns>A JSON object with a 'tables' array of { tableId, tableAvailable, readPermission, indexed, lastModifiedAt } entries.</returns>
     [ServiceEnabled]
     procedure LastModifiedAtPerTable(TableIds: Text): Text
     var
@@ -657,6 +677,11 @@ codeunit 7241 "MDM Cross-Env Source API"
             exit(Entry);
         end;
         Entry.Add('tableAvailable', true);
+        // One unreadable table must not fail the whole batch, or change detection stops for every table.
+        if not CanRead(TableId) then begin
+            Entry.Add('readPermission', false);
+            exit(Entry);
+        end;
         if not HasModifiedAtLeadingKey(RecRef) then begin
             Entry.Add('indexed', false);
             exit(Entry);

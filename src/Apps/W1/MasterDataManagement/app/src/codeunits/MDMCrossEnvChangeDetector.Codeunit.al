@@ -150,7 +150,9 @@ codeunit 7245 "MDM Cross-Env Change Detector"
         if not GetBoolean(Entry, 'tableAvailable', true) then
             exit; // the sync job itself will report the unavailability
 
-        // No timestamp (indexed:false or empty table): can't compare cheaply, so let the sync job poll (scan).
+        // No timestamp (indexed:false, empty table, or readPermission:false): can't compare cheaply, so let the sync job
+        // run. For an unreadable table that is what logs the actionable "grant read permission" error; once the job's
+        // retries are spent it lands in Error, which FindIdleSynchJob leaves alone.
         HasTimestamp := GetDateTime(Entry, 'lastModifiedAt', LastModifiedAt);
 
         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
