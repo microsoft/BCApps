@@ -281,7 +281,6 @@ codeunit 6983 "Create Expense Report"
     /// </summary>
     /// <remarks>
     /// The expense must be released, belong to the same expense user as the report, and not already be on an expense report. No user interface is shown.
-    /// A pending card expense (created from a corporate card transaction and not on a report) can also be added while it is open, even without an expense category.
     /// </remarks>
     /// <param name="Expense">The expense to add.</param>
     /// <param name="ExpenseReportHeader">The expense report to add the expense to.</param>
@@ -301,12 +300,9 @@ codeunit 6983 "Create Expense Report"
     end;
 
     local procedure ValidateExpense(Expense: Record Expense; ExpenseReportHeader: Record "Expense Report Header")
-    var
-        ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
     begin
         Expense.TestField("Expense User No.", ExpenseReportHeader."Expense User No.");
-        if not ReceiptExpenseMatch.IsPendingCardExpense(Expense) then
-            Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
     end;
 

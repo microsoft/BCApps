@@ -439,7 +439,7 @@ codeunit 148370 EAReceiptMatchTests
         Expense.CalcFields("Pending Card Expense");
         Expense.TestField("Pending Card Expense", true);
 
-        // [WHEN] The expense is added to a report.
+        // [WHEN] The card-specific add releases and adds the expense in one operation.
         AddCardExpenseToReport(Expense, ExpenseReportLine);
 
         // [THEN] The line has the card values, and the expense is submitted and no longer pending.
@@ -1129,7 +1129,7 @@ codeunit 148370 EAReceiptMatchTests
     begin
         Expense.Get(Expense."No.");
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
-        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        ExpenseReportLine := CreateExpenseReport.AddCardExpenseToExpenseReport(Expense, ExpenseReportHeader);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Expense.Get(Expense."No.");
     end;
