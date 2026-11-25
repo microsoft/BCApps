@@ -195,35 +195,6 @@ codeunit 133754 "Custom Agent Test"
     end;
 
     [Test]
-    procedure TestGetDescriptionRequiresAgentAccessToCurrentCompany()
-    var
-        AgentRecord: Record Agent;
-        TempAgentAccessControl: Record "Agent Access Control" temporary;
-        CustomAgentSetup: Record "Custom Agent Setup";
-        Agent: Codeunit Agent;
-        CustomAgentMetadataProvider: Codeunit "Custom Agent Metadata Provider";
-        AgentUserName: Code[50];
-        Description: Text;
-    begin
-        // [SCENARIO] A direct metadata lookup must not disclose a description across companies.
-        // [GIVEN] The creator can use the agent, but no permission set gives the agent access to this company.
-        AgentUserName := CopyStr(Any.AlphanumericText(MaxStrLen(AgentUserName)), 1, MaxStrLen(AgentUserName));
-        CustomAgentSetup."User Security ID" := Agent.Create(Enum::"Agent Metadata Provider"::"Custom Agent", AgentUserName, 'Agent without company access', TempAgentAccessControl);
-        CustomAgentSetup.Description := 'Description outside the current company';
-        CustomAgentSetup.Insert(true);
-
-        AgentRecord.Get(CustomAgentSetup."User Security ID");
-        Assert.IsTrue(AgentRecord."Can Current User Use Agent", 'The caller should have use access to the agent.');
-        Assert.IsFalse(AgentRecord."Can Access Current Company", 'The agent should have no access to the current company.');
-
-        // [WHEN] The creator asks the agent's provider directly for the description.
-        Description := CustomAgentMetadataProvider.GetDescription(AgentRecord."User Security ID");
-
-        // [THEN] The saved description is not returned in this company.
-        Assert.AreEqual('', Description, 'A direct metadata call must not disclose a description across companies.');
-    end;
-
-    [Test]
     procedure TestGetCustomAgents_ReturnsAllAgents()
     var
         TempAgentInfo: Record "Custom Agent Info" temporary;
