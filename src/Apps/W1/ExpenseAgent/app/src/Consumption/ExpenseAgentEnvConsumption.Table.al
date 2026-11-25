@@ -264,6 +264,7 @@ table 6969 "Expense Agent Env. Consumption"
             exit(false);
 
         TempUserAIConsumptionData."Company Name" := Rec."Source Company Name";
+        AIConsumptionLogEntry.SetLoadFields("Consumption DateTime", "Executing User Security Id", "App Version", "Resource Name", "AI Credits", "Company Name", "Reporting State");
         if AIConsumptionLogEntry.GetBySystemId(Rec.SystemId) then begin
             TempUserAIConsumptionData."Consumption DateTime" := AIConsumptionLogEntry."Consumption DateTime";
             TempUserAIConsumptionData."User Id" := AIConsumptionLogEntry."Executing User Security Id";

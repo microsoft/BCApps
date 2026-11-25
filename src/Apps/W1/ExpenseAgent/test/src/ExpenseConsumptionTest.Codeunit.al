@@ -251,25 +251,26 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
-    procedure CanConsumeWithoutStoredExpenseUserEntraIdIsRejected()
+    procedure CanConsumeWithoutSuppliedExpenseUserEntraIdIsRejected()
     var
         ExpenseUser: Record "Expense User";
         ExpenseUserConsAPI: Page "Expense User Cons. API";
+        ExpenseUserEntraId: Guid;
     begin
-        // [SCENARIO] Quota evaluation never falls back to the integration session when the expense user's Entra ID is missing
+        // [SCENARIO] Quota evaluation requires a supplied Entra ID even when a stored ID exists
         Initialize();
 
-        // [GIVEN] An expense user without a stored Entra ID
+        // [GIVEN] An expense user with a stored Entra ID
         LibraryExpense.CreateExpenseUser(ExpenseUser);
-        Clear(ExpenseUser."Entra Id");
+        ExpenseUser."Entra Id" := CreateGuid();
         ExpenseUserConsAPI.SetRecord(ExpenseUser);
 
-        // [WHEN] The bound action checks consumption quota
-        asserterror ExpenseUserConsAPI.CanConsume();
+        // [WHEN] The bound action checks consumption quota without a supplied Entra ID
+        asserterror ExpenseUserConsAPI.CanConsume(ExpenseUserEntraId);
 
-        // [THEN] The missing Entra ID is rejected
-        Assert.ExpectedTestFieldError(ExpenseUser.FieldCaption("Entra Id"), '');
-        Assert.ExpectedErrorCode('TestField');
+        // [THEN] The missing supplied Entra ID is rejected without using the stored ID
+        Assert.ExpectedError('Expense User Entra ID must be provided.');
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -538,30 +539,24 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
-    procedure V2NonProcessingOperationsDoNotIncrementTrial()
-    var
-        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
-        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+    procedure V2MatchingDoesNotIncrementTrial()
     begin
-        // [SCENARIO] Only the exact PROCESS operation consumes an expense trial
-        Initialize();
+        // [SCENARIO] Matching does not consume an expense trial
+        VerifyV2NonProcessingOperationDoesNotIncrementTrial('MATCH');
+    end;
 
-        // [GIVEN] One expense remains in the feature trial
-        ExpenseAgentQuotaMock.SetTrialQuota(1);
-        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+    [Test]
+    procedure V2NonexactProcessingDoesNotIncrementTrial()
+    begin
+        // [SCENARIO] A nonexact processing operation does not consume an expense trial
+        VerifyV2NonProcessingOperationDoesNotIncrementTrial('PROCESS EXPENSE');
+    end;
 
-        // [WHEN] Matching, a nonexact processing name, and a blank operation are reported
-        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'MATCH');
-        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PROCESS EXPENSE');
-        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), '');
-
-        // [THEN] Both pipelines receive all operations without incrementing the trial counter
-        Assert.AreEqual(3, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive all non-processing operations.');
-        Assert.AreEqual(3, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive all non-processing operations.');
-        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Non-processing operations must not increment the trial counter.');
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Non-processing operations must preserve trial quota.');
-        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Trial non-processing operations must not be billed.');
-        VerifyLastV2Trial(ExpenseAgentQuotaMock);
+    [Test]
+    procedure V2BlankOperationDoesNotIncrementTrial()
+    begin
+        // [SCENARIO] A blank operation does not consume an expense trial
+        VerifyV2NonProcessingOperationDoesNotIncrementTrial('');
     end;
 
     [Test]
@@ -791,6 +786,29 @@ codeunit 148299 "Expense Consumption Test"
 
         // [WHEN] [THEN] Drilldown loads the latest description without truncation
         VerifyBillingDescription(ExpenseAgentEnvConsumption, Description);
+    end;
+
+    local procedure VerifyV2NonProcessingOperationDoesNotIncrementTrial(Operation: Code[50])
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+    begin
+        Initialize();
+
+        // [GIVEN] One expense remains in the feature trial
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+
+        // [WHEN] A non-processing operation is reported
+        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), Operation);
+
+        // [THEN] Both pipelines receive the operation without incrementing the trial counter
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive the non-processing operation.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive the non-processing operation.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Non-processing operations must not increment the trial counter.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Non-processing operations must preserve trial quota.');
+        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Trial non-processing operations must not be billed.');
+        VerifyLastV2Trial(ExpenseAgentQuotaMock);
     end;
 
     local procedure LogV2Consumption(var ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler"; SourceId: Guid; Operation: Code[50]): Guid

@@ -8,10 +8,10 @@ The action submits both consumption pipelines; the platform selects which one
 records the event. The V2 platform payload retains the top-level `model` object
 and excludes the `v1` object.
 
-The bound `userConsumptions({id})/Microsoft.NAV.canConsume` action keeps its
-empty request body. It evaluates V2 quota for the bound expense user's stored
-`Entra Id`, not the integration session's principal. A missing stored Entra ID
-returns an error. Recording requires a supplied Entra ID. If a nonblank stored
+The bound `userConsumptions({id})/Microsoft.NAV.canConsume` action requires an
+`expenseUserEntraId` GUID in its request body. Both quota checks and recording
+use the API-supplied Entra ID, not the stored ID or the integration session's
+principal. A missing or empty supplied ID returns an error. If a nonblank stored
 Entra ID differs from the supplied ID, the action emits error-level telemetry
 and continues recording with the supplied ID. A blank stored ID doesn't prevent
 recording.

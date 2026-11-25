@@ -170,11 +170,12 @@ page 6968 "Expense User Cons. API"
 
     [ServiceEnabled]
     [NonDebuggable]
-    procedure CanConsume(): Boolean
+    procedure CanConsume(ExpenseUserEntraId: Guid): Boolean
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
-        Rec.TestField("Entra Id");
-        exit(ExpenseConsumptionHandler.CanConsume(Rec."Entra Id"));
+        if IsNullGuid(ExpenseUserEntraId) then
+            Error(ExpenseUserEntraIdErr);
+        exit(ExpenseConsumptionHandler.CanConsume(ExpenseUserEntraId));
     end;
 
     local procedure GetModelTelemetryValue(ModelJson: JsonObject; FieldName: Text): Text
