@@ -43,7 +43,11 @@ codeunit 1233 "SEPA DD-Check Line"
 #pragma warning restore AA0470
         ExportWithoutIBANAndSWIFTErr: Label 'Either the Bank Account No. and Bank Branch No. fields or the SWIFT Code and IBAN fields must be filled in for %1 %2.', Comment = '%1= table name, %2=key field value. Example: Either the Bank Account No. and Bank Branch No. fields or the SWIFT Code and IBAN fields must be filled in for Customer Bank Account ECA.';
 
-    local procedure CheckCollectionEntry(DirectDebitCollectionEntry: Record "Direct Debit Collection Entry")
+    /// <summary>
+    /// Validates an entry without deleting errors already reported by the originating document.
+    /// </summary>
+    /// <param name="DirectDebitCollectionEntry">The collection entry to validate.</param>
+    procedure CheckCollectionEntry(DirectDebitCollectionEntry: Record "Direct Debit Collection Entry")
     var
         Customer: Record Customer;
         CustomerBankAccount: Record "Customer Bank Account";

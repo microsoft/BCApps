@@ -31,6 +31,24 @@ pagecustomization "PA E-Doc. Purchase Draft" customizes "E-Document Purchase Dra
         {
             Visible = true;
         }
+        modify("Document Type")
+        {
+            Visible = true;
+        }
+        modify("Applies-to Vendor Inv. No.")
+        {
+            Visible = true;
+            Editable = false;
+        }
+        modify("Applies-to Doc. No.")
+        {
+            Visible = true;
+            Editable = false;
+        }
+        modify(InvoiceWarnings)
+        {
+            Visible = true;
+        }
         modify(Record)
         {
             Visible = true;

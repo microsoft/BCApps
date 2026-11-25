@@ -381,6 +381,54 @@ codeunit 139692 "Contract Renewal Test"
         TestContractRenewalPeriodCalculation(NewRenewalTerm);
     end;
 
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,SelectContractRenewalHandler')]
+    [Test]
+    procedure ContractRenewalQuoteTransfersDiscountToSalesSubscriptionLineAndReportTotals()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesServiceCommitment: Record "Sales Subscription Line";
+        ServiceCommitment: Record "Subscription Line";
+        TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
+        RenewalTerm: DateFormula;
+        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
+    begin
+        // [SCENARIO 656729] The discount of a Customer Subscription Contract line is transferred to the Contract Renewal Quote
+        // [SCENARIO 656729] so the Subscription Billing totals printed on the Sales Quote include the discount.
+        Initialize();
+
+        // [GIVEN] A Customer Subscription Contract line with Quantity = 1, Price = 50, Discount % = 10, Billing Base Period = Billing Rhythm = <12M>
+        CreateBaseData(false, false, 1, 0);
+        ServiceObject.Get(ServiceObject."No.");
+        ServiceObject.Quantity := 1;
+        ServiceObject.Modify(false);
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        ContractTestLibrary.ValidateBillingBasePeriodAndBillingRhythmOnServiceCommitment(ServiceCommitment, '<12M>', '<12M>');
+        ServiceCommitment.Validate(Price, 50);
+        ServiceCommitment.Validate("Discount %", 10);
+        ServiceCommitment.Modify(false);
+        ServiceCommitment.TestField(Amount, 45);
+
+        // [WHEN] A Contract Renewal Quote with a Renewal Term of <12M> is created
+        Evaluate(RenewalTerm, '<12M>');
+        UpdateContractLinesWithNewRenewalTerm(RenewalTerm);
+        SalesHeader.Get(SalesHeader."Document Type"::Quote, CreateSalesQuoteFromContract()); // SelectContractRenewalHandler
+
+        // [THEN] The Sales Subscription Line of the quote carries the discount
+        SalesServiceCommitment.FilterOnDocument(SalesHeader."Document Type", SalesHeader."No.");
+        SalesServiceCommitment.SetRange(Process, Enum::Process::"Contract Renewal");
+        SalesServiceCommitment.FindFirst();
+        SalesServiceCommitment.TestField(Price, 50);
+        SalesServiceCommitment.TestField("Discount %", 10);
+        SalesServiceCommitment.TestField("Discount Amount", 5);
+        SalesServiceCommitment.TestField(Amount, 45);
+
+        // [THEN] The Contract Renewal total used by the Sales Quote for Subscription Billing layout is the discounted amount
+        SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+        TempSalesServiceCommitmentBuff.CalcSums("Line Amount");
+        Assert.AreEqual(45, TempSalesServiceCommitmentBuff."Line Amount", 'The Contract Renewal total excl. VAT must include the 10% discount.');
+    end;
+
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler,ConfirmHandler,ContractRenewalSelectionHandler')]
     procedure CheckServCommSelectionPageAcceptChanges()

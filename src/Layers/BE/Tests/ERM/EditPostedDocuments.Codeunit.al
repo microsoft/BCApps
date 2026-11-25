@@ -150,6 +150,55 @@ codeunit 134658 "Edit Posted Documents"
     end;
 
     [Test]
+    [HandlerFunctions('PostedPurchInvoiceUpdateCancelModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure PostedPurchInvoiceUpdateSetValuesCancel()
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvHeaderNew: Record "Purch. Inv. Header";
+        PostedPurchaseInvoice: TestPage "Posted Purchase Invoice";
+    begin
+        // [FEATURE] [Purchase Invoice]
+        // [SCENARIO 308913] New values for editable fields are not set in case Stan presses Cancel on "Posted Purch. Invoice - Update" modal page.
+        Initialize();
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddPurchDocsPost();
+
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+        PurchInvHeaderNew := PurchInvHeader;
+        PrepareEnqueueValuesForEditableFieldsPostedPurchaseInvoice(PurchInvHeaderNew);
+
+        // [GIVEN] Opened "Posted Purch. Invoice - Update" page.
+        // [GIVEN] New values are set for editable fields.
+        PostedPurchaseInvoice.OpenView();
+        PostedPurchaseInvoice.GoToRecord(PurchInvHeaderNew);
+        PostedPurchaseInvoice."Update Document".Invoke();
+
+        // [WHEN] Press Cancel on the page via PostedPurchInvoiceUpdateCancelModalPageHandler
+
+        // [THEN] Values of these fields in Purch. Inv. Header were not changed to new values.
+        PostedPurchaseInvoice.Close();
+        PurchInvHeader.Get(PurchInvHeader."No.");
+        Assert.AreNotEqual(PurchInvHeaderNew."Payment Reference", PurchInvHeader."Payment Reference", PurchInvHeader.FieldCaption("Payment Reference"));
+        Assert.AreNotEqual(PurchInvHeaderNew."Payment Method Code", PurchInvHeader."Payment Method Code", PurchInvHeader.FieldCaption("Payment Method Code"));
+        Assert.AreNotEqual(PurchInvHeaderNew."Creditor No.", PurchInvHeader."Creditor No.", PurchInvHeader.FieldCaption("Creditor No."));
+        Assert.AreNotEqual(PurchInvHeaderNew."Posting Description", PurchInvHeader."Posting Description", PurchInvHeader.FieldCaption("Posting Description"));
+        Assert.AreNotEqual(PurchInvHeaderNew."Dispute Status", PurchInvHeader."Dispute Status", PurchInvHeader.FieldCaption("Dispute Status"));
+
+        // [THEN] Values at the associated vendor ledger entry were not changed
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        Assert.AreEqual(PurchInvHeader."Payment Reference", VendorLedgerEntry."Payment Reference", PurchInvHeader.FieldCaption("Payment Reference"));
+        Assert.AreEqual(PurchInvHeader."Payment Method Code", VendorLedgerEntry."Payment Method Code", PurchInvHeader.FieldCaption("Payment Method Code"));
+        Assert.AreEqual(PurchInvHeader."Creditor No.", VendorLedgerEntry."Creditor No.", PurchInvHeader.FieldCaption("Creditor No."));
+        Assert.AreEqual(PurchInvHeader."Posting Description", VendorLedgerEntry.Description, PurchInvHeader.FieldCaption("Posting Description"));
+        Assert.AreEqual(PurchInvHeader."Dispute Status", VendorLedgerEntry."Dispute Status", PurchInvHeader.FieldCaption("Dispute Status"));
+
+        LibraryVariableStorage.AssertEmpty();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
     [HandlerFunctions('PostedPurchInvoiceUpdateOKModalPageHandler')]
     [Scope('OnPrem')]
     procedure PostedPurchInvoiceUpdateSetValuesOK()
@@ -189,6 +238,7 @@ codeunit 134658 "Edit Posted Documents"
         PurchInvHeader.TestField("Creditor No.", PurchInvHeaderNew."Creditor No.");
         PurchInvHeader.TestField("Ship-to Code", PurchInvHeaderNew."Ship-to Code");
         PurchInvHeader.TestField("Posting Description", PurchInvHeaderNew."Posting Description");
+        PurchInvHeader.TestField("Dispute Status", PurchInvHeaderNew."Dispute Status");
 
         // [THEN] Values at the associated vendor ledger entry were changed
         VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
@@ -196,6 +246,7 @@ codeunit 134658 "Edit Posted Documents"
         Assert.AreEqual(PurchInvHeaderNew."Payment Method Code", VendorLedgerEntry."Payment Method Code", PurchInvHeaderNew.FieldCaption("Payment Method Code"));
         Assert.AreEqual(PurchInvHeaderNew."Creditor No.", VendorLedgerEntry."Creditor No.", PurchInvHeaderNew.FieldCaption("Creditor No."));
         Assert.AreEqual(PurchInvHeaderNew."Posting Description", VendorLedgerEntry.Description, PurchInvHeaderNew.FieldCaption("Posting Description"));
+        Assert.AreEqual(PurchInvHeaderNew."Dispute Status", VendorLedgerEntry."Dispute Status", PurchInvHeaderNew.FieldCaption("Dispute Status"));
 
         LibraryVariableStorage.AssertEmpty();
         LibraryLowerPermissions.SetOutsideO365Scope();
@@ -991,6 +1042,75 @@ codeunit 134658 "Edit Posted Documents"
         LibraryLowerPermissions.SetOutsideO365Scope();
     end;
 
+    [Test]
+    procedure UpdateVendorLedgerEntrySyncWithPostedPurchaseInvoice()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorLedgerEntries: TestPage "Vendor Ledger Entries";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] A dispute status on a vendor ledger entry updates the posted purchase invoice.
+        Initialize();
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddPurchDocsPost();
+
+        // [GIVEN] Create and post a Purchase Invoice.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+
+        // [GIVEN] Opened the associated vendor ledger entry page for editing.
+        VendorLedgerEntry.Get(PurchInvHeader."Vendor Ledger Entry No.");
+        VendorLedgerEntries.OpenEdit();
+        VendorLedgerEntries.GoToRecord(VendorLedgerEntry);
+
+        // [WHEN] Set a new dispute status value on the vendor ledger entry and close the page.
+        DisputeStatus := CreateDisputeStatusCode();
+        VendorLedgerEntries."Dispute Status".SetValue(DisputeStatus);
+        VendorLedgerEntries.Close();
+        PurchInvHeader.Get(PurchInvHeader."No.");
+
+        // [THEN] Verify the dispute status on the posted purchase invoice is updated.
+        Assert.AreEqual(PurchInvHeader."Dispute Status", DisputeStatus, PurchInvHeader.FieldCaption("Dispute Status"));
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
+    [Test]
+    procedure UpdateUnrelatedVendorLedgerEntryWithSameDocumentNoDoesNotUpdatePostedPurchaseInvoice()
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchInvHeaderNew: Record "Purch. Inv. Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DisputeStatus: Code[10];
+    begin
+        // [SCENARIO 651756] Editing a vendor ledger entry that is not linked to a posted purchase invoice with the same document number does not update that invoice.
+        Initialize();
+        LibraryLowerPermissions.SetO365Setup();
+        LibraryLowerPermissions.AddPurchDocsPost();
+
+        // [GIVEN] Create and post a Purchase Invoice.
+        PurchInvHeader.Get(CreateAndPostPurchaseInvoiceWithSellToCustomer(LibrarySales.CreateCustomerNo()));
+
+        // [GIVEN] An unrelated vendor ledger invoice entry with the same document number as the posted purchase invoice.
+        PostVendorInvoice(PurchInvHeader."Pay-to Vendor No.", PurchInvHeader."No.");
+        FindVendorLedgerEntry(VendorLedgerEntry, PurchInvHeader."Pay-to Vendor No.", PurchInvHeader."No.", PurchInvHeader."Vendor Ledger Entry No.");
+
+        // [WHEN] Set a new dispute status and description on the unrelated vendor ledger entry.
+        DisputeStatus := CreateDisputeStatusCode();
+        VendorLedgerEntry."Dispute Status" := DisputeStatus;
+        VendorLedgerEntry.Description := LibraryUtility.GenerateGUID();
+        Codeunit.Run(Codeunit::"Vend. Entry-Edit", VendorLedgerEntry);
+
+        // [THEN] The unrelated vendor ledger entry is updated.
+        VendorLedgerEntry.Find();
+        VendorLedgerEntry.TestField("Dispute Status", DisputeStatus);
+
+        // [THEN] The posted purchase invoice is not changed.
+        PurchInvHeaderNew.Get(PurchInvHeader."No.");
+        PurchInvHeaderNew.TestField("Dispute Status", PurchInvHeader."Dispute Status");
+        PurchInvHeaderNew.TestField("Posting Description", PurchInvHeader."Posting Description");
+        LibraryLowerPermissions.SetOutsideO365Scope();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Edit Posted Documents");
@@ -1131,12 +1251,14 @@ codeunit 134658 "Edit Posted Documents"
         PurchInvHeader."Creditor No." := LibraryUtility.GenerateGUID();
         PurchInvHeader."Ship-to Code" := ShipToAddress.Code;
         PurchInvHeader."Posting Description" := LibraryRandom.RandText(25);
+        PurchInvHeader."Dispute Status" := CreateDisputeStatusCode();
 
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Reference");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Payment Method Code");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Creditor No.");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Ship-to Code");
         LibraryVariableStorage.Enqueue(PurchInvHeader."Posting Description");
+        LibraryVariableStorage.Enqueue(PurchInvHeader."Dispute Status");
     end;
 
     local procedure PrepareEnqueueValuesForEditableFieldsPostedPurchaseCreditMemo(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
@@ -1228,6 +1350,42 @@ codeunit 134658 "Edit Posted Documents"
         GLAccount.Modify(true);
     end;
 
+    local procedure CreateDisputeStatusCode(): Code[10]
+    var
+        DisputeStatus: Record "Dispute Status";
+    begin
+        DisputeStatus.Init();
+        DisputeStatus.Validate(Code, LibraryUtility.GenerateRandomCode(DisputeStatus.FieldNo(Code), Database::"Dispute Status"));
+        DisputeStatus.Validate(Description, DisputeStatus.Code);
+        DisputeStatus.Insert(true);
+
+        exit(DisputeStatus.Code);
+    end;
+
+    local procedure PostVendorInvoice(VendorNo: Code[20]; DocumentNo: Code[20])
+    var
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine: Record "Gen. Journal Line";
+    begin
+        LibraryERM.SelectGenJnlBatch(GenJnlBatch);
+        LibraryERM.ClearGenJournalLines(GenJnlBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJnlLine, GenJnlBatch."Journal Template Name", GenJnlBatch.Name, GenJnlLine."Document Type"::" ",
+            GenJnlLine."Account Type"::Vendor, VendorNo, -LibraryRandom.RandDec(1000, 2));
+        GenJnlLine.Validate("Posting Date", WorkDate());
+        GenJnlLine.Validate("Document No.", DocumentNo);
+        GenJnlLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJnlLine);
+    end;
+
+    local procedure FindVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentNo: Code[20]; EntryNo: Integer)
+    begin
+        VendorLedgerEntry.SetRange("Vendor No.", VendorNo);
+        VendorLedgerEntry.SetRange("Document No.", DocumentNo);
+        VendorLedgerEntry.SetFilter("Entry No.", '<>%1', EntryNo);
+        VendorLedgerEntry.FindFirst();
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure PostedSalesShipmentUpdateOKModalPageHandler(var PostedSalesShipmentUpdate: TestPage "Posted Sales Shipment - Update")
@@ -1314,7 +1472,21 @@ codeunit 134658 "Edit Posted Documents"
         PostedPurchInvoiceUpdate."Creditor No.".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Ship-to Code".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate."Posting Description".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Dispute Status".SetValue(LibraryVariableStorage.DequeueText());
         PostedPurchInvoiceUpdate.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure PostedPurchInvoiceUpdateCancelModalPageHandler(var PostedPurchInvoiceUpdate: TestPage "Posted Purch. Invoice - Update")
+    begin
+        PostedPurchInvoiceUpdate."Payment Reference".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Payment Method Code".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Creditor No.".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Ship-to Code".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Posting Description".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate."Dispute Status".SetValue(LibraryVariableStorage.DequeueText());
+        PostedPurchInvoiceUpdate.Cancel().Invoke();
     end;
 
     [ModalPageHandler]

@@ -208,7 +208,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         ExcludeBilling: Boolean;
         TelemetryDictionary: Dictionary of [Text, Text];
         TaskTitleLbl: Label 'E-Document from %1', Comment = '%1 is the sender''s email address.';
-        MessageLbl: Label 'A new electronic document %1 has been received. Your task is to create a Purchase Invoice in Business Central.', Locked = true, Comment = '%1 is the e-document entry number.';
+        MessageLbl: Label 'A new electronic document %1 has been received. Your task is to create the purchase document for it in Business Central: a Purchase Invoice, or a Purchase Credit Memo when the draft''s Document Type is Purchase Credit Memo.', Locked = true, Comment = '%1 is the e-document entry number.';
         TrialModeTok: Label 'Agent Task created in trial mode. Skipping billing for invoice.', Locked = true;
     begin
         PayablesAgentSetup.GetSetup();
@@ -240,15 +240,23 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
             .Create();
     end;
 
-    internal procedure SetAgentTaskTitle(AgentTaskID: BigInteger; InvoiceNo: Text[50]; VendorName: Text[100])
+    internal procedure SetAgentTaskTitle(AgentTaskID: BigInteger; IsCreditMemo: Boolean; DocumentNo: Text[50]; VendorName: Text[100])
     var
         AgentTask: Record "Agent Task";
-        TaskTitleLbl: Label 'Invoice %1 from %2', Comment = '%1 is the invoice number, %2 is the vendor name.';
+        NewTitle: Text;
+        InvoiceTaskTitleLbl: Label 'Invoice %1 from %2', Comment = '%1 is the invoice number, %2 is the vendor name.';
+        CreditMemoTaskTitleLbl: Label 'Credit memo %1 from %2', Comment = '%1 is the credit memo number, %2 is the vendor name.';
     begin
-        if AgentTask.Get(AgentTaskID) then begin
-            AgentTask.Title := CopyStr(StrSubstNo(TaskTitleLbl, InvoiceNo, VendorName), 1, MaxStrLen(AgentTask.Title));
-            AgentTask.Modify(true);
-        end;
+        if not AgentTask.Get(AgentTaskID) then
+            exit;
+        if IsCreditMemo then
+            NewTitle := StrSubstNo(CreditMemoTaskTitleLbl, DocumentNo, VendorName)
+        else
+            NewTitle := StrSubstNo(InvoiceTaskTitleLbl, DocumentNo, VendorName);
+        if AgentTask.Title = CopyStr(NewTitle, 1, MaxStrLen(AgentTask.Title)) then
+            exit;
+        AgentTask.Title := CopyStr(NewTitle, 1, MaxStrLen(AgentTask.Title));
+        AgentTask.Modify(true);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Inbound E-Documents", OnOpenPageEvent, '', false, false)]

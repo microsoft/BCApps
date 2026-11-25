@@ -2674,10 +2674,12 @@ codeunit 6500 "Item Tracking Management"
         xReservEntry: Record "Reservation Entry";
         ReservEntryBindingCheck: Record "Reservation Entry";
         UntrackedReservEntry: Record "Reservation Entry";
+        TransferHeader: Record "Transfer Header";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         SignFactor: Integer;
         ToRowID: Text[250];
         IsTransferReceipt: Boolean;
+        IsDirectTransfer: Boolean;
         IsATOPosting: Boolean;
         IsBindingOrderToOrder: Boolean;
     begin
@@ -2687,27 +2689,40 @@ codeunit 6500 "Item Tracking Management"
         WhseActivLine.SetSourceFilter(WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", WhseActivLine."Source Line No.", WhseActivLine."Source Subline No.", true);
         WhseActivLine.SetRange("Assemble to Order", WhseActivLine."Assemble to Order");
         if WhseActivLine.FindSet() then begin
-            // Transfer receipt needs special treatment:
+            // Only shipment-derived transfer receipts need the special source mapping.
             IsTransferReceipt := (WhseActivLine."Source Type" = Database::"Transfer Line") and (WhseActivLine."Source Subtype" = 1);
+            if IsTransferReceipt then begin
+                TransferHeader.Get(WhseActivLine."Source No.");
+                IsDirectTransfer := TransferHeader."Direct Transfer";
+                IsTransferReceipt := not IsDirectTransfer;
+            end;
             IsATOPosting := (WhseActivLine."Source Type" = Database::"Sales Line") and WhseActivLine."Assemble to Order";
-            if (WhseActivLine."Source Type" in [ProdOrderLineID(), ProdOrderCompID()]) or IsTransferReceipt then
+            if IsDirectTransfer then
+                // Direct posting consumes tracking from the outbound transfer line.
                 ToRowID :=
                   ItemTrackingMgt.ComposeRowID(
-                    WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", '', WhseActivLine."Source Line No.", WhseActivLine."Source Subline No.")
+                    WhseActivLine."Source Type", 0, WhseActivLine."Source No.", '', 0, WhseActivLine."Source Line No.")
             else
-                if IsATOPosting then
-                    OnSynchronizeWhseActivItemTrkgAssembly(WhseActivLine, ToRowID)
+                if (WhseActivLine."Source Type" in [ProdOrderLineID(), ProdOrderCompID()]) or IsTransferReceipt then
+                    ToRowID :=
+                      ItemTrackingMgt.ComposeRowID(
+                        WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", '', WhseActivLine."Source Line No.", WhseActivLine."Source Subline No.")
                 else
-                    if WhseActivLine."Source Type" in [Database::Job, Database::"Job Planning Line"] then
-                        ToRowID :=
-                          ItemTrackingMgt.ComposeRowID(Database::"Job Planning Line", 2, WhseActivLine."Source No.", '', 0, WhseActivLine."Source Line No.")
+                    if IsATOPosting then
+                        OnSynchronizeWhseActivItemTrkgAssembly(WhseActivLine, ToRowID)
                     else
-                        ToRowID :=
-                          ItemTrackingMgt.ComposeRowID(
-                            WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", '', WhseActivLine."Source Subline No.", WhseActivLine."Source Line No.");
+                        if WhseActivLine."Source Type" in [Database::Job, Database::"Job Planning Line"] then
+                            ToRowID :=
+                              ItemTrackingMgt.ComposeRowID(Database::"Job Planning Line", 2, WhseActivLine."Source No.", '', 0, WhseActivLine."Source Line No.")
+                        else
+                            ToRowID :=
+                              ItemTrackingMgt.ComposeRowID(
+                                WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", '', WhseActivLine."Source Subline No.", WhseActivLine."Source Line No.");
             OnSynchronizeWhseActivItemTrkgOnAfterSetToRowID(WhseActivLine, ToRowID);
             TempReservEntry.SetPointer(ToRowID);
             SignFactor := WhseActivitySignFactor(WhseActivLine);
+            if IsDirectTransfer then
+                SignFactor := -1;
             ReservEntryBindingCheck.SetPointer(ToRowID);
             ReservEntryBindingCheck.SetPointerFilter();
             repeat
@@ -2716,6 +2731,8 @@ codeunit 6500 "Item Tracking Management"
                     TempReservEntry.Positive := SignFactor > 0;
                     TempReservEntry."Item No." := WhseActivLine."Item No.";
                     TempReservEntry."Location Code" := WhseActivLine."Location Code";
+                    if IsDirectTransfer then
+                        TempReservEntry."Location Code" := TransferHeader."Transfer-from Code";
                     TempReservEntry.Description := WhseActivLine.Description;
                     TempReservEntry."Variant Code" := WhseActivLine."Variant Code";
                     TempReservEntry."Quantity (Base)" := WhseActivLine."Qty. Outstanding (Base)" * SignFactor;
@@ -2739,8 +2756,11 @@ codeunit 6500 "Item Tracking Management"
                 exit;
         end;
 
+        if IsDirectTransfer then
+            SynchronizeWhseActivDirectTransferTracking(TempReservEntry, ToRowID);
+
         SumUpItemTracking(TempReservEntry, TempTrackingSpec, false, true);
-        SynchronizeWhseActivItemTrackingReservation(WhseActivLine, IsTransferReceipt);
+        SynchronizeWhseActivItemTrackingReservation(WhseActivLine, IsTransferReceipt, IsDirectTransfer);
 
         if TempTrackingSpec.FindSet() then
             repeat
@@ -2808,6 +2828,12 @@ codeunit 6500 "Item Tracking Management"
             until TempTrackingSpec.Next() = 0;
 
         RegisterNewItemTrackingLines(TempTrackingSpec, BlockCommit);
+    end;
+
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure SynchronizeWhseActivDirectTransferTracking(var TempReservEntry: Record "Reservation Entry" temporary; ToRowID: Text[250])
+    begin
+        SynchronizeItemTracking2(TempReservEntry, ToRowID, '');
     end;
 
     local procedure WhseActivityLineValidateLotTracking(var WhseActivLine1: Record "Warehouse Activity Line")
@@ -3626,7 +3652,7 @@ codeunit 6500 "Item Tracking Management"
         Result := ShippedQtyNotReturned * SignFactor;
     end;
 
-    local procedure SynchronizeWhseActivItemTrackingReservation(WhseActivLine: Record "Warehouse Activity Line"; IsTransferReceipt: Boolean)
+    local procedure SynchronizeWhseActivItemTrackingReservation(WhseActivLine: Record "Warehouse Activity Line"; IsTransferReceipt: Boolean; IsDirectTransfer: Boolean)
     var
         ReservEntry: Record "Reservation Entry";
     begin
@@ -3635,6 +3661,11 @@ codeunit 6500 "Item Tracking Management"
 
         ReservEntry.SetSourceFilter(WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", 0, true);
         ReservEntry.SetSourceFilter('', WhseActivLine."Source Line No.");
+        if IsDirectTransfer then begin
+            ReservEntry.SetRange("Source Subtype", 0);
+            ReservEntry.SetRange("Source Ref. No.", WhseActivLine."Source Line No.");
+            ReservEntry.SetRange("Source Prod. Order Line", 0);
+        end;
         ReservEntry.SetFilter("Qty. to Handle (Base)", '<>0');
         if IsTransferReceipt then
             ReservEntry.SetRange("Source Ref. No.");

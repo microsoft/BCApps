@@ -21,6 +21,11 @@ codeunit 6351 "PBI Deployment Events"
     begin
     end;
 
+    [IntegrationEvent(false, false)]
+    procedure OnAfterDeleteDeploymentRecord(PowerBIDeployment: Record "Power BI Deployment")
+    begin
+    end;
+
     /// <summary>
     /// Wipes Power BI deployment tracking in the given company. Public entry point for
     /// out-of-module subscribers (BaseApp root) that need to react to events on objects

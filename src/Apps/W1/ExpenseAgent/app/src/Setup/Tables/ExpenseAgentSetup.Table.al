@@ -16,9 +16,11 @@ using System.Security.AccessControl;
 using System.Telemetry;
 using System.Utilities;
 
+/// <summary>
+/// Stores the company-wide setup for expense management, such as number series, expense rules, currency handling, rounding, mileage and per diem calculation.
+/// </summary>
 table 6930 "Expense Agent Setup"
 {
-    Access = Internal;
     Extensible = false;
     ReplicateData = false;
     InherentEntitlements = RIMDX;
@@ -57,6 +59,7 @@ table 6930 "Expense Agent Setup"
         }
         field(6; "Enable Agent"; Boolean)
         {
+            Access = Internal;
             Caption = 'Enable agent';
             ToolTip = 'Specifies whether the agent is enabled to process expense submissions from email and calendar.';
 
@@ -66,10 +69,8 @@ table 6930 "Expense Agent Setup"
                     RemoveAllScheduledTasks();
                 if Rec."Enable Agent" then
                     CheckBeforeEnablingAgent();
-
                 if (not xRec."Enable Agent") and Rec."Enable Agent" then
                     LogAgentEnabledTelemetry();
-
                 if xRec."Enable Agent" and (not Rec."Enable Agent") then
                     LogAgentDisabledTelemetry();
             end;
@@ -86,6 +87,7 @@ table 6930 "Expense Agent Setup"
         }
         field(9; "If Exp. Is Older Than Allowed"; Enum "Expense Age Handling")
         {
+            Access = Internal;
             Caption = 'If expense is older than allowed';
             ToolTip = 'Specifies how the system handles expenses older than the allowed date: warn, require justification, or block submission.';
         }
@@ -142,11 +144,13 @@ table 6930 "Expense Agent Setup"
         }
         field(15; "Create Exp. Rep. Automatically"; Boolean)
         {
+            Access = Internal;
             Caption = 'Create Expense Reports Automatically';
             ToolTip = 'Specifies whether the system automatically creates expense reports according to the selected frequency.';
         }
         field(16; "When to Create Expense Reports"; Enum "Expense Report Frequency")
         {
+            Access = Internal;
             Caption = 'When To Create Expense Reports';
             ToolTip = 'Specifies how often the system automatically creates expense reports, for example daily or weekly.';
 
@@ -180,6 +184,7 @@ table 6930 "Expense Agent Setup"
         }
         field(17; "Custom Report Creation Formula"; DateFormula)
         {
+            Access = Internal;
             Caption = 'Custom Formula For Expense Report Creation';
             ToolTip = 'Specifies a custom date formula used when creating expense reports automatically.';
 
@@ -191,16 +196,19 @@ table 6930 "Expense Agent Setup"
         }
         field(18; "Communication Channel"; Enum "Expense Communication Channel")
         {
+            Access = Internal;
             Caption = 'Communication Channel';
             ToolTip = 'Specifies the communication channel used to send expense notifications.';
         }
         field(19; "System Communication Channel"; Text[100])
         {
+            Access = Internal;
             Caption = 'System Communication Channel';
             ToolTip = 'Specifies the identifier or email address used as the system communication channel.';
         }
         field(20; "Approval Reminder After"; DateFormula)
         {
+            Access = Internal;
             Caption = 'Approval Reminder After';
             ToolTip = 'Specifies how long to wait before sending approval reminders for pending expense reports.';
         }
@@ -220,16 +228,13 @@ table 6930 "Expense Agent Setup"
                 FeatureTelemetry: Codeunit "Feature Telemetry";
             begin
                 FeatureTelemetry.LogUptake('0000TEA', GetFeatureName(), Enum::"Feature Uptake Status"::Used);
-
                 if "Full Per-Diem Calculation" = "Full Per-Diem Calculation"::None then begin
                     "Partial Day Rules" := "Partial Day Rules"::"Flat Percentage Of Full Rate";
                     "Minimum Hours for Per Diem" := 0;
                     "Min Hours for Partial Per Diem" := 0;
                 end;
-
                 if not (Rec."Full Per-Diem Calculation" in [Enum::"Exp. Full Per Diem Calculation"::"24-hour Rolling Period", Enum::"Exp. Full Per Diem Calculation"::"Overnight Stay"]) then
                     Rec.Validate("Minimum Hours for Per Diem", 0);
-
                 case "Full Per-Diem Calculation" of
                     "Full Per-Diem Calculation"::"Full Calendar Day":
                         "Partial Day Rules" := "Partial Day Rules"::"Flat Percentage Of Full Rate";
@@ -298,6 +303,7 @@ table 6930 "Expense Agent Setup"
         }
         field(29; "Time Tolerance for Calendar"; Decimal)
         {
+            Access = Internal;
             AutoFormatType = 0;
             Caption = 'Time Tolerance for Calendar';
             ToolTip = 'Specifies the allowed time deviation when matching calendar events to expenses.';
@@ -309,6 +315,7 @@ table 6930 "Expense Agent Setup"
         }
         field(31; "Evaluate Policies"; Boolean)
         {
+            Access = Internal;
             Caption = 'Evaluate policies';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the agent automatically evaluates expenses against the configured policies. This feature consumes additional AI credits.';
@@ -323,6 +330,7 @@ table 6930 "Expense Agent Setup"
         }
         field(32; "Submitter-run Evaluation"; Boolean)
         {
+            Access = Internal;
             Caption = 'Allow submitters to evaluate policies';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether submitters can preventively run policy evaluation before submitting expense reports. This evaluation will consume additional AI credits.';
@@ -369,39 +377,55 @@ table 6930 "Expense Agent Setup"
         }
         field(42; "Only Shortest Route"; Boolean)
         {
+            Access = Internal;
             Caption = 'Only Shortest Route';
             ToolTip = 'Specifies whether only the shortest route is shown for mileage expenses. When enabled, alternative routes are not displayed on the map and only the shortest route is used for distance calculation.';
         }
+        field(43; "Partial Day Rounding Precision"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Partial Day Rounding Precision';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            ToolTip = 'Specifies the rounding precision applied to the calculated partial-day per diem amount, for example 0.01, 0.10, or 1. Amounts are rounded to the nearest increment. If the field is empty, the partial-day amount is not rounded.';
+        }
         field(52; "User Security ID"; Guid)
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
         }
         field(53; "Email Account ID"; Guid)
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
         }
         field(54; "Email Connector"; Enum "Email Connector")
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
         }
         field(60; "Email Address"; Text[250])
         {
+            Access = Internal;
             Caption = 'Email Address';
             ToolTip = 'Specifies the email address used by the agent.';
         }
         field(61; "Email Folder"; Text[2048])
         {
+            Access = Internal;
             Caption = 'Email Folder';
             ToolTip = 'Specifies the email folder the agent monitors.';
         }
         field(62; "Email Folder Id"; Text[2048])
         {
+            Access = Internal;
             Caption = 'Email Folder Id';
             ToolTip = 'Specifies the unique identifier of the email folder the agent monitors.';
             DataClassification = SystemMetadata;
         }
         field(76; "Open Report Notif. Freq."; Enum "Expense Report Frequency")
         {
+            Access = Internal;
             Caption = 'Open Report Notification Frequency';
             ToolTip = 'Specifies how often the system should send notifications for open expense reports (Daily, Weekly, etc.).';
             InitValue = Daily;
@@ -437,6 +461,7 @@ table 6930 "Expense Agent Setup"
         }
         field(80; "Enable Approval Workflow"; Boolean)
         {
+            Access = Internal;
             Caption = 'Use traditional approval workflow';
             ToolTip = 'Specifies whether expense reports use the traditional approval workflow instead of the Expense Agent approval experience.';
 
@@ -444,13 +469,13 @@ table 6930 "Expense Agent Setup"
             begin
                 if Rec."Enable Approval Workflow" then
                     Rec.TestField("Enable Agent", false);
-
                 if (not Rec."Enable Approval Workflow") and xRec."Enable Approval Workflow" then
                     CheckBeforeDisableApprovalWorkflow();
             end;
         }
         field(81; "Day of Week"; Enum "Day of Week")
         {
+            Access = Internal;
             Caption = 'Day of Week';
             ToolTip = 'Specifies the day of the week used when expense reports are created weekly.';
 
@@ -463,6 +488,7 @@ table 6930 "Expense Agent Setup"
         }
         field(82; "Day In A Month"; Integer)
         {
+            Access = Internal;
             Caption = 'Day In A Month';
             ToolTip = 'Specifies the day of the month used when expense reports are created monthly.';
 
@@ -471,7 +497,6 @@ table 6930 "Expense Agent Setup"
                 if Rec."Day In A Month" <> 0 then
                     if (Rec."Day In A Month" < 1) or (Rec."Day In A Month" > 31) then
                         Error(InvalidDayErr, Rec.FieldCaption("Day In A Month"));
-
                 if not IsNullGuid(xRec.SystemId) then
                     if xRec."Day In A Month" <> Rec."Day In A Month" then
                         Rec.TestField("When to Create Expense Reports", "Expense Report Frequency"::Monthly);
@@ -479,16 +504,19 @@ table 6930 "Expense Agent Setup"
         }
         field(83; "Expense Report Grouping"; Enum "Expense Reports Grouping")
         {
+            Access = Internal;
             Caption = 'Expense Report Grouping';
             ToolTip = 'Specifies how expense reports are grouped when they are created automatically.';
         }
         field(84; "Enable Open Report Notif."; Boolean)
         {
+            Access = Internal;
             Caption = 'Enable Open Report Notifications';
             ToolTip = 'Specifies whether the system sends periodic notifications for open expense reports. Notifications are only sent when a mailbox is configured.';
         }
         field(85; "Notif. Day of Week"; Enum "Day of Week")
         {
+            Access = Internal;
             Caption = 'Notification Day of Week';
             ToolTip = 'Specifies the day of the week for weekly open report notifications.';
 
@@ -501,6 +529,7 @@ table 6930 "Expense Agent Setup"
         }
         field(86; "Notif. Day In A Month"; Integer)
         {
+            Access = Internal;
             Caption = 'Notification Day In A Month';
             ToolTip = 'Specifies the day of the month for monthly open report notifications.';
 
@@ -509,7 +538,6 @@ table 6930 "Expense Agent Setup"
                 if Rec."Notif. Day In A Month" <> 0 then
                     if (Rec."Notif. Day In A Month" < 1) or (Rec."Notif. Day In A Month" > 31) then
                         Error(InvalidDayErr, Rec.FieldCaption("Notif. Day In A Month"));
-
                 if not IsNullGuid(xRec.SystemId) then
                     if xRec."Notif. Day In A Month" <> Rec."Notif. Day In A Month" then
                         Rec.TestField("Open Report Notif. Freq.", "Expense Report Frequency"::Monthly);
@@ -517,6 +545,7 @@ table 6930 "Expense Agent Setup"
         }
         field(87; "Custom Notif. Formula"; DateFormula)
         {
+            Access = Internal;
             Caption = 'Custom Notification Formula';
             ToolTip = 'Specifies a custom date formula to use for open report notification scheduling.';
 
@@ -529,12 +558,14 @@ table 6930 "Expense Agent Setup"
         }
         field(88; "Enable Approval Notif."; Boolean)
         {
+            Access = Internal;
             Caption = 'Notify users about approval updates';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the system sends email notifications when expense reports are submitted, approved, or rejected. Notifications are only sent when an email account is configured.';
         }
         field(89; "Enable Email with Receipts"; Boolean)
         {
+            Access = Internal;
             Caption = 'Process incoming emails with receipts';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the agent reads its mailbox and processes incoming emails containing expense receipts. Receipts are only processed when a mailbox is configured.';
@@ -583,16 +614,19 @@ table 6930 "Expense Agent Setup"
         }
         field(96; "Noreply Email Account ID"; Guid)
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
             Caption = 'Noreply Email Account ID';
         }
         field(97; "Noreply Email Connector"; Enum "Email Connector")
         {
+            Access = Internal;
             DataClassification = SystemMetadata;
             Caption = 'Noreply Email Connector';
         }
         field(98; "Noreply Email Address"; Text[250])
         {
+            Access = Internal;
             Caption = 'Noreply Email Address';
             ToolTip = 'Specifies the noreply email address used for outgoing messages. If empty, the main email account is used.';
             DataClassification = SystemMetadata;
@@ -602,7 +636,7 @@ table 6930 "Expense Agent Setup"
             Caption = 'Default Approver No.';
             ToolTip = 'Specifies the expense user who by default is set as approver.';
             DataClassification = CustomerContent;
-            TableRelation = "Expense User";
+            TableRelation = "Expense User" where("Can Approve" = const(true), "Unlimited Approval" = const(true));
 
             trigger OnValidate()
             var
@@ -684,16 +718,19 @@ table 6930 "Expense Agent Setup"
         }
         field(120; "Enable Project Fields"; Boolean)
         {
+            Access = Internal;
             Caption = 'Enable project fields';
             ToolTip = 'Specifies whether project and project task fields are visible in the expense web app for submitters.';
         }
         field(121; "Project Visibility"; Enum "Expense Project Visibility")
         {
+            Access = Internal;
             Caption = 'Project visibility';
             ToolTip = 'Specifies which projects are visible to submitters: only projects assigned to the user, or all active projects.';
         }
         field(122; "Enable Communication"; Boolean)
         {
+            Access = Internal;
             Caption = 'Send emails to users';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the agent sends outgoing emails to users: welcome emails, reimbursement notifications, approval updates, and unsubmitted-report reminders. Turn this off to stop all outgoing emails. Incoming receipt processing is controlled separately.';
@@ -706,8 +743,55 @@ table 6930 "Expense Agent Setup"
                 end;
             end;
         }
+        field(123; "Corp Card Create Mode"; Enum "EA Corp Card Create Mode")
+        {
+            Access = Internal;
+            Caption = 'Corp Card Create Mode';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies how expense entries are created from imported corporate card transactions.';
+        }
+        field(124; "Corp Card Date Match Window"; Integer)
+        {
+            Access = Internal;
+            Caption = 'Corp Card Date Match Window (Days)';
+            DataClassification = SystemMetadata;
+            MinValue = 0;
+            ToolTip = 'Specifies the date tolerance, in days, used to match corporate card transactions to expenses.';
+        }
+        field(125; "Corp Card Amount Tolerance"; Decimal)
+        {
+            Access = Internal;
+            AutoFormatType = 0;
+            Caption = 'Corp Card Amount Tolerance';
+            DataClassification = SystemMetadata;
+            MinValue = 0;
+            ToolTip = 'Specifies the amount tolerance used to match corporate card transactions to expenses.';
+        }
+        field(126; "Corp Card Auto Create Draft"; Boolean)
+        {
+            Access = Internal;
+            Caption = 'Corp Card Auto Create Draft';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether draft expenses are automatically created when imported corporate card transactions are not matched.';
+        }
+        field(127; "Corp Card Default Provider"; Code[20])
+        {
+            Access = Internal;
+            Caption = 'Corp Card Default Provider';
+            DataClassification = SystemMetadata;
+            TableRelation = "EA Corp Card Provider".Code;
+            ToolTip = 'Specifies the default provider used for corporate card imports.';
+        }
+        field(128; "Require Corporate Card"; Boolean)
+        {
+            Access = Internal;
+            Caption = 'Require Corporate Card';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether a corporate card must be selected for credit-card expenses before release or posting. This also applies to existing unposted expenses and expense reports.';
+        }
         field(150; "Use Canary Endpoint"; Boolean)
         {
+            Access = Internal;
             Caption = 'Canary';
             DataClassification = SystemMetadata;
             Editable = false;
@@ -798,8 +882,6 @@ table 6930 "Expense Agent Setup"
         CreateEmployeesForExpenseUsersQst: Label 'Turning on this setting will enable automatic creation of records in the Employee table. This may impact your HR setup in Business Central.\\Are you sure you want to enable this feature?';
         UpdateDefaultsApproverQst: Label 'You have changed the default approver.\\Do you also want to change approver from %1 to %2 for all expense users who currently have %1 as approver?', Comment = '%1 and %2 are both person names.';
         UpdatingDefaultApproversLbl: Label 'Updating approvers...';
-        XDOMESTICTxt: Label 'DOMESTIC'; // DOMESTIC VAT Business Posting Group used as default for all rates created by this codeunit
-
 
     internal procedure AssistEditNoreplyMailbox()
     var
@@ -808,7 +890,6 @@ table 6930 "Expense Agent Setup"
     begin
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
-
         if not CheckMailboxExists() then
             exit;
 
@@ -841,7 +922,6 @@ table 6930 "Expense Agent Setup"
     begin
         if not CheckMailboxExists() then
             Page.RunModal(Page::"Email Account Wizard");
-
         if not CheckMailboxExists() then
             exit;
 
@@ -902,11 +982,9 @@ table 6930 "Expense Agent Setup"
         EmailAccount.GetAllAccounts(false, TempEmailAccount);
         if TempEmailAccount.IsEmpty() then
             exit(false);
-
         if TempEmailAccount.FindSet() then
             repeat
                 IConnector := TempEmailAccount.Connector;
-
                 if IConnector is "Email Connector v4" then
                     exit(true);
             until TempEmailAccount.Next() = 0;
@@ -1077,6 +1155,19 @@ table 6930 "Expense Agent Setup"
         Rec.Modify();
     end;
 
+    [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense No. Series", 'X')]
+    internal procedure EnsureExpenseVendorNoSeries()
+    var
+        CreateExpenseNoSeries: Codeunit "Create Expense No. Series";
+    begin
+        if Rec."Expense Vendor Nos." <> '' then
+            exit;
+
+        CreateExpenseNoSeries.InsertExpenseVendorNoSeries();
+        Rec.Validate("Expense Vendor Nos.", CreateExpenseNoSeries.ExpenseVendorNoSeries());
+        Rec.Modify();
+    end;
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"Expense User", 'I')]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense Agent Setup", 'X')]
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense GL Account", 'X')]
@@ -1084,6 +1175,7 @@ table 6930 "Expense Agent Setup"
     internal procedure CreatePostingGroupsDefaults()
     var
         Employee: Record Employee;
+        EmployeePostingGroup: Record "Employee Posting Group";
         ExpenseUser: Record "Expense User";
         CreateExpenseCategories: Codeunit "Create Expense Categories";
     begin
@@ -1096,12 +1188,17 @@ table 6930 "Expense Agent Setup"
             Rec."Posting Groups Applied" := true;
             Rec.Modify();
         end;
-
         if GuiAllowed and ExpenseUser.IsEmpty() then
             if Confirm(CopyEmployeesToExpenseUsersQst, false) then begin
-                Employee.SetLoadFields("No.", "First Name", "Middle Name", "Last Name", "Job Title", "E-Mail", "Company E-Mail");
+                Employee.SetLoadFields("No.", "First Name", "Middle Name", "Last Name", "Job Title", "E-Mail", "Company E-Mail", "Employee Posting Group");
                 if Employee.FindSet() then
                     repeat
+                        if Employee."Employee Posting Group" = '' then
+                            if EmployeePostingGroup.FindFirst() then begin
+                                Employee."Employee Posting Group" := EmployeePostingGroup.Code;
+                                Employee.Modify();
+                            end;
+
                         ExpenseUser.SetRange("Employee No.", Employee."No.");
                         if not ExpenseUser.FindFirst() then begin
                             ExpenseUser.Init();
@@ -1178,19 +1275,37 @@ table 6930 "Expense Agent Setup"
     internal procedure CreateCountryVATRatesDefaults()
     var
         CreateExpenseCountryVATRates: Codeunit "Create Expense VAT Rates";
+        DefaultVATBusinessPostingGroup: Code[20];
     begin
         Rec.GetRecordOnce();
         if Rec."Default VAT Bus. Posting Group" = '' then begin
-            Rec."Default VAT Bus. Posting Group" := XDOMESTICTxt;
-            Rec.Modify();
+            DefaultVATBusinessPostingGroup := GetDefaultVATBusinessPostingGroup();
+            if DefaultVATBusinessPostingGroup <> '' then begin
+                Rec.Validate("Default VAT Bus. Posting Group", DefaultVATBusinessPostingGroup);
+                Rec.Modify();
+            end;
         end;
-
-        CreateExpenseCountryVATRates.InsertDefaultRates();
-
+        if not CreateExpenseCountryVATRates.InsertDefaultRates() then
+            exit;
         if not Rec."VAT Rates Applied" then begin
             Rec."VAT Rates Applied" := true;
             Rec.Modify();
         end;
+    end;
+
+    local procedure GetDefaultVATBusinessPostingGroup(): Code[20]
+    var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', '');
+        if VATPostingSetup.FindSet() then
+            repeat
+                if VATBusinessPostingGroup.Get(VATPostingSetup."VAT Bus. Posting Group") then
+                    exit(VATBusinessPostingGroup.Code);
+            until VATPostingSetup.Next() = 0;
+        if VATBusinessPostingGroup.FindFirst() then
+            exit(VATBusinessPostingGroup.Code);
     end;
 
     [InherentPermissions(PermissionObjectType::Codeunit, Codeunit::"Create Expense Agent Setup", 'X')]
@@ -1210,7 +1325,9 @@ table 6930 "Expense Agent Setup"
     internal procedure CreateAccountingDefaults()
     begin
         if not Rec."No. Series Applied" then
-            CreateNoSeriesDefaults();
+            CreateNoSeriesDefaults()
+        else
+            EnsureExpenseVendorNoSeries();
         if not Rec."Payment Methods Applied" then
             CreatePaymentMethodsDefaults();
         if not Rec."Posting Groups Applied" then

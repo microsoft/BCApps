@@ -53,9 +53,16 @@ page 6989 Expenses
                 {
                     ToolTip = 'Specifies the name of the merchant where the expense occurred.';
                 }
+                field(CurrencyCode; Rec."Currency Code")
+                {
+                }
                 field(Amount; Rec.Amount)
                 {
                     ToolTip = 'Specifies the total amount in the expense currency.';
+                }
+                field(AmountLCY; Rec."Amount (LCY)")
+                {
+                    ToolTip = 'Specifies the total amount in local currency.';
                 }
             }
         }
