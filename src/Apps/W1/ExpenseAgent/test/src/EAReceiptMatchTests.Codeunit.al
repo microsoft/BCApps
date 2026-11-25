@@ -656,6 +656,7 @@ codeunit 148370 EAReceiptMatchTests
         CreateCardReceiptData(CardReceiptData, Expense);
         CreateCardReceiptData(RetryCardReceiptData, Expense);
         CardReceiptDataApply.Apply(CardReceiptData);
+        Commit();
 
         asserterror CardReceiptDataApply.Apply(RetryCardReceiptData);
 
