@@ -25,6 +25,7 @@ codeunit 148370 EAReceiptMatchTests
         CannotDeleteCardExpenseErr: Label 'You cannot delete expense %1 because it is linked to a corporate card transaction.', Comment = '%1 = Expense No.';
         NotCardExpenseErr: Label 'Receipt data can only be applied to expense %1 when it was created from a corporate card transaction.', Comment = '%1 = Expense No.';
         NotWaitingForReceiptErr: Label 'Expense %1 is not waiting for a receipt.', Comment = '%1 = Expense No.';
+        OpenExpenseAttachmentErr: Label 'You can only import and delete attachments on %1 %2 when the %3 is Open.', Comment = '%1 = Expense No. caption, %2 = expense number, %3 = status caption';
         ReceiptRequiredErr: Label 'Upload the receipt file and its file name before you apply the receipt data.';
         ReceiptNoMandatoryOnExpenseErr: Label 'Receipt No. is mandatory on Expense No. %1', Comment = '%1 = Expense No.';
         ReceiptNoMandatoryOnReportLineErr: Label 'Receipt No. is mandatory on Expense Report No. %1, Line No. %2', Comment = '%1 = Expense Report No., %2 = Line No.';
@@ -670,12 +671,13 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure AppliedCardReceiptCanBeReplacedAfterRemovingLine()
+    procedure AppliedCardReceiptCanBeReplacedAfterManualReopen()
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         CardReceiptData: Record "EA Card Receipt Data";
         DocumentAttachment: Record "Document Attachment";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
         ReplacementInStream: InStream;
     begin
         // [SCENARIO] A receipt follows the normal attachment rules once its expense is open and no longer on a report.
@@ -690,12 +692,18 @@ codeunit 148370 EAReceiptMatchTests
 
         ExpenseReportLine.Delete(true);
         Expense.Get(Expense."No.");
-        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
         DocumentAttachment.SetRange("Table ID", Database::Expense);
         DocumentAttachment.SetRange("No.", Expense."No.");
         DocumentAttachment.FindFirst();
+        Commit();
+        asserterror DocumentAttachment.Delete(true);
+        Assert.ExpectedError(StrSubstNo(OpenExpenseAttachmentErr, ExpenseReportLine.FieldCaption("Expense No."), Expense."No.", Expense.FieldCaption(Status)));
 
+        DocumentAttachment.FindFirst();
+        Expense.Get(Expense."No.");
+        ReleaseExpenseDocument.PerformManualReopen(Expense);
         CreateCardReceiptData(CardReceiptData, Expense);
         CardReceiptData.CalcFields("Attachment Content");
         CardReceiptData."Attachment Content".CreateInStream(ReplacementInStream);
