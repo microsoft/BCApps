@@ -4,8 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Reports;
 
+using Microsoft.CRM.Team;
+using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 
@@ -50,9 +53,11 @@ report 813 "Inventory Picking List"
             }
             column(No_Item; "No.")
             {
+                IncludeCaption = true;
             }
             column(Description_Item; Description)
             {
+                IncludeCaption = true;
             }
             column(BaseUnitofMeasure_Item; "Base Unit of Measure")
             {
@@ -120,6 +125,62 @@ report 813 "Inventory Picking List"
                 column(GroupTotal; GroupTotal)
                 {
                 }
+                column(SellToCustomerNo_SalesLine; "Sell-to Customer No.")
+                {
+                    IncludeCaption = true;
+                }
+                column(ExternalDocumentNo_SalesHeader; SalesHeader."External Document No.")
+                {
+                    IncludeCaption = true;
+                }
+                column(YourReference_SalesHeader; SalesHeader."Your Reference")
+                {
+                    IncludeCaption = true;
+                }
+                column(DocumentDate_SalesHeader; Format(SalesHeader."Document Date"))
+                {
+                }
+                column(DocumentDateCaption; SalesHeader.FieldCaption("Document Date"))
+                {
+                }
+                column(SalespersonCode_SalesHeader; SalesHeader."Salesperson Code")
+                {
+                    IncludeCaption = true;
+                }
+                column(SalespersonName; SalespersonPurchaser.Name)
+                {
+                }
+                column(ShippingAgentCode_SalesLine; "Shipping Agent Code")
+                {
+                    IncludeCaption = true;
+                }
+                column(ShippingAgentName; ShippingAgent.Name)
+                {
+                }
+                column(NetWeight_SalesLine; "Net Weight")
+                {
+                    IncludeCaption = true;
+                }
+                column(GrossWeight_SalesLine; "Gross Weight")
+                {
+                    IncludeCaption = true;
+                }
+                column(ItemReferenceNo_SalesLine; "Item Reference No.")
+                {
+                    IncludeCaption = true;
+                }
+                column(ItemTrackingText; ItemTrackingText)
+                {
+                }
+                column(OrderNo_SalesLine; "Document No.")
+                {
+                }
+                column(LineNetWeight; LineNetWeight)
+                {
+                }
+                column(LineGrossWeight; LineGrossWeight)
+                {
+                }
 
                 trigger OnAfterGetRecord()
                 begin
@@ -131,6 +192,16 @@ report 813 "Inventory Picking List"
                             ItemVariant.Get("No.", "Variant Code")
                         else
                             ItemVariant.Description := Item.Description;
+
+                    if not SalesHeader.Get("Document Type", "Document No.") then
+                        Clear(SalesHeader);
+                    if not SalespersonPurchaser.Get(SalesHeader."Salesperson Code") then
+                        Clear(SalespersonPurchaser);
+                    if not ShippingAgent.Get("Shipping Agent Code") then
+                        Clear(ShippingAgent);
+                    ItemTrackingText := GetItemTrackingText("Sales Line");
+                    LineNetWeight := "Net Weight" * "Qty. to Ship";
+                    LineGrossWeight := "Gross Weight" * "Qty. to Ship";
                 end;
             }
         }
@@ -172,10 +243,26 @@ report 813 "Inventory Picking List"
             LayoutFile = './Inventory/Reports/InventoryPickingList.rdlc';
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventoryPickingListBody.docx';
+            Caption = 'Body-only: Inventory Picking List Word';
+            Summary = 'Shows the sales order lines to be picked for each item, with document number, customer, shipment date, location, bin, variant, quantity to ship, reserved quantity, and unit of measure.';
+        }
     }
 
     labels
     {
+        ItemTrackingLbl = 'Item Tracking';
+        OrderNoLbl = 'Order No.';
+        SalespersonNameCaption = 'Salesperson Name';
+        LineNetWeightLbl = 'Net Weight (Line)';
+        LineGrossWeightLbl = 'Gross Weight (Line)';
+        QtytoShipHelpTextLbl = 'Quantity to ship on the line, in the unit of measure of the line.';
+        QtytoShipBaseHelpTextLbl = 'Quantity to ship on the line, in the base unit of measure of the item.';
+        ReservedQtyBaseHelpTextLbl = 'Quantity already reserved for the line, in the base unit of measure of the item.';
     }
 
     trigger OnPreReport()
@@ -189,11 +276,17 @@ report 813 "Inventory Picking List"
     var
         Cust: Record Customer;
         ItemVariant: Record "Item Variant";
+        SalesHeader: Record "Sales Header";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        ShippingAgent: Record "Shipping Agent";
         ItemFilter: Text;
         SalesLineFilter: Text;
         GroupTotal: Boolean;
         GetSalesLineCurrentKey: Text[250];
         GetItemCurrentKey: Text[250];
+        ItemTrackingText: Text[250];
+        LineNetWeight: Decimal;
+        LineGrossWeight: Decimal;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -204,5 +297,36 @@ report 813 "Inventory Picking List"
         PageCaptionLbl: Label 'Page';
         CustomerCaptionLbl: Label 'Customer';
         ShipmentDateCaptionLbl: Label 'Shipment Date';
+
+    local procedure GetItemTrackingText(SalesLine: Record "Sales Line"): Text[250]
+    var
+        ReservationEntry: Record "Reservation Entry";
+        TrackingText: Text;
+        TrackingEntryText: Text;
+    begin
+        if Item."Item Tracking Code" = '' then
+            exit('');
+
+        ReservationEntry.SetRange("Source Type", Database::"Sales Line");
+        ReservationEntry.SetRange("Source Subtype", SalesLine."Document Type".AsInteger());
+        ReservationEntry.SetRange("Source ID", SalesLine."Document No.");
+        ReservationEntry.SetRange("Source Ref. No.", SalesLine."Line No.");
+        ReservationEntry.SetFilter("Item Tracking", '<>%1', ReservationEntry."Item Tracking"::None);
+        if ReservationEntry.FindSet() then
+            repeat
+                TrackingEntryText := ReservationEntry."Serial No.";
+                if ReservationEntry."Lot No." <> '' then begin
+                    if TrackingEntryText <> '' then
+                        TrackingEntryText := ReservationEntry."Lot No." + ' / ' + TrackingEntryText
+                    else
+                        TrackingEntryText := ReservationEntry."Lot No." + ' (' + Format(Abs(ReservationEntry."Quantity (Base)")) + ')';
+                end;
+                if TrackingText <> '' then
+                    TrackingText += '; ';
+                TrackingText += TrackingEntryText;
+            until ReservationEntry.Next() = 0;
+
+        exit(CopyStr(TrackingText, 1, 250));
+    end;
 }
 
