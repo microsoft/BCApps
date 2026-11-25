@@ -5,11 +5,13 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
+using System.Environment;
 
 codeunit 148000 "Library IRS Reporting Period"
 {
     var
         LibraryUtility: Codeunit "Library - Utility";
+        NoAvailableReportingYearErr: Label 'There is no unused reporting year between %1 and 3000.', Comment = '%1 = first reporting year';
 
     procedure CreateOneDayReportingPeriod(ReportingDate: Date): Code[20]
     begin
@@ -35,6 +37,31 @@ codeunit 148000 "Library IRS Reporting Period"
         IRSReportingPeriod.Validate("Starting Date", StartingDate);
         IRSReportingPeriod.Validate("Ending Date", EndingDate);
         IRSReportingPeriod.Insert(true);
+    end;
+
+    procedure CreateAvailableAnnualReportingPeriod(FirstReportingYear: Integer): Code[20]
+    var
+        IRSReportingPeriod: Record "IRS Reporting Period";
+        PeriodNo: Code[20];
+        ReportingYear: Integer;
+        StartingDate: Date;
+        EndingDate: Date;
+    begin
+        for ReportingYear := FirstReportingYear to 3000 do begin
+            PeriodNo := Format(ReportingYear, 0, 9);
+            if not IRSReportingPeriod.Get(PeriodNo) then begin
+                StartingDate := DMY2Date(1, 1, ReportingYear);
+                EndingDate := DMY2Date(31, 12, ReportingYear);
+                IRSReportingPeriod.SetFilter("Starting Date", '<=%1', EndingDate);
+                IRSReportingPeriod.SetFilter("Ending Date", '>=%1', StartingDate);
+                if IRSReportingPeriod.IsEmpty() then begin
+                    CreateSpecificReportingPeriod(PeriodNo, StartingDate, EndingDate);
+                    exit(PeriodNo);
+                end;
+                IRSReportingPeriod.Reset();
+            end;
+        end;
+        Error(NoAvailableReportingYearErr, FirstReportingYear);
     end;
 
     procedure GetReportingPeriod(PostingDate: Date): Code[20]
@@ -74,5 +101,28 @@ codeunit 148000 "Library IRS Reporting Period"
         IRSReportingPeriod: Codeunit "IRS Reporting Period";
     begin
         IRSReportingPeriod.CopyReportingPeriodSetup(FromPeriodNo, ToPeriodNo);
+    end;
+
+    procedure CopyPeriodSetup(FromPeriodNo: Code[20]; ToPeriodNo: Code[20]; var TempSelectedCompany: Record Company temporary)
+    var
+        IRSReportingPeriod: Codeunit "IRS Reporting Period";
+    begin
+        IRSReportingPeriod.CopyReportingPeriodSetup(FromPeriodNo, ToPeriodNo, TempSelectedCompany);
+    end;
+
+    procedure UpdateAnnualSetup(PeriodNo: Code[20]; TargetCompany: Text): Text
+    var
+        IRSFormsData: Codeunit "IRS Forms Data";
+        Details: Text;
+    begin
+        IRSFormsData.UpdateAnnualSetup(PeriodNo, TargetCompany, Details);
+        exit(Details);
+    end;
+
+    procedure UpdateDataForNewTaxYear(FromPeriodNo: Code[20]; ToPeriodNo: Code[20])
+    var
+        IRSReportingPeriod: Codeunit "IRS Reporting Period";
+    begin
+        IRSReportingPeriod.UpdateDataForNewTaxYear(FromPeriodNo, ToPeriodNo, false);
     end;
 }
