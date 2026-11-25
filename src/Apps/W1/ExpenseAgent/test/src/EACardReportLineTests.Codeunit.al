@@ -292,6 +292,32 @@ codeunit 148373 "EA Card Report Line Tests"
     end;
 
     [Test]
+    procedure ReceiptMatchesReleasedCardExpenseOffReport()
+    var
+        Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        // [SCENARIO] A card expense can match a receipt after release, before it is added to any report.
+        Initialize();
+
+        // [GIVEN] A card expense released through the standard flow, without adding or removing a report line.
+        CreateCardExpense(Expense, CardIdTok);
+        CreateCardCategory(ExpenseCategory, 0);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Modify(true);
+        ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
+        Expense.Get(Expense."No.");
+        Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField("Expense Report No.", '');
+        Expense.TestField("Receipt Attached", false);
+
+        // [WHEN] A receipt with the same amount, date and merchant is matched.
+        // [THEN] The matcher returns the released expense itself.
+        Assert.AreEqual(Expense.SystemId, FindMatch(Expense, WorkDate(), 20), 'The receipt must match the released off-report expense.');
+    end;
+
+    [Test]
     procedure ReceiptMatchesReleasedCardExpenseRemovedFromReport()
     var
         Expense: Record Expense;
