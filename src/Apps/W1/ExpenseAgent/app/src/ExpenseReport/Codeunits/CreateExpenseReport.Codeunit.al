@@ -319,6 +319,7 @@ codeunit 6983 "Create Expense Report"
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
     begin
         Expense.TestField(Source, Expense.Source::CorporateCard);
+        Expense.TestField("Credit Card Feed No.");
         Expense.TestField("Expense User No.", ExpenseReportHeader."Expense User No.");
         Expense.TestField("Expense Report No.", '');
         ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);

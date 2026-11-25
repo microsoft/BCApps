@@ -57,6 +57,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         DocumentAttachment: Record "Document Attachment";
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
         ExpenseVATLineNos: Dictionary of [Integer, Integer];
         OriginalStatus: Enum "Expense Status";
         OnReport: Boolean;
@@ -97,10 +98,15 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLine.ApplyRule(false, true);
         end;
 
-        if OriginalStatus <> Expense.Status::Open then begin
+        // A released expense goes back through the release checks, so receipt data can't leave it in a state release would reject.
+        if OriginalStatus = Expense.Status::Released then begin
             Expense.Get(Expense."No.");
-            SetExpenseStatus(Expense, OriginalStatus);
-        end;
+            ReleaseExpenseDocument.ReleaseCardExpenseWithoutCategory(Expense);
+        end else
+            if OriginalStatus <> Expense.Status::Open then begin
+                Expense.Get(Expense."No.");
+                SetExpenseStatus(Expense, OriginalStatus);
+            end;
 
         CardReceiptData.Delete(true);
     end;

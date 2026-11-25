@@ -155,7 +155,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the vendor or merchant for this expense.';
-                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec.Source <> Rec.Source::CorporateCard);
+                    Editable = ((Rec."Credit Card Feed No." = 0) and (Rec.Source <> Rec.Source::CorporateCard)) or (Rec."Merchant Name" = '');
                 }
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
                 {

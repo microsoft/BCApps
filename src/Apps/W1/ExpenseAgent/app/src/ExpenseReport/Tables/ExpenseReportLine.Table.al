@@ -1346,7 +1346,8 @@ table 6907 "Expense Report Line"
             Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Currency Code"));
         if Rec."Expense Date" <> StoredExpenseReportLine."Expense Date" then
             Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
-        if Rec."Merchant Name" <> StoredExpenseReportLine."Merchant Name" then
+        // A merchant the card feed left blank can be filled in by the user; a merchant from the feed is kept.
+        if (StoredExpenseReportLine."Merchant Name" <> '') and (Rec."Merchant Name" <> StoredExpenseReportLine."Merchant Name") then
             Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Merchant Name"));
         if Rec."Payment Method Code" <> StoredExpenseReportLine."Payment Method Code" then
             Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Payment Method Code"));

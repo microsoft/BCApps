@@ -1151,7 +1151,8 @@ table 6900 Expense
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
         if Rec."Currency Code" <> StoredExpense."Currency Code" then
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Currency Code"));
-        if Rec."Merchant Name" <> StoredExpense."Merchant Name" then
+        // A merchant the card feed left blank can be filled in by the user; a merchant from the feed is kept.
+        if (StoredExpense."Merchant Name" <> '') and (Rec."Merchant Name" <> StoredExpense."Merchant Name") then
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Merchant Name"));
         if Rec."Payment Method Code" <> StoredExpense."Payment Method Code" then
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Payment Method Code"));
