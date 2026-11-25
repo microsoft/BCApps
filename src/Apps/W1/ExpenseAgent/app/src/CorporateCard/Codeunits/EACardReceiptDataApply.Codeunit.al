@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using System.IO;
 
