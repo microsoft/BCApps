@@ -685,8 +685,10 @@ codeunit 148373 "EA Card Report Line Tests"
         Initialize();
         LibraryExpense.UpdateUseRulesInAgentSetup(true);
 
-        // [GIVEN] A card line of 20 and a rule that needs a justification from 10.
+        // [GIVEN] A card line of 20 that doesn't wait for its receipt, and a rule that needs a justification from 10.
         CreateCardLine(Expense, ExpenseReportLine, CardIdTok);
+        ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Receipt not needed";
+        ExpenseReportLine.Modify();
         LibraryExpense.CreateExpenseRuleWithCondition(
             ExpenseRuleHeader, ExpenseRuleCondition, ExpenseReportLine."Expense Category", '', WorkDate() - 30,
             ExpenseRuleHeader."Justification Required"::"Against Conditions", '', '', ExpenseRuleCondition."Condition Type"::"At Least Justification Needed", 10);
