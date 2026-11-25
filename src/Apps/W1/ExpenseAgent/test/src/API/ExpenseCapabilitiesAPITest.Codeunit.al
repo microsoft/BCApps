@@ -228,6 +228,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // [SCENARIO] When Expense Agent Setup has "Allow Interim Approvers" = true,
         //            interimApprover is reported enabled.
         Initialize();
+        LibraryExpenseAgent.BackupExpenseAgentSetup();
 
         // [GIVEN] Expense Agent Setup exists with Allow Interim Approvers = true.
         if not ExpenseAgentSetup.Get() then begin
@@ -242,6 +243,8 @@ codeunit 148318 "Expense Capabilities API Test"
             'interimApprover must be enabled when Allow Interim Approvers is true.');
         Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::ApprovalsWithOutcome),
             'approvalsWithOutcome must be enabled when Allow Interim Approvers is true.');
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        Commit();
     end;
 
     [Test]
@@ -253,6 +256,7 @@ codeunit 148318 "Expense Capabilities API Test"
         // [SCENARIO] When Expense Agent Setup has "Allow Interim Approvers" = false,
         //            interimApprover is reported disabled.
         Initialize();
+        LibraryExpenseAgent.BackupExpenseAgentSetup();
 
         // [GIVEN] Expense Agent Setup exists with Allow Interim Approvers = false.
         if not ExpenseAgentSetup.Get() then begin
@@ -267,6 +271,8 @@ codeunit 148318 "Expense Capabilities API Test"
             'interimApprover must be disabled when Allow Interim Approvers is false.');
         Assert.IsTrue(ExpenseCapabilitiesProvider.IsEnabled(Enum::"Expense Capability"::ApprovalsWithOutcome),
             'approvalsWithOutcome must remain enabled when Allow Interim Approvers is false.');
+        LibraryExpenseAgent.RestoreExpenseAgentSetup();
+        Commit();
     end;
 
     [Test]
