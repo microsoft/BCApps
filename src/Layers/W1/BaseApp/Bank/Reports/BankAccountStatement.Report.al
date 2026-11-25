@@ -162,6 +162,9 @@ report 1407 "Bank Account Statement"
             column(DifferenceGLBank; GLBankDifference)
             {
             }
+            column(RunningBalanceCaption; RunningBalanceLbl)
+            {
+            }
             dataitem("Bank Account Statement Line"; "Bank Account Statement Line")
             {
                 DataItemLink = "Bank Account No." = field("Bank Account No."), "Statement No." = field("Statement No.");
@@ -211,10 +214,15 @@ report 1407 "Bank Account Statement"
                 column(Cleared_BankAccStmtLine; ClearedText)
                 {
                 }
+                column(RunningBalance; StatementRunningBalance)
+                {
+                }
 
                 trigger OnAfterGetRecord()
                 begin
                     GetAppliedEntryInfo("Bank Account Statement Line");
+                    // Lines are sorted by Statement Line No. The balance runs from the previous statement's ending balance and ends at the statement ending balance.
+                    StatementRunningBalance += "Statement Amount";
                 end;
             }
             #region [Outstanding Bank Transaction]
@@ -318,6 +326,7 @@ report 1407 "Bank Account Statement"
                 // G/L balance after the differences posted with the statement, minus the bank balance adjusted for outstanding items. Zero when reconciled.
                 GLBankDifference := GLBalanceAtPostingDate + "Total Pos. Diff. at Posting" + "Total Neg. Diff. at Posting" -
                     ("Statement Ending Balance" + "Outstd. Payments at Posting" + "Outstd. Transact. at Posting");
+                StatementRunningBalance := "Balance Last Statement";
 
                 if PrintOutstandingTransactions then
                     GatherOutstandingTransactions("Bank Account No.");
@@ -423,10 +432,12 @@ report 1407 "Bank Account Statement"
         StmtLineEntryNoLbl: Label 'Entry No.';
         StmtLineClearedLbl: Label 'Cleared';
         DifferenceGLBankLbl: Label 'Difference G/L vs. Bank';
+        RunningBalanceLbl: Label 'Running Balance';
         CurrencyCode: Code[20];
         PrintOutstandingTransactions: Boolean;
         GLBalanceAtPostingDate: Decimal;
         GLBankDifference: Decimal;
+        StatementRunningBalance: Decimal;
 
     local procedure GetAppliedEntryInfo(BankAccountStatementLine: Record "Bank Account Statement Line")
     var
