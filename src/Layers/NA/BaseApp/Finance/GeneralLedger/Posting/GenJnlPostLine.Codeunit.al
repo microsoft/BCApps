@@ -4487,7 +4487,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustUnrealizedVAT(GenJnlLine, CustLedgEntry2, SettledAmount, GainLossLCY, CurrencyFactor, PostingDate, 0);
     end;
 
-    local procedure CustUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; ApplyingCustLedgerEntryNo: Integer)
+    local procedure CustUnrealizedVAT(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry2: Record "Cust. Ledger Entry"; SettledAmount: Decimal; GainLossLCY: Decimal; AppliedCurrencyFactor: Decimal; PostingDate: Date; ApplyingCustLedgerEntryNo: BigInteger)
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
