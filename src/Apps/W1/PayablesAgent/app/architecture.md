@@ -169,6 +169,7 @@ Compatibility/
             Intake/                     V1 import operation and its admission subscribers
             Execution/
                 AgentWorkspace/         V1 profile, role center and page customizations
+                Supporting/             E-Document LLM calls, made under the Payables Agent copilot capability
         Entities/
             Setup/                      V1 setup storage (E-Document service and Outlook setup)
             WorkItem/                   V1 E-Document storage and legacy correlation

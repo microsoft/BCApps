@@ -18,6 +18,6 @@ codeunit 5711 "Create QM Generation Rule Manu"
         ContosoQualityManagement: Codeunit "Contoso Quality Management";
         CreateQMInspTemplateHdr: Codeunit "Create QM Insp. Template Hdr";
     begin
-        ContosoQualityManagement.InsertQualityInspectionGenRule(5, 50, Enum::"Qlty. Gen. Rule Intent"::Production, CreateQMInspTemplateHdr.Production(), Database::"Prod. Order Routing Line", '', CreateQMInspTemplateHdr.BicycleChecklistDesc(), Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
+        ContosoQualityManagement.InsertQualityInspectionGenRule(5, 50, Enum::"Qlty. Gen. Rule Intent"::Production, CreateQMInspTemplateHdr.Production(), Database::"Prod. Order Routing Line", '', CreateQMInspTemplateHdr.ProductionDesc(), Enum::"Qlty. Gen. Rule Act. Trigger"::"Manual or Automatic");
     end;
 }
