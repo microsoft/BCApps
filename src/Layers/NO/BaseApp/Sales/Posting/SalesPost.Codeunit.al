@@ -1520,13 +1520,26 @@ codeunit 80 "Sales-Post"
         TempWhseTrackingSpecification: Record "Tracking Specification" temporary;
         OriginalItemJnlLine: Record "Item Journal Line";
         ItemShptEntryNo: BigInteger;
+#if not CLEAN30
+        LegacyResult: Integer;
+#endif
         PostWhseJnlLine: Boolean;
         IsHandled: Boolean;
         ShouldPostItemJnlLine: Boolean;
         ShouldPostItemJnlLineItemCharges: Boolean;
     begin
         IsHandled := false;
+#if not CLEAN30
+        LegacyResult := 0;
         OnBeforePostItemJnlLine(
+          SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
+          ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, IsATO, SuppressCommit, IsHandled, LegacyResult, TempTrackingSpecification, TempHandlingSpecification, TempValueEntryRelation, ItemJnlPostLine);
+        Result := LegacyResult;
+        if IsHandled then
+            exit(Result);
+#endif
+
+        OnBeforePostItemJnlLineV2(
           SalesHeader, SalesLine, QtyToBeShipped, QtyToBeShippedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
           ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, IsATO, SuppressCommit, IsHandled, Result, TempTrackingSpecification, TempHandlingSpecification, TempValueEntryRelation, ItemJnlPostLine);
         if IsHandled then
@@ -10374,6 +10387,14 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Use OnBeforePostItemJnlLineV2 instead.', '30.0')]
+    [IntegrationEvent(true, false)]
+    local procedure OnBeforePostItemJnlLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var QtyToBeShipped: Decimal; var QtyToBeShippedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; var IsATO: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var Result: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempValueEntryRelation: Record "Value Entry Relation" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
+    begin
+    end;
+#endif
+
     /// <summary>
     /// Raised before posting the item journal line for a sales line.
     /// </summary>
@@ -10395,7 +10416,7 @@ codeunit 80 "Sales-Post"
     /// <param name="TempValueEntryRelation">The temporary value entry relation.</param>
     /// <param name="ItemJnlPostLine">The item journal post line codeunit instance.</param>
     [IntegrationEvent(true, false)]
-    local procedure OnBeforePostItemJnlLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var QtyToBeShipped: Decimal; var QtyToBeShippedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; var IsATO: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var Result: BigInteger; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempValueEntryRelation: Record "Value Entry Relation" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
+    local procedure OnBeforePostItemJnlLineV2(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var QtyToBeShipped: Decimal; var QtyToBeShippedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; var IsATO: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var Result: BigInteger; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempValueEntryRelation: Record "Value Entry Relation" temporary; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
     end;
 
