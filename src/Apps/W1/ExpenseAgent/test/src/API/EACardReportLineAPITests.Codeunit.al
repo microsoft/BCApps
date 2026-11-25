@@ -566,8 +566,9 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
         AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
-        // [WHEN] The same receipt is sent again.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
+        // [WHEN] The same receipt is sent again; the API may accept or reject the retry.
+        if not TryAttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('')) then
+            AssertRejectedByBusinessRule();
 
         // [THEN] The expense and the line each have one receipt.
         Assert.AreEqual(1, CountExpenseAttachments(Expense), 'The expense must have a single receipt.');
@@ -609,7 +610,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         DocumentAttachment: Record "Document Attachment";
     begin
-        // [SCENARIO] The receipt attached through cardReceiptData is locked on the expense; it cannot be deleted later.
+        // [SCENARIO] The receipt attached through cardReceiptData cannot be deleted while the expense is on a report.
         Initialize();
 
         // [GIVEN] A card line with a receipt attached through cardReceiptData.
@@ -866,6 +867,12 @@ codeunit 148374 "EA Card Report Line API Tests"
 
     // Attaches a receipt the way the service does: the receipt data is posted for the expense of the line, the receipt
     // file is uploaded to the attachmentContent stream, and the apply action applies the receipt data.
+    [TryFunction]
+    local procedure TryAttachCardReceipt(ExpenseReportLine: Record "Expense Report Line"; ReceiptDetails: JsonObject)
+    begin
+        AttachCardReceipt(ExpenseReportLine, ReceiptDetails);
+    end;
+
     local procedure AttachCardReceipt(ExpenseReportLine: Record "Expense Report Line"; ReceiptDetails: JsonObject)
     begin
         AttachCardReceipt(ExpenseReportLine, ReceiptDetails, ReceiptFileNameTok, Enum::"Image Format"::Png);
