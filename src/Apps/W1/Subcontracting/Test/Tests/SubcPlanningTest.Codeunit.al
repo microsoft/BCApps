@@ -18,10 +18,12 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+using Microsoft.Utilities;
 
 codeunit 139996 "Subc. Planning Test"
 {
@@ -588,6 +590,12 @@ codeunit 139996 "Subc. Planning Test"
     end;
 
     [Test]
+    procedure ArchivedComponentsRetainOwnershipAndManualDatesOnReschedule()
+    begin
+        VerifyVendorSuppliedComponentCreationAndRescheduling('<10D>', '', '', '<10D>', false, 7);
+    end;
+
+    [Test]
     [HandlerFunctions('ComponentSynchronizationNotificationHandler')]
     procedure DuplicateLegacyPurchaseCandidatesAreNotMigrated()
     begin
@@ -627,7 +635,7 @@ codeunit 139996 "Subc. Planning Test"
             UnchangedBlankSourceDateErr);
     end;
 
-    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30]; ReverseLegacyLines: Boolean; Scenario: Option Standard,MixedLegacy,ManualDates,DuplicateLegacy,MissingAndOrphaned,LegacyDates,NonworkingDueDates)
+    local procedure VerifyVendorSuppliedComponentCreationAndRescheduling(ItemLeadTime: Text[30]; SKULeadTime: Text[30]; ItemVendorLeadTime: Text[30]; ExpectedLeadTime: Text[30]; ReverseLegacyLines: Boolean; Scenario: Option Standard,MixedLegacy,ManualDates,DuplicateLegacy,MissingAndOrphaned,LegacyDates,NonworkingDueDates,ArchiveCopy)
     var
         Item: Record Item;
         ComponentItem: Record Item;
@@ -669,6 +677,7 @@ codeunit 139996 "Subc. Planning Test"
         ExpectedRescheduledComponentCountErr: Label 'Rescheduling must update both matching vendor-supplied component lines.';
         UnmatchedLegacyComponentQuantityErr: Label 'Exact ownership of another component must not make a legacy purchase line unambiguous.';
         ExactOwnedComponentQuantityErr: Label 'The exact-owned component must not include the legacy line belonging to the other component.';
+        CopiedComponentFactBoxQuantityErr: Label 'The copied purchase line must contribute only to its own component FactBox quantity.';
         DuplicateLegacyComponentQuantityErr: Label 'The FactBox must not attribute duplicate legacy purchase candidates to a component.';
         CombinedSynchronizationNotificationErr: Label 'Missing and orphaned lines must be reported together.';
         OrphanedPurchaseLineQuantityErr: Label 'An orphaned purchase line must not be updated.';
@@ -808,7 +817,7 @@ codeunit 139996 "Subc. Planning Test"
                         SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
                         ExactOwnedComponentQuantityErr);
                 end;
-            Scenario::ManualDates, Scenario::LegacyDates:
+            Scenario::ManualDates, Scenario::LegacyDates, Scenario::ArchiveCopy:
                 for ComponentIndex := 1 to 2 do begin
                     PurchaseLineComp := OriginalPurchaseLine[ComponentIndex];
                     PurchaseLineComp.Validate("Expected Receipt Date", CalcDate('<60D>', WorkDate()));
@@ -855,6 +864,9 @@ codeunit 139996 "Subc. Planning Test"
                 end;
         end;
 
+        if Scenario = Scenario::ArchiveCopy then
+            ArchiveAndCopyComponentPurchaseOrder(PurchaseLine, OriginalPurchaseLine);
+
         if ReverseLegacyLines then begin
             ExpectedMissingComponentCount := 2;
             Assert.AreEqual(
@@ -890,7 +902,7 @@ codeunit 139996 "Subc. Planning Test"
         repeat
             ExpectedComponentCount += 1;
             ProdOrderComponent."Remaining Quantity" := ProdOrderComponent."Remaining Quantity" + ExpectedComponentCount;
-            if Scenario <> Scenario::ManualDates then
+            if not (Scenario in [Scenario::ManualDates, Scenario::ArchiveCopy]) then
                 ProdOrderComponent."Due Date" := CalcDate('<' + Format(30 + ExpectedComponentCount) + 'D>', WorkDate())
             else
                 ProdOrderComponent."Due Date" := OriginalPurchaseLine[ExpectedComponentCount]."Subc. Last Comp. Due Date";
@@ -975,13 +987,18 @@ codeunit 139996 "Subc. Planning Test"
                 PurchaseLineComp.Quantity,
                 RescheduledComponentPurchaseLineQuantityErr);
             ExpectedComponentCount += 1;
-            if Scenario = Scenario::ManualDates then begin
+            if Scenario in [Scenario::ManualDates, Scenario::ArchiveCopy] then begin
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Order Date", PurchaseLineComp."Order Date", 'Manual order dates must be preserved.');
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Expected Receipt Date", PurchaseLineComp."Expected Receipt Date", 'Manual expected receipt dates must be preserved.');
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Planned Receipt Date", PurchaseLineComp."Planned Receipt Date", 'Manual planned receipt dates must be preserved.');
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Requested Receipt Date", PurchaseLineComp."Requested Receipt Date", 'Manual requested receipt dates must be preserved.');
                 Assert.AreEqual(OriginalPurchaseLine[ExpectedComponentCount]."Promised Receipt Date", PurchaseLineComp."Promised Receipt Date", 'Manual promised receipt dates must be preserved.');
                 Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Subc. Last Comp. Due Date", 'The source-date baseline must be recorded.');
+                if Scenario = Scenario::ArchiveCopy then
+                    Assert.AreEqual(
+                        PurchaseLineComp."Outstanding Qty. (Base)",
+                        SubcCompFactboxMgmt.GetPurchOrderOutstandingQtyBaseFromProdOrderComp(ProdOrderComponent),
+                        CopiedComponentFactBoxQuantityErr);
             end else begin
                 Assert.AreEqual(
                     ProdOrderComponent."Due Date",
@@ -997,7 +1014,7 @@ codeunit 139996 "Subc. Planning Test"
         until ProdOrderComponent.Next() = 0;
         Assert.AreEqual(2, ExpectedComponentCount, ExpectedRescheduledComponentCountErr);
 
-        if Scenario in [Scenario::ManualDates, Scenario::LegacyDates] then begin
+        if Scenario in [Scenario::ManualDates, Scenario::LegacyDates, Scenario::ArchiveCopy] then begin
             // A subsequent source-date change must recalculate the manually adjusted dates.
             ProdOrderLine.Validate(Quantity, NewQty + 1);
             ProdOrderLine.Modify(true);
@@ -1019,6 +1036,77 @@ codeunit 139996 "Subc. Planning Test"
                 Assert.AreEqual(ProdOrderComponent."Due Date", PurchaseLineComp."Expected Receipt Date", ChangedSourceExpectedReceiptDateErr);
                 AssertVendorSuppliedComponentPurchaseDates(ProdOrderComponent, PurchaseLineComp, Location, Vendor, BaseCalendar, ExpectedLeadTime);
             until ProdOrderComponent.Next() = 0;
+        end;
+    end;
+
+    local procedure ArchiveAndCopyComponentPurchaseOrder(var PurchaseLine: Record "Purchase Line"; var OriginalPurchaseLine: array[2] of Record "Purchase Line")
+    var
+        FromPurchaseHeader: Record "Purchase Header";
+        ToPurchaseHeader: Record "Purchase Header";
+        PurchaseHeaderArchive: Record "Purchase Header Archive";
+        PurchaseLineArchive: Record "Purchase Line Archive";
+        CopiedPurchaseLine: Record "Purchase Line";
+        ArchiveManagement: Codeunit ArchiveManagement;
+        CopyDocumentMgt: Codeunit "Copy Document Mgt.";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        ComponentIndex: Integer;
+        ArchivedComponentIdentityErr: Label 'Archiving must retain the exact component identity.';
+        ArchivedComponentDateBaselineErr: Label 'Archiving must retain the component source-date baseline.';
+        ArchivedComponentDateInitializedErr: Label 'Archiving must retain the initialized component date flag.';
+        CopiedComponentCountErr: Label 'Copying must retain one purchase line for each exact component.';
+        CopiedComponentDateBaselineErr: Label 'Copying must retain the component source-date baseline.';
+    begin
+        // [SCENARIO 650504] Archiving and copying without recalculation retains exact ownership and the source-date baseline.
+        FromPurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        // Copy Document uses the header's expected receipt date, so align it with the manually adjusted component dates.
+        FromPurchaseHeader."Expected Receipt Date" := OriginalPurchaseLine[1]."Expected Receipt Date";
+        FromPurchaseHeader.Modify();
+        ArchiveManagement.StorePurchDocument(FromPurchaseHeader, false);
+        PurchaseHeaderArchive.SetRange("Document Type", FromPurchaseHeader."Document Type");
+        PurchaseHeaderArchive.SetRange("No.", FromPurchaseHeader."No.");
+        PurchaseHeaderArchive.FindLast();
+        for ComponentIndex := 1 to 2 do begin
+            PurchaseLineArchive.Get(
+                OriginalPurchaseLine[ComponentIndex]."Document Type", OriginalPurchaseLine[ComponentIndex]."Document No.",
+                PurchaseHeaderArchive."Doc. No. Occurrence", PurchaseHeaderArchive."Version No.",
+                OriginalPurchaseLine[ComponentIndex]."Line No.");
+            Assert.AreEqual(
+                OriginalPurchaseLine[ComponentIndex]."Subc. Prod. Comp. Line No.", PurchaseLineArchive."Subc. Prod. Comp. Line No.",
+                ArchivedComponentIdentityErr);
+            Assert.AreEqual(
+                OriginalPurchaseLine[ComponentIndex]."Subc. Last Comp. Due Date", PurchaseLineArchive."Subc. Last Comp. Due Date",
+                ArchivedComponentDateBaselineErr);
+            Assert.IsTrue(PurchaseLineArchive."Subc. Comp. Date Initialized", ArchivedComponentDateInitializedErr);
+        end;
+
+        // Remove the original supply so rescheduling and FactBox totals exercise only the copied order.
+        FromPurchaseHeader.Delete(true);
+        LibraryPurchase.CreatePurchHeader(ToPurchaseHeader, ToPurchaseHeader."Document Type"::Order, PurchaseHeaderArchive."Buy-from Vendor No.");
+        CopyDocumentMgt.SetProperties(true, false, false, false, true, false, false);
+        CopyDocumentMgt.SetArchDocVal(PurchaseHeaderArchive."Doc. No. Occurrence", PurchaseHeaderArchive."Version No.");
+        CopyDocumentMgt.CopyPurchDoc("Purchase Document Type From"::"Arch. Order", PurchaseHeaderArchive."No.", ToPurchaseHeader);
+        SubcontractingMgmtLibrary.FindSubcPurchLineForProdOrder(PurchaseLine, PurchaseLine."No.", PurchaseLine."Prod. Order No.");
+
+        for ComponentIndex := 1 to 2 do begin
+            CopiedPurchaseLine.Reset();
+            CopiedPurchaseLine.SetRange("Document Type", ToPurchaseHeader."Document Type");
+            CopiedPurchaseLine.SetRange("Document No.", ToPurchaseHeader."No.");
+            CopiedPurchaseLine.SetRange("Subc. Prod. Order Line No.", OriginalPurchaseLine[ComponentIndex]."Subc. Prod. Order Line No.");
+            CopiedPurchaseLine.SetRange("Subc. Prod. Comp. Line No.", OriginalPurchaseLine[ComponentIndex]."Subc. Prod. Comp. Line No.");
+            Assert.AreEqual(1, CopiedPurchaseLine.Count(), CopiedComponentCountErr);
+            CopiedPurchaseLine.FindFirst();
+            Assert.AreEqual(
+                OriginalPurchaseLine[ComponentIndex]."Subc. Last Comp. Due Date", CopiedPurchaseLine."Subc. Last Comp. Due Date",
+                CopiedComponentDateBaselineErr);
+            Assert.IsTrue(CopiedPurchaseLine."Subc. Comp. Date Initialized", 'Copying must retain the initialized component date flag.');
+            Assert.AreEqual(OriginalPurchaseLine[ComponentIndex]."Order Date", CopiedPurchaseLine."Order Date", 'Copying must retain the manual order date.');
+            Assert.AreEqual(OriginalPurchaseLine[ComponentIndex]."Expected Receipt Date", CopiedPurchaseLine."Expected Receipt Date", 'Copying must retain the manual expected receipt date when it matches the header.');
+            Assert.AreEqual(OriginalPurchaseLine[ComponentIndex]."Planned Receipt Date", CopiedPurchaseLine."Planned Receipt Date", 'Copying must retain the manual planned receipt date.');
+            Assert.AreEqual(OriginalPurchaseLine[ComponentIndex]."Requested Receipt Date", CopiedPurchaseLine."Requested Receipt Date", 'Copying must retain the manual requested receipt date.');
+            Assert.AreEqual(OriginalPurchaseLine[ComponentIndex]."Promised Receipt Date", CopiedPurchaseLine."Promised Receipt Date", 'Copying must retain the manual promised receipt date.');
+            // Standard Copy Document takes the expected receipt date from the target header.
+            Assert.AreEqual(ToPurchaseHeader."Expected Receipt Date", CopiedPurchaseLine."Expected Receipt Date", 'Copying must retain standard header date behavior.');
+            OriginalPurchaseLine[ComponentIndex] := CopiedPurchaseLine;
         end;
     end;
 
