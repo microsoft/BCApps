@@ -72,6 +72,11 @@ codeunit 139235 "PEPPOL30 Management Tests"
         NoItemDescriptionErr: Label 'Description field is empty.';
         NoUnitOfMeasureErr: Label 'The Invoice %1 contains lines on which the Unit of Measure Code field is empty.', Comment = '%1 - Invoice Number';
         SalespersonTxt: Label 'Salesperson';
+        SubscriptionLineUnitCodeErr: Label 'The subscription line must use its configured International Standard Code.';
+        SubscriptionLineUnitCodeListErr: Label 'The subscription line must use the UNECE unit code list.';
+        SubscriptionPriceUnitCodeErr: Label 'The exported subscription price must use the same unit code.';
+        CommentLineUnitCodeErr: Label 'Comment lines must retain their existing unit code behavior.';
+        CommentLineUnitCodeListErr: Label 'Comment lines must retain the UNECE unit code list.';
 
     [Test]
     procedure UnknownFormatValidationRaisesControlledError()
@@ -4394,6 +4399,120 @@ codeunit 139235 "PEPPOL30 Management Tests"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"PEPPOL30 Management Tests");
     end;
 
+    [Test]
+    procedure TestPeppolValidationSubscriptionSalesLineWithInternationalStandardCode()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+        UnitCode: Text;
+        UnitCodeListID: Text;
+        InvoiceLinePriceAmount: Text;
+        InvLinePriceAmountCurrencyID: Text;
+        BaseQuantity: Text;
+    begin
+        // [FEATURE] [PEPPOL] [AI]
+        // [SCENARIO 660669] Subscription lines use the configured International Standard Code for validation and price export.
+        Initialize();
+        CreateSubscriptionSalesLine(SalesHeader, SalesLine);
+
+        PEPPOL30Validation := GetFormat();
+        PEPPOL30Validation.ValidateDocumentLines(SalesHeader);
+
+        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider.GetLineUnitCodeInfo(SalesLine, UnitCode, UnitCodeListID);
+        Assert.AreEqual('EA', UnitCode, SubscriptionLineUnitCodeErr);
+        Assert.AreEqual('UNECERec20', UnitCodeListID, SubscriptionLineUnitCodeListErr);
+
+        PEPPOLLineInfoProvider.GetLinePriceInfo(
+            SalesLine, SalesHeader, InvoiceLinePriceAmount, InvLinePriceAmountCurrencyID, BaseQuantity, UnitCode);
+        Assert.AreEqual('EA', UnitCode, SubscriptionPriceUnitCodeErr);
+    end;
+
+    [Test]
+    procedure TestPeppolValidationSubscriptionSalesLineWithoutInternationalStandardCode()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        UnitOfMeasure: Record "Unit of Measure";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+    begin
+        // [FEATURE] [PEPPOL] [AI]
+        // [SCENARIO 660669] Subscription lines without an International Standard Code fail validation.
+        Initialize();
+        CreateSubscriptionSalesLine(SalesHeader, SalesLine);
+        UnitOfMeasure.Get(SalesLine."Unit of Measure Code");
+        UnitOfMeasure.Validate("International Standard Code", '');
+        UnitOfMeasure.Modify(true);
+
+        PEPPOL30Validation := GetFormat();
+        asserterror PEPPOL30Validation.ValidateDocumentLine(SalesLine);
+        Assert.ExpectedError(StrSubstNo(NoInternationalStandardCodeErr, UnitOfMeasure.Code));
+    end;
+
+    [Test]
+    procedure TestPeppolValidationSubscriptionSalesLineWithoutUnitOfMeasure()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PEPPOL30Validation: Interface "PEPPOL30 Validation";
+    begin
+        // [FEATURE] [PEPPOL] [AI]
+        // [SCENARIO 660669] Subscription lines without a unit of measure fail validation.
+        Initialize();
+        CreateSubscriptionSalesLine(SalesHeader, SalesLine);
+        SalesLine."Unit of Measure Code" := '';
+        SalesLine.Modify(false);
+
+        PEPPOL30Validation := GetFormat();
+        asserterror PEPPOL30Validation.ValidateDocumentLine(SalesLine);
+        Assert.ExpectedError(StrSubstNo(NoInternationalStandardCodeErr, SalesLine."Unit of Measure Code"));
+    end;
+
+    [Test]
+    procedure TestPeppolSubscriptionSalesLineWithZeroQuantityUsesPieceUnit()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
+        UnitCode: Text;
+        UnitCodeListID: Text;
+    begin
+        // [FEATURE] [PEPPOL] [AI]
+        // [SCENARIO 660669] Zero-quantity subscription lines retain the piece unit fallback.
+        Initialize();
+        CreateSubscriptionSalesLine(SalesHeader, SalesLine);
+        SalesLine.Quantity := 0;
+        SalesLine."Unit of Measure Code" := '';
+
+        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider.GetLineUnitCodeInfo(SalesLine, UnitCode, UnitCodeListID);
+        Assert.AreEqual('EA', UnitCode, 'Zero-quantity subscription lines must retain the piece unit fallback.');
+        Assert.AreEqual('UNECERec20', UnitCodeListID, 'Zero-quantity lines must retain the UNECE unit code list.');
+    end;
+
+    [Test]
+    procedure TestPeppolCommentSalesLineDoesNotUseMappedUnit()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PEPPOLLineInfoProvider: Interface "PEPPOL Line Info Provider";
+        UnitCode: Text;
+        UnitCodeListID: Text;
+    begin
+        // [FEATURE] [PEPPOL] [AI]
+        // [SCENARIO 660669] Comment lines retain their existing unit code behavior.
+        Initialize();
+        CreateSubscriptionSalesLine(SalesHeader, SalesLine);
+        SalesLine.Type := SalesLine.Type::" ";
+
+        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider.GetLineUnitCodeInfo(SalesLine, UnitCode, UnitCodeListID);
+        Assert.AreEqual('', UnitCode, CommentLineUnitCodeErr);
+        Assert.AreEqual('UNECERec20', UnitCodeListID, CommentLineUnitCodeListErr);
+    end;
+
     local procedure AddCustPEPPOLIdentifier(CustNo: Code[20])
     var
         Cust: Record Customer;
@@ -4478,6 +4597,24 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesHeader.Validate("Sell-to E-Mail", 'sellto@example.com');
         SalesHeader.CopySellToAddressToShipToAddress();
         SalesHeader.Modify(true);
+    end;
+
+    local procedure CreateSubscriptionSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
+    var
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+    begin
+        CreateGenericSalesHeader(SalesHeader, SalesHeader."Document Type"::Order);
+        CreateGenericItem(Item);
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
+        UnitOfMeasure.Get(SalesLine."Unit of Measure Code");
+        UnitOfMeasure.Validate("International Standard Code", 'EA');
+        UnitOfMeasure.Modify(true);
+
+        // Subscription Billing defines Service Object as value 8000 without being a dependency of PEPPOL.
+        SalesLine.Type := Enum::"Sales Line Type".FromInteger(8000);
+        SalesLine."No." := 'SUBSCRIPTION';
+        SalesLine.Modify(false);
     end;
 
     local procedure CreateGenericItem(var Item: Record Item)
@@ -5209,4 +5346,3 @@ codeunit 139235 "PEPPOL30 Management Tests"
         IsHandled := true;
     end;
 }
-

@@ -1103,6 +1103,9 @@ codeunit 37201 "PEPPOL30 Impl."
                     UnitCode := UOM."International Standard Code"
                 else
                     UnitCode := UoMforPieceINUNECERec20ListIDTxt;
+            else
+                if (SalesLine.Type <> SalesLine.Type::" ") and UOM.Get(SalesLine."Unit of Measure Code") then
+                    UnitCode := UOM."International Standard Code";
         end;
     end;
 
