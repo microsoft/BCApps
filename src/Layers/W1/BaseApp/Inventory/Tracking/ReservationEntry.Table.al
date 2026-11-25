@@ -513,7 +513,7 @@ table 337 "Reservation Entry"
         "Qty. per Unit of Measure" := QtyPerUoM;
     end;
 
-    procedure SetSource(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceBatchName: Code[10]; SourceProdOrderLine: Integer)
+    procedure SetSource(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: BigInteger; SourceBatchName: Code[10]; SourceProdOrderLine: Integer)
     begin
         "Source Type" := SourceType;
         "Source Subtype" := SourceSubtype;
@@ -523,7 +523,7 @@ table 337 "Reservation Entry"
         "Source Prod. Order Line" := SourceProdOrderLine;
     end;
 
-    procedure SetSourceFilter(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceKey: Boolean)
+    procedure SetSourceFilter(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: BigInteger; SourceKey: Boolean)
     begin
         if SourceKey then
             SetCurrentKey(
@@ -1015,7 +1015,7 @@ table 337 "Reservation Entry"
         Reclass := ("Source Type" = Database::"Item Journal Line") and ("Source Subtype" = 4);
     end;
 
-    procedure TransferReservations(var OldReservEntry: Record "Reservation Entry"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; TransferAll: Boolean; TransferQty: Decimal; QtyPerUOM: Decimal; SourceType: Integer; SourceSubtype: Option; SourceID: Code[20]; SourceBatchName: Code[10]; SourceProdOrderLine: Integer; SourceRefNo: Integer)
+    procedure TransferReservations(var OldReservEntry: Record "Reservation Entry"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; TransferAll: Boolean; TransferQty: Decimal; QtyPerUOM: Decimal; SourceType: Integer; SourceSubtype: Option; SourceID: Code[20]; SourceBatchName: Code[10]; SourceProdOrderLine: Integer; SourceRefNo: BigInteger)
     var
         NewReservEntry: Record "Reservation Entry";
         CreateReservEntry: Codeunit "Create Reserv. Entry";
@@ -1161,7 +1161,7 @@ table 337 "Reservation Entry"
         OnUpdateSourceCost(Rec, UnitCost);
     end;
 
-    local procedure ChangeReservationStatusToSurplus(SourceType: Integer; SourceSubtype: Option; SourceID: Code[20]; SourceRefNo: Integer)
+    local procedure ChangeReservationStatusToSurplus(SourceType: Integer; SourceSubtype: Option; SourceID: Code[20]; SourceRefNo: BigInteger)
     var
         NewReservationEntry: Record "Reservation Entry";
     begin
@@ -1269,7 +1269,7 @@ table 337 "Reservation Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterSetSourceFilter(var ReservationEntry: Record "Reservation Entry"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceKey: Boolean)
+    local procedure OnAfterSetSourceFilter(var ReservationEntry: Record "Reservation Entry"; SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; SourceRefNo: BigInteger; SourceKey: Boolean)
     begin
     end;
 
@@ -1444,7 +1444,7 @@ table 337 "Reservation Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTransferReservations(var OldReservEntry: Record "Reservation Entry"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; TransferAll: Boolean; TransferQty: Decimal; QtyPerUOM: Decimal; SourceType: Integer; SourceSubtype: Option; SourceID: Code[20]; SourceBatchName: Code[10]; SourceProdOrderLine: Integer; SourceRefNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeTransferReservations(var OldReservEntry: Record "Reservation Entry"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; TransferAll: Boolean; TransferQty: Decimal; QtyPerUOM: Decimal; SourceType: Integer; SourceSubtype: Option; SourceID: Code[20]; SourceBatchName: Code[10]; SourceProdOrderLine: Integer; SourceRefNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
