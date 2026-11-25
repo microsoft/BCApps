@@ -410,10 +410,10 @@ codeunit 148364 EACorpCardSelectionTests
         // [SCENARIO] A manual expense must still match its linked feed currency when released, even when card selection is optional.
         Initialize();
 
-        // [GIVEN] A manually entered expense has been linked and then its currency is changed.
+        // [GIVEN] A legacy linked manual expense has a currency mismatch predating the edit lock.
         CreateLinkedManualExpense(Expense);
-        Expense.Validate("Currency Code", 'EUR');
-        Expense.Modify(true);
+        Expense."Currency Code" := 'EUR';
+        Expense.Modify(false);
         Commit();
 
         // [WHEN] The expense is released.
