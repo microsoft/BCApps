@@ -1222,6 +1222,7 @@ codeunit 148370 EAReceiptMatchTests
     procedure LostReceiptCardLineCannotBeReleasedWithoutDeclaration()
     var
         Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHeader: Record "Expense Report Header";
     begin
@@ -1229,9 +1230,12 @@ codeunit 148370 EAReceiptMatchTests
         // declaration for it.
         Initialize();
 
-        // [GIVEN] A card line on an open report, marked as lost receipt without a declaration.
+        // [GIVEN] A card line with a category on an open report, marked as lost receipt without a declaration.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
         AddCardExpenseToReport(Expense, ExpenseReportLine);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Modify(true);
         ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Lost Receipt";
         ExpenseReportLine."No Receipt Reason" := 'Receipt was lost';
         ExpenseReportLine.Modify();
@@ -1248,6 +1252,8 @@ codeunit 148370 EAReceiptMatchTests
     procedure LostReceiptCardExpenseWithDeclarationCanBeReleasedOnReport()
     var
         Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
+        ExpensePaymentMethod: Record "Expense Payment Method";
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -1260,8 +1266,12 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseAgentSetup."Allow No Receipt" := true;
         ExpenseAgentSetup.Modify();
 
-        // [GIVEN] An open card expense with a description and a no receipt declaration.
+        // [GIVEN] An open card expense with a category, a description and a no receipt declaration.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
+        LibraryExpense.CreateExpenseCategory(
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
         Expense.Validate(Description, 'Coffee with a client');
         Expense.Modify(true);
         NoReceiptDeclarationMgt.CreateDeclaration(Expense, 'Receipt was lost', true);
