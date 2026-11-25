@@ -16,6 +16,7 @@ using Microsoft.Finance.VAT.Clause;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
@@ -79,9 +80,14 @@ report 31190 "Sales Credit Memo CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+#if not CLEAN30
+            column(RegistrationNo_CompanyInformation; RegistrationNoMgt.GetCompanyRegistrationForReport('', "Company Information"))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Use CompanyRegistrationNumber on the posted document dataitem. A shared current-company value cannot represent historical document snapshots.';
+                ObsoleteTag = '30.0';
             }
+#endif
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")
             {
             }
@@ -125,6 +131,9 @@ report 31190 "Sales Credit Memo CZL"
         }
         dataitem("Sales Cr.Memo Header"; "Sales Cr.Memo Header")
         {
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport("Sales Cr.Memo Header".GetCompanyRegistrationNumber(), "Company Information"))
+            {
+            }
             column(DocumentLbl; DocumentLbl)
             {
             }
@@ -221,7 +230,7 @@ report 31190 "Sales Credit Memo CZL"
             column(RegistrationNo_SalesCrMemoHeaderCaption; FieldCaption("Registration Number"))
             {
             }
-            column(RegistrationNo_SalesCrMemoHeader; "Registration Number")
+            column(RegistrationNo_SalesCrMemoHeader; "Sales Cr.Memo Header".GetRegistrationNumber())
             {
             }
             column(BankAccountNo_SalesCrMemoHeaderCaption; FieldCaption("Bank Account No. CZL"))
@@ -747,6 +756,7 @@ report 31190 "Sales Credit Memo CZL"
         LanguageMgt: Codeunit Language;
         FormatAddress: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         FormatDocumentMgtCZL: Codeunit "Format Document Mgt. CZL";
         SegManagement: Codeunit SegManagement;
         AutoFormat: Codeunit "Auto Format";

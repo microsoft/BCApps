@@ -194,8 +194,8 @@ codeunit 9666 "Company Metadata Builder"
         this.SetHomePageCaption(CompanyInfo.FieldCaption("Home Page"));
         this.SetVATRegistrationNo(CompanyInfo."VAT Registration No.");
         this.SetVATRegistrationNoCaption(CompanyInfo.FieldCaption("VAT Registration No."));
-        this.SetRegistrationNo(CompanyInfo."Registration No.");
-        this.SetRegistrationNoCaption(CompanyInfo.FieldCaption("Registration No."));
+        this.SetRegistrationNo(CompanyInfo.GetRegistrationNumber());
+        this.SetRegistrationNoCaption(CompanyInfo.GetRegistrationNumberLbl());
         this.SetBankName(CompanyInfo."Bank Name");
         this.SetBankNameCaption(CompanyInfo.FieldCaption("Bank Name"));
         this.SetBankAccountNo(CompanyInfo."Bank Account No.");

@@ -17,6 +17,7 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
@@ -135,7 +136,7 @@ report 1306 "Standard Sales - Invoice"
             column(CompanyLogoPosition; CompanyLogoPosition)
             {
             }
-            column(CompanyRegistrationNumber; CompanyInfo.GetRegistrationNumber())
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport(Header.GetCompanyRegistrationNumber(), CompanyInfo))
             {
             }
             column(CompanyRegistrationNumber_Lbl; CompanyInfo.GetRegistrationNumberLbl())
@@ -1413,6 +1414,7 @@ report 1306 "Standard Sales - Invoice"
         LanguageMgt: Codeunit Language;
         FormatAddr: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         SegManagement: Codeunit SegManagement;
         AutoFormat: Codeunit "Auto Format";
         WorkDescriptionInstream: InStream;
@@ -1770,7 +1772,7 @@ report 1306 "Standard Sales - Invoice"
             FillNameValueTable(RightHeader, EMailLbl, CompanyInfo."E-Mail");
             FillNameValueTable(RightHeader, HomePageLbl, CompanyInfo."Home Page");
             FillNameValueTable(RightHeader, CompanyInfoPhoneNoLbl, CompanyInfo."Phone No.");
-            FillNameValueTable(RightHeader, CompanyInfo.GetRegistrationNumberLbl(), CompanyInfo.GetRegistrationNumber());
+            FillNameValueTable(RightHeader, CompanyInfo.GetRegistrationNumberLbl(), RegistrationNoMgt.GetCompanyRegistrationForReport(Header.GetCompanyRegistrationNumber(), CompanyInfo));
             FillNameValueTable(RightHeader, CompanyInfo.GetVATRegistrationNumberLbl(), CompanyInfo.GetVATRegistrationNumber());
             FillNameValueTable(RightHeader, CompanyInfoBankNameLbl, CompanyBankAccount.Name);
             FillNameValueTable(RightHeader, CompanyInfoGiroNoLbl, CompanyInfo."Giro No.");

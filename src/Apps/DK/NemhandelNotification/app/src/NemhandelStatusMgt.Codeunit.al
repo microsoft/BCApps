@@ -112,14 +112,14 @@ codeunit 13628 "Nemhandel Status Mgt."
         CompanyInformation.Modify();
     end;
 
-    local procedure IsCVRNumberFormatValid(CVRNumber: Text[20]): Boolean
+    local procedure IsCVRNumberFormatValid(CVRNumber: Text[50]): Boolean
     var
         Regex: Codeunit Regex;
     begin
         exit(Regex.IsMatch(CVRNumber, '^(\d{8}|A/S\d{3,6})$'));
     end;
 
-    internal procedure ValidateCVRNumberFormat(CVRNumber: Text[20])
+    internal procedure ValidateCVRNumberFormat(CVRNumber: Text[50])
     var
         Regex: Codeunit Regex;
     begin
@@ -141,7 +141,7 @@ codeunit 13628 "Nemhandel Status Mgt."
             ShowNotification(NotificationID);
     end;
 
-    internal procedure ManageIncorrectCVRFormatNotification(CVRNumber: Text[20])
+    internal procedure ManageIncorrectCVRFormatNotification(CVRNumber: Text[50])
     var
         NotificationID: Guid;
     begin

@@ -10,6 +10,7 @@ using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.Enums;
+using Microsoft.Foundation.Registration;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
@@ -159,15 +160,19 @@ table 79 "Company Information"
                 end;
             end;
         }
-        field(20; "Registration No."; Text[20])
+        field(20; "Registration No."; Text[50])
         {
             Caption = 'Registration No.';
-            ToolTip = 'Specifies the company''s registration number. You can enter a maximum of 20 characters, both numbers and letters.';
+            ToolTip = 'Specifies the company''s legal registration number, including any leading zeros, spaces, and separators. You can enter up to 50 characters.';
 
             trigger OnValidate()
             var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
                 RegTok: Label 'DACH Include Company Reg. Number On Reports', Locked = true;
             begin
+                RegistrationNoMgt.ValidateRegistrationNo("Registration No.", "Country/Region Code", RecordId);
+                if CurrFieldNo <> 0 then
+                    RegistrationNoMgt.NotifyDuplicates("Registration No.", "Country/Region Code", RecordId);
                 FeatureTelemetry.LogUptake('0001Q0V', RegTok, Enum::"Feature Uptake Status"::"Set up");
             end;
         }
@@ -323,8 +328,15 @@ table 79 "Company Information"
             TableRelation = "Country/Region";
 
             trigger OnValidate()
+            var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
+                if "Country/Region Code" <> xRec."Country/Region Code" then begin
+                    RegistrationNoMgt.ValidateRegistrationNo("Registration No.", "Country/Region Code", RecordId);
+                    if CurrFieldNo <> 0 then
+                        RegistrationNoMgt.NotifyDuplicates("Registration No.", "Country/Region Code", RecordId);
+                end;
             end;
         }
         field(37; "Ship-to Country/Region Code"; Code[10])
@@ -818,8 +830,10 @@ table 79 "Company Information"
     end;
 
     procedure GetRegistrationNumber() Result: Text
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
     begin
-        Result := "Registration No.";
+        Result := RegistrationNoMgt.GetRegistrationNo("Registration No.", "Country/Region Code", RecordId);
         OnAfterGetRegistrationNumber(Result);
     end;
 

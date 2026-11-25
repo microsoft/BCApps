@@ -24,6 +24,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
@@ -908,6 +909,27 @@ table 5109 "Purchase Header Archive"
             DataClassification = EndUserIdentifiableInformation;
             TableRelation = "User Setup";
         }
+        field(7402; "Company Registration No."; Text[50])
+        {
+            Caption = 'Company Registration No.';
+            Editable = false;
+        }
+        field(7403; "Company Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Company Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(7404; "Registration Country/Region"; Code[10])
+        {
+            Caption = 'Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(11000; "Registration No."; Text[50])
+        {
+            Caption = 'Registration No.';
+        }
         field(11612; Adjustment; Boolean)
         {
             Caption = 'Adjustment';
@@ -996,6 +1018,33 @@ table 5109 "Purchase Header Archive"
     var
         DimensionManagement: Codeunit DimensionManagement;
         UserSetupManagement: Codeunit "User Setup Management";
+
+    procedure GetRegistrationNumber(): Text[50]
+    begin
+        exit("Registration No.");
+    end;
+
+    procedure GetRegistrationCountryCode(): Code[10]
+    begin
+        exit("Registration Country/Region");
+    end;
+
+    procedure GetCompanyRegistrationNumber(): Text[50]
+    begin
+        exit("Company Registration No.");
+    end;
+
+    procedure GetCompanyRegistrationCountryCode(): Code[10]
+    begin
+        exit("Company Reg. Country/Region");
+    end;
+
+    procedure InitCompanyRegistrationSnapshot()
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        RegistrationNoMgt.GetCompanyRegistrationSnapshot("Company Registration No.", "Company Reg. Country/Region");
+    end;
 
     procedure ShowDimensions()
     begin

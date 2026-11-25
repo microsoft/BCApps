@@ -32,6 +32,7 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
 
     var
         ExportAgainQst: Label 'One or more of the selected lines has already been exported. Do you want to export it again?';
+        SenderRegistrationNoTooLongErr: Label 'The company registration number exceeds the maximum length of %1 characters for %2.', Comment = '%1 = Maximum field length, %2 = Sender registration number field caption';
         ProgressMsg: Label 'Processing line no. #1######.', Comment = '#1 - Line no.';
         HasErrorsErr: Label 'The file export has one or more errors.\\For each line to be exported, resolve the errors displayed to the right and then try to export again.';
         PaymentExportMgt: Codeunit "Payment Export Mgt";
@@ -172,6 +173,7 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
         BankAccount: Record "Bank Account";
         BankExportImportSetup: Record "Bank Export/Import Setup";
         CompanyInformation: Record "Company Information";
+        CompanyRegistrationNo: Text;
         IsEmployee: Boolean;
     begin
         GeneralLedgerSetup.Get();
@@ -192,8 +194,12 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
         TempPaymentExportData."Data Exch Entry No." := DataExchEntryNo;
         TempPaymentExportData."Sender Bank Account Code" := GenJnlLine."Bal. Account No.";
         TempPaymentExportData."Sender Bank Name" := BankAccount.Name;
-        if CompanyInformation."Registration No." <> '' then
-            TempPaymentExportData."Sender Reg. No." := CopyStr(CompanyInformation."Registration No.", 1, MaxStrLen(TempPaymentExportData."Sender Reg. No."));
+        CompanyRegistrationNo := CompanyInformation.GetRegistrationNumber();
+        if CompanyRegistrationNo <> '' then begin
+            if StrLen(CompanyRegistrationNo) > MaxStrLen(TempPaymentExportData."Sender Reg. No.") then
+                Error(SenderRegistrationNoTooLongErr, MaxStrLen(TempPaymentExportData."Sender Reg. No."), TempPaymentExportData.FieldCaption("Sender Reg. No."));
+            TempPaymentExportData."Sender Reg. No." := CopyStr(CompanyRegistrationNo, 1, MaxStrLen(TempPaymentExportData."Sender Reg. No."));
+        end;
 
         if IsEmployee then begin
             TempPaymentExportData.Amount := GenJnlLine.Amount;

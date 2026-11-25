@@ -15,6 +15,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Pricing.Asset;
@@ -108,6 +109,7 @@ permissionset 9921 "D365 VENDOR, EDIT"
                   tabledata "VAT Reg. No. Srv Config" = RIMD,
                   tabledata "VAT Reg. No. Srv. Template" = RIMD,
                   tabledata "VAT Registration Log Details" = RIMD,
+                  tabledata "Registration No. Format" = RIMD,
                   tabledata "VAT Registration No. Format" = RIMD,
                   tabledata Vendor = RIMD,
                   tabledata "Vendor Bank Account" = IMD,

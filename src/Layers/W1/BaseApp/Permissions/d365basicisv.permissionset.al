@@ -59,6 +59,7 @@ using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
@@ -1057,6 +1058,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "VAT Reg. No. Srv. Template" = RIMD,
                   tabledata "VAT Registration Log" = RIMD,
                   tabledata "VAT Registration Log Details" = RIMD,
+                  tabledata "Registration No. Format" = RIMD,
                   tabledata "VAT Registration No. Format" = RIMD,
                   tabledata "VAT Report Archive" = Rimd,
                   tabledata "VAT Report Error Log" = RIMD,

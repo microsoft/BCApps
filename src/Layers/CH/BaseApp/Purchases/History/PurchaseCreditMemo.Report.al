@@ -237,7 +237,7 @@ report 407 "Purchase - Credit Memo"
                     column(RegNoText; RegNoText)
                     {
                     }
-                    column(RegNo_PurchCrMemoHdr; "Purch. Cr. Memo Hdr."."Registration No.")
+                    column(RegNo_PurchCrMemoHdr; "Purch. Cr. Memo Hdr.".GetRegistrationNumber())
                     {
                     }
                     column(PhoneNoCaption; PhoneNoCaptionLbl)
@@ -1117,7 +1117,7 @@ report 407 "Purchase - Credit Memo"
         ReturnOrderNoText := FormatDocument.SetText(PurchCrMemoHdr."Return Order No." <> '', PurchCrMemoHdr.FieldCaption("Return Order No."));
         ReferenceText := FormatDocument.SetText(PurchCrMemoHdr."Your Reference" <> '', PurchCrMemoHdr.FieldCaption("Your Reference"));
         VATNoText := FormatDocument.SetText(PurchCrMemoHdr."VAT Registration No." <> '', PurchCrMemoHdr.FieldCaption("VAT Registration No."));
-        RegNoText := FormatDocument.SetText(PurchCrMemoHdr."Registration No." <> '', PurchCrMemoHdr.FieldCaption("Registration No."));
+        RegNoText := FormatDocument.SetText(PurchCrMemoHdr.GetRegistrationNumber() <> '', PurchCrMemoHdr.FieldCaption("Registration No."));
         AppliedToText :=
           FormatDocument.SetText(
             PurchCrMemoHdr."Applies-to Doc. No." <> '', Format(StrSubstNo(Text003, Format(PurchCrMemoHdr."Applies-to Doc. Type"), PurchCrMemoHdr."Applies-to Doc. No.")));

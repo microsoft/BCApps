@@ -616,7 +616,7 @@ codeunit 5069 "Word Template Interactions"
         DataSource.Add(CompanyInfo.TableCaption + ' ' + CompanyInfo.FieldCaption(County), CompanyInfo.County);
         DataSource.Add(CompanyInfo.TableCaption + ' ' + Country.TableCaption + ' ' + Country.FieldCaption(Name), Country2.Name);
         DataSource.Add(CompanyInfo.TableCaption + ' ' + CompanyInfo.FieldCaption("VAT Registration No."), CompanyInfo."VAT Registration No.");
-        DataSource.Add(CompanyInfo.TableCaption + ' ' + CompanyInfo.FieldCaption("Registration No."), CompanyInfo."Registration No.");
+        DataSource.Add(CompanyInfo.TableCaption + ' ' + CompanyInfo.FieldCaption("Registration No."), CompanyInfo.GetRegistrationNumber());
         DataSource.Add(CompanyInfo.TableCaption + ' ' + CompanyInfo.FieldCaption("Phone No."), CompanyInfo."Phone No.");
         DataSource.Add(CompanyInfo.TableCaption + ' ' + CompanyInfo.FieldCaption("Fax No."), CompanyInfo."Fax No.");
         DataSource.Add(CompanyInfo.TableCaption + ' ' + CompanyInfo.FieldCaption("Bank Branch No."), CompanyInfo."Bank Branch No.");

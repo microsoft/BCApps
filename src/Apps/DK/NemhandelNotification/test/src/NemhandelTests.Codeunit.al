@@ -327,7 +327,7 @@ codeunit 148012 "Nemhandel Tests"
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
         MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
         CompanyStatus: Enum "Nemhandel Company Status";
-        CVRNumber: Text[20];
+        CVRNumber: Text[50];
     begin
         // [SCENARIO 464206] Run NemhandelStatusPageBckgrnd.GetCompanyStatus() function when company is registered in Nemhandelsregisteret.
         Initialize();
@@ -352,7 +352,7 @@ codeunit 148012 "Nemhandel Tests"
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
         MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
         CompanyStatus: Enum "Nemhandel Company Status";
-        CurrCVRNumber: Text[20];
+        CurrCVRNumber: Text[50];
         NewCVRNumber: Text[20];
     begin
         // [SCENARIO 464206] Run NemhandelStatusPageBckgrnd.GetCompanyStatus() function when http request returns different CVR number.
@@ -404,7 +404,7 @@ codeunit 148012 "Nemhandel Tests"
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
         MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
         CompanyStatus: Enum "Nemhandel Company Status";
-        CVRNumber: Text[20];
+        CVRNumber: Text[50];
     begin
         // [SCENARIO 464206] Run NemhandelStatusPageBckgrnd.GetCompanyStatus() function when company is not registered in Nemhandelsregisteret.
         Initialize();
@@ -429,7 +429,7 @@ codeunit 148012 "Nemhandel Tests"
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
         MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
         CompanyStatus: Enum "Nemhandel Company Status";
-        CVRNumber: Text[20];
+        CVRNumber: Text[50];
     begin
         // [SCENARIO] Run GetCompanyStatus() when the response does not contain the expected 'cvrNummer' field.
         Initialize();
@@ -453,7 +453,7 @@ codeunit 148012 "Nemhandel Tests"
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
         MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
         CompanyStatus: Enum "Nemhandel Company Status";
-        CVRNumber: Text[20];
+        CVRNumber: Text[50];
     begin
         // [SCENARIO 464206] Run NemhandelStatusPageBckgrnd.GetCompanyStatus() function when http URI not available.
         Initialize();
@@ -477,7 +477,7 @@ codeunit 148012 "Nemhandel Tests"
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
         MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
         CompanyStatus: Enum "Nemhandel Company Status";
-        CVRNumber: Text[20];
+        CVRNumber: Text[50];
     begin
         // [SCENARIO 464206] Run NemhandelStatusPageBckgrnd.GetCompanyStatus() function when http URI not available.
         Initialize();
@@ -501,7 +501,7 @@ codeunit 148012 "Nemhandel Tests"
         NemhandelStatusPageBckgrnd: Codeunit "Nemhandel Status Page Bckgrnd";
         MockHttpClientNemhandel: Codeunit "Mock Http Client Nemhandel";
         CompanyStatus: Enum "Nemhandel Company Status";
-        CVRNumber: Text[20];
+        CVRNumber: Text[50];
     begin
         // [SCENARIO 464206] Run NemhandelStatusPageBckgrnd.GetCompanyStatus() function when server returns status code different from 200 (registered) and 404 (not registered).
         Initialize();
@@ -807,7 +807,7 @@ codeunit 148012 "Nemhandel Tests"
         CashFlowForecastHandler.DeactivateNotification(DummyNotification);
     end;
 
-    local procedure GetCompanyCVRNumber(): Text[20]
+    local procedure GetCompanyCVRNumber(): Text[50]
     var
         CompanyInformation: Record "Company Information";
     begin

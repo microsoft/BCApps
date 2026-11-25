@@ -260,7 +260,9 @@ codeunit 11029 IntrastatReportManagementDE
                         CompanyInformation.Get();
 
                         CompanyArea := CompanyInformation.Area;
-                        RegistrationNo := CompanyInformation."Registration No.";
+                        if StrLen(CompanyInformation."Registration No.") > MaxStrLen(RegistrationNo) then
+                            CompanyInformation.FieldError("Registration No.", StrSubstNo(RegistrationNoTooLongErr, MaxStrLen(RegistrationNo)));
+                        RegistrationNo := CopyStr(CompanyInformation."Registration No.", 1, MaxStrLen(RegistrationNo));
                         AgencyNo := CompanyInformation."Agency No.";
 
                         OnBeforeCreateXMLNodeWithoutAttributesOnPartyIdPathOnBeforeSetXmlNodeValue(CompanyArea, RegistrationNo, AgencyNo);
@@ -493,6 +495,7 @@ codeunit 11029 IntrastatReportManagementDE
         FileNameLbl: Label '%1.xml', Locked = true;
         ZipFileNameLbl: Label 'Intrastat-%1.zip', Comment = '%1 - Statistics Period';
         IDEVRequiresMaterialNoErr: Label 'To export without a Material No., set the Submission Channel to eSTATISTIK.CORE. The IDEV format requires the Material No. (Company No.) in the Company Information.';
+        RegistrationNoTooLongErr: Label 'must not exceed %1 characters for the German Intrastat export', Comment = '%1 = Maximum registration number length';
         RegNoExcludeCharsTxt: Label 'ABCDEFGHIJKLMNOPQRSTUVWXYZ/-.+', Locked = true;
         LocalNamespaceURILbl: Label 'http://www.w3.org/2001/XMLSchema-instance', Locked = true;
         StartDate, CreationDate : Date;

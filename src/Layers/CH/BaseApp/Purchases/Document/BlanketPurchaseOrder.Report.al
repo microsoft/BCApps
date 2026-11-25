@@ -255,7 +255,7 @@ report 410 "Blanket Purchase Order"
                     column(VendorNoCaption; VendorNoCaptionLbl)
                     {
                     }
-                    column(CompanyInfoRegNo; CompanyInfo."Registration No.")
+                    column(CompanyInfoRegNo; CompanyInfo.GetRegistrationNumber())
                     {
                     }
                     column(HeaderLabel1; HeaderLabel[1])

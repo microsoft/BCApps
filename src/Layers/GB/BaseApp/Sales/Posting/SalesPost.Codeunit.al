@@ -7102,6 +7102,7 @@ codeunit 80 "Sales-Post"
         SalesHeader.CalcFields("Work Description");
         OnInsertShipmentHeaderOnBeforeTransferfieldsToSalesShptHeader(SalesHeader);
         SalesShptHeader.TransferFields(SalesHeader, true, true);
+        SalesShptHeader.InitCompanyRegistrationSnapshot();
         OnInsertShipmentHeaderOnAfterTransferfieldsToSalesShptHeader(SalesHeader, SalesShptHeader);
 
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesHeader."Shipping No.");
@@ -7164,6 +7165,7 @@ codeunit 80 "Sales-Post"
             ReturnRcptHeader.Init();
             OnInsertReturnReceiptHeaderOnBeforeReturnReceiptHeaderTransferFields(SalesHeader);
             ReturnRcptHeader.TransferFields(SalesHeader, true, true);
+            ReturnRcptHeader.InitCompanyRegistrationSnapshot();
             AssignPostedDocumentNo(ReturnRcptHeader."No.", SalesHeader."Return Receipt No.");
             if SalesHeader."Document Type" = SalesHeader."Document Type"::"Return Order" then begin
                 ReturnRcptHeader."Return Order No. Series" := SalesHeader."No. Series";
@@ -7218,6 +7220,7 @@ codeunit 80 "Sales-Post"
         SalesHeader.CalcFields("Work Description");
         OnInsertInvoiceHeaderOnBeforeSalesInvHeaderTransferFields(SalesHeader);
         SalesInvHeader.TransferFields(SalesHeader, true, true);
+        SalesInvHeader.InitCompanyRegistrationSnapshot();
         OnInsertInvoiceHeaderOnAfterSalesInvHeaderTransferFields(SalesHeader, SalesInvHeader);
 
         AssignPostedDocumentNo(SalesInvHeader."No.", SalesHeader."Posting No.");
@@ -7273,6 +7276,7 @@ codeunit 80 "Sales-Post"
         SalesHeader.CalcFields("Work Description");
         OnInsertCrMemoHeaderOnBeforeSalesCrMemoHeaderTransferFields(SalesHeader);
         SalesCrMemoHeader.TransferFields(SalesHeader, true, true);
+        SalesCrMemoHeader.InitCompanyRegistrationSnapshot();
         AssignPostedDocumentNo(SalesCrMemoHeader."No.", SalesHeader."No.");
         OnInsertCrMemoHeaderOnAfterSalesCrMemoHeaderTransferFields(SalesHeader, SalesCrMemoHeader);
 
@@ -7319,6 +7323,7 @@ codeunit 80 "Sales-Post"
     begin
         PurchRcptHeader.Init();
         PurchRcptHeader.TransferFields(PurchaseHeader, true, true);
+        PurchRcptHeader.InitCompanyRegistrationSnapshot();
         AssignPostedDocumentNo(PurchRcptHeader."No.", PurchaseHeader."Receiving No.");
         PurchRcptHeader."Order No." := PurchaseHeader."No.";
         PurchRcptHeader."Posting Date" := SalesHeader."Posting Date";

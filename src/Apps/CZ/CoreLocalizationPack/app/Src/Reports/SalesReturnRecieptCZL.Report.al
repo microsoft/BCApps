@@ -10,6 +10,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Location;
@@ -71,9 +72,14 @@ report 31192 "Sales Return Reciept CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+#if not CLEAN30
+            column(RegistrationNo_CompanyInformation; RegistrationNoMgt.GetCompanyRegistrationForReport('', "Company Information"))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Use CompanyRegistrationNumber on the posted document dataitem. A shared current-company value cannot represent historical document snapshots.';
+                ObsoleteTag = '30.0';
             }
+#endif
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")
             {
             }
@@ -106,6 +112,9 @@ report 31192 "Sales Return Reciept CZL"
         }
         dataitem("Return Receipt Header"; "Return Receipt Header")
         {
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport("Return Receipt Header".GetCompanyRegistrationNumber(), "Company Information"))
+            {
+            }
             column(DocumentLbl; DocumentLbl)
             {
             }
@@ -166,7 +175,7 @@ report 31192 "Sales Return Reciept CZL"
             column(RegistrationNo_ReturnReceiptHeaderCaption; FieldCaption("Registration No. CZL"))
             {
             }
-            column(RegistrationNo_ReturnReceiptHeader; "Registration No. CZL")
+            column(RegistrationNo_ReturnReceiptHeader; RegistrationNoMgt.GetDocumentRegistrationForReport("Return Receipt Header".GetRegistrationNumber(), "Registration No. CZL"))
             {
             }
             column(DocumentDate_ReturnReceiptHeaderCaption; FieldCaption("Document Date"))
@@ -428,6 +437,7 @@ report 31192 "Sales Return Reciept CZL"
         LanguageMgt: Codeunit Language;
         FormatAddress: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         FormatDocumentMgtCZL: Codeunit "Format Document Mgt. CZL";
         SegManagement: Codeunit SegManagement;
         LogInteractionEnable: Boolean;

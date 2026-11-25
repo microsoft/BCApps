@@ -71,6 +71,7 @@ using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
@@ -1449,6 +1450,7 @@ permissionset 1044 "D365 READ"
                   tabledata "VAT Reg. No. Srv. Template" = R,
                   tabledata "VAT Registration Log" = R,
                   tabledata "VAT Registration Log Details" = R,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "VAT Report Archive" = R,
                   tabledata "VAT Report Error Log" = R,

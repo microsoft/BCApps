@@ -973,7 +973,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     procedure CheckPassesWhenSIRENIsEmptyAndSIRETIsPresent()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
-        OriginalRegistrationNo: Text[20];
+        OriginalRegistrationNo: Text[50];
     begin
         // [FEATURE] [AI test]
         // [SCENARIO] Check accepts a company SIRET when Registration No. (SIREN) is blank
@@ -1002,7 +1002,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
-        OriginalRegistrationNo: Text[20];
+        OriginalRegistrationNo: Text[50];
         OriginalSIRETNo: Code[14];
     begin
         // [FEATURE] [AI test]

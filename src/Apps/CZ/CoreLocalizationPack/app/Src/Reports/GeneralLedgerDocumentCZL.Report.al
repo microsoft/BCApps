@@ -84,7 +84,7 @@ report 11766 "General Ledger Document CZL"
             column(VATRegistrationNo; StrSubstNo(CaptionValueTok, CompanyInformation.FieldCaption("VAT Registration No."), CompanyInformation."VAT Registration No."))
             {
             }
-            column(RegistrationNo; StrSubstNo(CaptionValueTok, CompanyInformation.FieldCaption("Registration No."), CompanyInformation."Registration No."))
+            column(RegistrationNo; StrSubstNo(CaptionValueTok, CompanyInformation.GetRegistrationNumberLbl(), CompanyInformation.GetRegistrationNumber()))
             {
             }
             column(UserFullName_GLEntry; UserFullName("User ID"))

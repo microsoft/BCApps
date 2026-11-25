@@ -23,6 +23,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Intrastat;
@@ -672,6 +673,27 @@ table 124 "Purch. Cr. Memo Hdr."
             Caption = 'Draft Cr. Memo System Id';
             DataClassification = SystemMetadata;
         }
+        field(7402; "Company Registration No."; Text[50])
+        {
+            Caption = 'Company Registration No.';
+            Editable = false;
+        }
+        field(7403; "Company Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Company Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(7404; "Registration Country/Region"; Code[10])
+        {
+            Caption = 'Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(11000; "Registration No."; Text[50])
+        {
+            Caption = 'Registration No.';
+        }
         field(12440; "Corrective Document"; Boolean)
         {
             Caption = 'Corrective Document';
@@ -808,6 +830,36 @@ table 124 "Purch. Cr. Memo Hdr."
 #pragma warning disable AA0074
         Text12400: Label 'Length of the Document No. filter should not exceed 1024.';
 #pragma warning restore AA0074
+
+    /// <summary>
+    /// Gets the legal registration number stored on this document.
+    /// </summary>
+    procedure GetRegistrationNumber(): Text[50]
+    begin
+        exit("Registration No.");
+    end;
+
+    procedure GetRegistrationCountryCode(): Code[10]
+    begin
+        exit("Registration Country/Region");
+    end;
+
+    procedure GetCompanyRegistrationNumber(): Text[50]
+    begin
+        exit("Company Registration No.");
+    end;
+
+    procedure GetCompanyRegistrationCountryCode(): Code[10]
+    begin
+        exit("Company Reg. Country/Region");
+    end;
+
+    procedure InitCompanyRegistrationSnapshot()
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        RegistrationNoMgt.GetCompanyRegistrationSnapshot("Company Registration No.", "Company Reg. Country/Region");
+    end;
 
     procedure PrintRecords(ShowRequestPage: Boolean)
     var

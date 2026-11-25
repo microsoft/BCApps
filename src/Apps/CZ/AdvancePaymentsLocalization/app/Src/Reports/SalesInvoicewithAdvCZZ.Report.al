@@ -16,6 +16,7 @@ using Microsoft.Finance.VAT.Clause;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
@@ -84,9 +85,14 @@ report 31018 "Sales - Invoice with Adv. CZZ"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+#if not CLEAN30
+            column(RegistrationNo_CompanyInformation; RegistrationNoMgt.GetCompanyRegistrationForReport('', "Company Information"))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Use CompanyRegistrationNumber on the posted document dataitem. A shared current-company value cannot represent historical document snapshots.';
+                ObsoleteTag = '30.0';
             }
+#endif
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")
             {
             }
@@ -131,6 +137,9 @@ report 31018 "Sales - Invoice with Adv. CZZ"
         }
         dataitem("Sales Invoice Header"; "Sales Invoice Header")
         {
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport("Sales Invoice Header".GetCompanyRegistrationNumber(), "Company Information"))
+            {
+            }
             column(DocumentLbl; DocumentLbl)
             {
             }
@@ -230,7 +239,7 @@ report 31018 "Sales - Invoice with Adv. CZZ"
             column(RegistrationNo_SalesInvoiceHeaderCaption; FieldCaption("Registration Number"))
             {
             }
-            column(RegistrationNo_SalesInvoiceHeader; "Registration Number")
+            column(RegistrationNo_SalesInvoiceHeader; "Sales Invoice Header".GetRegistrationNumber())
             {
             }
             column(BankAccountNo_SalesInvoiceHeaderCaption; FieldCaption("Bank Account No. CZL"))
@@ -864,6 +873,7 @@ report 31018 "Sales - Invoice with Adv. CZZ"
         LanguageMgt: Codeunit Language;
         FormatAddress: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         FormatDocumentMgtCZL: Codeunit "Format Document Mgt. CZL";
         SegManagement: Codeunit SegManagement;
         LogInteractionEnable: Boolean;

@@ -14,6 +14,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item.Catalog;
@@ -126,6 +127,7 @@ permissionset 5729 "D365 CUSTOMER, EDIT"
                   tabledata "VAT Reg. No. Srv Config" = RIMD,
                   tabledata "VAT Reg. No. Srv. Template" = RIMD,
                   tabledata "VAT Registration Log Details" = RIMD,
+                  tabledata "Registration No. Format" = IMD,
                   tabledata "VAT Registration No. Format" = IMD,
                   tabledata "Vendor Ledger Entry" = rm,
                   tabledata "Warehouse Activity Header" = rm,

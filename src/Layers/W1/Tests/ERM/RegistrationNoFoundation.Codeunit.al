@@ -1,0 +1,566 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
+using Microsoft.Purchases.Archive;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Archive;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Utilities;
+using System.Environment.Configuration;
+
+codeunit 139935 "Registration No. Foundation"
+{
+    Subtype = Test;
+    TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
+
+    var
+        Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryUtility: Codeunit "Library - Utility";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+        AppendLegacyCompanySuffix: Boolean;
+
+    [Test]
+    procedure MastersPreserveFiftyCharacters()
+    var
+        Customer: Record Customer temporary;
+        Vendor: Record Vendor temporary;
+        Contact: Record Contact temporary;
+        CompanyInformation: Record "Company Information" temporary;
+        RegistrationNo: Text[50];
+    begin
+        SetFeatureEnabled(true);
+        RegistrationNo := PadStr('Ab 0012-/ ', 50, 'x');
+
+        Customer.Validate("Registration Number", RegistrationNo);
+        Vendor.Validate("Registration Number", RegistrationNo);
+        Contact.Validate("Registration Number", RegistrationNo);
+        CompanyInformation.Validate("Registration No.", RegistrationNo);
+
+        Assert.AreEqual(RegistrationNo, Customer."Registration Number", 'Customer registration number was changed.');
+        Assert.AreEqual(RegistrationNo, Vendor."Registration Number", 'Vendor registration number was changed.');
+        Assert.AreEqual(RegistrationNo, Contact."Registration Number", 'Contact registration number was changed.');
+        Assert.AreEqual(RegistrationNo, CompanyInformation."Registration No.", 'Company registration number was changed.');
+        Assert.AreEqual(RegistrationNo, Customer.GetRegistrationNumber(), 'The customer getter must preserve the current value.');
+        Assert.AreEqual(RegistrationNo, Vendor.GetRegistrationNumber(), 'The vendor getter must preserve the current value.');
+        Assert.AreEqual(RegistrationNo, Contact.GetRegistrationNumber(), 'The contact getter must preserve the current value.');
+    end;
+
+    [Test]
+    procedure MasterGettersResolveWithoutChangingStorage()
+    var
+        Customer: Record Customer temporary;
+        Vendor: Record Vendor temporary;
+        Contact: Record Contact temporary;
+        CompanyInformation: Record "Company Information" temporary;
+        RegistrationNoFoundation: Codeunit "Registration No. Foundation";
+        StoredRegistrationNo: Text[50];
+        ResolvedRegistrationNo: Text[50];
+        CompanyRegistrationNo: Text;
+    begin
+        SetFeatureEnabled(true);
+        StoredRegistrationNo := PadStr('Stored 0012-/ ', 50, 's');
+        ResolvedRegistrationNo := PadStr('Resolved 0012-/ ', 50, 'r');
+        Customer."Registration Number" := StoredRegistrationNo;
+        Customer."Country/Region Code" := 'ZZ';
+        Vendor."Registration Number" := StoredRegistrationNo;
+        Vendor."Country/Region Code" := 'ZZ';
+        Contact."Registration Number" := StoredRegistrationNo;
+        Contact."Country/Region Code" := 'ZZ';
+        CompanyInformation."Registration No." := StoredRegistrationNo;
+        CompanyInformation."Country/Region Code" := 'ZZ';
+        RegistrationNoFoundation.SetAppendLegacyCompanySuffix(true);
+        BindSubscription(RegistrationNoFoundation);
+
+        Assert.AreEqual(ResolvedRegistrationNo, Customer.GetRegistrationNumber(), 'The customer must use the shared resolver.');
+        Assert.AreEqual(ResolvedRegistrationNo, Vendor.GetRegistrationNumber(), 'The vendor must use the shared resolver.');
+        Assert.AreEqual(ResolvedRegistrationNo, Contact.GetRegistrationNumber(), 'The contact must use the shared resolver.');
+        CompanyRegistrationNo := CompanyInformation.GetRegistrationNumber();
+        Assert.AreEqual(
+            ResolvedRegistrationNo, CopyStr(CompanyRegistrationNo, 1, StrLen(ResolvedRegistrationNo)),
+            'The company must use the shared resolver before its existing local after-get behavior.');
+        if CompanyRegistrationNo <> ResolvedRegistrationNo then
+            Assert.AreEqual(
+                ResolvedRegistrationNo + ' legacy suffix', CompanyRegistrationNo,
+                'The existing company event must still support more than 50 characters.');
+        Assert.AreEqual(StoredRegistrationNo, Customer."Registration Number", 'Resolving must not change customer storage.');
+        Assert.AreEqual(StoredRegistrationNo, Vendor."Registration Number", 'Resolving must not change vendor storage.');
+        Assert.AreEqual(StoredRegistrationNo, Contact."Registration Number", 'Resolving must not change contact storage.');
+        Assert.AreEqual(StoredRegistrationNo, CompanyInformation."Registration No.", 'Resolving must not change company storage.');
+
+        UnbindSubscription(RegistrationNoFoundation);
+    end;
+
+    [Test]
+    procedure DocumentGettersPreserveStoredAndBlankSnapshots()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header" temporary;
+        SalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header" temporary;
+        PurchInvHeader: Record "Purch. Inv. Header" temporary;
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr." temporary;
+        RegistrationNoFoundation: Codeunit "Registration No. Foundation";
+        SnapshotRegistrationNo: Text[50];
+    begin
+        SetFeatureEnabled(true);
+        CreateCustomer(Customer, 'ZZ', PadStr('Stored 0012-/ ', 50, 's'));
+        BindSubscription(RegistrationNoFoundation);
+        SnapshotRegistrationNo := Customer.GetRegistrationNumber();
+        SalesHeader."Sell-to Customer No." := Customer."No.";
+        SalesHeader."Bill-to Customer No." := Customer."No.";
+        SalesHeader."Registration Number" := SnapshotRegistrationNo;
+        SalesInvoiceHeader."Sell-to Customer No." := Customer."No.";
+        SalesInvoiceHeader."Bill-to Customer No." := Customer."No.";
+        SalesInvoiceHeader."Registration Number" := SnapshotRegistrationNo;
+        SalesCrMemoHeader."Sell-to Customer No." := Customer."No.";
+        SalesCrMemoHeader."Bill-to Customer No." := Customer."No.";
+        SalesCrMemoHeader."Registration Number" := SnapshotRegistrationNo;
+
+        Customer."Registration Number" := 'Changed after the snapshot';
+        Customer.Modify(false);
+
+        Assert.AreEqual(SnapshotRegistrationNo, SalesHeader.GetRegistrationNumber(), 'The sales document must use its snapshot.');
+        Assert.AreEqual(SnapshotRegistrationNo, SalesInvoiceHeader.GetRegistrationNumber(), 'The invoice must use its snapshot.');
+        Assert.AreEqual(SnapshotRegistrationNo, SalesCrMemoHeader.GetRegistrationNumber(), 'The credit memo must use its snapshot.');
+
+        SalesHeader."Registration Number" := '';
+        SalesInvoiceHeader."Registration Number" := '';
+        SalesCrMemoHeader."Registration Number" := '';
+
+        Assert.AreEqual('', SalesHeader.GetRegistrationNumber(), 'A blank document snapshot must not resolve current master data.');
+        Assert.AreEqual('', SalesInvoiceHeader.GetRegistrationNumber(), 'A blank invoice snapshot must not resolve current master data.');
+        Assert.AreEqual('', SalesCrMemoHeader.GetRegistrationNumber(), 'A blank credit memo snapshot must not resolve current master data.');
+        Assert.AreEqual('', SalesInvoiceHeader.GetCompanyRegistrationNumber(), 'A missing invoice company snapshot must remain blank.');
+        Assert.AreEqual('', SalesCrMemoHeader.GetCompanyRegistrationNumber(), 'A missing credit memo company snapshot must remain blank.');
+        Assert.AreEqual('', PurchInvHeader.GetCompanyRegistrationNumber(), 'A missing purchase invoice company snapshot must remain blank.');
+        Assert.AreEqual('', PurchCrMemoHeader.GetCompanyRegistrationNumber(), 'A missing purchase credit memo company snapshot must remain blank.');
+
+        UnbindSubscription(RegistrationNoFoundation);
+    end;
+
+    [Test]
+    procedure PostingTransferPreservesRegistrationRolesAndWidths()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesHeader: Record "Sales Header" temporary;
+        SalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header" temporary;
+        SalesShipmentHeader: Record "Sales Shipment Header" temporary;
+        ReturnReceiptHeader: Record "Return Receipt Header" temporary;
+        PurchaseHeader: Record "Purchase Header" temporary;
+        PurchInvHeader: Record "Purch. Inv. Header" temporary;
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr." temporary;
+        PurchRcptHeader: Record "Purch. Rcpt. Header" temporary;
+        ReturnShipmentHeader: Record "Return Shipment Header" temporary;
+        RegistrationNoFoundation: Codeunit "Registration No. Foundation";
+    begin
+        SetFeatureEnabled(true);
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := 'ZZ';
+        CompanyInformation.Modify(false);
+        SalesHeader."Registration Number" := PadStr('Counterparty 0012-/ ', 50, 'n');
+        SalesHeader."Registration Country/Region" := 'AA';
+        PurchaseHeader."Registration No." := SalesHeader."Registration Number";
+        PurchaseHeader."Registration Country/Region" := SalesHeader."Registration Country/Region";
+        BindSubscription(RegistrationNoFoundation);
+
+        SalesInvoiceHeader.TransferFields(SalesHeader);
+        SalesInvoiceHeader.InitCompanyRegistrationSnapshot();
+        SalesCrMemoHeader.TransferFields(SalesHeader);
+        SalesCrMemoHeader.InitCompanyRegistrationSnapshot();
+        SalesShipmentHeader.TransferFields(SalesHeader);
+        SalesShipmentHeader.InitCompanyRegistrationSnapshot();
+        ReturnReceiptHeader.TransferFields(SalesHeader);
+        ReturnReceiptHeader.InitCompanyRegistrationSnapshot();
+        PurchInvHeader.TransferFields(PurchaseHeader);
+        PurchInvHeader.InitCompanyRegistrationSnapshot();
+        PurchCrMemoHeader.TransferFields(PurchaseHeader);
+        PurchCrMemoHeader.InitCompanyRegistrationSnapshot();
+        PurchRcptHeader.TransferFields(PurchaseHeader);
+        PurchRcptHeader.InitCompanyRegistrationSnapshot();
+        ReturnShipmentHeader.TransferFields(PurchaseHeader);
+        ReturnShipmentHeader.InitCompanyRegistrationSnapshot();
+
+        AssertPostedRegistrationSnapshot(SalesInvoiceHeader, SalesInvoiceHeader.FieldNo("Registration Number"));
+        AssertPostedRegistrationSnapshot(SalesCrMemoHeader, SalesCrMemoHeader.FieldNo("Registration Number"));
+        AssertPostedRegistrationSnapshot(SalesShipmentHeader, SalesShipmentHeader.FieldNo("Registration Number"));
+        AssertPostedRegistrationSnapshot(ReturnReceiptHeader, ReturnReceiptHeader.FieldNo("Registration Number"));
+        AssertPostedRegistrationSnapshot(PurchInvHeader, PurchInvHeader.FieldNo("Registration No."));
+        AssertPostedRegistrationSnapshot(PurchCrMemoHeader, PurchCrMemoHeader.FieldNo("Registration No."));
+        AssertPostedRegistrationSnapshot(PurchRcptHeader, PurchRcptHeader.FieldNo("Registration No."));
+        AssertPostedRegistrationSnapshot(ReturnShipmentHeader, ReturnShipmentHeader.FieldNo("Registration No."));
+        UnbindSubscription(RegistrationNoFoundation);
+
+        CompanyInformation."Registration No." := 'Changed after posting';
+        CompanyInformation."Country/Region Code" := 'YY';
+        CompanyInformation.Modify(false);
+        Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), SalesInvoiceHeader.GetCompanyRegistrationNumber(), 'The invoice must not reread company data.');
+        Assert.AreEqual('ZZ', SalesInvoiceHeader.GetCompanyRegistrationCountryCode(), 'The invoice company country must remain frozen.');
+        Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), PurchInvHeader.GetCompanyRegistrationNumber(), 'The purchase invoice must not reread company data.');
+        Assert.AreEqual('ZZ', PurchInvHeader.GetCompanyRegistrationCountryCode(), 'The purchase invoice company country must remain frozen.');
+    end;
+
+    [Test]
+    procedure ArchivesFreezeBothRegistrationParties()
+    var
+        CompanyInformation: Record "Company Information";
+        SalesHeader: Record "Sales Header";
+        SalesHeaderArchive: Record "Sales Header Archive";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseHeaderArchive: Record "Purchase Header Archive";
+        ArchiveManagement: Codeunit ArchiveManagement;
+        RegistrationNoFoundation: Codeunit "Registration No. Foundation";
+    begin
+        SetFeatureEnabled(true);
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := 'ZZ';
+        CompanyInformation.Modify(false);
+        SalesHeader."Document Type" := SalesHeader."Document Type"::Order;
+        SalesHeader."No." := LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("No."), Database::"Sales Header");
+        SalesHeader."Registration Number" := PadStr('Counterparty 0012-/ ', 50, 'n');
+        SalesHeader."Registration Country/Region" := 'AA';
+        SalesHeader.Insert(false);
+        PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Order;
+        PurchaseHeader."No." := LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("No."), Database::"Purchase Header");
+        PurchaseHeader."Registration No." := SalesHeader."Registration Number";
+        PurchaseHeader."Registration Country/Region" := SalesHeader."Registration Country/Region";
+        PurchaseHeader.Insert(false);
+        BindSubscription(RegistrationNoFoundation);
+
+        ArchiveManagement.StoreSalesDocument(SalesHeader, false);
+        ArchiveManagement.StorePurchDocument(PurchaseHeader, false);
+        UnbindSubscription(RegistrationNoFoundation);
+
+        SalesHeaderArchive.SetRange("Document Type", SalesHeader."Document Type");
+        SalesHeaderArchive.SetRange("No.", SalesHeader."No.");
+        SalesHeaderArchive.FindFirst();
+        PurchaseHeaderArchive.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseHeaderArchive.SetRange("No.", PurchaseHeader."No.");
+        PurchaseHeaderArchive.FindFirst();
+        CompanyInformation."Registration No." := 'Changed after archiving';
+        CompanyInformation."Country/Region Code" := 'YY';
+        CompanyInformation.Modify(false);
+
+        Assert.AreEqual(SalesHeader."Registration Number", SalesHeaderArchive.GetRegistrationNumber(), 'Archiving must retain all 50 customer characters.');
+        Assert.AreEqual('AA', SalesHeaderArchive.GetRegistrationCountryCode(), 'The archived customer country must remain frozen.');
+        Assert.AreEqual(PurchaseHeader."Registration No.", PurchaseHeaderArchive.GetRegistrationNumber(), 'Archiving must retain all 50 vendor characters.');
+        Assert.AreEqual('AA', PurchaseHeaderArchive.GetRegistrationCountryCode(), 'The archived vendor country must remain frozen.');
+        Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), SalesHeaderArchive.GetCompanyRegistrationNumber(), 'The sales archive must use its company snapshot.');
+        Assert.AreEqual('ZZ', SalesHeaderArchive.GetCompanyRegistrationCountryCode(), 'The sales archive company country must remain frozen.');
+        Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), PurchaseHeaderArchive.GetCompanyRegistrationNumber(), 'The purchase archive must use its company snapshot.');
+        Assert.AreEqual('ZZ', PurchaseHeaderArchive.GetCompanyRegistrationCountryCode(), 'The purchase archive company country must remain frozen.');
+    end;
+
+    [Test]
+    procedure MasksSupportUnicodeAndEscapedLiterals()
+    var
+        UnicodeLetter: Char;
+        UnicodeDigit: Char;
+    begin
+        SetFeatureEnabled(true);
+        UnicodeLetter := 233;
+        UnicodeDigit := 1633;
+
+        Assert.IsTrue(RegistrationNoMgt.MatchesFormat(Format(UnicodeLetter) + 'b 0012-/', '@@ ####-?'), 'Unicode letters and separators must match.');
+        Assert.IsTrue(RegistrationNoMgt.MatchesFormat('#@?\', '\#\@\?\\'), 'Escaped placeholders must be literal characters.');
+        Assert.IsFalse(RegistrationNoMgt.MatchesFormat('ab12', 'Ab##'), 'Literal characters must be case-sensitive.');
+        Assert.IsFalse(RegistrationNoMgt.MatchesFormat('00123', '####'), 'A pattern must match the complete identifier.');
+        Assert.IsFalse(RegistrationNoMgt.MatchesFormat(Format(UnicodeDigit), '#'), 'The digit placeholder must accept ASCII digits only.');
+
+        asserterror RegistrationNoMgt.ValidateFormat('@@\');
+        Assert.ExpectedError('must not end with an unescaped backslash');
+    end;
+
+    [Test]
+    procedure AnyConfiguredFormatMayMatch()
+    var
+        CountryRegion: Record "Country/Region";
+        SourceRecordId: RecordId;
+    begin
+        SetFeatureEnabled(true);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateFormat(CountryRegion.Code, 10000, '####');
+        CreateFormat(CountryRegion.Code, 20000, '@@ ####');
+
+        RegistrationNoMgt.ValidateRegistrationNo('0012', CountryRegion.Code, SourceRecordId);
+        RegistrationNoMgt.ValidateRegistrationNo('Ab 0012', CountryRegion.Code, SourceRecordId);
+        RegistrationNoMgt.ValidateRegistrationNo('', CountryRegion.Code, SourceRecordId);
+
+        asserterror RegistrationNoMgt.ValidateRegistrationNo('Ab-0012', CountryRegion.Code, SourceRecordId);
+        Assert.ExpectedError('does not match an accepted format');
+    end;
+
+    [Test]
+    procedure BlankCountryDoesNotUseCompanyFormats()
+    var
+        CountryRegion: Record "Country/Region";
+        CompanyInformation: Record "Company Information";
+        SourceRecordId: RecordId;
+    begin
+        SetFeatureEnabled(true);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CompanyInformation.Get();
+        CompanyInformation."Country/Region Code" := CountryRegion.Code;
+        CompanyInformation.Modify(false);
+        CreateFormat(CountryRegion.Code, 10000, '####');
+
+        RegistrationNoMgt.ValidateRegistrationNo('Ab-0012', '', SourceRecordId);
+    end;
+
+    [Test]
+    procedure CountryChangeRevalidatesRegistrationNumber()
+    var
+        CountryRegion: Record "Country/Region";
+        Customer: Record Customer temporary;
+    begin
+        SetFeatureEnabled(true);
+        Customer.Validate("Registration Number", 'Ab 0012');
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateFormat(CountryRegion.Code, 10000, '####');
+
+        asserterror Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Assert.ExpectedError('does not match an accepted format');
+    end;
+
+    [Test]
+    procedure DuplicateDiscoveryUsesCompleteNumberAndCountry()
+    var
+        CountryRegion: Record "Country/Region";
+        OtherCountryRegion: Record "Country/Region";
+        SourceCustomer: Record Customer;
+        MatchingCustomer: Record Customer;
+        DifferentNumberCustomer: Record Customer;
+        ForeignCustomer: Record Customer;
+        Duplicates: List of [RecordId];
+        RegistrationNo: Text[50];
+    begin
+        SetFeatureEnabled(true);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        LibraryERM.CreateCountryRegion(OtherCountryRegion);
+        RegistrationNo := PadStr('0012-ab/ ', 49, 'x') + 'A';
+        CreateCustomer(SourceCustomer, CountryRegion.Code, RegistrationNo);
+        CreateCustomer(MatchingCustomer, CountryRegion.Code, RegistrationNo);
+        CreateCustomer(DifferentNumberCustomer, CountryRegion.Code, CopyStr(RegistrationNo, 1, 49) + 'B');
+        CreateCustomer(ForeignCustomer, OtherCountryRegion.Code, RegistrationNo);
+
+        RegistrationNoMgt.FindDuplicates(RegistrationNo, CountryRegion.Code, SourceCustomer.RecordId, Duplicates);
+
+        Assert.AreEqual(1, Duplicates.Count(), 'Only a complete number in the same country must match.');
+        Assert.IsTrue(Duplicates.Contains(MatchingCustomer.RecordId), 'The matching customer was not returned.');
+
+        RegistrationNoMgt.FindDuplicates(RegistrationNo, '', SourceCustomer.RecordId, Duplicates);
+        Assert.AreEqual(0, Duplicates.Count(), 'Unknown countries must not trigger duplicate warnings.');
+        RegistrationNoMgt.FindDuplicates('', CountryRegion.Code, SourceCustomer.RecordId, Duplicates);
+        Assert.AreEqual(0, Duplicates.Count(), 'Blank registration numbers must not match.');
+    end;
+
+    [Test]
+    procedure LinkedRecordsRepresentOneOrganization()
+    var
+        CountryRegion: Record "Country/Region";
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+        Duplicates: List of [RecordId];
+        EmptySourceRecordId: RecordId;
+    begin
+        SetFeatureEnabled(true);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateCustomer(Customer, CountryRegion.Code, 'Ab 0012');
+        Vendor."No." := LibraryUtility.GenerateRandomCode(Vendor.FieldNo("No."), Database::Vendor);
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor."Registration Number" := Customer."Registration Number";
+        Vendor.Insert(false);
+        Contact."No." := LibraryUtility.GenerateRandomCode(Contact.FieldNo("No."), Database::Contact);
+        Contact."Country/Region Code" := CountryRegion.Code;
+        Contact."Registration Number" := Customer."Registration Number";
+        Contact.Insert(false);
+        ContactBusinessRelation."Contact No." := Contact."No.";
+        ContactBusinessRelation."Business Relation Code" := 'CUSTOMER';
+        ContactBusinessRelation."Link to Table" := ContactBusinessRelation."Link to Table"::Customer;
+        ContactBusinessRelation."No." := Customer."No.";
+        ContactBusinessRelation.Insert(false);
+        ContactBusinessRelation."Business Relation Code" := 'VENDOR';
+        ContactBusinessRelation."Link to Table" := ContactBusinessRelation."Link to Table"::Vendor;
+        ContactBusinessRelation."No." := Vendor."No.";
+        ContactBusinessRelation.Insert(false);
+
+        RegistrationNoMgt.FindDuplicates('Ab 0012', CountryRegion.Code, EmptySourceRecordId, Duplicates);
+        Assert.AreEqual(1, Duplicates.Count(), 'Linked customer, vendor, and contact must count as one organization.');
+
+        RegistrationNoMgt.FindDuplicates('Ab 0012', CountryRegion.Code, Customer.RecordId, Duplicates);
+        Assert.AreEqual(0, Duplicates.Count(), 'All linked representations of the source must be excluded.');
+    end;
+
+    [Test]
+    procedure DeletingCountryRemovesItsFormats()
+    var
+        CountryRegion: Record "Country/Region";
+        RegistrationNoFormat: Record "Registration No. Format";
+    begin
+        SetFeatureEnabled(true);
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateFormat(CountryRegion.Code, 10000, '####');
+
+        CountryRegion.Delete(true);
+
+        RegistrationNoFormat.SetRange("Country/Region Code", CountryRegion.Code);
+        Assert.IsTrue(RegistrationNoFormat.IsEmpty(), 'Deleting a country must remove its registration formats.');
+    end;
+
+    [Test]
+    procedure DisabledFeaturePreservesLegacyResolutionAndValidation()
+    var
+        Customer: Record Customer temporary;
+        CountryRegion: Record "Country/Region";
+        RegistrationNoFoundation: Codeunit "Registration No. Foundation";
+        StoredRegistrationNo: Text[50];
+    begin
+        SetFeatureEnabled(false);
+        StoredRegistrationNo := PadStr('Stored 0012-/ ', 50, 's');
+        Customer."Registration Number" := StoredRegistrationNo;
+        Customer."Country/Region Code" := 'ZZ';
+        BindSubscription(RegistrationNoFoundation);
+
+        Assert.AreEqual(StoredRegistrationNo, Customer.GetRegistrationNumber(), 'Disabled features must not invoke the new resolver.');
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CreateFormat(CountryRegion.Code, 10000, '####');
+        RegistrationNoMgt.ValidateRegistrationNo('Not digits', CountryRegion.Code, Customer.RecordId);
+        UnbindSubscription(RegistrationNoFoundation);
+
+        SetFeatureEnabled(true);
+        asserterror RegistrationNoMgt.ValidateRegistrationNo('Not digits', CountryRegion.Code, Customer.RecordId);
+        Assert.ExpectedError('does not match an accepted format');
+    end;
+
+    [Test]
+    procedure ReportsCutOverOnlyAfterCompanyMigrationCompletes()
+    var
+        CompanyInformation: Record "Company Information";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
+        SnapshotNo: Text[50];
+        SnapshotCountry: Code[10];
+        LegacyCompanyNo: Text;
+    begin
+        SetFeatureEnabled(true);
+        FeatureDataUpdateStatus.Get(RegistrationNoFeature.GetFeatureKey(), CompanyName());
+        FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Pending;
+        FeatureDataUpdateStatus.Modify();
+        CompanyInformation.Get();
+        LegacyCompanyNo := CompanyInformation.GetRegistrationNumber();
+
+        Assert.IsFalse(RegistrationNoFeature.IsEnabled(), 'Enabling the environment key must not bypass company migration.');
+        Assert.AreEqual(LegacyCompanyNo, RegistrationNoMgt.GetCompanyRegistrationForReport('Historical', CompanyInformation), 'Pending companies must keep the legacy report behavior.');
+        Assert.AreEqual('Local snapshot', RegistrationNoMgt.GetDocumentRegistrationForReport('W1 snapshot', 'Local snapshot'), 'Pending companies must keep localized document values.');
+        RegistrationNoMgt.GetCompanyRegistrationSnapshot(SnapshotNo, SnapshotCountry);
+        Assert.AreEqual(LegacyCompanyNo, SnapshotNo, 'Snapshot capture must remain active before cutover.');
+        Assert.AreEqual(CompanyInformation."Country/Region Code", SnapshotCountry, 'Capture must retain the company country before cutover.');
+
+        SetFeatureEnabled(true);
+        Assert.AreEqual('Historical', RegistrationNoMgt.GetCompanyRegistrationForReport('Historical', CompanyInformation), 'Completed companies must use stored company snapshots.');
+        Assert.AreEqual('', RegistrationNoMgt.GetCompanyRegistrationForReport('', CompanyInformation), 'An enabled report must not fill a missing historical snapshot.');
+        Assert.AreEqual('W1 snapshot', RegistrationNoMgt.GetDocumentRegistrationForReport('W1 snapshot', 'Local snapshot'), 'Completed companies must use global document snapshots.');
+    end;
+
+    local procedure SetFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
+    begin
+        if not FeatureKey.Get(RegistrationNoFeature.GetFeatureKey()) then begin
+            FeatureKey.Init();
+            FeatureKey.ID := RegistrationNoFeature.GetFeatureKey();
+            FeatureKey.Insert();
+        end;
+        if Enabled then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+        else
+            FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey."Data Update Required" := true;
+        FeatureKey.Modify();
+        if not FeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName()) then begin
+            FeatureDataUpdateStatus.Init();
+            FeatureDataUpdateStatus."Feature Key" := FeatureKey.ID;
+            FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus.Insert();
+        end;
+        FeatureDataUpdateStatus."Data Update Required" := true;
+        if Enabled then
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Complete
+        else
+            FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Disabled;
+        FeatureDataUpdateStatus.Modify();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Registration No. Mgt.", 'OnResolveRegistrationNo', '', false, false)]
+    local procedure ResolveRegistrationNo(RegistrationNo: Text[50]; CountryCode: Code[10]; SourceRecordId: RecordId; var ResolvedRegistrationNo: Text[50])
+    begin
+        if SourceRecordId.TableNo <> Database::"Company Information" then
+            Assert.AreEqual(PadStr('Stored 0012-/ ', 50, 's'), RegistrationNo, 'The resolver must receive the current stored value.');
+        Assert.AreEqual('ZZ', CountryCode, 'The resolver must receive the source country.');
+        Assert.IsTrue(
+            SourceRecordId.TableNo in [Database::Customer, Database::Vendor, Database::Contact, Database::"Company Information"],
+            'Only master records may use live registration resolution.');
+        ResolvedRegistrationNo := PadStr('Resolved 0012-/ ', 50, 'r');
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Company Information", 'OnAfterGetRegistrationNumber', '', false, false)]
+    local procedure AppendLegacyCompanyRegistrationSuffix(var Result: Text)
+    begin
+        if not AppendLegacyCompanySuffix then
+            exit;
+        Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), Result, 'The existing company event must run after shared resolution.');
+        Result += ' legacy suffix';
+    end;
+
+    procedure SetAppendLegacyCompanySuffix(NewAppendLegacyCompanySuffix: Boolean)
+    begin
+        AppendLegacyCompanySuffix := NewAppendLegacyCompanySuffix;
+    end;
+
+    local procedure AssertPostedRegistrationSnapshot(PostedDocument: Variant; RegistrationFieldNo: Integer)
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedDocumentRef: RecordRef;
+    begin
+        PostedDocumentRef.GetTable(PostedDocument);
+        Assert.AreEqual(PadStr('Counterparty 0012-/ ', 50, 'n'), Format(PostedDocumentRef.Field(RegistrationFieldNo).Value), 'The complete counterparty registration must survive posting transfer.');
+        Assert.AreEqual('AA', Format(PostedDocumentRef.Field(SalesInvoiceHeader.FieldNo("Registration Country/Region")).Value), 'The counterparty country must survive posting transfer.');
+        Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), Format(PostedDocumentRef.Field(SalesInvoiceHeader.FieldNo("Company Registration No.")).Value), 'The company snapshot must use the shared resolver.');
+        Assert.AreEqual('ZZ', Format(PostedDocumentRef.Field(SalesInvoiceHeader.FieldNo("Company Reg. Country/Region")).Value), 'The company snapshot must use its own country.');
+    end;
+
+    local procedure CreateFormat(CountryCode: Code[10]; LineNo: Integer; RegistrationFormat: Text[50])
+    var
+        RegistrationNoFormat: Record "Registration No. Format";
+    begin
+        RegistrationNoFormat.Validate("Country/Region Code", CountryCode);
+        RegistrationNoFormat."Line No." := LineNo;
+        RegistrationNoFormat.Validate(Format, RegistrationFormat);
+        RegistrationNoFormat.Insert(true);
+    end;
+
+    local procedure CreateCustomer(var Customer: Record Customer; CountryCode: Code[10]; RegistrationNo: Text[50])
+    begin
+        Customer.Init();
+        Customer."No." := LibraryUtility.GenerateRandomCode(Customer.FieldNo("No."), Database::Customer);
+        Customer."Country/Region Code" := CountryCode;
+        Customer."Registration Number" := RegistrationNo;
+        Customer.Insert(false);
+    end;
+}

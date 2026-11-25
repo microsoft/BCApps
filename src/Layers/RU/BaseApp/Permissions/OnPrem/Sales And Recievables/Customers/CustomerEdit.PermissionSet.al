@@ -20,6 +20,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
@@ -200,6 +201,7 @@ permissionset 9221 "Customer - Edit"
                   tabledata "VAT Reg. No. Srv. Template" = RIMD,
                   tabledata "VAT Registration Log" = rd,
                   tabledata "VAT Registration Log Details" = RIMD,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "Alt. Cust. VAT Reg." = R,
                   tabledata "Vendor Ledger Entry" = r,

@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.Address;
 
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 
 page 10 "Countries/Regions"
 {
@@ -115,6 +116,16 @@ page 10 "Countries/Regions"
                     RunObject = Page "Country/Region Translations";
                     RunPageLink = "Country/Region Code" = field(Code);
                 }
+                action(RegistrationNoFormats)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = RegistrationNumbersEnabled;
+                    Caption = 'Registration No. Formats';
+                    Image = NumberSetup;
+                    RunObject = Page "Registration No. Formats";
+                    RunPageLink = "Country/Region Code" = field(Code);
+                    ToolTip = 'Specify accepted formats for legal registration numbers in the selected country or region, separately from VAT registration numbers.';
+                }
                 action(CustomAddressFormat)
                 {
                     ApplicationArea = Basic, Suite;
@@ -160,7 +171,20 @@ page 10 "Countries/Regions"
                 actionref(Translations_Promoted; Translations)
                 {
                 }
+                actionref(RegistrationNoFormats_Promoted; RegistrationNoFormats)
+                {
+                }
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
+    begin
+        RegistrationNumbersEnabled := RegistrationNoFeature.IsEnabled();
+    end;
+
+    var
+        RegistrationNumbersEnabled: Boolean;
 }

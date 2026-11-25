@@ -3694,6 +3694,12 @@ table 36 "Sales Header"
                       RespCenter.TableCaption(), UserSetupMgt.GetSalesFilter("Assigned User ID"));
             end;
         }
+        field(7404; "Registration Country/Region"; Code[10])
+        {
+            Caption = 'Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
         field(10705; "Corrected Invoice No."; Code[20])
         {
             Caption = 'Corrected Invoice No.';
@@ -5951,7 +5957,8 @@ table 36 "Sales Header"
                 "Bill-to County" := SearchContact.County;
                 "Bill-to Country/Region Code" := SearchContact."Country/Region Code";
                 "VAT Registration No." := SearchContact."VAT Registration No.";
-                "Registration Number" := SearchContact."Registration Number";
+                "Registration Number" := SearchContact.GetRegistrationNumber();
+                "Registration Country/Region" := SearchContact."Country/Region Code";
                 Validate("Currency Code", SearchContact."Currency Code");
                 "Language Code" := SearchContact."Language Code";
                 "Format Region" := SearchContact."Format Region";
@@ -6390,6 +6397,19 @@ table 36 "Sales Header"
                 OnLookupAdjmtValueEntriesCaseDocumentTypeElse(Rec, SalesLine, QtyType);
         end;
         PAGE.RunModal(0, TempValueEntry);
+    end;
+
+    /// <summary>
+    /// Gets the legal registration number stored on this document.
+    /// </summary>
+    procedure GetRegistrationNumber(): Text[50]
+    begin
+        exit("Registration Number");
+    end;
+
+    procedure GetRegistrationCountryCode(): Code[10]
+    begin
+        exit("Registration Country/Region");
     end;
 
     /// <summary>
@@ -7918,7 +7938,8 @@ table 36 "Sales Header"
                 Validate("VAT Bus. Posting Group", SellToCustomer."VAT Bus. Posting Group");
             "Tax Area Code" := SellToCustomer."Tax Area Code";
             "Tax Liable" := SellToCustomer."Tax Liable";
-            "Registration Number" := SellToCustomer."Registration Number";
+            "Registration Number" := SellToCustomer.GetRegistrationNumber();
+            "Registration Country/Region" := SellToCustomer."Country/Region Code";
             "VAT Country/Region Code" := SellToCustomer."Country/Region Code";
             "VAT Registration No." := SellToCustomer.GetVATRegistrationNo();
             "Shipping Advice" := SellToCustomer."Shipping Advice";

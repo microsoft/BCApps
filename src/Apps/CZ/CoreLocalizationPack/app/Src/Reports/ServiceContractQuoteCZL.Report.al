@@ -72,7 +72,7 @@ report 31195 "Service Contract Quote CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+            column(RegistrationNo_CompanyInformation; "Company Information".GetRegistrationNumber())
             {
             }
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")
@@ -141,7 +141,7 @@ report 31195 "Service Contract Quote CZL"
             column(VATRegistrationNo; Customer."VAT Registration No.")
             {
             }
-            column(RegistrationNo; Customer."Registration Number")
+            column(RegistrationNo; Customer.GetRegistrationNumber())
             {
             }
             column(ContractNo_ServiceContractHeader; "Contract No.")

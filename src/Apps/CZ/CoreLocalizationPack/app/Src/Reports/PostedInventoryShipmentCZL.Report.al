@@ -46,7 +46,7 @@ report 11750 "Posted Inventory Shipment CZL"
             column(CompanyAddr6; CompanyAddr[6])
             {
             }
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+            column(RegistrationNo_CompanyInformation; "Company Information".GetRegistrationNumber())
             {
                 IncludeCaption = true;
             }

@@ -74,7 +74,7 @@ report 31198 "Service Credit Memo CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+            column(RegistrationNo_CompanyInformation; "Company Information".GetRegistrationNumber())
             {
             }
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")

@@ -192,7 +192,8 @@ codeunit 200 "Alt. Cust. VAT. Reg. Facade"
             SalesHeader."VAT Bus. Posting Group" := BillToCustomer."VAT Bus. Posting Group";
         SalesHeader."VAT Country/Region Code" := BillToCustomer."Country/Region Code";
         SalesHeader."VAT Registration No." := BillToCustomer."VAT Registration No.";
-        SalesHeader."Registration Number" := BillToCustomer."Registration Number";
+        SalesHeader."Registration Number" := BillToCustomer.GetRegistrationNumber();
+        SalesHeader."Registration Country/Region" := BillToCustomer."Country/Region Code";
         SalesHeader."Gen. Bus. Posting Group" := BillToCustomer."Gen. Bus. Posting Group";
         OnAfterCopyBillToCustomerToSalesHeader(SalesHeader, BillToCustomer);
     end;

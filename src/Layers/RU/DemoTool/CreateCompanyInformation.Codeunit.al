@@ -26,6 +26,7 @@ codeunit 101079 "Create Company Information"
         XRU: Label 'RU';
         XTrade: Label 'Trade';
         XLEGAL: Label 'LEGAL';
+        RegistrationNoTooLongErr: Label 'must not exceed %1 characters for a company address', Comment = '%1 = Maximum registration number length';
 
     procedure InsertData()
     var
@@ -100,7 +101,9 @@ codeunit 101079 "Create Company Information"
         "Company Address".City := CompanyInformation.City;
         "Company Address"."Phone No." := CompanyInformation."Phone No.";
         "Company Address"."Telex No." := CompanyInformation."Telex No.";
-        "Company Address"."Registration No." := CompanyInformation."Registration No.";
+        if StrLen(CompanyInformation."Registration No.") > MaxStrLen("Company Address"."Registration No.") then
+            CompanyInformation.FieldError("Registration No.", StrSubstNo(RegistrationNoTooLongErr, MaxStrLen("Company Address"."Registration No.")));
+        "Company Address"."Registration No." := CopyStr(CompanyInformation."Registration No.", 1, MaxStrLen("Company Address"."Registration No."));
         "Company Address"."Region Code" := CompanyInformation."Region Code";
         "Company Address".Street := CompanyInformation.Street;
         "Company Address".House := CompanyInformation.House;

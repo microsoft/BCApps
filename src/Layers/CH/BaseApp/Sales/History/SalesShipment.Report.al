@@ -12,6 +12,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
@@ -225,7 +226,7 @@ report 208 "Sales - Shipment"
                     column(FooterTxt8; FooterTxt[8])
                     {
                     }
-                    column(CompanyInfoRegNo; CompanyInfo."Registration No.")
+                    column(CompanyInfoRegNo; RegistrationNoMgt.GetCompanyRegistrationForReport("Sales Shipment Header".GetCompanyRegistrationNumber(), CompanyInfo))
                     {
                     }
                     column(CompanyInfoRegNoCaption; CompanyInfoRegNoCaptionLbl)
@@ -751,6 +752,7 @@ report 208 "Sales - Shipment"
         LanguageMgt: Codeunit Language;
         FormatAddr: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         SegManagement: Codeunit SegManagement;
         ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
         CustAddr: array[8] of Text[100];
