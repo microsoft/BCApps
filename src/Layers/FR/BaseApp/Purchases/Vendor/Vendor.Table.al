@@ -2312,7 +2312,7 @@ table 23 Vendor
                         repeat
                             ReceiptRemainingQuantities.Set(
                                 PurchaseReceiptLine.SystemId,
-                                PurchaseReceiptLine."Qty. Rcd. Not Invoiced" * PurchaseReceiptLine."Qty. per Unit of Measure");
+                                PurchaseReceiptLine."Quantity (Base)" - PurchaseReceiptLine."Qty. Invoiced (Base)");
                             PurchaseLineInvoice.SetRange("Receipt No.", PurchaseReceiptLine."Document No.");
                             PurchaseLineInvoice.SetRange("Receipt Line No.", PurchaseReceiptLine."Line No.");
                             if PurchaseLineInvoice.FindSet() then

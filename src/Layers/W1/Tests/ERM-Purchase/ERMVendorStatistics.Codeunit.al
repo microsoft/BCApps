@@ -1635,6 +1635,46 @@ codeunit 134334 "ERM Vendor Statistics"
 
     [Test]
     [Scope('OnPrem')]
+    procedure VendorTotalUsesPostedReceiptBaseQuantity()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO 658521] Rounded posted base quantities determine receipt capacity for both invoice link types.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        MockVendorPurchaseLine(PurchaseLineOrder, Vendor."No.", PurchaseLineOrder."Document Type"::Order, 0.11111, 0);
+        PurchaseLineOrder.Quantity := 0.33333;
+        PurchaseLineOrder."Qty. per Unit of Measure" := 0.33333;
+        PurchaseLineOrder."Outstanding Qty. (Base)" := 0;
+        PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)" := 0.11111;
+        PurchaseLineOrder."Amt. Rcd. Not Invoiced (LCY)" := 10000;
+        PurchaseLineOrder.Modify();
+        MockVendorPurchaseReceiptLine(PurchaseReceiptLine, PurchaseLineOrder, 0.33333, 0.33333);
+        PurchaseReceiptLine.TestField("Quantity (Base)", 0.11111);
+        MockVendorPurchaseLine(PurchaseLineInvoice, Vendor."No.", PurchaseLineInvoice."Document Type"::Invoice, 0.11111, 10000);
+        PurchaseLineInvoice.Quantity := 0.33333;
+        PurchaseLineInvoice."Qty. per Unit of Measure" := 0.33333;
+        PurchaseLineInvoice.Modify();
+        MatchedOrderLine := MockVendorOrderMatch(PurchaseLineInvoice, PurchaseLineOrder, 0.11111);
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := PurchaseReceiptLine.SystemId;
+        MatchedOrderLine.Insert();
+
+        Assert.AreEqual(10000, Vendor.GetMatchedOrderAmountLCY(), MatchedPurchasesTotalErr);
+        VerifyVendorMatchedTotal(Vendor, 10000);
+
+        PurchaseLineInvoice."Receipt No." := PurchaseReceiptLine."Document No.";
+        PurchaseLineInvoice."Receipt Line No." := PurchaseReceiptLine."Line No.";
+        PurchaseLineInvoice.Modify();
+        Assert.AreEqual(10000, Vendor.GetMatchedOrderAmountLCY(), MatchedPurchasesTotalErr);
+        VerifyVendorMatchedTotal(Vendor, 10000);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure VendorTotalSharesReceiptCapacityAcrossLinkTypes()
     begin
         // [SCENARIO 658521] Receipt links and explicit receipt matches share the same remaining received base quantity.
@@ -2107,18 +2147,30 @@ codeunit 134334 "ERM Vendor Statistics"
         PurchaseLineInvoice[2].Modify();
         VerifyVendorMatchedTotal(Vendor, 100 * QuantitySign);
 
+        PurchaseReceiptLine."Quantity Invoiced" := QuantitySign;
+        PurchaseReceiptLine."Qty. Invoiced (Base)" := 2 * QuantitySign;
+        PurchaseReceiptLine."Qty. Rcd. Not Invoiced" := QuantitySign;
+        PurchaseReceiptLine.Modify();
+        VerifyVendorMatchedTotal(Vendor, 110 * QuantitySign);
+
+        PurchaseReceiptLine."Quantity Invoiced" := PurchaseReceiptLine.Quantity;
+        PurchaseReceiptLine."Qty. Invoiced (Base)" := PurchaseReceiptLine."Quantity (Base)";
         PurchaseReceiptLine."Qty. Rcd. Not Invoiced" := 0;
         PurchaseReceiptLine.Modify();
         VerifyVendorMatchedTotal(Vendor, 130 * QuantitySign);
     end;
 
     local procedure MockVendorPurchaseReceiptLine(var PurchaseReceiptLine: Record "Purch. Rcpt. Line"; PurchaseLineOrder: Record "Purchase Line"; Quantity: Decimal; QuantityPerUnitOfMeasure: Decimal)
+    var
+        UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
     begin
         Clear(PurchaseReceiptLine);
         PurchaseReceiptLine."Document No." := LibraryUtility.GenerateRandomCode(PurchaseReceiptLine.FieldNo("Document No."), Database::"Purch. Rcpt. Line");
         PurchaseReceiptLine."Line No." := 10000;
         PurchaseReceiptLine."Order No." := PurchaseLineOrder."Document No.";
         PurchaseReceiptLine."Order Line No." := PurchaseLineOrder."Line No.";
+        PurchaseReceiptLine.Quantity := Quantity;
+        PurchaseReceiptLine."Quantity (Base)" := UnitOfMeasureManagement.CalcBaseQty(Quantity, QuantityPerUnitOfMeasure);
         PurchaseReceiptLine."Qty. Rcd. Not Invoiced" := Quantity;
         PurchaseReceiptLine."Qty. per Unit of Measure" := QuantityPerUnitOfMeasure;
         PurchaseReceiptLine.Insert();
