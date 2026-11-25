@@ -22,6 +22,7 @@ permissionset 2914 "Administrator"
                              "D365 WEBHOOK SUBSCR",
                              "EMAIL - ADMIN",
                              "EXTEN. MGT. - ADMIN",
+                             "ITEM TRACKING CHANGE",
                              "MERGE DUPLICATES",
                              "RETENTION POL. ADMIN",
                              "TEST TOOL";

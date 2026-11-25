@@ -34,8 +34,10 @@ codeunit 137933 "Item Tracking Code Changes"
         LibraryPostInventoryToGL: Codeunit "Library - Post Inventory To GL";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         ChangeLogImmutableErr: Label 'Item tracking code change log entries cannot be modified or deleted.';
+        ItemTrackingCodeChangeQst: Label 'Existing posted entries for this item keep their original tracking information; their history is not rewritten to match the new code. If you later reverse, undo, apply, or return against those older entries, you may need to enter or clear tracking manually in Item Tracking Lines and check the cost before posting. If Exact Cost Reversing Mandatory is enabled, you may need to temporarily disable it. Do you want to change the Item Tracking Code?';
         OpenItemLedgerEntriesExistErr: Label 'You cannot change Item Tracking Code for item %1 because one or more open item ledger entries exist.', Comment = '%1 = Item No.';
         RecordsExistErr: Label 'You cannot change Item Tracking Code for item %1 because one or more %2 records exist.', Comment = '%1 = Item No., %2 = Table Caption';
 
@@ -85,6 +87,71 @@ codeunit 137933 "Item Tracking Code Changes"
         // [THEN] Item "I" has blank tracking and the change is logged.
         VerifyItemTrackingCode(Item."No.", '');
         VerifyChangeLog(Item."No.", ItemTrackingCode.Code, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmItemTrackingCodeChangeYes,MessageHandler')]
+    procedure ItemCardConfirmsAdvancedItemTrackingCodeChange()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemCard: TestPage "Item Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Confirming an advanced tracking-code change from the Item Card applies and logs the change.
+        Initialize();
+
+        // [GIVEN] Eligible historical item "I" and a lot-tracking code.
+        CreateEligibleItemWithHistory(Item);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Commit();
+
+        // [WHEN] The user changes the tracking code on the Item Card and confirms.
+        ItemCard.OpenEdit();
+        ItemCard.GoToRecord(Item);
+        ItemCard."Item Tracking Code".SetValue(ItemTrackingCode.Code);
+        ItemCard.Close();
+
+        // [THEN] The Slice-defined confirmation is shown and the change is applied and logged.
+        Assert.AreEqual(ItemTrackingCodeChangeQst, LibraryVariableStorage.DequeueText(), 'The confirmation question is incorrect.');
+        VerifyItemTrackingCode(Item."No.", ItemTrackingCode.Code);
+        VerifyChangeLog(Item."No.", '', ItemTrackingCode.Code);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmItemTrackingCodeChangeNo')]
+    procedure ItemCardCancelsAdvancedItemTrackingCodeChange()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+        ItemCard: TestPage "Item Card";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Declining an advanced tracking-code change from the Item Card preserves the item and audit log.
+        Initialize();
+
+        // [GIVEN] Eligible historical item "I" and a lot-tracking code.
+        CreateEligibleItemWithHistory(Item);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        Commit();
+
+        // [WHEN] The user changes the tracking code on the Item Card but declines the confirmation.
+        ItemCard.OpenEdit();
+        ItemCard.GoToRecord(Item);
+        asserterror ItemCard."Item Tracking Code".SetValue(ItemTrackingCode.Code);
+
+        // [THEN] Validation is silently cancelled and no change or audit entry is created.
+        Assert.ExpectedError('');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(ItemTrackingCodeChangeQst, LibraryVariableStorage.DequeueText(), 'The confirmation question is incorrect.');
+        ItemCard."Item Tracking Code".AssertEquals('');
+        ItemCard.Close();
+        VerifyItemTrackingCode(Item."No.", '');
+        ItemTrackingCodeChangeLog.SetRange("Item No.", Item."No.");
+        Assert.RecordIsEmpty(ItemTrackingCodeChangeLog);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1220,12 +1287,12 @@ codeunit 137933 "Item Tracking Code Changes"
         ErrorMessages: TestPage "Error Messages";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 435436] Tracking cannot change while reservation entries exist.
+        // [SCENARIO 435436] Tracking cannot change while tracked reservation entries exist.
         Initialize();
 
-        // [GIVEN] Eligible item "I" with reservation entry "R".
+        // [GIVEN] Eligible item "I" with lot-tracked reservation entry "R".
         CreateEligibleItemWithHistory(Item);
-        CreateReservationEntry(ReservationEntry, Item."No.");
+        CreateReservationEntry(ReservationEntry, Item."No.", "Item Tracking Entry Type"::"Lot No.");
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
 
         // [WHEN] Lot tracking is enabled for item "I".
@@ -1235,6 +1302,31 @@ codeunit 137933 "Item Tracking Code Changes"
         Assert.ExpectedMessage(
             StrSubstNo(RecordsExistErr, Item."No.", ReservationEntry.TableCaption()),
             ErrorMessages.Description.Value);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure TrackingChangeIsAllowedWithUntrackedReservationEntry()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] An untracked reservation entry does not prevent changing the item tracking code.
+        Initialize();
+
+        // [GIVEN] Eligible item "I" with untracked reservation entry "R".
+        CreateEligibleItemWithHistory(Item);
+        CreateReservationEntry(ReservationEntry, Item."No.", "Item Tracking Entry Type"::None);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+
+        // [WHEN] Lot tracking is enabled for item "I".
+        ChangeItemTrackingCode(Item, ItemTrackingCode.Code);
+
+        // [THEN] Item "I" uses lot tracking and the change is logged.
+        VerifyItemTrackingCode(Item."No.", ItemTrackingCode.Code);
+        VerifyChangeLog(Item."No.", '', ItemTrackingCode.Code);
     end;
 
     [Test]
@@ -1337,6 +1429,50 @@ codeunit 137933 "Item Tracking Code Changes"
     end;
 
     [Test]
+    procedure UntouchedPurchaseOrderWithoutHistoryAllowsTrackingChange()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] An untouched purchase order does not block tracking changes for an item without ledger history.
+        Initialize();
+
+        // [GIVEN] Item "I" without ledger history is used on untouched purchase order "PO".
+        LibraryInventory.CreateItem(Item);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CreateUntouchedPurchaseLine(Item."No.", "Purchase Document Type"::Order);
+
+        // [WHEN] Lot tracking is enabled for item "I".
+        ChangeItemTrackingCode(Item, ItemTrackingCode.Code);
+
+        // [THEN] The tracking code changes successfully.
+        VerifyItemTrackingCode(Item."No.", ItemTrackingCode.Code);
+    end;
+
+    [Test]
+    procedure UntouchedPurchaseReturnWithoutHistoryAllowsTrackingChange()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] An untouched purchase return does not block tracking changes for an item without ledger history.
+        Initialize();
+
+        // [GIVEN] Item "I" without ledger history is used on untouched purchase return "PR".
+        LibraryInventory.CreateItem(Item);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        CreateUntouchedPurchaseLine(Item."No.", "Purchase Document Type"::"Return Order");
+
+        // [WHEN] Lot tracking is enabled for item "I".
+        ChangeItemTrackingCode(Item, ItemTrackingCode.Code);
+
+        // [THEN] The tracking code changes successfully.
+        VerifyItemTrackingCode(Item."No.", ItemTrackingCode.Code);
+    end;
+
+    [Test]
     [HandlerFunctions('MessageHandler')]
     procedure CompletedInvoicedSalesOrderAllowsTrackingChange()
     begin
@@ -1356,20 +1492,20 @@ codeunit 137933 "Item Tracking Code Changes"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure CompletedInvoicedPurchaseOrderAllowsTrackingChange()
+    procedure CompletedInvoicedPurchaseOrderBlocksTrackingChange()
     begin
-        // [SCENARIO 435436] A completely received and invoiced purchase order does not prevent changing tracking.
+        // [SCENARIO 435436] A completely received and invoiced purchase order prevents changing tracking while its line exists.
         Initialize();
-        VerifyPurchaseDocumentTrackingChange("Purchase Document Type"::Order, 1, 0, false);
+        VerifyPurchaseDocumentTrackingChange("Purchase Document Type"::Order, 1, 0, true);
     end;
 
     [Test]
     [HandlerFunctions('MessageHandler')]
-    procedure CompletedInvoicedPurchaseReturnAllowsTrackingChange()
+    procedure CompletedInvoicedPurchaseReturnBlocksTrackingChange()
     begin
-        // [SCENARIO 435436] A completely shipped and invoiced purchase return does not prevent changing tracking.
+        // [SCENARIO 435436] A completely shipped and invoiced purchase return prevents changing tracking while its line exists.
         Initialize();
-        VerifyPurchaseDocumentTrackingChange("Purchase Document Type"::"Return Order", 1, 0, false);
+        VerifyPurchaseDocumentTrackingChange("Purchase Document Type"::"Return Order", 1, 0, true);
     end;
 
     [Test]
@@ -1415,6 +1551,34 @@ codeunit 137933 "Item Tracking Code Changes"
         Assert.ExpectedMessage(
             StrSubstNo(RecordsExistErr, Item."No.", ItemJournalLine.TableCaption()),
             ErrorMessages.Description.Value);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure TrackingChangeIsAllowedWithRequisitionLine()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] A requisition or planning worksheet line does not prevent changing item tracking.
+        Initialize();
+
+        // [GIVEN] Eligible historical item "I" is used on requisition line "R".
+        CreateEligibleItemWithHistory(Item);
+        CreateRequisitionLine(RequisitionLine, Item."No.");
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+
+        // [WHEN] Lot tracking is enabled for item "I".
+        ChangeItemTrackingCode(Item, ItemTrackingCode.Code);
+
+        // [THEN] Item "I" uses lot tracking, the change is logged, and requisition line "R" remains.
+        VerifyItemTrackingCode(Item."No.", ItemTrackingCode.Code);
+        VerifyChangeLog(Item."No.", '', ItemTrackingCode.Code);
+        Assert.IsTrue(RequisitionLine.Get(
+            RequisitionLine."Worksheet Template Name", RequisitionLine."Journal Batch Name", RequisitionLine."Line No."),
+            'The requisition line must remain after changing item tracking.');
     end;
 
     [Test]
@@ -1638,7 +1802,7 @@ codeunit 137933 "Item Tracking Code Changes"
 
         // [GIVEN] Eligible item "I" with reservation entry "R" and item journal line "J".
         CreateEligibleItemWithHistory(Item);
-        CreateReservationEntry(ReservationEntry, Item."No.");
+        CreateReservationEntry(ReservationEntry, Item."No.", "Item Tracking Entry Type"::"Lot No.");
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", '', '', 1);
         LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
 
@@ -1785,7 +1949,7 @@ codeunit 137933 "Item Tracking Code Changes"
         ItemLedgerEntry.Insert();
     end;
 
-    local procedure CreateReservationEntry(var ReservationEntry: Record "Reservation Entry"; ItemNo: Code[20])
+    local procedure CreateReservationEntry(var ReservationEntry: Record "Reservation Entry"; ItemNo: Code[20]; ItemTracking: Enum "Item Tracking Entry Type")
     begin
         ReservationEntry.Init();
         ReservationEntry."Entry No." := LibraryUtility.GetNewRecNo(ReservationEntry, ReservationEntry.FieldNo("Entry No."));
@@ -1793,7 +1957,21 @@ codeunit 137933 "Item Tracking Code Changes"
         ReservationEntry."Item No." := ItemNo;
         ReservationEntry.Quantity := 1;
         ReservationEntry."Quantity (Base)" := 1;
+        ReservationEntry."Item Tracking" := ItemTracking;
         ReservationEntry.Insert();
+    end;
+
+    local procedure CreateRequisitionLine(var RequisitionLine: Record "Requisition Line"; ItemNo: Code[20])
+    begin
+        RequisitionLine.Init();
+        RequisitionLine."Worksheet Template Name" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RequisitionLine."Worksheet Template Name"));
+        RequisitionLine."Journal Batch Name" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(RequisitionLine."Journal Batch Name"));
+        RequisitionLine."Line No." := 10000;
+        RequisitionLine.Type := RequisitionLine.Type::Item;
+        RequisitionLine."No." := ItemNo;
+        RequisitionLine.Quantity := 1;
+        RequisitionLine."Quantity (Base)" := 1;
+        RequisitionLine.Insert();
     end;
 
     local procedure CreateOutstandingPurchaseLine(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20])
@@ -1805,6 +1983,23 @@ codeunit 137933 "Item Tracking Code Changes"
         PurchaseLine.Type := PurchaseLine.Type::Item;
         PurchaseLine."No." := ItemNo;
         PurchaseLine."Qty. Rcd. Not Invoiced" := 1;
+        PurchaseLine.Insert();
+    end;
+
+    local procedure CreateUntouchedPurchaseLine(ItemNo: Code[20]; DocumentType: Enum "Purchase Document Type")
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.Init();
+        PurchaseLine."Document Type" := DocumentType;
+        PurchaseLine."Document No." := LibraryUtility.GenerateGUID();
+        PurchaseLine."Line No." := 10000;
+        PurchaseLine.Type := PurchaseLine.Type::Item;
+        PurchaseLine."No." := ItemNo;
+        PurchaseLine.Quantity := 1;
+        PurchaseLine."Quantity (Base)" := PurchaseLine.Quantity;
+        PurchaseLine."Outstanding Quantity" := PurchaseLine.Quantity;
+        PurchaseLine."Outstanding Qty. (Base)" := PurchaseLine."Quantity (Base)";
         PurchaseLine.Insert();
     end;
 
@@ -1973,6 +2168,20 @@ codeunit 137933 "Item Tracking Code Changes"
         Assert.AreEqual(
             NewItemTrackingCode, ItemTrackingCodeChangeLog."New Item Tracking Code",
             'The new item tracking code is incorrect.');
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmItemTrackingCodeChangeNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := false;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmItemTrackingCodeChangeYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := true;
     end;
 
     [MessageHandler]

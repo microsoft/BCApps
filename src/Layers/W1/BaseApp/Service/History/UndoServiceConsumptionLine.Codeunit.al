@@ -84,6 +84,8 @@ codeunit 5819 "Undo Service Consumption Line"
         Text004: Label 'You cannot undo consumption on the line because it has been already posted to Projects.';
 #pragma warning disable AA0470
         Text005: Label 'You cannot undo consumption because the original service order %1 is already closed.';
+        ItemTrackingCodeChangedForUndoErr: Label 'You cannot undo service consumption for shipment %1 because the Item Tracking Code for item %2 has changed from ''%3'' to ''%4''. The required tracking information cannot be determined automatically.', Comment = '%1 = Service Shipment No., %2 = Item No., %3 = Previous Item Tracking Code, %4 = Current Item Tracking Code';
+        ItemTrackingRequirementsChangedForUndoErr: Label 'You cannot undo service consumption for shipment %1 because the current Item Tracking Code ''%2'' for item %3 does not match the tracking information on item ledger entry %4. The required tracking information cannot be determined automatically.', Comment = '%1 = Service Shipment No., %2 = Current Item Tracking Code, %3 = Item No., %4 = Item Ledger Entry No.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         NextLineNo: Integer;
@@ -184,6 +186,7 @@ codeunit 5819 "Undo Service Consumption Line"
         if ServShptLine.Type = ServShptLine.Type::Item then begin
             UndoPostingMgt.CollectItemLedgEntries(TempItemLedgEntry, DATABASE::"Service Shipment Line",
               ServShptLine."Document No.", ServShptLine."Line No.", ServShptLine."Quantity (Base)", ServShptLine."Item Shpt. Entry No.");
+            TestItemTrackingCodeNotChangedForUndo(TempItemLedgEntry, ServShptLine."Document No.");
             UndoPostingMgt.CheckItemLedgEntries(TempItemLedgEntry, ServShptLine."Line No.");
         end;
     end;
@@ -205,6 +208,7 @@ codeunit 5819 "Undo Service Consumption Line"
         ItemJnlLine: Record "Item Journal Line";
         ServiceLine: Record "Service Line";
         SignFactor: Integer;
+        PostWithoutItemTracking: Boolean;
     begin
         SourceCodeSetup.Get();
         ServShptHeader.Get(ServShptLine."Document No.");
@@ -226,15 +230,24 @@ codeunit 5819 "Undo Service Consumption Line"
 
         ItemJnlLine.Validate(ItemJnlLine."Applies-from Entry", ItemEntryNo);
 
+        PostWithoutItemTracking := ShouldPostUndoWithoutItemTracking(ItemJnlLine."Item No.");
+        if PostWithoutItemTracking then begin
+            ItemJnlLine.ClearTracking();
+            ItemJnlLine.ClearDates();
+            ItemJnlLine."Item Expiration Date" := 0D;
+        end;
+
         OnAfterCopyItemJnlLineFromServShpt(ItemJnlLine, ServShptHeader, ServShptLine);
 
         WhseUndoQty.InsertTempWhseJnlLine(ItemJnlLine,
           DATABASE::"Service Line", ServiceLine."Document Type"::Order.AsInteger(), ServShptHeader."Order No.", ServShptLine."Order Line No.",
           TempWhseJnlLine."Reference Document"::"Posted Shipment".AsInteger(), TempWhseJnlLine, NextLineNo);
 
-        if not TrackingSpecificationExists then begin
+        if PostWithoutItemTracking or not TrackingSpecificationExists then begin
             ItemJnlPostLine.SetServUndoConsumption(true);
+            ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(PostWithoutItemTracking);
             ItemJnlPostLine.RunWithCheck(ItemJnlLine);
+            ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(false);
             OnItemJnlPostLineOnAfteItemJnlPostLineOnBeforeExit(ItemJnlLine, ServShptLine);
             exit(ItemJnlLine."Item Shpt. Entry No.");
         end;
@@ -482,10 +495,47 @@ codeunit 5819 "Undo Service Consumption Line"
         NewServiceShipmentLine.Insert();
 
         UpdateItemJnlLine(NewServiceShipmentLine, ItemShptEntryNo);
-        if OldServiceShipmentLine.Type = OldServiceShipmentLine.Type::Item then begin
+        if (OldServiceShipmentLine.Type = OldServiceShipmentLine.Type::Item) and
+           not ShouldPostUndoWithoutItemTracking(OldServiceShipmentLine."No.")
+        then begin
             InsertNewTrackSpecifications(NewServiceShipmentLine, true);
             InsertItemEntryRelation(TempGlobalItemEntryRelation, NewServiceShipmentLine);
         end;
+    end;
+
+    local procedure ShouldPostUndoWithoutItemTracking(ItemNo: Code[20]): Boolean
+    var
+        Item: Record Item;
+    begin
+        Item.SetLoadFields("Item Tracking Code");
+        Item.Get(ItemNo);
+        exit(Item."Item Tracking Code" = '');
+    end;
+
+    local procedure TestItemTrackingCodeNotChangedForUndo(var TempItemLedgEntryToCheck: Record "Item Ledger Entry" temporary; ServiceShipmentNo: Code[20])
+    var
+        Item: Record Item;
+        ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
+        HistoricalItemTrackingCode: Code[10];
+    begin
+        TempItemLedgEntryToCheck.FindSet();
+        repeat
+            Item.Get(TempItemLedgEntryToCheck."Item No.");
+            if Item."Item Tracking Code" <> '' then begin
+                Clear(HistoricalItemTrackingCode);
+                if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
+                     TempItemLedgEntryToCheck."Item No.", TempItemLedgEntryToCheck."Entry No.", HistoricalItemTrackingCode)
+                then
+                    Error(
+                        ItemTrackingCodeChangedForUndoErr, ServiceShipmentNo, Item."No.",
+                        HistoricalItemTrackingCode, Item."Item Tracking Code");
+
+                if not ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(TempItemLedgEntryToCheck) then
+                    Error(
+                        ItemTrackingRequirementsChangedForUndoErr, ServiceShipmentNo, Item."Item Tracking Code",
+                        Item."No.", TempItemLedgEntryToCheck."Entry No.");
+            end;
+        until TempItemLedgEntryToCheck.Next() = 0;
     end;
 
     local procedure UpdateOrderLine(ServShptLine: Record "Service Shipment Line")

@@ -798,6 +798,7 @@ codeunit 900 "Assembly-Post"
         ItemApplnEntry: Record "Item Application Entry";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         EntriesExist: Boolean;
+        PostWithoutItemTracking: Boolean;
     begin
         UndoPostingMgt.CollectItemLedgEntries(
           TempItemLedgEntry2, SourceType, ItemJnlLine."Document No.", ItemJnlLine."Document Line No.",
@@ -835,14 +836,23 @@ codeunit 900 "Assembly-Post"
                 ItemJnlLine."Invoiced Quantity" := ItemJnlLine.Quantity;
                 ItemJnlLine."Invoiced Qty. (Base)" := ItemJnlLine."Quantity (Base)";
 
-                ItemJnlLine.CopyTrackingFromItemLedgEntry(TempItemLedgEntry);
-                ItemJnlLine."Warranty Date" := TempItemLedgEntry."Warranty Date";
-                ItemJnlLine."Item Expiration Date" := TempItemLedgEntry."Expiration Date";
+                PostWithoutItemTracking := ShouldPostUndoWithoutItemTracking(ItemJnlLine."Item No.");
+                if PostWithoutItemTracking then begin
+                    ItemJnlLine.ClearTracking();
+                    ItemJnlLine.ClearDates();
+                    ItemJnlLine."Item Expiration Date" := 0D;
+                end else begin
+                    ItemJnlLine.CopyTrackingFromItemLedgEntry(TempItemLedgEntry);
+                    ItemJnlLine."Warranty Date" := TempItemLedgEntry."Warranty Date";
+                    ItemJnlLine."Item Expiration Date" := TempItemLedgEntry."Expiration Date";
+                end;
                 ItemJnlLine."Item Shpt. Entry No." := 0;
 
                 OnBeforePostCorrectionItemJnLine(ItemJnlLine, TempItemLedgEntry);
 
+                ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(PostWithoutItemTracking);
                 ItemJnlPostLine.RunWithCheck(ItemJnlLine);
+                ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(false);
                 PostWhseJnlLine(AssemblyHeader, ItemJnlLine, ItemJnlPostLine, WhseJnlRegisterLine);
             until TempItemLedgEntry2.Next() = 0;
     end;
@@ -1469,22 +1479,22 @@ codeunit 900 "Assembly-Post"
     begin
         TempItemLedgEntryToCheck.FindSet();
         repeat
+            Item.Get(TempItemLedgEntryToCheck."Item No.");
             Clear(HistoricalItemTrackingCode);
             if ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
                  TempItemLedgEntryToCheck."Item No.", TempItemLedgEntryToCheck."Entry No.", HistoricalItemTrackingCode)
-            then begin
-                Item.Get(TempItemLedgEntryToCheck."Item No.");
+               and (Item."Item Tracking Code" <> '')
+            then
                 Error(
                     ItemTrackingCodeChangedForUndoErr, PostedAssemblyOrderNo, Item."No.",
                     HistoricalItemTrackingCode, Item."Item Tracking Code");
-            end;
 
-            if not ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(TempItemLedgEntryToCheck) then begin
-                Item.Get(TempItemLedgEntryToCheck."Item No.");
+            if (Item."Item Tracking Code" <> '') and
+               not ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(TempItemLedgEntryToCheck)
+            then
                 Error(
                     ItemTrackingRequirementsChangedForUndoErr, PostedAssemblyOrderNo, Item."Item Tracking Code",
                     Item."No.", TempItemLedgEntryToCheck."Entry No.");
-            end;
         until TempItemLedgEntryToCheck.Next() = 0;
     end;
 
@@ -1513,7 +1523,9 @@ codeunit 900 "Assembly-Post"
             ItemLedgEntry.SetRange("Order Line No.", OrderLineNo);
             if ItemLedgEntry.FindSet() then
                 repeat
-                    if ItemLedgEntry.TrackingExists() then begin
+                    if ItemLedgEntry.TrackingExists() and
+                       not ShouldPostUndoWithoutItemTracking(ItemLedgEntry."Item No.")
+                    then begin
                         CreateReservEntry.SetDates(ItemLedgEntry."Warranty Date", ItemLedgEntry."Expiration Date");
                         CreateReservEntry.SetQtyToHandleAndInvoice(ItemLedgEntry.Quantity, ItemLedgEntry.Quantity);
                         CreateReservEntry.SetItemLedgEntryNo(ItemLedgEntry."Entry No.");
@@ -1547,6 +1559,15 @@ codeunit 900 "Assembly-Post"
                 until ItemLedgEntry.Next() = 0;
             ItemLedgEntry.DeleteAll();
         end;
+    end;
+
+    local procedure ShouldPostUndoWithoutItemTracking(ItemNo: Code[20]): Boolean
+    var
+        Item: Record Item;
+    begin
+        Item.SetLoadFields("Item Tracking Code");
+        Item.Get(ItemNo);
+        exit(Item."Item Tracking Code" = '');
     end;
 
     procedure InitPostATO(var AssemblyHeader: Record "Assembly Header")

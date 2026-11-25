@@ -66,6 +66,7 @@ codeunit 136109 "Service Posting - Consumption"
         ConsumeQuantityError: Label 'You cannot consume more than 1 units.';
         NoOfEntriesError: Label 'No of entries for %1 must be %2.';
         FieldError: Label '%1 must be equal  %2 in %3.';
+        TrackingInformationCannotBeDeterminedErr: Label 'The required tracking information cannot be determined automatically.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1590,6 +1591,71 @@ codeunit 136109 "Service Posting - Consumption"
     end;
 
     [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,ServiceLinesPageHandler,ItemTrackingSummaryPageHandler,ConfirmYesHandler')]
+    procedure UndoServiceConsumptionRemovesTrackingWhenTrackingCodeChangedToBlank()
+    var
+        Item: Record Item;
+        OriginalItemLedgerEntry: Record "Item Ledger Entry";
+        ServiceShipmentLine: Record "Service Shipment Line";
+        PreviousItemTrackingCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Service consumption undo removes tracking when the current tracking code is blank.
+        Initialize();
+
+        // [GIVEN] Lot-tracked item "I" is consumed by posted service shipment "SS".
+        CreateLotTrackedServiceConsumption(Item, ServiceShipmentLine, OriginalItemLedgerEntry);
+        PreviousItemTrackingCode := Item."Item Tracking Code";
+
+        // [GIVEN] Item "I" has no current tracking code.
+        Item."Item Tracking Code" := '';
+        Item.Modify();
+        CreateItemTrackingCodeChangeLog(
+            Item."No.", OriginalItemLedgerEntry.SystemCreatedAt + 1000, PreviousItemTrackingCode, '');
+
+        // [WHEN] Consumption on service shipment "SS" is undone.
+        ServiceShipmentLine.SetRecFilter();
+        CODEUNIT.Run(CODEUNIT::"Undo Service Consumption Line", ServiceShipmentLine);
+
+        // [THEN] An untracked correcting entry is posted without a tracking specification.
+        VerifyServiceConsumptionUndoWithoutTracking(Item."No.", ServiceShipmentLine."Document No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,ServiceLinesPageHandler,ItemTrackingSummaryPageHandler,ConfirmYesHandler')]
+    procedure UndoServiceConsumptionIsBlockedWhenTrackingCodeChangedToNonEmpty()
+    var
+        Item: Record Item;
+        OriginalItemLedgerEntry: Record "Item Ledger Entry";
+        ServiceShipmentLine: Record "Service Shipment Line";
+        NewItemTrackingCode: Code[10];
+        PreviousItemTrackingCode: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Service consumption undo is blocked when the current tracking code is another non-empty code.
+        Initialize();
+
+        // [GIVEN] Lot-tracked item "I" is consumed by posted service shipment "SS".
+        CreateLotTrackedServiceConsumption(Item, ServiceShipmentLine, OriginalItemLedgerEntry);
+        PreviousItemTrackingCode := Item."Item Tracking Code";
+
+        // [GIVEN] Item "I" has a different non-empty tracking code.
+        NewItemTrackingCode := CreateItemTrackingCode(true, false);
+        Item."Item Tracking Code" := NewItemTrackingCode;
+        Item.Modify();
+        CreateItemTrackingCodeChangeLog(
+            Item."No.", OriginalItemLedgerEntry.SystemCreatedAt + 1000, PreviousItemTrackingCode, NewItemTrackingCode);
+
+        // [WHEN] Consumption on service shipment "SS" is undone.
+        ServiceShipmentLine.SetRecFilter();
+        asserterror CODEUNIT.Run(CODEUNIT::"Undo Service Consumption Line", ServiceShipmentLine);
+
+        // [THEN] Undo is blocked before posting because historical tracking cannot be reused.
+        Assert.ExpectedError(TrackingInformationCannotBeDeterminedErr);
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure EnterCostWithAccountCombineFullVATInService()
     var
@@ -1836,6 +1902,52 @@ codeunit 136109 "Service Posting - Consumption"
         Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());
         Item.Modify(true);
         exit(Item."No.");
+    end;
+
+    local procedure CreateItemTrackingCodeChangeLog(ItemNo: Code[20]; ChangeDateTime: DateTime; PreviousItemTrackingCode: Code[10]; NewItemTrackingCode: Code[10])
+    var
+        ItemTrackingCodeChangeLog: Record "Item Tracking Code Change Log";
+    begin
+        ItemTrackingCodeChangeLog.Init();
+        ItemTrackingCodeChangeLog."Item No." := ItemNo;
+        ItemTrackingCodeChangeLog."Change DateTime" := ChangeDateTime;
+        ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
+        ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
+        ItemTrackingCodeChangeLog.Insert(true);
+    end;
+
+    local procedure CreateLotTrackedServiceConsumption(var Item: Record Item; var ServiceShipmentLine: Record "Service Shipment Line"; var OriginalItemLedgerEntry: Record "Item Ledger Entry")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: Record "Service Line";
+    begin
+        Item.Get(CreateItemWithItemTrackingCode(FindItemTrackingCode(true, false)));
+        CreatePurchaseHeader(PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+
+        TrackingAction := TrackingAction::AssignLotNo;
+        CreateLotNo := false;
+        OpenItemTrackingLinesForPurchaseOrder(PurchaseHeader."No.");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        CreateServiceHeader(ServiceHeader);
+        LibraryService.CreateServiceItemLine(ServiceItemLine, ServiceHeader, '');
+        CreateServiceLineWithoutLocation(ServiceLine, ServiceHeader, Item."No.");
+        UpdateQtyToShipOnServiceLine(ServiceLine, ServiceItemLine."Line No.", 1, 1);
+
+        TrackingAction := TrackingAction::SelectEntries;
+        OpenServiceLine(ServiceHeader."No.");
+        LibraryService.PostServiceOrder(ServiceHeader, true, true, false);
+
+        ServiceShipmentLine.SetRange("Document No.", FindServiceShipmentHeader(ServiceHeader."No."));
+        ServiceShipmentLine.SetRange(Type, ServiceShipmentLine.Type::Item);
+        ServiceShipmentLine.SetRange("No.", Item."No.");
+        ServiceShipmentLine.SetRange(Correction, false);
+        ServiceShipmentLine.FindFirst();
+        OriginalItemLedgerEntry.Get(FindItemLedgerEntryNo(Item."No.", ServiceHeader."No."));
     end;
 
     local procedure CreateItemTrackingCode(LotSpecific: Boolean; SNSpecific: Boolean): Code[10]
@@ -2704,6 +2816,27 @@ codeunit 136109 "Service Posting - Consumption"
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
         GeneralPostingSetup.Validate("Sales Line Disc. Account", LibraryERM.CreateGLAccountNo());
         GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure VerifyServiceConsumptionUndoWithoutTracking(ItemNo: Code[20]; ServiceShipmentNo: Code[20])
+    var
+        ReversalItemLedgerEntry: Record "Item Ledger Entry";
+        TrackingSpecification: Record "Tracking Specification";
+    begin
+        ReversalItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ReversalItemLedgerEntry.SetRange("Document No.", ServiceShipmentNo);
+        ReversalItemLedgerEntry.SetRange("Entry Type", ReversalItemLedgerEntry."Entry Type"::"Positive Adjmt.");
+        ReversalItemLedgerEntry.SetRange(Positive, true);
+        ReversalItemLedgerEntry.FindLast();
+
+        Assert.AreEqual('', ReversalItemLedgerEntry."Serial No.", 'Serial number should be removed from the undo entry.');
+        Assert.AreEqual('', ReversalItemLedgerEntry."Lot No.", 'Lot number should be removed from the undo entry.');
+        Assert.AreEqual('', ReversalItemLedgerEntry."Package No.", 'Package number should be removed from the undo entry.');
+        Assert.AreEqual(0D, ReversalItemLedgerEntry."Warranty Date", 'Warranty date should be removed from the undo entry.');
+        Assert.AreEqual(0D, ReversalItemLedgerEntry."Expiration Date", 'Expiration date should be removed from the undo entry.');
+
+        TrackingSpecification.SetRange("Item Ledger Entry No.", ReversalItemLedgerEntry."Entry No.");
+        Assert.RecordIsEmpty(TrackingSpecification);
     end;
 
     [ConfirmHandler]

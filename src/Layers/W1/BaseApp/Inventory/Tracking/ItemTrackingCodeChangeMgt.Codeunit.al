@@ -58,7 +58,7 @@ codeunit 7047 "Item Tracking Code Change Mgt."
         TestNoOpenItemLedgerEntries(Item);
         TestNoReservationEntriesOrTrackingSpecifications(Item);
         TestNoDocumentLinesPreventingTrackingCodeChange(Item);
-        TestNoJournalOrPlanningLines(Item);
+        TestNoJournalOrPhysicalInventoryLines(Item);
         TestNoOutstandingWarehouseQuantity(Item);
         TestNoWarehouseDocumentsOrActivities(Item);
         TestNoServiceItems(Item);
@@ -128,6 +128,7 @@ codeunit 7047 "Item Tracking Code Change Mgt."
     begin
         ReservationEntry.SetCurrentKey("Item No.");
         ReservationEntry.SetRange("Item No.", Item."No.");
+        ReservationEntry.SetFilter("Item Tracking", '<>%1', ReservationEntry."Item Tracking"::None);
         if not ReservationEntry.IsEmpty() then
             CollectRecordsExistError(Item, ReservationEntry.TableCaption());
 
@@ -194,17 +195,17 @@ codeunit 7047 "Item Tracking Code Change Mgt."
             CollectRecordsExistError(Item, PurchaseLine.TableCaption());
 
         PurchaseLine.SetRange("Return Qty. Shipped Not Invd.");
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetFilter("Outstanding Qty. (Base)", '<>0');
-        PurchaseLine.SetFilter("Qty. Received (Base)", '<>0');
-        if not PurchaseLine.IsEmpty() then
-            CollectRecordsExistError(Item, PurchaseLine.TableCaption());
-
-        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::"Return Order");
-        PurchaseLine.SetRange("Qty. Received (Base)");
-        PurchaseLine.SetFilter("Return Qty. Shipped (Base)", '<>0');
-        if not PurchaseLine.IsEmpty() then
-            CollectRecordsExistError(Item, PurchaseLine.TableCaption());
+        PurchaseLine.SetFilter(
+            "Document Type", '%1|%2',
+            PurchaseLine."Document Type"::Order,
+            PurchaseLine."Document Type"::"Return Order");
+        if PurchaseLine.FindSet() then
+            repeat
+                if PurchaseLine."Outstanding Qty. (Base)" <> PurchaseLine."Quantity (Base)" then begin
+                    CollectRecordsExistError(Item, PurchaseLine.TableCaption());
+                    exit;
+                end;
+            until PurchaseLine.Next() = 0;
     end;
 
     local procedure CheckTransferDocuments(Item: Record Item)
@@ -286,13 +287,12 @@ codeunit 7047 "Item Tracking Code Change Mgt."
             CollectRecordsExistError(Item, AssemblyLine.TableCaption());
     end;
 
-    local procedure TestNoJournalOrPlanningLines(Item: Record Item)
+    local procedure TestNoJournalOrPhysicalInventoryLines(Item: Record Item)
     begin
         CheckItemJournals(Item);
         CheckWarehouseJournals(Item);
         CheckProjectJournals(Item);
         CheckPhysicalInventory(Item);
-        CheckRequisitionLines(Item);
     end;
 
     local procedure CheckItemJournals(Item: Record Item)
@@ -338,17 +338,6 @@ codeunit 7047 "Item Tracking Code Change Mgt."
         PhysInvtRecordLine.SetRange("Item No.", Item."No.");
         if not PhysInvtRecordLine.IsEmpty() then
             CollectRecordsExistError(Item, PhysInvtRecordLine.TableCaption());
-    end;
-
-    local procedure CheckRequisitionLines(Item: Record Item)
-    var
-        RequisitionLine: Record "Requisition Line";
-    begin
-        RequisitionLine.SetCurrentKey(Type, "No.");
-        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
-        RequisitionLine.SetRange("No.", Item."No.");
-        if not RequisitionLine.IsEmpty() then
-            CollectRecordsExistError(Item, RequisitionLine.TableCaption());
     end;
 
     local procedure TestNoOutstandingWarehouseQuantity(Item: Record Item)

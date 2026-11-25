@@ -117,6 +117,7 @@ codeunit 22 "Item Jnl.-Post Line"
         PostToGL: Boolean;
         IsServUndoConsumption: Boolean;
         SkipRetrieveItemTracking: Boolean;
+        SkipTrackingCodeForLinkedApplication: Boolean;
         SkipApplicationCheck: Boolean;
         CalledFromApplicationWorksheet: Boolean;
         SkipSerialNoQtyValidation: Boolean;
@@ -3931,6 +3932,8 @@ codeunit 22 "Item Jnl.-Post Line"
 
         GlobalItemTrackingCode.Code := Item."Item Tracking Code";
         ResolveTrackingCodeForLinkedApplication(ItemJnlLine2, TrackingSpecExists, GlobalItemTrackingCode.Code);
+        if not SkipTrackingCodeForLinkedApplication then
+            ResolveTrackingCodeForLinkedApplication(ItemJnlLine2, TrackingSpecExists, GlobalItemTrackingCode.Code);
         OnSetupSplitJnlLineOnBeforeGetItemTrackingSetup(ItemJnlLine2, TrackingSpecExists, CalledFromAdjustment, Item, GlobalItemTrackingCode);
         ItemTrackingMgt.GetItemTrackingSetup(
             GlobalItemTrackingCode, ItemJnlLine."Entry Type",
@@ -7570,6 +7573,11 @@ codeunit 22 "Item Jnl.-Post Line"
     internal procedure SetSkipRetrieveItemTracking(NewSkipRetrieveItemTracking: Boolean)
     begin
         SkipRetrieveItemTracking := NewSkipRetrieveItemTracking;
+    end;
+
+    internal procedure SetSkipTrackingCodeForLinkedApplication(NewSkipTrackingCodeForLinkedApplication: Boolean)
+    begin
+        SkipTrackingCodeForLinkedApplication := NewSkipTrackingCodeForLinkedApplication;
     end;
 
     internal procedure SetGlobalItemTrackingCode(ItemTrackingCode: Record "Item Tracking Code")

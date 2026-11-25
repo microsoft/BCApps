@@ -1876,9 +1876,12 @@ table 27 Item
 
                 ItemTrackingCode2.TestField("Use Expiration Dates", false);
 
-                if ItemTrackingCodeChangeMgt.ShouldUseAdvancedValidation(Rec, ItemTrackingCode, ItemTrackingCode2) then
+                if ItemTrackingCodeChangeMgt.ShouldUseAdvancedValidation(Rec, ItemTrackingCode, ItemTrackingCode2) then begin
+                    if (CurrFieldNo <> 0) and GuiAllowed() then
+                        if not Confirm(ItemTrackingCodeChangeQst, false) then
+                            Error('');
                     ItemTrackingCodeChangeMgt.ValidateItemTrackingCodeChangeAdvanced(Rec, ItemTrackingCode, ItemTrackingCode2)
-                else
+                end else
                     ValidateItemTrackingCodeChangeBasic(ItemTrackingCode, ItemTrackingCode2);
 
                 if "Costing Method" = "Costing Method"::Specific then begin
@@ -2746,6 +2749,7 @@ table 27 Item
 #pragma warning disable AA0470
         OpenDocumentTrackingErr: Label 'You cannot change "Item Tracking Code" because there is at least one open document that includes this item with specified tracking: Source Type = %1, Document No. = %2.';
 #pragma warning restore AA0470
+        ItemTrackingCodeChangeQst: Label 'Existing posted entries for this item keep their original tracking information; their history is not rewritten to match the new code. If you later reverse, undo, apply, or return against those older entries, you may need to enter or clear tracking manually in Item Tracking Lines and check the cost before posting. If Exact Cost Reversing Mandatory is enabled, you may need to temporarily disable it. Do you want to change the Item Tracking Code?';
         SelectItemErr: Label 'You must select an existing item.';
         CreateNewItemTxt: Label 'Create a new item card for %1.', Comment = '%1 is the name to be used to create the customer. ';
         ItemNotRegisteredTxt: Label 'This item is not registered. To continue, choose one of the following options:';
@@ -2972,10 +2976,46 @@ table 27 Item
         OnValidateItemTrackingCodeOnBeforeTestNoEntriesExist(Rec, xRec, CurrFieldNo, IsHandled);
         if NewItemTrackingCode.IsSpecificTrackingChanged(PreviousItemTrackingCode) then
             if not IsHandled then
-                TestNoEntriesExist(CopyStr(FieldCaption("Item Tracking Code"), 1, 100));
+                TestNoEntriesPreventItemTrackingCodeChange(CopyStr(FieldCaption("Item Tracking Code"), 1, 100));
 
         if NewItemTrackingCode.IsWarehouseTrackingChanged(PreviousItemTrackingCode) then
             TestNoWhseEntriesExist(FieldCaption("Item Tracking Code"));
+    end;
+
+    local procedure TestNoEntriesPreventItemTrackingCodeChange(CurrentFieldName: Text[100])
+    var
+        ItemLedgEntry: Record "Item Ledger Entry";
+        PurchaseLine: Record "Purchase Line";
+        IsHandled: Boolean;
+    begin
+        if "No." = '' then
+            exit;
+
+        IsHandled := false;
+        OnBeforeTestNoItemLedgEntiesExist(Rec, CurrentFieldName, IsHandled);
+        if not IsHandled then begin
+            ItemLedgEntry.SetRange("Item No.", "No.");
+            if not ItemLedgEntry.IsEmpty() then
+                Error(Text007, CurrentFieldName);
+        end;
+
+        IsHandled := false;
+        OnBeforeTestNoPurchLinesExist(Rec, CurrentFieldName, IsHandled);
+        if IsHandled then
+            exit;
+
+        PurchaseLine.SetCurrentKey("Document Type", Type, "No.");
+        PurchaseLine.SetFilter(
+          "Document Type", '%1|%2',
+          PurchaseLine."Document Type"::Order,
+          PurchaseLine."Document Type"::"Return Order");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", "No.");
+        if PurchaseLine.FindSet() then
+            repeat
+                if PurchaseLine."Outstanding Qty. (Base)" <> PurchaseLine."Quantity (Base)" then
+                    Error(Text008, CurrentFieldName, PurchaseLine."Document Type");
+            until PurchaseLine.Next() = 0;
     end;
 
     procedure TestNoWhseEntriesExist(CurrentFieldName: Text)

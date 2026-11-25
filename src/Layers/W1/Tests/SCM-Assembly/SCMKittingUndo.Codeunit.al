@@ -2207,6 +2207,125 @@ codeunit 137097 "SCM Kitting - Undo"
     end;
 
     [Test]
+    procedure UndoAssemblyRemovesTrackingWhenProducedItemTrackingCodeChangedToBlank()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        AsmItem: Record Item;
+        CompItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        AssemblyHeader: Record "Assembly Header";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        LotNo: Code[50];
+        TrackingDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Assembly undo removes tracking when the produced item's current tracking code is blank.
+        Initialize();
+        LotNo := LibraryUtility.GenerateGUID();
+        TrackingDate := WorkDate() + 1;
+
+        // [GIVEN] Lot-tracked assembled item "A" is produced by posted assembly order "AO".
+        LibraryItemTracking.CreateItemTrackingCodeWithExpirationDate(ItemTrackingCode, false, true);
+        LibraryItemTracking.CreateItemWithItemTrackingCode(AsmItem, ItemTrackingCode);
+        AsmItem.Validate("Replenishment System", AsmItem."Replenishment System"::Assembly);
+        AsmItem.Modify(true);
+        LibraryInventory.CreateItem(CompItem);
+        AddComponentToAssemblyList(
+            BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 1);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, '', '', '', WorkDate(), 1);
+        LibraryItemTracking.CreateAssemblyHeaderItemTracking(ReservationEntry, AssemblyHeader, '', LotNo, 1);
+        ReservationEntry.Validate("Expiration Date", TrackingDate);
+        ReservationEntry.Validate("Warranty Date", TrackingDate);
+        ReservationEntry.Modify(true);
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+
+        // [GIVEN] The current tracking code of item "A" is blank after posting.
+        AsmItem.Get(AsmItem."No.");
+        AsmItem."Item Tracking Code" := '';
+        AsmItem.Modify(true);
+        CreateItemTrackingCodeChangeLog(AsmItem."No.", CurrentDateTime() + 1000, ItemTrackingCode.Code, '');
+
+        // [WHEN] Posted assembly order "AO" is undone.
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, '');
+
+        // [THEN] The order is reversed with an untracked output reversal and no restored tracking.
+        PostedAssemblyHeader.Get(PostedAssemblyHeader."No.");
+        Assert.IsTrue(PostedAssemblyHeader.Reversed, 'The posted assembly order should be reversed.');
+        VerifyUndoItemLedgerEntryHasNoTracking(
+            AsmItem."No.", "Item Ledger Entry Type"::"Assembly Output", false);
+        VerifyNoItemTrackingRestored(AsmItem."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('CostPostingMessageHandler')]
+    procedure UndoAssemblyRemovesTrackingWhenComponentTrackingCodeChangedToBlank()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+        AsmItem: Record Item;
+        CompItem: Record Item;
+        BOMComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        AssemblyHeader: Record "Assembly Header";
+        AssemblyLine: Record "Assembly Line";
+        PostedAssemblyHeader: Record "Posted Assembly Header";
+        LotNo: Code[50];
+        TrackingDate: Date;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 435436] Assembly undo removes tracking when a component's current tracking code is blank.
+        Initialize();
+        LotNo := LibraryUtility.GenerateGUID();
+        TrackingDate := WorkDate() + 1;
+
+        // [GIVEN] Lot-tracked component "C" is fully consumed by posted assembly order "AO".
+        LibraryInventory.CreateItem(AsmItem);
+        AsmItem.Validate("Replenishment System", AsmItem."Replenishment System"::Assembly);
+        AsmItem.Modify(true);
+        LibraryItemTracking.CreateItemTrackingCodeWithExpirationDate(ItemTrackingCode, false, true);
+        LibraryItemTracking.CreateItemWithItemTrackingCode(CompItem, ItemTrackingCode);
+        CompItem.Validate("Unit Cost", 1);
+        CompItem.Modify(true);
+        AddComponentToAssemblyList(
+            BOMComponent, "BOM Component Type"::Item, CompItem."No.", AsmItem."No.", '', 0, CompItem."Base Unit of Measure", 1);
+        LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, CompItem."No.", '', '', 1);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, 1);
+        ReservationEntry.Validate("Expiration Date", TrackingDate);
+        ReservationEntry.Validate("Warranty Date", TrackingDate);
+        ReservationEntry.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+        CreateAssemblyOrder(AssemblyHeader, AsmItem, '', '', '', WorkDate(), 1);
+        FindAssemblyLine(AssemblyLine, AssemblyHeader."Document Type", AssemblyHeader."No.");
+        LibraryItemTracking.CreateAssemblyLineItemTracking(ReservationEntry, AssemblyLine, '', LotNo, 1);
+        LibraryAssembly.PostAssemblyHeader(AssemblyHeader, '');
+        FindPostedAssemblyHeaderNotReversed(PostedAssemblyHeader, AssemblyHeader."No.");
+        CompItem.CalcFields(Inventory);
+        CompItem.TestField(Inventory, 0);
+        LibraryCosting.AdjustCostItemEntries(CompItem."No.", '');
+        LibraryPostInventoryToGL.PostInvtCostToGL(CompItem."No.", WorkDate());
+
+        // [GIVEN] Component "C" has no current tracking code.
+        CompItem.Get(CompItem."No.");
+        CompItem.Validate("Item Tracking Code", '');
+        CompItem.Modify(true);
+
+        // [WHEN] Posted assembly order "AO" is undone.
+        LibraryAssembly.UndoPostedAssembly(PostedAssemblyHeader, false, '');
+
+        // [THEN] The order is reversed with an untracked consumption reversal and no restored tracking.
+        PostedAssemblyHeader.Get(PostedAssemblyHeader."No.");
+        Assert.IsTrue(PostedAssemblyHeader.Reversed, 'The posted assembly order should be reversed.');
+        VerifyUndoItemLedgerEntryHasNoTracking(
+            CompItem."No.", "Item Ledger Entry Type"::"Assembly Consumption", true);
+        VerifyNoItemTrackingRestored(CompItem."No.");
+    end;
+
+    [Test]
     [HandlerFunctions('AssemblyDueDateMessageHandler')]
     procedure UndoAssemblyWithUnchangedNonSpecificLotTracking()
     var
@@ -2630,6 +2749,30 @@ codeunit 137097 "SCM Kitting - Undo"
         ItemTrackingCodeChangeLog."Previous Item Tracking Code" := PreviousItemTrackingCode;
         ItemTrackingCodeChangeLog."New Item Tracking Code" := NewItemTrackingCode;
         ItemTrackingCodeChangeLog.Insert(true);
+    end;
+
+    local procedure VerifyNoItemTrackingRestored(ItemNo: Code[20])
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    local procedure VerifyUndoItemLedgerEntryHasNoTracking(ItemNo: Code[20]; EntryType: Enum "Item Ledger Entry Type"; Positive: Boolean)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", EntryType);
+        ItemLedgerEntry.SetRange(Positive, Positive);
+        ItemLedgerEntry.FindFirst();
+
+        Assert.AreEqual('', ItemLedgerEntry."Serial No.", 'Serial number should be removed from the undo entry.');
+        Assert.AreEqual('', ItemLedgerEntry."Lot No.", 'Lot number should be removed from the undo entry.');
+        Assert.AreEqual('', ItemLedgerEntry."Package No.", 'Package number should be removed from the undo entry.');
+        Assert.AreEqual(0D, ItemLedgerEntry."Warranty Date", 'Warranty date should be removed from the undo entry.');
+        Assert.AreEqual(0D, ItemLedgerEntry."Expiration Date", 'Expiration date should be removed from the undo entry.');
     end;
 
     [MessageHandler]

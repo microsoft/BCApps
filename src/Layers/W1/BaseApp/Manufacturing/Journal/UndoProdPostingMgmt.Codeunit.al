@@ -100,6 +100,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         OutputQuantity: Decimal;
         IsHandled: Boolean;
         CapacityLedgerEntryNo: BigInteger;
+        PostWithoutItemTracking: Boolean;
     begin
         ProductionOrder.SetLoadFields(Status, "No.");
         if not ProductionOrder.Get(ProductionOrder.Status::Released, ItemLedgerEntry."Order No.") then
@@ -150,13 +151,16 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         end;
 
         ItemJnlLine.Validate(Description, ItemLedgerEntry.Description);
-        if ItemLedgerEntry.TrackingExists() then
+        PostWithoutItemTracking := PrepareItemTrackingForReversal(ItemJnlLine, ItemLedgerEntry."Item No.");
+        if ItemLedgerEntry.TrackingExists() and not PostWithoutItemTracking then
             CreateOutputReservationEntry(ItemJnlLine, ItemLedgerEntry)
         else
             ItemJnlLine.Validate("Applies-to Entry", ItemLedgerEntry."Entry No.");
 
         OnReverseOutputItemLedgerEntryOnBeforeItemJnlPostLine(ItemJnlLine, ItemLedgerEntry, ProductionOrder);
+        ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(PostWithoutItemTracking);
         ItemJnlPostLine.RunWithCheck(ItemJnlLine);
+        ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(false);
     end;
 
     local procedure ReverseOutputCapacityLedgerEntry(CapacityLedgEntry: Record "Capacity Ledger Entry")
@@ -295,6 +299,7 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ProductionOrder: Record "Production Order";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
         IsHandled: Boolean;
+        PostWithoutItemTracking: Boolean;
     begin
         ProductionOrder.SetLoadFields(Status, "No.");
         if not ProductionOrder.Get(ProductionOrder.Status::Released, ItemLedgerEntry."Order No.") then
@@ -326,12 +331,15 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
             ItemJnlLine."Quantity (Base)" := ItemLedgerEntry.Quantity;
             ItemJnlLine."Invoiced Qty. (Base)" := ItemLedgerEntry.Quantity;
         end;
-        if ItemLedgerEntry.TrackingExists() then
+        PostWithoutItemTracking := PrepareItemTrackingForReversal(ItemJnlLine, ItemLedgerEntry."Item No.");
+        if ItemLedgerEntry.TrackingExists() and not PostWithoutItemTracking then
             CreateConsumptionReservationEntry(ItemJnlLine, ItemLedgerEntry)
         else
             ItemJnlLine.Validate("Applies-from Entry", ItemLedgerEntry."Entry No.");
         OnReverseConsumptionItemLedgerEntryOnBeforeItemJnlPostLine(ItemJnlLine, ItemLedgerEntry, ProductionOrder);
+        ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(PostWithoutItemTracking);
         ItemJnlPostLine.RunWithCheck(ItemJnlLine);
+        ItemJnlPostLine.SetSkipTrackingCodeForLinkedApplication(false);
     end;
 
     procedure SetHideDialog(NewHideDialog: Boolean)
@@ -389,22 +397,39 @@ codeunit 99000843 "Undo Prod. Posting Mgmt."
         ItemTrackingCodeChangeMgt: Codeunit "Item Tracking Code Change Mgt.";
         HistoricalItemTrackingCode: Code[10];
     begin
+        Item.Get(ItemLedgEntry."Item No.");
+        if Item."Item Tracking Code" = '' then
+            exit;
+
         if not ItemTrackingCodeChangeMgt.GetTrackingCodeForLinkedApplication(
              ItemLedgEntry."Item No.", ItemLedgEntry."Entry No.", HistoricalItemTrackingCode)
         then begin
             if ItemTrackingCodeChangeMgt.IsCurrentTrackingCodeCompatibleWithEntry(ItemLedgEntry) then
                 exit;
 
-            Item.Get(ItemLedgEntry."Item No.");
             Error(
                 ItemTrackingRequirementsChangedForReversalErr, ItemLedgEntry."Entry No.", ItemLedgEntry."Order No.",
                 Item."Item Tracking Code", Item."No.");
         end;
 
-        Item.Get(ItemLedgEntry."Item No.");
         Error(
             ItemTrackingCodeChangedForReversalErr, ItemLedgEntry."Entry No.", ItemLedgEntry."Order No.",
             Item."No.", HistoricalItemTrackingCode, Item."Item Tracking Code");
+    end;
+
+    local procedure PrepareItemTrackingForReversal(var ItemJnlLine: Record "Item Journal Line"; ItemNo: Code[20]): Boolean
+    var
+        Item: Record Item;
+    begin
+        Item.SetLoadFields("Item Tracking Code");
+        Item.Get(ItemNo);
+        if Item."Item Tracking Code" <> '' then
+            exit(false);
+
+        ItemJnlLine.ClearTracking();
+        ItemJnlLine.ClearDates();
+        ItemJnlLine."Item Expiration Date" := 0D;
+        exit(true);
     end;
 
     local procedure ValidateSubcontracting(ProdOrderLine: Record "Prod. Order Line")
