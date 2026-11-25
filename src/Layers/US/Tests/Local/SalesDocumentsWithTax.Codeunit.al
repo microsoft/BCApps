@@ -287,55 +287,6 @@ codeunit 144013 "Sales Documents With Tax"
         // TearDown.
         UpdatePurchasesPayablesSetup(PurchasesPayablesSetup."Combine Special Orders Default", OldCombineSpecialOrdersDefault);
     end;
-#if not CLEAN27
-    [Test]
-    [HandlerFunctions('SalesInvoiceStatsTaxAmountPageHandler')]
-    [Scope('OnPrem')]
-    procedure OnActionStatisticsPostedSalesInvoiceWithPositiveAndNegativeAmounts()
-    var
-        Item: Record Item;
-        GLAccount: Record "G/L Account";
-        SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
-        TaxDetail: Record "Tax Detail";
-        PostedSalesInvoiceNo: Code[20];
-        TaxAreaCode: Code[20];
-        TaxGroupCode: Code[20];
-    begin
-        // [SCENARIO 325706] Statistics for Posted Sales Invoice with positive and negative Line Amounts shows correct Tax Amount.
-        Initialize();
-
-        // [GIVEN] Tax setup with Tax Detail having "Tax Below Maximum" := 1, "Maximum Amount/Qty." = 5000.
-        CreateTaxDetailSimple(TaxDetail);
-        TaxDetail."Tax Below Maximum" := 1;
-        TaxDetail."Maximum Amount/Qty." := 5000;
-        TaxDetail.Modify();
-        TaxGroupCode := TaxDetail."Tax Group Code";
-        TaxAreaCode := CreateTaxAreaWithLine(TaxDetail."Tax Jurisdiction Code");
-
-        // [GIVEN] G/L Account.
-        LibraryERM.CreateGLAccount(GLAccount);
-        GLAccount.Validate("Tax Group Code", TaxGroupCode);
-        GLAccount.Modify(true);
-
-        // [GIVEN] Posted Sales Invoice posted with:
-        // [GIVEN] Sales Line with Type = "Item", Qty = 1, Amount = 6000;
-        // [GIVEN] Sales Line with Type = "G/L Account"", Qty = -1, Amount = 1000.
-        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, TaxAreaCode);
-        LibraryInventory.CreateItemWithoutVAT(Item);
-        Item.Validate("Tax Group Code", TaxGroupCode);
-        Item.Modify(true);
-        CreateSalesLineWithTaxSetup(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1, TaxGroupCode, TaxAreaCode, true, 0, 6000, 6000);
-        CreateSalesLineWithTaxSetup(
-          SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", -1, TaxGroupCode, TaxAreaCode, true, 0, 1000, -1000);
-        PostedSalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        // [WHEN] Statistics opened for Posted Sales Invoice.
-        // [THEN] On Statistics page: Tax Amount = 50 ((6000 - 1000) / 100 = 50)
-        LibraryVariableStorage.Enqueue(50);
-        OpenStatisticsPageForPostedSalesInvoice(PostedSalesInvoiceNo);
-    end;
-#endif
     [Test]
     [HandlerFunctions('SalesInvoiceStatsTaxAmountPageHandlerNM')]
     [Scope('OnPrem')]
@@ -686,17 +637,6 @@ codeunit 144013 "Sales Documents With Tax"
         SalesInvoiceLine.FindFirst();
         exit(SalesInvoiceLine."Line Amount");
     end;
-#if not CLEAN27
-    local procedure OpenStatisticsPageForPostedSalesInvoice(No: Code[20])
-    var
-        PostedSalesInvoice: TestPage "Posted Sales Invoice";
-    begin
-        PostedSalesInvoice.OpenEdit();
-        PostedSalesInvoice.FILTER.SetFilter("No.", No);
-        PostedSalesInvoice.Statistics.Invoke();
-        PostedSalesInvoice.Close();
-    end;
-#endif
     local procedure OpenStatsPageForPostedSalesInvoiceNM(No: Code[20])
     var
         PostedSalesInvoice: TestPage "Posted Sales Invoice";
@@ -882,18 +822,6 @@ codeunit 144013 "Sales Documents With Tax"
         ApplyCustomerEntries."Amount to Apply".SetValue(AmountToApply);
         ApplyCustomerEntries.OK().Invoke();
     end;
-#if not CLEAN27
-    [ModalPageHandler]
-    [Scope('OnPrem')]
-    procedure SalesInvoiceStatsTaxAmountPageHandler(var SalesInvoiceStats: TestPage "Sales Invoice Stats.")
-    var
-        TaxAmount: Variant;
-    begin
-        LibraryVariableStorage.Dequeue(TaxAmount);
-        SalesInvoiceStats.TaxAmount.AssertEquals(TaxAmount);
-        SalesInvoiceStats.OK().Invoke();
-    end;
-#endif
     [PageHandler]
     [Scope('OnPrem')]
     procedure SalesInvoiceStatsTaxAmountPageHandlerNM(var SalesInvoiceStats: TestPage "Sales Invoice Stats.")

@@ -280,25 +280,27 @@ report 1700 "Deferral Summary - G/L"
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Deferral Summary G/L Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
-        }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Deferral Summary G/L RDLC';
-            Type = RDLC;
-            LayoutFile = './Finance/Deferral/DeferralSummaryGL.rdlc';
             ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #endif
+
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Finance/Deferral/DeferralSummaryGLBody.docx';
+            Caption = 'Body-Only: Deferral Summary G/L Word';
+            Summary = 'Landscape orientated. Shows posting date, document, deferral account, start date, and number of periods for each G/L account, together with the amount recognized, the remaining amount, and the total deferred. Includes totals.';
+        }
     }
 
     labels
@@ -395,7 +397,7 @@ report 1700 "Deferral Summary - G/L"
         BalanceAsOfDateFilter := NewBalanceAsOfDateFilter;
     end;
 
-    local procedure EntryMatchesGlobalDimFilters(GLEntryNo: Integer): Boolean
+    local procedure EntryMatchesGlobalDimFilters(GLEntryNo: BigInteger): Boolean
     var
         GLEntry: Record "G/L Entry";
     begin

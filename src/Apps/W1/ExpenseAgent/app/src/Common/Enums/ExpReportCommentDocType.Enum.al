@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies the type of document that an expense report comment line belongs to.
+/// </summary>
 enum 6920 "Exp. Report Comment Doc. Type"
 {
-    Access = Internal;
     Caption = 'Expense Report Comment Document Type';
 
     value(0; "Expense Report")

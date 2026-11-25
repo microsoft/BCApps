@@ -10,7 +10,7 @@ using System.Environment.Configuration;
 codeunit 20506 "Subc. Notification Mgmt."
 {
     var
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
 #pragma warning restore AL0432
@@ -28,7 +28,7 @@ codeunit 20506 "Subc. Notification Mgmt."
         Vendor: Record Vendor;
         MissingSubcontractingLocationNotification: Notification;
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -58,7 +58,7 @@ codeunit 20506 "Subc. Notification Mgmt."
         Vendor: Record Vendor;
         VendorNo: Code[20];
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -77,7 +77,7 @@ codeunit 20506 "Subc. Notification Mgmt."
 
     procedure ShowCreatedProductionOrderConfirmationMessageCode(): Code[50]
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -88,7 +88,7 @@ codeunit 20506 "Subc. Notification Mgmt."
 
     procedure ShowCreatedSubcontractingOrderConfirmationMessageCode(): Code[50]
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -99,7 +99,7 @@ codeunit 20506 "Subc. Notification Mgmt."
 
     procedure GetShowCreatedProductionOrderCode(): Code[50]
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -110,7 +110,7 @@ codeunit 20506 "Subc. Notification Mgmt."
 
     procedure GetShowCreatedSubContPurchOrderCode(): Code[50]
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -122,7 +122,7 @@ codeunit 20506 "Subc. Notification Mgmt."
     [EventSubscriber(ObjectType::Page, Page::"My Notifications", OnInitializingNotificationWithDefaultState, '', false, false)]
     local procedure InitializeSubcontractingNotifications()
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432
@@ -151,7 +151,7 @@ codeunit 20506 "Subc. Notification Mgmt."
         MyNotifications: Record "My Notifications";
         PageMyNotifications: Page "My Notifications";
     begin
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
 #pragma warning restore AL0432

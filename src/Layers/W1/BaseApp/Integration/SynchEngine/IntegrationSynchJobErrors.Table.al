@@ -111,7 +111,7 @@ table 5339 "Integration Synch. Job Errors"
         IntegrationSynchJobErrors."Exception Detail".CreateOutStream(StackTraceOutStream);
         StackTraceOutStream.Write(GetLastErrorCallstack);
         IntegrationSynchJobErrors.Insert(true);
-        OnAfterLogSynchError(Rec);
+        OnAfterLogSynchError(IntegrationSynchJobErrors);
     end;
 
     procedure SetDataIntegrationUIElementsVisible(var DataIntegrationCuesVisible: Boolean)
@@ -149,7 +149,7 @@ table 5339 "Integration Synch. Job Errors"
         LocalRecordRef: RecordRef;
         LocalRecordId: RecordId;
         LocalSystemId: Guid;
-        RecordCount: Integer;
+        RecordCount: BigInteger;
         RecordIdDictionary: Dictionary of [RecordId, Boolean];
     begin
         if not IntegrationSynchJobErrors.FindSet() then

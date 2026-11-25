@@ -26,7 +26,7 @@ table 1241 "Positive Pay Detail"
         /// <summary>
         /// Links this detail record to the associated data exchange entry for tracking and processing.
         /// </summary>
-        field(1; "Data Exch. Entry No."; Integer)
+        field(1; "Data Exch. Entry No."; BigInteger)
         {
             Caption = 'Data Exch. Entry No.';
             TableRelation = "Data Exch."."Entry No.";
@@ -34,7 +34,7 @@ table 1241 "Positive Pay Detail"
         /// <summary>
         /// Unique sequential number identifying this detail record within the data exchange entry.
         /// </summary>
-        field(2; "Entry No."; Integer)
+        field(2; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }

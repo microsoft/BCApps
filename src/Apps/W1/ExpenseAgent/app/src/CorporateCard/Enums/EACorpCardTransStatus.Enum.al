@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 enum 7432 "EA Corp Card Trans Status"
 {
+    Access = Internal;
     Caption = 'Corp Card Trans Status';
 
     value(0; Imported)

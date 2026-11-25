@@ -621,8 +621,8 @@ codeunit 139998 "Subc SCM WIP Costing Prod."
         Currency.Modify(true);
         Commit();  // Required to run the Test Case on RTC.
 
-        // Create Currency Exchange Rate.
-        LibraryERM.CreateExchRate(CurrencyExchangeRate, Currency.Code, WorkDate());
+        // Cover production and subcontracting dates before the work date.
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, Currency.Code, 0D);
 
         // Using RANDOM Exchange Rate Amount and Adjustment Exchange Rate, between 100 and 400 (Standard Value).
         CurrencyExchangeRate.Validate("Exchange Rate Amount", 100 * LibraryRandom.RandInt(4));

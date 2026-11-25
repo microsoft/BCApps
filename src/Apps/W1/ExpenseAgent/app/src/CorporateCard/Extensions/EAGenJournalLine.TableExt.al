@@ -12,6 +12,7 @@ tableextension 7443 "EA Gen. Journal Line" extends "Gen. Journal Line"
     {
         field(7420; "EA Corp Card Trans Entry No."; Integer)
         {
+            Access = Internal;
             Caption = 'Corp Card Transaction Entry No.';
             DataClassification = SystemMetadata;
             Editable = false;
@@ -19,6 +20,7 @@ tableextension 7443 "EA Gen. Journal Line" extends "Gen. Journal Line"
         }
         field(7421; "EA Corp Card Settle Entry No."; Integer)
         {
+            Access = Internal;
             Caption = 'Corp Card Settlement Entry No.';
             DataClassification = SystemMetadata;
             Editable = false;

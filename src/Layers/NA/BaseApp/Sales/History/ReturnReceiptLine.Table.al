@@ -261,7 +261,7 @@ table 6661 "Return Receipt Line"
         /// <summary>
         /// Specifies the item receipt entry number created by posting.
         /// </summary>
-        field(39; "Item Rcpt. Entry No."; Integer)
+        field(39; "Item Rcpt. Entry No."; BigInteger)
         {
             Caption = 'Item Rcpt. Entry No.';
         }
@@ -797,13 +797,7 @@ table 6661 "Return Receipt Line"
             Editable = false;
             FieldClass = FlowField;
         }
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(10000; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
         }

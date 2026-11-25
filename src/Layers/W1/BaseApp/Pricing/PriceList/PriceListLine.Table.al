@@ -900,7 +900,7 @@ table 7001 "Price List Line"
 
     local procedure CopyRecTo(var PriceAsset: Record "Price Asset")
     begin
-        if IsNewRecord then
+        if IsNewRecord or IsODataClient() then
             CopyTo(PriceAsset)
         else
             xRec.CopyTo(PriceAsset);
@@ -908,10 +908,17 @@ table 7001 "Price List Line"
 
     local procedure CopyRecTo(var PriceSource: Record "Price Source")
     begin
-        if IsNewRecord then
+        if IsNewRecord or IsODataClient() then
             CopyTo(PriceSource)
         else
             xRec.CopyTo(PriceSource);
+    end;
+
+    local procedure IsODataClient(): Boolean
+    var
+        ClientTypeManagement: Codeunit "Client Type Management";
+    begin
+        exit(ClientTypeManagement.GetCurrentClientType() in [CLIENTTYPE::OData, CLIENTTYPE::ODataV4]);
     end;
 
     procedure CopyTo(var PriceAsset: Record "Price Asset")

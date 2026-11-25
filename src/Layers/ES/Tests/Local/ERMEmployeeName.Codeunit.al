@@ -30,7 +30,6 @@ codeunit 144046 "ERM Employee Name"
         NameMustExistOnCaptionMsg: Label 'Name must exist on Caption.';
         SecondFamilyNameCap: Label 'Second Family Name';
         PictureTxt: Label 'Picture';
-        ImagePathTxt: Label '\App\Test\Files\ImageAnalysis\AllowedImage.jpg';
         SecondFamilyNameMustBeBlankErr: Label 'Second Family Name must be blank.';
 
     [Test]
@@ -127,7 +126,12 @@ codeunit 144046 "ERM Employee Name"
     procedure BlankSecondFamilyNameShouldGiveNoErrorWhenImportEmployeePicture()
     var
         Employee: Record Employee;
+        TempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
         EmployeeCard: TestPage "Employee Card";
+        ImageInStream: InStream;
+        ImageOutStream: OutStream;
+        ImageAsBase64Txt: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', Locked = true;
     begin
         // [SCENARIO 487554] Wrong Testfield in ES version in EmployeePicture.Page.al which prevents users to import a picturerd 
 
@@ -135,7 +139,10 @@ codeunit 144046 "ERM Employee Name"
         LibraryHumanResource.CreateEmployee(Employee);
 
         // [GIVEN] Import a Picture of Employee.
-        Employee.Image.ImportFile(GetImagePath(), PictureTxt);
+        TempBlob.CreateOutStream(ImageOutStream);
+        Base64Convert.FromBase64(ImageAsBase64Txt, ImageOutStream);
+        TempBlob.CreateInStream(ImageInStream);
+        Employee.Image.ImportStream(ImageInStream, PictureTxt, 'image/png');
 
         // [GIVEN] Validate Name, First Family Name & keep Second Family Name as blank.
         Employee.Validate(Name, LibraryUtility.GenerateGUID());
@@ -175,13 +182,6 @@ codeunit 144046 "ERM Employee Name"
         Employee.Modify(true);
     end;
 
-    local procedure GetImagePath(): Text
-    var
-        LibraryUtilityOnPrem: Codeunit "Library - Utility OnPrem";
-    begin
-        exit(LibraryUtilityOnPrem.GetInetRoot() + ImagePathTxt);
-    end;
-
     [ConfirmHandler]
     [Scope('OnPrem')]
     procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
@@ -189,4 +189,3 @@ codeunit 144046 "ERM Employee Name"
         Reply := false;
     end;
 }
-
