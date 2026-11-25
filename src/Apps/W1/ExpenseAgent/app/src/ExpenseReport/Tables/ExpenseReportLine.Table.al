@@ -2344,11 +2344,7 @@ table 6907 "Expense Report Line"
             exit;
 
         Expense.Validate("Expense Report No.", '');
-        // A removed card expense goes back to waiting for an expense report, like a new card expense.
-        if (Expense.Source = Expense.Source::CorporateCard) and (Expense."Credit Card Feed No." <> 0) then
-            Expense.Status := Expense.Status::Open
-        else
-            Expense.Status := Expense.Status::Released;
+        Expense.Status := Expense.Status::Released;
         Expense.Modify();
     end;
 

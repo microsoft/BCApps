@@ -482,12 +482,12 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure RemovingCardLineReopensCardExpense()
+    procedure RemovingCardLineLeavesCardExpenseReleased()
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
     begin
-        // [SCENARIO] Removing a card line from a report sends its expense back to open, so it is pending again.
+        // [SCENARIO] Removing a card line keeps the expense released and linked for another report.
         Initialize();
 
         // [GIVEN] A card expense on a report.
@@ -497,10 +497,11 @@ codeunit 148370 EAReceiptMatchTests
         // [WHEN] The line is deleted.
         ExpenseReportLine.Delete(true);
 
-        // [THEN] The expense is open, not on a report and pending.
+        // [THEN] The released expense is off-report, still linked to the transaction and awaiting another report.
         Expense.Get(Expense."No.");
-        Expense.TestField(Status, Expense.Status::Open);
+        Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
+        Expense.TestField("Credit Card Feed No.", ExpenseReportLine."Credit Card Feed No.");
         Expense.CalcFields("Pending Card Expense");
         Expense.TestField("Pending Card Expense", true);
     end;
