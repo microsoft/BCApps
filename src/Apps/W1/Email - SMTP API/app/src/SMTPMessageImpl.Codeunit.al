@@ -174,6 +174,17 @@ codeunit 4614 "SMTP Message Impl"
     end;
 
     /// <summary>
+    /// Returns the current HTML body of the message. Exposed for tests so they can
+    /// verify the body after SetBody without pulling MimeKit into the test library.
+    /// </summary>
+    /// <returns>The HTML body.</returns>
+    internal procedure GetHtmlBody(): Text
+    begin
+        Initialize();
+        exit(MimeBodyBuilder.HtmlBody);
+    end;
+
+    /// <summary>
     /// Try function for adding an attachment
     /// </summary>
     /// <remarks>
