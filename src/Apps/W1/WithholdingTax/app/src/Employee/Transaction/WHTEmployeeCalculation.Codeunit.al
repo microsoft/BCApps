@@ -685,8 +685,10 @@ codeunit 6790 "WHT Employee Calculation"
 
     local procedure AddPendingDocumentLinesFromJournal(GenJnlLine: Record "Gen. Journal Line"; PostingSetup: Record "Withholding Tax Posting Setup"; EmployeeNo: Code[20])
     var
+        CurrentGenJnlLine: Record "Gen. Journal Line";
         EarlierGenJnlLine: Record "Gen. Journal Line";
         EarlierPostingSetup: Record "Withholding Tax Posting Setup";
+        JournalDocumentNo: Code[20];
         WHTAmount: Decimal;
         WHTBaseAmount: Decimal;
     begin
@@ -696,10 +698,15 @@ codeunit 6790 "WHT Employee Calculation"
         if (GenJnlLine."Journal Template Name" = '') or (GenJnlLine."Journal Batch Name" = '') or (GenJnlLine."Document No." = '') then
             exit;
 
+        // A Posting No. Series replaces the document number only on the line being posted; the journal rows keep the original number.
+        JournalDocumentNo := GenJnlLine."Document No.";
+        if CurrentGenJnlLine.Get(GenJnlLine."Journal Template Name", GenJnlLine."Journal Batch Name", GenJnlLine."Line No.") then
+            JournalDocumentNo := CurrentGenJnlLine."Document No.";
+
         // Journal lines stay in the batch until it is posted, so both account sides of a line see the same earlier lines of the document.
         EarlierGenJnlLine.SetRange("Journal Template Name", GenJnlLine."Journal Template Name");
         EarlierGenJnlLine.SetRange("Journal Batch Name", GenJnlLine."Journal Batch Name");
-        EarlierGenJnlLine.SetRange("Document No.", GenJnlLine."Document No.");
+        EarlierGenJnlLine.SetRange("Document No.", JournalDocumentNo);
         EarlierGenJnlLine.SetRange("Posting Date", GenJnlLine."Posting Date");
         EarlierGenJnlLine.SetRange("Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Bus. Post. Group");
         EarlierGenJnlLine.SetFilter("Line No.", '<%1', GenJnlLine."Line No.");
@@ -714,6 +721,7 @@ codeunit 6790 "WHT Employee Calculation"
                     if (EarlierPostingSetup."Wthldg. Tax Prod. Post. Group" = PostingSetup."Wthldg. Tax Prod. Post. Group") and
                        IsEmployeeWHTApplicable(EarlierGenJnlLine)
                     then begin
+                        EarlierGenJnlLine."Document No." := GenJnlLine."Document No.";
                         CalcEmployeeWHT(EarlierGenJnlLine, WHTAmount, WHTBaseAmount);
                         AddPendingThresholdBase(EarlierGenJnlLine, EarlierGenJnlLine.Amount);
                     end;

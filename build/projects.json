@@ -7161,6 +7161,36 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
+    "Expense Withholding Tax Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ExpenseWithholdingTax\\test",
+      "supportedCountries": [
+        "AT",
+        "BE",
+        "CA",
+        "CH",
+        "CZ",
+        "DE",
+        "DK",
+        "ES",
+        "FI",
+        "FR",
+        "GB",
+        "IS",
+        "MX",
+        "NL",
+        "NO",
+        "RU",
+        "SE",
+        "US",
+        "W1"
+      ],
+      "isTest": true,
+      "skipInstallOnPrem": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
+    },
     "Payment Management FR": {
       "projectPath": "$env:INETROOT\\App\\Apps\\FR\\PaymentManagementFR\\app",
       "dvdFolder": "Applications\\PaymentManagementFR\\Source",
