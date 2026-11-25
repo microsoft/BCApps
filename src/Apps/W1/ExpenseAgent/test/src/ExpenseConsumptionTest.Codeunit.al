@@ -681,7 +681,9 @@ codeunit 148299 "Expense Consumption Test"
         UserAIConsumptionData."Processed For Billing" := true;
         UserAIConsumptionData.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
         DescriptionOutStream.WriteText('Legacy description');
+        Clear(DescriptionOutStream);
         UserAIConsumptionData.Insert();
+        VerifyStoredV1BillingDescription(UserAIConsumptionData.SystemId, 'Legacy description');
 
         // [WHEN] The list requests billing details
         Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'V1 details must be found by the text key.');
@@ -695,7 +697,9 @@ codeunit 148299 "Expense Consumption Test"
         // [GIVEN] The description changes after the summary is loaded
         UserAIConsumptionData.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
         DescriptionOutStream.WriteText('Updated legacy description');
+        Clear(DescriptionOutStream);
         UserAIConsumptionData.Modify();
+        VerifyStoredV1BillingDescription(UserAIConsumptionData.SystemId, 'Updated legacy description');
 
         // [WHEN] [THEN] Drilldown loads the updated description
         VerifyBillingDescription(ExpenseAgentEnvConsumption, 'Updated legacy description');
@@ -721,7 +725,9 @@ codeunit 148299 "Expense Consumption Test"
         AIConsumptionLogEntry."Reporting State" := Enum::"AI Consumption Reporting State"::Pending;
         AIConsumptionLogEntry.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
         DescriptionOutStream.WriteText('Model action');
+        Clear(DescriptionOutStream);
         AIConsumptionLogEntry.Insert(false, true);
+        VerifyStoredV2BillingDescription(AIConsumptionLogEntry.SystemId, 'Model action');
         TempUserAIConsumptionData.Actions := 'Previous action';
 
         // [WHEN] The list requests billing details
@@ -764,7 +770,9 @@ codeunit 148299 "Expense Consumption Test"
         AIConsumptionLogEntry.SystemId := ExpenseAgentEnvConsumption.SystemId;
         AIConsumptionLogEntry.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
         DescriptionOutStream.WriteText(Description);
+        Clear(DescriptionOutStream);
         AIConsumptionLogEntry.Insert(false, true);
+        VerifyStoredV2BillingDescription(AIConsumptionLogEntry.SystemId, Description);
 
         // [WHEN] The list loads the billing summary
         Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDetails(TempUserAIConsumptionData), 'V2 details must be found by SystemId.');
@@ -777,7 +785,9 @@ codeunit 148299 "Expense Consumption Test"
         Description := 'Updated ' + Description;
         AIConsumptionLogEntry.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
         DescriptionOutStream.WriteText(Description);
+        Clear(DescriptionOutStream);
         AIConsumptionLogEntry.Modify();
+        VerifyStoredV2BillingDescription(AIConsumptionLogEntry.SystemId, Description);
 
         // [WHEN] [THEN] Drilldown loads the latest description without truncation
         VerifyBillingDescription(ExpenseAgentEnvConsumption, Description);
@@ -810,6 +820,32 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseAgentEnvConsumption."Consumption Unique ID" := Format(CreateGuid());
         ExpenseAgentEnvConsumption."Source Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(ExpenseAgentEnvConsumption."Source Company Name"));
         ExpenseAgentEnvConsumption.Insert();
+    end;
+
+    local procedure VerifyStoredV1BillingDescription(ConsumptionId: Guid; ExpectedDescription: Text)
+    var
+        UserAIConsumptionData: Record "User AI Consumption Data";
+        DescriptionInStream: InStream;
+        Description: Text;
+    begin
+        UserAIConsumptionData.GetBySystemId(ConsumptionId);
+        UserAIConsumptionData.CalcFields(Description);
+        UserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+        DescriptionInStream.ReadText(Description);
+        Assert.AreEqual(ExpectedDescription, Description, 'The V1 fixture must persist the full billing description.');
+    end;
+
+    local procedure VerifyStoredV2BillingDescription(ConsumptionId: Guid; ExpectedDescription: Text)
+    var
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+        DescriptionInStream: InStream;
+        Description: Text;
+    begin
+        AIConsumptionLogEntry.GetBySystemId(ConsumptionId);
+        AIConsumptionLogEntry.CalcFields(Description);
+        AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+        DescriptionInStream.ReadText(Description);
+        Assert.AreEqual(ExpectedDescription, Description, 'The V2 fixture must persist the full billing description.');
     end;
 
     local procedure VerifyBillingDescription(ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption"; ExpectedDescription: Text)

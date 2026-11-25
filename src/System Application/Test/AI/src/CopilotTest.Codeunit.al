@@ -8,6 +8,7 @@ using System.TestLibraries.Utilities;
 codeunit 132683 "Copilot Test"
 {
     Subtype = Test;
+    Permissions = tabledata "AI Consumption Log Entry" = i;
 
     var
         CopilotCapability: Codeunit "Copilot Capability";
