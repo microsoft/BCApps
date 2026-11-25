@@ -327,7 +327,7 @@ codeunit 148361 "Expense Agent Config. Test"
     var
         EAHttpClient: Codeunit "EA Http Client";
     begin
-        // [SCENARIO 656768] The company scope is a version 5 UUID over the length-prefixed identity
+        // [SCENARIO] The company scope is a version 5 UUID over the length-prefixed identity
         Assert.AreEqual(
             '2433efa5-0404-5e0a-ab5e-77a8083344e9',
             EAHttpClient.CalculateCompanyScopeId('72f988bf-86f1-41af-91ab-2d7cd011db47', 'production', '11111111-2222-3333-4444-555555555555'),
@@ -340,7 +340,7 @@ codeunit 148361 "Expense Agent Config. Test"
         EAHttpClient: Codeunit "EA Http Client";
         ExpectedScopeId: Text;
     begin
-        // [SCENARIO 656768] ASCII whitespace, ASCII case and the company GUID format do not change the scope
+        // [SCENARIO] ASCII whitespace, ASCII case and the company GUID format do not change the scope
         ExpectedScopeId := '2433efa5-0404-5e0a-ab5e-77a8083344e9';
         Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId('  72F988BF-86F1-41AF-91AB-2D7CD011DB47' + Tab(), '  ProDuction ', ' 11111111-2222-3333-4444-555555555555 '), 'Whitespace and case must be ignored.');
         Assert.AreEqual(ExpectedScopeId, EAHttpClient.CalculateCompanyScopeId('72f988bf-86f1-41af-91ab-2d7cd011db47', 'production', '{11111111-2222-3333-4444-555555555555}'), 'Braces must be ignored.');
@@ -353,7 +353,7 @@ codeunit 148361 "Expense Agent Config. Test"
     var
         EAHttpClient: Codeunit "EA Http Client";
     begin
-        // [SCENARIO 656768] Only ASCII letters are lowercased and non-ASCII values are hashed as UTF-8
+        // [SCENARIO] Only ASCII letters are lowercased and non-ASCII values are hashed as UTF-8
         Assert.AreEqual(
             '06c05990-a88c-5374-baee-dac1d706964d',
             EAHttpClient.CalculateCompanyScopeId('TENANT', 'İstanbul', 'LEGACY-ŞİRKET'),
@@ -369,7 +369,7 @@ codeunit 148361 "Expense Agent Config. Test"
     var
         EAHttpClient: Codeunit "EA Http Client";
     begin
-        // [SCENARIO 656768] Values containing the delimiter do not collide
+        // [SCENARIO] Values containing the delimiter do not collide
         Assert.AreEqual('ea555b32-5add-5fa6-9b41-f89ec8e71190', EAHttpClient.CalculateCompanyScopeId('contoso', 'a|b', 'c'), 'The company scope is incorrect.');
         Assert.AreEqual('2e93100f-eb78-5916-bfd7-096409a680fc', EAHttpClient.CalculateCompanyScopeId('contoso', 'a', 'b|c'), 'The company scope is incorrect.');
     end;
@@ -379,7 +379,7 @@ codeunit 148361 "Expense Agent Config. Test"
     var
         EAHttpClient: Codeunit "EA Http Client";
     begin
-        // [SCENARIO 656768] A blank identity value blocks the scope calculation and names the value
+        // [SCENARIO] A blank identity value blocks the scope calculation and names the value
         asserterror EAHttpClient.CalculateCompanyScopeId(' ', 'sandbox', 'company');
         Assert.ExpectedError('tenant_id');
         asserterror EAHttpClient.CalculateCompanyScopeId('contoso', Tab(), 'company');
