@@ -6,14 +6,15 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
-using System.Text;
 using System.Utilities;
 
 // [FEATURE] [Expense Agent] [Corporate Card] [Report Lines] [API]
-// API-level tests for corporate card transactions as expense report lines. The cardExpenseAwaitingReport field
-// (replaces pendingCardExpense), the expenseReportLineId response property and the addCardExpenseToReport and
-// attachCardReceipt actions are PLACEHOLDERS for APIs that do not exist yet. Both actions are Expense Agent entry
-// points; without the Expense Agent, card expenses follow the standard BC flow. Their names and payload are defined once in the labels and request
+// API-level tests for corporate card transactions as expense report lines. The addCardExpenseToReport action and the
+// receipt flow are Expense Agent entry points; without the Expense Agent, card expenses follow the standard BC flow.
+// A receipt is attached through cardReceiptData: the receipt data is posted for the card expense, the receipt file is
+// uploaded to its attachmentContent stream, and the Microsoft.NAV.apply action applies it. cardExpenseMatches identifies
+// the matched card expense through expenseId. The cardExpenseAwaitingReport field (replaces pendingCardExpense) is a
+// PLACEHOLDER for a field that does not exist yet. Names and payloads are defined once in the labels and request
 // builders below, so they can be aligned with the final API in one place. Tests that need an unimplemented change
 // fail until the change lands; they are intentionally not disabled.
 codeunit 148374 "EA Card Report Line API Tests"
@@ -35,11 +36,12 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
         ExpenseReportLinesServiceNameTok: Label 'expenseReportLines', Locked = true;
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
-        // Placeholders for APIs that do not exist yet.
+        CardReceiptDataServiceNameTok: Label 'cardReceiptData', Locked = true;
+        AttachmentContentPathTok: Label '/attachmentContent', Locked = true;
+        ApplyActionPathTok: Label '/Microsoft.NAV.apply', Locked = true;
         AddCardExpenseToReportActionTok: Label 'Microsoft.NAV.addCardExpenseToReport', Locked = true;
-        AttachCardReceiptActionTok: Label 'Microsoft.NAV.attachCardReceipt', Locked = true;
+        // Placeholder for a field that does not exist yet.
         CardExpenseAwaitingReportFieldTok: Label 'cardExpenseAwaitingReport', Locked = true;
-        ExpenseReportLineIdPropertyTok: Label 'expenseReportLineId', Locked = true;
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
         OtherCardIdTok: Label 'CORPCARD-0002', Locked = true;
         MerchantNameTok: Label 'CONTOSO COFFEE', Locked = true;
@@ -258,6 +260,7 @@ codeunit 148374 "EA Card Report Line API Tests"
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
+        LineExpense: Record Expense;
         ResponseText: Text;
     begin
         // [SCENARIO] A receipt from the general upload flow is matched to the card line that is already on an open report.
@@ -271,15 +274,15 @@ codeunit 148374 "EA Card Report Line API Tests"
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
             GetUserScopedURL(Expense, CardExpenseMatchesServiceNameTok), CreateMatchRequest(WorkDate(), 20), ResponseText, 201);
 
-        // [THEN] The response identifies the expense and its report line.
+        // [THEN] The response identifies the expense, which is the expense of the report line.
         Assert.AreEqual(Expense.SystemId, GetGuidProperty(ResponseText, 'expenseId'), 'The card expense on the open report must match.');
-        Assert.AreEqual(
-            ExpenseReportLine.SystemId, GetGuidProperty(ResponseText, ExpenseReportLineIdPropertyTok), 'The response must identify the report line.');
+        LineExpense.Get(ExpenseReportLine."Expense No.");
+        Assert.AreEqual(LineExpense.SystemId, GetGuidProperty(ResponseText, 'expenseId'), 'The response must identify the expense of the report line.');
         CompleteTest();
     end;
 
     // ---------------------------------------------------------------------------------------------
-    // attachCardReceipt: OCR fills only empty fields and never changes card values
+    // cardReceiptData: OCR fills only empty fields and never changes card values
     // Rule: OCR fills empty fields on the expense (so BC user edits on the expense win), then copies to the line only
     // the fields that are empty on the line (so web user edits win). Card fields never change.
     // ---------------------------------------------------------------------------------------------
@@ -298,7 +301,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt is attached to the card line.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
         // [THEN] Both the expense and the line have the receipt.
         VerifyReceiptAttached(Expense, ExpenseReportLine);
@@ -322,7 +325,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt with a category and two participants is attached.
-        ReceiptDetails := CreateReceiptDetails(ExpenseCategory.Code, 0, 0D);
+        ReceiptDetails := CreateReceiptDetails(ExpenseCategory.Code);
         AddParticipant(ReceiptDetails, 'Alicia Thornber');
         AddParticipant(ReceiptDetails, 'Jim Glynn');
         AttachCardReceipt(ExpenseReportLine, ReceiptDetails);
@@ -359,7 +362,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt with another category is attached.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(OcrCategory.Code, 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(OcrCategory.Code));
 
         // [THEN] The line keeps the user's category and the expense gets the OCR category.
         GetLine(ExpenseReportLine);
@@ -394,7 +397,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt with another category is attached.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(OcrCategory.Code, 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(OcrCategory.Code));
 
         // [THEN] The expense and the line keep the BC user's category.
         Expense.Get(Expense."No.");
@@ -420,7 +423,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt with two participants is attached.
-        ReceiptDetails := CreateReceiptDetails('', 0, 0D);
+        ReceiptDetails := CreateReceiptDetails('');
         AddParticipant(ReceiptDetails, 'Jim Glynn');
         AddParticipant(ReceiptDetails, 'Sara Davis');
         AttachCardReceipt(ExpenseReportLine, ReceiptDetails);
@@ -448,8 +451,9 @@ codeunit 148374 "EA Card Report Line API Tests"
         MerchantName := Expense."Merchant Name";
         Commit();
 
-        // [WHEN] A receipt of 25, dated three days later in another currency from another merchant, is attached.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 25, ExpenseDate + 3));
+        // [WHEN] A receipt is attached. cardReceiptData has no amount, date, currency or merchant properties, so OCR
+        // values for them cannot reach the card fields.
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
         // [THEN] The expense and the line keep the card values.
         Expense.Get(Expense."No.");
@@ -482,7 +486,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt with no extracted values is attached.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
         // [THEN] Nothing is cleared.
         GetLine(ExpenseReportLine);
@@ -500,9 +504,8 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseCategory: Record "Expense Category";
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
-        ResponseText: Text;
     begin
-        // [SCENARIO] The action is only for lines linked to a card transaction.
+        // [SCENARIO] Receipt data is only accepted for lines linked to a card transaction.
         Initialize();
 
         // [GIVEN] A standalone line that is not linked to a card transaction.
@@ -513,9 +516,8 @@ codeunit 148374 "EA Card Report Line API Tests"
             ExpenseReportLine, ExpenseReportHeader, CorpCard."Expense User No.", ExpenseCategory.Code, '', true, '', 20);
         Commit();
 
-        // [WHEN] A receipt is attached through attachCardReceipt.
-        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            GetAttachCardReceiptURL(ExpenseReportLine), CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D)), ResponseText, 200);
+        // [WHEN] A receipt is attached through cardReceiptData.
+        asserterror AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
         AssertRejectedByBusinessRule();
 
         // [THEN] The request is rejected and nothing is attached.
@@ -529,7 +531,6 @@ codeunit 148374 "EA Card Report Line API Tests"
         Expense: Record Expense;
         ExpenseReportHeader: Record "Expense Report Header";
         ExpenseReportLine: Record "Expense Report Line";
-        ResponseText: Text;
     begin
         // [SCENARIO] Receipts cannot be attached to card lines of a submitted report.
         Initialize();
@@ -542,8 +543,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt is attached.
-        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            GetAttachCardReceiptURL(ExpenseReportLine), CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D)), ResponseText, 200);
+        asserterror AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
         AssertRejectedByBusinessRule();
 
         // [THEN] The request is rejected and nothing is attached.
@@ -557,19 +557,17 @@ codeunit 148374 "EA Card Report Line API Tests"
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
-        ResponseText: Text;
     begin
         // [SCENARIO] Retrying the same receipt does not create a second attachment.
         Initialize();
 
-        // [GIVEN] A card line with a receipt attached through the action.
+        // [GIVEN] A card line with a receipt attached through cardReceiptData.
         CreateCardLine(Expense, ExpenseReportLine);
         Commit();
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
-        // [WHEN] The same receipt is sent again; the action may accept or reject the retry.
-        LibraryGraphMgt.PostToWebService(
-            GetAttachCardReceiptURL(ExpenseReportLine), CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D)), ResponseText);
+        // [WHEN] The same receipt is sent again.
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
         // [THEN] The expense and the line each have one receipt.
         Assert.AreEqual(1, CountExpenseAttachments(Expense), 'The expense must have a single receipt.');
@@ -583,20 +581,17 @@ codeunit 148374 "EA Card Report Line API Tests"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         DocumentAttachment: Record "Document Attachment";
-        ResponseText: Text;
     begin
-        // [SCENARIO] Once a card expense has its receipt, a different receipt cannot be attached through the action.
+        // [SCENARIO] Once a card expense has its receipt, a different receipt cannot be attached through cardReceiptData.
         Initialize();
 
-        // [GIVEN] A card line with a receipt attached through the action.
+        // [GIVEN] A card line with a receipt attached through cardReceiptData.
         CreateCardLine(Expense, ExpenseReportLine);
         Commit();
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
         // [WHEN] Another receipt is attached.
-        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            GetAttachCardReceiptURL(ExpenseReportLine),
-            CreateAttachCardReceiptRequest(CreateReceiptDetails('', 0, 0D), OtherReceiptFileNameTok, Enum::"Image Format"::Jpeg), ResponseText, 200);
+        asserterror AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''), OtherReceiptFileNameTok, Enum::"Image Format"::Jpeg);
         AssertRejectedByBusinessRule();
 
         // [THEN] The request is rejected and the first receipt is kept.
@@ -614,13 +609,13 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine: Record "Expense Report Line";
         DocumentAttachment: Record "Document Attachment";
     begin
-        // [SCENARIO] The receipt attached through the action is locked on the expense; it cannot be deleted later.
+        // [SCENARIO] The receipt attached through cardReceiptData is locked on the expense; it cannot be deleted later.
         Initialize();
 
-        // [GIVEN] A card line with a receipt attached through the action.
+        // [GIVEN] A card line with a receipt attached through cardReceiptData.
         CreateCardLine(Expense, ExpenseReportLine);
         Commit();
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
         // [WHEN] The receipt is deleted from the expense.
         FindExpenseReceipt(Expense, DocumentAttachment);
@@ -647,7 +642,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         Commit();
 
         // [WHEN] A receipt is attached to the card line.
-        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails('', 0, 0D));
+        AttachCardReceipt(ExpenseReportLine, CreateReceiptDetails(''));
 
         // [THEN] The line's receipt refers to the same document as the expense's receipt.
         FindExpenseReceipt(Expense, ExpenseReceipt);
@@ -869,49 +864,61 @@ codeunit 148374 "EA Card Report Line API Tests"
         ExpenseReportLine.TestField("Receipt Attached", true);
     end;
 
-    // PLACEHOLDER contract for the attachCardReceipt action.
+    // Attaches a receipt the way the service does: the receipt data is posted for the expense of the line, the receipt
+    // file is uploaded to the attachmentContent stream, and the apply action applies the receipt data.
     local procedure AttachCardReceipt(ExpenseReportLine: Record "Expense Report Line"; ReceiptDetails: JsonObject)
+    begin
+        AttachCardReceipt(ExpenseReportLine, ReceiptDetails, ReceiptFileNameTok, Enum::"Image Format"::Png);
+    end;
+
+    local procedure AttachCardReceipt(ExpenseReportLine: Record "Expense Report Line"; ReceiptDetails: JsonObject; FileName: Text; ImageFormat: Enum "Image Format")
     var
+        TempBlob: Codeunit "Temp Blob";
+        ReceiptDataURL: Text;
         ResponseText: Text;
     begin
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            GetAttachCardReceiptURL(ExpenseReportLine), CreateAttachCardReceiptRequest(ReceiptDetails), ResponseText, 200);
+            LibraryGraphMgt.CreateTargetURL('', Page::"EA Card Receipt Data API", CardReceiptDataServiceNameTok),
+            CreateCardReceiptDataRequest(ExpenseReportLine, ReceiptDetails, FileName), ResponseText, 201);
+        ReceiptDataURL := LibraryGraphMgt.CreateTargetURL(
+            Format(GetGuidProperty(ResponseText, 'id')), Page::"EA Card Receipt Data API", CardReceiptDataServiceNameTok);
+
+        CreateReceiptImage(ImageFormat, TempBlob);
+        LibraryGraphMgt.BinaryUpdateToWebServiceAndCheckResponseCode(
+            LibraryGraphMgt.AppendPathToTargetURL(ReceiptDataURL, AttachmentContentPathTok), TempBlob, 'PATCH', ResponseText, 204);
+
+        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            LibraryGraphMgt.AppendPathToTargetURL(ReceiptDataURL, ApplyActionPathTok), '', ResponseText, 200);
     end;
 
-    local procedure CreateAttachCardReceiptRequest(ReceiptDetails: JsonObject): Text
-    begin
-        exit(CreateAttachCardReceiptRequest(ReceiptDetails, ReceiptFileNameTok, Enum::"Image Format"::Png));
-    end;
-
-    local procedure CreateAttachCardReceiptRequest(ReceiptDetails: JsonObject; FileName: Text; ImageFormat: Enum "Image Format"): Text
+    // A line that is not linked to a card expense is sent without an expense.
+    local procedure CreateCardReceiptDataRequest(ExpenseReportLine: Record "Expense Report Line"; ReceiptDetails: JsonObject; FileName: Text): Text
     var
+        Expense: Record Expense;
         Request: JsonObject;
-        ReceiptDetailsText: Text;
+        ExpenseId: Guid;
         RequestText: Text;
     begin
-        ReceiptDetails.WriteTo(ReceiptDetailsText);
+        if ExpenseReportLine."Expense No." <> '' then
+            if Expense.Get(ExpenseReportLine."Expense No.") then
+                ExpenseId := Expense.SystemId;
+        Request := ReceiptDetails.Clone().AsObject();
+        Request.Add('expenseId', LibraryGraphMgt.StripBrackets(Format(ExpenseId)));
         Request.Add('fileName', FileName);
-        Request.Add('fileContent', GetReceiptImageBase64(ImageFormat));
-        Request.Add('receiptDetails', ReceiptDetailsText);
         Request.WriteTo(RequestText);
         exit(RequestText);
     end;
 
     // A real one-pixel image, built without DotNet like "Library - Expense".CreateTempBLOBWithImageOfType on main.
-    local procedure GetReceiptImageBase64(ImageFormat: Enum "Image Format"): Text
+    local procedure CreateReceiptImage(ImageFormat: Enum "Image Format"; var TempBlob: Codeunit "Temp Blob")
     var
         Image: Codeunit Image;
-        TempBlob: Codeunit "Temp Blob";
-        Base64Convert: Codeunit "Base64 Convert";
         OutStream: OutStream;
-        InStream: InStream;
     begin
         Image.FromBase64(OnePixelPngBase64Tok);
         Image.SetFormat(ImageFormat);
         TempBlob.CreateOutStream(OutStream);
         Image.Save(OutStream);
-        TempBlob.CreateInStream(InStream);
-        exit(Base64Convert.ToBase64(InStream));
     end;
 
     local procedure FindExpenseReceipt(Expense: Record Expense; var DocumentAttachment: Record "Document Attachment")
@@ -931,21 +938,15 @@ codeunit 148374 "EA Card Report Line API Tests"
         DocumentAttachment.FindFirst();
     end;
 
-    // OCR details as the service extracts them. Empty values mean "not extracted".
-    local procedure CreateReceiptDetails(CategoryCode: Code[20]; Amount: Decimal; ExpenseDate: Date) ReceiptDetails: JsonObject
+    // OCR details as the service stages them in cardReceiptData. Empty values mean "not extracted". cardReceiptData has no
+    // amount, currency, date or merchant properties: those always come from the card transaction.
+    local procedure CreateReceiptDetails(CategoryCode: Code[20]) ReceiptDetails: JsonObject
     var
         Participants: JsonArray;
     begin
         ReceiptDetails.Add('expenseCategory', CategoryCode);
         ReceiptDetails.Add('description', '');
-        if Amount <> 0 then begin
-            ReceiptDetails.Add('amount', Amount);
-            ReceiptDetails.Add('currencyCode', 'EUR');
-            ReceiptDetails.Add('merchantName', 'Fabrikam Restaurant');
-        end;
-        if ExpenseDate <> 0D then
-            ReceiptDetails.Add('expenseDate', Format(ExpenseDate, 0, 9));
-        ReceiptDetails.Add('participants', Participants);
+        ReceiptDetails.Add('cardReceiptParticipants', Participants);
     end;
 
     local procedure AddParticipant(var ReceiptDetails: JsonObject; ParticipantName: Text)
@@ -953,13 +954,13 @@ codeunit 148374 "EA Card Report Line API Tests"
         ParticipantsToken: JsonToken;
         Participant: JsonObject;
     begin
-        ReceiptDetails.Get('participants', ParticipantsToken);
+        ReceiptDetails.Get('cardReceiptParticipants', ParticipantsToken);
         Participant.Add('participantType', 'External');
         Participant.Add('participantName', ParticipantName);
         ParticipantsToken.AsArray().Add(Participant);
     end;
 
-    // The action must reject the request with a validation error (400), not fail because it does not exist (404).
+    // A business rule must reject the request with a validation error (400), not fail because it does not exist (404).
     local procedure AssertRejectedByBusinessRule()
     begin
         Assert.ExpectedError(RejectedByBusinessRuleTok);
@@ -974,11 +975,6 @@ codeunit 148374 "EA Card Report Line API Tests"
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
             Format(ExpenseReportHeader.SystemId), Page::"Expense Reports API", ExpenseReportsServiceNameTok, ExpenseReportLinesServiceNameTok);
         exit(LibraryGraphMgt.AppendPathToTargetURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(ExpenseReportLine.SystemId)) + ')'));
-    end;
-
-    local procedure GetAttachCardReceiptURL(ExpenseReportLine: Record "Expense Report Line"): Text
-    begin
-        exit(LibraryGraphMgt.AppendPathToTargetURL(GetLineURL(ExpenseReportLine), '/' + AttachCardReceiptActionTok));
     end;
 
     local procedure GetReportActionURL(ExpenseReportHeader: Record "Expense Report Header"; ActionName: Text): Text
