@@ -346,17 +346,31 @@ codeunit 148323 "WHT Employee Threshold Tests"
     procedure DocumentThresholdJournalLinesEmployeeAccountFirst()
     begin
         // [SCENARIO 657603] Posting a journal with two employee lines of one document deducts the Document threshold once.
-        PostDocumentThresholdJournalLines(true);
+        PostDocumentThresholdJournalLines(true, false);
     end;
 
     [Test]
     procedure DocumentThresholdJournalLinesGLAccountFirst()
     begin
         // [SCENARIO 657603] Posting a journal with two G/L lines with employee balancing accounts of one document deducts the Document threshold once.
-        PostDocumentThresholdJournalLines(false);
+        PostDocumentThresholdJournalLines(false, false);
     end;
 
-    local procedure PostDocumentThresholdJournalLines(EmployeeIsAccount: Boolean)
+    [Test]
+    procedure DocumentThresholdPostingNoSeriesEmployeeAccountFirst()
+    begin
+        // [SCENARIO 657603] With a Posting No. Series on the batch, two employee lines of one document deduct the Document threshold once.
+        PostDocumentThresholdJournalLines(true, true);
+    end;
+
+    [Test]
+    procedure DocumentThresholdPostingNoSeriesGLAccountFirst()
+    begin
+        // [SCENARIO 657603] With a Posting No. Series on the batch, two G/L lines with employee balancing accounts of one document deduct the Document threshold once.
+        PostDocumentThresholdJournalLines(false, true);
+    end;
+
+    local procedure PostDocumentThresholdJournalLines(EmployeeIsAccount: Boolean; UsePostingNoSeries: Boolean)
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
         GenJournalLine: array[2] of Record "Gen. Journal Line";
@@ -364,6 +378,7 @@ codeunit 148323 "WHT Employee Threshold Tests"
         EmployeeLedgerEntry: Record "Employee Ledger Entry";
         EmployeeNo: Code[20];
         GLAccountNo: Code[20];
+        PostedDocumentNo: Code[20];
     begin
         Initialize();
 
@@ -372,16 +387,28 @@ codeunit 148323 "WHT Employee Threshold Tests"
         EmployeeNo := CreateEmployee(WHTPostingSetup);
         GLAccountNo := LibraryERM.CreateGLAccountNoWithDirectPosting();
 
-        // [GIVEN] One journal batch with two lines of 1,500 each with the same document number.
+        // [GIVEN] One journal batch with two lines of 1,500 each with the same document number, optionally renumbered by a Posting No. Series.
         CreateEmployeeJournalLine(GenJournalLine[1], WHTPostingSetup, EmployeeNo, GLAccountNo, EmployeeIsAccount, 1500);
         CreateNextEmployeeJournalLine(GenJournalLine[2], GenJournalLine[1], GenJournalLine[1].Amount);
+        if UsePostingNoSeries then
+            SetPostingNoSeries(GenJournalLine);
 
         // [WHEN] Post the journal.
         LibraryERM.PostGeneralJnlLine(GenJournalLine[1]);
 
+        // [THEN] Both lines are posted with one document number.
+        EmployeeLedgerEntry.SetRange("Employee No.", EmployeeNo);
+        Assert.RecordCount(EmployeeLedgerEntry, 2);
+        EmployeeLedgerEntry.FindFirst();
+        PostedDocumentNo := EmployeeLedgerEntry."Document No.";
+        if UsePostingNoSeries then
+            Assert.AreNotEqual(GenJournalLine[1]."Document No.", PostedDocumentNo, StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption("Document No.")))
+        else
+            Assert.AreEqual(GenJournalLine[1]."Document No.", PostedDocumentNo, StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption("Document No.")));
+
         // [THEN] The first line withholds 100 on 500, the second 300 on 1,500, 400 in total.
         WithholdingTaxEntry.SetRange("Employee No.", EmployeeNo);
-        WithholdingTaxEntry.SetRange("Document No.", GenJournalLine[1]."Document No.");
+        WithholdingTaxEntry.SetRange("Document No.", PostedDocumentNo);
         Assert.RecordCount(WithholdingTaxEntry, 2);
         WithholdingTaxEntry.SetRange(Amount, -100);
         WithholdingTaxEntry.SetRange(Base, 500);
@@ -391,16 +418,31 @@ codeunit 148323 "WHT Employee Threshold Tests"
         Assert.RecordCount(WithholdingTaxEntry, 1);
 
         // [THEN] The employee entries total 3,000 with 400 withheld.
-        EmployeeLedgerEntry.SetRange("Employee No.", EmployeeNo);
 #pragma warning disable AA0210
-        EmployeeLedgerEntry.SetRange("Document No.", GenJournalLine[1]."Document No.");
+        EmployeeLedgerEntry.SetRange("Document No.", PostedDocumentNo);
 #pragma warning restore AA0210
         EmployeeLedgerEntry.CalcSums("Withholding Tax Amount");
         Assert.AreEqual(-400, EmployeeLedgerEntry."Withholding Tax Amount", StrSubstNo(WrongValueErr, EmployeeLedgerEntry.FieldCaption("Withholding Tax Amount")));
 
         // [THEN] On both account sides the G/L account is credited with 2,600 and the withholding tax account with 400.
-        VerifyGLAmount(GLAccountNo, GenJournalLine[1]."Document No.", -2600);
-        VerifyGLAmount(WHTPostingSetup."Payable Wthldg. Tax Acc. Code", GenJournalLine[1]."Document No.", -400);
+        VerifyGLAmount(GLAccountNo, PostedDocumentNo, -2600);
+        VerifyGLAmount(WHTPostingSetup."Payable Wthldg. Tax Acc. Code", PostedDocumentNo, -400);
+    end;
+
+    local procedure SetPostingNoSeries(var GenJournalLine: array[2] of Record "Gen. Journal Line")
+    var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        PostingNoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        PostingNoSeriesCode := LibraryERM.CreateNoSeriesCode();
+        GenJournalBatch.Get(GenJournalLine[1]."Journal Template Name", GenJournalLine[1]."Journal Batch Name");
+        GenJournalBatch."Posting No. Series" := PostingNoSeriesCode;
+        GenJournalBatch.Modify();
+        for i := 1 to 2 do begin
+            GenJournalLine[i]."Posting No. Series" := PostingNoSeriesCode;
+            GenJournalLine[i].Modify();
+        end;
     end;
 
     [Test]

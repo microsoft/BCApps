@@ -45,7 +45,14 @@
   ],
   "platform": "29.0.0.0",
   "application": "29.2.0.0",
-  "idRanges": [
+  "internalsVisibleTo": [
+    {
+      "id": "5f3d528c-581f-44c3-bfea-72d4fa6640cf",
+      "name": "Expense Withholding Tax Tests",
+      "publisher": "Microsoft"
+    }
+  ],
+"idRanges": [
     {
       "from": 148297,
       "to": 148319
