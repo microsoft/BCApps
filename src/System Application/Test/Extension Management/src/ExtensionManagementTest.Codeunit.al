@@ -25,8 +25,7 @@ codeunit 133100 "Extension Management Test"
 
     Subtype = Test;
     Permissions = tabledata "Extension Pending Setup" = rimd,
-                  tabledata "NAV App Setting" = rimd,
-                  tabledata "User Personalization" = r;
+                  tabledata "NAV App Setting" = rimd;
 
     trigger OnRun()
     begin
@@ -65,7 +64,7 @@ codeunit 133100 "Extension Management Test"
         // [SCENARIO] SaaS users receive the migration notification only while legacy PTE upload is available.
         // [GIVEN] Extension management permissions and a SaaS environment.
         PermissionsMock.Set('Exten. Mgt. - Admin');
-        PermissionsMock.Assign('User Settings View');
+        PermissionsMock.Assign('Exten. Mgt. UI Test');
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         LibraryVariableStorage.Clear();
 #if not CLEAN30
@@ -91,7 +90,7 @@ codeunit 133100 "Extension Management Test"
         // [SCENARIO] On-premises users do not receive the PTE upload migration notification.
         // [GIVEN] Extension management permissions and an on-premises environment.
         PermissionsMock.Set('Exten. Mgt. - Admin');
-        PermissionsMock.Assign('User Settings View');
+        PermissionsMock.Assign('Exten. Mgt. UI Test');
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         LibraryVariableStorage.Clear();
 
