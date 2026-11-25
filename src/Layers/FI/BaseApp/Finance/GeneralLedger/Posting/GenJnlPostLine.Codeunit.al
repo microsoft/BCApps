@@ -1373,7 +1373,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJournalLine."Reference No." <> '' then
             CustLedgEntry."Reference No." := GenJournalLine."Reference No."
         else
-            CustLedgEntry."Reference No." := GenJournalLine."Invoice Message";
+            CustLedgEntry."Reference No." :=
+                CopyStr(GenJournalLine."Invoice Message", 1, MaxStrLen(CustLedgEntry."Reference No."));
 
         UpdateImportedRefPayment(GenJournalLine, CustLedgEntry);
 

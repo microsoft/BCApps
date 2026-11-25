@@ -390,9 +390,8 @@ codeunit 12101 "Withholding - Contribution"
                     GenJnlLine.Validate("Applies-to Doc. Type", VendorLedgerEntry."Document Type");
                     GenJnlLine.Validate("Applies-to Doc. No.", VendorLedgerEntry."Document No.");
 #if not CLEAN30
-                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                         GenJnlLine.Validate("Applies-to Occurrence No.", VendorLedgerEntry."Document Occurrence");
-                    end;
 #endif
                     GenJnlLine.Modify(true);
                 end;
@@ -424,9 +423,8 @@ codeunit 12101 "Withholding - Contribution"
                 if ComputedSocSec.FindFirst() then
                     TmpWithholdingSocSec."INAIL Code" := ComputedSocSec."INAIL Code";
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     AppliesToOccurrenceNo := GenJnlLine."Applies-to Occurrence No.";
-                end;
 #endif
                 if ComputedWithholdingTax."Currency Code" = GenJnlLine."Currency Code" then begin
                     TmpWithholdingSocSec."Total Amount" := GetRemainingWithhTaxAmount(ComputedWithholdingTax, AppliesToOccurrenceNo);
@@ -573,10 +571,9 @@ codeunit 12101 "Withholding - Contribution"
         RemainingWithhTaxAmount: Decimal;
     begin
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             if CheckForMultipleInstallment(ComputedWithholdingTax."Document No.") then
                 exit(GetInstallmentAmount(ComputedWithholdingTax, AppliestoOccurrenceNo));
-        end;
 #endif
         // Get the Vendor Ledger Entry that generates the ComputedWithholdingTax line
         VendLedgEntry.Reset();

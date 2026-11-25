@@ -288,9 +288,8 @@ report 12117 "Customer Bills List"
                     begin
                         CustLedgEntry1.CopyFilter("Posting Date", "Posting Date");
 #if not CLEAN30
-                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                             SetRange("Document Occurrence to Close", CustLedgEntry1."Document Occurrence");
-                        end;
 #endif
                     end;
                 }

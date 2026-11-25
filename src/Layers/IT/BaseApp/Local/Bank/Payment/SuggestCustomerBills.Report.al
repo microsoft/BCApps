@@ -182,9 +182,8 @@ report 12176 "Suggest Customer Bills"
                 CustomerBillLine."Document Type" := CustLedgEntry."Document Type";
                 CustomerBillLine."Document No." := CustLedgEntry."Document No.";
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     CustomerBillLine."Document Occurrence" := CustLedgEntry."Document Occurrence";
-                end;
 #endif
                 CustomerBillLine."Document Date" := CustLedgEntry."Document Date";
                 CustomerBillLine.Amount := CustLedgEntry."Remaining Amount";

@@ -4792,9 +4792,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OldCustLedgEntry.Reset();
             OldCustLedgEntry.SetLoadFields(Positive, "Posting Date", "Currency Code", "Bank Receipt Issued");
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 OldCustLedgEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Customer No.");
-            end;
 #endif
             OldCustLedgEntry.SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
             OldCustLedgEntry.SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
@@ -5715,9 +5714,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OldVendLedgEntry.Reset();
             OldVendLedgEntry.SetLoadFields(Positive, "Posting Date", "Currency Code");
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 OldVendLedgEntry.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Vendor No.");
-            end;
 #endif
             OldVendLedgEntry.SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
             OldVendLedgEntry.SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
@@ -9022,16 +9020,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OldCustLedgEntry2.Reset();
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             OldCustLedgEntry2.SetCurrentKey("Document Type", "Document No.", "Document Occurrence", "Customer No.", Open);
-        end;
 #endif
         OldCustLedgEntry2.SetRange("Document Type", CustLedgEntry."Document Type to Close");
         OldCustLedgEntry2.SetRange("Document No.", CustLedgEntry."Document No. to Close");
 #if not CLEAN30
-        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
             OldCustLedgEntry2.SetRange("Document Occurrence", CustLedgEntry."Document Occurrence to Close");
-        end;
 #endif
         OldCustLedgEntry2.SetRange("Customer No.", CustLedgEntry."Customer No.");
         OldCustLedgEntry2.SetRange(Open, true);

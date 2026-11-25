@@ -70,9 +70,8 @@ report 12180 "Issuing Customer Bill"
                 GenJnlLine."Document Type to Close" := "Document Type";
                 GenJnlLine."Document No. to Close" := "Document No.";
 #if not CLEAN30
-                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                     GenJnlLine."Document Occurrence to Close" := "Document Occurrence";
-                end;
 #endif
                 GenJnlLine."Allow Application" := true;
                 GenJnlLine."Bank Receipt" := true;

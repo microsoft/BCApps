@@ -719,6 +719,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
     var
         PurchHeader: Record "Purchase Header";
         GenJnlLine: Record "Gen. Journal Line";
+        CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
+        PrepmtDiffVendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin

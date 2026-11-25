@@ -225,9 +225,8 @@ codeunit 12172 "Customer Bill - Post + Print"
             GenJnlLine."Document Type to Close" := CustLedgEntry."Document Type";
             GenJnlLine."Document No. to Close" := CustLedgEntry."Document No.";
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 GenJnlLine."Document Occurrence to Close" := CustLedgEntry."Document Occurrence";
-            end;
 #endif
             GenJnlLine."Allow Issue" := CustLedgEntry."Allow Issue";
         end;
@@ -297,16 +296,16 @@ codeunit 12172 "Customer Bill - Post + Print"
         CustLedgEntry.Get(CustomerBillLine."Customer Entry No.");
         CustLedgEntry.CalcFields("Remaining Amount");
 
-        if CustLedgEntry."Remaining Amount" <> CustomerBillLine.Amount then begin
+        if CustLedgEntry."Remaining Amount" <> CustomerBillLine.Amount then
 #if not CLEAN30
             if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 Error(InvalidRemainingAmountErr,
                   CustLedgEntry."Document No.",
                   CustLedgEntry."Document Occurrence",
-                  CustLedgEntry."Remaining Amount");
+                  CustLedgEntry."Remaining Amount")
+            else
 #endif
-            Error(InvalidRemainingAmountWithoutOccurrenceErr, CustLedgEntry."Document No.", CustLedgEntry."Remaining Amount");
-        end;
+                Error(InvalidRemainingAmountWithoutOccurrenceErr, CustLedgEntry."Document No.", CustLedgEntry."Remaining Amount");
 
         if CustLedgEntry."Due Date" <> CustomerBillLine."Due Date" then begin
             DtldCustLedgEntry.SetCurrentKey("Cust. Ledger Entry No.");
@@ -321,9 +320,8 @@ codeunit 12172 "Customer Bill - Post + Print"
             RbCustLedgEntry.SetRange("Document Type to Close", CustLedgEntry."Document Type");
             RbCustLedgEntry.SetRange("Document No. to Close", CustLedgEntry."Document No.");
 #if not CLEAN30
-            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
                 RbCustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry."Document Occurrence");
-            end;
 #endif
             if RbCustLedgEntry.FindFirst() then begin
                 RbCustLedgEntry."Due Date" := CustomerBillLine."Due Date";
