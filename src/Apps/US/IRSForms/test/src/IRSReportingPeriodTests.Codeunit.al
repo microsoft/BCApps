@@ -211,6 +211,7 @@ codeunit 148016 "IRS Reporting Period Tests"
     procedure VendorFormBoxAdjustmentAmountIsResetWhenCopyingSetup()
     var
         IRS1099VendorFormBoxAdj: Record "IRS 1099 Vendor Form Box Adj.";
+        IRSReportingPeriod: Record "IRS Reporting Period";
         FromPeriodNo: Code[20];
         ToPeriodNo: Code[20];
         FormNo: Code[20];
@@ -219,31 +220,28 @@ codeunit 148016 "IRS Reporting Period Tests"
         Amount: Decimal;
         FromStartDate: Date;
         FromEndDate: Date;
-        ToStartDate: Date;
-        ToEndDate: Date;
     begin
         // [SCENARIO 623874] When copying reporting period setup with vendor form box adjustments, the Amount field is reset to 0 in the target period
         Initialize();
 
-        // [GIVEN] Reporting period for current year with vendor form box adjustment "V" for form "MISC" box "01" with Amount = 1000
-        FromStartDate := CalcDate('<-CY>', WorkDate());
-        FromEndDate := CalcDate('<CY>', WorkDate());
-        FromPeriodNo := LibraryIRSReportingPeriod.CreateReportingPeriod(FromStartDate, FromEndDate);
+        // [GIVEN] Source annual reporting period with vendor form box adjustment "V" for form "MISC" box "01" with Amount = 1000
+        FromPeriodNo := LibraryIRSReportingPeriod.CreateAvailableAnnualReportingPeriod(Date2DMY(WorkDate(), 3));
+        IRSReportingPeriod.Get(FromPeriodNo);
+        FromStartDate := IRSReportingPeriod."Starting Date";
+        FromEndDate := IRSReportingPeriod."Ending Date";
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(FromStartDate, FromEndDate);
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(FromStartDate, FromEndDate, FormNo);
         VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(FromStartDate, FromEndDate, FormNo, FormBoxNo);
         Amount := LibraryRandom.RandDec(1000, 2);
         LibraryIRS1099FormBox.AddAdjustmentAmountForVendor(FromStartDate, FromEndDate, VendorNo, FormNo, FormBoxNo, Amount);
 
-        // [GIVEN] Reporting period for next year exists
-        ToStartDate := CalcDate('<1Y>', FromStartDate);
-        ToEndDate := CalcDate('<1Y>', FromEndDate);
-        ToPeriodNo := LibraryIRSReportingPeriod.CreateReportingPeriod(ToStartDate, ToEndDate);
+        // [GIVEN] A later annual reporting period exists
+        ToPeriodNo := LibraryIRSReportingPeriod.CreateAvailableAnnualReportingPeriod(Date2DMY(FromStartDate, 3) + 1);
 
-        // [WHEN] Copy setup from current year to next year
+        // [WHEN] Copy setup from the source period to the target period
         LibraryIRSReportingPeriod.CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
 
-        // [THEN] Vendor form box adjustment is copied to next year with Amount = 0
+        // [THEN] Vendor form box adjustment is copied to the target period with Amount = 0
         IRS1099VendorFormBoxAdj.SetRange("Period No.", ToPeriodNo);
         IRS1099VendorFormBoxAdj.SetRange("Vendor No.", VendorNo);
         IRS1099VendorFormBoxAdj.SetRange("Form No.", FormNo);
@@ -936,6 +934,7 @@ codeunit 148016 "IRS Reporting Period Tests"
     var
         ReportingPeriod: Record "IRS Reporting Period";
         Instruction: Record "IRS 1099 Form Instruction";
+        PeriodNo: Code[20];
         InstructionCount: Integer;
         Details: Text;
     begin
@@ -943,12 +942,9 @@ codeunit 148016 "IRS Reporting Period Tests"
         // [SCENARIO 653992] Annual Setup Adds Instructions To Empty Period On First Update.
         Initialize();
 
-        // [GIVEN] 2026 reporting period has no forms or instructions.
-
-        ReportingPeriod."No." := CopyStr(DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(ReportingPeriod."No."));
-        ReportingPeriod."Starting Date" := 20260101D;
-        ReportingPeriod."Ending Date" := 20261231D;
-        ReportingPeriod.Insert(true);
+        // [GIVEN] An unused annual reporting period has no forms or instructions.
+        PeriodNo := LibraryIRSReportingPeriod.CreateAvailableAnnualReportingPeriod(2026);
+        ReportingPeriod.Get(PeriodNo);
 
         // [WHEN] Requested operation is executed through its existing entry point.
         Details := LibraryIRSReportingPeriod.UpdateAnnualSetup(ReportingPeriod."No.", CompanyName());

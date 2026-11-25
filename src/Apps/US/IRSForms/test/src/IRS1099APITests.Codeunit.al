@@ -19,6 +19,7 @@ codeunit 148018 "IRS 1099 API Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryIRS1099Document: Codeunit "Library IRS 1099 Document";
+        LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         OriginalWorkDate: Date;
@@ -302,12 +303,11 @@ codeunit 148018 "IRS 1099 API Tests"
         Form: Record "IRS 1099 Form";
         FormBox: Record "IRS 1099 Form Box";
         Vendor: Record Vendor;
+        PeriodNo: Code[20];
     begin
         // API projection fixtures must not replace another codeunit's reporting setup or consume number series.
-        ReportingPeriod."No." := LibraryUtility.GenerateGUID();
-        ReportingPeriod."Starting Date" := DMY2Date(1, 1, 2026);
-        ReportingPeriod."Ending Date" := DMY2Date(31, 12, 2026);
-        ReportingPeriod.Insert(true);
+        PeriodNo := LibraryIRSReportingPeriod.CreateAvailableAnnualReportingPeriod(2026);
+        ReportingPeriod.Get(PeriodNo);
         TempOwnedReportingPeriod := ReportingPeriod;
         TempOwnedReportingPeriod.Insert();
         Form."Period No." := ReportingPeriod."No.";

@@ -608,7 +608,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         PeriodNo: Code[20];
     begin
         IRSFormsData.AddReportingPeriodsWithForms(2026);
-        PeriodNo := LibraryIRSReportingPeriod.CreateReportingPeriod(20270101D, 20271231D);
+        PeriodNo := LibraryIRSReportingPeriod.CreateAvailableAnnualReportingPeriod(2027);
         LibraryIRSReportingPeriod.CopyPeriodSetup('2026', PeriodNo);
         CreateStatementDocument(IRS1099FormDocHeader, PeriodNo, FormNo);
     end;
