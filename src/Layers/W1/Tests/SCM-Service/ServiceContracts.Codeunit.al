@@ -970,7 +970,6 @@ codeunit 136102 "Service Contracts"
         ServiceContractLine: Record "Service Contract Line";
         StandardText: Record "Standard Text";
         ServiceLine: Record "Service Line";
-        SignServContractDoc: Codeunit SignServContractDoc;
         ExtendedText: Text;
     begin
         // [SCENARIO] Create Service Invoice transfers Price Inv. Increase Code text when Standard Text Description is empty.
@@ -995,10 +994,10 @@ codeunit 136102 "Service Contracts"
         FindServiceLine(ServiceLine, ServiceContractHeader."Contract No.");
         ServiceLine.SetRange(Type, ServiceLine.Type::" ");
         ServiceLine.SetRange(Description, '');
-        Assert.IsTrue(ServiceLine.FindFirst(), UnknownErr);
+        Assert.IsTrue(not ServiceLine.IsEmpty(), UnknownErr);
 
         ServiceLine.SetRange(Description, CopyStr(ExtendedText, 1, MaxStrLen(ServiceLine.Description)));
-        Assert.IsTrue(ServiceLine.FindFirst(), UnknownErr);
+        Assert.IsTrue(not ServiceLine.IsEmpty(), UnknownErr);
     end;
 
     [Test]
