@@ -9,7 +9,9 @@ using Microsoft.eServices.EDocument.Integration;
 using Microsoft.EServices.EDocument.Verifactu;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
@@ -42,6 +44,9 @@ codeunit 148004 "Test Verifactu Export"
         TestServiceInvoiceLbl: Label 'Test Service Invoice %1', Comment = '%1 = Invoice number';
         TestServiceCreditMemoLbl: Label 'Test Service Credit Memo %1', Comment = '%1 = Credit memo number';
         NonTaxableBreakdownXPathLbl: Label '//*[local-name()="DetalleDesglose"][*[local-name()="CalificacionOperacion" and text()="%1"]]', Locked = true, Comment = '%1 = Operation qualification code';
+        ExemptBreakdownXPathLbl: Label '//*[local-name()="DetalleDesglose"][*[local-name()="OperacionExenta" and text()="%1"]]', Locked = true, Comment = '%1 = Exemption code';
+        RecipientChildXPathLbl: Label '//*[local-name()="IDDestinatario"]/*[local-name()="%1"]', Locked = true, Comment = '%1 = Child node name';
+        RecipientIDOtroChildXPathLbl: Label '//*[local-name()="IDDestinatario"]/*[local-name()="IDOtro"]/*[local-name()="%1"]', Locked = true, Comment = '%1 = IDOtro child node name';
         RegisteredDocumentXPathLbl: Label '//*[local-name()="RegistroAlta"][*[local-name()="IDFactura"]/*[local-name()="NumSerieFactura" and text()="%1"]]', Locked = true, Comment = '%1 = Document number';
         PostedBatchRecipientNameLbl: Label 'Posted bill-to recipient %1', Locked = true, Comment = '%1 = Invoice index';
         PostedBatchRecipientVATLbl: Label 'B0000000%1', Locked = true, Comment = '%1 = Invoice index';
@@ -2186,6 +2191,193 @@ codeunit 148004 "Test Verifactu Export"
                 SalesInvoiceHeader[InvoiceIndex]."Bill-to Name", SalesInvoiceHeader[InvoiceIndex]."VAT Registration No.");
     end;
 
+    #region ExemptOperationsAndRecipients
+    [Test]
+    procedure ExportCanaryIslandsInvoiceReportsExemptionE2()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] An export invoice to a Spanish (Canary Islands) customer with 0% VAT is reported as OperacionExenta E2 with NIF
+        Initialize();
+
+        // [GIVEN] Spanish customer "C" with NIF "N" and a 0% VAT posting setup without a VAT clause
+        CreateCustomerWithCountry(Customer, 'ES', false, 'B76543214');
+        CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0, '');
+
+        // [GIVEN] Posted sales invoice "I" with special scheme code "02 Export"
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithSpecialScheme(
+            SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"02 Export", Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The breakdown is OperacionExenta E2 without CalificacionOperacion, TipoImpositivo or CuotaRepercutida
+        VerifyExemptBreakdown(XMLText, 'E2', Amount);
+        // [THEN] The recipient is identified by NIF "N"
+        VerifyRecipientNIF(XMLText, 'B76543214');
+    end;
+
+    [Test]
+    procedure ExportNonEUInvoiceReportsExemptionE2AndIDOtro()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] An export invoice to a non-EU customer is reported as OperacionExenta E2 with IDOtro (IDType 04)
+        Initialize();
+
+        // [GIVEN] Non-EU customer "C" in country with ISO code "GB" and VAT registration no. "V"
+        CreateCustomerWithCountry(Customer, 'GB', false, '116185526');
+        CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0, '');
+
+        // [GIVEN] Posted sales invoice "I" with special scheme code "02 Export" and 0% VAT
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithSpecialScheme(
+            SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"02 Export", Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The breakdown is OperacionExenta E2
+        VerifyExemptBreakdown(XMLText, 'E2', Amount);
+        // [THEN] The recipient is identified by IDOtro with CodigoPais "GB", IDType "04" and ID "V"
+        VerifyRecipientIDOtro(XMLText, 'GB', '04', '116185526');
+    end;
+
+    [Test]
+    procedure ExportEUReverseChargeInvoiceReportsExemptionE5AndIDOtro()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] An intra-community reverse charge supply of goods is reported as OperacionExenta E5 with IDOtro (IDType 02)
+        Initialize();
+
+        // [GIVEN] EU customer "C" in country with ISO code "PT" and VAT registration no. "500441553" without country prefix
+        CreateCustomerWithCountry(Customer, 'PT', true, '500441553');
+        // [GIVEN] Reverse charge VAT posting setup for goods
+        CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT", 21, '');
+
+        // [GIVEN] Posted sales invoice "I" with special scheme code "01 General"
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithSpecialScheme(
+            SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"01 General", Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The breakdown is OperacionExenta E5
+        VerifyExemptBreakdown(XMLText, 'E5', Amount);
+        // [THEN] The recipient is identified by IDOtro with CodigoPais "PT", IDType "02" and the prefixed ID "PT500441553"
+        VerifyRecipientIDOtro(XMLText, 'PT', '02', 'PT500441553');
+    end;
+
+    [Test]
+    procedure ExportInvoiceWithVATClauseExemptionCodeReportsIt()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATClause: Record "VAT Clause";
+        Amount: Decimal;
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] The SII exemption code of the VAT clause is reported as OperacionExenta
+        Initialize();
+
+        // [GIVEN] VAT clause with SII exemption code "E1" assigned to a 0% VAT posting setup
+        LibraryERM.CreateVATClause(VATClause);
+        VATClause.Validate("SII Exemption Code", VATClause."SII Exemption Code"::"E1 Exempt on account of Article 20");
+        VATClause.Modify(true);
+        CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0, VATClause.Code);
+        CreateCustomerWithCountry(Customer, 'ES', false, 'B76543214');
+
+        // [GIVEN] Posted sales invoice "I" with special scheme code "01 General"
+        Amount := LibraryRandom.RandIntInRange(100, 500);
+        CreatePostedSalesInvoiceWithSpecialScheme(
+            SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"01 General", Amount);
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The breakdown is OperacionExenta E1
+        VerifyExemptBreakdown(XMLText, 'E1', Amount);
+    end;
+
+    [Test]
+    procedure ExportZeroVATGeneralSchemeInvoiceIsNotExempt()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        ParsedXMLDocument: XmlDocument;
+        XMLNode: XmlNode;
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] A 0% normal VAT invoice under the general scheme without a VAT clause exemption code stays S1
+        Initialize();
+
+        // [GIVEN] Spanish customer "C" and a 0% VAT posting setup without a VAT clause
+        CreateCustomerWithCountry(Customer, 'ES', false, 'B76543214');
+        CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0, '');
+
+        // [GIVEN] Posted sales invoice "I" with special scheme code "01 General"
+        CreatePostedSalesInvoiceWithSpecialScheme(
+            SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"01 General",
+            LibraryRandom.RandIntInRange(100, 500));
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The breakdown is CalificacionOperacion S1 and there is no OperacionExenta
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(
+            ParsedXMLDocument.SelectSingleNode(StrSubstNo(NonTaxableBreakdownXPathLbl, 'S1'), XMLNode), 'Breakdown should be qualified as S1');
+        Assert.IsFalse(
+            ParsedXMLDocument.SelectSingleNode('//*[local-name()="OperacionExenta"]', XMLNode), 'Breakdown should not be exempt');
+    end;
+
+    [Test]
+    procedure ExportInvoiceUsesPostedIDType()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] The ID Type of the posted invoice is used for a foreign recipient
+        Initialize();
+
+        // [GIVEN] Non-EU customer "C" in country with ISO code "GB"
+        CreateCustomerWithCountry(Customer, 'GB', false, '116185526');
+        CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0, '');
+
+        // [GIVEN] Posted sales invoice "I" with ID Type "06-Other Probative Document"
+        CreatePostedSalesInvoiceWithSpecialScheme(
+            SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"02 Export",
+            LibraryRandom.RandIntInRange(100, 500));
+        SalesInvoiceHeader."ID Type" := SalesInvoiceHeader."ID Type"::"06-Other Probative Document";
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The recipient IDOtro has IDType "06"
+        VerifyRecipientIDOtro(XMLText, 'GB', '06', '116185526');
+    end;
+    #endregion
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Test Verifactu Export");
@@ -2237,7 +2429,9 @@ codeunit 148004 "Test Verifactu Export"
             DocumentXMLNode.SelectSingleNode('*[local-name()="Destinatarios"]/*[local-name()="IDDestinatario"]', RecipientXMLNode),
             'Document should contain its recipient');
         VerifyIdentityXMLValue(RecipientXMLNode, '*[local-name()="NombreRazon"]', ExpectedName, 'Recipient name should come from the posted bill-to snapshot');
-        VerifyIdentityXMLValue(RecipientXMLNode, '*[local-name()="NIF"]', ExpectedVATRegistrationNo, 'Recipient NIF should come from the posted header snapshot');
+        VerifyIdentityXMLValue(
+            RecipientXMLNode, '*[local-name()="NIF"] | *[local-name()="IDOtro"]/*[local-name()="ID"]', ExpectedVATRegistrationNo,
+            'Recipient identifier should come from the posted header snapshot');
     end;
 
     local procedure VerifyIdentityXMLValue(ParentXMLNode: XmlNode; XPath: Text; ExpectedValue: Text; FailureMessage: Text)
@@ -2558,6 +2752,12 @@ codeunit 148004 "Test Verifactu Export"
     end;
 
     local procedure CreatePostedSalesInvoiceWithVATPostingSetup(var SalesInvoiceHeader: Record "Sales Invoice Header"; var Customer: Record Customer; VATPostingSetup: Record "VAT Posting Setup"; Amount: Decimal)
+    begin
+        CreatePostedSalesInvoiceWithSpecialScheme(
+            SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"01 General", Amount);
+    end;
+
+    local procedure CreatePostedSalesInvoiceWithSpecialScheme(var SalesInvoiceHeader: Record "Sales Invoice Header"; var Customer: Record Customer; VATPostingSetup: Record "VAT Posting Setup"; SpecialSchemeCode: Enum "SII Sales Special Scheme Code"; Amount: Decimal)
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -2571,7 +2771,7 @@ codeunit 148004 "Test Verifactu Export"
 
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
         SalesHeader.Validate("Invoice Type", SalesHeader."Invoice Type"::"F1 Invoice");
-        SalesHeader.Validate("Special Scheme Code", SalesHeader."Special Scheme Code"::"01 General");
+        SalesHeader.Validate("Special Scheme Code", SpecialSchemeCode);
         SalesHeader.Validate("Operation Description", 'Test Invoice');
         SalesHeader.Modify(true);
 
@@ -2580,6 +2780,40 @@ codeunit 148004 "Test Verifactu Export"
         SalesLine.Modify(true);
 
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateCustomerWithCountry(var Customer: Record Customer; ISOCode: Code[2]; IsEUCountry: Boolean; VATRegistrationNo: Text[20])
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := ISOCode;
+        if IsEUCountry then
+            CountryRegion."EU Country/Region Code" := ISOCode;
+        CountryRegion.Modify();
+
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer."VAT Registration No." := VATRegistrationNo;
+        Customer.Modify(true);
+    end;
+
+    local procedure CreateVATPostingSetupForExemption(var VATPostingSetup: Record "VAT Posting Setup"; VATCalculationType: Enum "Tax Calculation Type"; VATPercent: Decimal; VATClauseCode: Code[20])
+    var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+    begin
+        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroup.Code, VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT Calculation Type", VATCalculationType);
+        VATPostingSetup.Validate("VAT %", VATPercent);
+        VATPostingSetup.Validate("VAT Identifier", VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("Reverse Chrg. VAT Acc.", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Validate("VAT Clause Code", VATClauseCode);
+        VATPostingSetup.Modify(true);
     end;
 
     local procedure CreatePostedSalesInvoiceWithVATPostingSetups(var SalesInvoiceHeader: Record "Sales Invoice Header"; var Customer: Record Customer; Art714VATPostingSetup: Record "VAT Posting Setup"; LocalizationVATPostingSetup: Record "VAT Posting Setup")
@@ -2784,6 +3018,45 @@ codeunit 148004 "Test Verifactu Export"
         Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CuotaRepercutida"]', XMLNode), 'Non-taxable breakdown should not contain a tax amount');
         Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="TipoRecargoEquivalencia"]', XMLNode), 'Non-taxable breakdown should not contain an equivalence surcharge rate');
         Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CuotaRecargoEquivalencia"]', XMLNode), 'Non-taxable breakdown should not contain an equivalence surcharge amount');
+    end;
+
+    local procedure VerifyExemptBreakdown(XMLText: Text; ExemptionCode: Text; ExpectedBaseAmount: Decimal)
+    var
+        ParsedXMLDocument: XmlDocument;
+        BreakdownXMLNode: XmlNode;
+        XMLNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsTrue(
+            ParsedXMLDocument.SelectSingleNode(StrSubstNo(ExemptBreakdownXPathLbl, ExemptionCode), BreakdownXMLNode),
+            'Expected exempt breakdown was not found');
+        Assert.IsTrue(BreakdownXMLNode.SelectSingleNode('*[local-name()="BaseImponibleOimporteNoSujeto"]', XMLNode), 'Exempt breakdown should contain the base amount');
+        Assert.AreEqual(Format(ExpectedBaseAmount, 0, 9), XMLNode.AsXmlElement().InnerText(), 'Exempt breakdown base amount is incorrect');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CalificacionOperacion"]', XMLNode), 'Exempt breakdown should not contain an operation qualification');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="TipoImpositivo"]', XMLNode), 'Exempt breakdown should not contain a tax rate');
+        Assert.IsFalse(BreakdownXMLNode.SelectSingleNode('*[local-name()="CuotaRepercutida"]', XMLNode), 'Exempt breakdown should not contain a tax amount');
+    end;
+
+    local procedure VerifyRecipientNIF(XMLText: Text; ExpectedNIF: Text)
+    var
+        ParsedXMLDocument: XmlDocument;
+        XMLNode: XmlNode;
+    begin
+        VerifyXMLNodeValue(XMLText, StrSubstNo(RecipientChildXPathLbl, 'NIF'), ExpectedNIF);
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsFalse(ParsedXMLDocument.SelectSingleNode(StrSubstNo(RecipientChildXPathLbl, 'IDOtro'), XMLNode), 'Spanish recipient should not use IDOtro');
+    end;
+
+    local procedure VerifyRecipientIDOtro(XMLText: Text; ExpectedCountryCode: Text; ExpectedIDType: Text; ExpectedID: Text)
+    var
+        ParsedXMLDocument: XmlDocument;
+        XMLNode: XmlNode;
+    begin
+        VerifyXMLNodeValue(XMLText, StrSubstNo(RecipientIDOtroChildXPathLbl, 'CodigoPais'), ExpectedCountryCode);
+        VerifyXMLNodeValue(XMLText, StrSubstNo(RecipientIDOtroChildXPathLbl, 'IDType'), ExpectedIDType);
+        VerifyXMLNodeValue(XMLText, StrSubstNo(RecipientIDOtroChildXPathLbl, 'ID'), ExpectedID);
+        Assert.IsTrue(XmlDocument.ReadFrom(XMLText, ParsedXMLDocument), 'Export should be valid XML');
+        Assert.IsFalse(ParsedXMLDocument.SelectSingleNode(StrSubstNo(RecipientChildXPathLbl, 'NIF'), XMLNode), 'Foreign recipient should not use NIF');
     end;
 
     local procedure VerifyNonTaxableBreakdownCount(XMLText: Text; ExpectedCount: Integer)
