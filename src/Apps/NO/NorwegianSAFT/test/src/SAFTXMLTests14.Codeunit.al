@@ -98,9 +98,16 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure CustomerCurrencyAmountsUseLCYPerFCYExchangeRate()
     begin
         // [SCENARIO 659500] Customer currency amounts use LCY per FCY for both the receivables and balancing lines.
+
+        // [GIVEN] SAF-T is initialized and immediate file generation will be confirmed.
         Initialize();
         LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+
+        // [WHEN] The helper creates and exports a customer foreign-currency transaction.
+        // [THEN] The helper verifies 1,000 FCY and an exchange rate of 8 LCY per FCY on both transaction lines.
         SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.40", true);
+
+        // [THEN] All expected confirmation prompts have been handled.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -110,9 +117,16 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     procedure VendorCurrencyAmountsUseLCYPerFCYExchangeRate()
     begin
         // [SCENARIO 659500] Vendor currency amounts use LCY per FCY for both the payables and balancing lines.
+
+        // [GIVEN] SAF-T is initialized and immediate file generation will be confirmed.
         Initialize();
         LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+
+        // [WHEN] The helper creates and exports a vendor foreign-currency transaction.
+        // [THEN] The helper verifies 1,000 FCY and an exchange rate of 8 LCY per FCY on both transaction lines.
         SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.40", false);
+
+        // [THEN] All expected confirmation prompts have been handled.
         LibraryVariableStorage.AssertEmpty();
     end;
 
