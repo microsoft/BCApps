@@ -6,7 +6,6 @@ namespace Microsoft.ExpenseAgent;
 
 enum 6926 "Expense Compliance Status"
 {
-    Access = Internal;
     Caption = 'Compliance Status';
 
     value(0; "Not Evaluated")

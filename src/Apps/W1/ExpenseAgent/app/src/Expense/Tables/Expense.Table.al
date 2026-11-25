@@ -1310,13 +1310,6 @@ table 6900 Expense
         NoReceiptDeclarationMgt.MarkDeclarationOutdated(Rec);
     end;
 
-    internal procedure MarkNoReceiptDeclarationOutdated()
-    var
-        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
-    begin
-        NoReceiptDeclarationMgt.MarkDeclarationOutdated(Rec);
-    end;
-
     internal procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
     begin
         SkipRuleApplication := NewSkipRuleApplication;
