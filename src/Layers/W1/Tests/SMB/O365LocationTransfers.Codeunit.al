@@ -26,6 +26,8 @@ codeunit 137281 "O365 Location Transfers"
         DirectTransferMustBeEditableErr: Label 'Direct Transfer must be editable.';
         ItemNotInInventoryErr: Label 'Item %1 is not in inventory.', Comment = '%1 = item no.';
         NothingToReleaseErr: Label 'There is nothing to release for transfer order %1.', Comment = '%1 = transfer order no.';
+        DirectTransferRequireReceiveErr: Label 'Direct transfers cannot be posted directly to location %1 because Require Receive is enabled.', Comment = '%1 = location code';
+        ShipmentReceiptRequirePutAwayErr: Label 'Direct transfers using Shipment and Receipt posting cannot use location %1 because Require Put-away is enabled. Use Direct Transfer posting with inventory put-away, or use a non-direct transfer.', Comment = '%1 = location code';
 
     [Test]
     [Scope('OnPrem')]
@@ -283,8 +285,10 @@ codeunit 137281 "O365 Location Transfers"
         // [WHEN] Enable "Direct Transfer" on the transfer order
         asserterror CreateDirectTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code);
 
-        // [THEN] Error: "Require Receive" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Receive"), Format(false));
+        // [THEN] The error explains that direct transfers cannot use a destination requiring receipt
+        Assert.ExpectedError(
+            StrSubstNo(DirectTransferRequireReceiveErr, ToLocation.Code));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -339,8 +343,10 @@ codeunit 137281 "O365 Location Transfers"
         // [WHEN] Enable "Direct Transfer" on the transfer order
         asserterror CreateDirectTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code);
 
-        // [THEN] Error: "Require Put-away" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Put-away"), Format(false));
+        // [THEN] The error explains the supported alternatives for a destination requiring put-away
+        Assert.ExpectedError(
+            StrSubstNo(ShipmentReceiptRequirePutAwayErr, ToLocation.Code));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -374,11 +380,13 @@ codeunit 137281 "O365 Location Transfers"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     [Scope('OnPrem')]
     procedure DirectTransferErrorWhenChangeTransferToSimpleLocationToWhse()
     var
         Location: array[3] of Record Location;
         TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
     begin
         // [FEATURE] [Direct Transfer]
         // [SCENARIO 253751] It should not be allowed to change transfer-to location to a location that requires inbound warehouse handling in a direct transfer order
@@ -388,8 +396,16 @@ codeunit 137281 "O365 Location Transfers"
         // [GIVEN] Two locations "L1" and "L2" without warehouse handling
         LibraryWarehouse.CreateLocation(Location[1]);
         LibraryWarehouse.CreateLocation(Location[2]);
-        // [GIVEN] Location "L3" with "Require Receive" enabled
-        LibraryWarehouse.CreateLocationWMS(Location[3], false, false, false, true, false);
+        // [GIVEN] A direct route to location "L3" without warehouse handling
+        LibraryWarehouse.CreateLocation(Location[3]);
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, Location[1].Code, Location[3].Code, '', '', '');
+        TransferRoute.Validate("Direct Transfer", true);
+        TransferRoute.Validate("Direct Transfer Posting", TransferRoute."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferRoute.Modify(true);
+
+        // [GIVEN] Location "L3" now requires receipt, invalidating the saved route
+        Location[3].Validate("Require Receive", true);
+        Location[3].Modify(true);
 
         // [GIVEN] Create direct transfer from location "L1" to location "L2"
         LibraryLowerPermissions.SetO365INVCreate();
@@ -398,8 +414,10 @@ codeunit 137281 "O365 Location Transfers"
         // [WHEN] Change "Transfer-to Code" from "L1" to "L3"
         asserterror TransferHeader.Validate("Transfer-to Code", Location[3].Code);
 
-        // [THEN] Error: "Require Receive" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(Location[3].FieldCaption("Require Receive"), Format(false));
+        // [THEN] Applying the direct route rejects its destination's new receipt requirement
+        Assert.ExpectedError(
+            StrSubstNo(DirectTransferRequireReceiveErr, Location[3].Code));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -466,8 +484,10 @@ codeunit 137281 "O365 Location Transfers"
         // [WHEN] Release the transfer order
         asserterror LibraryInventory.ReleaseTransferOrder(TransferHeader);
 
-        // [THEN] Error: "Require Receive" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Receive"), Format(false));
+        // [THEN] Release rejects the destination's new receipt requirement
+        Assert.ExpectedError(
+            StrSubstNo(DirectTransferRequireReceiveErr, ToLocation.Code));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
@@ -544,8 +564,10 @@ codeunit 137281 "O365 Location Transfers"
         // [WHEN] Post the transfer order
         asserterror LibraryInventory.PostDirectTransferOrder(TransferHeader);
 
-        // [THEN] Error: "Require Receive" must equal to 'No' in location
-        Assert.ExpectedTestFieldError(FromLocation.FieldCaption("Require Receive"), Format(false));
+        // [THEN] Posting rejects the destination's new receipt requirement
+        Assert.ExpectedError(
+            StrSubstNo(DirectTransferRequireReceiveErr, ToLocation.Code));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]

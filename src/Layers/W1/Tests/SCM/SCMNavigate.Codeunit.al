@@ -544,7 +544,8 @@ codeunit 137078 "SCM Navigate"
             LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
         LibraryWarehouse.CreateTransferHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, LocationInTransit.Code);
         if Direct then begin
-            TransferHeader."Direct Transfer" := true;
+            TransferHeader.Validate("Direct Transfer", true);
+            TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
             TransferHeader.Modify();
         end;
         LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", 1);
