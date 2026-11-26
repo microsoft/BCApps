@@ -553,7 +553,7 @@ codeunit 5705 "TransferOrder-Post Receipt"
             Error(Text008);
     end;
 
-    local procedure InsertRcptEntryRelation(var TransRcptLine: Record "Transfer Receipt Line") Result: Integer
+    local procedure InsertRcptEntryRelation(var TransRcptLine: Record "Transfer Receipt Line") Result: BigInteger
     var
         ItemEntryRelation: Record "Item Entry Relation";
         TempItemEntryRelation: Record "Item Entry Relation" temporary;
@@ -983,7 +983,7 @@ codeunit 5705 "TransferOrder-Post Receipt"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeInsertRcptEntryRelation(var TransRcptLine: Record "Transfer Receipt Line"; var ItemJnlLine: Record "Item Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeInsertRcptEntryRelation(var TransRcptLine: Record "Transfer Receipt Line"; var ItemJnlLine: Record "Item Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

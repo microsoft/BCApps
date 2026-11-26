@@ -620,10 +620,10 @@ codeunit 18247 "Validate Bank Charges Amount"
         GSTLedgerEntry.Insert(true);
     end;
 
-    local procedure InsertDetailedGSTLedgEntryBankCharges(GenJournalLine: Record "Gen. Journal Line"; NextTransactionNo: Integer)
+    local procedure InsertDetailedGSTLedgEntryBankCharges(GenJournalLine: Record "Gen. Journal Line"; NextTransactionNo: BigInteger)
     var
         JournalBankCharges: Record "Journal Bank Charges";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         EntryNo := GetNextGSTDetailEntryNo();
         JournalBankCharges.Reset();
@@ -640,7 +640,7 @@ codeunit 18247 "Validate Bank Charges Amount"
     local procedure GetNextGSTDetailEntryNo(): Integer
     var
         DetailedGSTLedgerEntry: Record "Detailed GST Ledger Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if DetailedGSTLedgerEntry.FindLast() then
             EntryNo := DetailedGSTLedgerEntry."Entry No.";
@@ -985,7 +985,7 @@ codeunit 18247 "Validate Bank Charges Amount"
         end;
     end;
 
-    local procedure FillDetailedGSTLedgerEntry(JournalBankCharges: Record "Journal Bank Charges"; var EntryNo: Integer; NextTransactionNo: Integer; GenJournalLine: Record "Gen. Journal Line")
+    local procedure FillDetailedGSTLedgerEntry(JournalBankCharges: Record "Journal Bank Charges"; var EntryNo: BigInteger; NextTransactionNo: BigInteger; GenJournalLine: Record "Gen. Journal Line")
     var
         DetailedGSTEntryBuffer: Record "Detailed GST Entry Buffer";
         DetailedGSTLedgerEntry: Record "Detailed GST Ledger Entry";

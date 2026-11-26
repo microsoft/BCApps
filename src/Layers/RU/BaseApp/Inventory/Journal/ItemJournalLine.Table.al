@@ -664,7 +664,7 @@ table 83 "Item Journal Line"
                 end;
             end;
         }
-        field(32; "Item Shpt. Entry No."; Integer)
+        field(32; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
             Editable = false;
@@ -1809,7 +1809,7 @@ table 83 "Item Journal Line"
             Caption = 'FA No.';
             TableRelation = "Fixed Asset";
         }
-        field(12451; "FA Entry No."; Integer)
+        field(12451; "FA Entry No."; BigInteger)
         {
             Caption = 'FA Entry No.';
             TableRelation = "FA Ledger Entry" where("Entry No." = field("FA Entry No."));
