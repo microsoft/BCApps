@@ -24,7 +24,8 @@ report 1320 "Notification Email"
 #else
     DefaultRenderingLayout = "NotificationEmailBody.docx";
 #endif
-    dataset
+
+dataset
     {
         dataitem("Integer"; "Integer")
         {
