@@ -187,9 +187,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PreviewMode: Boolean;
         GLEntryInconsistent: Boolean;
         WHTEntry: Record "WHT Entry";
-        NextWHTEntryNo: Integer;
+        NextWHTEntryNo: BigInteger;
         CurrFactor: Decimal;
-        KeepWHTEntryNo: Integer;
+        KeepWHTEntryNo: BigInteger;
         HadWHTEntryNo: Boolean;
         NextNo: Integer;
         UseVendExchRate: Boolean;
@@ -8920,17 +8920,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [Scope('OnPrem')]
-    procedure GetTransactionNo(var TransactionNo: Integer)
+    procedure GetTransactionNo(var TransactionNo: BigInteger)
     begin
         TransactionNo := NextTransactionNo;
     end;
 
     [Scope('OnPrem')]
-    procedure InsertGSTReport(VATEntryNo: Integer; GenJnlLine2: Record "Gen. Journal Line")
+    procedure InsertGSTReport(VATEntryNo: BigInteger; GenJnlLine2: Record "Gen. Journal Line")
     var
         GSTSaleReport: Record "GST Sales Entry";
         GSTPurchReport: Record "GST Purchase Entry";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         if not GLSetup."GST Report" then
             exit;
@@ -9004,7 +9004,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [Scope('OnPrem')]
-    procedure InsertWHTPaymentGL(GenJnlLine: Record "Gen. Journal Line"; var GenJnlLineWHT: Record "Gen. Journal Line"; var EntryNo: Integer)
+    procedure InsertWHTPaymentGL(GenJnlLine: Record "Gen. Journal Line"; var GenJnlLineWHT: Record "Gen. Journal Line"; var EntryNo: BigInteger)
     var
         BankAcc: Record "Bank Account";
         BankAccLedgEntry: Record "Bank Account Ledger Entry";
@@ -10210,7 +10210,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [Scope('OnPrem')]
-    procedure UnapplyWHTEntry(GenJnlLine: Record "Gen. Journal Line"; TransactionType: Option; CVNo: Code[20]; TransactionNo: Integer; VoidCheck: Boolean)
+    procedure UnapplyWHTEntry(GenJnlLine: Record "Gen. Journal Line"; TransactionType: Option; CVNo: Code[20]; TransactionNo: BigInteger; VoidCheck: Boolean)
     var
         InvoicedWHTEntry: Record "WHT Entry";
         WHTEntry: Record "WHT Entry";
@@ -10353,7 +10353,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         InsertGSTReport(NextVATEntryNo, TempGenJnlLine);
     end;
 
-    local procedure CreateVendGLEntriesForTotalAmounts(GenJnlLine: Record "Gen. Journal Line"; var TempDimPostingBuffer: Record "Dimension Posting Buffer"; VendPostingGr: Record "Vendor Posting Group"; AdjAmountBuf: array[4] of Decimal; SavedEntryNo: Integer; LedgEntryInserted: Boolean; GLAccNo: Code[20])
+    local procedure CreateVendGLEntriesForTotalAmounts(GenJnlLine: Record "Gen. Journal Line"; var TempDimPostingBuffer: Record "Dimension Posting Buffer"; VendPostingGr: Record "Vendor Posting Group"; AdjAmountBuf: array[4] of Decimal; SavedEntryNo: BigInteger; LedgEntryInserted: Boolean; GLAccNo: Code[20])
     var
         GLEntry: Record "G/L Entry";
         DimMgt: Codeunit DimensionManagement;
@@ -13766,7 +13766,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeUnApplyWHTEntry(GenJnlLine: Record "Gen. Journal Line"; TransactionType: Option; CVNo: Code[20]; TransactionNo: Integer; VoidCheck: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeUnApplyWHTEntry(GenJnlLine: Record "Gen. Journal Line"; TransactionType: Option; CVNo: Code[20]; TransactionNo: BigInteger; VoidCheck: Boolean; var IsHandled: Boolean)
     begin
     end;
 

@@ -72,7 +72,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         Format4Lbl: Label '%1 %2 %3 %4', Comment = '%1 = Job No., %2 = Job Task No., %3 = Job Planning Line No., %4 = Line No.';
         Format2Lbl: Label '%1 %2', Comment = 'Assemble %1 = Document Type, %2 = No.';
 
-    procedure RunWithCheck(var JobJnlLine2: Record "Job Journal Line"): Integer
+    procedure RunWithCheck(var JobJnlLine2: Record "Job Journal Line"): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         JobLedgEntryNo: BigInteger;
@@ -87,7 +87,7 @@ codeunit 1012 "Job Jnl.-Post Line"
         exit(JobLedgEntryNo);
     end;
 
-    local procedure "Code"(CheckLine: Boolean): Integer
+    local procedure "Code"(CheckLine: Boolean): BigInteger
     var
         SourceCurrencyTotalCost: Decimal;
         JobLedgEntryNo: BigInteger;
@@ -586,7 +586,7 @@ codeunit 1012 "Job Jnl.-Post Line"
                 Location.Get(LocationCode);
     end;
 
-    procedure SetGLEntryNo(GLEntryNo2: Integer)
+    procedure SetGLEntryNo(GLEntryNo2: BigInteger)
     begin
         GLEntryNo := GLEntryNo2;
     end;
