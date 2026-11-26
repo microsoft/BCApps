@@ -121,7 +121,8 @@ codeunit 7402 "Registration No. Mgt."
                         if (ValueCharacter < '0') or (ValueCharacter > '9') then
                             exit(false);
                     '@':
-                        if not Char.IsLetter(ValueCharacter) then
+                        if ((ValueCharacter < 'A') or (ValueCharacter > 'Z')) and
+                           ((ValueCharacter < 'a') or (ValueCharacter > 'z')) then
                             exit(false);
                     else
                         if (FormatCharacter <> '?') and (ValueCharacter <> FormatCharacter) then
