@@ -210,11 +210,12 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogConsentRequired(IntegrationTableId);
             Error(SourceConsentError());
         end;
+        // readPermission goes first: the source also reports an unreadable table as not available (see GetRecords).
+        if not SourceResponse.ReadPermission(Response) then
+            RaiseSourceReadPermissionError(IntegrationTableId);
         // An unavailable table yields no records array; treat as no matching records for the review.
         if not SourceResponse.TableAvailable(Response) then
             exit(false);
-        if not SourceResponse.ReadPermission(Response) then
-            RaiseSourceReadPermissionError(IntegrationTableId);
         // An unindexed source past the change cap returns indexed:false with an empty page; like the unfiltered probe
         // we can't prove emptiness cheaply, so assume records may exist rather than under-reporting to the review.
         if not SourceResponse.Indexed(Response) then
@@ -446,12 +447,14 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogConsentRequired(IntegrationTableId);
             Error(SourceConsentError());
         end;
+        // readPermission goes first: the source also reports an unreadable table as not available (see GetRecords), and
+        // the permission message names the fix.
+        if not SourceResponse.ReadPermission(Response) then
+            RaiseSourceReadPermissionError(IntegrationTableId);
         if not SourceResponse.TableAvailable(Response) then begin
             LogParseFailure(IntegrationTableId, TableUnavailableReasonTok);
             Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(TableUnavailableErr, TableCaption(IntegrationTableId))));
         end;
-        if not SourceResponse.ReadPermission(Response) then
-            RaiseSourceReadPermissionError(IntegrationTableId);
         if not SourceResponse.Indexed(Response) then begin
             LogParseFailure(IntegrationTableId, NotIndexedReasonTok);
             Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(NotIndexedErr, TableCaption(IntegrationTableId))));

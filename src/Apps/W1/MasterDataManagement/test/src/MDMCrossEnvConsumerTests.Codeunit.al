@@ -504,12 +504,12 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         LibrarySalesLib.CreateCustomer(Customer);
         LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
         InProcessTransport.Activate();
-        InProcessTransport.SetCannedResponse('{"tableId":18,"tableAvailable":true,"readPermission":false,"records":[],"hasMore":false}');
+        InProcessTransport.SetCannedResponse('{"tableId":18,"tableAvailable":false,"readPermission":false,"records":[],"hasMore":false}');
 
         // [WHEN] the subsidiary reads a customer from the source
         asserterror LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
 
-        // [THEN] the error tells the source admin to grant read permission
+        // [THEN] the error tells the source admin to grant read permission, not that the table is unavailable
         Assert.ExpectedError('grant the application direct read permission (R) to this table');
 
         CleanUp();
