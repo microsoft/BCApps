@@ -484,13 +484,12 @@ page 6928 "Expense Reports API"
                     ApprovalOutcome.Add('bcStatus', 'Approved');
                     NextApprover.SetValueToNull();
                 end;
-            else
-                begin
-                    UnexpectedApprovalStatusErrorInfo.Message := StrSubstNo(UnexpectedApprovalStatusErr, Rec.Status);
-                    UnexpectedApprovalStatusErrorInfo.ErrorType := ErrorType::Internal;
-                    UnexpectedApprovalStatusErrorInfo.DataClassification := DataClassification::SystemMetadata;
-                    Error(UnexpectedApprovalStatusErrorInfo);
-                end;
+            else begin
+                UnexpectedApprovalStatusErrorInfo.Message := StrSubstNo(UnexpectedApprovalStatusErr, Rec.Status);
+                UnexpectedApprovalStatusErrorInfo.ErrorType := ErrorType::Internal;
+                UnexpectedApprovalStatusErrorInfo.DataClassification := DataClassification::SystemMetadata;
+                Error(UnexpectedApprovalStatusErrorInfo);
+            end;
         end;
         ApprovalOutcome.Add('approvalComplete', Rec.Status = Rec.Status::Approved);
         ApprovalOutcome.Add('nextApproverExpenseUserNo', NextApprover);

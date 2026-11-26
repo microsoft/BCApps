@@ -113,6 +113,29 @@ These AL tests require the existing Business Central test environment.
 
 # Interim approval controls
 
+## Available approvers
+
+Use `GET expenseUsers({id})/availableApprovers` to list expense users with
+`canApprove: true` and an employee link. The parent expense user is included
+if they meet these conditions. The collection is read-only and supports standard OData
+filtering, paging, and `$expand=availableApprovers`.
+
+Each entry exposes the same scalar fields as `expenseUsers`: `id`, `number`,
+`employeeNumber`, `name`, `eMail`, `jobTitle`, `canApprove`, `employeeStatus`,
+`approvalLimitLCY`, and `unlimitedApproval`. Caller filters can't override
+the approval or employee-link constraints.
+
+This is a company-wide lookup, not a report-specific eligibility check.
+It doesn't filter by report amount, final approver, or alternate coverage,
+and it isn't gated by **Allow Interim Approvers**. Assignment and submission
+continue to enforce their existing validation.
+
+The top-level `availableApprovers` collection returns the same approver list.
+`Expense Users API Test` covers nested navigation, conflicting caller
+filters, and parent inclusion when expanding multiple expense users.
+
+## Assignment setting
+
 **Configure Expense Agent / Allow Interim Approvers** controls new interim
 approver assignments. It's enabled by default for new and upgraded setups.
 The `expenseCapabilities` entry `interimApprover` uses capability ordinal 12
