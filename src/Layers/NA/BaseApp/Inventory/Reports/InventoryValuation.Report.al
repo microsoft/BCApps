@@ -448,7 +448,7 @@ report 10139 "Inventory Valuation"
     end;
 
 #if not CLEAN30
-    [Obsolete('Use OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters instead.', '29.0')]
+    [Obsolete('Use OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters instead.', '30.0')]
     [IntegrationEvent(true, false)]
     local procedure OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
     begin
