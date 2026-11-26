@@ -2217,7 +2217,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         Initialize();
 
         // [GIVEN] Documents D1 and D2 need income updates, D2 has saved tips 100, and document D3 is available to link.
-        CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100);
+        CreateSupplementalUpdateDocument(IRS1099FormDocHeader, 5000, 100, LibraryPurchase.CreateVendorNo());
         CreateAdditionalSupplementalDocument(SecondIRS1099FormDocHeader, IRS1099FormDocHeader, 5000, 100);
         CreateAdditionalSupplementalDocument(UnlinkedIRS1099FormDocHeader, IRS1099FormDocHeader, 5000, 100);
         PostSupplementalTestPayment(PostedPayment, IRS1099FormDocHeader."Vendor No.");
@@ -3818,13 +3818,10 @@ codeunit 148010 "IRS 1099 Document Tests"
     end;
 
     local procedure Initialize()
-    var
-        IRSReportingPeriod: Record "IRS Reporting Period";
     begin
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
-        DeleteDocuments();
-        IRSReportingPeriod.DeleteAll(true);
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 Document Tests");
         if IsInitialized then
             exit;
@@ -4017,11 +4014,16 @@ codeunit 148010 "IRS 1099 Document Tests"
     end;
 
     local procedure CreateSupplementalUpdateDocument(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ParentAmount: Decimal; TipsAmount: Decimal)
+    begin
+        CreateSupplementalUpdateDocument(IRS1099FormDocHeader, ParentAmount, TipsAmount, LibraryIRS1099FormBox.CreateVendorNoForNonPosting());
+    end;
+
+    local procedure CreateSupplementalUpdateDocument(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ParentAmount: Decimal; TipsAmount: Decimal; VendorNo: Code[20])
     var
         IRSFormsSetup: Record "IRS Forms Setup";
     begin
         IRSFormsSetup.InitSetup();
-        LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC');
+        LibraryIRS1099Document.CreateSupplementalDocument(IRS1099FormDocHeader, 'NEC', VendorNo);
         InitializeSupplementalUpdateDocument(IRS1099FormDocHeader, ParentAmount, TipsAmount);
     end;
 

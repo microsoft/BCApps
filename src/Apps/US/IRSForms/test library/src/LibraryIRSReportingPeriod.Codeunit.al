@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
-using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Environment;
 using System.Utilities;
 
@@ -44,7 +43,6 @@ codeunit 148000 "Library IRS Reporting Period"
     procedure CreateAvailableAnnualReportingPeriod(FirstReportingYear: Integer): Code[20]
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
-        DocHeader: Record "IRS 1099 Form Doc. Header";
         TempReportingYear: Record Integer temporary;
         PeriodNo: Code[20];
         ReportingYear: Integer;
@@ -62,10 +60,9 @@ codeunit 148000 "Library IRS Reporting Period"
             IRSReportingPeriod.SetRange("No.");
             IRSReportingPeriod.SetFilter("Starting Date", '<=%1', EndingDate);
             IRSReportingPeriod.SetFilter("Ending Date", '>=%1', StartingDate);
-            DocHeader.SetRange("Period No.", PeriodNo);
             TempReportingYear.Number := ReportingYear;
             TempReportingYear.Insert();
-            TempReportingYear.Mark(PeriodNoAvailable and IRSReportingPeriod.IsEmpty() and DocHeader.IsEmpty());
+            TempReportingYear.Mark(PeriodNoAvailable and IRSReportingPeriod.IsEmpty() and not HasAnnualReportingReferences(PeriodNo));
         end;
         TempReportingYear.MarkedOnly(true);
         Assert.IsFalse(TempReportingYear.IsEmpty(), StrSubstNo(NoAvailableReportingYearErr, FirstReportingYear));
@@ -91,17 +88,50 @@ codeunit 148000 "Library IRS Reporting Period"
     procedure RemoveAllReportingPeriodsWithRelatedData()
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
+        Form: Record "IRS 1099 Form";
+        FormBox: Record "IRS 1099 Form Box";
+        FormInstruction: Record "IRS 1099 Form Instruction";
+        StatementLine: Record "IRS 1099 Form Statement Line";
+        SupplementalBox: Record "IRS 1099 Suppl. Box";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        DocLine: Record "IRS 1099 Form Doc. Line";
+        DocLineDetail: Record "IRS 1099 Form Doc. Line Detail";
+        DocSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
+        FormReport: Record "IRS 1099 Form Report";
+        EmailQueue: Record "IRS 1099 Email Queue";
+        VendorSetup: Record "IRS 1099 Vendor Form Box Setup";
+        VendorAdjustment: Record "IRS 1099 Vendor Form Box Adj.";
+        Transmission: Record "Transmission IRIS";
+        TransmissionLog: Record "Transmission Log IRIS";
+        TransmissionLogLine: Record "Transmission Log Line IRIS";
+        ErrorInformation: Record "Error Information IRIS";
     begin
+        TransmissionLogLine.DeleteAll(true);
+        TransmissionLog.DeleteAll(true);
+        Transmission.ModifyAll(Status, Enum::"Transmission Status IRIS"::None);
+        Transmission.DeleteAll(true);
+        ErrorInformation.DeleteAll(true);
+        DocHeader.ModifyAll(Status, DocHeader.Status::Open);
+        DocHeader.ModifyAll("IRIS Transmission Document ID", 0);
+        DocHeader.DeleteAll(true);
+        DocLine.DeleteAll(true);
+        DocLineDetail.DeleteAll(true);
+        DocSupplementalLine.DeleteAll(true);
+        FormReport.DeleteAll(true);
+        EmailQueue.DeleteAll(true);
         IRSReportingPeriod.DeleteAll(true);
+        // Earlier triggerless deletions can leave setup without its parent period.
+        Form.DeleteAll(true);
+        StatementLine.DeleteAll(true);
+        SupplementalBox.DeleteAll(true);
+        FormBox.DeleteAll(true);
+        FormInstruction.DeleteAll(true);
+        VendorSetup.DeleteAll(true);
+        VendorAdjustment.DeleteAll(true);
     end;
 
     procedure GetPostingDate(): Date
-    var
-        GLEntry: Record "G/L Entry";
     begin
-        GLEntry.SetCurrentKey("Posting Date", "G/L Account No.", "Dimension Set ID");
-        if GLEntry.FindLast() then
-            exit(CalcDate('<1Y>', GLEntry."Posting Date"));
         exit(WorkDate());
     end;
 
@@ -142,5 +172,34 @@ codeunit 148000 "Library IRS Reporting Period"
         IRSReportingPeriod: Codeunit "IRS Reporting Period";
     begin
         IRSReportingPeriod.UpdateDataForNewTaxYear(FromPeriodNo, ToPeriodNo, false);
+    end;
+
+    local procedure HasAnnualReportingReferences(PeriodNo: Code[20]): Boolean
+    var
+        Form: Record "IRS 1099 Form";
+        FormBox: Record "IRS 1099 Form Box";
+        FormInstruction: Record "IRS 1099 Form Instruction";
+        StatementLine: Record "IRS 1099 Form Statement Line";
+        SupplementalBox: Record "IRS 1099 Suppl. Box";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        DocLine: Record "IRS 1099 Form Doc. Line";
+        VendorSetup: Record "IRS 1099 Vendor Form Box Setup";
+        VendorAdjustment: Record "IRS 1099 Vendor Form Box Adj.";
+        Transmission: Record "Transmission IRIS";
+    begin
+        Form.SetRange("Period No.", PeriodNo);
+        FormBox.SetRange("Period No.", PeriodNo);
+        FormInstruction.SetRange("Period No.", PeriodNo);
+        StatementLine.SetRange("Period No.", PeriodNo);
+        SupplementalBox.SetRange("Period No.", PeriodNo);
+        DocHeader.SetRange("Period No.", PeriodNo);
+        DocLine.SetRange("Period No.", PeriodNo);
+        VendorSetup.SetRange("Period No.", PeriodNo);
+        VendorAdjustment.SetRange("Period No.", PeriodNo);
+        Transmission.SetRange("Period No.", PeriodNo);
+        exit(not Form.IsEmpty() or not FormBox.IsEmpty() or not FormInstruction.IsEmpty() or
+            not StatementLine.IsEmpty() or not SupplementalBox.IsEmpty() or not DocHeader.IsEmpty() or
+            not DocLine.IsEmpty() or not VendorSetup.IsEmpty() or not VendorAdjustment.IsEmpty() or
+            not Transmission.IsEmpty());
     end;
 }

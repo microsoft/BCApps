@@ -21,7 +21,6 @@ codeunit 148016 "IRS Reporting Period Tests"
         LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
         LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
         LibraryRandom: Codeunit "Library - Random";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         IsInitialized: Boolean;
@@ -231,7 +230,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         FromEndDate := IRSReportingPeriod."Ending Date";
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(FromStartDate, FromEndDate);
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(FromStartDate, FromEndDate, FormNo);
-        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(FromStartDate, FromEndDate, FormNo, FormBoxNo);
+        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBoxForNonPosting(FromStartDate, FromEndDate, FormNo, FormBoxNo);
         Amount := LibraryRandom.RandDec(1000, 2);
         LibraryIRS1099FormBox.AddAdjustmentAmountForVendor(FromStartDate, FromEndDate, VendorNo, FormNo, FormBoxNo, Amount);
 
@@ -1422,7 +1421,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         FormBox.Insert(true);
         PrepareFormBox(FormBox, OtherPeriodNo, 'NEC', 'NEC-01B');
         FormBox.Insert(true);
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryIRS1099FormBox.CreateVendorForNonPosting(Vendor);
 
         // [WHEN] Select those income boxes in vendor setup and journal line.
         VendorSetup.Validate("Period No.", PeriodNo);
@@ -1929,7 +1928,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         ToPeriodNo := CreateSetupCopyPeriod();
         PrepareFormBox(FormBox, FromPeriodNo, 'NEC', 'NEC-01B');
         FormBox.Insert(true);
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryIRS1099FormBox.CreateVendorForNonPosting(Vendor);
         VendorSetup."Period No." := FromPeriodNo;
         VendorSetup."Vendor No." := Vendor."No.";
         VendorSetup."Form No." := 'NEC';
@@ -2104,6 +2103,9 @@ codeunit 148016 "IRS Reporting Period Tests"
     local procedure Initialize()
     begin
         LibraryLowerPermissions.StopLoggingNAVPermissions();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
         AnnualTestSetupPrepared := false;
         Clear(SetupCopySummary);
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS Reporting Period Tests");
@@ -2117,12 +2119,10 @@ codeunit 148016 "IRS Reporting Period Tests"
 
     local procedure CreateAnnualSetup(ReportingYear: Integer)
     var
-        ReportingPeriod: Record "IRS Reporting Period";
         IRSFormsData: Codeunit "IRS Forms Data";
     begin
         if not AnnualTestSetupPrepared then begin
-            ReportingPeriod.SetFilter("No.", '2025|2026|2027');
-            ReportingPeriod.DeleteAll(true);
+            DeleteAnnualTestSetup();
             AnnualTestSetupPrepared := true;
         end;
         IRSFormsData.AddReportingPeriodsWithForms(ReportingYear);
@@ -2197,7 +2197,7 @@ codeunit 148016 "IRS Reporting Period Tests"
         Vendor: Record Vendor;
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
     begin
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryIRS1099FormBox.CreateVendorForNonPosting(Vendor);
         IRS1099FormDocHeader.Init();
         IRS1099FormDocHeader."Period No." := PeriodNo;
         IRS1099FormDocHeader."Form No." := 'NEC';
@@ -2229,6 +2229,52 @@ codeunit 148016 "IRS Reporting Period Tests"
         SupplementalBox."Value Type" := SupplementalBox."Value Type"::Amount;
         SupplementalBox."XML Element Name" := ElementName;
         SupplementalBox.Insert();
+    end;
+
+    local procedure DeleteAnnualTestSetup()
+    var
+        ReportingPeriod: Record "IRS Reporting Period";
+        Form: Record "IRS 1099 Form";
+        FormBox: Record "IRS 1099 Form Box";
+        FormInstruction: Record "IRS 1099 Form Instruction";
+        StatementLine: Record "IRS 1099 Form Statement Line";
+        SupplementalBox: Record "IRS 1099 Suppl. Box";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        DocLine: Record "IRS 1099 Form Doc. Line";
+        VendorSetup: Record "IRS 1099 Vendor Form Box Setup";
+        VendorAdjustment: Record "IRS 1099 Vendor Form Box Adj.";
+        Transmission: Record "Transmission IRIS";
+        PeriodFilter: Text;
+        AnnualTestSetupInUseErr: Label 'Cannot reset annual test setup for period %1 while transmission %2 exists.', Comment = '%1 = reporting period, %2 = transmission ID';
+    begin
+        PeriodFilter := '2025|2026|2027';
+        Transmission.SetFilter("Period No.", PeriodFilter);
+        if Transmission.FindFirst() then
+            Error(AnnualTestSetupInUseErr, Transmission."Period No.", Transmission."Document ID");
+
+        DocHeader.SetFilter("Period No.", PeriodFilter);
+        DocHeader.ModifyAll(Status, DocHeader.Status::Open);
+        DocHeader.DeleteAll(true);
+        DocLine.SetFilter("Period No.", PeriodFilter);
+        DocLine.DeleteAll(true);
+        ReportingPeriod.SetFilter("No.", PeriodFilter);
+        ReportingPeriod.DeleteAll(true);
+
+        // Triggerless period deletion can leave setup without its parent period or form.
+        Form.SetFilter("Period No.", PeriodFilter);
+        Form.DeleteAll(true);
+        StatementLine.SetFilter("Period No.", PeriodFilter);
+        StatementLine.DeleteAll(true);
+        SupplementalBox.SetFilter("Period No.", PeriodFilter);
+        SupplementalBox.DeleteAll(true);
+        FormBox.SetFilter("Period No.", PeriodFilter);
+        FormBox.DeleteAll(true);
+        FormInstruction.SetFilter("Period No.", PeriodFilter);
+        FormInstruction.DeleteAll(true);
+        VendorSetup.SetFilter("Period No.", PeriodFilter);
+        VendorSetup.DeleteAll(true);
+        VendorAdjustment.SetFilter("Period No.", PeriodFilter);
+        VendorAdjustment.DeleteAll(true);
     end;
 
     local procedure DeleteBoxSetupTestPeriod(PeriodNo: Code[20])

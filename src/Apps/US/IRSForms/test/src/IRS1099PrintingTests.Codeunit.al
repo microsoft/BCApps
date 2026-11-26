@@ -49,6 +49,7 @@ begin
         CreateIRS1099DocLine(IRS1099FormDocHeader, IRS1099FormDocLine, LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), IRS1099FormDocHeader."Form No."), LibraryRandom.RandDec(1000, 2));
 
         // [WHEN] Run Print report
+        IRS1099FormDocHeader.SetRecFilter();
         asserterror Report.Run(Report::"IRS 1099 Print", false, false, IRS1099FormDocHeader);
 
         // [THEN] Error is shown that no statement lines exist
@@ -84,6 +85,7 @@ FormBoxNo: Code[20];
         Commit();
 
         // [WHEN] Use Save content for document
+        IRS1099FormDocHeader.SetRecFilter();
         TempIRS1099PrintParams := CreatePrintParams();
         IRSFormsFacade.SaveContentForDocument(IRS1099FormDocHeader, TempIRS1099PrintParams, false);
 
@@ -127,6 +129,7 @@ FormBoxNo: Code[20];
         Commit();
 
         // [WHEN] Run report
+        IRS1099FormDocHeader.SetRecFilter();
         LibraryReportDataset.RunReportAndLoad(Report::"IRS 1099 Print", IRS1099FormDocHeader, '');
 
         // [THEN] Vendor Bank Account No in report is "XXX"
@@ -426,11 +429,11 @@ end;
         // [GIVEN] NEC document D1 belongs to 2025, and MISC document D2 belongs to 2026.
         IRSFormsData.AddReportingPeriodsWithForms(2025);
         IRSFormsData.AddReportingPeriodsWithForms(2026);
-        DocHeader2025.Get(LibraryIRS1099Document.MockFormDocumentForVendor('2025', LibraryPurchase.CreateVendorNo(), 'NEC', Enum::"IRS 1099 Form Doc. Status"::Open));
+        DocHeader2025.Get(LibraryIRS1099Document.MockFormDocumentForVendor('2025', LibraryIRS1099FormBox.CreateVendorNoForNonPosting(), 'NEC', Enum::"IRS 1099 Form Doc. Status"::Open));
         LibraryIRS1099Document.MockFormDocumentLineForVendor(IRS1099FormDocLine, DocHeader2025.ID, '2025', DocHeader2025."Vendor No.", 'NEC', 'NEC-01');
         IRS1099FormDocLine.Validate(Amount, 5000);
         IRS1099FormDocLine.Modify(true);
-        DocHeader2026.Get(LibraryIRS1099Document.MockFormDocumentForVendor('2026', LibraryPurchase.CreateVendorNo(), 'MISC', Enum::"IRS 1099 Form Doc. Status"::Open));
+        DocHeader2026.Get(LibraryIRS1099Document.MockFormDocumentForVendor('2026', LibraryIRS1099FormBox.CreateVendorNoForNonPosting(), 'MISC', Enum::"IRS 1099 Form Doc. Status"::Open));
         Clear(IRS1099FormDocLine);
         LibraryIRS1099Document.MockFormDocumentLineForVendor(IRS1099FormDocLine, DocHeader2026.ID, '2026', DocHeader2026."Vendor No.", 'MISC', 'MISC-03');
         IRS1099FormDocLine.Validate(Amount, 5000);
@@ -466,17 +469,15 @@ end;
     end;
 
     local procedure Initialize()
-    var
-        IRSReportingPeriod: Record "IRS Reporting Period";
     begin
-        IRSReportingPeriod.DeleteAll(true);
-        LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 Document Tests");
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 Printing Tests");
         if IsInitialized then
             exit;
-        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"IRS 1099 Document Tests");
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"IRS 1099 Printing Tests");
 
         IsInitialized := true;
-        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"IRS 1099 Document Tests");
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"IRS 1099 Printing Tests");
     end;
 
     local procedure CreateIRS1099Document(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
@@ -486,7 +487,7 @@ end;
         PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate());
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), FormNo);
-        VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(WorkDate(), FormNo, FormBoxNo);
+        VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBoxForNonPosting(WorkDate(), FormNo, FormBoxNo);
 
         IRS1099FormDocHeader."Period No." := PeriodNo;
         IRS1099FormDocHeader."Vendor No." := VendNo;

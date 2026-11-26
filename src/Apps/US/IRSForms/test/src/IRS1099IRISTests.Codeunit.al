@@ -3667,7 +3667,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [THEN] Receipt is saved, and another original send is blocked before HTTP.
         VerifyPendingIntake(Transmission, DocHeader, "Transmission Type IRIS"::O);
         asserterror LibraryIRS1099IRIS.SendOriginal(Transmission);
-        Assert.ExpectedError('still being processed');
+        Assert.ExpectedError('The IRS is still processing the transmission.');
         Assert.ExpectedErrorCode('Dialog');
         Assert.AreEqual(2, OfflineRequestPaths.Count(), 'A duplicate intake must not be sent.');
 
@@ -3732,7 +3732,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.AreEqual('ACCEPTED', DocHeader."IRIS Last Accepted Receipt ID", 'Intake is not acceptance.');
         Assert.IsTrue(DocHeader."IRIS Needs Correction", 'Unacknowledged correction must remain pending.');
         asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
-        Assert.ExpectedError('still being processed');
+        Assert.ExpectedError('The IRS is still processing the transmission.');
         Assert.ExpectedErrorCode('Dialog');
         Assert.AreEqual(2, OfflineRequestPaths.Count(), 'A pending correction must not be resubmitted.');
 
@@ -4143,7 +4143,6 @@ codeunit 148022 "IRS 1099 IRIS Tests"
 
     local procedure Initialize()
     var
-        ReportingPeriod: Record "IRS Reporting Period";
         MockKeyVaultClientIRIS: Codeunit "Mock Key Vault Client IRIS";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 IRIS Tests");
@@ -4167,10 +4166,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
 
         LibrarySetupStorage.Restore();
         LibraryIRS1099IRIS.RestoreIRISUserID();
-        LibraryIRS1099IRIS.DeleteAllTransmissions();
-        LibraryIRS1099Document.DeleteFormDocuments();
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
         MockKeyVaultClientIRIS.SetDefaultValues();
         MockKeyVaultClientIRIS.SetSoftwareId(CopyStr(Format(Date2DMY(WorkDate(), 3)), 3, 2) + 'TEST0001');
+        InitializeReportingPeriodAndForms(Date2DMY(WorkDate(), 3));
         if IsInitialized then
             exit;
 
@@ -4180,9 +4179,6 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryIRS1099IRIS.InitializeIRSFormsSetup();
         LibraryIRS1099IRIS.SaveIRISUserID();
         LibraryIRS1099IRIS.InitializeIRISUserID();
-        if not ReportingPeriod.Get(Format(Date2DMY(WorkDate(), 3))) then
-            InitializeReportingPeriodAndForms(Date2DMY(WorkDate(), 3));
-
         LibrarySetupStorage.SaveCompanyInformation();
         LibrarySetupStorage.Save(Database::"IRS Forms Setup");
 

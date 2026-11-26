@@ -104,6 +104,36 @@ codeunit 148004 "Library IRS 1099 Form Box"
         exit(Vendor."No.");
     end;
 
+    procedure CreateVendorForNonPosting(var Vendor: Record Vendor)
+    begin
+        Clear(Vendor);
+        Vendor."No." := LibraryUtility.GenerateGUID();
+        Vendor.Name := Vendor."No.";
+        Vendor.Insert();
+    end;
+
+    procedure CreateVendorNoForNonPosting(): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        CreateVendorForNonPosting(Vendor);
+        exit(Vendor."No.");
+    end;
+
+    procedure CreateVendorNoWithFormBoxForNonPosting(ReportingDate: Date; FormNo: Code[20]; FormBoxNo: Code[20]): Code[20]
+    begin
+        exit(CreateVendorNoWithFormBoxForNonPosting(ReportingDate, ReportingDate, FormNo, FormBoxNo));
+    end;
+
+    procedure CreateVendorNoWithFormBoxForNonPosting(StartingDate: Date; EndingDate: Date; FormNo: Code[20]; FormBoxNo: Code[20]): Code[20]
+    var
+        VendorNo: Code[20];
+    begin
+        VendorNo := CreateVendorNoForNonPosting();
+        AssignFormBoxForVendorInPeriod(VendorNo, StartingDate, EndingDate, FormNo, FormBoxNo);
+        exit(VendorNo);
+    end;
+
     procedure AddAdjustmentAmountForVendor(PostingDate: Date; VendorNo: Code[20]; FormNo: Code[20]; FormBoxNo: Code[20]; Amount: Decimal)
     begin
         AddAdjustmentAmountForVendor(PostingDate, PostingDate, VendorNo, FormNo, FormBoxNo, Amount);
@@ -130,6 +160,11 @@ codeunit 148004 "Library IRS 1099 Form Box"
         TempIRS1099CalcParameters."Form No." := FormNo;
         TempIRS1099CalcParameters."Vendor No." := VendorNo;
         IRSFormsFacade.GetVendorFormBoxAmount(TempVendFormBoxBuffer, TempIRS1099CalcParameters);
+    end;
+
+    procedure GetVendorIRS1099FormBoxSetupAsOfWorkdate(var PeriodNo: Code[20]; var FormNo: Code[20]; var FormBoxNo: Code[20]; VendorNo: Code[20])
+    begin
+        IRS1099VendorFormBox.GetVendorIRS1099FormBoxSetupAsOfWorkdate(PeriodNo, FormNo, FormBoxNo, VendorNo);
     end;
 
     procedure AssignFormBoxForVendorInPeriod(VendNo: Code[20]; StartingDate: Date; EndingDate: Date; FormNo: Code[20]; FormBoxNo: Code[20])
@@ -172,6 +207,11 @@ codeunit 148004 "Library IRS 1099 Form Box"
     procedure SuggestVendorsForFormBoxSetup(StartingDate: Date; EndingDate: Date)
     begin
         IRS1099VendorFormBox.SuggestVendorsForFormBoxSetup(LibraryIRSReportingPeriod.GetReportingPeriod(StartingDate, EndingDate));
+    end;
+
+    procedure ShowVendor1099FormBoxSetupAsOfWorkDate(VendorNo: Code[20])
+    begin
+        IRS1099VendorFormBox.ShowVendor1099FormBoxSetupAsOfWorkDate(VendorNo);
     end;
 
     procedure PropagateVendorFormBoxSetupToVendorLedgerEntries(StartingDate: Date; EndingDate: Date; VendorNo: Code[20]; FormNo: Code[20]; FormBoxNo: Code[20])

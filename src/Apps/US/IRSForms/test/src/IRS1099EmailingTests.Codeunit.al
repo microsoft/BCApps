@@ -24,7 +24,6 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         LibraryEmail: Codeunit "Library - Email";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit "Assert";
         IsInitialized: Boolean;
@@ -57,6 +56,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [THEN] The error "You must set up email in Business Central" is thrown.
         Assert.ExpectedError(EmailSetupMissingErr);
         Assert.ExpectedErrorCode('Dialog');
+        IRS1099FormDocuments.Close();
     end;
 
     [Test]
@@ -94,6 +94,8 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         Assert.ExpectedMessage(
             StrSubstNo(EmptyEmailErr, IRS1099FormDocHeader.FieldCaption("Vendor E-Mail")),
             ErrorMessagesPage.Description.Value);
+        ErrorMessagesPage.Close();
+        IRS1099FormDocuments.Close();
     end;
 
     [Test]
@@ -120,6 +122,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         IRS1099FormDocuments.OpenEdit();
         IRS1099FormDocuments.Filter.SetFilter("Vendor No.", IRS1099FormDocHeader."Vendor No.");
         IRS1099FormDocuments.SendEmail.Invoke();
+        IRS1099FormDocuments.Close();
 
         // [THEN] Report "IRS 1099 Send Email" is run and one email is sent.
         // [THEN] "Copy B Sent" flag was set in 1099 form document.
@@ -149,6 +152,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [THEN] The error "You must set up email in Business Central" is thrown.
         Assert.ExpectedError(EmailSetupMissingErr);
         Assert.ExpectedErrorCode('Dialog');
+        IRS1099FormDocument.Close();
     end;
 
     [Test]
@@ -175,6 +179,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [THEN] Error "You must enable the Receiving 1099 E-Form Consent field" is thrown.
         Assert.ExpectedError(EnableConsentMessageTxt);
         Assert.ExpectedErrorCode('Dialog');
+        IRS1099FormDocument.Close();
     end;
 
     [Test]
@@ -201,6 +206,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [THEN] Error "Set the email in the document or in the vendor card" is thrown.
         Assert.ExpectedError(SetEmailMessageTxt);
         Assert.ExpectedErrorCode('Dialog');
+        IRS1099FormDocument.Close();
     end;
 
     [Test]
@@ -227,6 +233,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         IRS1099FormDocument.OpenEdit();
         IRS1099FormDocument.Filter.SetFilter("Vendor No.", IRS1099FormDocHeader."Vendor No.");
         IRS1099FormDocument.SendEmail.Invoke();
+        IRS1099FormDocument.Close();
 
         // [THEN] Report "IRS 1099 Send Email" is run and one email is sent.
         // [THEN] "Copy B Sent" flag was set in 1099 form document.
@@ -241,7 +248,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         DummyVendor: Record Vendor;
-        VendorCard: TestPage "Vendor Card";
+        Vendor: Record Vendor;
         ConfirmQuestion: Text;
     begin
         // [SCENARIO 560521] Propagate email consent from vendor to submitted 1099 form document.
@@ -253,10 +260,10 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [GIVEN] Vendor with email and without consent.
         UpdateVendorEmailAndConsent(IRS1099FormDocHeader."Vendor No.", LibraryUtility.GenerateRandomEmail(), false);
 
-        // [WHEN] Open the vendor card and set the email consent.
-        VendorCard.OpenEdit();
-        VendorCard.Filter.SetFilter("No.", IRS1099FormDocHeader."Vendor No.");
-        VendorCard."Receive Elec. IRS Forms".SetValue(true);
+        // [WHEN] Enable the vendor's email consent through field validation.
+        Vendor.Get(IRS1099FormDocHeader."Vendor No.");
+        Vendor.Validate("Receiving 1099 E-Form Consent", true);
+        Vendor.Modify(true);
 
         // [THEN] Confirm dialog with question "Do you want to propagate consent to submitted documents" is shown. Reply Yes.
         ConfirmQuestion := LibraryVariableStorage.DequeueText();
@@ -278,7 +285,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         DummyVendor: Record Vendor;
-        VendorCard: TestPage "Vendor Card";
+        Vendor: Record Vendor;
         ConfirmQuestion: Text;
         VendorEmail: Text[80];
     begin
@@ -291,11 +298,11 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [GIVEN] Vendor without email and with consent.
         UpdateVendorEmailAndConsent(IRS1099FormDocHeader."Vendor No.", '', true);
 
-        // [WHEN] Open the vendor card and set the email.
+        // [WHEN] Set the vendor's email through field validation.
         VendorEmail := LibraryUtility.GenerateRandomEmail();
-        VendorCard.OpenEdit();
-        VendorCard.Filter.SetFilter("No.", IRS1099FormDocHeader."Vendor No.");
-        VendorCard."E-Mail".SetValue(VendorEmail);
+        Vendor.Get(IRS1099FormDocHeader."Vendor No.");
+        Vendor.Validate("E-Mail", VendorEmail);
+        Vendor.Modify(true);
 
         // [THEN] Confirm dialog with question "Do you want to propagate email to submitted documents" is shown. Reply Yes.
         ConfirmQuestion := LibraryVariableStorage.DequeueText();
@@ -317,7 +324,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         DummyVendor: Record Vendor;
-        VendorCard: TestPage "Vendor Card";
+        Vendor: Record Vendor;
         ConfirmQuestion: Text;
     begin
         // [SCENARIO 560521] Propagate email consent from vendor to released 1099 form document.
@@ -330,10 +337,10 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [GIVEN] Vendor with email and without consent.
         UpdateVendorEmailAndConsent(IRS1099FormDocHeader."Vendor No.", LibraryUtility.GenerateRandomEmail(), false);
 
-        // [WHEN] Open the vendor card and set the email consent.
-        VendorCard.OpenEdit();
-        VendorCard.Filter.SetFilter("No.", IRS1099FormDocHeader."Vendor No.");
-        VendorCard."Receive Elec. IRS Forms".SetValue(true);
+        // [WHEN] Enable the vendor's email consent through field validation.
+        Vendor.Get(IRS1099FormDocHeader."Vendor No.");
+        Vendor.Validate("Receiving 1099 E-Form Consent", true);
+        Vendor.Modify(true);
 
         // [THEN] Confirm dialog with question "Do you want to propagate consent to released documents" is shown. Reply Yes.
         ConfirmQuestion := LibraryVariableStorage.DequeueText();
@@ -355,7 +362,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         DummyVendor: Record Vendor;
-        VendorCard: TestPage "Vendor Card";
+        Vendor: Record Vendor;
         ConfirmQuestion: Text;
         VendorEmail: Text[80];
     begin
@@ -369,11 +376,11 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         // [GIVEN] Vendor without email and with consent.
         UpdateVendorEmailAndConsent(IRS1099FormDocHeader."Vendor No.", '', true);
 
-        // [WHEN] Open the vendor card and set the email.
+        // [WHEN] Set the vendor's email through field validation.
         VendorEmail := LibraryUtility.GenerateRandomEmail();
-        VendorCard.OpenEdit();
-        VendorCard.Filter.SetFilter("No.", IRS1099FormDocHeader."Vendor No.");
-        VendorCard."E-Mail".SetValue(VendorEmail);
+        Vendor.Get(IRS1099FormDocHeader."Vendor No.");
+        Vendor.Validate("E-Mail", VendorEmail);
+        Vendor.Modify(true);
 
         // [THEN] Confirm dialog with question "Do you want to propagate email to released documents" is shown. Reply Yes.
         ConfirmQuestion := LibraryVariableStorage.DequeueText();
@@ -606,13 +613,10 @@ codeunit 148012 "IRS 1099 Emailing Tests"
     end;
 
     local procedure Initialize()
-    var
-        IRSReportingPeriod: Record "IRS Reporting Period";
     begin
         LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
-        DeleteFormDocuments();
-        IRSReportingPeriod.DeleteAll(true);
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
 
         if IsInitialized then
             exit;
@@ -643,7 +647,7 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         OccupationCodesBoxNo: Code[20];
         OvertimeBoxNo: Code[20];
     begin
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryIRS1099FormBox.CreateVendorForNonPosting(Vendor);
         Vendor.Name := 'SYNTHETIC STATEMENT RECIPIENT';
         Vendor.Address := '2 Test Street';
         Vendor."Address 2" := '';
@@ -689,14 +693,6 @@ codeunit 148012 "IRS 1099 Emailing Tests"
         SupplementalLine.Insert(true);
     end;
 
-    local procedure DeleteFormDocuments()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-    begin
-        IRS1099FormDocHeader.ModifyAll(Status, IRS1099FormDocHeader.Status::Open);
-        IRS1099FormDocHeader.DeleteAll(true);
-    end;
-
     local procedure DeleteEmailAccounts()
     var
         TempEmailAccount: Record "Email Account";
@@ -723,16 +719,18 @@ codeunit 148012 "IRS 1099 Emailing Tests"
 
     local procedure MockFormDocument(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; Status: Enum "IRS 1099 Form Doc. Status")
     var
-        PeriodNo, FormNo, VendorNo, FormBoxNo : Code[20];
+        Vendor: Record Vendor;
+        PeriodNo, FormNo, FormBoxNo : Code[20];
         DocID: Integer;
     begin
         PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate());
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), FormNo);
-        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(WorkDate(), FormNo, FormBoxNo);
+        LibraryIRS1099FormBox.CreateVendorForNonPosting(Vendor);
+        LibraryIRS1099FormBox.AssignFormBoxForVendorInPeriod(Vendor."No.", WorkDate(), WorkDate(), FormNo, FormBoxNo);
         LibraryIRS1099FormBox.CreateSingleFormStatementLine(WorkDate(), FormNo, FormBoxNo);
-        DocID := LibraryIRS1099Document.MockFormDocumentForVendor(PeriodNo, VendorNo, FormNo, Status);
-        LibraryIRS1099Document.MockFormDocumentLineForVendor(DocID, PeriodNo, VendorNo, FormNo, FormBoxNo);
+        DocID := LibraryIRS1099Document.MockFormDocumentForVendor(PeriodNo, Vendor."No.", FormNo, Status);
+        LibraryIRS1099Document.MockFormDocumentLineForVendor(DocID, PeriodNo, Vendor."No.", FormNo, FormBoxNo);
         IRS1099FormDocHeader.Get(DocID);
     end;
 

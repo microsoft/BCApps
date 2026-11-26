@@ -120,6 +120,11 @@ codeunit 148001 "Library IRS 1099 Document"
     end;
 
     procedure CreateSupplementalDocument(var DocHeader: Record "IRS 1099 Form Doc. Header"; FormNo: Code[20])
+    begin
+        CreateSupplementalDocument(DocHeader, FormNo, LibraryIRS1099FormBox.CreateVendorNoForNonPosting());
+    end;
+
+    procedure CreateSupplementalDocument(var DocHeader: Record "IRS 1099 Form Doc. Header"; FormNo: Code[20]; VendorNo: Code[20])
     var
         IRS1099Form: Record "IRS 1099 Form";
         FormBox: Record "IRS 1099 Form Box";
@@ -142,7 +147,7 @@ codeunit 148001 "Library IRS 1099 Document"
         FormBox.Insert(true);
         DocHeader.Init();
         DocHeader."Period No." := PeriodNo;
-        DocHeader."Vendor No." := LibraryPurchase.CreateVendorNo();
+        DocHeader."Vendor No." := VendorNo;
         DocHeader."Form No." := FormNo;
         DocHeader.Insert(true);
         MockFormDocumentLineForVendor(DocLine, DocHeader.ID, PeriodNo, DocHeader."Vendor No.", FormNo, ParentBoxNo);

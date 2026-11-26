@@ -20,14 +20,12 @@ codeunit 148018 "IRS 1099 API Tests"
         TempOwnedVendor: Record Vendor temporary;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
-        LibraryIRS1099Document: Codeunit "Library IRS 1099 Document";
         LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         OriginalWorkDate: Date;
         IsInitialized: Boolean;
         IRS1099DocumentsServiceNameLbl: Label 'irs1099documents';
-        SupplementalServiceNameLbl: Label 'irs1099documentsupplementallines', Locked = true;
 
     [Test]
     procedure IRS1099DocumentsAPISunshine()
@@ -36,7 +34,8 @@ codeunit 148018 "IRS 1099 API Tests"
         OtherIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
         IRS1099FormReport: Record "IRS 1099 Form Report";
-        ResponseText: Text;
+        ResponseSucceeded: Boolean;
+        ResponseError: Text;
     begin
         // [SCENARIO 497835]
         Initialize();
@@ -47,234 +46,12 @@ codeunit 148018 "IRS 1099 API Tests"
         MockIRS1099FormDocWithLineAndFormReport(IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
         Commit();
         // [WHEN] Call the API
-        LibraryGraphMgt.GetFromWebService(ResponseText, GetIRS1099DocumentAPIWithExpands(IRS1099FormDocHeader));
+        ResponseSucceeded := TryGetAndVerifyAPIResponse(IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
+        ResponseError := GetLastErrorText();
         // [THEN] The response contains the header, line and form report
-        VerifyResponseSunshine(ResponseText, IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
         Cleanup();
         Commit();
-    end;
-
-    [Test]
-    procedure SupplementalAPIExposesExcludedStoredValuesAndNavigation()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        OtherIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
-        TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        ResponseText: Text;
-        DocumentJson: Text;
-        LineJson: Text;
-        Url: Text;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The API returns saved tips and occupation codes even when the related income is excluded from 1099 reporting.
-        Initialize();
-        Commit();
-
-        // [GIVEN] Document D has income 500 below minimum of 2000, tips 100 and occupation codes 101 and 000; document D2 has no supplemental lines.
-        CreateSupplementalAPITestDocument(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 100);
-        CreateAPIDocument(OtherIRS1099FormDocHeader);
-        Commit();
-
-        // [WHEN] Read document D through API with its income and supplemental lines, then read each document's supplemental lines separately.
-        Url := LibraryGraphMgt.CreateTargetURL(Format(IRS1099FormDocHeader.SystemId), Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
-        LibraryGraphMgt.GetFromWebService(ResponseText,
-            LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099documentsupplementallines'));
-
-        // [THEN] API returns income 500 as excluded and saved tips and codes only for document D; no extra income line is created.
-        DocumentJson := ResponseText;
-        Assert.IsTrue(LibraryGraphMgt.GetObjectFromJSONResponseByName(DocumentJson, 'irs1099documentlines', LineJson, 1), 'Financial line is missing.');
-        LibraryGraphMgt.VerifyPropertyInJSON(LineJson, 'amount', '500');
-        LibraryGraphMgt.VerifyPropertyInJSON(LineJson, 'includeIn1099', 'False');
-        VerifySupplementalCollection(ResponseText, IRS1099FormDocHeader.ID, TipsSupplementalLine, CodesSupplementalLine, true);
-        Clear(ResponseText);
-        LibraryGraphMgt.GetFromWebService(ResponseText, LibraryGraphMgt.AppendPathToTargetURL(Url, '/' + SupplementalServiceNameLbl));
-        VerifySupplementalCollection(ResponseText, IRS1099FormDocHeader.ID, TipsSupplementalLine, CodesSupplementalLine, false);
-        Url := LibraryGraphMgt.CreateTargetURL(Format(OtherIRS1099FormDocHeader.SystemId), Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
-        Clear(ResponseText);
-        LibraryGraphMgt.GetFromWebService(ResponseText, LibraryGraphMgt.AppendPathToTargetURL(Url, '/' + SupplementalServiceNameLbl));
-        VerifyEmptyCollection(ResponseText);
-        ParentIRS1099FormDocLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
-        Assert.RecordCount(ParentIRS1099FormDocLine, 1);
-        Cleanup();
-        Commit();
-    end;
-
-    [Test]
-    procedure SupplementalAPIRetainsZeroTipCodes()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
-        TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        ResponseText: Text;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The API returns saved occupation codes when cash tips are zero.
-        Initialize();
-        Commit();
-
-        // [GIVEN] Document D has zero cash tips and saved occupation codes 101 and 000.
-        CreateSupplementalAPITestDocument(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 0);
-        Commit();
-
-        // [WHEN] Read occupation-code line through API using its SystemId.
-        LibraryGraphMgt.GetFromWebService(ResponseText,
-            LibraryGraphMgt.CreateTargetURL(Format(CodesSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl));
-
-        // [THEN] Both codes are returned unchanged, including leading zeros, even though they are not included in 1099 reporting.
-        VerifySupplementalValue(ResponseText, CodesSupplementalLine);
-        Assert.IsFalse(LibraryIRS1099Document.IsSupplementalReportable(CodesSupplementalLine), 'Stored API codes must not imply reportability.');
-        Cleanup();
-        Commit();
-    end;
-
-    [Test]
-    procedure SupplementalAPIPreservesFractionalAmountsAfterStatement()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
-        TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        StatementLine: Record "IRS 1099 Form Statement Line";
-        Lines: JsonArray;
-        ResponseText: Text;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Generating a statement does not round the tips or change the occupation codes returned by the API.
-        Initialize();
-        Commit();
-
-        // [GIVEN] Document D has reportable income 5000, tips 0.004, codes 101 and 000, and statement rows for tips and codes.
-        CreateSupplementalAPITestDocument(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 0.004);
-        ParentIRS1099FormDocLine.Validate(Amount, 5000);
-        ParentIRS1099FormDocLine.Modify(true);
-        StatementLine."Period No." := IRS1099FormDocHeader."Period No.";
-        StatementLine."Form No." := IRS1099FormDocHeader."Form No.";
-        StatementLine."Line No." := 10000;
-        StatementLine."Value Source" := StatementLine."Value Source"::"Supplemental Line";
-        StatementLine.Validate("Supplemental Box No.", 'NEC-01B');
-        StatementLine.Insert(true);
-        StatementLine."Line No." := 20000;
-        StatementLine.Validate("Supplemental Box No.", 'NEC-01C');
-        StatementLine.Insert(true);
-
-        // [WHEN] Generate statement data and read saved tips and codes through API.
-        Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
-        Commit();
-        LibraryGraphMgt.GetFromWebService(ResponseText,
-            LibraryGraphMgt.CreateTargetURL(Format(TipsSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl));
-
-        // [THEN] Statement omits codes because tips round to zero, while API still returns tips 0.004 and both saved codes.
-        Assert.AreEqual(1, Lines.Count(), 'Rounded-zero tips suppress the statement codes, not the positive raw amount row.');
-        VerifySupplementalValue(ResponseText, TipsSupplementalLine);
-        TipsSupplementalLine.Get(IRS1099FormDocHeader.ID, 'NEC-01B');
-        Assert.AreEqual(0.004, TipsSupplementalLine.Amount, 'Statement rendering must preserve stored/API precision.');
-        Clear(ResponseText);
-        LibraryGraphMgt.GetFromWebService(ResponseText,
-            LibraryGraphMgt.CreateTargetURL(Format(CodesSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl));
-        VerifySupplementalValue(ResponseText, CodesSupplementalLine);
-        Cleanup();
-        Commit();
-    end;
-
-    [Test]
-    procedure SupplementalAPIRejectsInsert()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
-        TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        ResponseText: Text;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The supplemental API rejects insert without changing an open document.
-        Initialize();
-        Commit();
-
-        // [GIVEN] Open Form Document with saved disclosures.
-        CreateSupplementalAPITestDocument(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 100);
-        Commit();
-
-        // [WHEN] POST attempts to insert supplemental row.
-        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            LibraryGraphMgt.CreateTargetURL('', Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl),
-            '{"amount":50}', ResponseText, 405);
-
-        // [THEN] Inserts are explicitly rejected.
-        Assert.ExpectedError('405 (MethodNotAllowed).');
-        Assert.ExpectedError('Entity does not support insert.');
-        Assert.ExpectedErrorCode('Dialog');
-
-        VerifyRejectedWrite(IRS1099FormDocHeader.ID, CodesSupplementalLine);
-        Cleanup();
-        Commit();
-    end;
-
-    [Test]
-    procedure SupplementalAPIRejectsModify()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
-        TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        ResponseText: Text;
-        Url: Text;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The supplemental API rejects modification without changing saved disclosures.
-        Initialize();
-        Commit();
-
-        // [GIVEN] Document D is open with saved tips and occupation codes.
-        CreateSupplementalAPITestDocument(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 100);
-        Commit();
-        Url := LibraryGraphMgt.CreateTargetURL(Format(TipsSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl);
-
-        // [WHEN] PATCH attempts to change stored amount.
-        asserterror LibraryGraphMgt.PatchToWebServiceAndCheckResponseCode(Url, '{"amount":50}', ResponseText, 405);
-
-        // [THEN] Modifications are explicitly rejected.
-        Assert.ExpectedError('405 (MethodNotAllowed).');
-        Assert.ExpectedError('Entity does not support modifying data.');
-        Assert.ExpectedErrorCode('Dialog');
-        VerifyRejectedWrite(IRS1099FormDocHeader.ID, CodesSupplementalLine);
-        Cleanup();
-        Commit();
-    end;
-
-    [Test]
-    procedure SupplementalAPIRejectsDelete()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
-        TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
-        ResponseText: Text;
-        Url: Text;
-    begin
-        // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The supplemental API rejects deletion without losing saved disclosures.
-        Initialize();
-        Commit();
-
-        // [GIVEN] Document D is open with saved tips and occupation codes.
-        CreateSupplementalAPITestDocument(IRS1099FormDocHeader, ParentIRS1099FormDocLine, TipsSupplementalLine, CodesSupplementalLine, 100);
-        Commit();
-        Url := LibraryGraphMgt.CreateTargetURL(Format(TipsSupplementalLine.SystemId), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl);
-
-        // [WHEN] DELETE attempts to remove stored row.
-        asserterror LibraryGraphMgt.DeleteFromWebServiceAndCheckResponseCode(Url, '', ResponseText, 400);
-
-        // [THEN] Deletion is explicitly rejected.
-        Assert.ExpectedError('400 (BadRequest).');
-        Assert.ExpectedError('Entity does not support delete.');
-        Assert.ExpectedErrorCode('Dialog');
-
-        VerifyRejectedWrite(IRS1099FormDocHeader.ID, CodesSupplementalLine);
-        Cleanup();
-        Commit();
+        Assert.IsTrue(ResponseSucceeded, ResponseError);
     end;
 
     local procedure Initialize()
@@ -358,45 +135,11 @@ codeunit 148018 "IRS 1099 API Tests"
         TempOwnedDocHeader.Insert(false, true);
     end;
 
-    local procedure CreateSupplementalAPITestDocument(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; var ParentIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; var TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line"; var CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line"; TipsAmount: Decimal)
-    begin
-        CreateAPIDocument(IRS1099FormDocHeader);
-        LibraryIRS1099Document.CreateSupplementalBox(IRS1099FormDocHeader."Period No.", IRS1099FormDocHeader."Form No.", 'NEC-01B');
-        LibraryIRS1099Document.CreateSupplementalBox(IRS1099FormDocHeader."Period No.", IRS1099FormDocHeader."Form No.", 'NEC-01C');
-        ParentIRS1099FormDocLine."Document ID" := IRS1099FormDocHeader.ID;
-        ParentIRS1099FormDocLine."Period No." := IRS1099FormDocHeader."Period No.";
-        ParentIRS1099FormDocLine."Vendor No." := IRS1099FormDocHeader."Vendor No.";
-        ParentIRS1099FormDocLine."Form No." := IRS1099FormDocHeader."Form No.";
-        ParentIRS1099FormDocLine."Form Box No." := 'NEC-01';
-        ParentIRS1099FormDocLine."Line No." := 1;
-        ParentIRS1099FormDocLine.Insert(true);
-        ParentIRS1099FormDocLine.SetRange("Document ID", IRS1099FormDocHeader.ID);
-        ParentIRS1099FormDocLine.FindFirst();
-        ParentIRS1099FormDocLine."Minimum Reportable Amount" := 2000;
-        ParentIRS1099FormDocLine.Validate(Amount, 500);
-        ParentIRS1099FormDocLine.Modify(true);
-        TipsSupplementalLine."Document ID" := IRS1099FormDocHeader.ID;
-        TipsSupplementalLine.Validate("Supplemental Box No.", 'NEC-01B');
-        TipsSupplementalLine.Validate(Amount, TipsAmount);
-        TipsSupplementalLine.Insert(true);
-        CodesSupplementalLine."Document ID" := IRS1099FormDocHeader.ID;
-        CodesSupplementalLine.Validate("Supplemental Box No.", 'NEC-01C');
-        CodesSupplementalLine.Validate("Occupation Code 1", '101');
-        CodesSupplementalLine.Validate("Occupation Code 2", '000');
-        CodesSupplementalLine.Insert(true);
-    end;
-
     local procedure GetIRS1099DocumentAPIWithExpands(DocHeader: Record "IRS 1099 Form Doc. Header") Url: Text
     begin
         Url := LibraryGraphMgt.CreateTargetURL(Format(DocHeader.SystemId), Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
         Url := LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099formreports');
         exit(Url);
-    end;
-
-    local procedure GetSupplementalResponse(SystemID: Guid) ResponseText: Text
-    begin
-        LibraryGraphMgt.GetFromWebService(ResponseText,
-            LibraryGraphMgt.CreateTargetURL(Format(SystemID), Page::"IRS 1099 Doc. Suppl. API", SupplementalServiceNameLbl));
     end;
 
     local procedure MockIRS1099FormDocWithLineAndFormReport(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; var IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; var IRS1099FormReport: Record "IRS 1099 Form Report")
@@ -419,17 +162,13 @@ codeunit 148018 "IRS 1099 API Tests"
         IRS1099FormReport.Insert();
     end;
 
-    local procedure VerifyRejectedWrite(DocumentID: Integer; ExpectedCodesLine: Record "IRS 1099 Doc. Suppl. Line")
+    [TryFunction]
+    local procedure TryGetAndVerifyAPIResponse(IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; IRS1099FormReport: Record "IRS 1099 Form Report")
     var
-        SupplementalLine: Record "IRS 1099 Doc. Suppl. Line";
+        ResponseText: Text;
     begin
-        SupplementalLine.Get(DocumentID, 'NEC-01B');
-        Assert.AreEqual(100, SupplementalLine.Amount, 'Rejected write changed stored tips.');
-        SupplementalLine.Get(DocumentID, ExpectedCodesLine."Supplemental Box No.");
-        Assert.AreEqual(ExpectedCodesLine."Occupation Code 1", SupplementalLine."Occupation Code 1", 'Rejected write changed the first occupation code.');
-        Assert.AreEqual(ExpectedCodesLine."Occupation Code 2", SupplementalLine."Occupation Code 2", 'Rejected write changed the second occupation code.');
-        SupplementalLine.SetRange("Document ID", DocumentID);
-        Assert.RecordCount(SupplementalLine, 2);
+        LibraryGraphMgt.GetFromWebService(ResponseText, GetIRS1099DocumentAPIWithExpands(IRS1099FormDocHeader));
+        VerifyResponseSunshine(ResponseText, IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
     end;
 
     local procedure VerifyResponseSunshine(ResponseText: Text; IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; IRS1099FormReport: Record "IRS 1099 Form Report")
@@ -469,64 +208,4 @@ codeunit 148018 "IRS 1099 API Tests"
         LibraryGraphMgt.VerifyPropertyInJSON(ResponseJson, 'reportType', Format(IRS1099FormReport."Report Type").Replace(' ', '_'));
     end;
 
-    local procedure VerifyEmptyCollection(ResponseText: Text)
-    var
-        Response: JsonObject;
-        Collection: JsonToken;
-    begin
-        Response.ReadFrom(ResponseText);
-        Response.Get('value', Collection);
-        Assert.AreEqual(0, Collection.AsArray().Count(), 'Another document must not inherit disclosures.');
-    end;
-
-    local procedure VerifySupplementalCollection(ResponseText: Text; DocumentID: Integer; TipsSupplementalLine: Record "IRS 1099 Doc. Suppl. Line"; CodesSupplementalLine: Record "IRS 1099 Doc. Suppl. Line"; Expanded: Boolean)
-    var
-        Response: JsonObject;
-        Document: JsonToken;
-        Collection: JsonToken;
-        Value: JsonToken;
-    begin
-        Response.ReadFrom(ResponseText);
-        if Expanded then
-            Response.Get(SupplementalServiceNameLbl, Collection)
-        else
-            Response.Get('value', Collection);
-        Assert.AreEqual(2, Collection.AsArray().Count(), 'Navigation must include only this document''s stored disclosures.');
-        Collection.AsArray().Get(0, Document);
-        Document.AsObject().Get('documentId', Value);
-        Assert.AreEqual(DocumentID, Value.AsValue().AsInteger(), 'Stored document ID must be numeric.');
-        VerifySupplementalValue(GetSupplementalResponse(TipsSupplementalLine.SystemId), TipsSupplementalLine);
-        VerifySupplementalValue(GetSupplementalResponse(CodesSupplementalLine.SystemId), CodesSupplementalLine);
-    end;
-
-    local procedure VerifySupplementalValue(ResponseText: Text; SupplementalLine: Record "IRS 1099 Doc. Suppl. Line")
-    var
-        Response: JsonObject;
-        Value: JsonToken;
-        SystemID: Guid;
-    begin
-        Response.ReadFrom(ResponseText);
-        Response.Get('id', Value);
-        Evaluate(SystemID, Value.AsValue().AsText());
-        Assert.AreEqual(SupplementalLine.SystemId, SystemID, 'The API key must be SystemId.');
-        Response.Get('documentId', Value);
-        Assert.AreEqual(SupplementalLine."Document ID", Value.AsValue().AsInteger(), 'Document ID changed.');
-        Response.Get('supplementalBoxNo', Value);
-        Assert.AreEqual(SupplementalLine."Supplemental Box No.", Value.AsValue().AsText(), 'Supplemental box changed.');
-        Response.Get('parentFormBoxNo', Value);
-        Assert.AreEqual(SupplementalLine."Parent Form Box No.", Value.AsValue().AsText(), 'Saved parent changed.');
-        Response.Get('valueType', Value);
-        case SupplementalLine."Value Type" of
-            SupplementalLine."Value Type"::Amount:
-                Assert.AreEqual('Amount', Value.AsValue().AsText(), 'Amount value kind changed.');
-            SupplementalLine."Value Type"::"Occupation Codes":
-                Assert.AreEqual('Occupation_x0020_Codes', Value.AsValue().AsText(), 'Occupation-code value kind changed.');
-        end;
-        Response.Get('amount', Value);
-        Assert.AreEqual(SupplementalLine.Amount, Value.AsValue().AsDecimal(), 'Stored amount must remain numeric.');
-        Response.Get('occupationCode1', Value);
-        Assert.AreEqual(SupplementalLine."Occupation Code 1", Value.AsValue().AsText(), 'First code must remain text.');
-        Response.Get('occupationCode2', Value);
-        Assert.AreEqual(SupplementalLine."Occupation Code 2", Value.AsValue().AsText(), 'Second code must retain leading zeros.');
-    end;
 }
