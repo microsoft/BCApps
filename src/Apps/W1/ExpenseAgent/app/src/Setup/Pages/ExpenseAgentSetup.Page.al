@@ -426,6 +426,9 @@ page 6996 "Expense Agent Setup"
                 field("Percentage For Partial Day"; Rec."Percentage For Partial Day")
                 {
                 }
+                field("Partial Day Rounding Precision"; Rec."Partial Day Rounding Precision")
+                {
+                }
                 field("Reduction for Breakfast %"; Rec."Reduction for Breakfast %")
                 {
                 }
