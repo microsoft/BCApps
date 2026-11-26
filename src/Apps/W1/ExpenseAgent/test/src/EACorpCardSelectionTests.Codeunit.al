@@ -862,7 +862,7 @@ codeunit 148364 EACorpCardSelectionTests
         Expense: Record Expense;
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
     begin
-        // [SCENARIO] Linking a manual expense locks the transaction values, not the user's description.
+        // [SCENARIO] Linking a manual expense locks the transaction values.
         Initialize();
 
         // [GIVEN] A manual expense is linked to its matching card transaction.
@@ -871,8 +871,10 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
         Expense.Get(Expense."No.");
-
         Commit();
+
+        // [WHEN] Each card value (amount, date and currency) is changed.
+        // [THEN] Each change is rejected.
         asserterror Expense.Validate(Amount, CorpCardTrans.Amount + 1);
         Assert.ExpectedError(StrSubstNo(CardExpenseFieldCannotChangeErr, Expense.FieldCaption(Amount)));
         Expense.Get(Expense."No.");
@@ -882,11 +884,31 @@ codeunit 148364 EACorpCardSelectionTests
         Expense."Currency Code" := 'EUR';
         asserterror Expense.Modify(true);
         Assert.ExpectedError(StrSubstNo(CardExpenseFieldCannotChangeErr, Expense.FieldCaption("Currency Code")));
+    end;
 
-        // [THEN] A description change is saved without changing the card values, source or link.
+    [Test]
+    procedure MatchedManualExpenseKeepsDescriptionEditable()
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        Expense: Record Expense;
+        CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
+    begin
+        // [SCENARIO] Linking a manual expense does not lock the user's description.
+        Initialize();
+
+        // [GIVEN] A manual expense is linked to its matching card transaction.
+        CorpCard.Get('CORPCARD-0001');
+        CorpCardTestLib.InsertExpense(Expense, CorpCard);
+        CorpCardTestLib.CreateTransaction(CorpCardTrans, CorpCard);
+        CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
         Expense.Get(Expense."No.");
+
+        // [WHEN] The description is changed.
         Expense.Validate(Description, 'Updated description');
         Expense.Modify(true);
+
+        // [THEN] The description is saved without changing the card values, source or link.
         Expense.Get(Expense."No.");
         Expense.TestField(Source, Expense.Source::Manual);
         Expense.TestField(Description, 'Updated description');
@@ -903,9 +925,13 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         // [SCENARIO] A linked manual expense's report line protects the same card fields as a card-created expense's line.
         Initialize();
+
+        // [GIVEN] A report line for a manual expense linked to a card transaction.
         CreateLinkedManualExpenseReportLine(ExpenseReportLine);
         Commit();
 
+        // [WHEN] Each card field (amount, currency, date, merchant, payment method and card) is validated with a new value.
+        // [THEN] Each validation is rejected.
         asserterror ExpenseReportLine.Validate(Amount, ExpenseReportLine.Amount + 1);
         Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption(Amount)));
 

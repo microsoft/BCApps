@@ -109,16 +109,13 @@ page 7421 "EA Card Receipt Data API"
     var
         Expense: Record Expense;
         CardReceiptDataApply: Codeunit "EA Card Receipt Data Apply";
-        ExpenseFilter: Text;
-        OriginalFilterGroup: Integer;
+        ParentExpenseSystemId: Guid;
     begin
-        if IsNullGuid(Rec."Expense SystemId") then begin
-            OriginalFilterGroup := Rec.FilterGroup();
-            Rec.FilterGroup(4);
-            ExpenseFilter := Rec.GetFilter("Expense SystemId");
-            Rec.FilterGroup(OriginalFilterGroup);
-            if ExpenseFilter <> '' then
-                if Evaluate(Rec."Expense SystemId", ExpenseFilter) then;
+        // Under expenses({id})/cardReceiptData the expense always comes from the URL.
+        if GetParentExpenseSystemId(ParentExpenseSystemId) then begin
+            if not IsNullGuid(Rec."Expense SystemId") and (Rec."Expense SystemId" <> ParentExpenseSystemId) then
+                Error(ExpenseDoesNotMatchParentErr);
+            Rec."Expense SystemId" := ParentExpenseSystemId;
         end;
         CardReceiptDataApply.GetCardExpense(Rec."Expense SystemId", Expense);
         Rec."Expense No." := Expense."No.";
@@ -149,6 +146,21 @@ page 7421 "EA Card Receipt Data API"
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
+    local procedure GetParentExpenseSystemId(var ParentExpenseSystemId: Guid): Boolean
+    var
+        ExpenseFilter: Text;
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(4);
+        ExpenseFilter := Rec.GetFilter("Expense SystemId");
+        Rec.FilterGroup(OriginalFilterGroup);
+        if ExpenseFilter = '' then
+            exit(false);
+        exit(Evaluate(ParentExpenseSystemId, ExpenseFilter));
+    end;
+
     var
         CannotChangeExpenseErr: Label 'You cannot change the expense of card receipt data. Delete it and create new receipt data for the other expense.';
+        ExpenseDoesNotMatchParentErr: Label 'The expense ID in the request does not match the expense in the URL.';
 }

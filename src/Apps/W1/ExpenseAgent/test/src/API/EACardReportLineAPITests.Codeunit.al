@@ -512,6 +512,40 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     [Test]
+    procedure CardReceiptDataUnderExpenseRejectsOtherExpenseId()
+    var
+        Expense: Record Expense;
+        OtherExpense: Record Expense;
+        CardReceiptData: Record "EA Card Receipt Data";
+        ReceiptDetails: JsonObject;
+        RequestText: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] Receipt data posted under an expense cannot be staged for a different expense.
+        Initialize();
+
+        // [GIVEN] Two card expenses waiting for a receipt.
+        CreateCardExpense(Expense);
+        CreateCardExpense(OtherExpense);
+        Commit();
+
+        // [WHEN] Receipt data is posted under the first expense with the other expense's ID in the body.
+        ReceiptDetails := CreateReceiptDetails('');
+        ReceiptDetails.Add('expenseId', LibraryGraphMgt.StripBrackets(Format(OtherExpense.SystemId)));
+        ReceiptDetails.Add('fileName', ReceiptFileNameTok);
+        ReceiptDetails.WriteTo(RequestText);
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
+            LibraryGraphMgt.CreateTargetURLWithSubpage(Format(Expense.SystemId), Page::"Expenses API", ExpensesServiceNameTok, CardReceiptDataServiceNameTok),
+            RequestText, ResponseText, 201);
+
+        // [THEN] The request is rejected and no receipt data is staged.
+        AssertRejectedByBusinessRule();
+        CardReceiptData.SetFilter("Expense SystemId", '%1|%2', Expense.SystemId, OtherExpense.SystemId);
+        Assert.RecordIsEmpty(CardReceiptData);
+        CompleteTest();
+    end;
+
+    [Test]
     procedure AttachCardReceiptIsRejectedForManualLine()
     var
         CorpCard: Record "EA Corp Card";

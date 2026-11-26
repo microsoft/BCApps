@@ -606,7 +606,7 @@ Only that expense is checked, with the same rules as above, including `cardLast4
 
 A card expense that is waiting for a receipt, including one whose line is on an open expense report, gets its receipt through `cardReceiptData` instead of the attachments API:
 
-1. `POST .../expenses({expenseId})/cardReceiptData` with `fileName` and the extracted values (`expenseCategory`, `description`, `justification`, `expenseExtDocNo`, `merchantRegistrationNo`, `merchantVATRegistrationNo`); `cardReceiptParticipants` (type, employee number, name, organization, email), `cardReceiptItems` (subcategory, description, start date, quantity, daily rate) and `cardReceiptVATSpecifications` (VAT %, VAT base, VAT amount, amount) can be sent in the same request. LCY amounts are calculated from the expense currency.
+1. `POST .../expenses({expenseId})/cardReceiptData` with `fileName` and the extracted values (`expenseCategory`, `description`, `justification`, `expenseExtDocNo`, `merchantRegistrationNo`, `merchantVATRegistrationNo`); `cardReceiptParticipants` (type, employee number, name, organization, email), `cardReceiptItems` (subcategory, description, start date, quantity, daily rate) and `cardReceiptVATSpecifications` (VAT %, VAT base, VAT amount, amount) can be sent in the same request. LCY amounts are calculated from the expense currency. The expense comes from the URL; an `expenseId` in the body that names a different expense is rejected with 400.
 2. Upload raw file bytes with `PATCH .../cardReceiptData({id})/attachmentContent`, `Content-Type: application/octet-stream` and `If-Match: *`. This property is an `Edm.Stream`, not an inline base64 JSON value.
 3. `POST .../cardReceiptData({id})/Microsoft.NAV.apply`. The response is the expense.
 

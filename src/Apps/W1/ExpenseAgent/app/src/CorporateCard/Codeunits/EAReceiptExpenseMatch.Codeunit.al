@@ -43,7 +43,7 @@ codeunit 7438 "EA Receipt Expense Match"
         SetCandidateFilters(Expense, ExpenseUserNo, ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
         FilterByCard := GetCardIdsEndingIn(ExpenseUserNo, CardLast4, CardIds);
 
-        Expense.SetLoadFields(SystemId, "No.", Status, "Expense Report No.", "Expense Date", "Merchant Name", "Corporate Card Id");
+        Expense.SetLoadFields(SystemId, "No.", Status, "Expense Report No.", "No Receipt Type", "Expense Date", "Merchant Name", "Corporate Card Id");
         if not Expense.FindSet() then
             exit;
 
@@ -79,7 +79,7 @@ codeunit 7438 "EA Receipt Expense Match"
         ExpenseUserNo := GetExpenseUserNo(ExpenseUserSystemId, ExpenseDate, Amount);
         SetCandidateFilters(Expense, ExpenseUserNo, ExpenseDate, GetDateWindow(), Amount, CurrencyCode);
         Expense.SetRange(SystemId, ExpenseSystemId);
-        Expense.SetLoadFields("No.", Status, "Expense Report No.", "Corporate Card Id");
+        Expense.SetLoadFields("No.", Status, "Expense Report No.", "No Receipt Type", "Corporate Card Id");
         if not Expense.FindFirst() then
             exit(EmptyGuid);
         if not IsPaidWithCard(Expense, GetCardIdsEndingIn(ExpenseUserNo, CardLast4, CardIds), CardIds) then
