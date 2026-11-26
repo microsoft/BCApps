@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Document;
 
-using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -22,8 +21,6 @@ codeunit 10763 "Service Document Subscr. ES"
     SingleInstance = true;
 
     var
-        SIIManagement: Codeunit "SII Management";
-        ServSIIManagement: Codeunit "Serv. SII Management";
         ECDifference: Decimal;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnValidateBillToCustomerNoOnAfterSetFilters', '', true, true)]
@@ -31,15 +28,6 @@ codeunit 10763 "Service Document Subscr. ES"
     begin
         if xServiceHeader."Bill-to Customer No." <> ServiceHeader."Bill-to Customer No." then
             ServiceHeader."Corrected Invoice No." := '';
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterValidateBillToCustomerNo', '', true, true)]
-    local procedure OnAfterValidateBillToCustomerNo(var ServiceHeader: Record "Service Header"; var xServiceHeader: Record "Service Header"; var Customer: Record Customer)
-    begin
-        ServiceHeader.Validate(
-            "ID Type",
-            SIIManagement.GetSalesIDType(ServiceHeader."Bill-to Customer No.", ServiceHeader."Correction Type", ServiceHeader."Corrected Invoice No."));
-        ServSIIManagement.UpdateSIIInfoInServiceDoc(ServiceHeader);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterValidateAppliesToDocNo', '', true, true)]
@@ -76,29 +64,12 @@ codeunit 10763 "Service Document Subscr. ES"
         GenJournalLine."Payment Method Code" := ServiceHeader."Payment Method Code";
         GenJournalLine."Correction Type" := ServiceHeader."Correction Type";
         GenJournalLine."Corrected Invoice No." := ServiceHeader."Corrected Invoice No.";
-        GenJournalLine."Sales Invoice Type" := ServiceHeader."Invoice Type";
-        GenJournalLine."Sales Cr. Memo Type" := ServiceHeader."Cr. Memo Type";
-        GenJournalLine."Sales Special Scheme Code" := ServiceHeader."Special Scheme Code";
-        GenJournalLine."Succeeded Company Name" := ServiceHeader."Succeeded Company Name";
-        GenJournalLine."Succeeded VAT Registration No." := ServiceHeader."Succeeded VAT Registration No.";
-        GenJournalLine."Issued By Third Party" := ServiceHeader."Issued By Third Party";
-
-        ServiceHeader.SetSIIFirstSummaryDocNo(ServiceHeader.GetSIIFirstSummaryDocNo());
-        ServiceHeader.SetSIILastSummaryDocNo(ServiceHeader.GetSIILastSummaryDocNo());
-
-        GenJournalLine."Do Not Send To SII" := ServiceHeader."Do Not Send To SII";
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyToGenJnlLineApplyTo', '', true, true)]
     local procedure OnAfterCopyToGenJnlLineApplyTo(var GenJournalLine: Record "Gen. Journal Line"; ServiceHeader: Record "Service Header")
     begin
         GenJournalLine."Applies-to Bill No." := ServiceHeader."Applies-to Bill No.";
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterInitRecord', '', true, true)]
-    local procedure OnAfterInitRecord(var ServiceHeader: Record "Service Header")
-    begin
-        ServSIIManagement.UpdateSIIInfoInServiceDoc(ServiceHeader);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnBeforeValidatePaymentTerms', '', true, true)]
@@ -151,12 +122,6 @@ codeunit 10763 "Service Document Subscr. ES"
     end;
 
     // Service Line
-
-    [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterValidateEvent', 'VAT Prod. Posting Group', true, true)]
-    local procedure OnAfterValidateVATProdPostingGroup(var Rec: Record "Service Line")
-    begin
-        ServSIIManagement.UpdatePurchSpecialSchemeCodeInServiceine(Rec);
-    end;
 
     [EventSubscriber(ObjectType::Table, Database::"Service Line", 'OnAfterClearVATPct', '', true, true)]
     local procedure OnAfterClearVATPct(var ServiceLine: Record "Service Line")

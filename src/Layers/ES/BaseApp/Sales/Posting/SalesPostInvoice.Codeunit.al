@@ -648,14 +648,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine.CopyFromSalesHeaderPayment(SalesHeader);
         GenJnlLine."Applies-to Bill No." := SalesHeader."Applies-to Bill No.";
         GenJnlLine."Recipient Bank Account" := SalesHeader."Cust. Bank Acc. Code";
-        GenJnlLine."Sales Invoice Type" := SalesHeader."Invoice Type";
-        GenJnlLine."Sales Cr. Memo Type" := SalesHeader."Cr. Memo Type";
-        GenJnlLine."Sales Special Scheme Code" := SalesHeader."Special Scheme Code";
-        GenJnlLine."Correction Type" := SalesHeader."Correction Type";
-        GenJnlLine."Corrected Invoice No." := SalesHeader."Corrected Invoice No.";
-        GenJnlLine."Succeeded Company Name" := SalesHeader."Succeeded Company Name";
-        GenJnlLine."Succeeded VAT Registration No." := SalesHeader."Succeeded VAT Registration No.";
-        GenJnlLine."ID Type" := SalesHeader."ID Type";
+        OnPostLedgerEntryOnCopyHeaderFields(GenJnlLine, SalesHeader);
+        OnPostLedgerEntryOnAfterCopyToGenJnlLine(GenJnlLine, SalesHeader);
 
         InitGenJnlLineAmountFieldsFromTotalSalesLine(GenJnlLine, SalesHeader);
 
@@ -1028,5 +1022,15 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         end;
 
         SalesPostInvoiceEvents.RunOnAfterCreatePostedDeferralSchedule(SalesLine, PostedDeferralHeader);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostLedgerEntryOnAfterCopyToGenJnlLine(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostLedgerEntryOnCopyHeaderFields(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header")
+    begin
     end;
 }

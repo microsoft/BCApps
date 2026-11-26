@@ -29,7 +29,8 @@ codeunit 1408 "Sales Credit Memo Hdr. - Edit"
         OnBeforeSalesCrMemoHeaderModify(SalesCrMemoHeader, Rec);
         SalesCrMemoHeader.TestField("No.", Rec."No.");
         SalesCrMemoHeader.Modify();
-        Rec := SalesCrMemoHeader;
+        Rec.Copy(SalesCrMemoHeader);
+
         UpdateCustLedgerEntry(Rec);
 
         OnRunOnAfterSalesCrMemoHeaderEdit(Rec);

@@ -5,18 +5,13 @@
 namespace Microsoft.Utilities;
 
 using Microsoft.EServices.EDocument;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.HumanResources.Absence;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Purchases.History;
-using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Archive;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Receivables;
 using System.Privacy;
 
 codeunit 1752 "Data Class. Eval. Data Country"
@@ -40,8 +35,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Alt. Employee Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Employee Posting Group");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cause of Absence");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Payment Day");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Non-Payment Period");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"AEAT Transference Format");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Statistical Code");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"AEAT Transference Format XML");
@@ -52,24 +45,7 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Selected Rev. Charge Grp. 340");
         DataClassificationEvalData.SetTableFieldsToNormal(10744); // 340 Declaration Line
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Operation Code");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cartera Doc.");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Posted Cartera Doc.");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Closed Cartera Doc.");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Bill Group");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Posted Bill Group");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Closed Bill Group");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"BG/PO Comment Line");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Category Code");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Operation Fee");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cartera Report Selections");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cartera Setup");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::Installment);
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Fee Range");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Payment Order");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Posted Payment Order");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Closed Payment Order");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customer Rating");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::Suffix);
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"No Taxable Entry");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Sales Header Archive");
         OnAfterClassifyCountrySpecificTables();

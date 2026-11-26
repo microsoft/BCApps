@@ -11,20 +11,6 @@ tableextension 7000016 "SII Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
 {
     fields
     {
-        field(10705; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-            DataClassification = CustomerContent;
-            TableRelation = "Purch. Inv. Header";
-
-            trigger OnLookup()
-            var
-                PurchaseInvoiceHeader: Record "Purch. Inv. Header";
-            begin
-                if PurchaseInvoiceHeader.LookupInvoice("Pay-to Vendor No.") then
-                    Validate("Corrected Invoice No.", PurchaseInvoiceHeader."No.");
-            end;
-        }
         field(10706; "SII Status"; Enum "SII Document Status")
         {
             CalcFormula = lookup("SII Doc. Upload State".Status where("Document Source" = const("Vendor Ledger"),
@@ -66,13 +52,6 @@ tableextension 7000016 "SII Purch. Cr. Memo Hdr." extends "Purch. Cr. Memo Hdr."
         {
             Caption = 'Operation Description';
             DataClassification = CustomerContent;
-        }
-        field(10711; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            DataClassification = CustomerContent;
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
         }
         field(10712; "Operation Description 2"; Text[250])
         {

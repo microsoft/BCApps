@@ -5,8 +5,6 @@
 namespace Microsoft.EServices.EDocument;
 
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Purchases.History;
-using Microsoft.Sales.History;
 
 #pragma warning disable AS0088
 tableextension 7000028 "SII Gen. Journal Line" extends "Gen. Journal Line"
@@ -85,59 +83,6 @@ tableextension 7000028 "SII Gen. Journal Line" extends "Gen. Journal Line"
             begin
                 if "Purch. Special Scheme Code" <> "Purch. Special Scheme Code"::"01 General" then
                     CheckAccAndBalAccTypeSII("Account Type"::Vendor);
-            end;
-        }
-        field(10715; "Correction Type"; Option)
-        {
-            Caption = 'Correction Type';
-            DataClassification = CustomerContent;
-            OptionCaption = ' ,Replacement,Difference,Removal';
-            OptionMembers = " ",Replacement,Difference,Removal;
-
-            trigger OnValidate()
-            begin
-                if "Correction Type" <> 0 then
-                    CheckDataForCorrectionSII();
-            end;
-        }
-        field(10716; "Corrected Invoice No."; Code[20])
-        {
-            Caption = 'Corrected Invoice No.';
-            DataClassification = CustomerContent;
-
-            trigger OnLookup()
-            var
-                SalesInvoiceHeader: Record "Sales Invoice Header";
-                PurchInvHeader: Record "Purch. Inv. Header";
-                TempGenJournalLine: Record "Gen. Journal Line" temporary;
-            begin
-                InitGenJnlLineBufferWithCustVendSII(TempGenJournalLine);
-                case true of
-                    TempGenJournalLine."Account Type" = TempGenJournalLine."Account Type"::Customer:
-                        if SalesInvoiceHeader.LookupInvoice("Account No.") then
-                            Validate("Corrected Invoice No.", SalesInvoiceHeader."No.");
-                    TempGenJournalLine."Account Type" = TempGenJournalLine."Account Type"::Vendor:
-                        if PurchInvHeader.LookupInvoice("Account No.") then
-                            Validate("Corrected Invoice No.", PurchInvHeader."No.");
-                end;
-            end;
-
-            trigger OnValidate()
-            var
-                SalesInvoiceHeader: Record "Sales Invoice Header";
-                PurchInvHeader: Record "Purch. Inv. Header";
-                TempGenJournalLine: Record "Gen. Journal Line" temporary;
-            begin
-                if "Corrected Invoice No." <> '' then begin
-                    CheckDataForCorrectionSII();
-                    InitGenJnlLineBufferWithCustVendSII(TempGenJournalLine);
-                    case true of
-                        TempGenJournalLine."Account Type" = TempGenJournalLine."Account Type"::Customer:
-                            SalesInvoiceHeader.CheckCorrectedDocumentExist("Account No.", "Corrected Invoice No.");
-                        TempGenJournalLine."Account Type" = TempGenJournalLine."Account Type"::Vendor:
-                            PurchInvHeader.CheckCorrectedDocumentExist("Account No.", "Corrected Invoice No.");
-                    end;
-                end;
             end;
         }
         field(10720; "Succeeded Company Name"; Text[250])
@@ -225,47 +170,6 @@ tableextension 7000028 "SII Gen. Journal Line" extends "Gen. Journal Line"
               FieldCaption("Account Type"), FieldCaption("Bal. Account Type"), Format(AccType));
     end;
 
-    local procedure CheckDataForCorrectionSII()
-    begin
-        TestField("Document Type", "Document Type"::"Credit Memo");
-        if not (("Account Type" in ["Account Type"::Customer, "Account Type"::Vendor]) or
-                ("Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor]))
-        then
-            Error(IncorrectAccTypeErr,
-              FieldCaption("Account Type"), FieldCaption("Bal. Account Type"),
-              StrSubstNo(OneOrAnotherTxt, Format("Account Type"::Customer), Format("Account Type"::Vendor)));
-    end;
-
-    local procedure InitGenJnlLineBufferWithCustVendSII(var TempGenJournalLine: Record "Gen. Journal Line" temporary)
-    begin
-        TempGenJournalLine.Init();
-        case true of
-            "Account Type" in ["Account Type"::Customer, "Account Type"::Vendor]:
-                begin
-                    TempGenJournalLine."Account Type" := "Account Type";
-                    TempGenJournalLine."Account No." := "Account No.";
-                end;
-            "Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor]:
-                begin
-                    TempGenJournalLine."Account Type" := "Bal. Account Type";
-                    TempGenJournalLine."Account No." := "Bal. Account No.";
-                end;
-        end;
-    end;
-
-    procedure ClearInvCrMemoTypeFields()
-    begin
-        "Sales Invoice Type" := "Sales Invoice Type"::"F1 Invoice";
-        "Sales Cr. Memo Type" := "Sales Cr. Memo Type"::"R1 Corrected Invoice";
-        "Sales Special Scheme Code" := "Sales Special Scheme Code"::"01 General";
-        "Purch. Invoice Type" := "Purch. Invoice Type"::"F1 Invoice";
-        "Purch. Cr. Memo Type" := "Purch. Cr. Memo Type"::"R1 Corrected Invoice";
-        "Purch. Special Scheme Code" := "Purch. Special Scheme Code"::"01 General";
-        "Correction Type" := 0;
-        "Corrected Invoice No." := '';
-    end;
-
     var
         IncorrectAccTypeErr: Label '%1 or %2 must be a %3.', Comment = '%1=Account Type,%2=Balance Account Type,%3=Customer or Vendor';
-        OneOrAnotherTxt: Label '%1 or %2', Comment = '%1 - Customer or Vendor, %2 - Customer or Vendor';
 }

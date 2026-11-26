@@ -92,8 +92,7 @@ table 23 Vendor
                 if "Invoice Disc. Code" = '' then
                     "Invoice Disc. Code" := "No.";
 
-                "Payment Days Code" := "No.";
-                "Non-Paymt. Periods Code" := "No.";
+                OnAfterInitInvoiceDiscCode(Rec);
                 OnAfterValidateNo(Rec, xRec);
             end;
         }
@@ -1687,18 +1686,6 @@ table 23 Vendor
             Caption = 'Receipt on Invoice Policy';
             ToolTip = 'Specifies whether receipt on invoice is enabled automatically for new purchase orders from this vendor.';
         }
-        field(10700; "Payment Days Code"; Code[20])
-        {
-            Caption = 'Payment Days Code';
-            TableRelation = Vendor;
-            ValidateTableRelation = false;
-        }
-        field(10701; "Non-Paymt. Periods Code"; Code[20])
-        {
-            Caption = 'Non-Paymt. Periods Code';
-            TableRelation = Vendor;
-            ValidateTableRelation = false;
-        }
 #if not CLEANSCHEMA25
         field(10702; "Self Employed"; Boolean)
         {
@@ -1860,8 +1847,7 @@ table 23 Vendor
         if "Invoice Disc. Code" = '' then
             "Invoice Disc. Code" := "No.";
 
-        "Payment Days Code" := "No.";
-        "Non-Paymt. Periods Code" := "No.";
+        OnAfterInitInvoiceDiscCode(Rec);
 
         if (not (InsertFromContact or (InsertFromTemplate and (Contact <> '')))) or ForceUpdateContact then
             UpdateContFromVend.OnInsert(Rec);
@@ -3095,6 +3081,11 @@ table 23 Vendor
 
     [IntegrationEvent(false, false)]
     local procedure OnOpenVendorLedgerEntriesOnBeforeDrillDownEntries(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; FilterOnDueEntries: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitInvoiceDiscCode(var Vendor: Record Vendor)
     begin
     end;
 }

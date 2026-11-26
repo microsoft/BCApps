@@ -12443,8 +12443,8 @@ End Function
         <Field Name="TotalGivenAmountFormat">
           <DataField>TotalGivenAmountFormat</DataField>
         </Field>
-        <Field Name="TypeNO">
-          <DataField>TypeNO</DataField>
+        <Field Name="TypeNo">
+          <DataField>TypeNo</DataField>
         </Field>
         <Field Name="LineAmt_ServInvLine">
           <DataField>LineAmt_ServInvLine</DataField>
