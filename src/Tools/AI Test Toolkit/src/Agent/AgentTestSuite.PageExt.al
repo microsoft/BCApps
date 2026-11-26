@@ -42,22 +42,14 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
                         LookupAgent();
                     end;
                 }
-                field("Agent Model ID"; Rec."Agent Model ID")
+                field("Agent Model Name"; Rec."Agent Model Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Model';
 
-                    trigger OnLookup(var Text: Text): Boolean
-                    var
-                        AgentModel: Record "Agent Model";
+                    trigger OnAssistEdit()
                     begin
-                        if AgentModel.Get(Rec."Agent Model ID") then;
-                        AgentModel.SetFilter(Availability, '%1|%2', AgentModel.Availability::Preview, AgentModel.Availability::Available);
-                        if Page.RunModal(Page::"Agent Model List", AgentModel) <> Action::LookupOK then
-                            exit(false);
-
-                        Text := AgentModel."Model ID";
-                        exit(true);
+                        LookupAgentModel();
                     end;
                 }
             }
@@ -198,6 +190,34 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         Rec.Modify();
     end;
 
+    local procedure LookupAgentModel()
+    var
+        AgentModel: Record "Agent Model";
+        TempAgentModel: Record "Agent Model" temporary;
+    begin
+        // A blank row lets the user remove the override from the same lookup.
+        TempAgentModel.Init();
+        TempAgentModel."Model Name" := NoModelOverrideLbl;
+        TempAgentModel.Availability := TempAgentModel.Availability::Available;
+        TempAgentModel.Insert();
+
+        AgentModel.SetFilter(Availability, '%1|%2', AgentModel.Availability::Preview, AgentModel.Availability::Available);
+        if AgentModel.FindSet() then
+            repeat
+                TempAgentModel := AgentModel;
+                TempAgentModel.Insert();
+            until AgentModel.Next() = 0;
+
+        if TempAgentModel.Get(Rec."Agent Model ID") then;
+        if Page.RunModal(Page::"Agent Model List", TempAgentModel) <> Action::LookupOK then
+            exit;
+
+        Rec.Validate("Agent Model ID", TempAgentModel."Model ID");
+        Rec.Modify();
+        Rec.CalcFields("Agent Model Name");
+        CurrPage.Update(false);
+    end;
+
     var
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         CopilotCredits: Decimal;
@@ -206,4 +226,5 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
         AgentUserName: Code[50];
         IsAgentTestType: Boolean;
         AgentWithNameNotFoundErr: Label 'An agent with the name %1 was not found.', Comment = '%1 - The name of the agent';
+        NoModelOverrideLbl: Label '(None)', Comment = 'Shown in the model lookup for the option that removes the model override.';
 }
