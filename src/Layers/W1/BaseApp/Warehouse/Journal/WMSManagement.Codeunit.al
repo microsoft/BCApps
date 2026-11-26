@@ -1196,7 +1196,11 @@ codeunit 7302 "WMS Management"
         // At locations without directed put-away and pick, warehouse quantities are registered in the base unit of measure.
         // Bin content in another unit of measure can still exist, for example after "Directed Put-away and Pick" was turned off.
         // Keep the entered unit of measure for the outbound side so that this bin content can be reduced and cleared.
+        // Items with warehouse item tracking are excluded: the journal line is split by tracking only after this point,
+        // so the bin content of each serial, lot, or package number cannot be checked here.
         if WarehouseJournalLine."From Bin Code" = '' then
+            exit;
+        if ItemTrackingMgt.GetWhseItemTrkgSetup(WarehouseJournalLine."Item No.") then
             exit;
         if ItemJournalLine."Unit of Measure Code" = WarehouseJournalLine."Unit of Measure Code" then
             exit;

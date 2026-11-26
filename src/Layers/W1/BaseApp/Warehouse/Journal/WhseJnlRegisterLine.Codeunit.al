@@ -259,7 +259,9 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         end else begin
             OnDeleteFromBinContentOnBeforeCheckQuantity(FromBinContent, WhseEntry);
             FromBinContent.CalcFields(Quantity);
-            if FromBinContent.Quantity + WhseEntry.Quantity = 0 then begin
+            // Without directed put-away and pick, the item ledger entry posts the base quantity of the journal line.
+            // Keep that base quantity on the warehouse entry so that warehouse and item ledger quantities stay equal.
+            if (FromBinContent.Quantity + WhseEntry.Quantity = 0) and Location."Directed Put-away and Pick" then begin
                 WhseEntry."Qty. (Base)" := -FromBinContent."Quantity (Base)";
                 Sign := WhseJnlLine."Qty. (Base)" / WhseJnlLine."Qty. (Absolute, Base)";
                 WhseJnlLine."Qty. (Base)" := WhseEntry."Qty. (Base)" * Sign;

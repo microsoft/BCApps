@@ -2081,6 +2081,157 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
         VerifyBinContentQtyBase(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, Qty * QtyPerUOM);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReclassFromNonBaseUOMBinContentWithRoundedQtyKeepsWarehouseInBalanceWithItemLedger()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        Bin: array[2] of Record Bin;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        QtyPerUOM: Decimal;
+        ReceivedQty: Decimal;
+        ReclassQty: Decimal;
+        ReceivedQtyBase: Decimal;
+        ReclassQtyBase: Decimal;
+    begin
+        // [FEATURE] [Directed Put-away and Pick] [Bin Content] [Reclassification] [Rounding]
+        // [SCENARIO 9678] Reclassification from non-base unit of measure bin content moves the same base quantity out of the source bin and into the target bin when the quantity is rounded.
+        Initialize();
+        QtyPerUOM := 1.23456;
+        ReceivedQty := 0.33333;
+        ReclassQty := 0.66666;
+        ReceivedQtyBase := Round(ReceivedQty * QtyPerUOM, 0.00001);
+        ReclassQtyBase := Round(ReclassQty * QtyPerUOM, 0.00001);
+
+        // [GIVEN] Location with "Directed Put-away and Pick", item with base unit of measure "EA" and unit of measure "PACK" = 1.23456 "EA".
+        // [GIVEN] Two separate registrations of 0.33333 "PACK" in bin "B1".
+        // [GIVEN] "Directed Put-away and Pick" is turned off on the location.
+        CreateFullWMSLocation(Location, false);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUOM);
+        CreateBinsInPickZone(Location, Bin);
+        PostWhseJnlPositiveAdjmtInUOM(Location.Code, Bin[1], Item."No.", ItemUnitOfMeasure.Code, ReceivedQty, '');
+        PostWhseJnlPositiveAdjmtInUOM(Location.Code, Bin[1], Item."No.", ItemUnitOfMeasure.Code, ReceivedQty, '');
+        PostWhseAdjmtAndDisableDirectedPutAwayAndPick(Location, Item);
+
+        // [WHEN] Reclassify 0.66666 "PACK" from bin "B1" to bin "B2".
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Transfer);
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::Transfer, Item."No.", Location.Code, Bin[1].Code,
+          ItemUnitOfMeasure.Code, ReclassQty);
+        ItemJournalLine.Validate("New Location Code", Location.Code);
+        ItemJournalLine.Validate("New Bin Code", Bin[2].Code);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] Bin "B1" is reduced and bin "B2" is increased by the same base quantity, which is the base quantity of the reclassification.
+        VerifyWhseEntryQtyInBin(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, 2 * ReceivedQtyBase - ReclassQtyBase);
+        VerifyWhseEntryQtyInBin(Location.Code, Bin[2].Code, Item."No.", Item."Base Unit of Measure", ReclassQtyBase);
+
+        // [THEN] Warehouse quantity at the location equals the item ledger quantity at the location.
+        VerifyWhseQtyEqualsItemLedgerQty(Item."No.", Location.Code, 2 * ReceivedQtyBase);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NegativeAdjmtInNonBaseUOMUsesBaseUOMBinContentWhenNonBaseUOMBinContentHoldsOtherLot()
+    var
+        Location: Record Location;
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemTrackingCode: Record "Item Tracking Code";
+        Bin: array[2] of Record Bin;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        LotNos: array[2] of Code[50];
+        QtyPerUOM: Decimal;
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Directed Put-away and Pick] [Bin Content] [Item Tracking]
+        // [SCENARIO 9678] A negative adjustment of a lot in a non-base unit of measure is taken from base unit of measure bin content when the non-base unit of measure bin content holds only another lot.
+        Initialize();
+        QtyPerUOM := LibraryRandom.RandIntInRange(2, 5);
+        Qty := LibraryRandom.RandIntInRange(5, 10);
+        LotNos[1] := LibraryUtility.GenerateGUID();
+        LotNos[2] := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] Location with "Directed Put-away and Pick", lot-tracked item with base unit of measure "EA" and unit of measure "PACK".
+        // [GIVEN] Bin content of "Qty" "PACK" of lot "L1" in bin "B".
+        // [GIVEN] "Directed Put-away and Pick" is turned off on the location.
+        CreateFullWMSLocation(Location, false);
+        CreateLotSpecificItemTrackingCode(ItemTrackingCode, true, false, false);
+        LibraryInventory.CreateTrackedItem(Item, '', '', ItemTrackingCode.Code);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUOM);
+        CreateBinsInPickZone(Location, Bin);
+        PostWhseJnlPositiveAdjmtInUOM(Location.Code, Bin[1], Item."No.", ItemUnitOfMeasure.Code, Qty, LotNos[1]);
+        PostWhseAdjmtAndDisableDirectedPutAwayAndPick(Location, Item);
+
+        // [GIVEN] Bin content of "Qty" * "QtyPerUOM" "EA" of lot "L2" in bin "B".
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Location.Code, Bin[1].Code,
+          Item."Base Unit of Measure", Qty * QtyPerUOM);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNos[2], Qty * QtyPerUOM);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [WHEN] Post a negative adjustment of "Qty" "PACK" of lot "L2" in bin "B".
+        CreateItemJournalLineWithBinAndUOM(
+          ItemJournalLine, ItemJournalBatch, ItemJournalLine."Entry Type"::"Negative Adjmt.", Item."No.", Location.Code, Bin[1].Code,
+          ItemUnitOfMeasure.Code, Qty);
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNos[2], Qty * QtyPerUOM);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] Lot "L2" is taken from bin content in "EA". Lot "L1" in "PACK" is unchanged.
+        VerifyWhseEntryQtyInBinForLot(Location.Code, Bin[1].Code, Item."No.", Item."Base Unit of Measure", LotNos[2], 0);
+        VerifyWhseEntryQtyInBinForLot(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, LotNos[2], 0);
+        VerifyWhseEntryQtyInBinForLot(Location.Code, Bin[1].Code, Item."No.", ItemUnitOfMeasure.Code, LotNos[1], Qty * QtyPerUOM);
+    end;
+
+    local procedure CreateBinsInPickZone(Location: Record Location; var Bin: array[2] of Record Bin)
+    var
+        i: Integer;
+    begin
+        for i := 1 to ArrayLen(Bin) do
+            LibraryWarehouse.CreateBin(Bin[i], Location.Code, '', FindLocationPickZone(Location.Code), FindPutPickBinType());
+    end;
+
+    local procedure PostWhseJnlPositiveAdjmtInUOM(LocationCode: Code[10]; Bin: Record Bin; ItemNo: Code[20]; UOMCode: Code[10]; Qty: Decimal; LotNo: Code[50])
+    var
+        WarehouseJournalTemplate: Record "Warehouse Journal Template";
+        WarehouseJournalBatch: Record "Warehouse Journal Batch";
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+        WhseItemTrackingLine: Record "Whse. Item Tracking Line";
+    begin
+        LibraryWarehouse.WarehouseJournalSetup(LocationCode, WarehouseJournalTemplate, WarehouseJournalBatch);
+        LibraryWarehouse.CreateWhseJournalLine(
+          WarehouseJournalLine, WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, LocationCode, Bin."Zone Code", Bin.Code,
+          WarehouseJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Qty);
+        WarehouseJournalLine.Validate("Unit of Measure Code", UOMCode);
+        WarehouseJournalLine.Modify(true);
+        if LotNo <> '' then
+            LibraryItemTracking.CreateWhseJournalLineItemTracking(WhseItemTrackingLine, WarehouseJournalLine, '', LotNo, WarehouseJournalLine."Qty. (Base)");
+        LibraryWarehouse.PostWhseJournalLine(WarehouseJournalTemplate.Name, WarehouseJournalBatch.Name, LocationCode);
+    end;
+
+    local procedure PostWhseAdjmtAndDisableDirectedPutAwayAndPick(var Location: Record Location; var Item: Record Item)
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        ItemJournalBatch.Validate("No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        ItemJournalBatch.Modify(true);
+        LibraryWarehouse.CalculateWhseAdjustment(Item, ItemJournalBatch);
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        Location.Get(Location.Code);
+        Location.Validate("Directed Put-away and Pick", false);
+        Location.Modify(true);
+    end;
+
     local procedure CreateNonBaseUOMBinContentWithoutDirectedPutAwayAndPick(var Location: Record Location; var Item: Record Item; var ItemUnitOfMeasure: Record "Item Unit of Measure"; var Bin: array[2] of Record Bin; QtyPerUOM: Decimal; Qty: Decimal)
     var
         WarehouseJournalTemplate: Record "Warehouse Journal Template";
@@ -2152,6 +2303,35 @@ codeunit 137423 "SCM WMS Item Unit of Measure"
         WarehouseEntry.SetRange("Bin Code", BinCode);
         WarehouseEntry.SetRange("Item No.", ItemNo);
         WarehouseEntry.SetRange("Unit of Measure Code", UOMCode);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        WarehouseEntry.TestField("Qty. (Base)", ExpectedQtyBase);
+    end;
+
+    local procedure VerifyWhseEntryQtyInBinForLot(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; UOMCode: Code[10]; LotNo: Code[50]; ExpectedQtyBase: Decimal)
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Unit of Measure Code", UOMCode);
+        WarehouseEntry.SetRange("Lot No.", LotNo);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        WarehouseEntry.TestField("Qty. (Base)", ExpectedQtyBase);
+    end;
+
+    local procedure VerifyWhseQtyEqualsItemLedgerQty(ItemNo: Code[20]; LocationCode: Code[10]; ExpectedQtyBase: Decimal)
+    var
+        Item: Record Item;
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        Item.Get(ItemNo);
+        Item.SetRange("Location Filter", LocationCode);
+        Item.CalcFields(Inventory);
+        Item.TestField(Inventory, ExpectedQtyBase);
+
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
         WarehouseEntry.CalcSums("Qty. (Base)");
         WarehouseEntry.TestField("Qty. (Base)", ExpectedQtyBase);
     end;
