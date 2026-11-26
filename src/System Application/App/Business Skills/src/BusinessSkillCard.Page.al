@@ -35,25 +35,34 @@ page 4161 "Business Skill Card"
             {
                 Caption = 'General';
                 Editable = CanMaintainSkill;
+                InstructionalText = 'Copilot and agents automatically search for matching Active skills based on the title and description.';
 
-                field("Title"; Rec."Title")
+                group(NameAndDescription)
                 {
-                    Editable = CanMaintainSkill;
+                    ShowCaption = false;
+                    field("Title"; Rec."Title")
+                    {
+                        Editable = CanMaintainSkill;
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies the display name of this skill, that will be shown in the UI whenever Copilot and agents UI choose to use this skill.';
 
-                    trigger OnValidate()
-                    begin
-                        InitializeSkillContentEditor();
-                    end;
-                }
-                field(Description; Rec.Description)
-                {
-                    MultiLine = true;
-                    Editable = CanMaintainSkill;
+                        trigger OnValidate()
+                        begin
+                            InitializeSkillContentEditor();
+                        end;
+                    }
+                    field(Description; Rec.Description)
+                    {
+                        MultiLine = true;
+                        Editable = CanMaintainSkill;
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies the purpose of this skill and when it is relevant to apply to Copilot and agent tasks.';
 
-                    trigger OnValidate()
-                    begin
-                        InitializeSkillContentEditor();
-                    end;
+                        trigger OnValidate()
+                        begin
+                            InitializeSkillContentEditor();
+                        end;
+                    }
                 }
                 field("Status"; Rec."Status")
                 {
@@ -63,6 +72,7 @@ page 4161 "Business Skill Card"
                 }
                 field("Read-Only"; Rec."Read-Only")
                 {
+                    Importance = Additional;
                     Editable = false;
                 }
                 field(Version; Rec.Version)

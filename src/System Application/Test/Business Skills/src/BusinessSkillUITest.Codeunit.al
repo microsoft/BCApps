@@ -52,6 +52,7 @@ codeunit 130052 "Business Skill UI Test"
         Skill.FindFirst();
         Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Card-created content stays inactive until activation.');
         Assert.AreEqual('Created description', Skill.Description, 'Card creation persists the description.');
+        AssertVersionCount(Skill.ID, 0);
         SkillCard.OpenEdit();
         SkillCard.GoToRecord(Skill);
         SkillCard.Description.SetValue('Edited description');
@@ -61,6 +62,7 @@ codeunit 130052 "Business Skill UI Test"
         Skill.Get(Skill.ID);
         Assert.AreEqual('Edited description', Skill.Description, 'Native editing must not drop metadata-only changes.');
         AssertContentEquals(SecretStrSubstNo(''), BusinessSkillImpl.GetContent(Skill), 'Description editing does not invent instructions.');
+        AssertVersionCount(Skill.ID, 0);
         Commit();
         asserterror BusinessSkillImpl.ActivateSkill(Skill.ID);
         Assert.ExpectedError('title and skill content');
@@ -68,7 +70,7 @@ codeunit 130052 "Business Skill UI Test"
         BusinessSkillImpl.ActivateSkill(Skill.ID);
         Skill.Get(Skill.ID);
         Assert.AreEqual(Skill.Status::Active, Skill.Status, 'A completed native skill can be activated.');
-        AssertVersionCount(Skill.ID, 2);
+        AssertVersionCount(Skill.ID, 1);
     end;
 
     /// <summary>
@@ -199,6 +201,76 @@ codeunit 130052 "Business Skill UI Test"
         SkillList.Title.AssertEquals('Inactive skill');
         SkillList.Status.AssertEquals(Format(Skill.Status));
         SkillList.Close();
+    end;
+
+    /// <summary>
+    /// List lifecycle actions preserve content and history without changing unselected skills.
+    /// </summary>
+    [Test]
+    procedure SkillListActionsChangeStatusWithoutLosingContent()
+    var
+        Skill: Record "Business Skill";
+        UnselectedSkill: Record "Business Skill";
+        Builder: Codeunit "Business Skill Builder";
+        SkillList: TestPage "Business Skills";
+        UnselectedActiveSkillId: BigInteger;
+        UnselectedInactiveSkillId: BigInteger;
+    begin
+        // [SCENARIO] List lifecycle actions affect only the selection and preserve content and history.
+        // [GIVEN] A selected skill, another active skill, and an incomplete inactive skill.
+        Initialize();
+        UnselectedActiveSkillId := LibraryBusinessSkill.CreateSkill('Unselected active skill', SecretStrSubstNo('Instructions'));
+        UnselectedInactiveSkillId := Builder.Initialize('', 'Unselected inactive skill', SecretStrSubstNo('')).SetManual(true).Create();
+        Skill.Get(LibraryBusinessSkill.CreateSkill('List lifecycle skill', SecretStrSubstNo('Instructions')));
+        Commit();
+        SkillList.OpenEdit();
+        SkillList.GoToRecord(Skill);
+
+        // [WHEN] The selected skill is deactivated and activated from the list.
+        SkillList.Deactivate.Invoke();
+        SkillList.Status.AssertEquals(Format(Skill.Status::Inactive));
+        UnselectedSkill.Get(UnselectedActiveSkillId);
+        Assert.AreEqual(UnselectedSkill.Status::Active, UnselectedSkill.Status, 'Deactivation must not change an unselected skill.');
+        SkillList.Activate.Invoke();
+        SkillList.Status.AssertEquals(Format(Skill.Status::Active));
+        SkillList.Close();
+
+        // [THEN] Unselected skills, instruction content, and history are unchanged.
+        UnselectedSkill.Get(UnselectedInactiveSkillId);
+        Assert.AreEqual(UnselectedSkill.Status::Inactive, UnselectedSkill.Status, 'Activation must not change an unselected incomplete skill.');
+        Skill.Get(Skill.ID);
+        Assert.AreEqual(Skill.Status::Active, Skill.Status, 'Activation persists after the list closes.');
+        AssertContentEquals(SecretStrSubstNo('Instructions'), BusinessSkillImpl.GetContent(Skill), 'List lifecycle actions must preserve the instructions.');
+        AssertVersionCount(Skill.ID, 1);
+    end;
+
+    /// <summary>
+    /// List activation rejects an incomplete skill without changing its state or creating history.
+    /// </summary>
+    [Test]
+    procedure SkillListCannotActivateIncompleteSkill()
+    var
+        Skill: Record "Business Skill";
+        Builder: Codeunit "Business Skill Builder";
+        SkillList: TestPage "Business Skills";
+    begin
+        // [SCENARIO] List activation retains the existing complete-content validation.
+        // [GIVEN] An inactive skill without instructions.
+        Initialize();
+        Skill.Get(Builder.Initialize('', 'Incomplete list skill', SecretStrSubstNo('')).SetManual(true).Create());
+        Commit();
+        SkillList.OpenEdit();
+        SkillList.GoToRecord(Skill);
+
+        // [WHEN] Activation is requested from the list.
+        asserterror SkillList.Activate.Invoke();
+
+        // [THEN] The skill remains inactive and has no content history.
+        Assert.ExpectedError('title and skill content');
+        SkillList.Close();
+        Skill.Get(Skill.ID);
+        Assert.AreEqual(Skill.Status::Inactive, Skill.Status, 'Failed activation leaves the skill inactive.');
+        AssertVersionCount(Skill.ID, 0);
     end;
 
     /// <summary>

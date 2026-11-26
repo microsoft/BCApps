@@ -534,6 +534,46 @@ codeunit 130050 "Business Skill Test"
     end;
 
     /// <summary>
+    /// Initial blank content does not create history, while clearing previously saved instructions does.
+    /// </summary>
+    [Test]
+    procedure InitialBlankContentDoesNotCreateHistory()
+    var
+        Skill: Record "Business Skill";
+        ContentVersion: Record "Bus Skill Content Version";
+        Builder: Codeunit "Business Skill Builder";
+    begin
+        // [SCENARIO] History starts with the first nonblank instructions and retains subsequent clearing.
+        // [GIVEN] An inactive manual skill without instructions.
+        Initialize();
+        Skill.Get(Builder.Initialize('', 'Blank instructions', SecretStrSubstNo('')).SetManual(true).Create());
+        AssertVersionCount(Skill.ID, 0);
+
+        // [WHEN] Whitespace is saved before the first nonblank instructions.
+        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo('  '));
+        AssertVersionCount(Skill.ID, 0);
+        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo('First instructions'));
+
+        // [THEN] The first history entry contains the real instructions and their current version.
+        AssertVersionCount(Skill.ID, 1);
+        ContentVersion.SetRange("Skill ID", Skill.ID);
+        ContentVersion.FindFirst();
+        AssertContentEquals(SecretStrSubstNo('First instructions'), ContentVersion.GetContent(), 'History must begin with the first nonblank instructions.');
+        Skill.Get(Skill.ID);
+        Assert.AreEqual(Skill.Version, ContentVersion."Content Version", 'The first history entry must retain the current content version.');
+
+        // [WHEN] Previously saved instructions are cleared.
+        BusinessSkillImpl.SetContent(Skill.ID, SecretStrSubstNo(''));
+
+        // [THEN] Clearing remains a recorded change and the current content is empty.
+        AssertVersionCount(Skill.ID, 2);
+        ContentVersion.FindLast();
+        AssertContentEquals(SecretStrSubstNo(''), ContentVersion.GetContent(), 'Clearing instructions after history exists must still be recorded.');
+        Skill.Get(Skill.ID);
+        AssertContentEquals(SecretStrSubstNo(''), BusinessSkillImpl.GetContent(Skill), 'Skipping initial blank history must not prevent clearing current instructions.');
+    end;
+
+    /// <summary>
     /// Verifies shorter and empty inactive text replaces prior BLOB content without stale data.
     /// </summary>
     [Test]
