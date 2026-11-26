@@ -6,7 +6,9 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+#if not CLEAN26
 using Microsoft.eServices.EDocument.IO;
+#endif
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
