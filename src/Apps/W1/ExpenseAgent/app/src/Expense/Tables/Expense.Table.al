@@ -20,9 +20,11 @@ using System.Environment.Configuration;
 using System.Security.AccessControl;
 using System.Utilities;
 
+/// <summary>
+/// Stores a single expense, such as a receipt, that an expense user has incurred and that can later be included in an expense report.
+/// </summary>
 table 6900 Expense
 {
-    Access = Internal;
     Caption = 'Expense';
     DataClassification = CustomerContent;
     LookupPageId = Expenses;
@@ -254,6 +256,7 @@ table 6900 Expense
         }
         field(16; "Extraction Confidence"; Integer)
         {
+            Access = Internal;
             Caption = 'Extraction Confidence';
         }
         field(17; "Shortcut Dimension 1 Code"; Code[20])
@@ -493,6 +496,7 @@ table 6900 Expense
         }
         field(33; "Credit Card Feed No."; Integer)
         {
+            Access = Internal;
             Caption = 'Credit Card Feed No.';
 
             trigger OnValidate()
@@ -510,6 +514,7 @@ table 6900 Expense
         }
         field(107; "Corporate Card Id"; Code[50])
         {
+            Access = Internal;
             Caption = 'Corporate Card';
             DataClassification = AccountData;
             TableRelation = "EA Corp Card"."Card Id";
@@ -754,6 +759,7 @@ table 6900 Expense
         }
         field(64; Source; Enum "Expense Source")
         {
+            Access = Internal;
             Caption = 'Source';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies how the expense was originally created.';
@@ -864,6 +870,10 @@ table 6900 Expense
         CorporateCardSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense created from a corporate card transaction.', Comment = '%1 = field caption';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
+    /// <summary>
+    /// Lets the user select a number series for the expense and assigns the next number from the selected series.
+    /// </summary>
+    /// <returns>True if a number series was selected and a new number was assigned; otherwise, false.</returns>
     procedure AssistEdit() Result: Boolean
     begin
         ExpenseAgentSetup.GetRecordOnce();
@@ -911,6 +921,11 @@ table 6900 Expense
         Rec."Modified By Exp. User Id" := ExpenseUser.SystemId;
     end;
 
+    /// <summary>
+    /// Validates a shortcut dimension value and updates the dimension set of the expense.
+    /// </summary>
+    /// <param name="FieldNumber">The number of the shortcut dimension field (1-8).</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension value code to validate.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
         DimensionManagement: Codeunit DimensionManagement;
@@ -920,6 +935,12 @@ table 6900 Expense
             Modify();
     end;
 
+    /// <summary>
+    /// Releases the current expense as the current user, unless it is already released.
+    /// </summary>
+    /// <remarks>
+    /// The transaction is committed after a successful release, so earlier changes made by the caller cannot be rolled back by a later error.
+    /// </remarks>
     procedure PerformManualRelease()
     var
         ReleaseExpenseDoc: Codeunit "Release Expense Document";
@@ -931,6 +952,9 @@ table 6900 Expense
         Commit();
     end;
 
+    /// <summary>
+    /// Opens the dimension set of the expense for editing and saves any changes.
+    /// </summary>
     procedure ShowDocDim()
     var
         OldDimSetID: Integer;
@@ -945,6 +969,13 @@ table 6900 Expense
             Modify();
     end;
 
+    /// <summary>
+    /// Releases the selected expenses as the current user in a batch. Expenses that are already released are skipped.
+    /// </summary>
+    /// <param name="Expense">The set of expenses to release.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualRelease(var Expense: Record Expense)
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -962,6 +993,13 @@ table 6900 Expense
         Expense.FilterGroup(PrevFilterGroup);
     end;
 
+    /// <summary>
+    /// Reopens the selected expenses as the current user in a batch. Expenses that are already open are skipped.
+    /// </summary>
+    /// <param name="Expense">The set of expenses to reopen.</param>
+    /// <remarks>
+    /// Each record is processed by Batch Processing Mgt. and committed individually, so the caller's open transaction is committed as well.
+    /// </remarks>
     procedure PerformManualReopen(var Expense: Record Expense)
     var
         BatchProcessingMgt: Codeunit "Batch Processing Mgt.";
@@ -976,7 +1014,7 @@ table 6900 Expense
 
 #if not CLEAN29
     [Obsolete('This function is no longer used.', '29.0')]
-    procedure FilterByUserId(FilterUserId: Code[50])
+    internal procedure FilterByUserId(FilterUserId: Code[50])
     begin
     end;
 #endif
@@ -988,17 +1026,25 @@ table 6900 Expense
         Rec.SetRange("Expense User No.", ExpenseUser.GetExpenseUserNoByCurrentUser());
     end;
 
+    /// <summary>
+    /// Specifies whether confirmation dialogs are suppressed when fields on the expense are validated.
+    /// </summary>
+    /// <param name="NewHideValidationDialog">True to suppress confirmation dialogs; otherwise, false.</param>
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         HideValidationDialog := NewHideValidationDialog;
     end;
 
+    /// <summary>
+    /// Gets whether confirmation dialogs are suppressed when fields on the expense are validated.
+    /// </summary>
+    /// <returns>True if confirmation dialogs are suppressed; otherwise, false.</returns>
     procedure GetHideValidationDialog(): Boolean
     begin
         exit(HideValidationDialog);
     end;
 
-    procedure GetStatusStyleText() StatusStyleText: Text
+    internal procedure GetStatusStyleText() StatusStyleText: Text
     begin
         if Status = Status::Open then
             StatusStyleText := 'Favorable'
@@ -1006,6 +1052,9 @@ table 6900 Expense
             StatusStyleText := 'Strong';
     end;
 
+    /// <summary>
+    /// Checks that the status of the expense is Open and raises an error if it is not.
+    /// </summary>
     procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Status::Open);
@@ -1035,7 +1084,7 @@ table 6900 Expense
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Currency Code"));
     end;
 
-    procedure GetRuleStyleText() StatusStyleText: Text
+    internal procedure GetRuleStyleText() StatusStyleText: Text
     begin
         if IsNullGuid("Applied Rule Id") then
             StatusStyleText := 'Attention'
@@ -1180,7 +1229,7 @@ table 6900 Expense
         exit('c3f1d6a2-7b84-4e0f-9a35-5d2e8b1f4c71');
     end;
 
-    procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
+    internal procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
     var
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
@@ -1195,7 +1244,7 @@ table 6900 Expense
         end;
     end;
 
-    procedure ApplyRule()
+    internal procedure ApplyRule()
     var
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
@@ -1213,7 +1262,7 @@ table 6900 Expense
         Rec.SetSkipRuleApplication(false);
     end;
 
-    procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
+    internal procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
     begin
         SkipRuleApplication := NewSkipRuleApplication;
     end;
@@ -1221,6 +1270,7 @@ table 6900 Expense
     /// <summary>
     /// Initializes the dimensions for the Expense.
     /// </summary>
+    /// <param name="FieldNo">The number of the field whose value change triggers the default dimension update.</param>
     procedure CreateDimFromDefaultDim(FieldNo: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -1233,7 +1283,7 @@ table 6900 Expense
     /// Creates dimensions from default dimension sources for the expense.
     /// </summary>
     /// <param name="DefaultDimSource">List of dictionaries containing dimension source data.</param>
-    procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    local procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     begin
         "Shortcut Dimension 1 Code" := '';
         "Shortcut Dimension 2 Code" := '';
@@ -1275,13 +1325,16 @@ table 6900 Expense
             exit('');
     end;
 
-    procedure CheckExpensePrerequisitesBeforeUsing()
+    internal procedure CheckExpensePrerequisitesBeforeUsing()
     begin
         Rec.TestField("No.");
         Rec.TestField("Expense User No.");
         Rec.TestField("Expense Category");
     end;
 
+    /// <summary>
+    /// Recalculates the reimbursable, refundable, and local currency amounts of the expense based on the amount, the non-refundable amount, and the reimbursement type.
+    /// </summary>
     procedure UpdateAmount()
     var
         ExpenseCurrency: Record Currency;
@@ -1405,6 +1458,9 @@ table 6900 Expense
         Rec.UpdateAmount();
     end;
 
+    /// <summary>
+    /// Opens the itemization lines of the expense for the expense category of the expense.
+    /// </summary>
     procedure ShowItemization()
     var
         ExpenseItemization: Record "Expense Itemization";
@@ -1415,6 +1471,9 @@ table 6900 Expense
         Page.RunModal(Page::"Expense Itemizations", ExpenseItemization);
     end;
 
+    /// <summary>
+    /// Opens the participants of the expense.
+    /// </summary>
     procedure ShowParticipants()
     var
         ExpenseParticipant: Record "Expense Participant";
@@ -1424,6 +1483,9 @@ table 6900 Expense
         Page.RunModal(Page::"Expense Participants", ExpenseParticipant);
     end;
 
+    /// <summary>
+    /// Opens the per diem lines of the expense.
+    /// </summary>
     procedure ShowPerDiem()
     var
         ExpensePerDiem: Record "Expense Per Diem";
@@ -1438,7 +1500,7 @@ table 6900 Expense
         CalledFromExpenseAgent := NewCalledFromExpenseAgent;
     end;
 
-    procedure GetVATAmounts(var VATAmount: Decimal; var VATAmountLCY: Decimal): Boolean
+    internal procedure GetVATAmounts(var VATAmount: Decimal; var VATAmountLCY: Decimal): Boolean
     var
         ExpenseVATSpecification: Record "Expense VAT Specification";
     begin

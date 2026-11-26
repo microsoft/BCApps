@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Specifies how per diem is calculated for partial days.
+/// </summary>
 enum 6915 "Expense Partial Day Rules"
 {
-    Access = Internal;
     Caption = 'Partial Day Rules';
 
     value(0; "Flat Percentage Of Full Rate")
