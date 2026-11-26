@@ -537,6 +537,7 @@ codeunit 148370 EAReceiptMatchTests
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
         CardReceiptData: Record "EA Card Receipt Data";
         ExpenseParticipant: Record "Expense Participant";
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
@@ -544,8 +545,11 @@ codeunit 148370 EAReceiptMatchTests
         // [SCENARIO] Applying receipt data to a card line attaches the receipt to the expense and the line, and fills only empty fields.
         Initialize();
 
-        // [GIVEN] A card expense on an open report, with a justification entered by the user on the line.
+        // [GIVEN] A card expense with a participants category on an open report, with a justification entered by the user on the line.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::Participants);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Modify(true);
         AddCardExpenseToReport(Expense, ExpenseReportLine);
         ExpenseReportLine.Validate(Justification, 'User justification');
         ExpenseReportLine.Modify(true);
@@ -813,6 +817,45 @@ codeunit 148370 EAReceiptMatchTests
         Assert.RecordIsEmpty(ExpenseParticipant);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         ExpenseReportLine.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordIsEmpty(ExpenseReportLineParticip);
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataDoesNotAddParticipantsForCategoryWithoutParticipants()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        CardReceiptData: Record "EA Card Receipt Data";
+        ExpenseParticipant: Record "Expense Participant";
+        ExpenseReportLineParticip: Record "Expense Report Line Particip.";
+    begin
+        // [SCENARIO] The receipt's participants are not added when the category doesn't use participants, like itemization for a category that isn't itemized.
+        Initialize();
+
+        // [GIVEN] A card expense without a category and without participants, on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        ClearCategory(Expense);
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+
+        // [GIVEN] Receipt data with a category without required details and a participant.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData."Expense Category" := ExpenseCategory.Code;
+        CardReceiptData.Modify();
+        AddCardReceiptParticipant(CardReceiptData, 'Jane Doe');
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The expense and the line have the category and no participants.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseParticipant.SetRange("Expense No.", Expense."No.");
+        Assert.RecordIsEmpty(ExpenseParticipant);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         Assert.RecordIsEmpty(ExpenseReportLineParticip);

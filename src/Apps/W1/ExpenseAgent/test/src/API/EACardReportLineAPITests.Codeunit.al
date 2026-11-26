@@ -324,7 +324,7 @@ codeunit 148374 "EA Card Report Line API Tests"
 
         // [GIVEN] A card line without a category, added through "Create reports".
         CreateCardLineWithoutCategory(Expense, ExpenseReportLine);
-        CreateCardCategory(ExpenseCategory);
+        CreateCardCategory(ExpenseCategory, ExpenseCategory."Expense Detail Required"::Participants);
         Commit();
 
         // [WHEN] A receipt with a category and two participants is attached.
@@ -415,18 +415,20 @@ codeunit 148374 "EA Card Report Line API Tests"
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
         ReceiptDetails: JsonObject;
     begin
         // [SCENARIO] Participants the user added on the line are kept; OCR participants go to the expense only.
         Initialize();
 
-        // [GIVEN] A card line with one participant added by the user.
+        // [GIVEN] A card line with one participant added by the user, and a participants category.
         CreateCardLineWithoutCategory(Expense, ExpenseReportLine);
         InsertLineParticipant(ExpenseReportLine, 'Alicia Thornber');
+        CreateCardCategory(ExpenseCategory, ExpenseCategory."Expense Detail Required"::Participants);
         Commit();
 
-        // [WHEN] A receipt with two participants is attached.
-        ReceiptDetails := CreateReceiptDetails('');
+        // [WHEN] A receipt with the participants category and two participants is attached.
+        ReceiptDetails := CreateReceiptDetails(ExpenseCategory.Code);
         AddParticipant(ReceiptDetails, 'Jim Glynn');
         AddParticipant(ReceiptDetails, 'Sara Davis');
         AttachCardReceipt(ExpenseReportLine, ReceiptDetails);
@@ -838,12 +840,17 @@ codeunit 148374 "EA Card Report Line API Tests"
     end;
 
     local procedure CreateCardCategory(var ExpenseCategory: Record "Expense Category")
+    begin
+        CreateCardCategory(ExpenseCategory, ExpenseCategory."Expense Detail Required"::" ");
+    end;
+
+    local procedure CreateCardCategory(var ExpenseCategory: Record "Expense Category"; ExpenseDetailRequired: Enum "Expense Detail Needed")
     var
         ExpensePaymentMethod: Record "Expense Payment Method";
     begin
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Credit Card");
         LibraryExpense.CreateExpenseCategory(
-            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseCategory."Expense Detail Required"::" ", ExpensePaymentMethod.Code);
+            ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Credit Card", ExpenseDetailRequired, ExpensePaymentMethod.Code);
     end;
 
     local procedure ClearCategory(var Expense: Record Expense)

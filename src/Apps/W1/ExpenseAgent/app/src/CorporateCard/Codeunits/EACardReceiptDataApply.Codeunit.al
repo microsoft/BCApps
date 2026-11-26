@@ -268,6 +268,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
         ExpenseParticipant: Record "Expense Participant";
         LineNo: Integer;
     begin
+        if Expense."Expense Detail Required" <> Expense."Expense Detail Required"::Participants then
+            exit;
         ExpenseParticipant.SetRange("Expense No.", Expense."No.");
         if not ExpenseParticipant.IsEmpty() then
             exit;
@@ -296,6 +298,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
         LineNo: Integer;
     begin
+        if ExpenseReportLine."Expense Detail Required" <> ExpenseReportLine."Expense Detail Required"::Participants then
+            exit;
         ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         if not ExpenseReportLineParticip.IsEmpty() then

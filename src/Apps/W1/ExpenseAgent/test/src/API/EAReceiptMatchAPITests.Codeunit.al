@@ -228,6 +228,7 @@ codeunit 148371 "EA Receipt Match API Tests"
     procedure CardReceiptDataAPIDeepInsertThenApplyAttachesReceipt()
     var
         Expense: Record Expense;
+        ExpenseCategory: Record "Expense Category";
         CardReceiptData: Record "EA Card Receipt Data";
         CardReceiptParticipant: Record "EA Card Receipt Participant";
         ExpenseParticipant: Record "Expense Participant";
@@ -239,8 +240,11 @@ codeunit 148371 "EA Receipt Match API Tests"
         // [SCENARIO] Receipt data and its participants are created in one request under the expense, and the apply action attaches them.
         Initialize();
 
-        // [GIVEN] A card expense waiting for a receipt.
+        // [GIVEN] A card expense with a participants category waiting for a receipt.
         CreateCardExpense(Expense);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::Participants);
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Modify(true);
         Commit();
 
         // [WHEN] Receipt data with a participant is posted through expenses({id})/cardReceiptData.
