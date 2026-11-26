@@ -2455,6 +2455,10 @@ codeunit 6620 "Copy Document Mgt."
         QtyToAssign: Decimal;
         SumQtyToAssign: Decimal;
         RemainingQty: Decimal;
+        ItemChargeCostAmount: Decimal;
+        SupportedValueEntryCount: Integer;
+        AppliesToDocType: Enum "Purchase Applies-to Document Type";
+        IsSupportedDocumentType: Boolean;
     begin
         if FromPurchLine."Document Type" = FromPurchLine."Document Type"::"Credit Memo" then
             ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Purchase Credit Memo")
@@ -2472,28 +2476,61 @@ codeunit 6620 "Copy Document Mgt."
 
         if ValueEntry.FindSet() then begin
             repeat
+                IsSupportedDocumentType := false;
+                if ValueEntry.Inventoriable then
+                    ItemChargeCostAmount := ValueEntry."Cost Amount (Actual)"
+                else
+                    ItemChargeCostAmount := ValueEntry."Cost Amount (Non-Invtbl.)";
                 if ItemLedgerEntry.Get(ValueEntry."Item Ledger Entry No.") then
-                    if ItemLedgerEntry."Document Type" = ItemLedgerEntry."Document Type"::"Purchase Receipt" then begin
-                        PurchaseItem.Get(ItemLedgerEntry."Item No.");
-                        CurrencyFactor := FromPurchHeader."Currency Factor";
-
-                        if not PurchaseCurrency.Get(FromPurchHeader."Currency Code") then begin
-                            CurrencyFactor := 1;
-                            PurchaseCurrency.InitRoundingPrecision();
-                        end;
-
-                        if ToPurchLine."Unit Cost" = 0 then
-                            QtyToAssign := 0
-                        else
-                            QtyToAssign :=
-                              Sign(ToPurchLine.Quantity) * Abs(ValueEntry."Cost Amount (Actual)") * CurrencyFactor / ToPurchLine."Unit Cost";
-                        SumQtyToAssign += QtyToAssign;
-
-                        ItemChargeAssgntPurch.InsertItemChargeAssignmentWithValuesTo(
-                            ToItemChargeAssignmentPurch, ToItemChargeAssignmentPurch."Applies-to Doc. Type"::Receipt,
-                            ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.", ItemLedgerEntry."Item No.", PurchaseItem.Description,
-                            QtyToAssign, 0, ItemChargeAssgntNextLineNo, TempToItemChargeAssignmentPurch);
+                    case ItemLedgerEntry."Document Type" of
+                        ItemLedgerEntry."Document Type"::"Purchase Receipt":
+                            begin
+                                AppliesToDocType := AppliesToDocType::Receipt;
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Transfer Receipt":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Transfer Receipt";
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Purchase Return Shipment":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Return Shipment";
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Sales Shipment":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Sales Shipment";
+                                IsSupportedDocumentType := true;
+                            end;
+                        ItemLedgerEntry."Document Type"::"Sales Return Receipt":
+                            begin
+                                AppliesToDocType := AppliesToDocType::"Return Receipt";
+                                IsSupportedDocumentType := true;
+                            end;
                     end;
+                if IsSupportedDocumentType then begin
+                    PurchaseItem.Get(ItemLedgerEntry."Item No.");
+                    CurrencyFactor := FromPurchHeader."Currency Factor";
+
+                    if not PurchaseCurrency.Get(FromPurchHeader."Currency Code") then begin
+                        CurrencyFactor := 1;
+                        PurchaseCurrency.InitRoundingPrecision();
+                    end;
+
+                    if ToPurchLine."Unit Cost" = 0 then
+                        QtyToAssign := 0
+                    else
+                        QtyToAssign :=
+                          Sign(ToPurchLine.Quantity) * Abs(ItemChargeCostAmount) * CurrencyFactor / Abs(ToPurchLine."Unit Cost");
+                    SumQtyToAssign += QtyToAssign;
+                    SupportedValueEntryCount += 1;
+
+                    ItemChargeAssgntPurch.InsertItemChargeAssignmentWithValuesTo(
+                        ToItemChargeAssignmentPurch, AppliesToDocType,
+                        ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.", ItemLedgerEntry."Item No.", PurchaseItem.Description,
+                        QtyToAssign, 0, ItemChargeAssgntNextLineNo, TempToItemChargeAssignmentPurch);
+                end;
                 OnCopyFromPurchLineItemChargeAssignOnAfterValueEntryLoop(
                     FromPurchHeader, ToPurchLine, ValueEntry, TempToItemChargeAssignmentPurch, ToItemChargeAssignmentPurch,
                     ItemChargeAssgntNextLineNo, SumQtyToAssign);
@@ -2505,7 +2542,10 @@ codeunit 6620 "Copy Document Mgt."
             ToItemChargeAssignmentPurch.SetRange("Document No.", ToPurchLine."Document No.");
             ToItemChargeAssignmentPurch.SetRange("Document Line No.", ToPurchLine."Line No.");
             if ToItemChargeAssignmentPurch.FindSet(true) then begin
-                RemainingQty := (FromPurchLine.Quantity - SumQtyToAssign) / ValueEntry.Count();
+                if SupportedValueEntryCount > 0 then
+                    RemainingQty := (FromPurchLine.Quantity - SumQtyToAssign) / SupportedValueEntryCount
+                else
+                    RemainingQty := 0;
                 SumQtyToAssign := 0;
                 repeat
                     AddRemainingQtyToPurchItemCharge(ToItemChargeAssignmentPurch, RemainingQty);
@@ -2979,7 +3019,7 @@ codeunit 6620 "Copy Document Mgt."
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         OldDocNo: Code[20];
         NextLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         CopyItemTrkg: Boolean;
@@ -3129,7 +3169,7 @@ codeunit 6620 "Copy Document Mgt."
         OldBufDocNo: Code[20];
         NextLineNo: Integer;
         SalesCombDocLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         CopyItemTrkg: Boolean;
@@ -3350,7 +3390,7 @@ codeunit 6620 "Copy Document Mgt."
         OldReturnRcptDocNo: Code[20];
         OldBufDocNo: Code[20];
         NextLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         ItemChargeAssgntNextLineNo: Integer;
@@ -3518,7 +3558,7 @@ codeunit 6620 "Copy Document Mgt."
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         OldDocNo: Code[20];
         NextLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         CopyItemTrkg: Boolean;
@@ -3768,7 +3808,7 @@ codeunit 6620 "Copy Document Mgt."
         exit(true);
     end;
 
-    local procedure SplitSalesDocLinesPerItemTrkg(var ItemLedgEntry: Record "Item Ledger Entry"; var TempItemTrkgEntry: Record "Reservation Entry" temporary; var TempSalesLineBuf: Record "Sales Line" temporary; FromSalesLine: Record "Sales Line"; var TempDocSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: Integer; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean): Boolean
+    local procedure SplitSalesDocLinesPerItemTrkg(var ItemLedgEntry: Record "Item Ledger Entry"; var TempItemTrkgEntry: Record "Reservation Entry" temporary; var TempSalesLineBuf: Record "Sales Line" temporary; FromSalesLine: Record "Sales Line"; var TempDocSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: BigInteger; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean): Boolean
     var
         SalesLineBuf: array[2] of Record "Sales Line" temporary;
         Tracked: Boolean;
@@ -3931,7 +3971,7 @@ codeunit 6620 "Copy Document Mgt."
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         OldDocNo: Code[20];
         NextLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         CopyItemTrkg: Boolean;
@@ -4072,7 +4112,7 @@ codeunit 6620 "Copy Document Mgt."
         OldRcptDocNo: Code[20];
         OldBufDocNo: Code[20];
         NextLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         CopyItemTrkg: Boolean;
@@ -4255,7 +4295,7 @@ codeunit 6620 "Copy Document Mgt."
         OldReturnShptDocNo: Code[20];
         OldBufDocNo: Code[20];
         NextLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         ItemChargeAssgntNextLineNo: Integer;
@@ -4428,7 +4468,7 @@ codeunit 6620 "Copy Document Mgt."
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         OldDocNo: Code[20];
         NextLineNo: Integer;
-        NextItemTrkgEntryNo: Integer;
+        NextItemTrkgEntryNo: BigInteger;
         FromLineCounter: Integer;
         ToLineCounter: Integer;
         CopyItemTrkg: Boolean;
@@ -4573,7 +4613,7 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterCopyPurchLinesToBuffer(TempPurchLineBuf, FromPurchLine2, FromPurchLine);
     end;
 
-    local procedure CreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; JobContractEntryNo: Integer): Integer
+    local procedure CreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; JobContractEntryNo: BigInteger): Integer
     var
         JobPlanningLine: Record "Job Planning Line";
         NewJobPlanningLine: Record "Job Planning Line";
@@ -4723,7 +4763,7 @@ codeunit 6620 "Copy Document Mgt."
         exit(true);
     end;
 
-    local procedure SplitPurchDocLinesPerItemTrkg(var ItemLedgEntry: Record "Item Ledger Entry"; var TempItemTrkgEntry: Record "Reservation Entry" temporary; var FromPurchLineBuf: Record "Purchase Line"; FromPurchLine: Record "Purchase Line"; var TempDocPurchaseLine: Record "Purchase Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: Integer; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean): Boolean
+    local procedure SplitPurchDocLinesPerItemTrkg(var ItemLedgEntry: Record "Item Ledger Entry"; var TempItemTrkgEntry: Record "Reservation Entry" temporary; var FromPurchLineBuf: Record "Purchase Line"; FromPurchLine: Record "Purchase Line"; var TempDocPurchaseLine: Record "Purchase Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: BigInteger; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean): Boolean
     var
         PurchLineBuf: array[2] of Record "Purchase Line" temporary;
         ApplyRec: Record "Item Application Entry";
@@ -5043,7 +5083,7 @@ codeunit 6620 "Copy Document Mgt."
         exit(false);
     end;
 
-    local procedure InsertTempReservationEntry(ItemLedgEntry: Record "Item Ledger Entry"; var TempReservationEntry: Record "Reservation Entry"; QtyBase: Decimal; DocLineNo: Integer; var NextEntryNo: Integer; FillExactCostRevLink: Boolean)
+    local procedure InsertTempReservationEntry(ItemLedgEntry: Record "Item Ledger Entry"; var TempReservationEntry: Record "Reservation Entry"; QtyBase: Decimal; DocLineNo: Integer; var NextEntryNo: BigInteger; FillExactCostRevLink: Boolean)
     begin
         if QtyBase = 0 then
             exit;
@@ -5678,7 +5718,7 @@ codeunit 6620 "Copy Document Mgt."
         until SalesLine.Next() = 0;
     end;
 
-    local procedure GetQtyOfPurchILENotShipped(ItemLedgerEntryNo: Integer; FromPurchLine: Record "Purchase Line"): Decimal
+    local procedure GetQtyOfPurchILENotShipped(ItemLedgerEntryNo: BigInteger; FromPurchLine: Record "Purchase Line"): Decimal
     var
         ItemApplicationEntry: Record "Item Application Entry";
         ItemLedgerEntryLocal: Record "Item Ledger Entry";
@@ -8803,7 +8843,7 @@ codeunit 6620 "Copy Document Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var JobContractEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCreateJobPlanningLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var JobContractEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -12215,12 +12255,12 @@ codeunit 6620 "Copy Document Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSplitSalesDocLinesPerItemTrkg(var ItemLedgerEntry: Record "Item Ledger Entry"; var TempReservationEntry: Record "Reservation Entry" temporary; var TempSalesLineBuf: Record "Sales Line" temporary; FromSalesLine: Record "Sales Line"; var TempDocSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: Integer; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeSplitSalesDocLinesPerItemTrkg(var ItemLedgerEntry: Record "Item Ledger Entry"; var TempReservationEntry: Record "Reservation Entry" temporary; var TempSalesLineBuf: Record "Sales Line" temporary; FromSalesLine: Record "Sales Line"; var TempDocSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: BigInteger; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSplitPurchDocLinesPerItemTrkg(var ItemLedgerEntry: Record "Item Ledger Entry"; var TempReservationEntry: Record "Reservation Entry" temporary; var FromPurchaseLineBuf: Record "Purchase Line"; FromPurchaseLine: Record "Purchase Line"; var TempDocPurchaseLine: Record "Purchase Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: Integer; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean; var Result: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeSplitPurchDocLinesPerItemTrkg(var ItemLedgerEntry: Record "Item Ledger Entry"; var TempReservationEntry: Record "Reservation Entry" temporary; var FromPurchaseLineBuf: Record "Purchase Line"; FromPurchaseLine: Record "Purchase Line"; var TempDocPurchaseLine: Record "Purchase Line" temporary; var NextLineNo: Integer; var NextItemTrkgEntryNo: BigInteger; var MissingExCostRevLink: Boolean; FromShptOrRcpt: Boolean; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 

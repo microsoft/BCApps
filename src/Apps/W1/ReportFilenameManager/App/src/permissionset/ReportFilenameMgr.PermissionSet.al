@@ -79,6 +79,9 @@ permissionset 8125 "Report Filename Mgr."
         // report fails instead of skipping the naming.
         codeunit "Report Filename Fin. Rep. Sub." = X,
         codeunit "Report Filename Guided Exp." = X,
+        codeunit "Report Filename Defaults" = X,
+        codeunit "Report Filename Install" = X,
+        codeunit "Report Filename Upgrade" = X,
         page "Report Filename Patterns" = X,
         page "Report Filename Setup" = X,
         page "Report Filename Pattern Card" = X,

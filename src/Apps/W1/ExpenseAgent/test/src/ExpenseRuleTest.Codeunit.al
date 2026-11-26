@@ -53,7 +53,10 @@ codeunit 148301 "Expense Rule Test"
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
         SubcategoryBlankedMsg: Label 'The expense category of expense %1 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense No.';
         ReportLineSubcategoryBlankedMsg: Label 'The expense category of expense report %1, Line No. %2 was changed, so the subcategories on its itemizations were cleared. Review the itemizations and select a subcategory that matches the new category.', Comment = '%1 = Expense Report No., %2 = Line No.';
-        RequiredSpecificMerchantNotAllowedForMileageErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Mileage value, %4 = Expense Category table caption, %5 = Expense Category Code';
+        RequiredSpecificMerchantNotAllowedErr: Label 'You cannot set %1 because %2 is %3 in %4 %5.', Comment = '%1 = Required Specific Merchant field caption, %2 = Expense Detail Required field caption, %3 = Expense Detail Required value, %4 = Expense Category table caption, %5 = Expense Category Code';
+        MerchantNameMandatoryFilterTok: Label 'Merchant Name is mandatory*', Locked = true;
+        ReceiptNoMandatoryFilterTok: Label 'Receipt No. is mandatory*', Locked = true;
+        PartialDayPerDiemAmountErr: Label 'The calculated per diem amount is incorrect.';
         RequiredSpecificMerchantEnabledMsg: Label 'Required Specific Merchant should be enabled for a non-mileage category.';
         ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
         ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
@@ -8315,12 +8318,84 @@ codeunit 148301 "Expense Rule Test"
         // [THEN] Validation fails because merchant requirements do not apply to mileage.
         Assert.ExpectedError(
             StrSubstNo(
-                RequiredSpecificMerchantNotAllowedForMileageErr,
+                RequiredSpecificMerchantNotAllowedErr,
                 ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
                 ExpenseCategory.FieldCaption("Expense Detail Required"),
                 ExpenseCategory."Expense Detail Required"::Mileage,
                 ExpenseCategory.TableCaption(),
                 ExpenseCategory.Code));
+    end;
+
+    [Test]
+    procedure RequiredSpecificMerchantFailsForPerDiemCategory()
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+    begin
+        // [SCENARIO] Required Specific Merchant cannot be enabled on an expense rule for a per diem category.
+        Initialize();
+
+        // [GIVEN] An expense rule for a per diem category.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Company Paid", ExpenseCategory."Expense Detail Required"::"Per Diem");
+        CreateExpenseRuleHeaderForCategory(ExpenseRuleHeader, ExpenseCategory.Code);
+
+        // [WHEN] Required Specific Merchant is enabled.
+        asserterror ExpenseRuleHeader.Validate("Required Specific Merchant", true);
+
+        // [THEN] Validation fails because merchant requirements do not apply to per diem.
+        Assert.ExpectedError(
+            StrSubstNo(
+                RequiredSpecificMerchantNotAllowedErr,
+                ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
+                ExpenseCategory.FieldCaption("Expense Detail Required"),
+                ExpenseCategory."Expense Detail Required"::"Per Diem",
+                ExpenseCategory.TableCaption(),
+                ExpenseCategory.Code));
+    end;
+
+    [Test]
+    procedure PerDiemExpenseRequiresNoMerchantOrReceipt()
+    var
+        Expense: Record Expense;
+        PostCode: Record "Post Code";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+        ExpenseRuleViolation: Record "Expense Rule Violation";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        Amount: Decimal;
+    begin
+        // [SCENARIO] Receipt No. and Merchant Name are not mandatory for a per diem expense when they are mandatory in Expense Agent Setup.
+        Initialize();
+
+        // [GIVEN] Receipt No. and Merchant Name are mandatory in Expense Agent Setup.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Receipt No. Mandatory", true);
+        ExpenseAgentSetup.Validate("Merchant Name Mandatory", true);
+        ExpenseAgentSetup.Modify();
+
+        // [GIVEN] A per diem expense with a Daily Rate rule and without merchant name and receipt no.
+        LibraryERM.FindPostCode(PostCode);
+        Amount := LibraryRandom.RandInt(100);
+        CreateExpenseWithRule(
+            Expense, ExpenseRuleHeader, ExpenseRuleCondition, PostCode."Country/Region Code", PostCode.City, '', Amount, WorkDate(),
+            "Expense Detail Needed"::"Per Diem", ExpenseRuleHeader."Justification Required"::" ", '', ExpenseRuleCondition."Condition Type"::"Daily Rate", true, Amount);
+        Expense.Validate("Merchant Name", '');
+        Expense.Validate("Expense Ext. Doc. No.", '');
+        Expense.Modify();
+
+        // [WHEN] The expense is validated against the rules.
+        ExpenseRuleValidation.ValidateExpenseAgainstRule(Expense);
+
+        // [THEN] No merchant name or receipt no. rule violation is raised for the per diem expense.
+        ExpenseRuleViolation.SetRange("Expense No.", Expense."No.");
+        ExpenseRuleViolation.SetFilter(Description, '%1|%2', MerchantNameMandatoryFilterTok, ReceiptNoMandatoryFilterTok);
+        Assert.RecordIsEmpty(ExpenseRuleViolation);
+
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Receipt No. Mandatory", false);
+        ExpenseAgentSetup.Validate("Merchant Name Mandatory", false);
+        ExpenseAgentSetup.Modify();
     end;
 
     [Test]
@@ -8369,7 +8444,7 @@ codeunit 148301 "Expense Rule Test"
         // [THEN] Validation fails because merchant requirements do not apply to mileage.
         Assert.ExpectedError(
             StrSubstNo(
-                RequiredSpecificMerchantNotAllowedForMileageErr,
+                RequiredSpecificMerchantNotAllowedErr,
                 ExpenseRuleHeader.FieldCaption("Required Specific Merchant"),
                 MileageCategory.FieldCaption("Expense Detail Required"),
                 MileageCategory."Expense Detail Required"::Mileage,
@@ -9030,6 +9105,122 @@ codeunit 148301 "Expense Rule Test"
         ExpenseReportLineItem.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLineItem.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         Assert.RecordIsEmpty(ExpenseReportLineItem);
+    end;
+
+    [Test]
+    procedure PartialDayPerDiemIsRoundedForFullCalendarDay()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        PartialDayAmount: Decimal;
+    begin
+        // [SCENARIO 659462] Partial-day per diem is rounded using Partial Day Rounding Precision for Full Calendar Day calculation.
+        Initialize();
+
+        // [GIVEN] Full Calendar Day with flat 46.30 % for partial day and Partial Day Rounding Precision = 1.
+        SetupPerDiemCalculation(ExpenseAgentSetup, "Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 46.3, 0, 0, 1);
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+
+        // [WHEN] Per diem is calculated for a partial day with a full-day rate of 54.
+        PartialDayAmount := ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(WorkDate(), 54, CreateDateTime(WorkDate(), 100000T), CreateDateTime(WorkDate(), 200000T));
+
+        // [THEN] 54 * 46.30 % = 25.002 is rounded to 25.
+        Assert.AreEqual(25, PartialDayAmount, PartialDayPerDiemAmountErr);
+    end;
+
+    [Test]
+    procedure PartialDayPerDiemIsNotRoundedWhenPrecisionIsEmpty()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        PartialDayAmount: Decimal;
+    begin
+        // [SCENARIO 659462] Partial-day per diem keeps the existing calculation when Partial Day Rounding Precision is empty.
+        Initialize();
+
+        // [GIVEN] Full Calendar Day with flat 46.30 % for partial day and no Partial Day Rounding Precision.
+        SetupPerDiemCalculation(ExpenseAgentSetup, "Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 46.3, 0, 0, 0);
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+
+        // [WHEN] Per diem is calculated for a partial day with a full-day rate of 54.
+        PartialDayAmount := ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(WorkDate(), 54, CreateDateTime(WorkDate(), 100000T), CreateDateTime(WorkDate(), 200000T));
+
+        // [THEN] The unrounded amount 25.002 is returned.
+        Assert.AreEqual(25.002, PartialDayAmount, PartialDayPerDiemAmountErr);
+    end;
+
+    [Test]
+    procedure PartialDayRoundingPrecisionDoesNotAffectFullDayPerDiem()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        FullDayAmount: Decimal;
+    begin
+        // [SCENARIO 659462] Partial Day Rounding Precision is not applied to full-day per diem.
+        Initialize();
+
+        // [GIVEN] Full Calendar Day with Partial Day Rounding Precision = 1.
+        SetupPerDiemCalculation(ExpenseAgentSetup, "Exp. Full Per Diem Calculation"::"Full Calendar Day", "Expense Partial Day Rules"::"Flat Percentage Of Full Rate", 50, 0, 0, 1);
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+
+        // [WHEN] Per diem is calculated for a full calendar day with a full-day rate of 54.37.
+        FullDayAmount := ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(WorkDate(), 54.37, CreateDateTime(WorkDate(), 000000T), CreateDateTime(WorkDate(), 235900T));
+
+        // [THEN] The full-day rate is returned without rounding.
+        Assert.AreEqual(54.37, FullDayAmount, PartialDayPerDiemAmountErr);
+    end;
+
+    [Test]
+    procedure PartialDayPerDiemIsRoundedFor24HourRollingPeriod()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        PartialDayAmount: Decimal;
+    begin
+        // [SCENARIO 659462] Partial-day per diem is rounded using Partial Day Rounding Precision for 24-hour Rolling Period calculation.
+        Initialize();
+
+        // [GIVEN] 24-hour Rolling Period, 47 % for partial day, min. 20 hours for full and 4 hours for partial per diem, Partial Day Rounding Precision = 0.1.
+        SetupPerDiemCalculation(ExpenseAgentSetup, "Exp. Full Per Diem Calculation"::"24-hour Rolling Period", "Expense Partial Day Rules"::"Based On Eligible Hours", 47, 20, 4, 0.1);
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+
+        // [WHEN] Per diem is calculated for an 8-hour trip with a full-day rate of 54.
+        PartialDayAmount := ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(WorkDate(), 54, CreateDateTime(WorkDate(), 080000T), CreateDateTime(WorkDate(), 160000T));
+
+        // [THEN] 54 * 47 % = 25.38 is rounded to 25.4.
+        Assert.AreEqual(25.4, PartialDayAmount, PartialDayPerDiemAmountErr);
+    end;
+
+    [Test]
+    procedure PartialDayPerDiemIsRoundedForOvernightStay()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpensePerDiemCalculation: Codeunit "Expense Per Diem Calculation";
+        PartialDayAmount: Decimal;
+    begin
+        // [SCENARIO 659462] Partial-day per diem is rounded using Partial Day Rounding Precision for Overnight Stay calculation.
+        Initialize();
+
+        // [GIVEN] Overnight Stay, 47 % for partial day, min. 20 hours for full and 4 hours for partial per diem, Partial Day Rounding Precision = 0.5.
+        SetupPerDiemCalculation(ExpenseAgentSetup, "Exp. Full Per Diem Calculation"::"Overnight Stay", "Expense Partial Day Rules"::"Based On Eligible Hours", 47, 20, 4, 0.5);
+        ExpensePerDiemCalculation.SetExpenseAgentSetup(ExpenseAgentSetup);
+
+        // [WHEN] Per diem is calculated for an 8-hour overnight trip with a full-day rate of 54.
+        PartialDayAmount := ExpensePerDiemCalculation.CalculatePerDiemForSingleDay(WorkDate(), 54, CreateDateTime(WorkDate(), 200000T), CreateDateTime(CalcDate('<1D>', WorkDate()), 040000T));
+
+        // [THEN] 54 * 47 % = 25.38 is rounded to 25.5.
+        Assert.AreEqual(25.5, PartialDayAmount, PartialDayPerDiemAmountErr);
+    end;
+
+    local procedure SetupPerDiemCalculation(var ExpenseAgentSetup: Record "Expense Agent Setup"; FullPerDiemCalculation: Enum "Exp. Full Per Diem Calculation"; PartialDayRules: Enum "Expense Partial Day Rules"; PercentageForPartialDay: Decimal; MinimumHoursForPerDiem: Decimal; MinimumHoursForPartialPerDiem: Decimal; PartialDayRoundingPrecision: Decimal)
+    begin
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup."Full Per-Diem Calculation" := FullPerDiemCalculation;
+        ExpenseAgentSetup."Partial Day Rules" := PartialDayRules;
+        ExpenseAgentSetup."Percentage For Partial Day" := PercentageForPartialDay;
+        ExpenseAgentSetup."Minimum Hours for Per Diem" := MinimumHoursForPerDiem;
+        ExpenseAgentSetup."Min Hours for Partial Per Diem" := MinimumHoursForPartialPerDiem;
+        ExpenseAgentSetup."Partial Day Rounding Precision" := PartialDayRoundingPrecision;
     end;
 
     local procedure Initialize()

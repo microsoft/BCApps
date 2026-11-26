@@ -46,6 +46,7 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   codeunit "Format Document Mgt. CZL" = X,
                   codeunit "Gen.Jnl.Check Line Handler CZL" = X,
                   codeunit "Gen.Jnl. - Post Acc. Group CZL" = X,
+                  codeunit "Gen. Jnl.-Post Line Mgt. CZL" = X,
                   codeunit "Gen.Jnl. Post Line Handler CZL" = X,
                   codeunit "Gen. Jnl. Template Handler CZL" = X,
                   codeunit "Gen. Journal Line Handler CZL" = X,
@@ -103,9 +104,6 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   codeunit "SOAP WS Request Management CZL" = X,
                   codeunit "Source Code Setup Handler CZL" = X,
                   codeunit "Substitute Report Handler CZL" = X,
-#if not CLEAN27
-                  codeunit "Sync.Dep.Fld-SalesHeader CZL" = X,
-#endif
                   codeunit "Transfer Line Handler CZL" = X,
                   codeunit "Transformation Rule Mgt. CZL" = X,
                   codeunit "Unreliable Payer Mgt. CZL" = X,

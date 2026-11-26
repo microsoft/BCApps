@@ -491,11 +491,7 @@ report 3010532 "Sales Invoice ESR"
                 begin
                     OutputNo := 1;
                     CopyTxt := '';
-#if not CLEAN27
-                    CopiesToPrint := ReqCopies + Cust."Invoice Copies" + 1;
-#else
                     CopiesToPrint := ReqCopies + 1;
-#endif
 
                     SetRange(Number, 1, CopiesToPrint);  // Integer table
                 end;

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Company;
-
+ 
 using Microsoft.Bank.BankAccount;
 using Microsoft.EServices.OnlineMap;
 using Microsoft.Finance.Currency;

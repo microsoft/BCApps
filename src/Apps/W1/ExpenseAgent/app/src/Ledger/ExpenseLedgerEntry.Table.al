@@ -13,10 +13,12 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Stores the expense ledger entries that are created when expense reports are posted.
+/// </summary>
 table 6912 "Expense Ledger Entry"
 {
     Caption = 'Expense Ledger Entry';
-    Access = Internal;
     ReplicateData = false;
     DrillDownPageID = "Expense Ledger Entries";
     LookupPageID = "Expense Ledger Entries";
@@ -298,6 +300,9 @@ table 6912 "Expense Ledger Entry"
         {
             Clustered = true;
         }
+        key(Key2; "Document No.", "Document Line No.", "Posting Date", Reversed)
+        {
+        }
     }
 
     fieldgroups
@@ -307,7 +312,7 @@ table 6912 "Expense Ledger Entry"
     var
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
 
-    procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
+    internal procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
     begin
         "Posting Date" := GenJnlLine."Posting Date";
         "Document Type" := GenJnlLine."Document Type";
@@ -328,9 +333,11 @@ table 6912 "Expense Ledger Entry"
         "Expense User No." := GenJnlLine."Expense User No.";
         "Expense Category" := GenJnlLine."Expense Category";
         "Expense Subcategory Code" := GenJnlLine."Expense Subcategory Code";
+
+        OnAfterCopyFromGenJnlLine(Rec, GenJnlLine);
     end;
 
-    procedure CopyFromPostedExpenseReportLine(PostedExpenseReportLine: Record "Posted Expense Report Line")
+    internal procedure CopyFromPostedExpenseReportLine(PostedExpenseReportLine: Record "Posted Expense Report Line")
     begin
         "Document No." := PostedExpenseReportLine."Document No.";
         Description := PostedExpenseReportLine.Description;
@@ -354,10 +361,12 @@ table 6912 "Expense Ledger Entry"
         "Payment Method Code" := PostedExpenseReportLine."Payment Method Code";
         "Job No." := PostedExpenseReportLine."Job No.";
         "Job Task No." := PostedExpenseReportLine."Job Task No.";
+
+        OnAfterCopyFromPostedExpenseReportLine(Rec, PostedExpenseReportLine);
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Ledger Entry", 'r')]
-    procedure GetNextEntryNo(): Integer
+    internal procedure GetNextEntryNo(): Integer
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
@@ -370,10 +379,41 @@ table 6912 "Expense Ledger Entry"
             exit(PostedExpenseReportHeader."Reimbursement Currency Code");
     end;
 
+    /// <summary>
+    /// Shows the dimension set of the expense ledger entry.
+    /// </summary>
     procedure ShowDimensions()
     var
         DimMgt: Codeunit DimensionManagement;
     begin
         DimMgt.ShowDimensionSet("Dimension Set ID", CopyStr(StrSubstNo('%1 %2', TableCaption(), "Entry No."), 1, 250));
+    end;
+
+    /// <summary>
+    /// Raised after the fields of a general journal line are copied to an expense ledger entry during expense report posting.
+    /// </summary>
+    /// <remarks>
+    /// Use this event to copy values from fields that an extension adds to the Gen. Journal Line table to the corresponding fields on the Expense Ledger Entry table. Fields that an extension adds are kept until the entry is inserted; the posting routine may still overwrite standard fields, such as amounts, the employee posting group and the transaction number, after this event. The event is raised only for expense report lines that are posted to the general ledger, and inside the posting transaction.
+    /// </remarks>
+    /// <param name="ExpenseLedgerEntry">The expense ledger entry being prepared.</param>
+    /// <param name="GenJnlLine">The general journal line that the entry is created from.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCopyFromGenJnlLine(var ExpenseLedgerEntry: Record "Expense Ledger Entry"; GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the fields of a posted expense report line are copied to an expense ledger entry during expense report posting.
+    /// </summary>
+    /// <remarks>
+    /// Use this event to copy values from fields that an extension adds to the Posted Expense Report Line table to the corresponding fields on the Expense Ledger Entry table. Fields that an extension adds are kept until the entry is inserted; the posting routine may still overwrite standard fields, such as the posting date, document type, amounts and dimensions, after this event. The event is raised only for expense report lines that create an expense ledger entry, and inside the posting transaction.
+    /// </remarks>
+    /// <param name="ExpenseLedgerEntry">The expense ledger entry being prepared.</param>
+    /// <param name="PostedExpenseReportLine">The posted expense report line that the entry is created from.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCopyFromPostedExpenseReportLine(var ExpenseLedgerEntry: Record "Expense Ledger Entry"; PostedExpenseReportLine: Record "Posted Expense Report Line")
+    begin
     end;
 }

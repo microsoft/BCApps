@@ -9,6 +9,7 @@ using System.IO;
 
 table 7422 "EA Corp Card Statement"
 {
+    Access = Internal;
     Caption = 'Corp Card Statement';
     DataClassification = CustomerContent;
     LookupPageId = "EA Corp Card Statement Lookup";

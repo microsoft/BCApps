@@ -13,6 +13,11 @@
   "dependencies": [],
   "internalsVisibleTo": [
     {
+      "id": "7533ce37-ae5d-4ed1-bdf9-4c39720e934c",
+      "name": "Depreciation Differences FI Demo Data Tests",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "c471774f-4b9e-45eb-9619-e7e0b96a8b98",
       "name": "Contoso Coffee Demo Dataset Tests",
       "publisher": "Microsoft"

@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Releases and reopens expense reports after checking the report lines and the approval status.
+/// </summary>
 codeunit 6984 "Release Exp. Report Document"
 {
-    Access = Internal;
     TableNo = "Expense Report Header";
     Permissions = TableData "Expense Report Header" = rm,
                   TableData "Expense Report Line" = r;
@@ -28,6 +30,7 @@ codeunit 6984 "Release Exp. Report Document"
         PolicyEvaluationNotCurrentErr: Label 'One or more expense lines have a policy evaluation that is not up to date. Re-run policy evaluation and approve again.';
         PolicyEvaluationNotCurrentCodeTok: Label ' (PolicyEvaluationNotCurrent)', Locked = true;
         ReimbursementErr: Label 'Reimbursement type must be set to a value in expense report %1, line %2 with description %3.', Comment = '%1 - Expense No. , %2 - Line No., %3 - description';
+        NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current.', Comment = '%1 = Expense No.';
 
     local procedure ReleaseExpenseReport()
     var
@@ -66,6 +69,8 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseCategory: Record "Expense Category";
         ExpenseSubCategory: Record "Expense Subcategory";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+        NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
+        CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
     begin
         ExpenseReportLine.TestField("Expense Category");
         ExpenseCategory.Get(ExpenseReportLine."Expense Category");
@@ -77,9 +82,17 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportLine.TestField(Description);
         if ExpenseReportLine."Reimbursement Type" = ExpenseReportLine."Reimbursement Type"::" " then
             Error(ReimbursementErr, ExpenseReportLine."Expense No.", ExpenseReportLine."Line No.", ExpenseReportLine.Description);
+        CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
 
         if ExpenseReportLine."Job No." <> '' then
             ExpenseReportLine.TestField("Job Task No.");
+
+        if ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::"Lost Receipt" then begin
+            ExpenseReportLine.TestField("No Receipt Reason");
+            if IsNullGuid(ExpenseReportLine."No Receipt Declaration ID") or not NoReceiptDeclarationMgt.HasDeclaration(ExpenseReportLine)
+            then
+                Error(NoReceiptDeclarationNotCurrentErr, ExpenseReportLine."Expense No.");
+        end;
 
         CheckBillableVendor(ExpenseReportLine);
         CheckBillableCustomer(ExpenseReportLine);
@@ -112,7 +125,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportLine.TestField("Account No.");
     end;
 
-    procedure Reopen(var ExpReportHeader: Record "Expense Report Header")
+    internal procedure Reopen(var ExpReportHeader: Record "Expense Report Header")
     begin
         if ExpReportHeader.Status = ExpReportHeader.Status::Open then
             exit;
@@ -121,16 +134,28 @@ codeunit 6984 "Release Exp. Report Document"
         ExpReportHeader.Modify(true);
     end;
 
+    /// <summary>
+    /// Releases the expense report as the current user after checking the status of the report and the required fields on its lines.
+    /// </summary>
+    /// <param name="ExpReportHeader">The expense report to release. The record is updated with the new status.</param>
     procedure PerformManualRelease(var ExpReportHeader: Record "Expense Report Header")
     begin
         PerformManualCheckAndRelease(ExpReportHeader);
     end;
 
+    /// <summary>
+    /// Checks and releases the expense report as the current user. An error is raised if the report or its lines do not meet the release requirements.
+    /// </summary>
+    /// <param name="ExpReportHeader">The expense report to check and release. The record is updated with the new status.</param>
     procedure PerformManualCheckAndRelease(var ExpReportHeader: Record "Expense Report Header")
     begin
         Codeunit.Run(Codeunit::"Release Exp. Report Document", ExpReportHeader);
     end;
 
+    /// <summary>
+    /// Reopens the expense report as the current user so that it can be edited again. An error is raised if the report is pending approval or interim approved.
+    /// </summary>
+    /// <param name="ExpReportHeader">The expense report to reopen. The record is updated with the new status.</param>
     procedure PerformManualReopen(var ExpReportHeader: Record "Expense Report Header")
     begin
         CheckReopenStatus(ExpReportHeader);
@@ -144,7 +169,7 @@ codeunit 6984 "Release Exp. Report Document"
             Error(ApprovalProcessMustBeCancelledErr);
     end;
 
-    procedure PerformManualPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
+    internal procedure PerformManualPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -153,12 +178,12 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportApprovalMgmt.Submit(ExpReportHeader, SubmitterExpenseUserNo);
     end;
 
-    procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
+    internal procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20])
     begin
         PerformManualReleaseAndPendingApproval(ExpReportHeader, SubmitterExpenseUserNo, '');
     end;
 
-    procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    internal procedure PerformManualReleaseAndPendingApproval(var ExpReportHeader: Record "Expense Report Header"; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -207,12 +232,12 @@ codeunit 6984 "Release Exp. Report Document"
             until ExpenseReportLine.Next() = 0;
     end;
 
-    procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
+    internal procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20])
     begin
         PerformManualApproved(ExpReportHeader, ApproverExpenseUserNo, false);
     end;
 
-    procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
+    internal procedure PerformManualApproved(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -233,7 +258,7 @@ codeunit 6984 "Release Exp. Report Document"
             CheckPoliciesUpToDate(ExpReportHeader);
     end;
 
-    procedure PerformManualRejected(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
+    internal procedure PerformManualRejected(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
@@ -242,7 +267,7 @@ codeunit 6984 "Release Exp. Report Document"
         ExpenseReportApprovalMgmt.Reject(ExpReportHeader, ApproverExpenseUserNo, RejectReason);
     end;
 
-    procedure PerformManualRejectedAndReopen(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
+    internal procedure PerformManualRejectedAndReopen(var ExpReportHeader: Record "Expense Report Header"; ApproverExpenseUserNo: Code[20]; RejectReason: Text)
     var
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin

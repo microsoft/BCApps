@@ -8,9 +8,11 @@ codeunit 5282 "Xml Data Handling SAF-T" implements XmlDataHandlingSAFT
 {
     Access = Internal;
 
+#pragma warning disable AA0150
     procedure GetAuditFileNamespace(var Prefix: Text; var Uri: Text)
     begin
     end;
+#pragma warning restore AA0150
 
     procedure GetHeaderModificationAllowed(var AddPrevSiblingsAllowed: Boolean; var AddNextSiblingsAllowed: Boolean; var AddChildNodesAllowed: Boolean; var SetNameValueAllowed: Boolean; var RemoveNodeAllowed: Boolean)
     begin
@@ -42,9 +44,11 @@ codeunit 5282 "Xml Data Handling SAF-T" implements XmlDataHandlingSAFT
     begin
     end;
 
+#pragma warning disable AA0150
     procedure SetCurrXmlElementNameValue(var Name: Text; var Content: Text; var EmptyContentAllowed: Boolean; RecRef: RecordRef; XPath: Text; var Params: Dictionary of [Text, Text])
     begin
     end;
+#pragma warning restore AA0150
 
     procedure RemoveCurrentXmlElement(RecRef: RecordRef; XPath: Text; var Params: Dictionary of [Text, Text]) RemoveElement: Boolean
     begin
