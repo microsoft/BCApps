@@ -82,8 +82,13 @@ Describe "PullRequestBuildScope" {
                 $folder = Join-Path $root "build/projects/$project/.AL-Go"
                 New-Item -ItemType Directory -Path $folder -Force | Out-Null
                 $projectSettings = @{ projectName = $project }
+                if ($project -like 'Apps *') {
+                    $projectSettings.ConditionalSettings = @(
+                        @{ branches = @('main'); settings = @{ buildModes = @('Clean') } }
+                    )
+                }
                 if ($project -like 'Test Apps *') { $projectSettings.buildModes = @('IntegrationTests', 'LegacyTestsBucket1') }
-                $projectSettings | ConvertTo-Json | Set-Content (Join-Path $folder 'settings.json')
+                $projectSettings | ConvertTo-Json -Depth 10 | Set-Content (Join-Path $folder 'settings.json')
             }
             New-Item -ItemType Directory -Path (Join-Path $root '.github') -Force | Out-Null
             '{ "conditionalSettings": [ { "triggers": [ "merge_group" ], "settings": { "projects": [ "build/projects/Apps W1" ] } } ] }' | Set-Content (Join-Path $root '.github/Pull Request Build.settings.json')
@@ -112,6 +117,7 @@ Describe "PullRequestBuildScope" {
             $projects = @(($settings.conditionalSettings | Where-Object { $_.triggers -contains 'pull_request' }).settings.projects | ForEach-Object { $_.Replace('\', '/') })
             $projects | Sort-Object | Should -Be @('build/projects/Apps CZ', 'build/projects/Apps W1', 'build/projects/System Application Modules', 'build/projects/Test Apps CZ', 'build/projects/Test Apps W1')
             (Get-Content (Join-Path $root 'build/projects/Test Apps CZ/.AL-Go/settings.json') -Raw | ConvertFrom-Json).buildModes | Should -Be @('IntegrationTests')
+            (Get-Content (Join-Path $root 'build/projects/Apps W1/.AL-Go/settings.json') -Raw | ConvertFrom-Json).ConditionalSettings | Should -BeNullOrEmpty
         }
 
         It "leaves settings untouched when the full-country-matrix label is present" {
@@ -119,6 +125,14 @@ Describe "PullRequestBuildScope" {
             $before = Get-Content (Join-Path $root '.github/Pull Request Build.settings.json') -Raw
             Set-PullRequestBuildScope -BaseFolder $root
             Get-Content (Join-Path $root '.github/Pull Request Build.settings.json') -Raw | Should -Be $before
+            (Get-Content (Join-Path $root 'build/projects/Apps W1/.AL-Go/settings.json') -Raw | ConvertFrom-Json).ConditionalSettings[0].settings.buildModes | Should -Be @('Clean')
+        }
+
+        It "keeps Clean app compilation when build settings change" {
+            @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
+            Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('.github/AL-Go-Settings.json') }
+            Set-PullRequestBuildScope -BaseFolder $root
+            (Get-Content (Join-Path $root 'build/projects/Apps W1/.AL-Go/settings.json') -Raw | ConvertFrom-Json).ConditionalSettings[0].settings.buildModes | Should -Be @('Clean')
         }
     }
 }

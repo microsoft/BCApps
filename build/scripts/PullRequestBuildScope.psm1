@@ -166,11 +166,9 @@ function Set-PullRequestBuildScope {
 
     if ($env:GITHUB_EVENT_NAME -ne 'pull_request') { return }
 
-    Remove-PullRequestCleanBuildMode -BaseFolder $BaseFolder
-
     $prEvent = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
     if (@($prEvent.pull_request.labels | Where-Object { $_.name -eq $script:FullMatrixLabel }).Count -gt 0) {
-        Write-Host "PR BUILD SCOPE: '$($script:FullMatrixLabel)' label present - building every country"
+        Write-Host "PR BUILD SCOPE: '$($script:FullMatrixLabel)' label present - keeping the full build matrix"
         return
     }
 
@@ -178,6 +176,16 @@ function Set-PullRequestBuildScope {
     if (-not $changedFiles) {
         Write-Host "PR BUILD SCOPE: Could not determine pull request changes - building every country"
         return
+    }
+
+    $buildSettingsChanged = @($changedFiles | Where-Object {
+        $path = $_.Replace('\', '/')
+        $path -like 'build/projects/*' -or $path -like '.github/*.json'
+    }).Count -gt 0
+    if ($buildSettingsChanged) {
+        Write-Host "PR BUILD SCOPE: Build settings changed - keeping Clean app compilation"
+    } else {
+        Remove-PullRequestCleanBuildMode -BaseFolder $BaseFolder
     }
 
     $projectsFolder = Join-Path $BaseFolder 'build/projects'
@@ -219,7 +227,7 @@ function Set-PullRequestBuildScope {
         "",
         "- Countries built besides W1: $countryText",
         "- Test modes skipped (no affected legacy test app): $modeText",
-        "- Clean app compilation deferred to post-merge validation.",
+        $(if ($buildSettingsChanged) { "- Clean app compilation kept for build-settings changes." } else { "- Clean app compilation deferred to post-merge validation." }),
         "- Add the ``$($script:FullMatrixLabel)`` label and re-run to build every country.",
         ""
     ) + @($scope.Reasons | ForEach-Object { "  - $_" })
