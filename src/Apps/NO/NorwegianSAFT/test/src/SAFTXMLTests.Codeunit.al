@@ -1934,7 +1934,7 @@ codeunit 148103 "SAF-T XML Tests"
 
     local procedure VerifyMasterDataStructureWithStdAccMapping(var TempXMLBuffer: Record "XML Buffer" temporary; MappingRangeCode: Code[20]; NumberOfMasterDataRecords: Integer)
     begin
-        VerifyGeneralLedgerAccountsWithStdAccMapping(TempXMLBuffer, MappingRangeCode, NumberOfMasterDataRecords);
+        VerifyGeneralLedgerAccountsWithStdAccMapping(TempXMLBuffer, MappingRangeCode);
         VerifyCustomers(TempXMLBuffer, MappingRangeCode, NumberOfMasterDataRecords);
         VerifyVendors(TempXMLBuffer, MappingRangeCode, NumberOfMasterDataRecords);
         VerifyVATPostingSetup(TempXMLBuffer);
@@ -1954,35 +1954,52 @@ codeunit 148103 "SAF-T XML Tests"
             TempXMLBuffer, StrSubstNo('/n1:AuditFile/n1:MasterFiles/n1:Suppliers/n1:Supplier/n1:%1', BalanceXMLNodeName), AmountText);
     end;
 
-    local procedure VerifyGeneralLedgerAccountsWithStdAccMapping(var TempXMLBuffer: Record "XML Buffer" temporary; MappingRangeCode: Code[20]; NumberOfMasterDataRecords: Integer)
+    local procedure VerifyGeneralLedgerAccountsWithStdAccMapping(var TempXMLBuffer: Record "XML Buffer" temporary; MappingRangeCode: Code[20])
     var
         GLAccount: Record "G/L Account";
         SAFTGLAccountMapping: Record "SAF-T G/L Account Mapping";
         SAFTMappingRange: Record "SAF-T Mapping Range";
-        i: Integer;
+        TempAccountXMLBuffer: Record "XML Buffer" temporary;
+        OpeningBalance: Decimal;
+        ClosingBalance: Decimal;
+        OpeningBalanceNode: Text;
+        ClosingBalanceNode: Text;
     begin
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:MasterFiles');
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:GeneralLedgerAccounts');
-        GLAccount.FindSet();
         SAFTMappingRange.Get(MappingRangeCode);
-        // Income statement accounts
-        for i := 1 to NumberOfMasterDataRecords do begin
-            SAFTGLAccountMapping.Get(MappingRangeCode, GLAccount."No.");
+        SAFTGLAccountMapping.SetRange("Mapping Range Code", MappingRangeCode);
+        SAFTGLAccountMapping.SetFilter("No.", '<>%1', '');
+        TempAccountXMLBuffer.Copy(TempXMLBuffer, true);
+        TempAccountXMLBuffer.Reset();
+        Assert.IsTrue(
+            TempAccountXMLBuffer.FindNodesByXPath(TempAccountXMLBuffer, '/n1:AuditFile/n1:MasterFiles/n1:GeneralLedgerAccounts/n1:Account'),
+            'No G/L accounts exported.');
+        Assert.AreEqual(
+            SAFTGLAccountMapping.Count(), TempAccountXMLBuffer.Count(),
+            StrSubstNo('Exported G/L account count differs from mapped account count for mapping range %1.', MappingRangeCode));
+        SAFTGLAccountMapping.FindSet();
+        repeat
+            GLAccount.Get(SAFTGLAccountMapping."G/L Account No.");
+            OpeningBalance := 0;
+            if GLAccount."Income/Balance" = GLAccount."Income/Balance"::"Income Statement" then
+                GLAccount.SetRange("Date Filter", SAFTMappingRange."Starting Date", SAFTMappingRange."Ending Date")
+            else begin
+                GLAccount.SetRange("Date Filter", 0D, ClosingDate(SAFTMappingRange."Starting Date" - 1));
+                GLAccount.CalcFields("Net Change");
+                OpeningBalance := GLAccount."Net Change";
+                GLAccount.SetRange("Date Filter", 0D, ClosingDate(SAFTMappingRange."Ending Date"));
+            end;
+            GLAccount.CalcFields("Net Change");
+            ClosingBalance := GLAccount."Net Change";
+            OpeningBalanceNode := OpeningBalance > 0 ? 'n1:OpeningDebitBalance' : 'n1:OpeningCreditBalance';
+            if GLAccount."Income/Balance" = GLAccount."Income/Balance"::"Income Statement" then
+                OpeningBalanceNode := ClosingBalance > 0 ? 'n1:OpeningDebitBalance' : 'n1:OpeningCreditBalance';
+            ClosingBalanceNode := ClosingBalance > 0 ? 'n1:ClosingDebitBalance' : 'n1:ClosingCreditBalance';
             VerifyAccountHeader(TempXMLBuffer, GLAccount, SAFTGLAccountMapping);
-            VerifyAccountAmounts(TempXMLBuffer, GLAccount, SAFTMappingRange, 'n1:OpeningDebitBalance', 'n1:ClosingDebitBalance');
-            GLAccount.Next();
-        end;
-        // Balance sheet accounts (all but last)
-        for i := 1 to (NumberOfMasterDataRecords - 1) do begin
-            SAFTGLAccountMapping.Get(MappingRangeCode, GLAccount."No.");
-            VerifyAccountHeader(TempXMLBuffer, GLAccount, SAFTGLAccountMapping);
-            VerifyAccountAmounts(TempXMLBuffer, GLAccount, SAFTMappingRange, 'n1:OpeningCreditBalance', 'n1:ClosingDebitBalance');
-            GLAccount.Next();
-        end;
-        // The last account has no entries but still exports.
-        SAFTGLAccountMapping.Get(MappingRangeCode, GLAccount."No.");
-        VerifyAccountHeader(TempXMLBuffer, GLAccount, SAFTGLAccountMapping);
-        VerifyAccountAmounts(TempXMLBuffer, GLAccount, SAFTMappingRange, 'n1:OpeningCreditBalance', 'n1:ClosingCreditBalance');
+            SAFTTestHelper.AssertElementValue(TempXMLBuffer, OpeningBalanceNode, SAFTTestHelper.FormatAmount(Abs(OpeningBalance)));
+            SAFTTestHelper.AssertElementValue(TempXMLBuffer, ClosingBalanceNode, SAFTTestHelper.FormatAmount(Abs(ClosingBalance)));
+        until SAFTGLAccountMapping.Next() = 0;
     end;
 
     local procedure VerifyGeneralLedgerAccountsWithIncomeStatementMapping(var TempXMLBuffer: Record "XML Buffer" temporary; MappingRangeCode: Code[20])
@@ -2012,16 +2029,6 @@ codeunit 148103 "SAF-T XML Tests"
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AccountDescription', GLAccount.Name);
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:StandardAccountID', SAFTGLAccountMapping."No.");
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:AccountType', 'GL');
-    end;
-
-    local procedure VerifyAccountAmounts(var TempXMLBuffer: Record "XML Buffer" temporary; GLAccount: Record "G/L Account"; SAFTMappingRange: Record "SAF-T Mapping Range"; OpeningBalanceNodeText: Text; ClosingBalanceNodeText: Text)
-    begin
-        GLAccount.SetRange("Date Filter", 0D, ClosingDate(SAFTMappingRange."Starting Date" - 1));
-        GLAccount.CalcFields("Net Change");
-        SAFTTestHelper.AssertElementValue(TempXMLBuffer, OpeningBalanceNodeText, SAFTTestHelper.FormatAmount(GLAccount."Net Change"));
-        GLAccount.SetRange("Date Filter", 0D, ClosingDate(SAFTMappingRange."Ending Date"));
-        GLAccount.CalcFields("Net Change");
-        SAFTTestHelper.AssertElementValue(TempXMLBuffer, ClosingBalanceNodeText, SAFTTestHelper.FormatAmount(GLAccount."Net Change"));
     end;
 
     local procedure VerifyCustomers(var TempXMLBuffer: Record "XML Buffer" temporary; MappingRangeCode: Code[20]; NumberOfMasterDataRecords: Integer)
