@@ -28,6 +28,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         ReceiptOnInvoicePostFromMatchedInvoiceErr: Label 'Purchase Order with %1 selected can only be posted from matched purchase invoice', Comment = '%1 = Receipt on Invoice field name';
         WrongQtyReceivedErr: Label 'Wrong Quantity Received on order line %1.', Comment = '%1 = Line No.';
         WrongQtyInvoicedErr: Label 'Wrong Quantity Invoiced on order line %1.', Comment = '%1 = Line No.';
+        ReceiptOnInvoiceLocationErr: Label 'You cannot use %1 with Location %2 on Line %3 because the location requires warehouse handling for receipts.', Comment = '%1 = Receipt on Invoice field name, %2 = Location Code, %3 = Line No.';
 
     // ============================================================================
     // REGION: E2E-1 Standard Invoice Matching Flow (No Receipt on Invoice)
@@ -4696,6 +4697,32 @@ codeunit 134468 "ERM Matched Order Line Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure E2E_ReceiveOrderWithReceiptOnInvoiceLineWithQtyToReceiveFails()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 660778] Purchase order cannot be received directly while a Receipt on Invoice line has quantity to receive
+        Initialize();
+        SetDefaultQtyToReceiveRemainder();
+
+        // [GIVEN] Purchase order with line "L1" with Receipt on Invoice and line "L2" without Receipt on Invoice
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
+        PurchaseLineOrder[1].Modify(true);
+
+        // [WHEN] Receive the order while line "L1" has Qty. to Receive
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [THEN] Error: the Receipt on Invoice line can only be posted from a matched invoice
+        Assert.ExpectedError(StrSubstNo(ReceiptOnInvoicePostFromMatchedInvoiceErr, PurchaseLineOrder[1].FieldCaption("Receipt on Invoice")));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure E2E_ReceiveOrderWithReceiptOnInvoiceLineWithZeroQtyToReceive()
     var
         PurchaseHeaderOrder: Record "Purchase Header";
@@ -4708,23 +4735,13 @@ codeunit 134468 "ERM Matched Order Line Tests"
         Initialize();
         SetDefaultQtyToReceiveRemainder();
 
-        // [GIVEN] Purchase order with line "L1" with Receipt on Invoice and line "L2" without Receipt on Invoice
+        // [GIVEN] Purchase order with line "L1" with Receipt on Invoice and Qty. to Receive = 0, and line "L2" without Receipt on Invoice
         CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
         PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
-        PurchaseLineOrder[1].Modify(true);
-        Commit();
-
-        // [WHEN] Receive the order while line "L1" has Qty. to Receive
-        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
-
-        // [THEN] Error: the Receipt on Invoice line can only be posted from a matched invoice
-        Assert.ExpectedError(StrSubstNo(ReceiptOnInvoicePostFromMatchedInvoiceErr, PurchaseLineOrder[1].FieldCaption("Receipt on Invoice")));
-
-        // [WHEN] Set Qty. to Receive = 0 on line "L1" and receive the order
-        PurchaseLineOrder[1].Find();
         PurchaseLineOrder[1].Validate("Qty. to Receive", 0);
         PurchaseLineOrder[1].Modify(true);
-        PurchaseHeaderOrder.Find();
+
+        // [WHEN] Receive the order
         LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
 
         // [THEN] Line "L2" is received, line "L1" is not
@@ -4781,6 +4798,158 @@ codeunit 134468 "ERM Matched Order Line Tests"
         // [THEN] Both lines are fully received and invoiced
         VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[1], Quantity[1]);
         VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[2], Quantity[2]);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceUnmatchedLineWithInventoryPutAway()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 660778] Posting an invoice matched to a Receipt on Invoice line is not blocked by an inventory put-away on another line of the order
+        Initialize();
+        SetDefaultQtyToReceiveRemainder();
+
+        // [GIVEN] Location "L" with Require Put-away
+        LibraryWarehouse.CreateLocationWMS(Location, false, true, false, false, false);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Purchase order with line "L1" with Receipt on Invoice and line "L2" without Receipt on Invoice at location "L"
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
+        PurchaseLineOrder[1].Modify(true);
+        PurchaseLineOrder[2].Validate("Location Code", Location.Code);
+        PurchaseLineOrder[2].Modify(true);
+
+        // [GIVEN] Inventory put-away created for line "L2"
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeaderOrder);
+        LibraryWarehouse.CreateInvtPutPickMovement("Warehouse Request Source Document"::"Purchase Order", PurchaseHeaderOrder."No.", true, false, false);
+        WarehouseActivityLine.SetRange("Source Type", Database::"Purchase Line");
+        WarehouseActivityLine.SetRange("Source No.", PurchaseHeaderOrder."No.");
+        WarehouseActivityLine.SetRange("Source Line No.", PurchaseLineOrder[2]."Line No.");
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Put-away");
+        Assert.RecordIsNotEmpty(WarehouseActivityLine);
+
+        // [GIVEN] Purchase invoice matched to line "L1"
+        CreateInvoiceMatchedToOrderLine(PurchaseHeaderInvoice, PurchaseLineInvoice, Vendor."No.", PurchaseLineOrder[1], Quantity[1]);
+
+        // [WHEN] Post the purchase invoice
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Line "L1" is received and invoiced, line "L2" is not received and its inventory put-away is kept
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[1], Quantity[1]);
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[2], 0);
+        Assert.RecordIsNotEmpty(WarehouseActivityLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReceiptOnInvoiceDisabledOnLineAtRequirePutAwayLocation()
+    var
+        Location: Record Location;
+    begin
+        // [SCENARIO 660778] Receipt on Invoice is turned off on an order line moved to a location with Require Put-away
+        Initialize();
+
+        // [GIVEN] Location "L" with Require Put-away
+        LibraryWarehouse.CreateLocationWMS(Location, false, true, false, false, false);
+
+        // [WHEN] / [THEN] Setting location "L" on an order line with Receipt on Invoice turns Receipt on Invoice off
+        VerifyReceiptOnInvoiceDisabledByLocation(Location.Code);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReceiptOnInvoiceDisabledOnLineAtRequireReceiveLocation()
+    var
+        Location: Record Location;
+    begin
+        // [SCENARIO 660778] Receipt on Invoice is turned off on an order line moved to a location with Require Receive
+        Initialize();
+
+        // [GIVEN] Location "L" with Require Receive
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, true, false);
+
+        // [WHEN] / [THEN] Setting location "L" on an order line with Receipt on Invoice turns Receipt on Invoice off
+        VerifyReceiptOnInvoiceDisabledByLocation(Location.Code);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ReceiptOnInvoiceOnHeaderFailsForLineAtWarehouseLocation()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        Location: Record Location;
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 660778] Receipt on Invoice cannot be selected on an order that has a line at a location requiring warehouse handling
+        Initialize();
+
+        // [GIVEN] Location "L" with Require Receive
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, true, false);
+
+        // [GIVEN] Purchase order with line "L2" at location "L"
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[2].Validate("Location Code", Location.Code);
+        PurchaseLineOrder[2].Modify(true);
+
+        // [WHEN] Select Receipt on Invoice on the order header
+        asserterror PurchaseHeaderOrder.Validate("Receipt on Invoice", true);
+
+        // [THEN] Error: Receipt on Invoice cannot be used with location "L" on line "L2"
+        Assert.ExpectedError(StrSubstNo(ReceiptOnInvoiceLocationErr, PurchaseLineOrder[2].FieldCaption("Receipt on Invoice"), Location.Code, PurchaseLineOrder[2]."Line No."));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceAutoReceiveFailsWhenLocationRequiresWarehouseHandling()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        Location: Record Location;
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 660778] A matched invoice does not auto-receive an order line whose location started to require warehouse handling
+        Initialize();
+
+        // [GIVEN] Location "L" without warehouse handling
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+
+        // [GIVEN] Purchase order with line "L1" at location "L" with Receipt on Invoice
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[1].Validate("Location Code", Location.Code);
+        PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
+        PurchaseLineOrder[1].Modify(true);
+
+        // [GIVEN] Location "L" is changed to Require Put-away after Receipt on Invoice was selected
+        Location."Require Put-away" := true;
+        Location.Modify();
+
+        // [GIVEN] Purchase invoice matched to line "L1"
+        CreateInvoiceMatchedToOrderLine(PurchaseHeaderInvoice, PurchaseLineInvoice, Vendor."No.", PurchaseLineOrder[1], Quantity[1]);
+
+        // [WHEN] Post the purchase invoice
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Error: Receipt on Invoice cannot be used with location "L" on line "L1"
+        Assert.ExpectedError(StrSubstNo(ReceiptOnInvoiceLocationErr, PurchaseLineOrder[1].FieldCaption("Receipt on Invoice"), Location.Code, PurchaseLineOrder[1]."Line No."));
     end;
 
     [Test]
@@ -5095,6 +5264,23 @@ codeunit 134468 "ERM Matched Order Line Tests"
         Assert.AreEqual(ExpectedQuantity, PurchaseLine."Quantity Invoiced", StrSubstNo(WrongQtyInvoicedErr, PurchaseLine."Line No."));
     end;
 
+    local procedure VerifyReceiptOnInvoiceDisabledByLocation(LocationCode: Code[10])
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
+        PurchaseLineOrder[1].Modify(true);
+
+        PurchaseLineOrder[1].Validate("Location Code", LocationCode);
+
+        Assert.IsFalse(PurchaseLineOrder[1]."Receipt on Invoice", 'Receipt on Invoice should be turned off on a location that requires warehouse handling');
+    end;
+
     [RequestPageHandler]
     [Scope('OnPrem')]
     procedure PurchaseDocumentTestRequestPageHandler(var PurchaseDocumentTest: TestRequestPage "Purchase Document - Test")
@@ -5135,5 +5321,11 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseLines.Filter.SetFilter("Document No.", OrderNo);
         PurchaseLines.First();
         PurchaseLines.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure MessageHandler(Message: Text[1024])
+    begin
     end;
 }
