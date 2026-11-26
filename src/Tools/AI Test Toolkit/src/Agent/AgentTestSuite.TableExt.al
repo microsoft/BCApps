@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Agents;
+
 tableextension 149050 "Agent Test Suite" extends "AIT Test Suite"
 {
     fields
@@ -14,6 +16,13 @@ tableextension 149050 "Agent Test Suite" extends "AIT Test Suite"
             DataClassification = SystemMetadata;
             Caption = 'Agent User Security ID';
             ToolTip = 'Specifies the agent to be used by the test suite.';
+        }
+        field(4901; "Agent Model ID"; Code[30])
+        {
+            DataClassification = SystemMetadata;
+            Caption = 'Agent Model ID';
+            ToolTip = 'Specifies the model to use for agent tasks created by the test suite. A selected model overrides the model set by the test. Leave blank to use the agent model, or the default model.';
+            TableRelation = "Agent Model"."Model ID" where(Availability = filter(Preview | Available));
         }
     }
 }

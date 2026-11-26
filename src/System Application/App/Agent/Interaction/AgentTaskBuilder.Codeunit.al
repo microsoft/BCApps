@@ -97,7 +97,7 @@ codeunit 4315 "Agent Task Builder"
     /// If the model ID is not set, the model from the agent will be used, if any.
     /// If the agent does not have a model, the default model will be used.
     /// </summary>
-    /// <param name="ModelId">The model ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
+    /// <param name="ModelId">The model ID to use when processing the task.</param>
     /// <returns>This instance of the Agent Task Builder.</returns>
     procedure SetModelId(ModelId: Code[30]): codeunit "Agent Task Builder"
     begin

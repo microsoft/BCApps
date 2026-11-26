@@ -42,6 +42,24 @@ pageextension 149034 "Agent Test Suite" extends "AIT Test Suite"
                         LookupAgent();
                     end;
                 }
+                field("Agent Model ID"; Rec."Agent Model ID")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Model';
+
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        AgentModel: Record "Agent Model";
+                    begin
+                        if AgentModel.Get(Rec."Agent Model ID") then;
+                        AgentModel.SetFilter(Availability, '%1|%2', AgentModel.Availability::Preview, AgentModel.Availability::Available);
+                        if Page.RunModal(Page::"Agent Model List", AgentModel) <> Action::LookupOK then
+                            exit(false);
+
+                        Text := AgentModel."Model ID";
+                        exit(true);
+                    end;
+                }
             }
         }
         addlast("Latest Run")
