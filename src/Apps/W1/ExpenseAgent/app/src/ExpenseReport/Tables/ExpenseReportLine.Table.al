@@ -27,9 +27,11 @@ using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Utilities;
 
+/// <summary>
+/// Stores the lines of an expense report, where each line represents an expense to be approved, reimbursed, and posted.
+/// </summary>
 table 6907 "Expense Report Line"
 {
-    Access = Internal;
     Caption = 'Expense Report Line';
     DataClassification = CustomerContent;
     DrillDownPageId = "Expense Report Lines";
@@ -57,6 +59,7 @@ table 6907 "Expense Report Line"
             Caption = 'Expense No.';
             TableRelation = Expense."No.";
             Editable = false;
+            ToolTip = 'Specifies the expense report number this line belongs to.';
         }
         field(3; "Document No."; Code[20])
         {
@@ -71,7 +74,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Expense Category';
             TableRelation = "Expense Category".Code where(Inactive = const(false));
-
+            ToolTip = 'Specifies the expense category for the line. Determines whether the line requires per diem, mileage, participants, or itemization details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -89,7 +92,7 @@ table 6907 "Expense Report Line"
         field(6; Description; Text[100])
         {
             Caption = 'Description';
-
+            ToolTip = 'Specifies a brief description of the expense line.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -98,7 +101,7 @@ table 6907 "Expense Report Line"
         field(7; Justification; Text[100])
         {
             Caption = 'Justification';
-
+            ToolTip = 'Specifies the reason for the expense. Helps approvers understand why the expense was incurred.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -109,7 +112,7 @@ table 6907 "Expense Report Line"
         field(8; "Additional Information"; Text[100])
         {
             Caption = 'Additional Information';
-
+            ToolTip = 'Specifies additional information for the expense line.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -118,7 +121,7 @@ table 6907 "Expense Report Line"
         field(9; "Expense Date"; Date)
         {
             Caption = 'Expense Date';
-
+            ToolTip = 'Specifies the date when the expense was incurred. Used for reporting and validation purposes.';
             trigger OnValidate()
             begin
                 if "Expense Date" <> xRec."Expense Date" then begin
@@ -133,7 +136,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Expense Currency Code';
             TableRelation = Currency.Code;
-
+            ToolTip = 'Specifies the currency used for this expense. Not editable for per diem expenses.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -148,7 +151,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Amount';
-
+            ToolTip = 'Specifies the total amount of the expense for this line, including any applicable taxes. Changing the amount will update related totals automatically.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -160,7 +163,7 @@ table 6907 "Expense Report Line"
         field(12; "VAT Liable"; Boolean)
         {
             Caption = 'VAT Liable';
-
+            ToolTip = 'Specifies the value of the VAT Liable field.';
             trigger OnValidate()
             var
                 ExpenseBillingInformation: Page "Expense Billing Information";
@@ -194,7 +197,7 @@ table 6907 "Expense Report Line"
             BlankZero = true;
             Caption = 'Amount without VAT';
             Editable = false;
-
+            ToolTip = 'Specifies the value of the Amount without VAT field.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -206,7 +209,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'VAT Amount';
-
+            ToolTip = 'Specifies the value of the VAT Amount field.';
             trigger OnValidate()
             var
                 CurrencyToConsider: Record Currency;
@@ -270,7 +273,7 @@ table 6907 "Expense Report Line"
             BlankZero = true;
             Caption = 'Amount (LCY)';
             Editable = false;
-
+            ToolTip = 'Specifies the total amount of the expense for this line in local currency, including any applicable taxes. Automatically calculated from the amount and exchange rate.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -294,7 +297,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Reimbursement Type';
             Editable = false;
-
+            ToolTip = 'Specifies how the expense is reimbursed, for example cash or payroll.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -412,7 +415,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Payment Method Code';
             TableRelation = "Expense Payment Method";
-
+            ToolTip = 'Specifies the payment method used for this expense, for example corporate card or cash.';
             trigger OnValidate()
             var
                 ExpensePaymentMethod: Record "Expense Payment Method";
@@ -433,7 +436,7 @@ table 6907 "Expense Report Line"
         field(25; Refundable; Boolean)
         {
             Caption = 'Refundable';
-
+            ToolTip = 'Specifies the value of the Refundable field.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -506,7 +509,7 @@ table 6907 "Expense Report Line"
         field(30; Billable; Boolean)
         {
             Caption = 'Billable';
-
+            ToolTip = 'Specifies whether the expense is billable to a customer.';
             trigger OnValidate()
             begin
                 if xRec.Billable <> Rec.Billable then
@@ -519,7 +522,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Billable to Customer';
             TableRelation = Customer."No.";
-
+            ToolTip = 'Specifies the customer to bill for this expense when it is billable.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -534,7 +537,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Expense Location';
             TableRelation = "Expense Location"."No.";
-
+            ToolTip = 'Specifies where the expense occurred. Available when the expense requires per diem details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -563,7 +566,7 @@ table 6907 "Expense Report Line"
         field(33; "Starting Date and Time"; DateTime)
         {
             Caption = 'Starting Date and Time';
-
+            ToolTip = 'Specifies the start date and time used for per diem calculations. Available when the expense requires per diem details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -580,7 +583,7 @@ table 6907 "Expense Report Line"
         field(34; "Ending Date and Time"; DateTime)
         {
             Caption = 'Ending Date and Time';
-
+            ToolTip = 'Specifies the end date and time used for per diem calculations. Available when the expense requires per diem details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -597,7 +600,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Non-Refundable Amount';
-
+            ToolTip = 'Specifies the reduction to the reimbursable amount. Available when Refundable is on and itemization is not required or is enforced by policy.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -615,31 +618,33 @@ table 6907 "Expense Report Line"
                 ApplyRule();
             end;
         }
-        field(36; "Starting Point"; Text[50])
+#pragma warning disable AS0086
+        field(36; "Starting Point"; Text[2048])
         {
             Caption = 'Starting Point';
-
+            ToolTip = 'Specifies the starting point for mileage calculations. Available when the expense requires mileage details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
             end;
         }
-        field(37; "Ending Point"; Text[50])
+        field(37; "Ending Point"; Text[2048])
         {
             Caption = 'Ending Point';
-
+            ToolTip = 'Specifies the ending point for mileage calculations. Available when the expense requires mileage details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
             end;
         }
+#pragma warning restore AS0086
         field(38; "Non-Refundable Amount (LCY)"; Decimal)
         {
             AutoFormatExpression = '';
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Non-Refundable Amount (LCY)';
-
+            ToolTip = 'Specifies the value of the Non-Refundable Amount (LCY) field.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -660,7 +665,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Reimbursable Amount';
-
+            ToolTip = 'Specifies the portion of the expense that will be reimbursed to the employee. Calculated from amount, VAT, and reductions.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -681,7 +686,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Reimbursable Amount (LCY)';
-
+            ToolTip = 'Specifies the portion of the expense that will be reimbursed to the employee in local currency. Calculated from amount, VAT, and reductions.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -696,7 +701,7 @@ table 6907 "Expense Report Line"
             BlankZero = true;
             Caption = 'VAT Amount (LCY)';
             Editable = false;
-
+            ToolTip = 'Specifies the value of the VAT Amount (LCY) field.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -737,7 +742,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'VAT Prod. Posting Group';
             TableRelation = "VAT Product Posting Group";
-
+            ToolTip = 'Specifies the VAT product posting group used when posting VAT for this expense.';
             trigger OnValidate()
             var
                 VATPostingSetup: Record "VAT Posting Setup";
@@ -782,7 +787,7 @@ table 6907 "Expense Report Line"
         {
             Caption = 'Unit of Measure Code';
             TableRelation = "Unit of Measure";
-
+            ToolTip = 'Specifies the unit of measure for mileage calculations. Available when the expense requires mileage details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -816,7 +821,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 0;
             BlankZero = true;
             Caption = 'Mileage';
-
+            ToolTip = 'Specifies the distance traveled for mileage reimbursement. Available when the expense requires mileage details.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -851,6 +856,7 @@ table 6907 "Expense Report Line"
         }
         field(51; "Credit Card Feed No."; Integer)
         {
+            Access = Internal;
             Caption = 'Credit Card Feed No.';
 
             trigger OnValidate()
@@ -860,6 +866,7 @@ table 6907 "Expense Report Line"
         }
         field(107; "Corporate Card Id"; Code[50])
         {
+            Access = Internal;
             Caption = 'Corporate Card';
             DataClassification = AccountData;
             TableRelation = "EA Corp Card"."Card Id";
@@ -895,7 +902,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             Caption = 'Amount without VAT (LCY)';
             Editable = false;
-
+            ToolTip = 'Specifies the value of the Amount without VAT (LCY) field.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -911,6 +918,7 @@ table 6907 "Expense Report Line"
             FieldClass = FlowField;
             CalcFormula = exist("Expense Report Rule Violation" where("Expense Report No." = field("Document No."), "Report Line No." = field("Line No.")));
             Editable = false;
+            ToolTip = 'Specifies if there are any rule violations for the expense line.';
         }
         field(56; "Job No."; Code[20])
         {
@@ -981,7 +989,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Refundable Amount';
-
+            ToolTip = 'Specifies the portion of the expense that will be refundable. Calculated from amount, VAT, and reductions.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -1001,7 +1009,7 @@ table 6907 "Expense Report Line"
             AutoFormatType = 1;
             BlankZero = true;
             Caption = 'Refundable Amount (LCY)';
-
+            ToolTip = 'Specifies the portion of the expense that will be refundable in local currency. Calculated from amount, VAT, and reductions.';
             trigger OnValidate()
             begin
                 TestStatusOpen();
@@ -1111,27 +1119,75 @@ table 6907 "Expense Report Line"
         }
         field(102; "Policies Evaluated At"; DateTime)
         {
+            Access = Internal;
             Caption = 'Policies Evaluated At';
             DataClassification = CustomerContent;
             Editable = false;
         }
         field(103; "Policy Eval Version"; Integer)
         {
+            Access = Internal;
             Caption = 'Policy Eval Version';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(104; "Evaluated Policy Version"; Integer)
         {
+            Access = Internal;
             Caption = 'Evaluated Policy Version';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(105; "Has Policy Violation"; Boolean)
         {
+            Access = Internal;
             Caption = 'Has Policy Violation';
             FieldClass = FlowField;
             CalcFormula = exist("Expense Policy Evaluation" where("Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line"), "Subject Version" = field("Evaluated Policy Version"), "Compliant" = const(false)));
+            Editable = false;
+        }
+        field(200; "No Receipt Type"; Enum "Expense No Receipt Type")
+        {
+            Access = Internal;
+            Caption = 'No Receipt Type';
+            ToolTip = 'Specifies whether the original receipt was replaced by a "no receipt" declaration.';
+            Editable = false;
+        }
+        field(201; "No Receipt Reason"; Text[250])
+        {
+            Access = Internal;
+            Caption = 'Reason Receipt Is Unavailable';
+            ToolTip = 'Specifies why the original receipt was not available.';
+            DataClassification = CustomerContent;
+            Editable = false;
+        }
+        field(202; "No Receipt Declaration ID"; Guid)
+        {
+            Access = Internal;
+            Caption = 'No Receipt Declaration ID';
+            ToolTip = 'Specifies the system ID of the Document Attachment record that holds the declaration.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(204; "Compliance Status"; Enum "Expense Compliance Status")
+        {
+            Access = Internal;
+            Caption = 'Compliance Status';
+            Editable = false;
+            ToolTip = 'Specifies the compliance status assigned to the expense.';
+        }
+        field(206; "No Receipt Generated At"; DateTime)
+        {
+            Access = Internal;
+            Caption = 'No Receipt Generated At';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(207; "No Receipt Generated By"; Code[50])
+        {
+            Access = Internal;
+            Caption = 'No Receipt Generated By';
+            DataClassification = EndUserIdentifiableInformation;
             Editable = false;
         }
     }
@@ -1273,7 +1329,7 @@ table 6907 "Expense Report Line"
         "VAT %" := 0;
     end;
 
-    procedure DeleteAssociatedRecords()
+    local procedure DeleteAssociatedRecords()
     begin
         DeleteAssociatedRecords(false);
     end;
@@ -1335,11 +1391,19 @@ table 6907 "Expense Report Line"
         exit('8e4a2b97-1d63-4c5a-b0f8-6a9d3e7c2f15');
     end;
 
+    /// <summary>
+    /// Specifies whether confirmation dialogs are suppressed when fields on the expense report line are validated.
+    /// </summary>
+    /// <param name="NewHideValidationDialog">True to suppress confirmation dialogs; otherwise, false.</param>
     procedure SetHideValidationDialog(NewHideValidationDialog: Boolean)
     begin
         HideValidationDialog := NewHideValidationDialog;
     end;
 
+    /// <summary>
+    /// Gets whether confirmation dialogs are suppressed when fields on the expense report line are validated.
+    /// </summary>
+    /// <returns>True if confirmation dialogs are suppressed; otherwise, false.</returns>
     procedure GetHideValidationDialog(): Boolean
     begin
         exit(HideValidationDialog);
@@ -1595,6 +1659,10 @@ table 6907 "Expense Report Line"
         end;
     end;
 
+    /// <summary>
+    /// Opens the dimension set of the expense report line for editing and updates the global dimension codes.
+    /// </summary>
+    /// <returns>True if the dimension set was changed; otherwise, false.</returns>
     procedure ShowDimensions() IsChanged: Boolean
     var
         OldDimSetID: Integer;
@@ -1606,6 +1674,9 @@ table 6907 "Expense Report Line"
         IsChanged := OldDimSetID <> "Dimension Set ID";
     end;
 
+    /// <summary>
+    /// Opens the comment lines of the expense report line.
+    /// </summary>
     procedure ShowLineComments()
     var
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
@@ -1621,6 +1692,11 @@ table 6907 "Expense Report Line"
         ExpenseCommentSheet.RunModal();
     end;
 
+    /// <summary>
+    /// Validates a shortcut dimension value and updates the dimension set of the expense report line.
+    /// </summary>
+    /// <param name="FieldNumber">The number of the shortcut dimension field (1-8).</param>
+    /// <param name="ShortcutDimCode">The shortcut dimension value code to validate.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     begin
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, Rec."Dimension Set ID");
@@ -1743,6 +1819,10 @@ table 6907 "Expense Report Line"
         "VAT Prod. Posting Group" := ItemCharge."VAT Prod. Posting Group";
     end;
 
+    /// <summary>
+    /// Creates the dimensions of the expense report line from the default dimensions of the related source, if default dimensions are defined.
+    /// </summary>
+    /// <param name="FieldNo">The number of the field whose value is used as the source for default dimensions.</param>
     procedure CreateDimFromDefaultDim(FieldNo: Integer)
     var
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
@@ -1754,7 +1834,7 @@ table 6907 "Expense Report Line"
             CreateDefaultDim(DefaultDimSource);
     end;
 
-    procedure UpdatePostingDescription(): Text[100]
+    internal procedure UpdatePostingDescription(): Text[100]
     begin
         exit(UpdatePostingDescription("Expense Category", "Expense Subcategory Code"));
     end;
@@ -1817,7 +1897,7 @@ table 6907 "Expense Report Line"
         DimMgt.AddDimSource(DefaultDimSource, Database::Job, Rec."Job No.", FieldNo = Rec.FieldNo("Job No."));
     end;
 
-    procedure CreateDefaultDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    local procedure CreateDefaultDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
     var
         SourceCodeSetup: Record "Source Code Setup";
     begin
@@ -1867,7 +1947,7 @@ table 6907 "Expense Report Line"
         end;
     end;
 
-    procedure IsDefaultDimDefinedForTable(TableValuePair: Dictionary of [Integer, Code[20]]): Boolean
+    internal procedure IsDefaultDimDefinedForTable(TableValuePair: Dictionary of [Integer, Code[20]]): Boolean
     var
         DefaultDim: Record "Default Dimension";
     begin
@@ -1881,7 +1961,7 @@ table 6907 "Expense Report Line"
             exit(true);
     end;
 
-    procedure InitHeaderDefaults(ExpReportHeader: Record "Expense Report Header")
+    local procedure InitHeaderDefaults(ExpReportHeader: Record "Expense Report Header")
     begin
         CheckExpenseReportDocument(ExpReportHeader);
 
@@ -1911,6 +1991,9 @@ table 6907 "Expense Report Line"
         ExpReportHeader.TestField("Expense User No.");
     end;
 
+    /// <summary>
+    /// Recalculates the VAT, local currency, and reimbursement amounts of the expense report line and checks the amount against the related spend request.
+    /// </summary>
     procedure UpdateAmounts()
     begin
         UpdateVATAmount();
@@ -1997,7 +2080,7 @@ table 6907 "Expense Report Line"
         Rec."Calculated VAT Amount" := Rec."VAT Amount";
     end;
 
-    procedure CheckVATDifference(Currency: Record Currency)
+    internal procedure CheckVATDifference(Currency: Record Currency)
     var
         GLSetup: Record "General Ledger Setup";
         PurchSetup: Record "Purchases & Payables Setup";
@@ -2168,6 +2251,10 @@ table 6907 "Expense Report Line"
             Rec."Expense Currency Factor" := 0;
     end;
 
+    /// <summary>
+    /// Gets the date that is used to convert the expense amount to the reimbursement currency, based on the exchange rate setting for expenses.
+    /// </summary>
+    /// <returns>The currency conversion date.</returns>
     procedure GetReimbursementConversionDate(): Date
     begin
         GetExpenseReportHeader();
@@ -2220,7 +2307,7 @@ table 6907 "Expense Report Line"
             Error(CannotModifyWithItemizationErr, FieldName, ExpenseNo, LineNo);
     end;
 
-    procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
+    internal procedure ApplyRule(ApplyAndValidateRuleOnExpense: Boolean; ValidateRuleOnly: Boolean)
     var
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
@@ -2235,7 +2322,7 @@ table 6907 "Expense Report Line"
         end;
     end;
 
-    procedure ApplyRule()
+    internal procedure ApplyRule()
     var
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
@@ -2265,6 +2352,10 @@ table 6907 "Expense Report Line"
         exit(WorkDate());
     end;
 
+    /// <summary>
+    /// Gets the reimbursement currency code from the expense report header.
+    /// </summary>
+    /// <returns>The reimbursement currency code.</returns>
     procedure GetReimbursementCurrencyCode(): Code[10]
     begin
         GetExpenseReportHeader();
@@ -2279,23 +2370,26 @@ table 6907 "Expense Report Line"
         exit(WorkDate());
     end;
 
-    procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
+    internal procedure SetSkipRuleApplication(NewSkipRuleApplication: Boolean)
     begin
         SkipRuleApplication := NewSkipRuleApplication;
     end;
 
+    /// <summary>
+    /// Checks that the status of the expense report is Open and raises an error if it is not.
+    /// </summary>
     procedure TestStatusOpen()
     begin
         GetExpenseReportHeader();
         ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);
     end;
 
-    procedure GetExpenseReportHeader()
+    internal procedure GetExpenseReportHeader()
     begin
         GetExpenseReportHeader(ExpenseReportHeader, ReimbursementCurrency);
     end;
 
-    procedure GetExpenseReportHeader(var OutExpenseReportHeader: Record "Expense Report Header"; var OutCurrency: Record Currency)
+    internal procedure GetExpenseReportHeader(var OutExpenseReportHeader: Record "Expense Report Header"; var OutCurrency: Record Currency)
     begin
         if ("Document No." <> ExpenseReportHeader."No.") and ("Document No." <> '') then
             if ExpenseReportHeader.Get("Document No.") then
@@ -2307,7 +2401,7 @@ table 6907 "Expense Report Line"
         OutCurrency := ReimbursementCurrency;
     end;
 
-    procedure SetExpenseReportHeader(NewExpenseReportHeader: Record "Expense Report Header")
+    local procedure SetExpenseReportHeader(NewExpenseReportHeader: Record "Expense Report Header")
     begin
         TestField("Document No.");
         ExpenseReportHeader := NewExpenseReportHeader;
@@ -2321,7 +2415,11 @@ table 6907 "Expense Report Line"
         end;
     end;
 
-    procedure Initialize(NewExpenseReportHeader: Record "Expense Report Header")
+    /// <summary>
+    /// Initializes the expense report line with the specified expense report header and clears the cached currencies.
+    /// </summary>
+    /// <param name="NewExpenseReportHeader">The expense report header that the line belongs to.</param>
+    internal procedure Initialize(NewExpenseReportHeader: Record "Expense Report Header")
     begin
         Clear(ReimbursementCurrency);
         Clear(ExpenseCurrency);
@@ -2374,6 +2472,9 @@ table 6907 "Expense Report Line"
         Rec.UpdateAmounts();
     end;
 
+    /// <summary>
+    /// Opens the itemization lines of the expense report line for the expense category of the line.
+    /// </summary>
     procedure ShowItemization()
     var
         ExpenseReportLineItemization: Record "Expense Report Line Item";
@@ -2385,6 +2486,9 @@ table 6907 "Expense Report Line"
         Page.RunModal(Page::"Expense Report Line Items", ExpenseReportLineItemization);
     end;
 
+    /// <summary>
+    /// Opens the participants of the expense report line.
+    /// </summary>
     procedure ShowParticipants()
     var
         ExpenseReportLineParticipant: Record "Expense Report Line Particip.";
@@ -2395,6 +2499,9 @@ table 6907 "Expense Report Line"
         Page.RunModal(Page::"Expense Report Line Particips", ExpenseReportLineParticipant);
     end;
 
+    /// <summary>
+    /// Opens the per diem lines of the expense report line.
+    /// </summary>
     procedure ShowPerDiem()
     var
         ExpenseReportLinePerDiem: Record "Expense Report Line Per Diem";
@@ -2408,7 +2515,7 @@ table 6907 "Expense Report Line"
     /// <summary>
     /// Shows the expense billing information page and validates the expense report line against the rules.
     /// </summary>
-    procedure ShowExpenseBillingInformation()
+    internal procedure ShowExpenseBillingInformation()
     var
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
         ExpenseBillingInformation: Page "Expense Billing Information";

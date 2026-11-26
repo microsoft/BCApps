@@ -39,7 +39,6 @@ page 7232 "MDM Connection Details"
                 group(SourceConnectionDetails)
                 {
                     Caption = 'Source environment connection details';
-                    InstructionalText = 'Provide the environment and company you want to read master data from.';
 
                     field(SourceEnvironmentName; SourceEnvironmentName)
                     {
@@ -69,7 +68,7 @@ page 7232 "MDM Connection Details"
                 group(OAuth2ConnectionDetails)
                 {
                     Caption = 'Authentication details';
-                    InstructionalText = 'Provide the Microsoft Entra application that this environment uses to authenticate to the source environment. Register it as a single-tenant application, because synchronization only connects to environments in the same Microsoft Entra tenant. The application authenticates with either a client secret or a certificate.';
+                    InstructionalText = 'Provide the Microsoft Entra application that this environment uses to sign in to the source environment with a client secret or a certificate. Register it as a single-tenant application in the same tenant.';
 
                     field(OAuth2ClientId; OAuth2ClientId)
                     {
@@ -140,6 +139,7 @@ page 7232 "MDM Connection Details"
                             Caption = 'Certificate Password';
                             ApplicationArea = Suite;
                             ExtendedDatatype = Masked;
+                            ShowMandatory = CertificatePasswordRequired;
                             ToolTip = 'Specifies the password that protects the certificate file. Leave it blank if the file is not password protected. The password is stored securely and is not shown again after you enter it.';
 
                             trigger OnValidate()
@@ -148,19 +148,26 @@ page 7232 "MDM Connection Details"
                                 SetControls();
                             end;
                         }
-                        field(CertificateThumbprint; CertificateThumbprint)
+                        // Shown only once a certificate is read, so the step needs no scrolling while uploading.
+                        group(CertificateInformation)
                         {
-                            Caption = 'Certificate Thumbprint';
-                            ApplicationArea = Suite;
-                            Editable = false;
-                            ToolTip = 'Specifies the thumbprint of the certificate. It must match the thumbprint of a certificate registered for the Microsoft Entra application.';
-                        }
-                        field(CertificateExpirationDate; CertificateExpirationDate)
-                        {
-                            Caption = 'Certificate Expiration Date';
-                            ApplicationArea = Suite;
-                            Editable = false;
-                            ToolTip = 'Specifies when the certificate expires. Upload a new certificate before this date to keep synchronization running.';
+                            ShowCaption = false;
+                            Visible = CertificateThumbprint <> '';
+
+                            field(CertificateThumbprint; CertificateThumbprint)
+                            {
+                                Caption = 'Certificate Thumbprint';
+                                ApplicationArea = Suite;
+                                Editable = false;
+                                ToolTip = 'Specifies the thumbprint of the certificate. It must match the thumbprint of a certificate registered for the Microsoft Entra application.';
+                            }
+                            field(CertificateExpirationDate; CertificateExpirationDate)
+                            {
+                                Caption = 'Certificate Expiration Date';
+                                ApplicationArea = Suite;
+                                Editable = false;
+                                ToolTip = 'Specifies when the certificate expires. Upload a new certificate before this date to keep synchronization running.';
+                            }
                         }
                     }
                 }
@@ -249,6 +256,9 @@ page 7232 "MDM Connection Details"
                     MasterDataManagement: Codeunit "Master Data Management";
                 begin
                     SaveConfiguration();
+                    // Catch a mistyped environment or company, or a missing app registration, now - not as failing sync jobs.
+                    if not VerifyConnectionOnFinish() then
+                        exit;
                     // Completing the wizard saves a full cross-environment connection, which is a genuine setup of the
                     // feature; register Set up here so it is captured even when the user declines to enable right away.
                     FeatureTelemetry.LogUptake('0000VVS', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::"Set up");
@@ -280,6 +290,7 @@ page 7232 "MDM Connection Details"
         SecretAlreadyStored: Boolean;
         CertificateAlreadyStored: Boolean;
         CertificateVerified: Boolean;
+        CertificatePasswordRequired: Boolean;
         SourceEnvironmentName: Text[100];
         SourceCompanyName: Text[100];
         OAuth2ClientId: Text[100];
@@ -294,6 +305,7 @@ page 7232 "MDM Connection Details"
         CertificateExpirationDate: DateTime;
         ConnectionOkMsg: Label 'Successfully connected to the source environment (contract version %1).', Comment = '%1 = wire contract version';
         ConnectionFailedErr: Label 'Could not connect to the source environment. Check the source environment, company, and credentials, then try again.';
+        ConnectionNotVerifiedQst: Label 'The connection to the source environment could not be verified:\\%1\\Do you want to finish anyway? Choose No to go back and correct the connection details.', Comment = '%1 = the reason the connection failed';
         EnableNowQst: Label 'Your cross-environment connection is saved. Do you want to enable data synchronization now?';
         SelectCertificateTxt: Label 'Select the certificate file';
         CertificateFileFilterTxt: Label 'Certificate Files (*.pfx, *.p12)|*.pfx;*.p12', Locked = true;
@@ -386,8 +398,10 @@ page 7232 "MDM Connection Details"
         VerifyUploadedCertificate(false);
     end;
 
-    // After an upload the file is kept even when it cannot be read yet (typically because its password has not been
-    // entered), so the problem is only reported. Entering the password re-checks the file and rejects a wrong password.
+    // After an upload the file is kept even when it cannot be read yet. Without a password that is the expected state for a
+    // password-protected certificate, so no message is shown and the password is marked as required; the certificate stays
+    // unverified, so Next stays disabled. Entering the password re-checks the file and raises an error if it still cannot be
+    // read. A file that cannot be read with a password already entered is reported right away.
     [NonDebuggable]
     local procedure VerifyUploadedCertificate(FailOnError: Boolean)
     var
@@ -408,7 +422,8 @@ page 7232 "MDM Connection Details"
                 CertificateVerified := false;
                 CertificateThumbprint := '';
                 CertificateExpirationDate := 0DT;
-                Message(GetLastErrorText());
+                if CertificatePassword <> '' then
+                    Message(GetLastErrorText());
                 exit;
             end;
 
@@ -443,26 +458,54 @@ page 7232 "MDM Connection Details"
 
     [NonDebuggable]
     local procedure TestConnectionToSource()
-    var
-        SourceConnection: Codeunit "MDM Source Connection";
-        Transport: Interface "IMDM Source Transport";
-        Capabilities: JsonObject;
-        VersionToken: JsonToken;
-        VersionValue: Integer;
-        VersionText: Text;
     begin
         // Persist first so the transport reads the details entered in the wizard.
         SaveConfiguration();
         Commit();
+        Message(ConnectionOkMsg, CheckSourceConnection());
+    end;
+
+    // The details are already saved; on failure the user either keeps them or stays in the wizard to correct them.
+    // The wizard is only offered online, where the transport can reach a source, so the check always runs.
+    local procedure VerifyConnectionOnFinish(): Boolean
+    var
+        VersionText: Text;
+    begin
+        Commit(); // the transport reads the saved details
+        if TryCheckSourceConnection(VersionText) then
+            exit(true);
+        exit(Confirm(StrSubstNo(ConnectionNotVerifiedQst, GetLastErrorText()), false));
+    end;
+
+    [TryFunction]
+    local procedure TryCheckSourceConnection(var VersionText: Text)
+    begin
+        VersionText := CheckSourceConnection();
+    end;
+
+    // Returns the source's contract version; errors (with the transport's specific reason) if it can't be reached.
+    local procedure CheckSourceConnection() VersionText: Text
+    var
+        SourceConnection: Codeunit "MDM Source Connection";
+        SourceResponse: Codeunit "MDM Source Response";
+        CrossEnvDataSource: Codeunit "MDM Cross-Env Data Source";
+        Transport: Interface "IMDM Source Transport";
+        Capabilities: JsonObject;
+        VersionToken: JsonToken;
+        VersionValue: Integer;
+    begin
         Transport := SourceConnection.GetTransport();
         if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
             Error(ConnectionFailedErr);
-        if Capabilities.Get('version', VersionToken) then begin
-            if not (VersionToken.IsValue() and Evaluate(VersionValue, VersionToken.AsValue().AsText())) then // malformed version is a broken capabilities contract, not user-actionable
-                Error(ConnectionFailedErr);
-            VersionText := Format(VersionValue);
-        end;
-        Message(ConnectionOkMsg, VersionText);
+        // Reachable, but the source hasn't approved sharing: report it now, with the same message the sync would show.
+        if SourceResponse.ConsentRequired(Capabilities) then
+            Error(CrossEnvDataSource.SourceConsentError());
+        // A missing or malformed version means the response isn't from the source API; never report it as a success.
+        if not Capabilities.Get('version', VersionToken) then
+            Error(ConnectionFailedErr);
+        if not (VersionToken.IsValue() and Evaluate(VersionValue, VersionToken.AsValue().AsText())) then
+            Error(ConnectionFailedErr);
+        VersionText := Format(VersionValue);
     end;
 
     local procedure NextStep()
@@ -486,6 +529,7 @@ page 7232 "MDM Connection Details"
         TestConnectionEnabled := Step = Step::TestConnection;
         FinishEnabled := Step = Step::Finish;
         NextEnabled := (Step < Step::Finish) and StepIsComplete();
+        CertificatePasswordRequired := (CertificateBase64 <> '') and not CertificateVerified;
     end;
 
     local procedure StepIsComplete(): Boolean
