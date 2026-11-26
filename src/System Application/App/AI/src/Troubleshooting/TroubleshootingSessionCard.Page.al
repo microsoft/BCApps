@@ -43,10 +43,6 @@ page 7786 "Troubleshooting Session Card"
                     Caption = 'Status';
                     ToolTip = 'Specifies the saved troubleshooting state. Concluded means an iteration returned an answer, not that the business problem was resolved.';
                 }
-                field(CaseClosed; Rec."Case Closed")
-                {
-                    ToolTip = 'Specifies whether the owner closed the case.';
-                }
                 field(FirstSavedAt; Rec.SystemCreatedAt)
                 {
                     Caption = 'First Saved At';
@@ -83,31 +79,6 @@ page 7786 "Troubleshooting Session Card"
         }
     }
 
-    actions
-    {
-        area(Processing)
-        {
-            action(CloseCase)
-            {
-                Caption = 'Close Case';
-                Image = Close;
-                ToolTip = 'Close this active case without changing its report or AI status.';
-                Enabled = CanCloseCase;
-
-                trigger OnAction()
-                var
-                    TroubleshootingCase: Codeunit "Troubleshooting Case";
-                begin
-                    if not Confirm(CloseCaseQst, false) then
-                        exit;
-                    if not TroubleshootingCase.CloseCase(Rec."Troubleshooting Id") then
-                        Error(CaseNotClosedErr);
-                    CurrPage.Close();
-                end;
-            }
-        }
-    }
-
     trigger OnAfterGetCurrRecord()
     var
         DetailsContent: BigText;
@@ -116,8 +87,6 @@ page 7786 "Troubleshooting Session Card"
     begin
         Clear(DetailsText);
         Clear(OwnerName);
-        CanCloseCase := not IsNullGuid(Rec."Troubleshooting Id") and not Rec."Case Closed" and
-            (Rec."Owner User Security Id" = UserSecurityId());
         if IsNullGuid(Rec."Troubleshooting Id") then
             exit;
 
@@ -136,9 +105,6 @@ page 7786 "Troubleshooting Session Card"
     var
         DetailsText: Text;
         OwnerName: Text;
-        CanCloseCase: Boolean;
-        CloseCaseQst: Label 'Close this case? You cannot reopen it.';
-        CaseNotClosedErr: Label 'The case could not be closed. It may already be closed or you may no longer have access.';
 
     local procedure GetOwnerName(): Text
     var

@@ -6,6 +6,7 @@
 namespace System.Test.AI;
 
 using System.AI.Troubleshooting;
+using System.AI.Workspace;
 
 codeunit 132691 "Troubleshooting Session Pages"
 {
@@ -63,6 +64,34 @@ codeunit 132691 "Troubleshooting Session Pages"
 
     [Test]
     [Scope('OnPrem')]
+    procedure ListCanToggleActiveStatusFilter()
+    var
+        Entry: Record "Troubleshooting Session Entry";
+        Sessions: TestPage "Troubleshooting Sessions";
+        ActiveFilter: Text;
+        ConversationFilter: Text;
+    begin
+        Entry.SetFilter(Status, '%1|%2', Entry.Status::InProgress, Entry.Status::AwaitingUser);
+        ActiveFilter := Entry.GetFilter(Status);
+        Sessions.OpenView();
+        if Sessions.Filter.GetFilter(Status) <> ActiveFilter then
+            Error('The troubleshooting session list must open with the active status filter.');
+
+        Sessions.Filter.SetFilter("Troubleshooting Id", Format(CreateGuid()));
+        ConversationFilter := Sessions.Filter.GetFilter("Troubleshooting Id");
+        Sessions.ShowAllSessions.Invoke();
+        if Sessions.Filter.GetFilter(Status) <> '' then
+            Error('Show All Sessions must clear the status filter.');
+        Sessions.ShowActiveSessions.Invoke();
+        if Sessions.Filter.GetFilter(Status) <> ActiveFilter then
+            Error('Show Active Sessions must restore the active status filter.');
+        if Sessions.Filter.GetFilter("Troubleshooting Id") <> ConversationFilter then
+            Error('Switching the status filter must preserve the conversation filter.');
+        Sessions.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure EmptyCardHasNoDetails()
     var
         SessionCard: TestPage "Troubleshooting Session Card";
@@ -72,8 +101,6 @@ codeunit 132691 "Troubleshooting Session Pages"
         if SessionCard.First() then
             Error('The troubleshooting session card must respect its conversation filter.');
         SessionCard.Details.AssertEquals('');
-        if SessionCard.CloseCase.Enabled() then
-            Error('An empty card must not allow closing a case.');
         SessionCard.Close();
     end;
 }

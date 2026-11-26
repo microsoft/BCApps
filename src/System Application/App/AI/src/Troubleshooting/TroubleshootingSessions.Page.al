@@ -27,7 +27,7 @@ page 7785 "Troubleshooting Sessions"
     Extensible = false;
     RefreshOnActivate = true;
     AboutTitle = 'About troubleshooting sessions';
-    AboutText = 'The list opens with active cases. To see closed cases as well, choose Show All Cases. A concluded iteration means an answer was returned, not that the case was closed.';
+    AboutText = 'The list opens with sessions that are in progress or awaiting user input. To see sessions with any status, choose Show All Sessions.';
 
     layout
     {
@@ -44,10 +44,6 @@ page 7785 "Troubleshooting Sessions"
                 {
                     Caption = 'Status';
                     ToolTip = 'Specifies the saved troubleshooting state. Concluded means an iteration returned an answer, not that the business problem was resolved.';
-                }
-                field(CaseClosed; Rec."Case Closed")
-                {
-                    ToolTip = 'Specifies whether the owner closed the case.';
                 }
                 field(FirstSavedAt; Rec.SystemCreatedAt)
                 {
@@ -78,27 +74,27 @@ page 7785 "Troubleshooting Sessions"
     {
         area(Processing)
         {
-            action(ShowAllCases)
+            action(ShowAllSessions)
             {
-                Caption = 'Show All Cases';
+                Caption = 'Show All Sessions';
                 Image = AllLines;
-                ToolTip = 'Show both active and closed cases you can access.';
+                ToolTip = 'Show troubleshooting sessions with any status that you can access.';
 
                 trigger OnAction()
                 begin
-                    Rec.SetRange("Case Closed");
+                    Rec.SetRange(Status);
                     CurrPage.Update(false);
                 end;
             }
-            action(ShowActiveCases)
+            action(ShowActiveSessions)
             {
-                Caption = 'Show Active Cases';
+                Caption = 'Show Active Sessions';
                 Image = FilterLines;
-                ToolTip = 'Show only active cases you can access.';
+                ToolTip = 'Show troubleshooting sessions that are in progress or awaiting user input.';
 
                 trigger OnAction()
                 begin
-                    Rec.SetRange("Case Closed", false);
+                    ApplyActiveStatusFilter();
                     CurrPage.Update(false);
                 end;
             }
@@ -107,6 +103,11 @@ page 7785 "Troubleshooting Sessions"
 
     trigger OnOpenPage()
     begin
-        Rec.SetRange("Case Closed", false);
+        ApplyActiveStatusFilter();
+    end;
+
+    local procedure ApplyActiveStatusFilter()
+    begin
+        Rec.SetFilter(Status, '%1|%2', Rec.Status::InProgress, Rec.Status::AwaitingUser);
     end;
 }
