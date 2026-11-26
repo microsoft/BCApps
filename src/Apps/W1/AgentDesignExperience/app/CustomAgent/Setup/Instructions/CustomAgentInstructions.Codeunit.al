@@ -92,54 +92,26 @@ codeunit 4352 "Custom Agent Instructions"
     [Scope('OnPrem')]
     procedure SetInstructions(var CustomAgentSetup: Record "Custom Agent Setup"; NewInstructions: Text; var InstructionsVersion: Text[100]; ForceSave: Boolean)
     var
-        CustomAgentInstructionsLog: Record "Custom Agent Instructions Log";
-        CurrentAgentInstructionsLog: Record "Custom Agent Instructions Log";
         AgentDesignerEnvironment: Codeunit "Agent Designer Environment";
-        NewVersionNeeded: Boolean;
     begin
         AgentDesignerEnvironment.VerifyCanRunOnCurrentEnvironment();
 
         if CustomAgentSetup.IsTemporary() then
             exit;
 
-        if InstructionsVersion = '' then
+        if not ForceSave then
+            if not ShouldSaveInstructionsToLog(CustomAgentSetup."User Security ID", NewInstructions) then begin
+                UpdateInstructionsOnSetupRecord(CustomAgentSetup, NewInstructions);
+                exit;
+            end;
+
+        MarkCurrentInstructionsAsReadOnly(CustomAgentSetup);
+        if (InstructionsVersion = '') or (CustomAgentSetup."Instructions Version" = InstructionsVersion) then
             InstructionsVersion := GetNextVersionNumber(CustomAgentSetup);
 
-        NewVersionNeeded := ForceSave;
-        if not NewVersionNeeded then
-            if GetCurrentInstructions(CustomAgentSetup, CurrentAgentInstructionsLog) then
-                NewVersionNeeded := CurrentAgentInstructionsLog."Read-Only Instructions";
-
-        if CustomAgentSetup."Instructions Version" <> '' then
-            if NewVersionNeeded then begin
-#pragma warning disable AA0139
-                if CustomAgentSetup."Instructions Version" = InstructionsVersion then
-                    InstructionsVersion := GetNextVersionNumber(CustomAgentSetup);
-
-                CustomAgentSetup."Instructions Version" := InstructionsVersion;
-#pragma warning restore AA0139
-                CustomAgentSetup.Modify(true);
-                UpdateInstructionsOnSetupRecord(CustomAgentSetup, NewInstructions);
-                SaveCurrentInstructionsToLog(CustomAgentSetup, ForceSave);
-            end else begin
-                UpdateInstructionsOnSetupRecord(CustomAgentSetup, NewInstructions);
-                if CustomAgentSetup."Instructions Version" <> InstructionsVersion then begin
-#pragma warning disable AA0139
-                    CustomAgentSetup."Instructions Version" := InstructionsVersion;
-#pragma warning restore AA0139
-                    CustomAgentSetup.Modify(true);
-                end;
-
-                CustomAgentInstructionsLog.SetRange("User Security ID", CustomAgentSetup."User Security ID");
-                CustomAgentInstructionsLog.SetRange("Instruction Version", InstructionsVersion);
-                if CustomAgentInstructionsLog.FindFirst() then begin
-                    CustomAgentInstructionsLog.SetInstructions(NewInstructions);
-#pragma warning disable AA0214
-                    CustomAgentInstructionsLog.Modify(true);
-#pragma warning restore AA0214
-                end else
-                    SaveCurrentInstructionsToLog(CustomAgentSetup, ForceSave);
-            end;
+        CustomAgentSetup."Instructions Version" := InstructionsVersion;
+        UpdateInstructionsOnSetupRecord(CustomAgentSetup, NewInstructions);
+        SaveCurrentInstructionsToLog(CustomAgentSetup, ForceSave);
     end;
 
     procedure UpdateCustomAgentSetupVersionName(AgentUserSecurityID: Guid; NewVersionName: Text[100])
@@ -250,11 +222,26 @@ codeunit 4352 "Custom Agent Instructions"
         CustomAgentInstructionsLog.Insert(true);
     end;
 
+    internal procedure ReadInstructionsFromStream(InstructionsInStream: InStream): Text
+    var
+        InstructionsBuilder: TextBuilder;
+        InstructionsLine: Text;
+    begin
+        while not InstructionsInStream.EOS() do begin
+            InstructionsInStream.ReadText(InstructionsLine);
+            InstructionsBuilder.Append(InstructionsLine);
+            if not InstructionsInStream.EOS() then
+                InstructionsBuilder.AppendLine();
+        end;
+
+        exit(InstructionsBuilder.ToText());
+    end;
+
     local procedure ShouldSaveInstructionsToLog(AgentUserSecurityId: Guid; CurrentInstructions: Text): Boolean
     var
         CustomAgentInstructionsLog: Record "Custom Agent Instructions Log";
-        LastInstructions: Text;
-        NewLineChars: Text;
+        TempBlob: Codeunit "Temp Blob";
+        InstructionsInStream: InStream;
     begin
         CustomAgentInstructionsLog.SetRange("User Security ID", AgentUserSecurityId);
         CustomAgentInstructionsLog.SetCurrentKey("User Security ID", SystemCreatedAt);
@@ -266,26 +253,8 @@ codeunit 4352 "Custom Agent Instructions"
             exit(true);
         end;
 
-        LastInstructions := CustomAgentInstructionsLog.GetInstructions();
-
-        NewLineChars := GetNewLineChars();
-        CurrentInstructions := DelChr(CurrentInstructions, '=', NewLineChars).Trim();
-        LastInstructions := DelChr(LastInstructions, '=', NewLineChars).Trim();
-
-        if CurrentInstructions = LastInstructions then
-            exit(false);
-
-        exit(true);
-    end;
-
-    local procedure GetNewLineChars(): Text
-    var
-        LF: Char;
-        CR: Char;
-    begin
-        LF := 10;
-        CR := 13;
-        exit(Format(LF) + Format(CR));
+        CreateTextBlobStream(TempBlob, CurrentInstructions, InstructionsInStream);
+        exit(ReadInstructionsFromStream(InstructionsInStream) <> CustomAgentInstructionsLog.GetInstructions());
     end;
 
     procedure GetNextVersionNumber(var CustomAgentSetup: Record "Custom Agent Setup") NewInstructionsName: Text[100]
