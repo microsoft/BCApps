@@ -27,7 +27,7 @@ page 4160 "Business Skills"
     InherentEntitlements = X;
     InherentPermissions = X;
     AboutTitle = 'About business skills';
-    AboutText = 'Create your own custom skills to describe how work should be done in Business Central, guiding **Copilot and agents** towards better outcomes.';
+    AboutText = 'Manage existing business skills or create your own custom skills to guide how **Copilot and agents** work in Business Central.';
 
     layout
     {
