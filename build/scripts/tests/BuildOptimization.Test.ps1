@@ -487,4 +487,98 @@ Describe "BuildOptimization" {
             }
         }
     }
+
+    Context "Get-PullRequestMergeChangedFiles" {
+        BeforeAll {
+            $repo = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Merge_$([System.Guid]::NewGuid())"
+            New-Item -ItemType Directory -Path $repo | Out-Null
+            Push-Location $repo
+            try {
+                git init -q -b main
+                git config user.email 'ci@example.com'
+                git config user.name 'ci'
+                Set-Content -Path 'shared.txt' -Value 'base'
+                git add -A; git commit -q -m base
+                git checkout -q -b feature
+                Set-Content -Path 'feature.txt' -Value 'pr change'
+                git add -A; git commit -q -m feature
+                $script:prHead = (git rev-parse HEAD)
+                git checkout -q main
+                Set-Content -Path 'main-only.txt' -Value 'base branch change'
+                git add -A; git commit -q -m main
+                git merge -q --no-ff feature -m merge
+            } finally {
+                Pop-Location
+            }
+            $eventFile = Join-Path $repo 'event.json'
+            @{ pull_request = @{ head = @{ sha = $script:prHead } } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
+        }
+        AfterAll {
+            Remove-Item $repo -Recurse -Force -ErrorAction SilentlyContinue
+        }
+
+        It "returns only the pull request's changes, not base-branch changes missing from the PR branch" {
+            $saved = @($env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH)
+            Push-Location $repo
+            try {
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                Get-PullRequestMergeChangedFiles | Should -Be @('feature.txt')
+            } finally {
+                Pop-Location
+                $env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH = $saved
+            }
+        }
+
+        It "returns null when HEAD is not the pull request merge commit" {
+            $saved = @($env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH)
+            Push-Location $repo
+            try {
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                git checkout -q HEAD~1
+                Get-PullRequestMergeChangedFiles | Should -BeNullOrEmpty
+            } finally {
+                git checkout -q main
+                Pop-Location
+                $env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH = $saved
+            }
+        }
+    }
+
+    Context "Select-TestAppsToRun" {
+        BeforeAll {
+            $selectCache = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Select_$([System.Guid]::NewGuid()).json"
+        }
+        BeforeEach {
+            Remove-Item $selectCache -ErrorAction SilentlyContinue
+        }
+        AfterAll {
+            Remove-Item $selectCache -ErrorAction SilentlyContinue
+        }
+
+        It "runs every test app outside pull request builds" {
+            $saved = $env:GITHUB_EVENT_NAME
+            try {
+                $env:GITHUB_EVENT_NAME = 'merge_group'
+                Mock -ModuleName BuildOptimization Test-ShouldSkipTestApp { return $true }
+                Select-TestAppsToRun -AppNames @('Shopify', 'E-Document Core') -BaseFolder $baseFolder -CacheFile $selectCache | Should -Be @('Shopify', 'E-Document Core')
+            } finally {
+                $env:GITHUB_EVENT_NAME = $saved
+            }
+        }
+
+        It "runs only affected test apps in pull request builds" {
+            $saved = @($env:GITHUB_ACTIONS, $env:GITHUB_EVENT_NAME, $env:BUILD_OPTIMIZATION_DISABLED)
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                Mock -ModuleName BuildOptimization Get-PullRequestMergeChangedFiles { return @('src/Apps/W1/EDocument/App/src/SomeFile.al') }
+                Select-TestAppsToRun -AppNames @('Shopify', 'E-Document Core') -BaseFolder $baseFolder -CacheFile $selectCache | Should -Be @('E-Document Core')
+            } finally {
+                $env:GITHUB_ACTIONS, $env:GITHUB_EVENT_NAME, $env:BUILD_OPTIMIZATION_DISABLED = $saved
+            }
+        }
+    }
 }

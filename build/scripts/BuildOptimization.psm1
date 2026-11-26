@@ -337,6 +337,54 @@ function Get-ChangedFilesForCI {
 
 <#
 .SYNOPSIS
+    Returns the files changed by a pull request, using the pull request merge commit.
+.DESCRIPTION
+    For pull_request events GitHub checks out refs/pull/N/merge, whose first parent is the
+    base branch tip and whose second parent is the pull request head. Diffing the merge commit
+    against its first parent yields exactly the pull request's changes, unlike diffing the head
+    against a base branch commit, which also reports base-branch changes the pull request
+    branch does not contain yet. Needs only the first parent commit, so it works with shallow
+    checkouts.
+.OUTPUTS
+    String array of changed file paths relative to the repo root, or $null when the checked-out
+    commit is not the pull request merge commit or the diff cannot be computed.
+#>
+function Get-PullRequestMergeChangedFiles {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param()
+
+    if ($env:GITHUB_EVENT_NAME -notmatch 'pull_request') { return $null }
+    if (-not $env:GITHUB_EVENT_PATH -or -not (Test-Path $env:GITHUB_EVENT_PATH)) { return $null }
+    $headSha = (Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json).pull_request.head.sha
+    if (-not $headSha) { return $null }
+
+    $prevErrorAction = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $parents = @((& git cat-file -p HEAD 2>$null) | Where-Object { $_ -match '^parent ' } | ForEach-Object { ($_ -split ' ')[1] })
+        if ($parents.Count -ne 2 -or $parents[1] -ne $headSha) {
+            Write-Host "BUILD OPTIMIZATION: HEAD is not the merge commit for pull request head $headSha"
+            return $null
+        }
+
+        & git cat-file -e "$($parents[0])^{commit}" 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            & git fetch --no-tags --depth=1 origin $parents[0] 2>$null
+        }
+
+        $files = @(& git -c core.quotePath=false diff --name-only $parents[0] HEAD -- 2>$null)
+        if ($LASTEXITCODE -ne 0 -or $files.Count -eq 0) { return $null }
+        Write-Host "BUILD OPTIMIZATION: Pull request merge commit changes $($files.Count) file(s)"
+        return [string[]]$files
+    }
+    finally {
+        $ErrorActionPreference = $prevErrorAction
+    }
+}
+
+<#
+.SYNOPSIS
     Checks whether any changed files match the fullBuildPatterns from AL-Go settings.
 .DESCRIPTION
     Reads the fullBuildPatterns array from .github/AL-Go-Settings.json and tests
@@ -413,7 +461,10 @@ function Get-AffectedAppNames {
         return [PSCustomObject]$runAll
     }
 
-    $changedFiles = Get-ChangedFilesForCI
+    $changedFiles = Get-PullRequestMergeChangedFiles
+    if (-not $changedFiles) {
+        $changedFiles = Get-ChangedFilesForCI -CompareFromMergeBase
+    }
     if (-not $changedFiles) {
         Write-Host "BUILD OPTIMIZATION: Running all tests - could not determine changed files"
         return [PSCustomObject]$runAll
@@ -500,4 +551,38 @@ function Test-ShouldSkipTestApp {
     return $false
 }
 
-Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp
+<#
+.SYNOPSIS
+    Filters the test apps to run in a pull request build to those affected by the change.
+.DESCRIPTION
+    Pull request builds run only test apps that depend, directly or transitively, on an app the
+    pull request changes. All other events (merge queue, push, schedule, workflow_dispatch) run
+    every test app, which is where full coverage is assured. Falls back to running every app
+    whenever the change set cannot be mapped safely (see Get-AffectedAppNames).
+.PARAMETER AppNames
+    Test app names the job would otherwise run.
+.PARAMETER BaseFolder
+    Root of the repository.
+.OUTPUTS
+    String array of test app names to run.
+#>
+function Select-TestAppsToRun {
+    [CmdletBinding()]
+    [OutputType([string[]])]
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [string[]] $AppNames,
+        [Parameter(Mandatory)]
+        [string] $BaseFolder,
+        [string] $CacheFile = (Join-Path ([System.IO.Path]::GetTempPath()) 'BuildOptimization_AffectedApps.json')
+    )
+
+    if ($env:GITHUB_EVENT_NAME -ne 'pull_request') { return $AppNames }
+
+    $selected = @($AppNames | Where-Object { -not (Test-ShouldSkipTestApp -AppName $_ -BaseFolder $BaseFolder -CacheFile $CacheFile) })
+    Write-Host "BUILD OPTIMIZATION: Running $($selected.Count) of $($AppNames.Count) test app(s) affected by this pull request"
+    return [string[]]$selected
+}
+
+Export-ModuleMember -Function Get-AppDependencyGraph, Get-AppForFile, Get-AffectedApps, Get-ChangedFilesForCI, Get-PullRequestMergeChangedFiles, Test-FullBuildPatternsMatch, Get-AffectedAppNames, Test-ShouldSkipTestApp, Select-TestAppsToRun

@@ -13,6 +13,7 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
     }
 }
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
+Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
 
 <#
 .SYNOPSIS
@@ -1557,6 +1558,7 @@ function Invoke-PerProjectTestRun {
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
     $appNamesToTest = Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber
+    $appNamesToTest = @(Select-TestAppsToRun -AppNames $appNamesToTest -BaseFolder (Get-BaseFolder))
 
     if ($appNamesToTest.Count -eq 0) {
         Write-Host "No test apps to run for testType '$testType' in this project."
