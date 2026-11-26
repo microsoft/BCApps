@@ -264,7 +264,7 @@ page 10058 "Transmission IRIS"
                             exit;
 
                         ProcessDialog.Open(SendingTransmissionMsg);
-                        FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), TwoStepCorrectedOriginalStartedLbl);
+                        Telemetry.LogMessage('0000WZX', TwoStepCorrectedOriginalStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata);
                         ProcessTransmission.SendOriginal(Rec);
                         ProcessDialog.Close();
                     end;
@@ -391,7 +391,7 @@ page 10058 "Transmission IRIS"
                     if not ConfirmMgt.GetResponseOrDefault(ShowCorrectionActionsQst, false) then
                         exit;
 
-                    FeatureTelemetry.LogUsage('0000RNZ', Helper.GetIRISFeatureName(), ForceCorrectionActionsEventTxt);
+                    Telemetry.LogMessage('0000RNZ', ForceCorrectionActionsEventTxt, Verbosity::Normal, DataClassification::SystemMetadata);
                     ForceCorrectionActionsVisible := true;
                     SetActionsVisibility();
                 end;
@@ -435,7 +435,7 @@ page 10058 "Transmission IRIS"
     var
         ProcessTransmission: Codeunit "Process Transmission IRIS";
         ConfirmMgt: Codeunit "Confirm Management";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Telemetry: Codeunit Telemetry;
         Helper: Codeunit "Helper IRIS";
         KeyVaultClientIRIS: Codeunit "Key Vault Client IRIS";
         EnvironmentInformation: Codeunit "Environment Information";

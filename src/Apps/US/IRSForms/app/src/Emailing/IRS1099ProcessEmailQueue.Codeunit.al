@@ -40,11 +40,11 @@ codeunit 10052 "IRS 1099 Process Email Queue"
                 Commit();
                 Success := IRS1099SendEmail.Run(IRS1099EmailQueue);
                 if Success then begin
-                    FeatureTelemetry.LogUsage('', FeatureNameTok, SendVendorEmailOutcomeLbl);
+                    FeatureTelemetry.LogUsage('0000WZY', FeatureNameTok, SendVendorEmailOutcomeLbl);
                     SuccessCount += 1;
                     IRS1099SendEmail.SetEmailStatusSuccess(IRS1099EmailQueue)
                 end else begin
-                    FeatureTelemetry.LogError('', FeatureNameTok, SendVendorEmailOutcomeLbl, SendVendorEmailFailedErr);
+                    FeatureTelemetry.LogError('0000WZM', FeatureNameTok, SendVendorEmailOutcomeLbl, SendVendorEmailFailedErr);
                     FailCount += 1;
                     IRS1099SendEmail.SetEmailStatusFail(IRS1099EmailQueue, GetLastErrorText());
                 end;

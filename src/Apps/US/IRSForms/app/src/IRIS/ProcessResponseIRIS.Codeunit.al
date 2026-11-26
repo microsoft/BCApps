@@ -42,7 +42,7 @@ codeunit 10047 "Process Response IRIS"
             exit(false);
 
         if not XmlDocument.ReadFrom(ResponseText, XmlDoc) then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            FeatureTelemetry.LogError('0000WZG', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
             Error(MalformedResponseErr);
         end;
 
@@ -77,7 +77,7 @@ codeunit 10047 "Process Response IRIS"
             exit('');
 
         if not XmlDocument.ReadFrom(AckText, XmlDoc) then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            FeatureTelemetry.LogError('0000WZG', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
             Error(MalformedResponseErr);
         end;
 
@@ -108,7 +108,7 @@ codeunit 10047 "Process Response IRIS"
             exit(false);
 
         if not XmlDocument.ReadFrom(AckText, XmlDoc) then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            FeatureTelemetry.LogError('0000WZG', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
             Error(MalformedResponseErr);
         end;
 
@@ -139,7 +139,7 @@ codeunit 10047 "Process Response IRIS"
             exit(false);
 
         if not XmlDocument.ReadFrom(AckText, XmlDoc) then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            FeatureTelemetry.LogError('0000WZG', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
             Error(MalformedResponseErr);
         end;
 

@@ -341,8 +341,10 @@ codeunit 10046 "OAuth Client IRIS"
         // use current access token to send dummy status request
         UserParamsIRIS.GetRecord();
         RequestXml := Helper.WriteTempBlobToText(GetStatusRequestContentBlob);
-        if not SendPOSTHttpRequestXml(RequestXml, KeyVaultClient.GetStatusEndpointURL(), GetToken(UserParamsIRIS."Access Token Key"), HttpResponseMessage) then
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ValidateAccessTokenEventTxt, TokenProbeFailedErr);
+        if not SendPOSTHttpRequestXml(RequestXml, KeyVaultClient.GetStatusEndpointURL(), GetToken(UserParamsIRIS."Access Token Key"), HttpResponseMessage) then begin
+            FeatureTelemetry.LogError('0000WZH', Helper.GetIRISFeatureName(), ValidateAccessTokenEventTxt, TokenProbeFailedErr);
+            exit(false);
+        end;
         HttpStatusCode := HttpResponseMessage.HttpStatusCode();
 
         // check if 401 Unauthorized was returned
@@ -360,7 +362,7 @@ codeunit 10046 "OAuth Client IRIS"
     var
         HttpResponseMessage: HttpResponseMessage;
         JObject: JsonObject;
-        RequestBody: Text;
+        RequestBody: SecretText;
         ResponseText: Text;
         ResponseSecretText: SecretText;
         ClientID: Text;
@@ -373,13 +375,15 @@ codeunit 10046 "OAuth Client IRIS"
             Error(GetClientIDErr);
         AuthURL := KeyVaultClient.GetAuthURL();
         ClientJWT := CreateJWT(ClientID, AuthURL);
-        RequestBody := StrSubstNo(RefreshAccessTokenReqBodyTxt, RefreshToken.Unwrap(), ClientAssertionTypeTxt, ClientJWT);
+        RequestBody := SecretStrSubstNo(RefreshAccessTokenReqBodyTxt, RefreshToken, Format(ClientAssertionTypeTxt), ClientJWT);
 
-        if not SendPOSTHttpRequestUrlEncoded(RequestBody, AuthURL, HttpResponseMessage) then
+        if not SendPOSTHttpRequestUrlEncoded(RequestBody, AuthURL, HttpResponseMessage) then begin
             ShowRequestSendError(HttpResponseMessage.IsBlockedByEnvironment());
+            exit;
+        end;
         if not HttpResponseMessage.IsSuccessStatusCode() then begin
             CustomDimensions.Add('HttpStatusCode', Format(HttpResponseMessage.HttpStatusCode(), 0, 9));
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), RefreshTokensEventTxt, RefreshTokenRejectedErr, '', CustomDimensions);
+            FeatureTelemetry.LogError('0000WZI', Helper.GetIRISFeatureName(), RefreshTokensEventTxt, RefreshTokenRejectedErr, '', CustomDimensions);
             exit;       // no need to show error here as both access and refresh tokens will be requested again
         end;
 
@@ -535,7 +539,7 @@ codeunit 10046 "OAuth Client IRIS"
         HttpContent.WriteFrom(RequestBody);
 
         HttpRequestMessage.GetHeaders(HttpHeaders);
-        HttpHeaders.Add('Authorization', StrSubstNo(BearerTxt, AccessToken.Unwrap()));
+        HttpHeaders.Add('Authorization', SecretStrSubstNo(BearerTxt, AccessToken));
         HttpHeaders.Add('Accept', ApplicationXmlTxt);
 
         HttpContent.GetHeaders(HttpHeaders);

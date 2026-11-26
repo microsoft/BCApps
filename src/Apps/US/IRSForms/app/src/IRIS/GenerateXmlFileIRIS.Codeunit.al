@@ -531,15 +531,15 @@ codeunit 10033 "Generate Xml File IRIS"
         end;
 
         if PrevAcceptedReceiptId = '' then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingAcceptedReceiptTelemetryErr);
+            FeatureTelemetry.LogError('0000WZJ', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingAcceptedReceiptTelemetryErr);
             Error(LastAcceptedReceiptIdEmtpyErr, TempIRS1099FormDocHeader.ID);
         end;
         if TempIRS1099FormDocHeader."IRIS Submission ID" = '' then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingSubmissionTelemetryErr);
+            FeatureTelemetry.LogError('0000WZK', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingSubmissionTelemetryErr);
             Error(SubmissionIdEmtpyErr, TempIRS1099FormDocHeader.ID);
         end;
         if TempIRS1099FormDocHeader."IRIS Record ID" = '' then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingRecordTelemetryErr);
+            FeatureTelemetry.LogError('0000WZL', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingRecordTelemetryErr);
             Error(RecordIdEmtpyErr, TempIRS1099FormDocHeader.ID);
         end;
 

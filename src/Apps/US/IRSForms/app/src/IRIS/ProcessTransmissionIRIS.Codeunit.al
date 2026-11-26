@@ -20,6 +20,7 @@ codeunit 10056 "Process Transmission IRIS"
         OAuthClient: Codeunit "OAuth Client IRIS";
         ProcessResponse: Codeunit "Process Response IRIS";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        Telemetry: Codeunit Telemetry;
         EnvironmentInformation: Codeunit "Environment Information";
         ConfirmMgt: Codeunit "Confirm Management";
         Supplemental: Codeunit "IRS 1099 Supplemental";
@@ -179,7 +180,7 @@ codeunit 10056 "Process Transmission IRIS"
         if (DocHeader."IRIS Submission Status" = DocHeader."IRIS Submission Status"::None) or
            (DocHeader."IRIS Submission ID" = '') or (DocHeader."IRIS Record ID" = '')
         then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), CorrectionHistoryTok, MissingCorrectionHistoryErr);
+            FeatureTelemetry.LogError('0000WZ8', Helper.GetIRISFeatureName(), CorrectionHistoryTok, MissingCorrectionHistoryErr);
             Error(MissingCorrectionDetailsErr, DocHeader.ID, DocHeader."Vendor No.", DocHeader."Form No.", DocHeader."Period No.");
         end;
     end;
@@ -335,7 +336,7 @@ codeunit 10056 "Process Transmission IRIS"
 
         TransmissionType := Enum::"Transmission Type IRIS"::"O";
         CorrectionToZeroMode := false;
-        FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), StrSubstNo(SubmissionStartedLbl, 'Original'));
+        Telemetry.LogMessage('0000WZN', StrSubstNo(SubmissionStartedLbl, 'Original'), Verbosity::Normal, DataClassification::SystemMetadata);
         SubmitTransmissionAndProcessResponse(Transmission, TransmissionType, CorrectionToZeroMode);
     end;
 
@@ -359,7 +360,7 @@ codeunit 10056 "Process Transmission IRIS"
 
         TransmissionType := Enum::"Transmission Type IRIS"::"R";
         CorrectionToZeroMode := false;
-        FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), StrSubstNo(SubmissionStartedLbl, 'Replacement'));
+        Telemetry.LogMessage('0000WZO', StrSubstNo(SubmissionStartedLbl, 'Replacement'), Verbosity::Normal, DataClassification::SystemMetadata);
         SubmitTransmissionAndProcessResponse(Transmission, TransmissionType, CorrectionToZeroMode);
     end;
 
@@ -392,9 +393,9 @@ codeunit 10056 "Process Transmission IRIS"
 
         TransmissionType := Enum::"Transmission Type IRIS"::"C";
         if CorrectionToZeroMode then
-            FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), StrSubstNo(SubmissionStartedLbl, 'Zero correction'))
+            Telemetry.LogMessage('0000WZP', StrSubstNo(SubmissionStartedLbl, 'Zero correction'), Verbosity::Normal, DataClassification::SystemMetadata)
         else
-            FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), StrSubstNo(SubmissionStartedLbl, 'Correction'));
+            Telemetry.LogMessage('0000WZQ', StrSubstNo(SubmissionStartedLbl, 'Correction'), Verbosity::Normal, DataClassification::SystemMetadata);
         exit(SubmitTransmissionAndProcessResponse(Transmission, TransmissionType, CorrectionToZeroMode, TempAddedCorrectionDocHeader, RestoreSelectionOnFailure));
     end;
 
@@ -419,7 +420,7 @@ codeunit 10056 "Process Transmission IRIS"
             until DocHeader.Next() = 0;
         DocHeader.SetRange("IRIS Needs Correction");
         DocHeader.ModifyAll("IRIS Needs Correction", true);
-        FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), StrSubstNo(SubmissionStartedLbl, 'Two-step zero correction'));
+        Telemetry.LogMessage('0000WZR', StrSubstNo(SubmissionStartedLbl, 'Two-step zero correction'), Verbosity::Normal, DataClassification::SystemMetadata);
         if not SendCorrectionAndProcessResponse(Transmission, true, TempAddedCorrectionDocHeader, RestoreSelectionOnFailure) then begin
             if RestoreSelectionOnFailure then
                 if TempAddedCorrectionDocHeader.FindSet() then
@@ -463,9 +464,9 @@ codeunit 10056 "Process Transmission IRIS"
         if HttpStatusCode <> 200 then begin
             RestoreSelectionOnFailure := (HttpStatusCode in [400 .. 499]) and (HttpStatusCode <> 408);
             if RestoreSelectionOnFailure then
-                FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), SubmissionEventTok, SubmissionFailedErr)
+                FeatureTelemetry.LogError('0000WZ9', Helper.GetIRISFeatureName(), SubmissionEventTok, SubmissionFailedErr)
             else begin
-                FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), SubmissionEventTok, SubmissionUnconfirmedErr);
+                FeatureTelemetry.LogError('0000WZA', Helper.GetIRISFeatureName(), SubmissionEventTok, SubmissionUnconfirmedErr);
                 SetSubmissionInProgress(Transmission, TransmissionType, TempIRS1099FormDocHeader, '');
                 Commit();
                 Message(SubmissionUnconfirmedMsg);
@@ -478,9 +479,9 @@ codeunit 10056 "Process Transmission IRIS"
             UpdateReceiptID(Transmission, TransmissionType, TempIRS1099FormDocHeader, ReceiptID);
             CustomDimensions.Add('TransmissionType', Helper.GetTransmissionTypeName(TransmissionType));
             CustomDimensions.Add('CorrectionToZeroMode', Format(CorrectionToZeroMode, 0, 9));
-            FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), SubmissionReceiptConfirmedLbl, CustomDimensions);
+            FeatureTelemetry.LogUsage('0000WZS', Helper.GetIRISFeatureName(), SubmissionReceiptConfirmedLbl, CustomDimensions);
         end else
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), SubmissionEventTok, SubmissionReceiptMissingErr);
+            FeatureTelemetry.LogError('0000WZB', Helper.GetIRISFeatureName(), SubmissionEventTok, SubmissionReceiptMissingErr);
         SetSubmissionInProgress(Transmission, TransmissionType, TempIRS1099FormDocHeader, ReceiptID);
 
         Commit();       // save transmission log record before requesting the status
@@ -527,7 +528,7 @@ codeunit 10056 "Process Transmission IRIS"
 
         if not IsNullGuid(TransmissionLog.SystemId) then
             UpdateTransmissionLog(TransmissionLog, TransmissionStatus, DummySubmissionsStatus);
-        FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), RequestStatusEventTxt);
+        FeatureTelemetry.LogUsage('0000WZT', Helper.GetIRISFeatureName(), RequestStatusEventTxt);
     end;
 
     procedure RequestAcknowledgement(ReceiptID: Text[100]; UniqueTransmissionId: Text[100]; var TransmissionStatus: Text; var SubmissionsStatus: Dictionary of [Text, Text]; var TempErrorInfo: Record "Error Information IRIS" temporary)
@@ -574,11 +575,11 @@ codeunit 10056 "Process Transmission IRIS"
                 Message(ManualReceiptStatusMsg);
                 exit;
             end;
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, MissingAcknowledgmentAttemptErr);
+            FeatureTelemetry.LogError('0000WZC', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, MissingAcknowledgmentAttemptErr);
             Error(AcknowledgmentAttemptNotFoundErr, UniqueTransmissionId);
         end;
         if TransmissionLog."Transmission Document ID" <> Transmission."Document ID" then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, AcknowledgmentIdentityTelemetryErr);
+            FeatureTelemetry.LogError('0000WZD', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, AcknowledgmentIdentityTelemetryErr);
             Error(AcknowledgmentIdentityMismatchErr);
         end;
 
@@ -650,7 +651,7 @@ codeunit 10056 "Process Transmission IRIS"
         end;
 
         if (UniqueTransmissionId <> '') and (UTIDFromResponse <> '') and (UTIDFromResponse <> UniqueTransmissionId) then begin
-            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, AcknowledgmentIdentityTelemetryErr);
+            FeatureTelemetry.LogError('0000WZD', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, AcknowledgmentIdentityTelemetryErr);
             Error(AcknowledgmentIdentityMismatchErr);
         end;
         ReceiptIDFromResponse := ProcessResponse.GetReceiptIDFromAcknowledgXmlResponse(AcknowledgContentBlob);
@@ -660,13 +661,13 @@ codeunit 10056 "Process Transmission IRIS"
             ReceiptID := ReceiptIDFromResponse;
         if not IsNullGuid(TransmissionLog.SystemId) then begin
             if (TransmissionLog."Receipt ID" <> '') and (ReceiptID <> '') and (TransmissionLog."Receipt ID" <> ReceiptID) then begin
-                FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, AcknowledgmentIdentityTelemetryErr);
+                FeatureTelemetry.LogError('0000WZD', Helper.GetIRISFeatureName(), AcknowledgmentIdentityTok, AcknowledgmentIdentityTelemetryErr);
                 Error(AcknowledgmentIdentityMismatchErr);
             end;
             UpdateTransmissionLog(TransmissionLog, ReceiptID);
             UpdateTransmissionLog(TransmissionLog, TransmissionStatus, SubmissionsStatus);
         end;
-        FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), RequestAcknowledgEventTxt);
+        FeatureTelemetry.LogUsage('0000WZU', Helper.GetIRISFeatureName(), RequestAcknowledgEventTxt);
         exit(true);
     end;
 
@@ -814,7 +815,7 @@ codeunit 10056 "Process Transmission IRIS"
         TransmissionLog.Modify(true);
         if StatusChanged then begin
             CustomDimensions.Add('TransmissionStatus', Format(TransmissionStatus, 0, 9));
-            FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), StatusTransitionLbl, CustomDimensions);
+            FeatureTelemetry.LogUsage('0000WZV', Helper.GetIRISFeatureName(), StatusTransitionLbl, CustomDimensions);
         end;
 
         TransmissionLogLine.SetRange("Transmission Log ID", TransmissionLog."Line ID");
@@ -904,12 +905,12 @@ codeunit 10056 "Process Transmission IRIS"
                 ErrorInfo.Insert(true);
                 if TempErrorInfo."Error Code" = 'XML Schema Validation Error' then begin
                     if not XmlSchemaErrorLogged then begin
-                        FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), IRSValidationTok, XmlSchemaValidationTelemetryErr);
+                        FeatureTelemetry.LogError('0000WZE', Helper.GetIRISFeatureName(), IRSValidationTok, XmlSchemaValidationTelemetryErr);
                         XmlSchemaErrorLogged := true;
                     end;
                 end else
                     if not ValidationErrorLogged then begin
-                        FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), IRSValidationTok, IRSValidationTelemetryErr);
+                        FeatureTelemetry.LogError('0000WZF', Helper.GetIRISFeatureName(), IRSValidationTok, IRSValidationTelemetryErr);
                         ValidationErrorLogged := true;
                     end;
             until TempErrorInfo.Next() = 0;
@@ -1742,7 +1743,7 @@ codeunit 10056 "Process Transmission IRIS"
                 IRS1099FormDocument.Abandon(IRS1099FormDocHeader);
         until TransmissionLogLine.Next() = 0;
         if CorrectionsApplied then
-            FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), CorrectionsAppliedTok);
+            FeatureTelemetry.LogUsage('0000WZW', Helper.GetIRISFeatureName(), CorrectionsAppliedTok);
     end;
 
     local procedure SetSubmissionInProgress(var Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; var TempDocHeader: Record "IRS 1099 Form Doc. Header" temporary; ReceiptID: Text[100])
