@@ -949,15 +949,21 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
     local procedure CreateAndPostRoutingWIPTransfer(var TransferLine: Record "Transfer Line"; Item: Record Item; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PreviousOperationNo: Code[10]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; InTransitCode: Code[10]; DirectTransferPosting: Enum "Direct Transfer Posting Type"; Quantity: Decimal)
     var
         TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
     begin
-        SubcWarehouseLibrary.CreateTransferOrderWithWIPItemFlagWithoutRoutingReference(
-            TransferHeader, TransferLine, FromLocationCode, ToLocationCode, InTransitCode, Item, Quantity);
         if InTransitCode = '' then begin
+            // Direct transfer must be set before lines are created; otherwise line validation requires an in-transit code.
+            LibraryWarehouse.CreateTransferRoute(TransferRoute, FromLocationCode, ToLocationCode);
+            LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocationCode, ToLocationCode, '');
             TransferHeader.Validate("Direct Transfer", true);
             TransferHeader.Validate("Direct Transfer Posting", DirectTransferPosting);
             TransferHeader.Modify(true);
-            TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
-        end;
+            LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Quantity);
+            TransferLine.Validate("Transfer WIP Item", true);
+            TransferLine.Modify();
+        end else
+            SubcWarehouseLibrary.CreateTransferOrderWithWIPItemFlagWithoutRoutingReference(
+                TransferHeader, TransferLine, FromLocationCode, ToLocationCode, InTransitCode, Item, Quantity);
         TransferLine."Subc. Prod. Order No." := ProdOrderLine."Prod. Order No.";
         TransferLine."Subc. Prod. Order Line No." := ProdOrderLine."Line No.";
         TransferLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
