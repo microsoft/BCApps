@@ -181,19 +181,20 @@ codeunit 8026 "Process Usage Data Billing"
         ServiceObject: Record "Subscription Header";
         ServiceCommitment: Record "Subscription Line";
         LastUsageDataBilling: Record "Usage Data Billing";
+        InvalidUsageDataBilling: Record "Usage Data Billing";
         NewServiceObjectQuantity: Decimal;
         CurrencyCode: Code[10];
         UnitPrice: Decimal;
         UnitCost: Decimal;
-        UnitCostLCY: Decimal;
         TotalQuantity: Decimal;
+        TotalQuantityInBillingBasePeriods: Decimal;
+        SubscriptionQuantityInBillingBasePeriods: Decimal;
+        AverageBillingBasePeriods: Decimal;
         TotalAmount: Decimal;
         TotalCostAmount: Decimal;
         Tolerance: Decimal;
-        BillingBasePeriodsInChargePeriod: Decimal;
         NumberOfUsageDataBillings: Integer;
         IsHandled: Boolean;
-        BillingReferenceDateChanged: Boolean;
     begin
         OnBeforeProcessSubscriptionLine(ServiceCommitment);
 
@@ -209,29 +210,22 @@ codeunit 8026 "Process Usage Data Billing"
         NewServiceObjectQuantity := ServiceObject.Quantity;
 
         FindUsageDataBilling(LastUsageDataBilling, false, UsageDataImport."Entry No.", ServiceCommitment);
-        BillingBasePeriodsInChargePeriod := GetBillingBasePeriodsInChargePeriod(ServiceCommitment, LastUsageDataBilling."Charge Start Date", LastUsageDataBilling."Charge End Date");
-        if BillingBasePeriodsInChargePeriod <= 0 then begin
-            SetUsageDataBillingToError(UsageDataImport."Entry No.", ServiceCommitment, StrSubstNo(ChargePeriodWithoutBillingBasePeriodErr, ServiceCommitment.Description, ServiceCommitment."Subscription Header No.", LastUsageDataBilling."Charge Start Date", LastUsageDataBilling."Charge End Date"));
-            exit;
-        end;
+        // Only these pricings convert the usage data to billing base periods, so only they need a charge period that covers one.
+        if ServiceCommitment."Usage Based Pricing" in ["Usage Based Pricing"::"Usage Quantity", "Usage Based Pricing"::"Unit Cost Surcharge"] then
+            if FindUsageDataBillingWithoutBillingBasePeriod(InvalidUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment) then begin
+                SetUsageDataBillingToError(UsageDataImport."Entry No.", ServiceCommitment, StrSubstNo(ChargePeriodWithoutBillingBasePeriodErr, ServiceCommitment.Description, ServiceCommitment."Subscription Header No.", InvalidUsageDataBilling."Charge Start Date", InvalidUsageDataBilling."Charge End Date"));
+                exit;
+            end;
         CurrencyCode := LastUsageDataBilling."Currency Code";
-        // Unit price and unit cost are compared for the charge period of the usage data, while the Subscription Line stores them per billing base period
-        ServiceCommitment.UnitPriceAndCostForPeriod(ServiceCommitment."Billing Rhythm", LastUsageDataBilling."Charge Start Date", LastUsageDataBilling."Charge End Date", UnitPrice, UnitCost, UnitCostLCY, BillingReferenceDateChanged);
+        UnitPrice := ServiceCommitment.Price;
+        UnitCost := ServiceCommitment."Unit Cost";
 
         case ServiceCommitment."Usage Based Pricing" of
             "Usage Based Pricing"::"Usage Quantity":
                 begin
-                    CalculateSumsFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment, TotalQuantity, TotalAmount, TotalCostAmount, NumberOfUsageDataBillings);
+                    CalculateSumsFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment, TotalQuantity, TotalQuantityInBillingBasePeriods, AverageBillingBasePeriods, TotalAmount, TotalCostAmount, NumberOfUsageDataBillings);
                     NewServiceObjectQuantity := TotalQuantity;
-                    if NewServiceObjectQuantity <> 0 then begin
-                        UnitCost := TotalCostAmount / NewServiceObjectQuantity;
-                        if ServiceCommitment.IsPartnerCustomer() then
-                            UnitPrice := TotalAmount / NewServiceObjectQuantity;
-                        Tolerance := GetAmountRoundingTolerance(CurrencyCode, NumberOfUsageDataBillings, NewServiceObjectQuantity);
-                    end else begin
-                        UnitCost := 0;
-                        UnitPrice := 0;
-                    end;
+                    CalculateUnitPriceAndCostPerBillingBasePeriod(UnitPrice, UnitCost, Tolerance, ServiceCommitment, CurrencyCode, TotalQuantityInBillingBasePeriods, TotalAmount, TotalCostAmount, NumberOfUsageDataBillings);
                     // Each Subscription Line of the Subscription is processed separately, but the rebilled quantity must be added to the Subscription only once.
                     if LastUsageDataBilling.Rebilling then
                         NewServiceObjectQuantity += QuantityBeforeProcessingPerSubscription.Get(ServiceObject."No.");
@@ -240,23 +234,21 @@ codeunit 8026 "Process Usage Data Billing"
                 ;
             "Usage Based Pricing"::"Unit Cost Surcharge":
                 if NewServiceObjectQuantity <> 0 then begin
-                    CalculateSumsFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment, TotalQuantity, TotalAmount, TotalCostAmount, NumberOfUsageDataBillings);
-                    UnitCost := TotalCostAmount / NewServiceObjectQuantity;
-                    if ServiceCommitment.IsPartnerCustomer() then
-                        UnitPrice := TotalAmount / NewServiceObjectQuantity;
-                    Tolerance := GetAmountRoundingTolerance(CurrencyCode, NumberOfUsageDataBillings, NewServiceObjectQuantity);
+                    CalculateSumsFromUsageDataBilling(LastUsageDataBilling, UsageDataImport."Entry No.", ServiceCommitment, TotalQuantity, TotalQuantityInBillingBasePeriods, AverageBillingBasePeriods, TotalAmount, TotalCostAmount, NumberOfUsageDataBillings);
+                    // The imported quantity does not change the Subscription quantity here, so the amounts are spread over the Subscription quantity,
+                    // converted to billing base periods with the average billing base periods of the usage data.
+                    SubscriptionQuantityInBillingBasePeriods := NewServiceObjectQuantity * AverageBillingBasePeriods;
+                    CalculateUnitPriceAndCostPerBillingBasePeriod(UnitPrice, UnitCost, Tolerance, ServiceCommitment, CurrencyCode, SubscriptionQuantityInBillingBasePeriods, TotalAmount, TotalCostAmount, NumberOfUsageDataBillings);
                 end else begin
                     UnitCost := 0;
                     UnitPrice := 0;
                 end;
             else begin
-                UnitCost := ServiceCommitment."Unit Cost";
                 IsHandled := false;
                 OnUsageBasedPricingElseCaseOnProcessSubscriptionLine(UnitCost, NewServiceObjectQuantity, ServiceCommitment, LastUsageDataBilling, IsHandled);
                 if not IsHandled then
                     Error(UsageBasedPricingOptionNotImplementedErr, Format(ServiceCommitment."Usage Based Pricing"), ServiceCommitment.FieldCaption("Usage Based Pricing"), CodeunitObjectLbl,
                                                                     CurrentCodeunitNameLbl, ProcessServiceCommitmentProcedureNameLbl);
-                UnitCost := UnitCost * BillingBasePeriodsInChargePeriod;
             end;
         end;
 
@@ -267,7 +259,7 @@ codeunit 8026 "Process Usage Data Billing"
         //Note: Service commitment will be recalculated if the quantity in service object changes
         Commit();
         ServiceCommitment.Get(ServiceCommitment."Entry No.");
-        UpdateServiceCommitment(LastUsageDataBilling, ServiceCommitment, UnitPrice, UnitCost, CurrencyCode, Tolerance, BillingBasePeriodsInChargePeriod);
+        UpdateServiceCommitment(LastUsageDataBilling, ServiceCommitment, UnitPrice, UnitCost, CurrencyCode, Tolerance);
         if UsageDataBilling.Rebilling then begin
             ServiceCommitment."Next Billing Date" := UsageDataBilling."Charge Start Date";
             ServiceCommitment.Modify();
@@ -276,28 +268,67 @@ codeunit 8026 "Process Usage Data Billing"
         OnAfterProcessSubscriptionLine(ServiceCommitment);
     end;
 
-    local procedure CalculateSumsFromUsageDataBilling(LastUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line"; var TotalQuantity: Decimal; var TotalAmount: Decimal; var TotalCostAmount: Decimal; var NumberOfUsageDataBillings: Integer)
+    local procedure CalculateSumsFromUsageDataBilling(LastUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line"; var TotalQuantity: Decimal; var TotalQuantityInBillingBasePeriods: Decimal; var AverageBillingBasePeriods: Decimal; var TotalAmount: Decimal; var TotalCostAmount: Decimal; var NumberOfUsageDataBillings: Integer)
     var
         UsageDataBilling: Record "Usage Data Billing";
+        BillingBasePeriods: Decimal;
+        TotalBillingBasePeriods: Decimal;
+        TotalAbsQuantity: Decimal;
+        TotalAbsQuantityInBillingBasePeriods: Decimal;
     begin
+        TotalQuantity := 0;
+        TotalQuantityInBillingBasePeriods := 0;
+        AverageBillingBasePeriods := 0;
+        TotalAmount := 0;
+        TotalCostAmount := 0;
+        NumberOfUsageDataBillings := 0;
         UsageDataBilling.FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo, ServiceCommitment);
         UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::None);
         UsageDataBilling.SetRange("Charge End Date", LastUsageDataBilling."Charge End Date");
         UsageDataBilling.ExcludeProcessingStatusError();
-        UsageDataBilling.CalcSums(Quantity, Amount, "Cost Amount");
-        TotalQuantity := UsageDataBilling.Quantity;
-        TotalAmount := UsageDataBilling.Amount;
-        TotalCostAmount := UsageDataBilling."Cost Amount";
-        NumberOfUsageDataBillings := UsageDataBilling.Count();
+        UsageDataBilling.SetLoadFields(Quantity, Amount, "Cost Amount", "Charge Start Date", "Charge End Date");
+        if UsageDataBilling.FindSet() then
+            repeat
+                // Usage data billings can have different charge start dates, so each quantity is weighted with the billing base periods of its own charge period.
+                BillingBasePeriods := GetBillingBasePeriodsInChargePeriod(ServiceCommitment, UsageDataBilling."Charge Start Date", UsageDataBilling."Charge End Date");
+                TotalQuantity += UsageDataBilling.Quantity;
+                TotalQuantityInBillingBasePeriods += UsageDataBilling.Quantity * BillingBasePeriods;
+                TotalAbsQuantity += Abs(UsageDataBilling.Quantity);
+                TotalAbsQuantityInBillingBasePeriods += Abs(UsageDataBilling.Quantity) * BillingBasePeriods;
+                TotalBillingBasePeriods += BillingBasePeriods;
+                TotalAmount += UsageDataBilling.Amount;
+                TotalCostAmount += UsageDataBilling."Cost Amount";
+                NumberOfUsageDataBillings += 1;
+            until UsageDataBilling.Next() = 0;
+
+        // Weighted by the absolute quantity, so that reversed quantities cannot cancel each other out and the average stays within the billing base periods of the usage data.
+        if TotalAbsQuantity <> 0 then
+            AverageBillingBasePeriods := TotalAbsQuantityInBillingBasePeriods / TotalAbsQuantity
+        else
+            if NumberOfUsageDataBillings <> 0 then
+                AverageBillingBasePeriods := TotalBillingBasePeriods / NumberOfUsageDataBillings;
     end;
 
-    local procedure GetAmountRoundingTolerance(CurrencyCode: Code[10]; NumberOfUsageDataBillings: Integer; Quantity: Decimal): Decimal
+    local procedure CalculateUnitPriceAndCostPerBillingBasePeriod(var UnitPrice: Decimal; var UnitCost: Decimal; var Tolerance: Decimal; ServiceCommitment: Record "Subscription Line"; CurrencyCode: Code[10]; QuantityInBillingBasePeriods: Decimal; TotalAmount: Decimal; TotalCostAmount: Decimal; NumberOfUsageDataBillings: Integer)
+    begin
+        if QuantityInBillingBasePeriods = 0 then begin
+            UnitCost := 0;
+            UnitPrice := 0;
+            exit;
+        end;
+        UnitCost := TotalCostAmount / QuantityInBillingBasePeriods;
+        if ServiceCommitment.IsPartnerCustomer() then
+            UnitPrice := TotalAmount / QuantityInBillingBasePeriods;
+        Tolerance := GetAmountRoundingTolerance(CurrencyCode, NumberOfUsageDataBillings, QuantityInBillingBasePeriods);
+    end;
+
+    local procedure GetAmountRoundingTolerance(CurrencyCode: Code[10]; NumberOfUsageDataBillings: Integer; QuantityInBillingBasePeriods: Decimal): Decimal
     var
         Currency: Record Currency;
     begin
-        // Each summed amount is rounded to the amount rounding precision, so a unit price derived from the sum can deviate by up to half that precision per amount, spread over the quantity.
+        // Each summed amount is rounded to the amount rounding precision, so a price per billing base period derived from the sum can deviate by up to half that precision per amount, spread over the quantity in billing base periods.
         SetCurrency(Currency, CurrencyCode);
-        exit(Currency."Amount Rounding Precision" / 2 * NumberOfUsageDataBillings / Abs(Quantity));
+        exit(Currency."Amount Rounding Precision" / 2 * NumberOfUsageDataBillings / Abs(QuantityInBillingBasePeriods));
     end;
 
     local procedure UpdateServiceObjectQuantity(ServiceObjectNo: Code[20]; NewQuantity: Decimal)
@@ -313,23 +344,17 @@ codeunit 8026 "Process Usage Data Billing"
         ServiceObject.Modify(false);
     end;
 
-    local procedure UpdateServiceCommitment(LastUsageDataBilling: Record "Usage Data Billing"; var ServiceCommitment: Record "Subscription Line"; UnitPrice: Decimal; UnitCost: Decimal; CurrencyCode: Code[10]; Tolerance: Decimal; BillingBasePeriodsInChargePeriod: Decimal)
+    local procedure UpdateServiceCommitment(LastUsageDataBilling: Record "Usage Data Billing"; var ServiceCommitment: Record "Subscription Line"; UnitPrice: Decimal; UnitCost: Decimal; CurrencyCode: Code[10]; Tolerance: Decimal)
     var
         CurrencyExchRate: Record "Currency Exchange Rate";
-        ServiceCommitmentUnitPrice: Decimal;
-        ServiceCommitmentUnitCost: Decimal;
-        ServiceCommitmentUnitCostLCY: Decimal;
         ServiceCommitmentUpdated: Boolean;
-        BillingReferenceDateChanged: Boolean;
     begin
         if UnitPrice = 0 then
             exit;
 
-        ServiceCommitment.UnitPriceAndCostForPeriod(ServiceCommitment."Billing Rhythm", LastUsageDataBilling."Charge Start Date", LastUsageDataBilling."Charge End Date", ServiceCommitmentUnitPrice, ServiceCommitmentUnitCost, ServiceCommitmentUnitCostLCY, BillingReferenceDateChanged);
-
-        // Unit price and unit cost apply to the charge period, while the Subscription Line stores them per billing base period.
-        if Abs(ServiceCommitmentUnitPrice - UnitPrice) > Tolerance then begin
-            ServiceCommitment.Price := UnitPrice / BillingBasePeriodsInChargePeriod;
+        // Unit price and unit cost are per billing base period, as the Subscription Line stores them.
+        if Abs(ServiceCommitment.Price - UnitPrice) > Tolerance then begin
+            ServiceCommitment.Price := UnitPrice;
             if ServiceCommitment."Currency Code" <> CurrencyCode then
                 ServiceCommitment.Price := CurrencyExchRate.ExchangeAmtFCYToFCY(LastUsageDataBilling."Charge End Date", CurrencyCode, ServiceCommitment."Currency Code", ServiceCommitment.Price);
 
@@ -338,8 +363,8 @@ codeunit 8026 "Process Usage Data Billing"
             ServiceCommitmentUpdated := true;
         end;
 
-        if (ServiceCommitment.Partner = ServiceCommitment.Partner::Customer) and (Abs(ServiceCommitmentUnitCost - UnitCost) > Tolerance) then begin
-            ServiceCommitment."Unit Cost" := UnitCost / BillingBasePeriodsInChargePeriod;
+        if (ServiceCommitment.Partner = ServiceCommitment.Partner::Customer) and (Abs(ServiceCommitment."Unit Cost" - UnitCost) > Tolerance) then begin
+            ServiceCommitment."Unit Cost" := UnitCost;
             if ServiceCommitment."Currency Code" = CurrencyCode then
                 ServiceCommitment."Unit Cost (LCY)" := ServiceCommitment."Unit Cost"
             else
@@ -388,11 +413,29 @@ codeunit 8026 "Process Usage Data Billing"
             FoundUsageDataBilling := UsageDataBilling;
     end;
 
+    local procedure FindUsageDataBillingWithoutBillingBasePeriod(var FoundUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line"): Boolean
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        UsageDataBilling.FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo, ServiceCommitment);
+        UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::None);
+        UsageDataBilling.ExcludeProcessingStatusError();
+        UsageDataBilling.SetLoadFields("Charge Start Date", "Charge End Date");
+        if UsageDataBilling.FindSet() then
+            repeat
+                if GetBillingBasePeriodsInChargePeriod(ServiceCommitment, UsageDataBilling."Charge Start Date", UsageDataBilling."Charge End Date") <= 0 then begin
+                    FoundUsageDataBilling := UsageDataBilling;
+                    exit(true);
+                end;
+            until UsageDataBilling.Next() = 0;
+        exit(false);
+    end;
+
     local procedure SetUsageDataBillingToError(UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line"; ReasonText: Text)
     var
         UsageDataBilling: Record "Usage Data Billing";
     begin
-        // This blocks the whole Subscription Line for this import: all its usage data billings are set to Error, not only the last one that was checked.
+        // This blocks the whole Subscription Line for this import: all its usage data billings are set to Error, not only the one with the invalid charge period.
         UsageDataBilling.FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo, ServiceCommitment);
         UsageDataBilling.SetRange("Document Type", UsageDataBilling."Document Type"::None);
         UsageDataBilling.ExcludeProcessingStatusError();
@@ -438,8 +481,8 @@ codeunit 8026 "Process Usage Data Billing"
 
     /// <summary>
     /// Raised in ProcessServiceCommitment for a Usage Based Pricing that is not handled by Subscription Billing.
-    /// UnitCost is passed in and returned per billing base period of the Subscription Line, as stored in its Unit Cost field,
-    /// and is converted to the charge period of the usage data afterwards. Set IsHandled to true when the pricing is handled.
+    /// UnitCost is passed in and returned per billing base period of the Subscription Line, as stored in its Unit Cost field.
+    /// Set IsHandled to true when the pricing is handled.
     /// </summary>
     [IntegrationEvent(false, false)]
     local procedure OnUsageBasedPricingElseCaseOnProcessSubscriptionLine(var UnitCost: Decimal; var NewServiceObjectQuantity: Decimal; var SubscriptionLine: Record "Subscription Line"; LastUsageDataBilling: Record "Usage Data Billing"; var IsHandled: Boolean)
