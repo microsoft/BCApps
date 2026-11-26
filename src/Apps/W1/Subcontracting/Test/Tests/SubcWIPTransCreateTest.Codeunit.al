@@ -2510,7 +2510,6 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         repeat
             if not TransferLine."Transfer WIP Item" then begin
                 ComponentItem.Get(TransferLine."Item No.");
-                LibraryInventory.UpdateInventoryPostingSetup(Location);
                 LibraryInventory.CreateItemJournalLineInItemTemplate(
                     ItemJournalLine, ComponentItem."No.", Location.Code, '', TransferLine.Quantity);
                 EnsureComponentPostingAccountsExist(ItemJournalLine, ComponentItem, Location);
