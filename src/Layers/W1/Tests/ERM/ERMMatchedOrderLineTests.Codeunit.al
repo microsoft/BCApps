@@ -1934,6 +1934,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", TotalQuantity);
         PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
         PurchaseLineOrder.Modify(true);
+
         for i := 1 to 3 do
             LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurchaseLineOrder, SerialNo[i], '', 1);
 
@@ -2062,6 +2063,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", TotalQuantity);
         PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
         PurchaseLineOrder.Modify(true);
+
         for i := 1 to 4 do
             LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurchaseLineOrder, SerialNo[i], '', 1);
 
@@ -5027,6 +5029,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Matched Order Line Tests");
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
+
         if IsInitialized then
             exit;
 
