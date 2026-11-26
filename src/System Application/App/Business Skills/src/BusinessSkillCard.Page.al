@@ -106,6 +106,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Set the skill to Active, making it visible to the Business Skill Service.';
                 Image = Approve;
                 Enabled = CanMaintainSkill;
+                Visible = IsInactive;
 
                 trigger OnAction()
                 begin
@@ -118,6 +119,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Stop including this skill in discovery without deleting its content.';
                 Image = Cancel;
                 Enabled = CanMaintainSkill;
+                Visible = not IsInactive;
 
                 trigger OnAction()
                 var
@@ -137,6 +139,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Export this skill to an XML file.';
                 Image = Export;
                 Enabled = CanExport;
+                Visible = CanExport;
 
                 trigger OnAction()
                 var
@@ -153,6 +156,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Create an editable manual copy with a new skill ID and the current content, starting at version v1.0.';
                 Image = Copy;
                 Enabled = HasSavedSkill;
+                Visible = HasSavedSkill;
 
                 trigger OnAction()
                 var

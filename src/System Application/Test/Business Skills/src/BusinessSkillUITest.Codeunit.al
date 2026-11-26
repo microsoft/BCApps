@@ -40,7 +40,13 @@ codeunit 130052 "Business Skill UI Test"
         Initialize();
         // [WHEN] Metadata is entered, edited, and the new skill is activated.
         SkillCard.OpenNew();
+        Assert.IsTrue(SkillCard.Activate.Visible(), 'A new inactive skill must offer activation.');
+        Assert.IsFalse(SkillCard.Deactivate.Visible(), 'A new inactive skill must not offer deactivation.');
+        Assert.IsFalse(SkillCard.Export.Visible(), 'An unsaved skill must not offer export.');
+        Assert.IsFalse(SkillCard.CopyToEdit.Visible(), 'An unsaved skill must not offer copy.');
         SkillCard.Title.SetValue('Created from card');
+        Assert.IsTrue(SkillCard.Export.Visible(), 'Saving a manual skill must make export visible without reopening the card.');
+        Assert.IsTrue(SkillCard.CopyToEdit.Visible(), 'Saving a skill must make copy visible without reopening the card.');
         SkillCard.Description.SetValue('Created description');
         Skill.SetRange(Title, 'Created from card');
         Skill.FindFirst();
@@ -291,12 +297,18 @@ codeunit 130052 "Business Skill UI Test"
         Commit();
         SkillCard.OpenEdit();
         SkillCard.GoToRecord(Skill);
+        Assert.IsFalse(SkillCard.Activate.Visible(), 'An active skill must not offer activation.');
+        Assert.IsTrue(SkillCard.Deactivate.Visible(), 'An active skill must offer deactivation.');
         // [WHEN] Card actions activate and deactivate it.
         SkillCard.Deactivate.Invoke();
         // [THEN] Status changes without losing content.
         SkillCard.Status.AssertEquals(Format(Skill.Status::Inactive));
+        Assert.IsTrue(SkillCard.Activate.Visible(), 'Deactivation must show activation without reopening the card.');
+        Assert.IsFalse(SkillCard.Deactivate.Visible(), 'Deactivation must hide itself without reopening the card.');
         SkillCard.Activate.Invoke();
         SkillCard.Status.AssertEquals(Format(Skill.Status::Active));
+        Assert.IsFalse(SkillCard.Activate.Visible(), 'Activation must hide itself without reopening the card.');
+        Assert.IsTrue(SkillCard.Deactivate.Visible(), 'Activation must show deactivation without reopening the card.');
         SkillCard.Close();
         Skill.Get(SkillId);
         AssertContentEquals(SecretStrSubstNo('Body'), BusinessSkillImpl.GetContent(Skill), 'Lifecycle actions must preserve the canonical instructions.');
@@ -518,9 +530,12 @@ codeunit 130052 "Business Skill UI Test"
         Assert.IsFalse(SkillCard.SkillContentEditor.SkillContent.Editable(), 'Protected instructions must not be editable.');
         SkillCard."Read-Only".AssertEquals(true);
         Assert.IsFalse(SkillCard."Read-Only".Editable(), 'Protection must not be unlocked from the card.');
-        Assert.IsTrue(SkillCard.Activate.Enabled(), 'Protected skills must still allow activation.');
+        Assert.IsFalse(SkillCard.Activate.Visible(), 'An active protected skill must not offer activation.');
+        Assert.IsTrue(SkillCard.Deactivate.Visible(), 'An active protected skill must offer deactivation.');
         Assert.IsTrue(SkillCard.Deactivate.Enabled(), 'Protected skills must still allow deactivation.');
         Assert.IsFalse(SkillCard.Export.Enabled(), 'An app-owned skill must not offer export.');
+        Assert.IsFalse(SkillCard.Export.Visible(), 'Export must be hidden for an app-owned skill.');
+        Assert.IsTrue(SkillCard.CopyToEdit.Visible(), 'A saved app-owned skill must offer copy.');
         SkillCard.Version.AssertEquals('2.4');
         Assert.IsFalse(SkillCard.Version.Editable(), 'App-owned versions must not be editable.');
 
@@ -530,7 +545,10 @@ codeunit 130052 "Business Skill UI Test"
         Assert.IsTrue(CopyCard.Title.Editable(), 'A copied title must be editable.');
         Assert.IsTrue(CopyCard.SkillContentEditor.SkillContent.Editable(), 'Copied instructions must be editable.');
         CopyCard."Read-Only".AssertEquals(false);
+        Assert.IsTrue(CopyCard.Activate.Visible(), 'An inactive manual copy must offer activation.');
+        Assert.IsFalse(CopyCard.Deactivate.Visible(), 'An inactive manual copy must not offer deactivation.');
         Assert.IsTrue(CopyCard.Export.Enabled(), 'A manual copy must offer export.');
+        Assert.IsTrue(CopyCard.Export.Visible(), 'Export must be visible for a saved manual copy.');
         CopyCard.Version.AssertEquals('v1.0');
         Assert.IsTrue(CopyCard.Version.Editable(), 'Manual copies must allow version edits.');
         CopyCard.Title.SetValue('Edited copy');
