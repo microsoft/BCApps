@@ -33,6 +33,7 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
         FailedToGetPromptSecretErr: Label 'Failed to get the prompt secret from Azure Key Vault', Locked = true;
         NoLinesCouldBeMatchedMsg: Label 'No matches were found for Copilot because the conditions regarding prices or quantities have not been met.';
         FunctionCallErr: Label 'Function call to %1 failed', Comment = '%1 = Function name';
+        ModelDeploymentOverrideSecretNameTok: Label 'EDocLegacyPOModelDeploymentOverride', Locked = true;
 
     [NonDebuggable]
     procedure MatchWithCopilot(var TempEDocumentImportedLine: Record "E-Doc. Imported Line" temporary; var TempPurchaseLine: Record "Purchase Line" temporary; var TempAIProposalBuffer: Record "E-Doc. PO Match Prop. Buffer" temporary) IsRequestSuccessful: Boolean
@@ -105,7 +106,6 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
     procedure Match(CompletionPromptTxt: SecretText; UserInputTxt: Text; var TempAIProposalBuffer: Record "E-Doc. PO Match Prop. Buffer" temporary; var TempEDocumentImportedLine: Record "E-Doc. Imported Line" temporary; var TempPurchaseLine: Record "Purchase Line" temporary) NumberOfFoundMatches: Integer
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
-        AOAIDeployments: Codeunit "AOAI Deployments";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
@@ -114,7 +114,7 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
         Session.LogMessage('0000MOT', AttempToUseCopilotMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', FeatureName());
 
         // Generate OpenAI Completion
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT56CeresLatest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", GetChatCompletionsDeployment());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Matching Assistance");
 
         AOAIChatCompletionParams.SetMaxTokens(MaxTokens());
@@ -274,6 +274,22 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
                     PurchaseLineTxt += '\n';
                 end;
             until PurchaseOrderLines.Next() = 0;
+    end;
+
+    [NonDebuggable]
+    internal procedure GetChatCompletionsDeployment(): Text
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        DeploymentOverride: Text;
+    begin
+        if AzureKeyVault.GetAzureKeyVaultSecret(ModelDeploymentOverrideSecretNameTok, DeploymentOverride) then begin
+            DeploymentOverride := DeploymentOverride.Trim();
+            if DeploymentOverride <> '' then
+                exit(DeploymentOverride);
+        end;
+
+        exit(AOAIDeployments.GetGPT56CeresLatest());
     end;
 
     local procedure GetSystemPrompt(): SecretText
