@@ -57,6 +57,11 @@ codeunit 5596 "Create QM Insp. Template Hdr"
         exit(ProductionTok);
     end;
 
+    internal procedure ProductionDesc(): Text[100]
+    begin
+        exit(ProductionDescLbl);
+    end;
+
     procedure ProductionFood(): Code[20]
     begin
         exit(ProductionFoodTok);
