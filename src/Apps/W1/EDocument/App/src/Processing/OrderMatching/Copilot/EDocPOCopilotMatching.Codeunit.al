@@ -30,6 +30,7 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
         NoLinesCouldBeMatchedMsg: Label 'No matches were found for Copilot because the conditions regarding prices or quantities have not been met.';
         FunctionCallErr: Label 'Function call to %1 failed', Comment = '%1 = Function name';
         ModelDeploymentOverrideSecretNameTok: Label 'EDocLegacyPOModelDeploymentOverride', Locked = true;
+        InvalidModelDeploymentOverrideErr: Label 'The legacy PO matching model deployment override is invalid. The default Ceres deployment will be used.', Locked = true;
 
     [NonDebuggable]
     procedure MatchWithCopilot(var TempEDocumentImportedLine: Record "E-Doc. Imported Line" temporary; var TempPurchaseLine: Record "Purchase Line" temporary; var TempAIProposalBuffer: Record "E-Doc. PO Match Prop. Buffer" temporary) IsRequestSuccessful: Boolean
@@ -278,14 +279,23 @@ codeunit 6163 "E-Doc. PO Copilot Matching"
         AOAIDeployments: Codeunit "AOAI Deployments";
         AzureKeyVault: Codeunit "Azure Key Vault";
         DeploymentOverride: Text;
+        DefaultDeployment: Text;
     begin
+        DefaultDeployment := AOAIDeployments.GetGPT56CeresLatest();
         if AzureKeyVault.GetAzureKeyVaultSecret(ModelDeploymentOverrideSecretNameTok, DeploymentOverride) then begin
             DeploymentOverride := DeploymentOverride.Trim();
             if DeploymentOverride <> '' then
-                exit(DeploymentOverride);
+                case UpperCase(DeploymentOverride) of
+                    UpperCase(DefaultDeployment):
+                        exit(DefaultDeployment);
+                    UpperCase(AOAIDeployments.GetGPT41Latest()):
+                        exit(AOAIDeployments.GetGPT41Latest());
+                    else
+                        FeatureTelemetry.LogError('0000ZL9', FeatureName(), 'ModelDeploymentOverride', InvalidModelDeploymentOverrideErr);
+                end;
         end;
 
-        exit(AOAIDeployments.GetGPT56CeresLatest());
+        exit(DefaultDeployment);
     end;
 
     local procedure GetSystemPrompt(): SecretText
