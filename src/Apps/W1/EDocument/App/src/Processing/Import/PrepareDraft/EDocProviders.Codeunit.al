@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.UOM;
+using Microsoft.Foundation.Registration;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
@@ -35,10 +36,12 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
         EDocumentHasNoVendorInformation: Boolean;
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
-        EDocumentHasNoVendorInformation := (EDocumentPurchaseHeader."Vendor GLN" = '') and (EDocumentPurchaseHeader."Vendor VAT Id" = '') and (EDocumentPurchaseHeader."Vendor External Id" = '') and (EDocumentPurchaseHeader."Vendor Company Name" = '') and (EDocumentPurchaseHeader."Vendor Address" = '');
+        EDocumentHasNoVendorInformation := (EDocumentPurchaseHeader."Vendor GLN" = '') and (EDocumentPurchaseHeader."Vendor VAT Id" = '') and (EDocumentPurchaseHeader."Vendor External Id" = '') and (EDocumentPurchaseHeader."Vendor Company Name" = '') and (EDocumentPurchaseHeader."Vendor Address" = '') and
+            ((EDocumentPurchaseHeader."Vendor Registration No." = '') or not RegistrationNoFeature.IsEnabled());
 
         EDocImpSessionTelemetry.SetBool('Vendor Info Present', not EDocumentHasNoVendorInformation);
 
@@ -50,6 +53,17 @@ codeunit 6124 "E-Doc. Providers" implements IPurchaseLineProvider, IUnitOfMeasur
             // If the E-Document has no vendor information, we can't find the vendor, so we exit early
             EDocImpSessionTelemetry.SetText('Vendor Match Method', 'None - No Vendor Info');
             exit;
+        end;
+
+        if RegistrationNoFeature.IsEnabled() then begin
+            if Vendor.Get(EDocumentImportHelper.FindVendorForIncomingIdentity(EDocumentPurchaseHeader, EDocument.GetEDocumentService().Code)) then
+                exit(Vendor);
+            if Vendor.Get(EDocumentImportHelper.FindVendorByNameAndAddress(EDocumentPurchaseHeader."Vendor Company Name", EDocumentPurchaseHeader."Vendor Address")) then begin
+                EDocumentImportHelper.CheckVendorLegalIdentity(Vendor, EDocumentPurchaseHeader."Vendor GLN", EDocumentPurchaseHeader."Vendor VAT Id",
+                    EDocumentPurchaseHeader."Vendor Registration No.", EDocumentPurchaseHeader."Vendor Reg. Country/Region");
+                EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Name and Address');
+            end;
+            exit(Vendor);
         end;
 
         if Vendor.Get(EDocumentImportHelper.FindVendor('', EDocumentPurchaseHeader."Vendor GLN", CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, 20))) then

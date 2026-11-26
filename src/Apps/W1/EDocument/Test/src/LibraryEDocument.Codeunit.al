@@ -28,6 +28,33 @@ codeunit 139629 "Library - E-Document"
         LibraryFinChargeMemo: Codeunit "Library - Finance Charge Memo";
         LibraryInventory: Codeunit "Library - Inventory";
 
+    procedure SetRegistrationFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        Status: Record "Feature Data Update Status";
+        Feature: Codeunit "Registration No. Feature";
+    begin
+        if not FeatureKey.Get(Feature.GetFeatureKey()) then begin
+            FeatureKey.ID := Feature.GetFeatureKey();
+            FeatureKey.Insert();
+        end;
+        FeatureKey.Enabled := FeatureKey.Enabled::None;
+        if Enabled then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+        FeatureKey."Data Update Required" := true;
+        FeatureKey.Modify();
+        if not Status.Get(FeatureKey.ID, CompanyName()) then begin
+            Status."Feature Key" := FeatureKey.ID;
+            Status."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(Status."Company Name"));
+            Status.Insert();
+        end;
+        Status."Data Update Required" := true;
+        Status."Feature Status" := Status."Feature Status"::Disabled;
+        if Enabled then
+            Status."Feature Status" := Status."Feature Status"::Complete;
+        Status.Modify();
+    end;
+
     procedure SetupStandardVAT()
     begin
         // The cached setup is lost when a failing test rolls back the transaction, so recreate it

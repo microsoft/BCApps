@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
@@ -229,6 +230,7 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
     procedure ExtractHeaderFields(var xmlDoc: XmlDocument; var EDocument: Record "E-Document")
     var
         TempFieldBuffer: Record "Field Buffer" temporary;
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
     begin
         AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Incoming E-Document No."));
         AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Order No."));
@@ -243,6 +245,14 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Currency Code"));
         AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Amount Excl. VAT"));
         AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Amount Incl. VAT"));
+        if RegistrationNoFeature.IsEnabled() then begin
+            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Supplier Registration No."));
+            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Supplier Reg. Country/Region"));
+            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Supplier Reg. Scheme"));
+            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Receiving Company Reg. No."));
+            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Receiving Reg. Country/Region"));
+            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Receiving Reg. Scheme"));
+        end;
 
         TempFieldBuffer.Reset();
         TempFieldBuffer.FindSet();
@@ -255,6 +265,7 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
     var
         OCRServiceMgt: Codeunit "OCR Service Mgt.";
         ImportXMLFileToDataExch: Codeunit "Import XML File to Data Exch.";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         RecRef: RecordRef;
         FieldRef: FieldRef;
         xmlNsManager: XmlNamespaceManager;
@@ -287,10 +298,16 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
             if StrPos(xmlAttribute.Name, 'xmlns:') = 1 then
                 xmlNsManager.AddNamespace(DelStr(xmlAttribute.Name, 1, 6), xmlAttribute.Value);
 
-        if xmlDoc.SelectSingleNode(XPath, xmlNsManager, xmlNode) then
-            XmlValue := xmlNode.AsXmlElement().InnerText()
-        else
+        if xmlDoc.SelectSingleNode(XPath, xmlNsManager, xmlNode) then begin
+            if xmlNode.IsXmlAttribute() then
+                XmlValue := xmlNode.AsXmlAttribute().Value()
+            else
+                XmlValue := xmlNode.AsXmlElement().InnerText();
+        end else
             XmlValue := '';
+
+        if EDocumentImportHelper.IsIncomingLegalIdentityField(Database::"E-Document", FieldNo) then
+            EDocumentImportHelper.CheckLegalIdentifierLength(XmlValue, FieldRef.Length);
 
         case FieldRef.Type of
             FieldType::Text, FieldType::Code:
@@ -328,11 +345,26 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         CompanyInformation: Record "Company Information";
         DataExchLineDef: Record "Data Exch. Line Def";
         PurchaseHeader: Record "Purchase Header";
+        DataExchColumnDef: Record "Data Exch. Column Def";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
     begin
         DataExchLineDef.SetRange("Data Exch. Def Code", EDocument."Data Exch. Def. Code");
         DataExchLineDef.SetRange("Parent Code", '');
         if not DataExchLineDef.FindFirst() then
             exit('');
+
+        if RegistrationNoFeature.IsEnabled() then begin
+            if EDocumentImportHelper.IsIncomingLegalIdentityField(Database::"E-Document", FieldNumber) then
+                exit(DataExchLineDef.GetPath(Database::"E-Document", FieldNumber));
+            if FieldNumber = EDocument.FieldNo("Receiving Company VAT Reg. No.") then begin
+                DataExchColumnDef.SetRange("Data Exch. Def Code", DataExchLineDef."Data Exch. Def Code");
+                DataExchColumnDef.SetRange("Data Exch. Line Def Code", DataExchLineDef.Code);
+                DataExchColumnDef.SetRange(Name, 'InboundCustomerVATID');
+                if DataExchColumnDef.FindFirst() then
+                    exit(DataExchColumnDef.Path);
+            end;
+        end;
 
         if EDocument."Document Type" in [EDocument."Document Type"::"Purchase Invoice", EDocument."Document Type"::"Purchase Credit Memo"] then
             case FieldNumber of
@@ -411,11 +443,15 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         EDocAttachmentProcessor: Codeunit "E-Doc. Attachment Processor";
         TempBlob: Codeunit "Temp Blob";
         Base64Convert: Codeunit "Base64 Convert";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
         FldRef: FieldRef;
         CurrRecordNo, LineNo : Integer;
         InStream: InStream;
         OutStream: OutStream;
         FileName, Base64Data : Text;
+        IncomingVAT: Text;
+        UseSeparateTaxIdentity: Boolean;
     begin
         CurrRecordNo := -1;
 
@@ -429,11 +465,19 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
                 exit;
 
             CreatedDocumentHeader.Init();
+            UseSeparateTaxIdentity := RegistrationNoFeature.IsEnabled() and
+                EDocumentImportHelper.TryGetIncomingHeaderValue(DataExch, 'InboundSupplierVATID', IncomingVAT);
             repeat
                 FldRef := CreatedDocumentHeader.Field(IntermediateDataImport."Field ID");
-                if FldRef.Class = FldRef.Class::Normal then
+                if (FldRef.Class = FldRef.Class::Normal) and
+                   not (UseSeparateTaxIdentity and (FldRef.Number = PurchaseHeader.FieldNo("VAT Registration No.")))
+                then
                     SetFieldValue(FldRef, CopyStr(IntermediateDataImport.GetValue(), 1, 250));
             until IntermediateDataImport.Next() = 0;
+            if UseSeparateTaxIdentity then begin
+                EDocumentImportHelper.CheckLegalIdentifierLength(IncomingVAT, MaxStrLen(PurchaseHeader."VAT Registration No."));
+                CreatedDocumentHeader.Field(PurchaseHeader.FieldNo("VAT Registration No.")).Value(IncomingVAT);
+            end;
             CreatedDocumentHeader.Insert();
 
             IntermediateDataImport.Reset();

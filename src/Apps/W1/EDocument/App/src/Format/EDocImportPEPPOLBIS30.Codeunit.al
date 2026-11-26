@@ -1,8 +1,11 @@
 namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Registration;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.IO;
@@ -16,8 +19,12 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     var
         GLSetup: Record "General Ledger Setup";
         TempXMLBuffer: Record "XML Buffer" temporary;
+        PeppolUtility: Codeunit "E-Document PEPPOL Utility";
         DocStream: InStream;
         RootPath: Text;
+        DocumentType: Text;
+        PeppolXML: XmlDocument;
+        XmlNamespaces: XmlNamespaceManager;
     begin
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
@@ -29,7 +36,23 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 
         EDocument.Direction := EDocument.Direction::Incoming;
 
-        case UpperCase(GetDocumentType(TempXMLBuffer, RootPath)) of
+        DocumentType := UpperCase(GetDocumentType(TempXMLBuffer, RootPath));
+        Clear(TempPartyHeader);
+        if RegistrationNoFeature.IsEnabled() and (DocumentType in [InvoiceTok, CreditNoteTok]) then begin
+            TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
+            XmlDocument.ReadFrom(DocStream, PeppolXML);
+            PeppolUtility.InitializePEPPOL3Namespaces(XmlNamespaces);
+            if DocumentType = InvoiceTok then
+                RootPath := '/inv:Invoice'
+            else
+                RootPath := '/cre:CreditNote';
+            PeppolUtility.PopulateSupplierInfo(PeppolXML, XmlNamespaces, RootPath, TempPartyHeader);
+            PeppolUtility.PopulateCustomerInfo(PeppolXML, XmlNamespaces, RootPath, TempPartyHeader);
+            EDocumentImportHelper.CopyIncomingLegalIdentity(TempPartyHeader, EDocument);
+            GetDocumentType(TempXMLBuffer, RootPath);
+        end;
+
+        case DocumentType of
             InvoiceTok:
                 ParseInvoiceBasicInfo(EDocument, TempXMLBuffer, RootPath);
             CreditNoteTok:
@@ -129,10 +152,15 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             GLN := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'), 1, MaxStrLen(GLN));
 
         VATRegistrationNo := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID'), 1, MaxStrLen(VATRegistrationNo));
-        VendorNo := EDocumentImportHelper.FindVendor('', GLN, VATRegistrationNo);
+        if RegistrationNoFeature.IsEnabled() then begin
+            GLN := TempPartyHeader."Vendor GLN";
+            EDocumentService := EDocument.GetEDocumentService();
+            VendorNo := EDocumentImportHelper.FindVendorForIncomingIdentity(TempPartyHeader, EDocumentService.Code);
+        end else
+            VendorNo := EDocumentImportHelper.FindVendor('', GLN, VATRegistrationNo);
 
         // If vendor not found, try to find by Service Participant.
-        if VendorNo = '' then begin
+        if (VendorNo = '') and not RegistrationNoFeature.IsEnabled() then begin
             VendorID := GetNodeAttributeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID') + ':';
             VendorID += this.GetNodeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
 
@@ -144,12 +172,17 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         if VendorNo = '' then begin
             VendorName := GetNodeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name');
             VendorAddress := GetNodeByPath(TempXMLBuffer, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName');
+            if RegistrationNoFeature.IsEnabled() then
+                VendorName := TempPartyHeader."Vendor Company Name";
             VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress(VendorName, VendorAddress);
             EDocument."Bill-to/Pay-to Name" := CopyStr(VendorName, 1, MaxStrLen(EDocument."Bill-to/Pay-to Name"));
         end;
 
         Vendor := EDocumentImportHelper.GetVendor(EDocument, VendorNo);
         if Vendor."No." <> '' then begin
+            if RegistrationNoFeature.IsEnabled() then
+                EDocumentImportHelper.CheckVendorLegalIdentity(Vendor, GLN, TempPartyHeader."Vendor VAT Id",
+                    EDocument."Supplier Registration No.", EDocument."Supplier Reg. Country/Region");
             EDocument."Bill-to/Pay-to No." := Vendor."No.";
             EDocument."Bill-to/Pay-to Name" := Vendor.Name;
         end;
@@ -160,6 +193,15 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         CompanyIdentifierValue, SchemaId : Text;
         ReceivingId: Text[250];
     begin
+        if RegistrationNoFeature.IsEnabled() then begin
+            EDocument."Receiving Company Name" := CopyStr(TempPartyHeader."Customer Company Name", 1, MaxStrLen(EDocument."Receiving Company Name"));
+            EDocument."Receiving Company Address" := CopyStr(TempPartyHeader."Customer Address", 1, MaxStrLen(EDocument."Receiving Company Address"));
+            EDocumentImportHelper.CheckLegalIdentifierLength(TempPartyHeader."Customer VAT Id", MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+            EDocument."Receiving Company VAT Reg. No." := CopyStr(TempPartyHeader."Customer VAT Id", 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+            EDocument."Receiving Company GLN" := TempPartyHeader."Customer GLN";
+            EDocument."Receiving Company Id" := TempPartyHeader."Customer Company Id";
+            exit;
+        end;
         Clear(EDocument."Receiving Company Name");
         Clear(EDocument."Receiving Company Address");
         Clear(EDocument."Receiving Company VAT Reg. No.");
@@ -342,7 +384,8 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName':
                 PurchaseHeader."Buy-from Address" := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."Buy-from Address"));
             RootPath + '/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID', RootPath + '/cac:PayeeParty/cac:PartyIdentification/cbc:ID':
-                PurchaseHeader."VAT Registration No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."VAT Registration No."));
+                if not RegistrationNoFeature.IsEnabled() then
+                    PurchaseHeader."VAT Registration No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."VAT Registration No."));
             RootPath + '/cac:PaymentMeans/cbc:PaymentDueDate':
                 if Value <> '' then
                     Evaluate(PurchaseHeader."Due Date", Value, 9);
@@ -451,7 +494,8 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
             RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName':
                 PurchaseHeader."Buy-from Address" := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."Buy-from Address"));
             RootPath + '/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID':
-                PurchaseHeader."VAT Registration No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."VAT Registration No."));
+                if not RegistrationNoFeature.IsEnabled() then
+                    PurchaseHeader."VAT Registration No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."VAT Registration No."));
             RootPath + '/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount':
                 if Value <> '' then
                     Evaluate(PurchaseHeader.Amount, Value, 9);
@@ -741,6 +785,8 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     var
         EDocumentAttachmentGen: Codeunit "E-Doc. Attachment Processor";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
+        TempPartyHeader: Record "E-Document Purchase Header" temporary;
         InvoiceTok: Label 'INVOICE', Locked = true;
         CreditNoteTok: Label 'CREDITNOTE', Locked = true;
         AggregateNamespaceUriLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;

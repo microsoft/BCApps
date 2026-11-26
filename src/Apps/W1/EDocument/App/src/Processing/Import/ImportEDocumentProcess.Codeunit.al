@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Foundation.Registration;
 using System.IO;
 using System.Utilities;
 
@@ -119,6 +120,11 @@ codeunit 6104 "Import E-Document Process"
     local procedure ReadIntoDraft(EDocument: Record "E-Document")
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentService: Record "E-Document Service";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        ErrorHelper: Codeunit "E-Document Error Helper";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         FromBlob: Codeunit "Temp Blob";
         IStructuredFormatReader: Interface IStructuredFormatReader;
@@ -134,6 +140,22 @@ codeunit 6104 "Import E-Document Process"
         IStructuredFormatReader := EDocument."Read into Draft Impl.";
 
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
+        if RegistrationNoFeature.IsEnabled() then
+            if EDocumentPurchaseHeader.Get(EDocument."Entry No") then begin
+                EDocumentImportHelper.CopyIncomingLegalIdentity(EDocumentPurchaseHeader, EDocument);
+                EDocumentService := EDocument.GetEDocumentService();
+                if EDocumentService."Validate Receiving Company" then begin
+                    EDocumentImportHelper.CheckLegalIdentifierLength(EDocumentPurchaseHeader."Customer VAT Id", MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+                    EDocument."Receiving Company VAT Reg. No." := CopyStr(EDocumentPurchaseHeader."Customer VAT Id", 1, MaxStrLen(EDocument."Receiving Company VAT Reg. No."));
+                    EDocument."Receiving Company GLN" := EDocumentPurchaseHeader."Customer GLN";
+                    EDocument."Receiving Company Id" := EDocumentPurchaseHeader."Customer Company Id";
+                    EDocument."Receiving Company Name" := CopyStr(EDocumentPurchaseHeader."Customer Company Name", 1, MaxStrLen(EDocument."Receiving Company Name"));
+                    EDocument."Receiving Company Address" := CopyStr(EDocumentPurchaseHeader."Customer Address", 1, MaxStrLen(EDocument."Receiving Company Address"));
+                    EDocumentImportHelper.ValidateReceivingCompanyInfo(EDocument, EDocumentService);
+                    EDocument.Modify();
+                    ErrorHelper.ThrowIfHasErrors(EDocument);
+                end;
+            end;
         EDocument.Modify();
 
         IResponseProvider := EDocument.GetEDocumentService()."Document Format";

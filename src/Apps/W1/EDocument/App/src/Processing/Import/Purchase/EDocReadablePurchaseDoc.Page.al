@@ -55,6 +55,21 @@ page 6182 "E-Doc. Readable Purchase Doc."
                     ToolTip = 'Specifies the vendor VAT ID.';
                     Importance = Additional;
                 }
+                field("Vendor Registration No."; Rec."Vendor Registration No.")
+                {
+                    ToolTip = 'Specifies the supplier legal registration number received in the document.';
+                    Importance = Additional;
+                }
+                field("Vendor Reg. Country/Region"; Rec."Vendor Reg. Country/Region")
+                {
+                    ToolTip = 'Specifies the supplier country/region or ISO country code received in the document.';
+                    Importance = Additional;
+                }
+                field("Vendor Reg. Scheme"; Rec."Vendor Reg. Scheme")
+                {
+                    ToolTip = 'Specifies the scheme of the supplier legal registration identifier received in the document.';
+                    Importance = Additional;
+                }
                 field("Vendor GLN"; Rec."Vendor GLN")
                 {
                     Caption = 'Vendor Global Location Number';
@@ -156,6 +171,21 @@ page 6182 "E-Doc. Readable Purchase Doc."
                 {
                     Caption = 'Customer VAT Id';
                     ToolTip = 'Specifies the customer VAT ID.';
+                }
+                field("Customer Registration No."; Rec."Customer Registration No.")
+                {
+                    ToolTip = 'Specifies the customer legal registration number received in the document.';
+                    Importance = Additional;
+                }
+                field("Customer Reg. Country/Region"; Rec."Customer Reg. Country/Region")
+                {
+                    ToolTip = 'Specifies the customer country/region or ISO country code received in the document.';
+                    Importance = Additional;
+                }
+                field("Customer Reg. Scheme"; Rec."Customer Reg. Scheme")
+                {
+                    ToolTip = 'Specifies the scheme of the customer legal registration identifier received in the document.';
+                    Importance = Additional;
                 }
                 field("Customer Company Name"; Rec."Customer Company Name")
                 {

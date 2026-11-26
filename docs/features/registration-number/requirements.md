@@ -314,6 +314,30 @@ silently truncate or normalize the global identifier.
 Ambiguous inbound identification must not arbitrarily select the first matching
 organization.
 
+### Inbound E-Document Data Exchange upgrades
+
+The incoming legal-identity upgrade adds optional columns and mappings to the
+four shipped PEPPOL invoice/credit-note import definitions, including installed
+copies. It preserves existing paths and mapping options, uses free column
+numbers, and is safe to repeat. Do not reimport bundled XML over a customized
+definition to obtain these additions.
+
+Definitions under custom codes require a reviewed mapping update: map the
+supplier/customer legal number, country and scheme to the new E-Document fields
+for legacy imports, or the corresponding E-Document Purchase Header fields for
+structured imports. Retain the full source value so the importer can reject
+overflow rather than truncate it.
+
+For PEPPOL definitions, add header source columns named `InboundSupplierVATID`
+and `InboundCustomerVATID` for `PartyTaxScheme[TaxScheme/ID="VAT"]/CompanyID`,
+plus `InboundSupplierEndpointID` and `InboundSupplierEndpointScheme` for
+`EndpointID` and its `schemeID` attribute. Use the definition's actual namespace
+prefixes and supplier/customer party paths. These source columns keep tax and
+endpoint values separate from legal and payee identifiers; they require no
+master-data target mapping. Review custom transformations rather than replacing
+them automatically. Scheme values are retained as source metadata, not inferred
+from a country or registration-number format.
+
 ## 10. Localization and Compatibility
 
 | Localization | Required treatment |

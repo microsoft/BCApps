@@ -13,10 +13,12 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.IO;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 139897 "E-Doc Data Exch Tests"
 {
@@ -414,6 +416,134 @@ codeunit 139897 "E-Doc Data Exch Tests"
         end
         else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure DataExchangeRetainsFullLegalIdentityAndScheme()
+    var
+        EDocument: Record "E-Document";
+        Header: Record "E-Document Purchase Header";
+        Reader: Codeunit "E-Doc. DataExch. Purch Handler";
+        Blob: Codeunit "Temp Blob";
+        Stream: OutStream;
+        Content: Text;
+        RegistrationNo: Text[50];
+    begin
+        Initialize();
+        SetupDataExchangeService();
+        LibraryEDoc.SetRegistrationFeatureEnabled(true);
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        RegistrationNo := PadStr('Supplier 0012-/ ', 50, 'r');
+        Content := NavApp.GetResourceAsText('data-exchange/data-exchange-invoice.xml');
+        Content := Content.Replace('<cbc:CompanyID>GB983294</cbc:CompanyID>', '<cbc:CompanyID schemeID="0208">' + RegistrationNo + '</cbc:CompanyID>');
+        Blob.CreateOutStream(Stream, TextEncoding::UTF8);
+        Stream.WriteText(Content);
+
+        Reader.ReadIntoDraft(EDocument, Blob);
+
+        Header.Get(EDocument."Entry No");
+        Assert.AreEqual(RegistrationNo, Header."Vendor Registration No.", 'Data Exchange must preserve all 50 characters.');
+        Assert.AreEqual('GB', Header."Vendor Reg. Country/Region", 'Supplier country context must be retained.');
+        Assert.AreEqual('0208', Header."Vendor Reg. Scheme", 'Supplier scheme context must be retained.');
+        Assert.AreEqual('39937423947', Header."Customer Registration No.", 'The customer legal identifier must be stored separately.');
+        Assert.AreEqual('0183', Header."Customer Reg. Scheme", 'The customer legal scheme must be retained.');
+        Assert.AreEqual('SE4598375937', Header."Customer VAT Id", 'A legal identifier must not replace customer VAT.');
+        Assert.AreEqual('GB1232434', Header."Vendor VAT Id", 'Supplier VAT must come from the VAT tax scheme.');
+        Assert.AreEqual('0088:9482348239847', Header."Vendor External Id", 'The supplier endpoint must retain its own scheme.');
+    end;
+
+    [Test]
+    procedure DataExchangeRejectsOversizedLegalIdentityBeforeTruncation()
+    var
+        EDocument: Record "E-Document";
+        Reader: Codeunit "E-Doc. DataExch. Purch Handler";
+        Blob: Codeunit "Temp Blob";
+        Stream: OutStream;
+        Content: Text;
+    begin
+        Initialize();
+        SetupDataExchangeService();
+        LibraryEDoc.SetRegistrationFeatureEnabled(true);
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        Content := NavApp.GetResourceAsText('data-exchange/data-exchange-invoice.xml');
+        Content := Content.Replace('GB983294', PadStr('Oversized legal identifier', 51, 'x'));
+        Blob.CreateOutStream(Stream, TextEncoding::UTF8);
+        Stream.WriteText(Content);
+
+        asserterror Reader.ReadIntoDraft(EDocument, Blob);
+
+        Assert.ExpectedError('exceeds the maximum length of 50');
+    end;
+
+    [Test]
+    procedure ReceiverConflictStopsTheStructuredImportPipeline()
+    var
+        EDocument: Record "E-Document";
+        CompanyInformation: Record "Company Information";
+        Parameters: Record "E-Doc. Import Parameters";
+        Import: Codeunit "E-Doc. Import";
+        Processing: Codeunit "E-Document Processing";
+        ErrorHelper: Codeunit "E-Document Error Helper";
+    begin
+        Initialize();
+        SetupDataExchangeService();
+        LibraryEDoc.SetRegistrationFeatureEnabled(true);
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := 'A DIFFERENT RECEIVER';
+        CompanyInformation."Use Reg. No. in E-Document" := true;
+        CompanyInformation."Country/Region Code" := 'SE';
+        CompanyInformation."VAT Registration No." := 'SE4598375937';
+        CompanyInformation.Modify();
+        EDocumentService."Validate Receiving Company" := true;
+        EDocumentService.Modify();
+        CreateInboundEDocumentFromXML(EDocument, 'data-exchange/data-exchange-invoice.xml');
+        Processing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Readable);
+        Parameters."Step to Run" := "Import E-Document Steps"::"Read into Draft";
+
+        Assert.IsFalse(Import.ProcessIncomingEDocument(EDocument, Parameters), 'A receiver conflict must stop automatic processing.');
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual('39937423947', EDocument."Receiving Company Reg. No.", 'The failed receiver identity must remain available for review.');
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual("Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'The document must not advance past the failed step.');
+        Assert.IsTrue(ErrorHelper.HasErrors(EDocument), 'The receiver conflict must remain available for review.');
+    end;
+
+    [Test]
+    procedure LegalIdentityUpgradePreservesCustomMappingsAndIsIdempotent()
+    var
+        ColumnDef: Record "Data Exch. Column Def";
+        Mapping: Record "Data Exch. Field Mapping";
+        Install: Codeunit "E-Document Install";
+        ColumnCount: Integer;
+    begin
+        Initialize();
+        ColumnDef.SetRange("Data Exch. Def Code", 'EDOCPEPINVPURCHDRAFT');
+        ColumnDef.SetRange("Data Exch. Line Def Code", 'PEPPOLINVHEADER');
+        ColumnDef.SetRange(Name, 'InboundSupplierRegistrationNo');
+        ColumnDef.FindFirst();
+        ColumnDef.Delete(true);
+        ColumnDef.Reset();
+        ColumnDef.Get('EDOCPEPINVPURCHDRAFT', 'PEPPOLINVHEADER', 8);
+        ColumnDef.Path := '/Invoice/cbc:Note';
+        ColumnDef.Modify();
+        Mapping.Get('EDOCPEPINVPURCHDRAFT', 'PEPPOLINVHEADER', Database::"Intermediate Data Import", 8, 0);
+        Mapping."Overwrite Value" := true;
+        Mapping.Modify();
+
+        Install.AddIncomingLegalIdentityMappings();
+        ColumnDef.Get('EDOCPEPINVPURCHDRAFT', 'PEPPOLINVHEADER', 8);
+        Assert.AreEqual('/Invoice/cbc:Note', ColumnDef.Path, 'An additive upgrade must not replace customized paths.');
+        Mapping.Get('EDOCPEPINVPURCHDRAFT', 'PEPPOLINVHEADER', Database::"Intermediate Data Import", 8, 0);
+        Assert.IsTrue(Mapping."Overwrite Value", 'Existing mapping options must not be overwritten.');
+        ColumnDef.SetRange("Data Exch. Def Code", 'EDOCPEPINVPURCHDRAFT');
+        ColumnDef.SetRange("Data Exch. Line Def Code", 'PEPPOLINVHEADER');
+        ColumnCount := ColumnDef.Count();
+        Install.AddIncomingLegalIdentityMappings();
+        Assert.AreEqual(ColumnCount, ColumnDef.Count(), 'Repeating the upgrade must not duplicate columns.');
+        ColumnDef.SetRange(Name, 'InboundSupplierRegistrationNo');
+        ColumnDef.FindFirst();
+        Mapping.Get('EDOCPEPINVPURCHDRAFT', 'PEPPOLINVHEADER', Database::"Intermediate Data Import", ColumnDef."Column No.", 0);
+        Assert.AreEqual(Database::"E-Document Purchase Header", Mapping."Target Table ID", 'The new mapping must target incoming document storage, not a master table.');
     end;
 
     local procedure Initialize()

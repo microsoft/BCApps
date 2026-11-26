@@ -281,9 +281,29 @@ table 6121 "E-Document"
             Caption = 'Structured Data Process';
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
-        field(45; "Receiving Company Reg. No."; Text[20])
+        field(45; "Receiving Company Reg. No."; Text[50])
         {
             Caption = 'Receiving Company Registration No.';
+        }
+        field(46; "Supplier Registration No."; Text[50])
+        {
+            Caption = 'Supplier Registration No.';
+        }
+        field(47; "Supplier Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Supplier Registration Country/Region';
+        }
+        field(48; "Supplier Reg. Scheme"; Text[50])
+        {
+            Caption = 'Supplier Registration Scheme';
+        }
+        field(49; "Receiving Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Receiving Registration Country/Region';
+        }
+        field(50; "Receiving Reg. Scheme"; Text[50])
+        {
+            Caption = 'Receiving Registration Scheme';
         }
         #endregion
 

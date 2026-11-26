@@ -245,6 +245,36 @@ table 6100 "E-Document Purchase Header"
             ToolTip = 'Specifies whether the credit note states more than one invoice. Only the first one is kept in Applies-to Vendor Inv. No.';
             DataClassification = SystemMetadata;
         }
+        field(42; "Vendor Registration No."; Text[50])
+        {
+            Caption = 'Vendor Registration No.';
+            DataClassification = CustomerContent;
+        }
+        field(43; "Vendor Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Vendor Registration Country/Region';
+            DataClassification = CustomerContent;
+        }
+        field(44; "Vendor Reg. Scheme"; Text[50])
+        {
+            Caption = 'Vendor Registration Scheme';
+            DataClassification = CustomerContent;
+        }
+        field(45; "Customer Registration No."; Text[50])
+        {
+            Caption = 'Customer Registration No.';
+            DataClassification = CustomerContent;
+        }
+        field(46; "Customer Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Customer Registration Country/Region';
+            DataClassification = CustomerContent;
+        }
+        field(47; "Customer Reg. Scheme"; Text[50])
+        {
+            Caption = 'Customer Registration Scheme';
+            DataClassification = CustomerContent;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]
