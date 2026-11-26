@@ -3,6 +3,39 @@ Describe "Test-PreprocessorSymbols" {
         Import-Module "$PSScriptRoot\..\..\..\build\scripts\TestPreprocessorSymbols.psm1" -Force
     }
 
+    It 'preserves line numbers and inline stem checks when skipping ordinary lines' {
+        $path = Join-Path $TestDrive 'inline[1].al'
+        $lines = @('codeunit 123 Example', '{', '', '// #if clean2', '#IF CLEAN1', '}')
+        Set-Content -LiteralPath $path -Value ($lines -join "`r`n") -NoNewline
+
+        $result = Test-PreprocessorSymbols -filePath $path -symbolConfigs @(@{stem = 'CLEAN'; lowerBound = 1; upperBound = 5})
+
+        $result.invalidStemSymbols | Should -Be @("${path}:4: // #if clean2")
+        $result.invalidLowercaseSymbols | Should -Be @("${path}:5: #IF CLEAN1")
+        $result.invalidPatternSymbols.Count | Should -Be 0
+    }
+
+    It 'checks a single directive without a trailing newline' {
+        $path = Join-Path $TestDrive 'single.al'
+        Set-Content -LiteralPath $path -Value '#IF CLEAN1' -NoNewline
+
+        $result = Test-PreprocessorSymbols -filePath $path -symbolConfigs @(@{stem = 'CLEAN'; lowerBound = 1; upperBound = 5})
+
+        $result.invalidLowercaseSymbols | Should -Be @("${path}:1: #IF CLEAN1")
+    }
+
+    It 'accepts empty files and files without hashes' {
+        $path = Join-Path $TestDrive 'ordinary.al'
+        foreach ($content in @('', "codeunit 123 Example`n{`n}")) {
+            Set-Content -LiteralPath $path -Value $content -NoNewline
+            Test-PreprocessorSymbols -filePath $path -symbolConfigs @(@{stem = 'CLEAN'; lowerBound = 1; upperBound = 5}) | Should -BeNullOrEmpty
+        }
+    }
+
+    It 'surfaces file read errors' {
+        { Test-PreprocessorSymbols -filePath (Join-Path $TestDrive 'missing.al') -symbolConfigs @(@{stem = 'CLEAN'; lowerBound = 1; upperBound = 5}) } | Should -Throw
+    }
+
     It 'returns $null when the filepath extension is not .al' {
         $result = Test-PreprocessorSymbols -filePath 'Dummy.txt' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 1; 'upperBound' = 1})
         $result | Should -Be $null
@@ -26,8 +59,7 @@ Describe "Test-PreprocessorSymbols" {
 #elseif CLEAN5
 #endif
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 1; 'upperBound' = 5})
 
@@ -48,8 +80,7 @@ Describe "Test-PreprocessorSymbols" {
 #else
 #endif
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $symbolConfigs = @(
             @{stem="CLEAN"; lowerBound=1; upperBound=3},
@@ -86,8 +117,7 @@ Describe "Test-PreprocessorSymbols" {
 #Else
 #EndIf
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 1; 'upperBound' = 7})
 
@@ -128,8 +158,7 @@ Describe "Test-PreprocessorSymbols" {
 #if  CLEAN7
 #endif
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 1; 'upperBound' = 7})
 
@@ -174,8 +203,7 @@ Describe "Test-PreprocessorSymbols" {
 #endif
 
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 5; 'upperBound' = 11})
 
@@ -215,8 +243,7 @@ Describe "Test-PreprocessorSymbols" {
 #if not RELEASE12
 #endif
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 5; 'upperBound' = 11})
 
@@ -248,8 +275,7 @@ Describe "Test-PreprocessorSymbols" {
 #elseif CleaN5
 #endif
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 1; 'upperBound' = 5})
 
@@ -282,8 +308,7 @@ Describe "Test-PreprocessorSymbols" {
 #elseif CLEANSCHEMA34
 #endif
 }')
-        Set-Content -Path TestDrive:\Dummy.al -Value $alcontent
-        Mock -CommandName Get-Content  { return Get-Content TestDrive:\dummy.al}
+        Set-Content -Path TestDrive:\dummy.al -Value $alcontent
 
         $symbolConfigs = @(
             @{stem = "CLEAN"; lowerBound = 22; upperBound = 26},

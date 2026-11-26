@@ -5,7 +5,6 @@
 
 namespace Microsoft.Agent.PayablesAgent;
 
-using Microsoft.Purchases.History;
 using System.Agents;
 using System.AI;
 using System.Security.AccessControl;
@@ -77,7 +76,7 @@ codeunit 3350 "PA Agent Access"
             exit(false);
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
-        if not PASetup.TryFindAgent(Agent) then
+        if not PASetup.TryGetStoredAgent(Agent) then
             exit(AllowCreateNewAgent());
 
         // Payables Agent is created. It has to be enabled and user has to have permissions to use it in order to show the agent actions.
@@ -99,7 +98,7 @@ codeunit 3350 "PA Agent Access"
             exit(false);
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
-        if PASetup.TryFindAgent(Agent) then
+        if PASetup.TryGetStoredAgent(Agent) then
             exit(false);
 
         // No payables agent exists
@@ -113,14 +112,19 @@ codeunit 3350 "PA Agent Access"
 
     internal procedure HasUserCreatedPostedPurchInvoice(): Boolean
     var
-        PurchaseInvHeader: Record "Purch. Inv. Header";
+        PARecentPurchInvCreators: Query "PA Recent Purch. Inv. Creators";
+        CurrentUserSecurityId: Guid;
         Days30Ago: Date;
     begin
         Days30Ago := CalcDate('<-30D>', Today());
+        CurrentUserSecurityId := UserSecurityId();
 
-        PurchaseInvHeader.SetRange(SystemCreatedAt, CreateDateTime(Days30Ago, 0T), CurrentDateTime());
-        PurchaseInvHeader.SetRange(SystemCreatedBy, UserSecurityId());
-        exit(not PurchaseInvHeader.IsEmpty());
+        PARecentPurchInvCreators.SetFilter(PostingDate, '>=%1', Days30Ago);
+        PARecentPurchInvCreators.Open();
+        while PARecentPurchInvCreators.Read() do
+            if PARecentPurchInvCreators.SystemCreatedBy = CurrentUserSecurityId then
+                exit(true);
+        exit(false);
     end;
 
     internal procedure GetUsersThatHaveCreatedPostedPurchInvoice(): List of [Guid]

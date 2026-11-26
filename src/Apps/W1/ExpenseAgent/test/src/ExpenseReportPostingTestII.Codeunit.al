@@ -17,7 +17,6 @@ using Microsoft.HumanResources.Payables;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Sales.Customer;
-using System;
 using System.Automation;
 using System.TestLibraries.Utilities;
 using System.Utilities;
@@ -1576,27 +1575,8 @@ codeunit 148303 "Expense Report Posting Test II"
         TempBlob: Codeunit "Temp Blob";
     begin
         DocumentAttachment.Init();
-        CreateTempBLOBWithImageOfType(TempBlob, 'jpeg');
+        LibraryExpense.CreateTempBLOBWithImageOfType(TempBlob, Enum::"Image Format"::Jpeg);
         DocumentAttachment.SaveAttachment(RecRef, FileName, TempBlob);
-    end;
-
-    local procedure CreateTempBLOBWithImageOfType(var TempBlob: Codeunit "Temp Blob"; ImageType: Text)
-    var
-        ImageFormat: DotNet ImageFormat;
-        Bitmap: DotNet Bitmap;
-        InStr: InStream;
-    begin
-        TempBlob.CreateInStream(InStr);
-        Bitmap := Bitmap.Bitmap(1, 1);
-        case ImageType of
-            'png':
-                Bitmap.Save(InStr, ImageFormat.Png);
-            'jpeg':
-                Bitmap.Save(InStr, ImageFormat.Jpeg);
-            else
-                Bitmap.Save(InStr, ImageFormat.Bmp);
-        end;
-        Bitmap.Dispose();
     end;
 
     local procedure CheckIfDocAttachExist(TableNo: Integer; DocNo: Code[20]; LineNo: Integer): Boolean;

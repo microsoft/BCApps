@@ -42,9 +42,7 @@ page 1965 "Early Access Preview Features"
 
                     trigger OnDrillDown()
                     begin
-                        if Rec."Help URL" = '' then
-                            exit;
-                        Hyperlink(Rec."Help URL");
+                        OpenFeatureDetails();
                     end;
                 }
                 field(Description; Rec.Description)
@@ -61,6 +59,12 @@ page 1965 "Early Access Preview Features"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the category of the new feature.';
+                }
+                field(ReleaseVersion; ReleaseVersion)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Release version';
+                    ToolTip = 'Specifies the Business Central release that introduced the feature. This does not indicate whether it is deployed in this environment.';
                 }
                 field("Help URL"; Rec."Help URL")
                 {
@@ -90,6 +94,19 @@ page 1965 "Early Access Preview Features"
     {
         area(Processing)
         {
+            action(ViewDetails)
+            {
+                ApplicationArea = All;
+                Caption = 'View Details';
+                ToolTip = 'Open the overview and getting started guidance for the selected feature.';
+                Image = View;
+                Enabled = HasFeature;
+
+                trigger OnAction()
+                begin
+                    OpenFeatureDetails();
+                end;
+            }
             action(ProvideFeedback)
             {
                 ApplicationArea = All;
@@ -153,6 +170,9 @@ page 1965 "Early Access Preview Features"
         {
             group(Category_Process)
             {
+                actionref(ViewDetails_Promoted; ViewDetails)
+                {
+                }
                 actionref(ProvideFeatureFeedback_Promoted; ProvideFeatureFeedback)
                 {
                 }
@@ -170,14 +190,21 @@ page 1965 "Early Access Preview Features"
     }
 
     trigger OnOpenPage()
-    var
-        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
     begin
         EarlyAccessPreviewMgt.LoadNewFeatures(Rec);
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
+        HasFeature := not Rec.IsEmpty();
+        if not HasFeature then begin
+            Clear(HasVideoUrl);
+            Clear(HasHelpUrl);
+            Clear(ReleaseVersion);
+            Clear(VideoFieldText);
+            exit;
+        end;
+
         HasVideoUrl := Rec."Video URL" <> '';
         HasHelpUrl := Rec."Help URL" <> '';
         UpdateFieldText();
@@ -190,16 +217,33 @@ page 1965 "Early Access Preview Features"
 
     local procedure UpdateFieldText()
     begin
+        ReleaseVersion := EarlyAccessPreviewMgt.GetReleaseVersion(Rec.Code);
         if Rec."Video URL" <> '' then
             VideoFieldText := WatchVideoLbl
         else
             VideoFieldText := '';
     end;
 
+    local procedure OpenFeatureDetails()
     var
+        FeatureDetails: Page "Early Access Feature Details";
+        Overview: Text;
+        GettingStarted: Text;
+    begin
+        if Rec.IsEmpty() then
+            exit;
+        EarlyAccessPreviewMgt.GetFeatureDetails(Rec.Code, Overview, GettingStarted);
+        FeatureDetails.SetFeature(Rec, EarlyAccessPreviewMgt.GetReleaseVersion(Rec.Code), Overview, GettingStarted);
+        FeatureDetails.Run();
+    end;
+
+    var
+        EarlyAccessPreviewMgt: Codeunit "Early Access Preview Mgt.";
+        HasFeature: Boolean;
         HasVideoUrl: Boolean;
         HasHelpUrl: Boolean;
         VideoFieldText: Text;
+        ReleaseVersion: Text;
         EarlyAccessPreviewFeatureAreaTok: Label 'EarlyAccessPreview', Locked = true;
         EarlyAccessPreviewFeatureAreaDisplayNameTok: Label 'Early Access Preview', Locked = true;
         WatchVideoLbl: Label 'Watch Video';

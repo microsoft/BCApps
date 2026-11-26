@@ -13,8 +13,8 @@
   "dependencies": [],
   "internalsVisibleTo": [
     {
-      "id": "a6ac48f2-7b89-47fe-bb24-a9f722e6fec0",
-      "name": "Depreciation Differences FI Tests",
+      "id": "7533ce37-ae5d-4ed1-bdf9-4c39720e934c",
+      "name": "Depreciation Differences FI Demo Data Tests",
       "publisher": "Microsoft"
     },
     {
