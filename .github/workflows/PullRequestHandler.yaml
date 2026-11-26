@@ -211,6 +211,9 @@ jobs:
     if: (!failure() && !cancelled())
     runs-on: windows-latest
     name: Verify App Changes
+    # Runs actions from the PR checkout, so only grant read access (no id-token or other write permissions)
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
