@@ -25,7 +25,7 @@ page 4161 "Business Skill Card"
     Permissions = tabledata User = r;
     DataCaptionExpression = Rec.Title;
     AboutTitle = 'Maintain a business skill';
-    AboutText = 'Maintain one canonical skill. New skills are inactive until activated with a name and instructions.';
+    AboutText = 'Create or edit a business skill. Specify its name, description, and instructions.';
 
     layout
     {
@@ -39,7 +39,7 @@ page 4161 "Business Skill Card"
                 group(NameAndDescription)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'Copilot and agents automatically search for matching active skills based on the name and description.';
+                    InstructionalText = 'Copilot and agents automatically search for matching skills based on the name and description.';
 
                     field("Title"; Rec."Title")
                     {
