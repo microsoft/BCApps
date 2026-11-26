@@ -124,17 +124,12 @@ table 4353 "Agent Import Buffer"
 
     procedure GetInstructions(): Text
     var
-        InstructionsBuilder: TextBuilder;
+        CustomAgentInstructions: Codeunit "Custom Agent Instructions";
         InStream: InStream;
-        InstructionsLine: Text;
     begin
         Rec.CalcFields(Instructions);
         Instructions.CreateInStream(InStream, CustomAgentExport.GetEncoding());
-        while not InStream.EOS do begin
-            InStream.ReadText(InstructionsLine);
-            InstructionsBuilder.AppendLine(InstructionsLine);
-        end;
-        exit(InstructionsBuilder.ToText().Trim());
+        exit(CustomAgentInstructions.ReadInstructionsFromStream(InStream));
     end;
 
     var

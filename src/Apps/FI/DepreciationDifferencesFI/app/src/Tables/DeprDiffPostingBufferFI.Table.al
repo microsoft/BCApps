@@ -9,6 +9,8 @@ table 13477 "Depr. Diff. Posting Buffer FI"
 {
     Caption = 'Depr. Diff. Posting Buffer';
     DataClassification = CustomerContent;
+    ReplicateData = false;
+    TableType = Temporary;
 
     fields
     {

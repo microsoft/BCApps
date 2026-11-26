@@ -28,6 +28,7 @@ table 4350 "Custom Agent Setup"
         {
             ToolTip = 'Specifies the instructions of the agent.';
             Caption = 'Instructions';
+            DataClassification = CustomerContent;
         }
         field(3; "Initials"; Code[4])
         {
@@ -46,6 +47,12 @@ table 4350 "Custom Agent Setup"
             Caption = 'Instructions Version';
             ToolTip = 'Specifies the version of the instructions for the agent.';
             DataClassification = CustomerContent;
+        }
+        field(6; "Use Business Skills"; Boolean)
+        {
+            Caption = 'Use business skills';
+            ToolTip = 'Specifies whether the agent uses Business Skills in addition to its instructions.';
+            InitValue = true;
         }
         field(5000; "Instruction has Tasks"; Boolean)
         {

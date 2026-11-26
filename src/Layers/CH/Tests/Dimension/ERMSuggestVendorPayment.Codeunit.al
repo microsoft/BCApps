@@ -2004,6 +2004,9 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     [Scope('OnPrem')]
     procedure CreatePaymentForVendorLedgerEntriesFilteredByRemainingAmountInSpanish()
     var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        TempGenJournalTemplate: Record "Gen. Journal Template" temporary;
         PurchaseHeader: Record "Purchase Header";
         GenJournalLine: Record "Gen. Journal Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
@@ -2014,6 +2017,8 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] Create Payment for Vendor Ledger Entries filtered by "Remaining Amount" succeeds when the language is Spanish
         Initialize();
+        PreparePaymentJournalTemplates(GenJournalTemplate, TempGenJournalTemplate);
+        LibraryJournals.CreateGenJournalBatchWithType(GenJournalBatch, GenJournalBatch."Template Type"::Payments);
 
         // [GIVEN] Posted Purchase Invoice "PI" for Vendor "V"
         GenJournalLine.DeleteAll();
@@ -2047,6 +2052,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [THEN] "Remaining Amount" filter on Vendor Ledger Entry is restored
         Assert.AreEqual('<>0', VendorLedgerEntry.GetFilter("Remaining Amount"), RemainingAmountFilterNotRestoredErr);
 
+        RestoreGeneralTemplates(TempGenJournalTemplate, GenJournalTemplate);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2201,6 +2207,9 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     [Scope('OnPrem')]
     procedure CreateAndPostPaymentAndRefundForInvoiceAndCreeditMemoViaCreatePaymentPage()
     var
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        TempGenJournalTemplate: Record "Gen. Journal Template" temporary;
         Vendor: array[2] of Record Vendor;
         PurchaseHeader: Record "Purchase Header";
         GenJournalLine: Record "Gen. Journal Line";
@@ -2214,6 +2223,8 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         // [FEATURE] [Create Payment] [Applicaition] [Invoice] [Payment] [Credit Memo] [Refund]
         // [SCENARIO 351229] Stan can create and post payments and refunds for several vendors and several invoices and credit memos.
         Initialize();
+        PreparePaymentJournalTemplates(GenJournalTemplate, TempGenJournalTemplate);
+        LibraryJournals.CreateGenJournalBatchWithType(GenJournalBatch, GenJournalBatch."Template Type"::Payments);
 
         GenJournalLine.DeleteAll();
         CountPerVendor := 2;
@@ -2270,6 +2281,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         VerifyAppliedVendorLedgerEntries(
           Vendor[2], VendorLedgerEntry."Document Type"::Invoice, VendorLedgerEntry."Document Type"::Payment, 2);
 
+        RestoreGeneralTemplates(TempGenJournalTemplate, GenJournalTemplate);
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2320,16 +2332,19 @@ codeunit 134076 "ERM Suggest Vendor Payment"
     end;
 
     [Test]
+    [HandlerFunctions('GetFirstLineFromTemlateListHandler')]
     [Scope('OnPrem')]
     procedure SetStartingDocumentNo()
     var
         GenJournalBatch: array[3] of Record "Gen. Journal Batch";
         GenJournalTemplate: Record "Gen. Journal Template";
+        TempGenJournalTemplate: Record "Gen. Journal Template" temporary;
         CreatePayment: TestPage "Create Payment";
     begin
         // [FEATURE] [UI] [Create Payment]
         // [SCENARIO 357623] System populates next series no. in "Starting Document No." field on "Create Payment" page when specified batch has specified "No. Series"
         Initialize();
+        PreparePaymentJournalTemplates(GenJournalTemplate, TempGenJournalTemplate);
 
         CreateGenJournalBatchWithNoSeries(GenJournalBatch[1], GenJournalTemplate.Type::Payments, 'A0001', 'A9999');
         CreateGenJournalBatchWithNoSeries(GenJournalBatch[2], GenJournalTemplate.Type::Payments, 'B0001', 'B9999');
@@ -2359,6 +2374,7 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         CreatePayment."Starting Document No.".AssertEquals('');
 
         CreatePayment.Close();
+        RestoreGeneralTemplates(TempGenJournalTemplate, GenJournalTemplate);
     end;
 
     [Test]
@@ -3908,6 +3924,14 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         until GenJournalTemplate.Next() = 0;
     end;
 
+    local procedure PreparePaymentJournalTemplates(var GenJournalTemplate: Record "Gen. Journal Template"; var TempGenJournalTemplate: Record "Gen. Journal Template" temporary)
+    begin
+        // Remove saved template choices so opening Create Payment exercises template selection deterministically.
+        GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Payments);
+        SaveGeneralTemplates(GenJournalTemplate, TempGenJournalTemplate);
+        GenJournalTemplate.DeleteAll();
+    end;
+
     local procedure RestoreGeneralTemplates(var FromGenJournalTemplate: Record "Gen. Journal Template"; var GenJournalTemplate: Record "Gen. Journal Template")
     begin
         FromGenJournalTemplate.FindSet();
@@ -4761,4 +4785,3 @@ codeunit 134076 "ERM Suggest Vendor Payment"
         PickReport.OK().Invoke();
     end;
 }
-

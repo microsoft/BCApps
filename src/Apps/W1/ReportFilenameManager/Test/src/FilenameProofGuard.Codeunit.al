@@ -38,7 +38,7 @@ codeunit 149511 "Filename Proof Guard"
         SwitchFeatureOn();
     end;
 
-    // The feature starts switched off in a company; the proofs assume it on, at the default length.
+    // The proofs require the feature on at the default length, regardless of company configuration.
     internal procedure SwitchFeatureOn()
     var
         ReportFilenameSetup: Record "Report Filename Setup";
