@@ -110,7 +110,9 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Response.ReadFrom(SourceApi.GetRecords(Database::Item, FieldIdsArray(Item.FieldNo(Description)), '{}', 10, ''));
 
         // [THEN] the source reports the missing read permission and returns no records
-        Assert.IsTrue(GetBoolean(Response, 'tableAvailable'), 'The table exists on the source');
+        // tableAvailable:false is deliberate: subsidiaries that don't know readPermission stop with an error instead of
+        // reading the empty page as "no changes" and silently skipping the table.
+        Assert.IsFalse(GetBoolean(Response, 'tableAvailable'), 'An unreadable table must be reported as not available for subsidiaries that predate readPermission');
         Assert.IsFalse(GetBoolean(Response, 'readPermission'), 'The missing read permission should be reported');
         Assert.AreEqual(0, RecordCount(Response), 'No records should be returned for an unreadable table');
     end;
