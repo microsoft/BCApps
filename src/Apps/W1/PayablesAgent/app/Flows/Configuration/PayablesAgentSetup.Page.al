@@ -395,12 +395,17 @@ page 3304 "Payables Agent Setup"
     trigger OnOpenPage()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
+        OpenedForAgentId: Guid;
     begin
         if not AzureOpenAI.IsEnabled("Copilot Capability"::"Payables Agent") then
             Error(EnableCapabilityFirstErr);
 
+        if not Evaluate(OpenedForAgentId, Rec.GetFilter("User Security Id")) then
+            Clear(OpenedForAgentId);
+
         PASetupUpdateParameters.InitializeFromStoredSetup();
         PASetupUpdateParameters.GetAgentSetupBuffer(TempAgentSetupBuffer);
+        CheckOpenedForCompanyAgent(OpenedForAgentId);
         CurrPage.AgentSetupPart.Page.SetAgentSetupBuffer(TempAgentSetupBuffer);
         CurrPage.AgentSetupPart.Page.Update();
         PASetupUpdateParameters.CopyProposal(PASetup);
@@ -498,6 +503,7 @@ page 3304 "Payables Agent Setup"
         AddFieldsLbl: Label 'Add fields';
         LearnMoreBillingDocumentationLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2333517';
         EnableCapabilityFirstErr: Label 'The Payables Agent capability is not configured. Please activate the Copilot capability.', Comment = 'Payables Agent is a term, and should not be translated.';
+        OtherCompanyAgentErr: Label '%1 isn''t the Payables Agent of the company %2, so it can''t be set up here. Each company has its own Payables Agent. Open the setup of %1 in the company it belongs to, and make sure its agent permissions are set for that company only.', Comment = '%1 = agent user name, %2 = company name. Payables Agent is a term, and should not be translated.';
         SharedMailboxTipLbl: Label 'The agent reads all PDF attachments from the specified mailbox. Therefore, we recommend using a dedicated shared mailbox for receiving payables documents.';
         SelectMailboxFirstErr: Label 'Select an email account before choosing a folder.';
         OpenAgentDemoGuideLbl: Label 'Sample invoice guide';
@@ -549,6 +555,17 @@ page 3304 "Payables Agent Setup"
                 exit(OnlyIfUntrustedLbl);
         end;
         exit('');
+    end;
+
+    local procedure CheckOpenedForCompanyAgent(OpenedForAgentId: Guid)
+    var
+        Agent: Codeunit Agent;
+    begin
+        if IsNullGuid(OpenedForAgentId) then
+            exit;
+        if OpenedForAgentId = TempAgentSetupBuffer."User Security ID" then
+            exit;
+        Error(OtherCompanyAgentErr, Agent.GetUserName(OpenedForAgentId), CompanyName());
     end;
 
     local procedure ApplySetup()
