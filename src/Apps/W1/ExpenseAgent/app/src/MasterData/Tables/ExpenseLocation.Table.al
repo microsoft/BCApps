@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Foundation.Address;
 
+/// <summary>
+/// Stores the locations where expenses can be incurred, such as countries, regions, or cities.
+/// </summary>
 table 6925 "Expense Location"
 {
-    Access = Internal;
     Caption = 'Expense Location';
     DataClassification = CustomerContent;
     DrillDownPageId = "Expense Location Card";

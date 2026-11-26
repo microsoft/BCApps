@@ -57,7 +57,7 @@ page 4352 "Cust. Agent Instructions Log"
                 {
                     ShowCaption = false;
 
-                    part(InstructionsLogPart; "Custom Agent Instructions Part")
+                    part(InstructionsLogPart; "Custom Agent Markdown Part")
                     {
                         ApplicationArea = All;
                         Editable = false;
@@ -160,7 +160,6 @@ page 4352 "Cust. Agent Instructions Log"
     begin
         CurrPage.InstructionsLogPart.Page.SetInstructions(Rec.GetInstructions());
         CurrPage.InstructionsLogPart.Page.SetReadOnlyMode(true);
-        CurrPage.InstructionsLogPart.Page.FillAddIn();
     end;
 
     internal procedure GetRestoredPreviousVersionOfInstructions(): Boolean

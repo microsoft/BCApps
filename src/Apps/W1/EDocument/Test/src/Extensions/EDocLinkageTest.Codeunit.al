@@ -5,7 +5,9 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Foundation.Navigate;
+using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
 codeunit 139557 "E-Doc. Linkage Test"
@@ -20,6 +22,8 @@ codeunit 139557 "E-Doc. Linkage Test"
         IsInitialized: Boolean;
         WrongValueErr: Label 'Wrong value';
         NoEDocumentForRecordMsg: Label 'No electronic document is linked to this record.';
+        EDocCoreReadRoleTok: Label 'E-Doc. Core - Read', Locked = true;
+        ObjectNotGrantedErr: Label 'E-Doc. Core - Read does not grant object %1.', Comment = '%1 = object ID', Locked = true;
 
     #region Tests
 
@@ -569,6 +573,24 @@ codeunit 139557 "E-Doc. Linkage Test"
         EDocument.OpenEDocument(LinkedRecordId);
     end;
 
+    [Test]
+    procedure EDocCoreReadGrantsExecuteOnObjectsThatRunOnStandardPages()
+    var
+        ExpandedPermission: Record "Expanded Permission";
+    begin
+        //[SCENARIO 13578] The E-Document Core permission sets grant Execute on the factboxes and the subscriber that run on standard pages.
+
+        //[GIVEN] Test setup exists.
+        this.Initialize();
+
+        //[WHEN] The expanded permissions of E-Doc. Core - Read are read.
+        //[THEN] Each object has Execute. The Messages FactBox was already granted and shows that the check itself works.
+        this.AssertEDocCoreReadGrantsExecute(ExpandedPermission."Object Type"::Page, Page::"E-Document Messages FactBox");
+        this.AssertEDocCoreReadGrantsExecute(ExpandedPermission."Object Type"::Page, Page::"E-Doc. Status FactBox");
+        this.AssertEDocCoreReadGrantsExecute(ExpandedPermission."Object Type"::Page, Page::"Inbound E-Doc. Picture");
+        this.AssertEDocCoreReadGrantsExecute(ExpandedPermission."Object Type"::Codeunit, Codeunit::"E-Doc. Navigate Handler");
+    end;
+
     #endregion
 
     #region Initialize
@@ -694,6 +716,19 @@ codeunit 139557 "E-Doc. Linkage Test"
     begin
         TempDocumentEntry.SetRange("Table ID", Database::"E-Document");
         this.Assert.IsTrue(TempDocumentEntry.IsEmpty(), 'Expected no Document Entry row for the E-Document table.');
+    end;
+
+    local procedure AssertEDocCoreReadGrantsExecute(ObjType: Option; ObjId: Integer)
+    var
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        ExpandedPermission: Record "Expanded Permission";
+    begin
+        AggregatePermissionSet.SetRange("Role ID", this.EDocCoreReadRoleTok);
+        AggregatePermissionSet.FindFirst();
+        this.Assert.IsTrue(
+            ExpandedPermission.Get(AggregatePermissionSet."App ID", AggregatePermissionSet."Role ID", ObjType, ObjId),
+            StrSubstNo(this.ObjectNotGrantedErr, ObjId));
+        ExpandedPermission.TestField("Execute Permission", ExpandedPermission."Execute Permission"::Yes);
     end;
 
     #endregion

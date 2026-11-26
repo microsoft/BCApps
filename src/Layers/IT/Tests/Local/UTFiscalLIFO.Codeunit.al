@@ -26,6 +26,7 @@ codeunit 144099 "UT Fiscal LIFO"
     end;
 
     var
+        Assert: Codeunit Assert;
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
@@ -35,6 +36,7 @@ codeunit 144099 "UT Fiscal LIFO"
         ItemInvtTxt: Label 'Item__Net_Change_';
         InvValueTxt: Label 'InvValue';
         CostType: Option "Fiscal Cost","Average Cost","Weighted Average Cost","FIFO Cost","LIFO Cost","Discrete LIFO Cost";
+        RowNotFoundErr: Label 'Report row for item %1 was not found.', Comment = '%1 - Item No.';
 
     [Test]
     [HandlerFunctions('FiscalInventoryValuationRequestPageHandler')]
@@ -130,6 +132,38 @@ codeunit 144099 "UT Fiscal LIFO"
 
         // Verify.
         VerifyValuesOnReport(ItemCostHistory."Item No.", ItemCostHistory."Discrete LIFO Cost");
+    end;
+
+    [Test]
+    [HandlerFunctions('FiscalInventoryValuationRequestPageHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure FiscalInvValuationItemWithoutCostHistoryShowsZeroValue()
+    var
+        ItemCostHistory: Record "Item Cost History";
+        ItemWithoutHistory: Record Item;
+    begin
+        // [SCENARIO 658242] Report 12135 does not carry over the cost and value of a previous item to an item without Item Cost History.
+        Initialize();
+
+        // [GIVEN] Item "A" with inventory and Item Cost History for the competence date.
+        CreateItemCostHistory(ItemCostHistory);
+
+        // [GIVEN] Item "B", sorted after "A", without Item Cost History for the competence date.
+        ItemWithoutHistory."No." := CopyStr(ItemCostHistory."Item No." + 'B', 1, MaxStrLen(ItemWithoutHistory."No."));
+        ItemWithoutHistory.Insert();
+
+        // [WHEN] Run report Fiscal Inventory Valuation for items "A" and "B".
+        LibraryVariableStorage.Enqueue(ItemCostHistory."Item No." + '|' + ItemWithoutHistory."No.");
+        LibraryVariableStorage.Enqueue(CostType::"Fiscal Cost");
+        REPORT.Run(REPORT::"Fiscal Inventory Valuation");
+
+        // [THEN] Item "B" shows zero fiscal cost and zero value.
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange(ItemNoCap, ItemWithoutHistory."No.");
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), StrSubstNo(RowNotFoundErr, ItemWithoutHistory."No."));
+        LibraryReportDataset.AssertCurrentRowValueEquals(UnitCostCap, 0);
+        LibraryReportDataset.AssertCurrentRowValueEquals(InvValueTxt, 0);
     end;
 
     local procedure CostTypeFiscalInventoryValuation(var ItemCostHistory: Record "Item Cost History"; ItemCostType: Option)
