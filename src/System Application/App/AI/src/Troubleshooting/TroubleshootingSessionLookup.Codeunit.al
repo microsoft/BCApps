@@ -23,6 +23,27 @@ codeunit 7756 "Troubleshooting Session Lookup"
         if not User.Get(OwnerId) then
             exit('');
 
+        exit(GetDisplayName(User));
+    end;
+
+    internal procedure LoadReadableOwnerNames(var NamesByOwner: Dictionary of [Guid, Text])
+    var
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        User: Record User;
+    begin
+        Clear(NamesByOwner);
+        if not User.ReadPermission() then
+            exit;
+
+        User.SetLoadFields("User Security ID", "Full Name", "User Name");
+        if User.FindSet() then
+            repeat
+                NamesByOwner.Add(User."User Security ID", GetDisplayName(User));
+            until User.Next() = 0;
+    end;
+
+    local procedure GetDisplayName(User: Record User): Text
+    begin
         if User."Full Name" <> '' then
             exit(User."Full Name");
         exit(User."User Name");

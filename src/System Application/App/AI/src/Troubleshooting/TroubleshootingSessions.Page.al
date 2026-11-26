@@ -27,7 +27,7 @@ page 7785 "Troubleshooting Sessions"
     Extensible = false;
     RefreshOnActivate = true;
     AboutTitle = 'About troubleshooting sessions';
-    AboutText = 'The list opens with sessions that are in progress or awaiting user input. Saved reports currently have the Concluded status. To see them, choose Show all sessions.';
+    AboutText = 'Review troubleshooting sessions you can access. The default view shows active sessions. The full list also includes saved reports, which currently have the Concluded status.';
 
     layout
     {
@@ -116,11 +116,19 @@ page 7785 "Troubleshooting Sessions"
 
     trigger OnAfterGetRecord()
     begin
-        OwnerName := SessionLookup.GetOwnerName(Rec."Owner User Security Id");
+        if not OwnerNamesLoaded then begin
+            SessionLookup.LoadReadableOwnerNames(NamesByOwner);
+            OwnerNamesLoaded := true;
+        end;
+
+        if not NamesByOwner.Get(Rec."Owner User Security Id", OwnerName) then
+            Clear(OwnerName);
     end;
 
     var
         SessionLookup: Codeunit "Troubleshooting Session Lookup";
+        NamesByOwner: Dictionary of [Guid, Text];
+        OwnerNamesLoaded: Boolean;
         OwnerName: Text;
 
     local procedure ApplyActiveStatusFilter()

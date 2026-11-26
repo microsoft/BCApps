@@ -75,35 +75,61 @@ codeunit 132691 "Troubleshooting Session Pages"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ListCanToggleActiveStatusFilter()
+    procedure ListOpensWithActiveStatusFilter()
     var
-        Entry: Record "Troubleshooting Session Entry";
         Sessions: TestPage "Troubleshooting Sessions";
-        ActiveFilter: Text;
-        ConversationFilter: Text;
     begin
-        // [SCENARIO] The list opens on active sessions and can toggle the status filter.
-        // [GIVEN] The expected filter for active sessions.
-        Entry.SetFilter(Status, '%1|%2', Entry.Status::InProgress, Entry.Status::AwaitingUser);
-        ActiveFilter := Entry.GetFilter(Status);
+        // [SCENARIO] The list opens on active sessions.
         // [WHEN] A user opens the list.
         Sessions.OpenView();
         // [THEN] Only active statuses are selected.
-        if Sessions.Filter.GetFilter(Status) <> ActiveFilter then
+        if Sessions.Filter.GetFilter(Status) <> GetActiveStatusFilter() then
             Error('The troubleshooting session list must open with the active status filter.');
+        Sessions.Close();
+    end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ShowAllSessionsClearsOnlyStatusFilter()
+    var
+        Sessions: TestPage "Troubleshooting Sessions";
+        ConversationFilter: Text;
+    begin
+        // [SCENARIO] Showing all statuses preserves the conversation filter.
+        // [GIVEN] An active session list filtered to a conversation.
+        Sessions.OpenView();
         Sessions.Filter.SetFilter("Troubleshooting Id", Format(CreateGuid()));
         ConversationFilter := Sessions.Filter.GetFilter("Troubleshooting Id");
-        // [WHEN] A user switches between all and active sessions.
+        // [WHEN] A user shows all sessions.
         Sessions.ShowAllSessions.Invoke();
+        // [THEN] The status filter is cleared and the conversation filter is unchanged.
         if Sessions.Filter.GetFilter(Status) <> '' then
-            Error('Show All Sessions must clear the status filter.');
+            Error('Show all sessions must clear the status filter.');
+        if Sessions.Filter.GetFilter("Troubleshooting Id") <> ConversationFilter then
+            Error('Showing all sessions must preserve the conversation filter.');
+        Sessions.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ShowActiveSessionsRestoresOnlyStatusFilter()
+    var
+        Sessions: TestPage "Troubleshooting Sessions";
+        ConversationFilter: Text;
+    begin
+        // [SCENARIO] Showing active statuses preserves the conversation filter.
+        // [GIVEN] A session list with no status filter, filtered to a conversation.
+        Sessions.OpenView();
+        Sessions.Filter.SetFilter("Troubleshooting Id", Format(CreateGuid()));
+        ConversationFilter := Sessions.Filter.GetFilter("Troubleshooting Id");
+        Sessions.ShowAllSessions.Invoke();
+        // [WHEN] A user shows active sessions.
         Sessions.ShowActiveSessions.Invoke();
         // [THEN] The active status filter is restored and the conversation filter is unchanged.
-        if Sessions.Filter.GetFilter(Status) <> ActiveFilter then
-            Error('Show Active Sessions must restore the active status filter.');
+        if Sessions.Filter.GetFilter(Status) <> GetActiveStatusFilter() then
+            Error('Show active sessions must restore the active status filter.');
         if Sessions.Filter.GetFilter("Troubleshooting Id") <> ConversationFilter then
-            Error('Switching the status filter must preserve the conversation filter.');
+            Error('Showing active sessions must preserve the conversation filter.');
         Sessions.Close();
     end;
 
@@ -123,5 +149,13 @@ codeunit 132691 "Troubleshooting Session Pages"
             Error('The troubleshooting session card must respect its conversation filter.');
         SessionCard.Details.AssertEquals('');
         SessionCard.Close();
+    end;
+
+    local procedure GetActiveStatusFilter(): Text
+    var
+        Entry: Record "Troubleshooting Session Entry";
+    begin
+        Entry.SetFilter(Status, '%1|%2', Entry.Status::InProgress, Entry.Status::AwaitingUser);
+        exit(Entry.GetFilter(Status));
     end;
 }
