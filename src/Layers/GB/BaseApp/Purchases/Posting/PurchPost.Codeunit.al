@@ -157,6 +157,8 @@ codeunit 90 "Purch.-Post"
         OnRunOnBeforeFillTempLines(PreviewMode, GenJnlLineDocNo);
         FillTempLines(PurchHeader, TempPurchLineGlobal);
         OnRunOnAfterFillTempLines(PurchHeader);
+        if PostReceiptOnInvoice then
+            MatchedOrderLineMgmt.ExcludeUnmatchedOrderLinesFromReceipt(TempPurchLineGlobal);
 
         // Header
         CheckAndUpdate(PurchHeader);
@@ -250,7 +252,9 @@ codeunit 90 "Purch.-Post"
         ErrorMessageMgt.PushContext(ErrorContextElementProcessLines, ZeroPurchLineRecID, 0, PostDocumentLinesMsg);
         OnBeforePostLines(TempPurchLineGlobal, PurchHeader, PreviewMode, SuppressCommit, TempPurchLineGlobal, TempWhseShptHeader, TempWhseRcptHeader);
 
-        MatchedOrderLineMgmt.ProcessMatchedReceiptOnInvoice(TempPurchLineGlobal, PostReceiptOnInvoice);
+        if PostReceiptOnInvoice then
+            MatchedOrderLineMgmt.ExcludeUnmatchedOrderLinesFromReceipt(TempPurchLineGlobal);
+        MatchedOrderLineMgmt.ProcessMatchedReceiptOnInvoice(TempPurchLineGlobal);
 
         LineCount := 0;
         RoundingLineInserted := false;
