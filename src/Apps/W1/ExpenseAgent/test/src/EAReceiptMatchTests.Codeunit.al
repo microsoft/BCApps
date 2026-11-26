@@ -256,8 +256,10 @@ codeunit 148370 EAReceiptMatchTests
         // [SCENARIO] A pending card expense gets its category from the user; amount, currency, date and card payment come from the card and stay unchanged.
         Initialize();
 
-        // [GIVEN] A card expense waiting for a receipt and an employee-paid category.
+        // [GIVEN] A card expense waiting for a receipt with a description, and an employee-paid category.
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        Expense.Description := 'User description';
+        Expense.Modify();
         PaymentMethodCode := Expense."Payment Method Code";
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
 
@@ -265,9 +267,10 @@ codeunit 148370 EAReceiptMatchTests
         Expense.Validate("Expense Category", ExpenseCategory.Code);
         Expense.Modify(true);
 
-        // [THEN] The category is saved and the card values are kept.
+        // [THEN] The category is saved and the card values and the description are kept.
         Expense.Get(Expense."No.");
         Expense.TestField("Expense Category", ExpenseCategory.Code);
+        Expense.TestField(Description, 'User description');
         Expense.TestField(Amount, 20);
         Expense.TestField("Currency Code", '');
         Expense.TestField("Expense Date", WorkDate());
@@ -714,6 +717,64 @@ codeunit 148370 EAReceiptMatchTests
         Expense.TestField("Expense Category", ExpenseCategory.Code);
         ExpenseItemization.SetRange("Expense No.", Expense."No.");
         Assert.IsTrue(ExpenseItemization.IsEmpty(), 'The expense must not get itemization its category does not require.');
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataFillingCategoryKeepsParticipantsAndDescription()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        CardReceiptData: Record "EA Card Receipt Data";
+        ExpenseParticipant: Record "Expense Participant";
+        ExpenseReportLineParticip: Record "Expense Report Line Particip.";
+    begin
+        // [SCENARIO] When the receipt fills a missing category, the participants and the description the user entered are kept.
+        Initialize();
+
+        // [GIVEN] A card expense without a category, with a description and a participant, on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        ClearCategory(Expense);
+        Expense.Description := 'User description';
+        Expense.Modify();
+        ExpenseParticipant.Init();
+        ExpenseParticipant."Expense No." := Expense."No.";
+        ExpenseParticipant."Line No." := 10000;
+        ExpenseParticipant."Participant Type" := ExpenseParticipant."Participant Type"::External;
+        ExpenseParticipant."Participant Name" := 'John Smith';
+        ExpenseParticipant.Insert(true);
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+
+        // [GIVEN] Receipt data with a category and another participant.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData."Expense Category" := ExpenseCategory.Code;
+        CardReceiptData.Modify();
+        AddCardReceiptParticipant(CardReceiptData, 'Jane Doe');
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The expense has the category, keeps its description and keeps only the user's participant.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Category", ExpenseCategory.Code);
+        Expense.TestField(Description, 'User description');
+        ExpenseParticipant.SetRange("Expense No.", Expense."No.");
+        Assert.AreEqual(1, ExpenseParticipant.Count(), 'The expense must keep only the user''s participant.');
+        ExpenseParticipant.FindFirst();
+        ExpenseParticipant.TestField("Participant Name", 'John Smith');
+        ExpenseParticipant.TestField("Expense Category Code", ExpenseCategory.Code);
+
+        // [THEN] The line has the category, keeps its description and keeps only the user's participant.
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.TestField(Description, 'User description');
+        ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.AreEqual(1, ExpenseReportLineParticip.Count(), 'The line must keep only the user''s participant.');
+        ExpenseReportLineParticip.FindFirst();
+        ExpenseReportLineParticip.TestField("Participant Name", 'John Smith');
+        ExpenseReportLineParticip.TestField("Expense Category Code", ExpenseCategory.Code);
     end;
 
     [Test]

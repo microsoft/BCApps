@@ -56,6 +56,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
         DocumentAttachment: Record "Document Attachment";
+        TempExpenseParticipant: Record "Expense Participant" temporary;
+        TempExpenseReportLineParticip: Record "Expense Report Line Particip." temporary;
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
         ExpenseVATLineNos: Dictionary of [Integer, Integer];
         OriginalStatus: Enum "Expense Status";
@@ -77,8 +79,10 @@ codeunit 7450 "EA Card Receipt Data Apply"
 
         AttachReceiptToExpense(CardReceiptData, Expense, DocumentAttachment);
         Expense.Get(Expense."No.");
+        SaveExpenseParticipants(Expense, TempExpenseParticipant);
         FillExpenseFields(CardReceiptData, Expense);
         Expense.Modify(true);
+        RestoreExpenseParticipants(Expense, TempExpenseParticipant);
         AddExpenseParticipants(CardReceiptData, Expense);
         AddExpenseItemization(CardReceiptData, Expense);
         AddExpenseVATSpecs(CardReceiptData, Expense, ExpenseVATLineNos);
@@ -88,8 +92,10 @@ codeunit 7450 "EA Card Receipt Data Apply"
         if OnReport then begin
             CopyReceiptToReportLine(DocumentAttachment, ExpenseReportLine);
             ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+            SaveReportLineParticipants(ExpenseReportLine, TempExpenseReportLineParticip);
             FillReportLineFields(CardReceiptData, ExpenseReportLine);
             ExpenseReportLine.Modify(true);
+            RestoreReportLineParticipants(ExpenseReportLine, TempExpenseReportLineParticip);
             AddReportLineParticipants(CardReceiptData, ExpenseReportLine);
             AddReportLineItemization(CardReceiptData, ExpenseReportLine);
             AddReportLineVATSpecs(CardReceiptData, ExpenseReportLine, ExpenseVATLineNos);
@@ -188,6 +194,65 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLine.Validate("Merchant Registration No.", CardReceiptData."Merchant Registration No.");
         if (ExpenseReportLine."Merchant VAT Registration No." = '') and (CardReceiptData."Merchant VAT Registration No." <> '') then
             ExpenseReportLine.Validate("Merchant VAT Registration No.", CardReceiptData."Merchant VAT Registration No.");
+    end;
+
+    // Filling a missing category deletes the participants through the category validation. The participants the user
+    // already entered are put back, so the receipt only adds participants where there were none.
+    local procedure SaveExpenseParticipants(Expense: Record Expense; var TempExpenseParticipant: Record "Expense Participant" temporary)
+    var
+        ExpenseParticipant: Record "Expense Participant";
+    begin
+        ExpenseParticipant.SetRange("Expense No.", Expense."No.");
+        if ExpenseParticipant.FindSet() then
+            repeat
+                TempExpenseParticipant := ExpenseParticipant;
+                TempExpenseParticipant.Insert();
+            until ExpenseParticipant.Next() = 0;
+    end;
+
+    local procedure RestoreExpenseParticipants(Expense: Record Expense; var TempExpenseParticipant: Record "Expense Participant" temporary)
+    var
+        ExpenseParticipant: Record "Expense Participant";
+    begin
+        ExpenseParticipant.SetRange("Expense No.", Expense."No.");
+        if not ExpenseParticipant.IsEmpty() then
+            exit;
+        if TempExpenseParticipant.FindSet() then
+            repeat
+                ExpenseParticipant := TempExpenseParticipant;
+                ExpenseParticipant."Expense Category Code" := Expense."Expense Category";
+                ExpenseParticipant."Expense Subcategory Code" := Expense."Expense Subcategory";
+                ExpenseParticipant.Insert(true);
+            until TempExpenseParticipant.Next() = 0;
+    end;
+
+    local procedure SaveReportLineParticipants(ExpenseReportLine: Record "Expense Report Line"; var TempExpenseReportLineParticip: Record "Expense Report Line Particip." temporary)
+    var
+        ExpenseReportLineParticip: Record "Expense Report Line Particip.";
+    begin
+        ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        if ExpenseReportLineParticip.FindSet() then
+            repeat
+                TempExpenseReportLineParticip := ExpenseReportLineParticip;
+                TempExpenseReportLineParticip.Insert();
+            until ExpenseReportLineParticip.Next() = 0;
+    end;
+
+    local procedure RestoreReportLineParticipants(ExpenseReportLine: Record "Expense Report Line"; var TempExpenseReportLineParticip: Record "Expense Report Line Particip." temporary)
+    var
+        ExpenseReportLineParticip: Record "Expense Report Line Particip.";
+    begin
+        ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        if not ExpenseReportLineParticip.IsEmpty() then
+            exit;
+        if TempExpenseReportLineParticip.FindSet() then
+            repeat
+                ExpenseReportLineParticip := TempExpenseReportLineParticip;
+                ExpenseReportLineParticip."Expense Subcategory Code" := ExpenseReportLine."Expense Subcategory Code";
+                ExpenseReportLineParticip.Insert(true);
+            until TempExpenseReportLineParticip.Next() = 0;
     end;
 
     local procedure AddExpenseParticipants(CardReceiptData: Record "EA Card Receipt Data"; Expense: Record Expense)

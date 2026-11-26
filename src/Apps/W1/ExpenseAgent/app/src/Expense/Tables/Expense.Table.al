@@ -1528,14 +1528,22 @@ table 6900 Expense
     local procedure UpdateFromExpenseCategory()
     var
         ExpenseCategory: Record "Expense Category";
+        CardDescription: Text[100];
+        IsCardExpense: Boolean;
     begin
+        // The description of a card expense must survive a category change, like on a card line.
+        IsCardExpense := Rec.HasCardTransactionValues();
+        if IsCardExpense then
+            CardDescription := Rec.Description;
         Rec.Description := '';
         Rec."Expense Detail Required" := Rec."Expense Detail Required"::" ";
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
+            if IsCardExpense then
+                Rec.Description := CardDescription;
             // Card amounts come from the transaction; manual expenses keep their currency when the category is cleared.
-            if not Rec.HasCardTransactionValues() then begin
+            if not IsCardExpense then begin
                 Rec.Amount := 0;
                 Rec.UpdateAmount();
             end;
@@ -1554,9 +1562,12 @@ table 6900 Expense
         Rec.TestField("Expense User No.");
 
         Rec.Validate(Refundable, ExpenseCategory.Refundable);
-        Rec.Validate(Description, ExpenseCategory."Posting Description");
+        if IsCardExpense and (CardDescription <> '') then
+            Rec.Validate(Description, CardDescription)
+        else
+            Rec.Validate(Description, ExpenseCategory."Posting Description");
         // Card expenses are always paid by the corporate card, regardless of the category defaults.
-        if not Rec.HasCardTransactionValues() then begin
+        if not IsCardExpense then begin
             Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
             if ExpenseCategory."Default Payment Method" <> '' then
                 Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
