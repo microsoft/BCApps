@@ -99,6 +99,9 @@ report 103 "Customer Register"
             column(RemainingAmountCaption; RemainingAmountCaptionLbl)
             {
             }
+            column(OriginalAmountLCYCaption; OriginalAmountLCYCaptionLbl)
+            {
+            }
             column(CustVATRegistrationNoCaption; Cust.FieldCaption("VAT Registration No."))
             {
             }
@@ -122,19 +125,15 @@ report 103 "Customer Register"
                 }
                 column(Cust__Ledger_Entry__Document_Type_; "Document Type")
                 {
-                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry__Document_No__; "Document No.")
                 {
-                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry_Description; Description)
                 {
-                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry__Customer_No__; "Customer No.")
                 {
-                    IncludeCaption = true;
                 }
                 column(Cust_Name; Cust.Name)
                 {
@@ -149,14 +148,12 @@ report 103 "Customer Register"
                 }
                 column(Cust__Ledger_Entry__Applies_to_Doc__No__; "Applies-to Doc. No.")
                 {
-                    IncludeCaption = true;
                 }
                 column(Cust__Ledger_Entry__Due_Date_; Format("Due Date"))
                 {
                 }
                 column(Cust__Ledger_Entry__Entry_No__; "Entry No.")
                 {
-                    IncludeCaption = true;
                 }
                 column(ExternalDocumentNo; "External Document No.")
                 {
@@ -165,6 +162,10 @@ report 103 "Customer Register"
                 column(RemainingAmount; RemainingAmount)
                 {
                     AutoFormatExpression = "Currency Code";
+                    AutoFormatType = 1;
+                }
+                column(OriginalAmountLCY; OriginalAmountLCY)
+                {
                     AutoFormatType = 1;
                 }
                 column(CustVATRegistrationNo; Cust."VAT Registration No.")
@@ -215,6 +216,8 @@ report 103 "Customer Register"
                     else
                         RemainingAmount := "Remaining Amount";
 
+                    // Per entry, always in LCY, regardless of the Show Amounts in LCY option. Not accumulated like CustAmountLCY.
+                    OriginalAmountLCY := DtldCustLedgEntry."Amount (LCY)";
                     CustAmountLCY := DtldCustLedgEntry."Amount (LCY)";
                     CustDebitAmountLCY := DtldCustLedgEntry."Debit Amount (LCY)";
                     CustCreditAmountLCY := DtldCustLedgEntry."Credit Amount (LCY)";
@@ -299,6 +302,7 @@ report 103 "Customer Register"
         GLRegFilter: Text;
         CustAmount: Decimal;
         RemainingAmount: Decimal;
+        OriginalAmountLCY: Decimal;
         CustAmountLCY: Decimal;
         CustDebitAmountLCY: Decimal;
         CustCreditAmountLCY: Decimal;
@@ -314,6 +318,7 @@ report 103 "Customer Register"
         Cust__Ledger_Entry__Due_Date_CaptionLbl: Label 'Due Date';
         G_L_Register__No__CaptionLbl: Label 'Register No.';
         RemainingAmountCaptionLbl: Label 'Remaining Amount';
+        OriginalAmountLCYCaptionLbl: Label 'Original Amount (LCY)';
         TotalCaptionLbl: Label 'Total';
         CustDebitAmountLCYCaptionLbl: Label 'Debit (LCY)';
         CustCreditAmountLCYCaptionLbl: Label 'Credit (LCY)';
