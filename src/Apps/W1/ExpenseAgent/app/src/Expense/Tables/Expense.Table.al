@@ -538,6 +538,7 @@ table 6900 Expense
         }
         field(108; "Pending Card Expense"; Boolean)
         {
+            Access = Internal;
             Caption = 'Pending Card Expense';
             ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is still open and waiting for a receipt, with no no-receipt declaration and no expense report.';
             FieldClass = FlowField;
