@@ -552,3 +552,5 @@ codeunit 1690 "Bank Deposit-Post"
 }
 
 
+
+// CI research probe: W1-app-only change (BankDeposits) (do not merge)
