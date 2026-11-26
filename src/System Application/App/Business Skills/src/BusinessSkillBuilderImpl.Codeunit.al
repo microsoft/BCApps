@@ -11,7 +11,7 @@ codeunit 4162 "Business Skill Builder Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure Initialize(OwnerAppId: Guid; SkillCode: Code[100]; DisplayName: Text[250]; Content: SecretText)
+    procedure Initialize(OwnerAppId: Guid; SkillCode: Code[100]; Name: Text[250]; Content: SecretText)
     var
         TempNewSkill: Record "Business Skill" temporary;
     begin
@@ -19,7 +19,7 @@ codeunit 4162 "Business Skill Builder Impl."
         TempNewSkill."Owning App ID" := OwnerAppId;
         TempNewSkill."Skill ID" := SkillCode;
         TempNewSkill."Read-Only" := true;
-        TempNewSkill.Title := DisplayName;
+        TempNewSkill.Title := Name;
         BusinessSkillImpl.SetContent(TempNewSkill, Content);
         TempNewSkill.Status := TempNewSkill.Status::Inactive;
         TempBusinessSkill := TempNewSkill;
@@ -57,10 +57,10 @@ codeunit 4162 "Business Skill Builder Impl."
         ContentVersionSpecified := true;
     end;
 
-    procedure SetDisplayName(DisplayName: Text[250])
+    procedure SetName(Name: Text[250])
     begin
         VerifyReady();
-        TempBusinessSkill.Title := DisplayName;
+        TempBusinessSkill.Title := Name;
     end;
 
     procedure SetDescription(Description: Text[2048])

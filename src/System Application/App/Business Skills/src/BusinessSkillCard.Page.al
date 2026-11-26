@@ -25,7 +25,7 @@ page 4161 "Business Skill Card"
     Permissions = tabledata User = r;
     DataCaptionExpression = Rec.Title;
     AboutTitle = 'Maintain a business skill';
-    AboutText = 'Maintain one canonical skill. New skills are inactive until activated with a title and instructions.';
+    AboutText = 'Maintain one canonical skill. New skills are inactive until activated with a name and instructions.';
 
     layout
     {
@@ -35,16 +35,18 @@ page 4161 "Business Skill Card"
             {
                 Caption = 'General';
                 Editable = CanMaintainSkill;
-                InstructionalText = 'Copilot and agents automatically search for matching Active skills based on the title and description.';
 
                 group(NameAndDescription)
                 {
                     ShowCaption = false;
+                    InstructionalText = 'Copilot and agents automatically search for matching active skills based on the name and description.';
+
                     field("Title"; Rec."Title")
                     {
+                        Caption = 'Name';
                         Editable = CanMaintainSkill;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the display name of this skill, that will be shown in the UI whenever Copilot and agents UI choose to use this skill.';
+                        ToolTip = 'Specifies the name shown when Copilot or an agent uses this skill.';
 
                         trigger OnValidate()
                         begin

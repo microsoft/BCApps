@@ -39,7 +39,12 @@ page 4160 "Business Skills"
                 {
                     Visible = false;
                 }
-                field(Title; Rec.Title) { Editable = false; }
+                field(Title; Rec.Title)
+                {
+                    Caption = 'Name';
+                    Editable = false;
+                    ToolTip = 'Specifies the name shown when Copilot or an agent uses this skill.';
+                }
                 field(Description; Rec.Description) { Editable = false; }
                 field(Status; Rec.Status) { Editable = false; }
                 field("Read-Only"; Rec."Read-Only") { Editable = false; }
