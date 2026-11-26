@@ -5,6 +5,7 @@
 namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using System.Utilities;
 
@@ -25,6 +26,7 @@ codeunit 148370 EAReceiptMatchTests
         CardReceiptDataApply: Codeunit "EA Card Receipt Data Apply";
         CannotDeleteCardExpenseErr: Label 'You cannot delete expense %1 because it is linked to a corporate card transaction.', Comment = '%1 = Expense No.';
         CardExpenseSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense linked to a corporate card transaction.', Comment = '%1 = field caption';
+        CurrencyFactorRequiredErr: Label 'A currency factor is required for currency %1.', Comment = '%1 = Currency Code';
         NotCardExpenseErr: Label 'Receipt data can only be applied to expense %1 when it was created from a corporate card transaction.', Comment = '%1 = Expense No.';
         NotWaitingForReceiptErr: Label 'Expense %1 is not waiting for a receipt.', Comment = '%1 = Expense No.';
         OpenExpenseAttachmentErr: Label 'You can only import and delete attachments on %1 %2 when the %3 is Open.', Comment = '%1 = Expense No. caption, %2 = expense number, %3 = status caption';
@@ -923,6 +925,65 @@ codeunit 148370 EAReceiptMatchTests
             ExpenseVATSpecification.Get(Expense."No.", ExpenseReportLineVATSpec."Source Spec Line No.");
             ExpenseVATSpecification.TestField("VAT %", ExpenseReportLineVATSpec."VAT %");
         until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataConvertsVATSpecsToLCY()
+    var
+        Expense: Record Expense;
+        CardReceiptData: Record "EA Card Receipt Data";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO] VAT specifications applied to a foreign currency card expense are converted to LCY with the expense currency factor.
+        Initialize();
+
+        // [GIVEN] A card expense in a foreign currency, and receipt data with a 19% VAT line.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 1);
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO HOTEL');
+        Expense."Currency Code" := CurrencyCode;
+        Expense."Currency Factor" := CurrencyExchangeRate.ExchangeRate(WorkDate(), CurrencyCode);
+        Expense.Modify();
+        CreateCardReceiptData(CardReceiptData, Expense);
+        AddCardReceiptVATSpec(CardReceiptData, 1, 19, 16.81, 3.19);
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The LCY amounts of the VAT specification use the expense currency factor.
+        ExpenseVATSpecification.SetRange("Expense No.", Expense."No.");
+        ExpenseVATSpecification.FindFirst();
+        ExpenseVATSpecification.TestField("VAT Amount (LCY)", Round(3.19 / Expense."Currency Factor"));
+        ExpenseVATSpecification.TestField("VAT Base Amount (LCY)", Round(16.81 / Expense."Currency Factor"));
+        ExpenseVATSpecification.TestField("Amount (LCY)", Round(20 / Expense."Currency Factor"));
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataWithVATSpecsRequiresCurrencyFactor()
+    var
+        Expense: Record Expense;
+        CardReceiptData: Record "EA Card Receipt Data";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO] VAT specifications are not applied to a foreign currency card expense without a currency factor, instead of being saved with zero LCY amounts.
+        Initialize();
+
+        // [GIVEN] A card expense in a foreign currency without a currency factor, and receipt data with a 19% VAT line.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 1);
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO HOTEL');
+        Expense."Currency Code" := CurrencyCode;
+        Expense."Currency Factor" := 0;
+        Expense.Modify();
+        CreateCardReceiptData(CardReceiptData, Expense);
+        AddCardReceiptVATSpec(CardReceiptData, 1, 19, 16.81, 3.19);
+        Commit();
+
+        // [WHEN] The receipt data is applied.
+        asserterror CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The missing currency factor is reported.
+        Assert.ExpectedError(StrSubstNo(CurrencyFactorRequiredErr, CurrencyCode));
     end;
 
     [Test]

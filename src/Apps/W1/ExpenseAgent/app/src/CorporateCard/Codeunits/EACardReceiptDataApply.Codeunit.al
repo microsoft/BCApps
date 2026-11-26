@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using System.IO;
 
@@ -22,6 +23,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
     Access = Internal;
 
     var
+        CurrencyFactorRequiredErr: Label 'A currency factor is required for currency %1.', Comment = '%1 = Currency Code';
         ExpenseNotFoundErr: Label 'Expense %1 was not found.', Comment = '%1 = Expense system ID';
         NotCardExpenseErr: Label 'Receipt data can only be applied to expense %1 when it was created from a corporate card transaction.', Comment = '%1 = Expense No.';
         NotWaitingForReceiptErr: Label 'Expense %1 is not waiting for a receipt. It must be open or released and not on an expense report, or on an open expense report with no receipt on its line.', Comment = '%1 = Expense No.';
@@ -415,9 +417,9 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseVATSpecification."VAT Base Amount" := CardReceiptVATSpec."VAT Base Amount";
             ExpenseVATSpecification."VAT Amount" := CardReceiptVATSpec."VAT Amount";
             ExpenseVATSpecification.Amount := CardReceiptVATSpec.Amount;
-            ExpenseVATSpecification."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", Expense."Currency Code", Expense."Currency Factor");
-            ExpenseVATSpecification."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", Expense."Currency Code", Expense."Currency Factor");
-            ExpenseVATSpecification."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, Expense."Currency Code", Expense."Currency Factor");
+            ExpenseVATSpecification."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor");
+            ExpenseVATSpecification."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor");
+            ExpenseVATSpecification."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor");
             ExpenseVATSpecification.Insert(true);
             ExpenseVATLineNos.Add(CardReceiptVATSpec."Line No.", ExpenseVATSpecification."Line No.");
         until CardReceiptVATSpec.Next() = 0;
@@ -456,9 +458,9 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLineVATSpec.Amount := CardReceiptVATSpec.Amount;
             ExpenseReportLineVATSpec."Currency Code" := ExpenseReportLine."Expense Currency Code";
             ExpenseReportLineVATSpec."Currency Factor" := ExpenseReportLine."Expense Currency Factor";
-            ExpenseReportLineVATSpec."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
-            ExpenseReportLineVATSpec."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
-            ExpenseReportLineVATSpec."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
+            ExpenseReportLineVATSpec."VAT Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Amount", ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
+            ExpenseReportLineVATSpec."VAT Base Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec."VAT Base Amount", ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
+            ExpenseReportLineVATSpec."Amount (LCY)" := GetAmountLCY(CardReceiptVATSpec.Amount, ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
             ExpenseReportLineVATSpec.Source := ExpenseReportLineVATSpec.Source::Agent;
             ExpenseReportLineVATSpec."Source Spec Line No." := SourceLineNo;
             if ExpenseSubcategory.Get(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code") then
@@ -477,12 +479,14 @@ codeunit 7450 "EA Card Receipt Data Apply"
         end;
     end;
 
-    local procedure GetAmountLCY(Amount: Decimal; CurrencyCode: Code[10]; CurrencyFactor: Decimal): Decimal
+    local procedure GetAmountLCY(Amount: Decimal; ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal): Decimal
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
     begin
         if CurrencyCode = '' then
             exit(Amount);
         if CurrencyFactor = 0 then
-            exit(0);
-        exit(Round(Amount / CurrencyFactor));
+            Error(CurrencyFactorRequiredErr, CurrencyCode);
+        exit(Round(CurrencyExchangeRate.ExchangeAmtFCYToLCY(ExpenseDate, CurrencyCode, Amount, CurrencyFactor)));
     end;
 }
