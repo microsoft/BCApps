@@ -89,3 +89,5 @@ codeunit 9015 "Application System Constants"
     end;
 }
 
+
+// CI research probe: W1 base-layer change (BaseApp) (do not merge)
