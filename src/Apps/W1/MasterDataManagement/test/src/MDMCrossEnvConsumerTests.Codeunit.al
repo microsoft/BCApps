@@ -119,30 +119,36 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     procedure SourceEnvironmentNameMustBeAPlainEnvironmentName()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
+        EnteredSetup: Record "Master Data Management Setup";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
     begin
         // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
         // [SCENARIO 660386] The source environment name becomes a path segment of the request URL, so only a plain
         //                   environment name is accepted; a name that would change the URL path is rejected.
+        // Each expected error rolls back to the last commit, so the entered names are validated on a record that isn't
+        // inserted, and the stored setup is created right before the scenario that reads it.
         Initialize();
-        MasterDataManagementSetup.Get();
+        EnteredSetup.Init();
 
         // [WHEN] a name with URL path characters is entered [THEN] it is rejected
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", 'PROD/../../00000000-0000-0000-0000-0000000000aa/OTHER');
+        asserterror EnteredSetup.Validate("Source Environment Name", 'PROD/../../00000000-0000-0000-0000-0000000000aa/OTHER');
         Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", 'PROD?company=x');
+        asserterror EnteredSetup.Validate("Source Environment Name", 'PROD?company=x');
         Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
         // [WHEN] a name that doesn't start with a letter or is longer than 30 characters is entered [THEN] it is rejected
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", '1PROD');
+        asserterror EnteredSetup.Validate("Source Environment Name", '1PROD');
         Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
-        asserterror MasterDataManagementSetup.Validate("Source Environment Name", PadStr('PROD', 31, 'X'));
+        asserterror EnteredSetup.Validate("Source Environment Name", PadStr('PROD', 31, 'X'));
         Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
 
         // [WHEN] a valid environment name is entered [THEN] it is accepted
-        MasterDataManagementSetup.Validate("Source Environment Name", 'Contoso_Prod-2');
+        EnteredSetup.Validate("Source Environment Name", 'Contoso_Prod-2');
 
         // [GIVEN] an invalid name stored without validation, for example by a configuration package
-        MasterDataManagementSetup.Get();
+        if not MasterDataManagementSetup.Get() then begin
+            MasterDataManagementSetup.Init();
+            MasterDataManagementSetup.Insert();
+        end;
         MasterDataManagementSetup."Source Environment Name" := 'PROD/../../OTHER';
         MasterDataManagementSetup.Modify(false);
 
@@ -2077,13 +2083,17 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
     local procedure CleanUp()
     var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
         InProcessTransport: Codeunit "MDM In-Process Transport";
-        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         PagingConfig: Codeunit "MDM Test Paging Config";
     begin
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate();
-        LibraryMasterDataMgt.SetSourceEnvironmentName('');
+        // A test's last expected error can roll back a setup row that Initialize inserted, so there may be nothing to reset.
+        if MasterDataManagementSetup.Get() then begin
+            MasterDataManagementSetup."Source Environment Name" := '';
+            MasterDataManagementSetup.Modify(false);
+        end;
         DeleteTestArtifacts();
     end;
 
