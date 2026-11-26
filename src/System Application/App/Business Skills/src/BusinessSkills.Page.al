@@ -27,7 +27,7 @@ page 4160 "Business Skills"
     InherentEntitlements = X;
     InherentPermissions = X;
     AboutTitle = 'About business skills';
-    AboutText = 'Open a skill card to edit its metadata and instructions, or activate and deactivate skills from the list.';
+    AboutText = 'Create your own custom skills to describe how work should be done in Business Central, guiding **Copilot and agents** towards better outcomes.';
 
     layout
     {
