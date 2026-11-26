@@ -11,4 +11,5 @@ profile "Payables Agent Profile"
     Description = 'Default role center for Payables Agent v2';
     ProfileDescription = 'Functionality for the Payables Agent to process purchase invoices through the task-based v2 flow.';
     RoleCenter = "Payables Agent Role Center";
+    Customizations = "PA Item References";
 }

@@ -286,6 +286,9 @@ codeunit 3326 "PA Test Fixtures"
     #region Evaluation diagnostics and cleanup
 
     internal procedure PrepareEvaluationVersion(Version: Integer)
+    var
+        StoredSetup: Codeunit "PA Setup";
+        UpdateParameters: Codeunit "PA Setup Update Parameters";
     begin
         if not (Version in [1, 2]) then
             Error(UnknownEvaluationVersionErr);
@@ -297,6 +300,13 @@ codeunit 3326 "PA Test Fixtures"
         if Version <> 1 then
             Error(EvaluationVersionUnavailableErr, Version);
 #endif
+        if not StoredSetup.IsStoredAgentEnabled() then
+            exit;
+
+        LoadConfiguration(UpdateParameters, true);
+        if Version = 2 then
+            UpdateParameters.DisactivateEmailMonitoring();
+        PASetupUpdate.Update(UpdateParameters);
     end;
 
     internal procedure GetPreparedEvaluationVersion(): Integer
