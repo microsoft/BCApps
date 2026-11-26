@@ -233,13 +233,15 @@ codeunit 133754 "Custom Agent Test"
         TempAgentAccessControl: Record "Agent Access Control" temporary;
         Agent: Codeunit Agent;
         AgentNewTaskMessage: Page "Agent New Task Message";
+        AgentUserName: Code[50];
     begin
         // [SCENARIO] The simple task page hides Test Agent navigation for other metadata providers.
         // [GIVEN] An agent using a non-custom metadata provider
         Initialize();
+        AgentUserName := CopyStr(Any.AlphanumericText(MaxStrLen(AgentUserName)), 1, MaxStrLen(AgentUserName));
         AgentTask."Agent User Security ID" := Agent.Create(
             Enum::"Agent Metadata Provider"::"Designer Test Agent",
-            CopyStr(Any.AlphanumericText(50), 1, 50),
+            AgentUserName,
             CopyStr(Any.AlphanumericText(80), 1, 80),
             TempAgentAccessControl);
         AgentNewTaskMessage.SetAgentTask(AgentTask, true);
