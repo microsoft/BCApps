@@ -24,6 +24,9 @@ codeunit 10047 "Process Response IRIS"
         ReceiptIDEmptyErr: Label 'Empty Receipt ID was found in the response.';
         PreReceiptValidationFailedTxt: Label 'Pre-receipt validation failed', Locked = true;
         XmlSchemaValidationErrorTok: Label 'XML Schema Validation Error', Locked = true;
+        ParseResponseEventTok: Label 'ParseIRISResponse', Locked = true;
+        MalformedResponseErr: Label 'Could not parse the XML response from IRIS.';
+        MalformedResponseTelemetryErr: Label 'The IRIS response contains malformed XML.', Locked = true;
 
     procedure GetReceiptID(ResponseContentBlob: Codeunit "Temp Blob"; var ReceiptID: Text[100]): Boolean
     var
@@ -38,7 +41,10 @@ codeunit 10047 "Process Response IRIS"
         if ResponseText = '' then
             exit(false);
 
-        XmlDocument.ReadFrom(ResponseText, XmlDoc);
+        if not XmlDocument.ReadFrom(ResponseText, XmlDoc) then begin
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            Error(MalformedResponseErr);
+        end;
 
         if not XmlDoc.SelectSingleNode('/IntakeA2AResponse/receiptId', CurrXmlNode) then begin
             CustomDimensions.Add('ResponseText', ResponseText);
@@ -70,7 +76,10 @@ codeunit 10047 "Process Response IRIS"
         if AckText = '' then
             exit('');
 
-        XmlDocument.ReadFrom(AckText, XmlDoc);
+        if not XmlDocument.ReadFrom(AckText, XmlDoc) then begin
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            Error(MalformedResponseErr);
+        end;
 
         NamespaceManager.NameTable(XmlDoc.NameTable());
         NamespaceManager.AddNamespace(AckNamespacePrefixTxt, AckNamespaceUriTxt);
@@ -98,7 +107,10 @@ codeunit 10047 "Process Response IRIS"
         if AckText = '' then
             exit(false);
 
-        XmlDocument.ReadFrom(AckText, XmlDoc);
+        if not XmlDocument.ReadFrom(AckText, XmlDoc) then begin
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            Error(MalformedResponseErr);
+        end;
 
         NamespaceManager.NameTable(XmlDoc.NameTable());
         NamespaceManager.AddNamespace(AckNamespacePrefixTxt, AckNamespaceUriTxt);
@@ -126,7 +138,10 @@ codeunit 10047 "Process Response IRIS"
         if AckText = '' then
             exit(false);
 
-        XmlDocument.ReadFrom(AckText, XmlDoc);
+        if not XmlDocument.ReadFrom(AckText, XmlDoc) then begin
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ParseResponseEventTok, MalformedResponseTelemetryErr);
+            Error(MalformedResponseErr);
+        end;
 
         NamespaceManager.NameTable(XmlDoc.NameTable());
         NamespaceManager.AddNamespace(AckNamespacePrefixTxt, AckNamespaceUriTxt);

@@ -6,10 +6,12 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
 using System.Environment;
+using System.Utilities;
 
 codeunit 148000 "Library IRS Reporting Period"
 {
     var
+        Assert: Codeunit Assert;
         LibraryUtility: Codeunit "Library - Utility";
         NoAvailableReportingYearErr: Label 'There is no unused reporting year between %1 and 3000.', Comment = '%1 = first reporting year';
 
@@ -42,26 +44,36 @@ codeunit 148000 "Library IRS Reporting Period"
     procedure CreateAvailableAnnualReportingPeriod(FirstReportingYear: Integer): Code[20]
     var
         IRSReportingPeriod: Record "IRS Reporting Period";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TempReportingYear: Record Integer temporary;
         PeriodNo: Code[20];
         ReportingYear: Integer;
         StartingDate: Date;
         EndingDate: Date;
+        PeriodNoAvailable: Boolean;
     begin
         for ReportingYear := FirstReportingYear to 3000 do begin
             PeriodNo := Format(ReportingYear, 0, 9);
-            if not IRSReportingPeriod.Get(PeriodNo) then begin
-                StartingDate := DMY2Date(1, 1, ReportingYear);
-                EndingDate := DMY2Date(31, 12, ReportingYear);
-                IRSReportingPeriod.SetFilter("Starting Date", '<=%1', EndingDate);
-                IRSReportingPeriod.SetFilter("Ending Date", '>=%1', StartingDate);
-                if IRSReportingPeriod.IsEmpty() then begin
-                    CreateSpecificReportingPeriod(PeriodNo, StartingDate, EndingDate);
-                    exit(PeriodNo);
-                end;
-                IRSReportingPeriod.Reset();
-            end;
+            StartingDate := DMY2Date(1, 1, ReportingYear);
+            EndingDate := DMY2Date(31, 12, ReportingYear);
+            IRSReportingPeriod.Reset();
+            IRSReportingPeriod.SetRange("No.", PeriodNo);
+            PeriodNoAvailable := IRSReportingPeriod.IsEmpty();
+            IRSReportingPeriod.SetRange("No.");
+            IRSReportingPeriod.SetFilter("Starting Date", '<=%1', EndingDate);
+            IRSReportingPeriod.SetFilter("Ending Date", '>=%1', StartingDate);
+            DocHeader.SetRange("Period No.", PeriodNo);
+            TempReportingYear.Number := ReportingYear;
+            TempReportingYear.Insert();
+            TempReportingYear.Mark(PeriodNoAvailable and IRSReportingPeriod.IsEmpty() and DocHeader.IsEmpty());
         end;
-        Error(NoAvailableReportingYearErr, FirstReportingYear);
+        TempReportingYear.MarkedOnly(true);
+        Assert.IsFalse(TempReportingYear.IsEmpty(), StrSubstNo(NoAvailableReportingYearErr, FirstReportingYear));
+        TempReportingYear.FindFirst();
+        ReportingYear := TempReportingYear.Number;
+        PeriodNo := Format(ReportingYear, 0, 9);
+        CreateSpecificReportingPeriod(PeriodNo, DMY2Date(1, 1, ReportingYear), DMY2Date(31, 12, ReportingYear));
+        exit(PeriodNo);
     end;
 
     procedure GetReportingPeriod(PostingDate: Date): Code[20]
@@ -101,6 +113,12 @@ codeunit 148000 "Library IRS Reporting Period"
         IRSReportingPeriod: Codeunit "IRS Reporting Period";
     begin
         IRSReportingPeriod.CopyReportingPeriodSetup(FromPeriodNo, ToPeriodNo);
+    end;
+
+    [TryFunction]
+    procedure TryCopyPeriodSetup(FromPeriodNo: Code[20]; ToPeriodNo: Code[20])
+    begin
+        CopyPeriodSetup(FromPeriodNo, ToPeriodNo);
     end;
 
     procedure CopyPeriodSetup(FromPeriodNo: Code[20]; ToPeriodNo: Code[20]; var TempSelectedCompany: Record Company temporary)

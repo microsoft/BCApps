@@ -16,8 +16,12 @@ codeunit 10052 "IRS 1099 Process Email Queue"
     TableNo = "Job Queue Entry";
 
     var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         EmailFormsTxt: Label 'Email IRS 1099 pdf forms';
         JobCompletedTxt: Label 'Job of sending 1099 pdf forms by email has been completed. Successfully sent %1 forms. Failed to send %2 forms.', Comment = '%1 - forms sent count, %2 - forms not sent count';
+        FeatureNameTok: Label 'IRS Forms', Locked = true;
+        SendVendorEmailOutcomeLbl: Label 'Vendor email send attempt outcome', Locked = true;
+        SendVendorEmailFailedErr: Label 'Vendor email send call failed.', Locked = true;
 
     trigger OnRun()
     var
@@ -36,9 +40,11 @@ codeunit 10052 "IRS 1099 Process Email Queue"
                 Commit();
                 Success := IRS1099SendEmail.Run(IRS1099EmailQueue);
                 if Success then begin
+                    FeatureTelemetry.LogUsage('', FeatureNameTok, SendVendorEmailOutcomeLbl);
                     SuccessCount += 1;
                     IRS1099SendEmail.SetEmailStatusSuccess(IRS1099EmailQueue)
                 end else begin
+                    FeatureTelemetry.LogError('', FeatureNameTok, SendVendorEmailOutcomeLbl, SendVendorEmailFailedErr);
                     FailCount += 1;
                     IRS1099SendEmail.SetEmailStatusFail(IRS1099EmailQueue, GetLastErrorText());
                 end;

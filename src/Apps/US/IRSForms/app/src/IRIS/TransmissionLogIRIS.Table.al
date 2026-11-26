@@ -122,6 +122,36 @@ table 10047 "Transmission Log IRIS"
             ToolTip = 'Specifies the Business Central environment when this attempt started. This diagnostic value does not select destinations for status requests.';
             Editable = false;
         }
+        field(70; "Previous State Recorded"; Boolean)
+        {
+            Caption = 'Previous State Recorded';
+            Editable = false;
+        }
+        field(71; "Previous Receipt ID"; Text[100])
+        {
+            Caption = 'Previous Receipt ID';
+            Editable = false;
+        }
+        field(72; "Previous Original Receipt ID"; Text[100])
+        {
+            Caption = 'Previous Original Receipt ID';
+            Editable = false;
+        }
+        field(73; "Previous Transmission Type"; Enum "Transmission Type IRIS")
+        {
+            Caption = 'Previous Transmission Type';
+            Editable = false;
+        }
+        field(74; "Previous Transmission Status"; Enum "Transmission Status IRIS")
+        {
+            Caption = 'Previous Transmission Status';
+            Editable = false;
+        }
+        field(75; "Previous Receipt Was Manual"; Boolean)
+        {
+            Caption = 'Previous Receipt Was Manual';
+            Editable = false;
+        }
     }
 
     keys

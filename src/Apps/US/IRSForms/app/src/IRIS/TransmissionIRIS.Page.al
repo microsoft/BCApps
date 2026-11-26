@@ -140,22 +140,13 @@ page 10058 "Transmission IRIS"
 
                 trigger OnAction()
                 var
-                    UserParams: Record "User Params IRIS";
-                    CustomerConsentMgt: Codeunit "Customer Consent Mgt.";
                     ProcessDialog: Dialog;
                 begin
                     if not ConfirmSendTransmission("Transmission Type IRIS"::O) then
                         exit;
 
-                    UserParams.GetRecord();
-                    if not UserParams."Privacy Consent Given" then begin
-                        Commit();
-                        if not CustomerConsentMgt.ConfirmCustomConsent(SendOrigTransmConsentTxt) then
-                            exit;
-
-                        UserParams."Privacy Consent Given" := true;
-                        UserParams.Modify();
-                    end;
+                    if not ConfirmIRISPrivacyConsent() then
+                        exit;
 
                     ProcessDialog.Open(SendingTransmissionMsg);
                     ProcessTransmission.SendOriginal(Rec);
@@ -174,6 +165,8 @@ page 10058 "Transmission IRIS"
                     ProcessDialog: Dialog;
                 begin
                     if not ConfirmSendTransmission("Transmission Type IRIS"::R) then
+                        exit;
+                    if not ConfirmIRISPrivacyConsent() then
                         exit;
 
                     ProcessDialog.Open(SendingReplacementMsg);
@@ -194,6 +187,8 @@ page 10058 "Transmission IRIS"
                 begin
                     if not ConfirmSendTransmission("Transmission Type IRIS"::C) then
                         exit;
+                    if not ConfirmIRISPrivacyConsent() then
+                        exit;
 
                     ProcessDialog.Open(SendingCorrectionMsg);
                     ProcessTransmission.SendCorrection(Rec, false);
@@ -212,6 +207,8 @@ page 10058 "Transmission IRIS"
                     ProcessDialog: Dialog;
                 begin
                     if not ConfirmSendTransmission("Transmission Type IRIS"::C) then
+                        exit;
+                    if not ConfirmIRISPrivacyConsent() then
                         exit;
 
                     ProcessDialog.Open(SendingCorrectionMsg);
@@ -233,17 +230,21 @@ page 10058 "Transmission IRIS"
                     trigger OnAction()
                     var
                         ProcessDialog: Dialog;
+                        IntakeReceived: Boolean;
                     begin
                         if not ConfirmSendTransmission("Transmission Type IRIS"::C) then
+                            exit;
+                        if not ConfirmIRISPrivacyConsent() then
                             exit;
 
                         ProcessDialog.Open(SendingCorrectionMsg);
 
-                        ProcessTransmission.SendTwoStepZeroCorrection(Rec);
+                        IntakeReceived := ProcessTransmission.SendTwoStepZeroCorrectionAndProcessResponse(Rec);
 
                         ProcessDialog.Close();
 
-                        Message(FirstStepCompletedMsg);
+                        if IntakeReceived then
+                            Message(FirstStepCompletedMsg);
                     end;
                 }
                 action(Step2SendCorrectedOriginal)
@@ -259,8 +260,11 @@ page 10058 "Transmission IRIS"
                     begin
                         if not ConfirmSendTransmission("Transmission Type IRIS"::O) then
                             exit;
+                        if not ConfirmIRISPrivacyConsent() then
+                            exit;
 
                         ProcessDialog.Open(SendingTransmissionMsg);
+                        FeatureTelemetry.LogUsage('', Helper.GetIRISFeatureName(), TwoStepCorrectedOriginalStartedLbl);
                         ProcessTransmission.SendOriginal(Rec);
                         ProcessDialog.Close();
                     end;
@@ -296,13 +300,8 @@ page 10058 "Transmission IRIS"
                     ProcessDialog.Open(RequestingStatusMsg);
 
                     if TransmissionLog.FindLastRecByReceiptID(Rec."Receipt ID") then
-                        UniqueTransmissionId := TransmissionLog."Unique Transmission ID"
-                    else begin
-                        TransmissionLog.Reset();
-                        TransmissionLog.SetRange("Transmission Document ID", Rec."Document ID");
-                        if TransmissionLog.FindLast() then
+                        if TransmissionLog."Transmission Document ID" = Rec."Document ID" then
                             UniqueTransmissionId := TransmissionLog."Unique Transmission ID";
-                    end;
 
                     ProcessTransmission.RequestAcknowledgementAndUpdateTransmission(Rec, Rec."Receipt ID", UniqueTransmissionId);
 
@@ -460,16 +459,33 @@ page 10058 "Transmission IRIS"
         TokensRemovedMsg: Label 'The IRIS auth tokens were removed from the user storage.';
         ShowCorrectionActionsQst: Label 'The standard correction conditions are not met. Do you want to force show the correction actions for troubleshooting purposes?';
         ForceCorrectionActionsEventTxt: Label 'ForceCorrectionActionsEnabled', Locked = true;
+        TwoStepCorrectedOriginalStartedLbl: Label 'Two-step corrected original submission started.', Locked = true;
         TwoStepCorrectionHelpMsg: Label 'Use the two-step correction process if incorrect form type was previously filed, e.g., 1099-MISC instead of 1099-NEC. \\Step 1: Submit zero amounts correction. \Step 2.1: After the transmission is accepted, use the action Update Transmission to add the corrected 1099 form documents. \Step 2.2: Send the updated transmission to the IRS.';
         FirstStepCompletedMsg: Label 'The correction transmission with zero amounts was sent to the IRS. After the transmission is accepted, use the action Update Transmission to add the corrected 1099 form documents and then send the updated transmission to the IRS.';
         ConfirmAssignReceiptIDQst: Label 'Are you sure you want to assign the Receipt ID to the transmission manually?';
         OverwriteReceiptIDQst: Label 'The transmission already has a Receipt ID. Do you want to overwrite it?';
-        SendOrigTransmConsentTxt: Label 'By choosing this action, you consent to use third party systems. These systems may have their own terms of use, license, pricing and privacy, and they may not meet the same compliance and security standards as Microsoft Dynamics 365 Business Central. Your privacy is important to us.';
+        SendTransmConsentTxt: Label 'By choosing this action, you consent to use third party systems. These systems may have their own terms of use, license, pricing and privacy, and they may not meet the same compliance and security standards as Microsoft Dynamics 365 Business Central. Your privacy is important to us.';
         ReceiptIDNotAssignedErr: Label 'The Receipt ID is not assigned to the transmission.\\ Possible reasons:\- Pre-receipt validation error (e.g., XML Schema Validation Error) - use Request Status by UTID action.\- Receipt ID was lost or not received - contact IRIS help desk, provide them Unique Transmission ID from Transmission History, then use Assign Receipt ID action to set it and Request Status action to update the status.';
         UTIDNotFoundErr: Label 'Unable to get Unique Transmission Id from the transmission history, because it does not have any records for the current transmission.';
         TestModeMsg: Label 'Data is sent to the IRIS Assurance Testing System (ATS) for testing, not as a production filing.';
         ProductionModeMsg: Label 'Data is sent to IRS Production as a live submission.';
         ErrorInfoCaptionTxt: Label 'Show %1 error(s)', Comment = '%1 - number of errors';
+
+    local procedure ConfirmIRISPrivacyConsent(): Boolean
+    var
+        UserParams: Record "User Params IRIS";
+        CustomerConsentMgt: Codeunit "Customer Consent Mgt.";
+    begin
+        UserParams.GetRecord();
+        if UserParams."Privacy Consent Given" then
+            exit(true);
+        Commit();
+        if not CustomerConsentMgt.ConfirmCustomConsent(SendTransmConsentTxt) then
+            exit(false);
+        UserParams."Privacy Consent Given" := true;
+        UserParams.Modify();
+        exit(true);
+    end;
 
     local procedure SetDestinationFields()
     begin

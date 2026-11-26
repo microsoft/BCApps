@@ -51,6 +51,10 @@ codeunit 10033 "Generate Xml File IRIS"
         LastAcceptedReceiptIdEmtpyErr: Label 'Last accepted receipt ID is missing for the 1099 form document with ID %1. Do not use correction for new documents.', Comment = '%1 - IRS 1099 Form Doc. ID';
         SubmissionIdEmtpyErr: Label 'Submission ID is missing for the 1099 form document with ID %1.', Comment = '%1 - IRS 1099 Form Doc. ID';
         RecordIdEmtpyErr: Label 'Record ID is missing for the 1099 form document with ID %1. \Reopen the document or clear the Needs Correction flag to exclude it from the correction transmission. \If you use two-step correction, release the document before step 2.', Comment = '%1 - IRS 1099 Form Doc. ID';
+        PrepareTransmissionEventTok: Label 'PrepareTransmission', Locked = true;
+        MissingAcceptedReceiptTelemetryErr: Label 'The prior accepted receipt required for a correction is missing.', Locked = true;
+        MissingSubmissionTelemetryErr: Label 'The prior submission ID required for a replacement or correction is missing.', Locked = true;
+        MissingRecordTelemetryErr: Label 'The prior record ID required for a correction is missing.', Locked = true;
 
     /// <summary>
     /// Selects and validates documents, initializes XML and returns a new transmission ID.
@@ -93,10 +97,15 @@ codeunit 10033 "Generate Xml File IRIS"
         TempDocHeader.Reset();
         TempDocHeader.DeleteAll();
         repeat
+            if TransmissionType = TransmissionType::R then
+                if not ProcessTransmission.IsDocumentEligibleForReplacement(Transmission, DocHeader) then
+                    continue;
             Supplemental.ValidateSupplementalLines(DocHeader.ID);
             TempDocHeader := DocHeader;
             TempDocHeader.Insert();
         until DocHeader.Next() = 0;
+        if TempDocHeader.IsEmpty() then
+            Error(NoDocumentsSelectedErr, TransmissionType, DocHeader.GetFilters());
 
         UniqueTransmissionId := Helper.CreateUniqueTransmissionIdentifier(TCCGlobal);
         TransmissionTypeGlobal := TransmissionType;
@@ -521,12 +530,18 @@ codeunit 10033 "Generate Xml File IRIS"
                 PrevAcceptedReceiptId := Transmission."Receipt ID";
         end;
 
-        if PrevAcceptedReceiptId = '' then
+        if PrevAcceptedReceiptId = '' then begin
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingAcceptedReceiptTelemetryErr);
             Error(LastAcceptedReceiptIdEmtpyErr, TempIRS1099FormDocHeader.ID);
-        if TempIRS1099FormDocHeader."IRIS Submission ID" = '' then
+        end;
+        if TempIRS1099FormDocHeader."IRIS Submission ID" = '' then begin
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingSubmissionTelemetryErr);
             Error(SubmissionIdEmtpyErr, TempIRS1099FormDocHeader.ID);
-        if TempIRS1099FormDocHeader."IRIS Record ID" = '' then
+        end;
+        if TempIRS1099FormDocHeader."IRIS Record ID" = '' then begin
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), PrepareTransmissionEventTok, MissingRecordTelemetryErr);
             Error(RecordIdEmtpyErr, TempIRS1099FormDocHeader.ID);
+        end;
 
         UniqueRecordId := StrSubstNo('%1|%2|%3', PrevAcceptedReceiptId, TempIRS1099FormDocHeader."IRIS Submission ID", TempIRS1099FormDocHeader."IRIS Record ID");
         Helper.AppendXmlNode('OtherIntakeSystemInd', OtherIntakeSystemIndicator);

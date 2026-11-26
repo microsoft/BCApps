@@ -35,6 +35,7 @@ codeunit 10039 "IRS Forms Data"
         OccupationTxt: Label 'Shows up to two Treasury Tipped Occupation Code(s) (TTOC) for your tipped occupation(s). Use this code(s) in determining the deduction for qualified tips in Part II of Schedule 1-A (Form 1040). If the occupation code 000 is used, and no other code is included in box %1, your cash tips are not qualified tips; do not use the amount reported in box %2 for the deduction for qualified tips.', Comment = '%1 = occupation codes box, %2 = cash tips box';
         OvertimeTxt: Label 'Shows the total amount of qualified overtime compensation. This amount has been included in the amount reported in box %1. Use the amount in box %2 when determining the qualified overtime compensation deduction in Part III of Schedule 1-A (Form 1040).', Comment = '%1 = income box, %2 = overtime compensation box';
         InstructionConflictMsg: Label '\\Company %1, period %2, form %3, instruction line %4 has custom text or ordering and was not changed. Review it on the IRS 1099 Form Instructions page.', Comment = '%1 = company, %2 = period, %3 = form, %4 = instruction line';
+        IncorrectAnnualPeriodErr: Label 'Annual IRIS setup for period %1 in company %2 cannot be updated. %3 No setup changes were applied.', Comment = '%1 = period number, %2 = company, %3 = tax-year validation error';
 
     procedure AddReportingPeriodsWithForms(ReportingYear: Integer)
     var
@@ -157,6 +158,7 @@ codeunit 10039 "IRS Forms Data"
     begin
         ReportingPeriod.ChangeCompany(TargetCompany);
         ReportingPeriod.Get(PeriodNo);
+        ValidatePeriodNoForSupplementalSetup(ReportingPeriod);
         AddFormBoxNumberConflictMessages(PeriodNo, TargetCompany, Details);
         UpdateAnnualBoxSetup(PeriodNo, TargetCompany, Details);
         UpdateAnnualInstructions(ReportingPeriod, TargetCompany, Details);
@@ -184,10 +186,15 @@ codeunit 10039 "IRS Forms Data"
     end;
 
     internal procedure UpdateAnnualBoxSetup(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)
+    var
+        ReportingPeriod: Record "IRS Reporting Period";
     begin
         if not SupportsSupplementalSetup(PeriodNo, TargetCompany) then
             exit;
 
+        ReportingPeriod.ChangeCompany(TargetCompany);
+        ReportingPeriod.Get(PeriodNo);
+        ValidatePeriodNoForSupplementalSetup(ReportingPeriod);
         UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-01', 'Rents', 600, Details);
         UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-03', 'Other Income', 600, Details);
         UpdateIncomeBox(PeriodNo, TargetCompany, 'MISC', 'MISC-06', 'Medical and Health Care Payments', 600, Details);
@@ -201,6 +208,18 @@ codeunit 10039 "IRS Forms Data"
         UpdateSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-13A', 'Cash tips (box 13a)', Details);
         UpdateSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-13B', 'Treasury tipped occupation codes (box 13b)', Details);
         UpdateSupplementalBox(PeriodNo, TargetCompany, 'MISC', 'MISC-14', 'Qualified overtime compensation (box 14)', Details);
+    end;
+
+    internal procedure ValidatePeriodNoForSupplementalSetup(ReportingPeriod: Record "IRS Reporting Period")
+    var
+        HelperIRIS: Codeunit "Helper IRIS";
+    begin
+        if (Date2DMY(ReportingPeriod."Starting Date", 3) < 2026) or
+           (Date2DMY(ReportingPeriod."Starting Date", 3) <> Date2DMY(ReportingPeriod."Ending Date", 3))
+        then
+            exit;
+        if not HelperIRIS.ValidateTaxYear(ReportingPeriod."No.") then
+            Error(IncorrectAnnualPeriodErr, ReportingPeriod."No.", ReportingPeriod.CurrentCompany(), GetLastErrorText());
     end;
 
     internal procedure GetUnsupportedSupplSetupReason(PeriodNo: Code[20]; TargetCompany: Text): Text
@@ -253,15 +272,20 @@ codeunit 10039 "IRS Forms Data"
     var
         FormBox: Record "IRS 1099 Form Box";
         Conflict: Text;
+        DetailsBuilder: TextBuilder;
     begin
+        DetailsBuilder.Append(Details);
         FormBox.ChangeCompany(TargetCompany);
         FormBox.SetRange("Period No.", PeriodNo);
         if FormBox.FindSet() then
             repeat
                 Conflict := FormBox.GetSupplBoxNoConflictMessage();
-                if Conflict <> '' then
-                    Details += '\\' + Conflict;
+                if Conflict <> '' then begin
+                    DetailsBuilder.Append('\\');
+                    DetailsBuilder.Append(Conflict);
+                end;
             until FormBox.Next() = 0;
+        Details := DetailsBuilder.ToText();
     end;
 
     local procedure UpdateCompensationStatementLine(PeriodNo: Code[20]; TargetCompany: Text; var Details: Text)

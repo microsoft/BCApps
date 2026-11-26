@@ -60,7 +60,8 @@ page 10066 "Transmission IRIS Update"
 
     local procedure RecordChanged() IsChanged: Boolean
     begin
-        IsChanged := Rec."Receipt ID" <> xTransmission."Receipt ID";
+        IsChanged := (Rec."Receipt ID" <> xTransmission."Receipt ID") or
+            ((Rec."Receipt ID" <> '') and not xTransmission."Receipt ID Assigned Manually");
     end;
 
     local procedure UpdateRec()
@@ -76,6 +77,7 @@ page 10066 "Transmission IRIS Update"
         Transmission.Get(Rec."Document ID");
         PrevReceiptIDLength := StrLen(Transmission."Receipt ID");
         Transmission."Receipt ID" := Rec."Receipt ID";
+        Transmission."Receipt ID Assigned Manually" := Rec."Receipt ID" <> '';
         Transmission.Modify(true);
 
         NewReceiptIDLength := StrLen(Rec."Receipt ID");

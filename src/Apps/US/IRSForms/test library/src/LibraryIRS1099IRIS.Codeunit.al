@@ -300,6 +300,23 @@ codeunit 148023 "Library - IRS 1099 IRIS"
     end;
     #endregion Vendor
 
+    procedure GetPrivacyConsent(): Boolean
+    var
+        UserParams: Record "User Params IRIS";
+    begin
+        UserParams.GetRecord();
+        exit(UserParams."Privacy Consent Given");
+    end;
+
+    procedure SetPrivacyConsent(ConsentGiven: Boolean)
+    var
+        UserParams: Record "User Params IRIS";
+    begin
+        UserParams.GetRecord();
+        UserParams."Privacy Consent Given" := ConsentGiven;
+        UserParams.Modify();
+    end;
+
     procedure SaveIRISUserID()
     var
         UserParamsIRIS: Record "User Params IRIS";

@@ -48,7 +48,7 @@ codeunit 10053 "IRIS Schema 5.0.7" implements "IRIS XML Schema"
         Generator.PrepareTransmission(Transmission, TransmissionType, CorrectionToZeroMode, GetVersionText(),
             TaxYear in ['2025', '2026'], UniqueTransmissionId, TempDocHeader);
         PriorYearDataIndicator := '0';
-        if TaxYear = '2025' then
+        if TaxYear < '2026' then
             PriorYearDataIndicator := '1';
         Generator.AddIRTransmissionManifest(Transmission, UniqueTransmissionId, GetVersionText(), PriorYearDataIndicator);
         foreach FormType in "Form Type IRIS".Names() do begin

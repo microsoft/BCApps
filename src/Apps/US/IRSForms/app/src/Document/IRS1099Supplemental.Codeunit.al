@@ -13,12 +13,14 @@ codeunit 10040 "IRS 1099 Supplemental"
         MappingErr: Label 'The setup for supplemental box %1 does not meet the reporting requirements. Check its box number, parent form box, value type, and XML element on the IRS 1099 Supplemental Boxes page. Use the supported setup for standard boxes, or leave XML Element Name blank for custom boxes.', Comment = '%1 = supplemental box';
         TypedValueErr: Label 'The values for supplemental box %1 do not match its value type. Amount lines cannot contain occupation codes, and Occupation Codes lines cannot contain an amount. Clear the incompatible values before changing the supplemental box.', Comment = '%1 = supplemental box';
         UnsupportedOccupationCodeErr: Label 'Occupation code %1 on supplemental box %2 is not supported. Enter a three-character Treasury tipped occupation code supported for the reporting year.', Comment = '%1 = occupation code, %2 = supplemental box';
-        AmountErr: Label 'Document %1, supplemental box %2: amount %3 must be between zero and the amount %4 on the parent document line, and must not exceed the maximum amount allowed by the IRIS XML schema.', Comment = '%1 = document ID, %2 = supplemental box, %3 = supplemental amount, %4 = parent amount';
-        MissingParentErr: Label 'Document %1 must have a document line for form box %2 before you can add supplemental box %3.', Comment = '%1 = document ID, %2 = parent box, %3 = supplemental box';
+        AmountErr: Label 'Supplemental box %1: amount %2 must be between zero and the amount %3 on the parent document line, and must not exceed the maximum amount allowed by the IRIS XML schema.', Comment = '%1 = supplemental box, %2 = supplemental amount, %3 = parent amount';
+        MissingParentErr: Label 'A document line for form box %1 is required before you can add supplemental box %2.', Comment = '%1 = parent box, %2 = supplemental box';
         NoChoicesErr: Label 'No supplemental boxes are available for this document. Check the setup for its reporting year and form on the IRS 1099 Supplemental Boxes page, and add any missing parent document lines. Boxes already added cannot be selected again.';
-        MissingCodesErr: Label 'Document %1, supplemental box %2: positive cash tips require one or two valid Treasury tipped occupation codes.', Comment = '%1 = document ID, %2 = cash-tip box';
-        UnsupportedMappingErr: Label 'Document %1, supplemental box %2 contains values that cannot be reported in IRIS XML. Correct the box setup on the IRS 1099 Supplemental Boxes page or remove its values before reporting.', Comment = '%1 = document ID, %2 = supplemental box';
+        MissingCodesErr: Label 'Supplemental box %1: positive cash tips require one or two valid Treasury tipped occupation codes.', Comment = '%1 = cash-tip box';
+        UnsupportedMappingErr: Label 'Supplemental box %1 contains values that cannot be reported in IRIS XML. Correct the box setup on the IRS 1099 Supplemental Boxes page or remove its values before reporting.', Comment = '%1 = supplemental box';
         UnsupportedMappingValueTypeErr: Label 'The value type %1 for supplemental box %2 in the tax-year mapping resource is not supported.', Comment = '%1 = JSON value type, %2 = supplemental box';
+        RestorationValidationErr: Label 'Cannot recreate document %1 for vendor %2, form %3, period %4. %5 Correct the saved supplemental lines on the source document before recreating it.', Comment = '%1 = source document ID, %2 = vendor, %3 = form, %4 = period, %5 = validation detail';
+        DocumentValidationErr: Label 'Document %1: %2', Comment = '%1 = document ID, %2 = validation detail';
         ExcludedParentTxt: Label 'Not reported because the parent document line is not included in 1099 reporting. Your entered values have been kept.';
         ZeroTipsTxt: Label 'Saved occupation codes are not reported because cash tips are excluded or round to zero. The codes are kept and will be used if reportable cash tips are entered again.';
         SameDocumentErr: Label 'Select a different source document to copy supplemental lines.';
@@ -93,6 +95,15 @@ codeunit 10040 "IRS 1099 Supplemental"
 
     procedure ValidateSupplementalLines(DocumentID: Integer)
     var
+        ValidationError: ErrorInfo;
+    begin
+        ValidationError := GetSupplementalValidationError(DocumentID);
+        if ValidationError.Message <> '' then
+            RaiseDocumentValidationError(DocumentID, ValidationError);
+    end;
+
+    local procedure GetSupplementalValidationError(DocumentID: Integer) ValidationError: ErrorInfo
+    var
         DocHeader: Record "IRS 1099 Form Doc. Header";
         SupplLine: Record "IRS 1099 Doc. Suppl. Line";
         CodesSupplLine: Record "IRS 1099 Doc. Suppl. Line";
@@ -105,6 +116,7 @@ codeunit 10040 "IRS 1099 Supplemental"
         ElementName: Text[100];
         ValueType: Enum "IRS 1099 Supplemental Type";
     begin
+        ValidationError := ErrorInfo.Create('', false);
         DocHeader.Get(DocumentID);
         SupplLine.SetRange("Document ID", DocumentID);
         if SupplLine.FindSet() then begin
@@ -112,7 +124,9 @@ codeunit 10040 "IRS 1099 Supplemental"
             SupplementalMappings := MappingResource.GetObject('SupplementalMappings', true);
             FormMappings := SupplementalMappings.GetArray(DocHeader."Form No.", true);
             repeat
-                ValidateLine(SupplLine);
+                ValidationError := GetLineValidationError(SupplLine);
+                if ValidationError.Message <> '' then
+                    exit(ValidationError);
                 SupplBox.Get(DocHeader."Period No.", DocHeader."Form No.", SupplLine."Supplemental Box No.");
                 ValidateSupplBoxSetup(SupplBox, SupplBox.CurrentCompany(), FormMappings);
                 if (SupplBox."Parent Form Box No." <> SupplLine."Parent Form Box No.") or
@@ -121,8 +135,10 @@ codeunit 10040 "IRS 1099 Supplemental"
                     Error(MappingErr, SupplLine."Supplemental Box No.");
                 if HasValues(SupplLine) and
                    not GetMapping(FormMappings, SupplLine."Supplemental Box No.", ParentBoxNo, ElementName, ValueType)
-                then
-                    Error(UnsupportedMappingErr, DocumentID, SupplLine."Supplemental Box No.");
+                then begin
+                    ValidationError.Message := StrSubstNo(UnsupportedMappingErr, SupplLine."Supplemental Box No.");
+                    exit(ValidationError);
+                end;
                 if (SupplBox."XML Element Name" = 'CashTipsAmt') and (SupplLine.Amount > 0) then begin
                     CodesSupplLine.SetRange("Document ID", DocumentID);
                     CodesSupplLine.SetRange("Parent Form Box No.", SupplLine."Parent Form Box No.");
@@ -131,8 +147,10 @@ codeunit 10040 "IRS 1099 Supplemental"
                     if CodesSupplLine.IsEmpty() then begin
                         CodesSupplLine.SetRange("Occupation Code 1");
                         CodesSupplLine.SetFilter("Occupation Code 2", '<>%1', '');
-                        if CodesSupplLine.IsEmpty() then
-                            Error(MissingCodesErr, DocumentID, SupplLine."Supplemental Box No.");
+                        if CodesSupplLine.IsEmpty() then begin
+                            ValidationError.Message := StrSubstNo(MissingCodesErr, SupplLine."Supplemental Box No.");
+                            exit(ValidationError);
+                        end;
                     end;
                     CodesSupplLine.Reset();
                 end;
@@ -241,6 +259,8 @@ codeunit 10040 "IRS 1099 Supplemental"
     procedure RestoreSupplLinesFromTemp(OldDocumentID: Integer; NewDocumentID: Integer; var TempSupplLine: Record "IRS 1099 Doc. Suppl. Line" temporary)
     var
         SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        ValidationError: ErrorInfo;
     begin
         TempSupplLine.SetRange("Document ID", OldDocumentID);
         if TempSupplLine.FindSet() then
@@ -251,7 +271,14 @@ codeunit 10040 "IRS 1099 Supplemental"
                 SupplLine.Insert();
             until TempSupplLine.Next() = 0;
         TempSupplLine.SetRange("Document ID");
-        ValidateSupplementalLines(NewDocumentID);
+        ValidationError := GetSupplementalValidationError(NewDocumentID);
+        if ValidationError.Message <> '' then begin
+            DocHeader.Get(NewDocumentID);
+            ValidationError.Message := StrSubstNo(RestorationValidationErr, OldDocumentID,
+                DocHeader."Vendor No.", DocHeader."Form No.", DocHeader."Period No.", ValidationError.Message);
+            ValidationError.DataClassification := DataClassification::CustomerContent;
+            Error(ValidationError);
+        end;
     end;
 
     local procedure HasValues(SupplLine: Record "IRS 1099 Doc. Suppl. Line"): Boolean
@@ -340,6 +367,7 @@ codeunit 10040 "IRS 1099 Supplemental"
         Mapping: JsonObject;
         MappingToken: JsonToken;
         ValueTypeText: Text;
+        MappingErrorInfo: ErrorInfo;
     begin
         Clear(ParentBoxNo);
         Clear(ElementName);
@@ -356,7 +384,12 @@ codeunit 10040 "IRS 1099 Supplemental"
                     'OccupationCodes':
                         ValueType := ValueType::"Occupation Codes";
                     else
-                        Error(UnsupportedMappingValueTypeErr, ValueTypeText, BoxNo);
+                        begin
+                            MappingErrorInfo.ErrorType := ErrorType::Internal;
+                            MappingErrorInfo.Message := StrSubstNo(UnsupportedMappingValueTypeErr, ValueTypeText, BoxNo);
+                            MappingErrorInfo.DataClassification := DataClassification::SystemMetadata;
+                            Error(MappingErrorInfo);
+                        end;
                 end;
                 exit(ElementName <> '');
             end;
@@ -366,57 +399,105 @@ codeunit 10040 "IRS 1099 Supplemental"
 
     procedure ValidateLine(var SupplLine: Record "IRS 1099 Doc. Suppl. Line")
     var
+        ValidationError: ErrorInfo;
+    begin
+        ValidationError := GetLineValidationError(SupplLine);
+        if ValidationError.Message <> '' then
+            RaiseDocumentValidationError(SupplLine."Document ID", ValidationError);
+    end;
+
+    local procedure GetLineValidationError(var SupplLine: Record "IRS 1099 Doc. Suppl. Line") ValidationError: ErrorInfo
+    var
         DocHeader: Record "IRS 1099 Form Doc. Header";
         DocLine: Record "IRS 1099 Form Doc. Line";
     begin
+        ValidationError := ErrorInfo.Create('', false);
         DocHeader.Get(SupplLine."Document ID");
         ValidateSupplPeriodAndForm(DocHeader."Period No.", DocHeader."Form No.");
-        ValidateTypedValues(SupplLine, SupplLine."Value Type");
-        GetParent(SupplLine, DocLine);
+        ValidationError := GetTypedValuesValidationError(SupplLine, SupplLine."Value Type");
+        if ValidationError.Message <> '' then
+            exit(ValidationError);
+        ValidationError := GetParentValidationError(SupplLine, DocLine);
+        if ValidationError.Message <> '' then
+            exit(ValidationError);
         if (SupplLine.Amount < 0) or (SupplLine.Amount > 999999999999999.99) or
            (SupplLine.Amount > DocLine.Amount)
         then
-            Error(AmountErr, SupplLine."Document ID", SupplLine."Supplemental Box No.",
-                SupplLine.Amount, DocLine.Amount);
+            ValidationError.Message := StrSubstNo(AmountErr, SupplLine."Supplemental Box No.", SupplLine.Amount, DocLine.Amount);
     end;
 
     procedure ValidateTypedValues(SupplLine: Record "IRS 1099 Doc. Suppl. Line"; ValueType: Enum "IRS 1099 Supplemental Type")
+    var
+        ValidationError: ErrorInfo;
+    begin
+        ValidationError := GetTypedValuesValidationError(SupplLine, ValueType);
+        if ValidationError.Message <> '' then begin
+            ValidationError.DataClassification := DataClassification::CustomerContent;
+            Error(ValidationError);
+        end;
+    end;
+
+    local procedure GetTypedValuesValidationError(SupplLine: Record "IRS 1099 Doc. Suppl. Line"; ValueType: Enum "IRS 1099 Supplemental Type") ValidationError: ErrorInfo
     var
         DocHeader: Record "IRS 1099 Form Doc. Header";
         HelperIRIS: Codeunit "Helper IRIS";
         OccupationCodes: List of [Text];
     begin
+        ValidationError := ErrorInfo.Create('', false);
         case ValueType of
             ValueType::Amount:
-                if (SupplLine."Occupation Code 1" <> '') or (SupplLine."Occupation Code 2" <> '') then
-                    Error(TypedValueErr, SupplLine."Supplemental Box No.");
+                if (SupplLine."Occupation Code 1" <> '') or (SupplLine."Occupation Code 2" <> '') then begin
+                    ValidationError.Message := StrSubstNo(TypedValueErr, SupplLine."Supplemental Box No.");
+                    exit(ValidationError);
+                end;
             ValueType::"Occupation Codes":
-                if SupplLine.Amount <> 0 then
-                    Error(TypedValueErr, SupplLine."Supplemental Box No.");
+                if SupplLine.Amount <> 0 then begin
+                    ValidationError.Message := StrSubstNo(TypedValueErr, SupplLine."Supplemental Box No.");
+                    exit(ValidationError);
+                end;
         end;
         if (SupplLine."Occupation Code 1" = '') and (SupplLine."Occupation Code 2" = '') then
             exit;
 
         DocHeader.Get(SupplLine."Document ID");
         OccupationCodes := HelperIRIS.GetOccupationCodes(DocHeader."Period No.");
-        ValidateOccupationCode(SupplLine."Occupation Code 1", SupplLine."Supplemental Box No.", OccupationCodes);
-        ValidateOccupationCode(SupplLine."Occupation Code 2", SupplLine."Supplemental Box No.", OccupationCodes);
+        ValidationError := GetOccupationCodeValidationError(SupplLine."Occupation Code 1", SupplLine."Supplemental Box No.", OccupationCodes);
+        if ValidationError.Message <> '' then
+            exit(ValidationError);
+        exit(GetOccupationCodeValidationError(SupplLine."Occupation Code 2", SupplLine."Supplemental Box No.", OccupationCodes));
     end;
 
-    local procedure ValidateOccupationCode(OccupationCode: Text[3]; BoxNo: Code[20]; OccupationCodes: List of [Text])
+    local procedure GetOccupationCodeValidationError(OccupationCode: Text[3]; BoxNo: Code[20]; OccupationCodes: List of [Text]) ValidationError: ErrorInfo
     begin
+        ValidationError := ErrorInfo.Create('', false);
         if (OccupationCode <> '') and not OccupationCodes.Contains(OccupationCode) then
-            Error(UnsupportedOccupationCodeErr, OccupationCode, BoxNo);
+            ValidationError.Message := StrSubstNo(UnsupportedOccupationCodeErr, OccupationCode, BoxNo);
     end;
 
     procedure GetParent(var SupplLine: Record "IRS 1099 Doc. Suppl. Line"; var DocLine: Record "IRS 1099 Form Doc. Line")
+    var
+        ValidationError: ErrorInfo;
     begin
+        ValidationError := GetParentValidationError(SupplLine, DocLine);
+        if ValidationError.Message <> '' then
+            RaiseDocumentValidationError(SupplLine."Document ID", ValidationError);
+    end;
+
+    local procedure GetParentValidationError(var SupplLine: Record "IRS 1099 Doc. Suppl. Line"; var DocLine: Record "IRS 1099 Form Doc. Line") ValidationError: ErrorInfo
+    begin
+        ValidationError := ErrorInfo.Create('', false);
         DocLine.Reset();
         DocLine.SetRange("Document ID", SupplLine."Document ID");
         DocLine.SetRange("Form Box No.", SupplLine."Parent Form Box No.");
         if not DocLine.FindFirst() then
-            Error(MissingParentErr, SupplLine."Document ID", SupplLine."Parent Form Box No.",
-                SupplLine."Supplemental Box No.");
+            ValidationError.Message := StrSubstNo(MissingParentErr, SupplLine."Parent Form Box No.", SupplLine."Supplemental Box No.");
+    end;
+
+    local procedure RaiseDocumentValidationError(DocumentID: Integer; ValidationError: ErrorInfo)
+    begin
+        ValidationError.Message := StrSubstNo(DocumentValidationErr, DocumentID, ValidationError.Message);
+        ValidationError.DataClassification := DataClassification::CustomerContent;
+        Error(ValidationError);
     end;
 
     procedure FilterAvailableSupplBoxes(var SupplBox: Record "IRS 1099 Suppl. Box"; DocumentID: Integer)

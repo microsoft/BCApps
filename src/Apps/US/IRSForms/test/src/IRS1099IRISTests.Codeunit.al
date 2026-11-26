@@ -8,6 +8,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
+using System.Privacy;
 using System.Test.Library;
 using System.TestLibraries.Azure.KeyVault;
 using System.TestLibraries.Environment;
@@ -48,7 +49,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IsInitialized: Boolean;
         XmlDetailPathTok: Label '//n1:Form1099%1Detail/', Locked = true;
         XmlTotalPathTok: Label '//n1:Form1099%1TotalAmtGrp/', Locked = true;
-        UnknownSupplementalErr: Label 'Document %1, supplemental box CUSTOM', Locked = true;
+        UnknownSupplementalErr: Label 'Document %1: Supplemental box CUSTOM', Locked = true;
         LegacySupplementalErr: Label 'Document %1 contains supplemental lines', Locked = true;
         NoRecordedCorrectionTxt: Label 'has no recorded IRIS submission to correct', Locked = true;
         PreviousFilingDetailsTxt: Label 'is missing previous IRS filing details required for a correction', Locked = true;
@@ -64,6 +65,9 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineRecordError: Boolean;
         OfflineOmitSubmitReceipt: Boolean;
         OfflineSubmitHttpStatus: Integer;
+        OfflineStatusHttpStatus: Integer;
+        OfflineSkipHistoryPayload: Boolean;
+        OfflineEditDocumentID: Integer;
         OfflineTransmissionID: Integer;
         SandboxHistoryID: Integer;
         SandboxErrorID: Integer;
@@ -655,19 +659,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Source: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Period overrides are independent and entry does not require a verified tax year.
+        // [SCENARIO 653992] A period's Test and Live schema overrides are independent and can be saved for an unverified year.
         Initialize();
 
-        // [GIVEN] Reporting period for unverified year with different TEST and production overrides.
+        // [GIVEN] Period 2099 has Test schema 5.0.7 and Live schema 2.0.3.
         LibraryIRSReportingPeriod.CreateSpecificReportingPeriod('2099', 20990101D, 20991231D);
         ReportingPeriod.Get('2099');
         ReportingPeriod.Validate("IRIS XML Schema Version Test", "XML Schema Version IRIS"::"5.0.7");
         ReportingPeriod.Validate("IRIS XML Schema Version Live", "XML Schema Version IRIS"::"2.0.3");
         ReportingPeriod.Modify(true);
 
-        // [WHEN] Resolving each environment independently.
+        // [WHEN] Resolve schema first in Test mode, then in production mode.
 
-        // [THEN] Each selected override wins without reading Key Vault or other slot.
+        // [THEN] Test uses 5.0.7 and production uses 2.0.3, both from period rather than Key Vault.
         Assert.AreEqual(
             "XML Schema Version IRIS"::"5.0.7",
             LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source), 'TEST override must be used.');
@@ -684,15 +688,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure EmptyEffectiveSchemaCannotSelectLegacyContract()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An empty effective setting fails instead of selecting the older XML contract.
+        // [SCENARIO 653992] An empty schema-version setting causes an error instead of defaulting to schema 2.0.3.
         Initialize();
 
-        // [GIVEN] Effective wire version is empty.
+        // [GIVEN] Schema-version text is empty.
 
-        // [WHEN] Selected provider returns empty effective schema.
+        // [WHEN] Try to parse empty schema version.
         asserterror LibraryIRS1099IRIS.ParseSchemaVersion('');
 
-        // [THEN] Error names supported actual XML versions.
+        // [THEN] Error instructs user to select 2.0.3 or 5.0.7.
         Assert.ExpectedError('Select 2.0.3 or 5.0.7');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -704,16 +708,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         ReportingPeriod: Record "IRS Reporting Period";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An unimplemented enum selection cannot be saved as a supported override.
+        // [SCENARIO 653992] A schema override without an implementation cannot be saved.
         Initialize();
 
-        // [GIVEN] Reporting period record.
+        // [GIVEN] Reporting-period record is ready for schema-override validation.
         ReportingPeriod.Init();
 
-        // [WHEN] Value without standard implementation is selected.
+        // [WHEN] Try to select unsupported schema enum value.
         asserterror ReportingPeriod.Validate("IRIS XML Schema Version Test", "XML Schema Version IRIS".FromInteger(100000));
 
-        // [THEN] Entry fails rather than falling back.
+        // [THEN] Validation fails with guidance to select 2.0.3 or 5.0.7.
         Assert.ExpectedError('Select 2.0.3 or 5.0.7');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -726,19 +730,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Source: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An enum extension without an implementation cannot become an effective schema.
+        // [SCENARIO 653992] A stored schema override without an implementation is rejected when used.
         Initialize();
 
-        // [GIVEN] Reporting period has unimplemented enum value assigned without field validation.
+        // [GIVEN] Period 2099 has unimplemented schema value saved by bypassing field validation.
         InitializeEmptySchemaPeriod();
         ReportingPeriod.Get('2099');
         ReportingPeriod."IRIS XML Schema Version Test" := "XML Schema Version IRIS"::"Unimplemented Test";
         ReportingPeriod.Modify();
 
-        // [WHEN] Standard resolver uses that override.
+        // [WHEN] Try to resolve period's schema version.
         asserterror LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source);
 
-        // [THEN] Missing implementation fails rather than falling back.
+        // [THEN] Error rejects unsupported value rather than using default schema.
         Assert.ExpectedError('Select 2.0.3 or 5.0.7');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -756,41 +760,41 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         PreviousTransmissionId: Text[100];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Alternating schemas on the same adapter retains no XML, counters or zero-correction state.
+        // [SCENARIO 653992] Switching XML schemas does not reuse a previous request's amounts, counts or correction settings.
         Initialize();
 
-        // [GIVEN] Transmission contains accepted 2025 Form Document available under both contracts.
+        // [GIVEN] Accepted 2025 document can be generated with schemas 5.0.7 and 2.0.3.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2025);
         SetCorrectionReference(IRS1099FormDocHeader);
 
-        // [WHEN] Adapter generates zero correction with 5.0.7.
+        // [WHEN] Generate correction with zero amounts using schema 5.0.7.
         IRSFormsFacade.CreateTransmissionXmlContent(
             Transmission, "Transmission Type IRIS"::C, true, UniqueTransmissionId, TempIRS1099FormDocHeader, Payload);
 
-        // [THEN] Only that attempt uses zero amounts and new correction reference.
+        // [THEN] XML contains zero amounts, correction reference and counts for this request only.
         VerifySchemaAttempt(Payload, '5.0.7', '1', '0', '1');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:OtherIntakeSystemInd', '0');
         PreviousTransmissionId := UniqueTransmissionId;
 
-        // [WHEN] Same adapter generates ordinary transmission with 2.0.3.
+        // [WHEN] Use same facade to generate original transmission with schema 2.0.3.
         SetPeriodSchema('2025', "XML Schema Version IRIS"::"2.0.3");
         Clear(Payload);
         IRSFormsFacade.CreateTransmissionXmlContent(
             Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, Payload);
 
-        // [THEN] It has its own XML and counters, reports income and contains no correction group.
+        // [THEN] XML contains income 5000, its own counts and new transmission ID, without correction references.
         VerifySchemaAttempt(Payload, '2.0.3', '0', '5000', '0');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:PrevSubmittedRecRecipientGrp');
         Assert.AreNotEqual(PreviousTransmissionId, UniqueTransmissionId, 'Each attempt needs its own UTID.');
         PreviousTransmissionId := UniqueTransmissionId;
 
-        // [WHEN] Adapter switches back to 5.0.7 for another ordinary transmission.
+        // [WHEN] Switch back to schema 5.0.7 and generate another original transmission.
         SetPeriodSchema('2025', "XML Schema Version IRIS"::"5.0.7");
         Clear(Payload);
         IRSFormsFacade.CreateTransmissionXmlContent(
             Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, Payload);
 
-        // [THEN] New contract is restored without reviving its previous zero-correction state.
+        // [THEN] Income remains 5000, transmission ID is new, and earlier zero-correction settings are not reused.
         VerifySchemaAttempt(Payload, '5.0.7', '1', '5000', '0');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:PrevSubmittedRecRecipientGrp');
         Assert.AreNotEqual(PreviousTransmissionId, UniqueTransmissionId, 'Each attempt needs its own UTID.');
@@ -801,16 +805,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure TaxYearValidationAcceptsInclusiveBoundaries()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The first and last allowed tax years both pass validation.
+        // [SCENARIO 653992] Tax-year validation accepts both ends of the allowed range, 2000 and 3000.
         Initialize();
 
-        // [GIVEN] Supplied years are inclusive reporting boundaries.
+        // [GIVEN] Minimum allowed year is 2000 and maximum is 3000.
 
-        // [WHEN] Validating both boundaries.
+        // [WHEN] Validate 2000 and 3000.
         LibraryIRS1099IRIS.ValidateTaxYear('2000');
         LibraryIRS1099IRIS.ValidateTaxYear('3000');
 
-        // [THEN] Neither boundary raises validation error.
+        // [THEN] Both years are accepted without errors.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -818,14 +822,14 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure TaxYearValidationRejectsOutOfRangeYears()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Four-digit years immediately outside the allowed range fail validation.
+        // [SCENARIO 653992] Tax-year validation rejects 1999 and 3001, just outside the allowed range.
         Initialize();
 
-        // [GIVEN] Supplied years lie outside reporting boundaries.
+        // [GIVEN] Allowed tax years are 2000 through 3000.
 
-        // [WHEN] Validating years immediately outside both boundaries.
+        // [WHEN] Validate 1999 and 3001.
 
-        // [THEN] Each year fails with shared tax-year validation error.
+        // [THEN] Both years fail with four-digit, 2000-to-3000 validation error.
         VerifyInvalidTaxYear('1999');
         VerifyInvalidTaxYear('3001');
         LibraryVariableStorage.AssertEmpty();
@@ -835,14 +839,14 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure TaxYearValidationRejectsMalformedYears()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A tax year must contain exactly four digits without signs or whitespace.
+        // [SCENARIO 653992] Tax-year validation requires exactly four digits, with no sign, letters or whitespace.
         Initialize();
 
-        // [GIVEN] Supplied year strings have invalid length or characters.
+        // [GIVEN] Inputs include empty text, too few or too many digits, letter, plus sign and trailing whitespace.
 
-        // [WHEN] Validating empty, short, long, signed and nonnumeric input.
+        // [WHEN] Validate each malformed input.
 
-        // [THEN] Each input fails with shared tax-year validation error.
+        // [THEN] Every input fails with same tax-year format error.
         VerifyInvalidTaxYear('');
         VerifyInvalidTaxYear('202');
         VerifyInvalidTaxYear('02026');
@@ -856,15 +860,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SoftwareIdRejectsOutOfRangeTaxYear()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Software identity resolution rejects an invalid year before reading configuration.
+        // [SCENARIO 653992] Software ID lookup rejects an invalid tax year before reading configuration.
         Initialize();
 
-        // [GIVEN] Software ID is requested for year outside reporting boundaries.
+        // [GIVEN] Software ID is requested for year 3001, above maximum allowed year.
 
-        // [WHEN] Resolving Software ID for year above allowed range.
+        // [WHEN] Try to resolve Software ID for 3001.
         asserterror LibraryIRS1099IRIS.ResolveSoftwareId('3001');
 
-        // [THEN] Shared year validation fails before Software ID validation.
+        // [THEN] Tax-year validation fails before Software ID configuration is read.
         Assert.ExpectedError('tax year 3001 must contain four digits and be between 2000 and 3000');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -876,15 +880,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AmountXmlElements: JsonObject;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Resource fallback cannot bypass the allowed tax-year range.
+        // [SCENARIO 653992] XML mapping lookup cannot use an earlier resource to bypass tax-year validation.
         Initialize();
 
-        // [GIVEN] Mappings are requested for year outside reporting boundaries.
+        // [GIVEN] Amount mappings are requested for year 3001, above maximum allowed year.
 
-        // [WHEN] Looking up mappings for year above allowed range.
+        // [WHEN] Try to load amount mappings for 3001.
         asserterror AmountXmlElements := LibraryIRS1099IRIS.GetAmountXmlElements('3001');
 
-        // [THEN] Shared year validation fails instead of reusing earlier resource.
+        // [THEN] Tax-year validation fails instead of returning mappings from earlier year.
         Assert.ExpectedError('tax year 3001 must contain four digits and be between 2000 and 3000');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -896,16 +900,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         MockKeyVaultClientIRIS: Codeunit "Mock Key Vault Client IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An original-interface extension cannot use a newer Software ID for an older year.
+        // [SCENARIO 653992] A partner's shared Software ID must still match the requested tax year.
         Initialize();
 
-        // [GIVEN] Original-interface implementation returning approved-format 2026 ID.
+        // [GIVEN] Original configuration interface returns 2026 Software ID 26TEST0001.
         MockKeyVaultClientIRIS.SetSoftwareId('26TEST0001');
 
-        // [WHEN] Extension's shared ID is requested for 2025.
+        // [WHEN] Request that provider's Software ID for 2025.
         asserterror LibraryIRS1099IRIS.ResolveSoftwareId('2025');
 
-        // [THEN] Mismatch fails locally and identifies requested year and prefix.
+        // [THEN] Error explains that 2025 Software ID must start with 25.
         Assert.ExpectedError('tax year 2025 must start with 25');
         Assert.ExpectedErrorCode('Dialog');
         MockKeyVaultClientIRIS.SetDefaultValues();
@@ -922,27 +926,27 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Content: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Both released facade methods invoke the selected nonstandard XML implementation.
+        // [SCENARIO 653992] Status and acknowledgment XML requests use the configured partner implementation.
         Initialize();
 
-        // [GIVEN] Selected partner implementation.
+        // [GIVEN] IRS Forms Setup selects mock partner XML implementation.
         IRSFormsSetup.Get();
         IRSFormsSetup.Implementation := IRSFormsSetup.Implementation::"Mock XML Test";
         IRSFormsSetup.Modify();
 
-        // [WHEN] Status XML is requested through facade.
+        // [WHEN] Request status XML through IRS Forms Facade.
         IRSFormsFacade.CreateGetStatusRequestXmlContent("Search Param Type IRIS"::RID, 'RECEIPT', TempBlob);
 
-        // [THEN] Result was produced by partner, not standard generator.
+        // [THEN] Returned content is produced by partner implementation.
         TempBlob.CreateInStream(ContentStream, TextEncoding::UTF8);
         ContentStream.ReadText(Content);
         Assert.AreEqual('PartnerStatus:RECEIPT', Content, 'The partner status implementation must be called.');
 
-        // [WHEN] Acknowledgment XML is requested through same facade.
+        // [WHEN] Request acknowledgment XML through same facade.
         Clear(TempBlob);
         IRSFormsFacade.CreateAcknowledgmentRequestXmlContent("Search Param Type IRIS"::UTID, 'UTID', TempBlob);
 
-        // [THEN] Partner acknowledgment implementation is called too.
+        // [THEN] Partner implementation also produces acknowledgment request.
         TempBlob.CreateInStream(ContentStream, TextEncoding::UTF8);
         ContentStream.ReadText(Content);
         Assert.AreEqual('PartnerAcknowledgment:UTID', Content, 'The partner acknowledgment implementation must be called.');
@@ -959,10 +963,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         UniqueTransmissionId: Text[100];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] New-contract IRIS corrections identify the intake system before the accepted reference.
+        // [SCENARIO 653992] Schema 5.0.7 correction XML places the intake-system indicator before the accepted record reference.
         Initialize();
 
-        // [GIVEN] Selected accepted TY2026 record to correct.
+        // [GIVEN] 2026 document D is selected for correction with accepted receipt, submission ID and record ID.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2026);
         IRS1099FormDocHeader."IRIS Needs Correction" := true;
         IRS1099FormDocHeader."IRIS Last Accepted Receipt ID" := 'ACCEPTED';
@@ -970,10 +974,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRS1099FormDocHeader."IRIS Record ID" := '2';
         IRS1099FormDocHeader.Modify();
 
-        // [WHEN] Correction is generated.
+        // [WHEN] Generate correction XML.
         LibraryIRS1099IRIS.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::C, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
 
-        // [THEN] Both new-contract reference elements are present in order.
+        // [THEN] Previous-record group contains OtherIntakeSystemInd first and accepted receipt/submission/record reference second.
         VerifyContractManifest(TempBlob, '2026', '26TEST0001', '0');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:PrevSubmittedRecRecipientGrp/*[1]', '0');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:PrevSubmittedRecRecipientGrp/*[2]', 'ACCEPTED|1|2');
@@ -984,19 +988,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure StandardSoftwareIdsAlternateWithoutSharedIdChanges()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Standard uses only the requested year's key, including a supported earlier year.
+        // [SCENARIO 653992] Standard configuration resolves Software IDs by the requested year, not a shared ID or the most recently used year.
         Initialize();
 
-        // [GIVEN] All year IDs exist together with deliberately incompatible legacy shared ID.
+        // [GIVEN] Key Vault has IDs for 2024, 2025 and 2026 plus incompatible old shared ID.
         InitializeStandardProvider();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2024', '24TEST0001');
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2025', '25TEST0001');
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2026', '26TEST0001');
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID', '99SHARED');
 
-        // [WHEN] Supported years alternate without reconfiguring provider.
+        // [WHEN] Request IDs for 2025, 2026, 2025 again and then 2024.
 
-        // [THEN] Each lookup selects its own identity, never shared or newest ID.
+        // [THEN] Each request returns that year's ID; shared ID and any previously used year's ID are ignored.
         Assert.AreEqual('25TEST0001', LibraryIRS1099IRIS.ResolveSoftwareId('2025'), 'TY2025 identity.');
         Assert.AreEqual('26TEST0001', LibraryIRS1099IRIS.ResolveSoftwareId('2026'), 'TY2026 identity.');
         Assert.AreEqual('25TEST0001', LibraryIRS1099IRIS.ResolveSoftwareId('2025'), 'Cached TY2026 cannot replace TY2025.');
@@ -1009,18 +1013,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure MissingStandardYearIdCannotUseLegacyOrNewestId()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Neither a legacy shared ID nor a newer ID satisfies a missing year key.
+        // [SCENARIO 653992] A missing year-specific Software ID cannot be replaced by a shared ID or a newer year's ID.
         Initialize();
 
-        // [GIVEN] Only shared and TY2026 IDs are configured.
+        // [GIVEN] Key Vault has shared ID and 2026 ID, but no 2025 ID.
         InitializeStandardProvider();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID', '25SHARED');
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2026', '26TEST0001');
 
-        // [WHEN] TY2025 is requested.
+        // [WHEN] Request Software ID for 2025.
         asserterror LibraryIRS1099IRIS.ResolveSoftwareId('2025');
 
-        // [THEN] Missing identity blocks operation without using shared or newer ID.
+        // [THEN] Error reports missing Software ID without using either available ID.
         Assert.ExpectedError('Software ID');
         Assert.ExpectedErrorCode('Dialog');
         ResetStandardProvider();
@@ -1031,17 +1035,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure MismatchedStandardYearIdFailsLocally()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A valid-looking but wrong-year Standard identity is not accepted.
+        // [SCENARIO 653992] A year-specific Software ID must start with the matching year prefix.
         Initialize();
 
-        // [GIVEN] TY2025 is accidentally provisioned with TY2026 identity.
+        // [GIVEN] 2025 Key Vault key contains 2026 ID 26TEST0001.
         InitializeStandardProvider();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2025', '26TEST0001');
 
-        // [WHEN] TY2025 is requested.
+        // [WHEN] Request Software ID for 2025.
         asserterror LibraryIRS1099IRIS.ResolveSoftwareId('2025');
 
-        // [THEN] Required year prefix is reported before submission.
+        // [THEN] Validation fails locally and explains that ID must start with 25.
         Assert.ExpectedError('tax year 2025 must start with 25');
         Assert.ExpectedErrorCode('Dialog');
         ResetStandardProvider();
@@ -1055,10 +1059,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Source: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The active empty slot uses its provider and ignores an unsupported inactive slot.
+        // [SCENARIO 653992] An empty period override uses that environment's provider setting, and clearing an override restores the setting.
         Initialize();
 
-        // [GIVEN] Independent provider defaults and default-empty period.
+        // [GIVEN] Provider has Test schema 5.0.7 and Live schema 2.0.3; period's Test override is empty and its inactive Live override is unsupported.
         InitializeStandardProvider();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
@@ -1069,13 +1073,13 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         ReportingPeriod."IRIS XML Schema Version Live" := "XML Schema Version IRIS".FromInteger(100000);
         ReportingPeriod.Modify();
 
-        // [WHEN] Active TEST slot is empty.
+        // [WHEN] Resolve schema in Test mode.
 
-        // [THEN] Provider TEST configuration applies despite inactive unsupported slot.
+        // [THEN] Provider schema 5.0.7 is used, ignoring inactive Live override.
         Assert.AreEqual("XML Schema Version IRIS"::"5.0.7", LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source), 'Use TEST provider.');
         Assert.AreEqual('KeyVault', Source, 'Provider source must be retained.');
 
-        // [WHEN] TEST is overridden and then cleared again.
+        // [WHEN] Set and then clear environment-specific overrides.
         ReportingPeriod.Validate("IRIS XML Schema Version Test", "XML Schema Version IRIS"::"2.0.3");
         ReportingPeriod.Modify();
         Assert.AreEqual("XML Schema Version IRIS"::"2.0.3", LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source), 'Explicit older contract remains supported.');
@@ -1083,7 +1087,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         ReportingPeriod.Validate("IRIS XML Schema Version Live", "XML Schema Version IRIS"::" ");
         ReportingPeriod.Modify();
 
-        // [THEN] Each default is restored independently.
+        // [THEN] Clearing each override restores its own environment's provider schema.
         Assert.AreEqual("XML Schema Version IRIS"::"5.0.7", LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source), 'Clearing restores TEST provider.');
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
         Assert.AreEqual("XML Schema Version IRIS"::"2.0.3", LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source), 'Production stays on its own default.');
@@ -1097,18 +1101,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Source: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Missing new configuration cannot use retired settings or downgrade.
+        // [SCENARIO 653992] A missing current schema setting causes an error, even if a retired setting exists.
         Initialize();
 
-        // [GIVEN] Only retired setting exists.
+        // [GIVEN] Key Vault contains only retired schema-version setting.
         InitializeStandardProvider();
         InitializeEmptySchemaPeriod();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-ReleaseProfileLive', 'Legacy');
 
-        // [WHEN] Selected production setting cannot be obtained.
+        // [WHEN] Resolve production schema version.
         asserterror LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source);
 
-        // [THEN] Operation stops rather than downgrading.
+        // [THEN] Operation stops instead of reading retired setting or defaulting to older schema.
         VerifyRequiredSchemaFailure();
         ResetStandardProvider();
         LibraryVariableStorage.AssertEmpty();
@@ -1120,18 +1124,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Source: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Empty retrieval has the same truthful fail-closed diagnostic as missing configuration.
+        // [SCENARIO 653992] An empty current schema setting causes an error without inventing a retrieval failure.
         Initialize();
 
-        // [GIVEN] Explicitly empty selected setting.
+        // [GIVEN] Production schema-version key exists but contains empty text.
         InitializeStandardProvider();
         InitializeEmptySchemaPeriod();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-XmlSchemaVersionLive', '');
 
-        // [WHEN] Effective production version is requested.
+        // [WHEN] Resolve production schema version.
         asserterror LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source);
 
-        // [THEN] No fallback is applied or retrieval cause invented.
+        // [THEN] Error reports unusable setting; no fallback schema is selected.
         VerifyRequiredSchemaFailure();
         ResetStandardProvider();
         LibraryVariableStorage.AssertEmpty();
@@ -1143,18 +1147,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Source: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A retrieved alias is not accepted as a wire version.
+        // [SCENARIO 653992] A current schema setting must contain a supported XML version, not a retired alias.
         Initialize();
 
-        // [GIVEN] Retired value in new key.
+        // [GIVEN] Production schema-version key contains retired alias.
         InitializeStandardProvider();
         InitializeEmptySchemaPeriod();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-XmlSchemaVersionLive', 'PY2027');
 
-        // [WHEN] Production version is resolved.
+        // [WHEN] Resolve production schema version.
         asserterror LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source);
 
-        // [THEN] Standard parsing rejects alias explicitly.
+        // [THEN] Parsing rejects alias rather than converting it to supported version.
         Assert.ExpectedError('Select 2.0.3 or 5.0.7');
         Assert.ExpectedErrorCode('Dialog');
         ResetStandardProvider();
@@ -1168,10 +1172,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Source: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Use-time validation rejects an unsupported stored value even with a valid provider.
+        // [SCENARIO 653992] An unsupported active override is rejected even when the provider has a valid default.
         Initialize();
 
-        // [GIVEN] Unsupported value inserted without entry validation.
+        // [GIVEN] Period's active schema override was saved with unsupported value by bypassing validation.
         InitializeStandardProvider();
         InitializeEmptySchemaPeriod();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-XmlSchemaVersionLive', '2.0.3');
@@ -1179,10 +1183,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         ReportingPeriod."IRIS XML Schema Version Live" := "XML Schema Version IRIS".FromInteger(100000);
         ReportingPeriod.Modify();
 
-        // [WHEN] Active override is resolved.
+        // [WHEN] Resolve active schema version.
         asserterror LibraryIRS1099IRIS.ResolveSchemaVersion('2099', Source);
 
-        // [THEN] Unsupported override is not reinterpreted as empty/default request.
+        // [THEN] Error rejects stored value rather than treating it as empty override.
         Assert.ExpectedError('Select 2.0.3 or 5.0.7');
         Assert.ExpectedErrorCode('Dialog');
         ResetStandardProvider();
@@ -1203,10 +1207,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         UniqueTransmissionId: Text[100];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The card and setup show the destination and endpoint used by the sender, independently of schema selection.
+        // [SCENARIO 653992] The sender, transmission card and setup page agree on Test or Production independently of schema version.
         Initialize();
 
-        // [GIVEN] Standard identities and distinct non-routable endpoint slots.
+        // [GIVEN] Standard configuration has different test and production endpoint URLs and fixed schema selection.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2025);
         InitializeStandardProvider();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2025', '25TEST0001');
@@ -1223,12 +1227,12 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
 
-        // [WHEN] Same schema is generated in sandbox.
+        // [WHEN] Generate XML and open transmission and setup pages in sandbox mode.
         IRSFormsFacade.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
 
-        // [THEN] Actual XML, endpoints and visible destination are Test.
+        // [THEN] XML marks request as Test, sender uses test URLs, and both pages show Test.
         VerifyStandardEnvironment(TempBlob, 'T', 'https://test.example/submit', 'https://test.example/status', 'https://test.example/auth');
         Assert.IsTrue(TransmissionPage.TestModeIndicator.Visible(), 'The destination must always be visible.');
         TransmissionPage.TestModeIndicator.AssertEquals('Test');
@@ -1245,13 +1249,13 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.IsFalse(SetupPage.SubmissionEndpointURL.Editable(), 'Setup must not allow changing the endpoint.');
         SetupPage.Close();
 
-        // [WHEN] BC is production with same period/schema.
+        // [WHEN] Switch to production mode without changing period or schema.
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
         IRSFormsFacade.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
 
-        // [THEN] Production is stated explicitly without changing schema.
+        // [THEN] XML marks request as Production, sender uses production URLs, and both pages show Production.
         VerifyStandardEnvironment(TempBlob, 'P', 'https://production.example/submit', 'https://production.example/status', 'https://production.example/auth');
         Assert.IsTrue(TransmissionPage.TestModeIndicator.Visible(), 'Production must not be indicated only by the absence of a test banner.');
         TransmissionPage.TestModeIndicator.AssertEquals('Production');
@@ -1268,16 +1272,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure TransmissionAndSetupOpenWhenSubmitEndpointIsMissing()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Transmission And Setup Open When Submit Endpoint Is Missing.
+        // [SCENARIO 653992] Transmission and setup pages remain usable when the production submission URL is missing.
         Initialize();
 
-        // [GIVEN] Standard provider has no production submission endpoint.
+        // [GIVEN] Standard configuration has client ID but no production submission endpoint.
         InitializeStandardProvider();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-ClientID', '11111111-2222-4333-8444-555555555555');
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Open transmission and setup pages.
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Both pages open without attempting submission or failing on missing URL.
         VerifyPagesOpenWithoutSubmitEndpoint();
         ResetStandardProvider();
 
@@ -1288,17 +1292,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure TransmissionAndSetupOpenWhenSubmitEndpointIsEmpty()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Transmission And Setup Open When Submit Endpoint Is Empty.
+        // [SCENARIO 653992] Transmission and setup pages remain usable when the production submission URL is empty.
         Initialize();
 
-        // [GIVEN] Standard provider has empty production submission endpoint.
+        // [GIVEN] Standard configuration has client ID and empty production submission endpoint.
         InitializeStandardProvider();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-ClientID', '11111111-2222-4333-8444-555555555555');
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SubmitEndpointLive', '');
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Open transmission and setup pages.
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Both pages open without attempting submission or failing on empty URL.
         VerifyPagesOpenWithoutSubmitEndpoint();
         ResetStandardProvider();
 
@@ -1310,15 +1314,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure TestSendConfirmationsDescribeAtsAndAllowCancellation()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Test Send Confirmations Describe Ats And Allow Cancellation.
+        // [SCENARIO 653992] Test send confirmations explain that data goes to IRS ATS, not production, and allow cancellation.
         Initialize();
 
-        // [GIVEN] Transmission uses sandbox destination for tax year 2025.
+        // [GIVEN] 2025 transmission uses sandbox Test destination.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Attempt each supported send action and decline its destination confirmation.
         VerifySendConfirmationDestination(true);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Every confirmation names tax year 2025, IRS Test and IRIS Assurance Testing System, and explains that it is not production filing.
         VerifyTestSendConfirmations();
 
         LibraryVariableStorage.AssertEmpty();
@@ -1329,15 +1333,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ProductionSendConfirmationsDescribeLiveSubmissionAndAllowCancellation()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Production Send Confirmations Describe Live Submission And Allow Cancellation.
+        // [SCENARIO 653992] Production send confirmations identify the live IRS destination and allow cancellation.
         Initialize();
 
-        // [GIVEN] Transmission uses production destination for tax year 2025.
+        // [GIVEN] 2025 transmission uses Production destination.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Attempt each supported send action and decline its destination confirmation.
         VerifySendConfirmationDestination(false);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Every confirmation names tax year 2025 and live production filing destination.
         VerifyProductionSendConfirmations();
 
         LibraryVariableStorage.AssertEmpty();
@@ -1352,22 +1356,22 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         HistoryPage: TestPage "Transmission Logs IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] History names come from each attempt, and missing historical context is not guessed.
+        // [SCENARIO 653992] Transmission history shows each attempt's saved destination, not the current environment.
         Initialize();
 
-        // [GIVEN] Three attempts have Test, Production and missing destination evidence respectively.
+        // [GIVEN] Log records have saved Test code T, Production code P and no destination code.
         TestAttempt."XML Test Code" := 'T';
         TestAttempt.Insert(true);
         ProductionAttempt."XML Test Code" := 'P';
         ProductionAttempt.Insert(true);
         EarlierAttempt.Insert(true);
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] View log records while switching current environment between production and sandbox.
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
         HistoryPage.OpenView();
         HistoryPage.GoToRecord(TestAttempt);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] History still shows Test, Production and empty destination respectively, without guessing missing information.
         Assert.IsTrue(HistoryPage.Destination.Visible(), 'History must show readable destinations by default.');
         HistoryPage.Destination.AssertEquals('Test');
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
@@ -1389,16 +1393,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] NEC disclosures remain breakdowns and occupation codes appear between tips and overtime.
+        // [SCENARIO 653992] NEC XML reports tips and overtime as amounts already included in compensation and places occupation codes between them.
         Initialize();
 
-        // [GIVEN] Form Document contains compensation 5000, tips 100, overtime 50 and codes 101 and 000.
+        // [GIVEN] NEC document D has compensation 5000, tips 100, overtime 50 and codes 101 and 000.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
 
-        // [WHEN] Original is generated through existing facade.
+        // [WHEN] Generate original-transmission XML.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Financial income is unchanged and detail/total sequences follow schema.
+        // [THEN] Compensation stays 5000; recipient fields and submission totals follow NEC schema order without correction references.
         VerifySupplementalXml(TempBlob, 'NEC', '5000', '100', '50');
         VerifySupplementalOrder('NEC');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:PrevSubmittedRecRecipientGrp');
@@ -1414,16 +1418,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] MISC places detail disclosures after deferrals but total tips immediately after withholding.
+        // [SCENARIO 653992] MISC XML uses the schema's different ordering rules for recipient fields and submission totals.
         Initialize();
 
-        // [GIVEN] Form Document has MISC disclosures included in other income.
+        // [GIVEN] MISC document D has tips and overtime already included in Other Income.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'MISC');
 
-        // [WHEN] Original XML is generated.
+        // [WHEN] Generate original-transmission XML.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Details and totals retain their independently specified ordering.
+        // [THEN] Recipient tips follow deferrals, total tips follow withholding, and remaining fields follow their required order.
         VerifySupplementalXml(TempBlob, 'MISC', '5000', '100', '50');
         VerifySupplementalOrder('MISC');
         LibraryVariableStorage.AssertEmpty();
@@ -1438,19 +1442,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Submission totals sum rounded recipient values independently for tips and overtime.
+        // [SCENARIO 653992] Submission totals add amounts rounded for each recipient separately.
         Initialize();
 
-        // [GIVEN] Two Form Documents have different recipients with tips 0.006 and overtime 0.004 each.
+        // [GIVEN] Two documents for different recipients each have tips 0.006 and overtime 0.004.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         AddSupplementalHeader(IRS1099FormDocHeader, SecondIRS1099FormDocHeader, false);
         SetSupplementalValues(IRS1099FormDocHeader, 0.006, 0.004, '101', '000');
         SetSupplementalValues(SecondIRS1099FormDocHeader, 0.006, 0.004, '102', '');
 
-        // [WHEN] Original XML is generated.
+        // [WHEN] Generate original-transmission XML.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Each recipient contributes its outgoing cents, never rounded raw submission sum.
+        // [THEN] Each recipient has tips 0.01 and overtime 0, so submission totals are tips 0.02 and overtime 0.
         InitXMLReader(TempBlob);
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:TotalRecipientFormCnt', '2');
         LibraryXPathXMLReader.VerifyXmlNodeValue('(//n1:Form1099NECDetail)[1]/n1:CashTipsAmt', '0.01');
@@ -1477,19 +1481,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Raw sub-cent sources combine before rounding and retain all eligible text codes.
+        // [SCENARIO 653992] Documents for the same recipient are combined before rounding amounts to cents.
         Initialize();
 
-        // [GIVEN] Two Form Documents have same recipient with tips 0.004, overtime 0.006 and same two codes.
+        // [GIVEN] Two documents for one recipient each have tips 0.004, overtime 0.006 and same occupation codes.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         AddSupplementalHeader(IRS1099FormDocHeader, SecondIRS1099FormDocHeader, true);
         SetSupplementalValues(IRS1099FormDocHeader, 0.004, 0.006, '000', '101');
         SetSupplementalValues(SecondIRS1099FormDocHeader, 0.004, 0.006, '101', '000');
 
-        // [WHEN] Original XML is generated.
+        // [WHEN] Generate original-transmission XML.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Both money elements round once at recipient boundary and codes remain deduplicated text.
+        // [THEN] Combined tips round to 0.01 and overtime to 0.01; duplicate codes are reported only once.
         VerifySupplementalXml(TempBlob, 'NEC', '10000', '0.01', '0.01');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:TotalRecipientFormCnt', '1');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:Form1099NECDetail/n1:TreasuryTippedOccupationCd[1]', '000');
@@ -1510,29 +1514,29 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Outgoing zero tips suppress codes without changing raw values or independent overtime.
+        // [SCENARIO 653992] XML omits occupation codes when rounded tips are zero without changing the saved values.
         Initialize();
 
-        // [GIVEN] Form Document has positive raw tips that round to zero and overtime that rounds up.
+        // [GIVEN] Document D has tips that round to zero, overtime that rounds up, and saved occupation codes.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'MISC');
         SetSupplementalValues(IRS1099FormDocHeader, 0.004, 0.006, '101', '000');
 
-        // [WHEN] Original XML is generated.
+        // [WHEN] Generate original-transmission XML.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Only outgoing tips control code suppression, and source remains unchanged.
+        // [THEN] XML omits codes, while saved tips, overtime and codes remain unchanged.
         VerifySupplementalXml(TempBlob, 'MISC', '5000', '0', '0.01');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:TreasuryTippedOccupationCd');
         VerifySavedSupplementalValues(IRS1099FormDocHeader, 0.004, 0.006, '101', '000');
         VerifyDocLineAmount(IRS1099FormDocHeader, 'MISC-03', 5000);
 
-        // [GIVEN] Form Document's tips increase to positive outgoing cent.
+        // [GIVEN] Increase tips so they round to positive cent.
         SetSupplementalValues(IRS1099FormDocHeader, 0.006, 0.004, '101', '000');
 
-        // [WHEN] Original is regenerated.
+        // [WHEN] Generate original XML again.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Saved codes are available again and overtime rounds independently to zero.
+        // [THEN] Saved codes appear again, while overtime is rounded independently to zero.
         VerifySupplementalXml(TempBlob, 'MISC', '5000', '0.01', '0');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:Form1099MISCDetail/n1:TreasuryTippedOccupationCd[2]', '000');
         VerifySavedSupplementalValues(IRS1099FormDocHeader, 0.006, 0.004, '101', '000');
@@ -1548,19 +1552,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The recipient code limit applies only when its combined outgoing tips are positive.
+        // [SCENARIO 653992] More than two saved recipient codes cause no error when the combined tips round to zero.
         Initialize();
 
-        // [GIVEN] Two Form Documents have three-code union but combined tips still round to zero.
+        // [GIVEN] Two documents for one recipient have three distinct saved codes, but their combined tips round to zero.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         AddSupplementalHeader(IRS1099FormDocHeader, SecondIRS1099FormDocHeader, true);
         SetSupplementalValues(IRS1099FormDocHeader, 0.001, 0.004, '101', '000');
         SetSupplementalValues(SecondIRS1099FormDocHeader, 0.001, 0.004, '101', '102');
 
-        // [WHEN] Original XML is generated.
+        // [WHEN] Generate original-transmission XML.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] All codes are suppressed without rejecting or rewriting saved raw contributors.
+        // [THEN] All codes are omitted from XML, and no saved amounts or codes are changed.
         VerifySupplementalXml(TempBlob, 'NEC', '10000', '0', '0.01');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:TreasuryTippedOccupationCd');
         VerifySavedSupplementalValues(IRS1099FormDocHeader, 0.001, 0.004, '101', '000');
@@ -1577,10 +1581,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Legal raw submission sums can still exceed the bound after recipient rounding.
+        // [SCENARIO 653992] Rounding each recipient's amounts can make a submission total exceed the allowed maximum.
         Initialize();
 
-        // [GIVEN] Two Form Documents have legal raw tips summing to maximum, but their outgoing cents exceed it.
+        // [GIVEN] Two recipients' unrounded tips sum to maximum, but rounding each recipient to cents makes total larger.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         AddSupplementalHeader(IRS1099FormDocHeader, SecondIRS1099FormDocHeader, false);
         SetDocLineAmount(IRS1099FormDocHeader, 'NEC-01', 499999999999999.995, 2000);
@@ -1588,10 +1592,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         SetSupplementalValues(IRS1099FormDocHeader, 499999999999999.995, 0, '101', '');
         SetSupplementalValues(SecondIRS1099FormDocHeader, 499999999999999.995, 0, '102', '');
 
-        // [WHEN] Original is generated.
+        // [WHEN] Try to generate original-transmission XML.
         asserterror CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Rounded submission sum is rejected explicitly, with both contributing documents.
+        // [THEN] Error rejects rounded total and identifies both contributing documents.
         Assert.ExpectedError('for supplemental XML element CashTipsAmt must be between zero');
         Assert.ExpectedError(Format(IRS1099FormDocHeader.ID));
         Assert.ExpectedError(Format(SecondIRS1099FormDocHeader.ID));
@@ -1608,20 +1612,20 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Only selected correction documents contribute amounts, codes and recipient counts.
+        // [SCENARIO 653992] Correction XML includes amounts, codes and counts only for selected documents.
         Initialize();
 
-        // [GIVEN] Selected Form Document and unselected Form Document belong to same Transmission.
+        // [GIVEN] Transmission T contains document D1 selected for correction and unselected document D2.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         AddSupplementalHeader(IRS1099FormDocHeader, UnselectedIRS1099FormDocHeader, false);
         SetSupplementalValues(IRS1099FormDocHeader, 0.006, 0.004, '101', '000');
         SetSupplementalValues(UnselectedIRS1099FormDocHeader, 200, 75, '102', '103');
         SetCorrectionReference(IRS1099FormDocHeader);
 
-        // [WHEN] Ordinary correction is generated.
+        // [WHEN] Generate correction with saved nonzero amounts.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::C, false, TempBlob);
 
-        // [THEN] Unselected Form Document contributes neither recipient nor disclosures.
+        // [THEN] Only D1 contributes recipient counts, amounts and occupation codes.
         VerifySupplementalXml(TempBlob, 'NEC', '5000', '0.01', '0');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:TotalRecipientFormCnt', '1');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:TreasuryTippedOccupationCd[text()="102" or text()="103"]');
@@ -1637,30 +1641,30 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Eligible rents and zero withholding cannot qualify other-income disclosures; positive withholding can.
+        // [SCENARIO 653992] MISC XML includes tips linked to Other Income only when that income is reportable.
         Initialize();
 
-        // [GIVEN] Form Document has rent 2500, other income 500 and saved valid disclosures.
+        // [GIVEN] MISC document D has rents 2500, Other Income 500 below minimum, and valid saved supplemental values.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'MISC');
         SetDocLineAmount(IRS1099FormDocHeader, 'MISC-03', 500, 2000);
         SetDocLineAmount(IRS1099FormDocHeader, 'MISC-01', 2500, 2000);
         SetDocLineAmount(IRS1099FormDocHeader, 'MISC-04', 0, 0);
 
-        // [WHEN] XML is generated without positive backup withholding.
+        // [WHEN] Generate XML without positive backup withholding.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Only saved parent's eligibility controls disclosures.
+        // [THEN] Rents do not make Other Income or its supplemental values reportable.
         VerifySupplementalXml(TempBlob, 'MISC', '0', '0', '0');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:Form1099MISCDetail/n1:RentAmt', '2500');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:TreasuryTippedOccupationCd');
 
-        // [GIVEN] Positive withholding makes nonzero parent reportable.
+        // [GIVEN] Add positive withholding, making nonzero Other Income reportable.
         SetDocLineAmount(IRS1099FormDocHeader, 'MISC-04', 25, 0);
 
-        // [WHEN] XML is regenerated after shared financial eligibility refresh.
+        // [WHEN] Refresh income inclusion and generate XML again.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Retained disclosures and codes are restored without additional income.
+        // [THEN] Saved tips, overtime and codes appear, without adding their amounts to Other Income.
         VerifySupplementalXml(TempBlob, 'MISC', '500', '100', '50');
         VerifySavedSupplementalValues(IRS1099FormDocHeader, 100, 50, '101', '000');
         LibraryVariableStorage.AssertEmpty();
@@ -1674,28 +1678,28 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Zero-tip codes remain stored but are emitted only after positive reportable tips return.
+        // [SCENARIO 653992] XML excludes codes for zero tips but reuses the saved codes after positive tips return.
         Initialize();
 
-        // [GIVEN] Form Document has zero tips and retains its two text codes.
+        // [GIVEN] Document D has zero tips, positive overtime and two saved occupation codes.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         SetSupplementalValues(IRS1099FormDocHeader, 0, 50, '101', '000');
 
-        // [WHEN] Original is generated.
+        // [WHEN] Generate original-transmission XML.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Overtime is emitted, but occupation elements are absent.
+        // [THEN] Overtime is included but occupation-code elements are absent.
         VerifySupplementalXml(TempBlob, 'NEC', '5000', '0', '50');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:TreasuryTippedOccupationCd');
         VerifySavedSupplementalValues(IRS1099FormDocHeader, 0, 50, '101', '000');
 
-        // [GIVEN] Positive tips are restored using retained codes.
+        // [GIVEN] Restore positive tips without entering codes again.
         SetSupplementalValues(IRS1099FormDocHeader, 125, 50, '101', '000');
 
-        // [WHEN] Another original is generated.
+        // [WHEN] Generate another original transmission.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Leading-zero code reappears.
+        // [THEN] Saved codes appear, including leading zeros in 000.
         VerifySupplementalXml(TempBlob, 'NEC', '5000', '125', '50');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:Form1099NECDetail/n1:TreasuryTippedOccupationCd[2]', '000');
         LibraryVariableStorage.AssertEmpty();
@@ -1710,19 +1714,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The recipient limit applies across all contributing headers and identifies those documents.
+        // [SCENARIO 653992] A recipient cannot be reported with more than two distinct occupation codes across multiple documents.
         Initialize();
 
-        // [GIVEN] Two Form Documents each have valid codes but their recipient union contains three.
+        // [GIVEN] Two documents for same recipient each have valid codes, but together have three distinct codes.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         AddSupplementalHeader(IRS1099FormDocHeader, SecondIRS1099FormDocHeader, true);
         SetSupplementalValues(IRS1099FormDocHeader, 0.004, 0.006, '101', '000');
         SetSupplementalValues(SecondIRS1099FormDocHeader, 0.004, 0.006, '101', '102');
 
-        // [WHEN] XML is generated.
+        // [WHEN] Try to generate XML.
         asserterror CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] No truncation hides third code and error identifies both contributors.
+        // [THEN] Error identifies both documents instead of silently dropping third code.
         Assert.ExpectedError('more than two different Treasury tipped occupation codes for the same recipient');
         Assert.ExpectedError(Format(IRS1099FormDocHeader.ID));
         Assert.ExpectedError(Format(SecondIRS1099FormDocHeader.ID));
@@ -1740,10 +1744,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A custom definition is not silently treated as an implemented XML mapping.
+        // [SCENARIO 653992] XML generation rejects a populated custom supplemental box without a supported mapping.
         Initialize();
 
-        // [GIVEN] Form Document has populated unmapped custom supplemental row.
+        // [GIVEN] Document D has saved value in custom supplemental box with no supported XML mapping.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Open;
         IRS1099FormDocHeader.Modify();
@@ -1759,10 +1763,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRS1099FormDocHeader.Status := IRS1099FormDocHeader.Status::Released;
         IRS1099FormDocHeader.Modify();
 
-        // [WHEN] Original is generated.
+        // [WHEN] Try to generate original-transmission XML.
         asserterror CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Document and unsupported disclosure are identified explicitly.
+        // [THEN] Error identifies document D and unsupported supplemental box.
         Assert.ExpectedError(StrSubstNo(UnknownSupplementalErr, IRS1099FormDocHeader.ID));
         Assert.ExpectedError('contains values that cannot be reported in IRIS XML');
         Assert.ExpectedErrorCode('Dialog');
@@ -1778,17 +1782,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An explicit legacy contract cannot silently omit populated 2026 disclosures.
+        // [SCENARIO 653992] Schema 2.0.3 cannot silently omit saved 2026 supplemental values.
         Initialize();
 
-        // [GIVEN] Form Document has disclosures but its period explicitly selects legacy schema.
+        // [GIVEN] 2026 document has saved tips, codes and overtime, but its period explicitly selects schema 2.0.3.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         SetPeriodSchema('2026', "XML Schema Version IRIS"::"2.0.3");
 
-        // [WHEN] Generation is attempted.
+        // [WHEN] Try to generate XML.
         asserterror CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Incompatible schema is actionable rather than implicit downgrade.
+        // [THEN] Error explains that selected schema does not support supplemental values.
         Assert.ExpectedError(StrSubstNo(LegacySupplementalErr, IRS1099FormDocHeader.ID));
         Assert.ExpectedError('2.0.3');
         Assert.ExpectedErrorCode('Dialog');
@@ -1805,19 +1809,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A selected zero correction zeros outbound financial/disclosure values without altering saved source.
+        // [SCENARIO 653992] A zero correction changes only outgoing XML amounts, not saved income, supplemental values or accepted references.
         Initialize();
 
-        // [GIVEN] Selected Form Document has accepted references; unselected document must remain excluded.
+        // [GIVEN] D1 is selected for correction with accepted filing references; D2 is not selected.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         AddSupplementalHeader(IRS1099FormDocHeader, UnselectedIRS1099FormDocHeader, false);
         SetSupplementalValues(UnselectedIRS1099FormDocHeader, 200, 75, '102', '103');
         SetCorrectionReference(IRS1099FormDocHeader);
 
-        // [WHEN] Zero correction is generated.
+        // [WHEN] Generate correction XML with zero amounts.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::C, true, TempBlob);
 
-        // [THEN] Outbound values are zero, codes absent and original source/reference values unchanged.
+        // [THEN] D1's outgoing income, tips and overtime are zero and codes are absent; D2 is excluded and saved source values and references remain unchanged.
         VerifySupplementalXml(TempBlob, 'NEC', '0', '0', '0');
         LibraryXPathXMLReader.VerifyXmlNodeAbsence('//n1:TreasuryTippedOccupationCd');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:TotalRecipientFormCnt', '1');
@@ -1840,18 +1844,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A zero correction cannot invent an accepted original reference.
+        // [SCENARIO 653992] A zero correction requires a saved accepted filing reference.
         Initialize();
 
-        // [GIVEN] Form Document is selected for correction without accepted reference.
+        // [GIVEN] Document D is selected for correction but has no accepted reference.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'MISC');
         IRS1099FormDocHeader."IRIS Needs Correction" := true;
         IRS1099FormDocHeader.Modify();
 
-        // [WHEN] Zero correction is generated.
+        // [WHEN] Try to generate zero correction.
         asserterror CreateSupplementalXml(Transmission, "Transmission Type IRIS"::C, true, TempBlob);
 
-        // [THEN] Missing accepted reference prevents correction.
+        // [THEN] Error blocks correction rather than creating accepted reference.
         Assert.ExpectedError('Last accepted receipt ID is missing');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -1865,19 +1869,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Step two uses original semantics even when the document retains its previous accepted reference.
+        // [SCENARIO 653992] Step 2 sends a new original, not another correction, even when old accepted references are present.
         Initialize();
 
-        // [GIVEN] Form Document has previously accepted zero correction and is Released for step two.
+        // [GIVEN] Document D retains previously accepted zero-correction reference and is Released for Step 2.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'MISC');
         SetCorrectionReference(IRS1099FormDocHeader);
         IRS1099FormDocHeader."IRIS Corrected to Zeros" := true;
         IRS1099FormDocHeader.Modify();
 
-        // [WHEN] Step two generates new original.
+        // [WHEN] Generate Step 2 XML as new original transmission.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Original semantics restore disclosures without previous-recipient group.
+        // [THEN] XML includes saved supplemental values and no previous-recipient correction group.
         VerifySupplementalXml(TempBlob, 'MISC', '5000', '100', '50');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:TransmissionTypeCd', 'O');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:CorrectedInd', '0');
@@ -1898,10 +1902,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Value: JsonToken;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Configuring overtime first in a statement does not move it before tips in actual XML.
+        // [SCENARIO 653992] Changing statement row order does not change the required XML element order.
         Initialize();
 
-        // [GIVEN] Form Document has user-configured statement with overtime before tips.
+        // [GIVEN] Document's statement is configured to show overtime before cash tips.
         CreateSupplementalTransmission(Transmission, IRS1099FormDocHeader, 'NEC');
         StatementLine.SetRange("Period No.", '2026');
         StatementLine.SetRange("Form No.", 'NEC');
@@ -1910,11 +1914,11 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         InsertSupplementalStatement('NEC-01C', 2, 'Codes second');
         InsertSupplementalStatement('NEC-01B', 3, 'Tips last');
 
-        // [WHEN] Both statement dataset and actual transmission XML are generated.
+        // [WHEN] Generate both statement data and transmission XML.
         Lines := LibraryIRS1099Document.GetStatementDataset(IRS1099FormDocHeader);
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Statement follows setup while XML independently follows XSD.
+        // [THEN] Statement follows configured row order, while XML still places tips before occupation codes and overtime.
         Assert.AreEqual(3, Lines.Count(), 'The configured supplemental rows are used.');
         Lines.Get(0, Line);
         Line.AsObject().Get('name', Value);
@@ -1932,26 +1936,26 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Both 2025 contracts retain their financial mappings without new disclosure elements.
+        // [SCENARIO 653992] 2025 XML keeps its original income fields and excludes the new 2026 supplemental fields in both schemas.
         Initialize();
 
-        // [GIVEN] 2025 document uses new supported contract.
+        // [GIVEN] 2025 document uses schema 5.0.7.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2025);
 
-        // [WHEN] New-contract XML is generated.
+        // [WHEN] Generate XML with schema 5.0.7.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] No 2026 fields leak into 2025 details or totals.
+        // [THEN] No 2026 supplemental fields appear in recipient details or submission totals.
         VerifyNoSupplementalXml(TempBlob);
         VerifyContractManifest(TempBlob, '2025', '25TEST0001', '1');
 
-        // [GIVEN] Same period explicitly selects legacy contract.
+        // [GIVEN] Change same period to schema 2.0.3.
         SetPeriodSchema('2025', "XML Schema Version IRIS"::"2.0.3");
 
-        // [WHEN] Legacy XML is generated.
+        // [WHEN] Generate XML with schema 2.0.3.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Its ordinary financial values remain unchanged and disclosures remain absent.
+        // [THEN] Saved income is still reported, and supplemental fields remain absent.
         VerifyNoSupplementalXml(TempBlob);
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:SchemaVersionNum', '2.0.3');
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:Form1099NECDetail/n1:NonemployeeCompensationAmt', '5000');
@@ -1967,18 +1971,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Future-year disclosures reuse the available mapping only after confirmation.
+        // [SCENARIO 653992] 2027 XML can use available 2026 mappings after confirmation while retaining the 2027 tax year and Software ID.
         Initialize();
 
-        // [GIVEN] Transmission contains tax year 2027 Form Document with supplemental disclosures.
+        // [GIVEN] 2027 NEC document has income 5000, tips 100, overtime 50 and codes 101 and 000.
 
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2027);
         SetSupplementalValues(IRS1099FormDocHeader, 100, 50, '101', '000');
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Generate original XML and accept warning about using 2026 mappings.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] XML reports those values in correct order with year 2027 and Software ID 27TEST0001; warning names mapping year 2026 and schema 5.0.7.
         VerifySupplementalXml(TempBlob, 'NEC', '5000', '100', '50');
         VerifySupplementalOrder('NEC');
         VerifyContractManifest(TempBlob, '2027', '27TEST0001', '0');
@@ -1996,14 +2000,14 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         ValueType: Enum "IRS 1099 Supplemental Type";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A year before supplemental reporting has no mapping, even for a known supplemental box.
+        // [SCENARIO 653992] Mapping lookup can reuse an earlier resource for a future year, but never a later resource for an older year.
         Initialize();
 
-        // [GIVEN] Available supplemental resource is for TY2026.
+        // [GIVEN] Occupation-code mappings are available for tax year 2026.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Look up NEC-01C first for 2027 and then for 2025.
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] 2027 receives occupation-code mapping; 2025 receives no mapping and previous lookup's output values are cleared.
         Assert.IsTrue(Helper.GetMapping('2027', 'NEC', 'NEC-01C', ParentFormBoxNo, ElementName, ValueType),
             'Future years must use the available earlier mapping.');
         Assert.AreEqual(ValueType::"Occupation Codes", ValueType, 'Preserve the mapped value type.');
@@ -2027,18 +2031,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         StoredPayload: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Configuration edited during consent affects the next attempt, not the current identity.
+        // [SCENARIO 653992] Changing configuration during filing consent affects the next attempt, not the attempt already being confirmed.
         Initialize();
 
-        // [GIVEN] Unverified-year attempt starts with period override and its original year ID.
+        // [GIVEN] Unverified-year send starts with period schema override and that year's Software ID.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2027);
         InitializeOfflineTransport(Transmission);
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2027', '27TEST0001');
 
-        // [WHEN] Consent edits actual period and replaces existing mock provider configuration.
+        // [WHEN] Change period override and provider configuration while accepting consent dialog.
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
-        // [THEN] Actual persisted XML/history retain context selected before edit.
+        // [THEN] Current XML and saved history keep schema and Software ID selected before edit.
         FindLastAttempt(Transmission, FirstAttempt);
         Payload.FromRecord(FirstAttempt, FirstAttempt.FieldNo("Transmission Content"));
         VerifyContractManifest(Payload, '2027', '27TEST0001', '0');
@@ -2052,10 +2056,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         StoredPayload := ReadAttemptContentBytes(FirstAttempt, 20);
         VerifyMappingConfirmation('2027', '2026', '5.0.7');
 
-        // [WHEN] Later attempt resolves cleared override and changed provider.
+        // [WHEN] Start another attempt after override was cleared and provider settings changed.
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
-        // [THEN] It uses new configuration without rewriting earlier payload.
+        // [THEN] New attempt uses new settings, without rewriting earlier XML.
         FindLastAttempt(Transmission, SecondAttempt);
         Payload.FromRecord(SecondAttempt, SecondAttempt.FieldNo("Transmission Content"));
         InitXMLReader(Payload);
@@ -2084,20 +2088,20 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Payload: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Preflight and XML generation read the schema selected after the document warning.
+        // [SCENARIO 653992] A schema change during the Open-document warning applies to both data validation and XML generation.
         Initialize();
 
-        // [GIVEN] Transmission uses 5.0.7 for 2026 without contact email and includes Open Form Document warning.
+        // [GIVEN] 2026 transmission uses schema 5.0.7, has no contact email and includes Open document.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2026);
         AddOpenTransmissionDocument(IRS1099FormDocHeader);
         InitializeOfflineTransport(Transmission);
         UpdateCompanyContactInfo('Test Contact', '1234567890', '');
         Commit();
 
-        // [WHEN] Warning changes real period to 2.0.3 before contact preflight.
+        // [WHEN] Change period to schema 2.0.3 while accepting Open-document warning.
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
-        // [THEN] Both reads use 2.0.3, where email is optional, without failed send or retry.
+        // [THEN] Both data validation and XML generation use 2.0.3, where email is optional, and send succeeds without retry.
         VerifyOpenDocumentConfirmation();
         VerifyMappingConfirmation('2026', '2026', '2.0.3');
         FindLastAttempt(Transmission, Attempt);
@@ -2120,32 +2124,32 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Payload: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Retrying a cancelled send reads current configuration and requires fresh consent.
+        // [SCENARIO 653992] Retrying a cancelled send uses current settings and asks for confirmation again.
         Initialize();
 
-        // [GIVEN] Transmission starts in sandbox for unverified 2027 with new schema.
+        // [GIVEN] 2027 sandbox transmission starts with schema 5.0.7.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2027);
         InitializeOfflineTransport(Transmission);
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2027', '27TEST0001');
         Commit();
 
-        // [WHEN] Warning changes configuration and is declined.
+        // [WHEN] Change settings in warning dialog, then decline send.
         asserterror LibraryIRS1099IRIS.SendOriginal(Transmission);
 
-        // [THEN] Cancellation writes no attempt and sends no request.
+        // [THEN] No send attempt or HTTP request is saved.
         Assert.AreEqual('', GetLastErrorText(), 'Declining cancels the send.');
         Assert.ExpectedErrorCode('Dialog');
         VerifyMappingConfirmation('2027', '2026', '5.0.7');
         Assert.IsTrue(Attempt.IsEmpty(), 'No cancelled attempt may be stored.');
         Assert.AreEqual(0, OfflineRequestPaths.Count(), 'Cancellation precedes all HTTP requests.');
 
-        // [GIVEN] Next operation explicitly selects different contract after database rollback.
+        // [GIVEN] After cancellation rolls back, explicitly select different schema for next send.
         SetPeriodSchema('2027', "XML Schema Version IRIS"::"2.0.3");
 
-        // [WHEN] Same record is sent again and this operation is accepted.
+        // [WHEN] Retry same transmission and accept its warning.
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
-        // [THEN] Fresh warning and actual payload use new schema and Software ID.
+        // [THEN] New warning and XML use newly selected schema and year-specific Software ID.
         VerifyMappingConfirmation('2027', '2026', '2.0.3');
         FindLastAttempt(Transmission, Attempt);
         Payload.FromRecord(Attempt, Attempt.FieldNo("Transmission Content"));
@@ -2173,10 +2177,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         UniqueTransmissionId: Text[100];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Preflight and several documents require one consent, never a saved waiver.
+        // [SCENARIO 653992] One generation operation asks once before reusing mappings, but each later operation asks again.
         Initialize();
 
-        // [GIVEN] Two documents for unverified TY2027 using available TY2026 resource.
+        // [GIVEN] Two 2027 documents use available 2026 mappings.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2027);
         SecondIRS1099FormDocHeader := IRS1099FormDocHeader;
         SecondIRS1099FormDocHeader.ID := 0;
@@ -2186,29 +2190,29 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRS1099FormDocLine."Document ID" := SecondIRS1099FormDocHeader.ID;
         IRS1099FormDocLine.Insert();
 
-        // [WHEN] Preflight runs twice and operation generates both documents.
+        // [WHEN] Validate data twice and generate XML for both documents in one operation.
         IRSFormsFacade.CheckDataToReport(Transmission);
         IRSFormsFacade.CheckDataToReport(Transmission);
         IRSFormsFacade.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
 
-        // [THEN] One explicit warning names real mapping and retains requested identity.
+        // [THEN] One warning names reused mappings, and XML retains requested tax year and Software ID.
         VerifyMappingConfirmation('2027', '2026', '5.0.7');
         VerifyContractManifest(TempBlob, '2027', '27TEST0001', '0');
         Assert.AreEqual(2, TempIRS1099FormDocHeader.Count(), 'Both selected documents must use the same consent.');
 
-        // [WHEN] New operation uses same record and generator.
+        // [WHEN] Start another operation with same transmission and generator.
         Clear(TempBlob);
         IRSFormsFacade.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
 
-        // [THEN] It needs new consent even though context is unchanged.
+        // [THEN] New confirmation is required even though settings are unchanged.
         VerifyMappingConfirmation('2027', '2026', '5.0.7');
 
-        // [WHEN] Later operation changes selected schema.
+        // [WHEN] Start later operation with different schema.
         SetPeriodSchema('2027', "XML Schema Version IRIS"::"2.0.3");
         Clear(TempBlob);
         IRSFormsFacade.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
 
-        // [THEN] New warning identifies changed exact version.
+        // [THEN] New warning names newly selected schema version.
         VerifyMappingConfirmation('2027', '2026', '2.0.3');
         InitXMLReader(TempBlob);
         LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:SchemaVersionNum', '2.0.3');
@@ -2229,18 +2233,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         UniqueTransmissionId: Text[100];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Declining mapping reuse cancels before attempt IDs, payload or document writes.
+        // [SCENARIO 653992] Declining mapping reuse cancels generation before XML, filing IDs or history are saved.
         Initialize();
 
-        // [GIVEN] Released unverified-year document without attempt IDs.
+        // [GIVEN] Released document for unverified year has no new attempt or filing IDs.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2027);
         UniqueTransmissionId := 'UNCHANGED';
         Commit();
 
-        // [WHEN] User declines generation.
+        // [WHEN] Decline warning before generating XML.
         asserterror IRSFormsFacade.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
 
-        // [THEN] No attempt is generated and released source stays unchanged.
+        // [THEN] No XML or attempt history is created, and document stays Released with its original values.
         Assert.AreEqual('', GetLastErrorText(), 'Declining must cancel, not report a filing success.');
         Assert.ExpectedErrorCode('Dialog');
         Assert.AreEqual('UNCHANGED', UniqueTransmissionId, 'Cancellation must precede UTID creation.');
@@ -2260,19 +2264,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         UniqueTransmissionId: Text[100];
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A missing requested-year identity fails before asking to reuse an available mapping.
+        // [SCENARIO 653992] A missing Software ID for the requested year blocks generation before the mapping-reuse warning.
         Initialize();
 
-        // [GIVEN] TY2027 has mapping but only TY2026 has ID.
+        // [GIVEN] 2027 can reuse available mappings, but only 2026 Software ID is configured.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2027);
         InitializeStandardProvider();
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2026', '26TEST0001');
         Commit();
 
-        // [WHEN] Generation resolves operation's identity before requesting consent.
+        // [WHEN] Try to generate XML for 2027.
         asserterror IRSFormsFacade.CreateTransmissionXmlContent(Transmission, "Transmission Type IRIS"::O, false, UniqueTransmissionId, TempIRS1099FormDocHeader, TempBlob);
 
-        // [THEN] Missing requested-year configuration still blocks generation.
+        // [THEN] Missing 2027 Software ID error is raised before any confirmation to reuse mappings.
         Assert.ExpectedError('Software ID');
         Assert.ExpectedErrorCode('Dialog');
         VerifyCancelledXmlCreationLeavesNoChanges(IRS1099FormDocHeader, TempIRS1099FormDocHeader, TempBlob);
@@ -2289,16 +2293,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An existing older resource is named instead of assuming the newest mapping.
+        // [SCENARIO 653992] A warning for an unverified older year identifies the mapping resource actually used.
         Initialize();
 
-        // [GIVEN] New schema is selected for unverified TY2024.
+        // [GIVEN] Tax year 2024 uses schema 5.0.7 but is not verified for that schema.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2024);
 
-        // [WHEN] Its actual resource is accepted.
+        // [WHEN] Accept warning to generate XML using its available resource.
         CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Warning and payload retain older requested year and matching ID.
+        // [THEN] Warning names actual older resource, and XML keeps year 2024 and its matching Software ID.
         VerifyMappingConfirmation('2024', '2024', '5.0.7');
         VerifyContractManifest(TempBlob, '2024', '24TEST0001', '0');
         LibraryVariableStorage.AssertEmpty();
@@ -2312,16 +2316,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TempBlob: Codeunit "Temp Blob";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An unavailable mapping fails explicitly without offering a waiver.
+        // [SCENARIO 653992] A year with no usable mapping resource fails without offering confirmation to bypass the error.
         Initialize();
 
-        // [GIVEN] No resource exists for TY2023 or earlier usable year.
+        // [GIVEN] No mapping resource exists for tax year 2023 or earlier usable year.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2023);
 
-        // [WHEN] Generation is attempted without confirmation handler.
+        // [WHEN] Try to generate XML without confirmation handler.
         asserterror CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, TempBlob);
 
-        // [THEN] Missing-resource error replaces neither mapping nor ordinary validation.
+        // [THEN] Missing-resource error stops generation; no substitute mapping is chosen.
         Assert.ExpectedError('The resource file for the period 2023 is not found');
         Assert.ExpectedErrorCode('Dialog');
         LibraryVariableStorage.AssertEmpty();
@@ -2336,17 +2340,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRSFormsFacade: Codeunit "IRS Forms Facade";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual submission preflight reports missing TY2026 email through structured errors.
+        // [SCENARIO 653992] 2026 data validation with schema 5.0.7 requires a contact email address.
         Initialize();
 
-        // [GIVEN] Valid TY2026 contact name and phone but no email.
+        // [GIVEN] 2026 transmission has valid contact name and phone number but no email.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2026);
         UpdateCompanyContactInfo('Test Contact', '1234567890', '');
 
-        // [WHEN] Public preflight is invoked.
+        // [WHEN] Run CheckDataToReport through IRS Forms Facade.
         asserterror IRSFormsFacade.CheckDataToReport(Transmission);
 
-        // [THEN] Existing Error Messages page captures missing email field.
+        // [THEN] Error Messages page reports Email must be set, and validation cancels operation.
         Assert.AreEqual('', GetLastErrorText(), 'Preflight shows the structured errors before cancelling.');
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedMessage('Email must be set.', LibraryVariableStorage.DequeueText());
@@ -2361,17 +2365,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRSFormsFacade: Codeunit "IRS Forms Facade";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Central contact requirements do not introduce a TY2025 email requirement.
+        // [SCENARIO 653992] 2025 data validation with schema 5.0.7 keeps contact email optional.
         Initialize();
 
-        // [GIVEN] TY2025 uses new schema with no contact email.
+        // [GIVEN] 2025 transmission uses schema 5.0.7 and has no contact email.
         CreateContractTransmission(Transmission, IRS1099FormDocHeader, 2025);
         UpdateCompanyContactInfo('Test Contact', '1234567890', '');
 
-        // [WHEN] Actual submission preflight runs.
+        // [WHEN] Run CheckDataToReport through IRS Forms Facade.
         IRSFormsFacade.CheckDataToReport(Transmission);
 
-        // [THEN] No contact error was raised.
+        // [THEN] Validation succeeds without contact-email error.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2380,15 +2384,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ActualTwoStep2026NecPreservesSupplementalSource()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Accepted selected zero correction is followed by the actual Send Corrected original action.
+        // [SCENARIO 653992] The 2026 NEC two-step workflow sends zeros first and then a new original without changing saved supplemental values.
         Initialize();
 
-        // [GIVEN] Transmission contains accepted tax year 2026 NEC Form Document and unselected Form Document.
+        // [GIVEN] Accepted 2026 NEC document D1 is selected for zero correction; D2 is not selected.
 
-        // [WHEN] Both steps execute through product orchestrator with simulated HTTP responses.
+        // [WHEN] Send zero correction, simulate IRS acceptance, then use Step 2 Send Corrected Original with newly prepared document.
         VerifyActualTwoStep(2026, 'NEC');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Only D1 is zero-corrected and Abandoned; Step 2 sends new original with saved amounts, while old source values and unselected D2 remain intact.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2397,15 +2401,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ActualTwoStep2026MiscPreservesSupplementalSource()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] MISC zero correction retains its separate disclosures through the second-step original.
+        // [SCENARIO 653992] The 2026 MISC two-step workflow keeps saved tips, codes and overtime through zero correction and a new original.
         Initialize();
 
-        // [GIVEN] Transmission contains accepted tax year 2026 MISC Form Document and unselected Form Document.
+        // [GIVEN] Accepted 2026 MISC document D1 is selected for zero correction; D2 is not selected.
 
-        // [WHEN] Both steps execute through product orchestrator with simulated HTTP responses.
+        // [WHEN] Send zero correction, simulate IRS acceptance, then use Step 2 Send Corrected Original with newly prepared document.
         VerifyActualTwoStep(2026, 'MISC');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Step 1 sends zeros, Step 2 sends new original amounts, and old source's supplemental values and accepted references remain unchanged.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2414,15 +2418,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ActualTwoStep2025NecRetainsOriginalSemantics()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The supported earlier-year NEC flow uses the same two-step orchestration without disclosures.
+        // [SCENARIO 653992] The 2025 NEC two-step workflow sends a zero correction followed by a new original without supplemental fields.
         Initialize();
 
-        // [GIVEN] Transmission contains accepted tax year 2025 NEC Form Document and unselected Form Document.
+        // [GIVEN] Accepted 2025 NEC document D1 is selected for zero correction; D2 is not selected.
 
-        // [WHEN] Both steps execute through product orchestrator with simulated HTTP responses.
+        // [WHEN] Send zero correction, simulate IRS acceptance, then use Step 2 Send Corrected Original with newly prepared document.
         VerifyActualTwoStep(2025, 'NEC');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Step 1 references accepted original; Step 2 has original-transmission XML, and saved source values and unselected D2 remain intact.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2431,15 +2435,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ActualWholeReplacementReferencesRejectedReceipt()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Replacing a wholly rejected transmission has only a manifest-level reference.
+        // [SCENARIO 653992] A full replacement references the rejected transmission's receipt once at transmission level.
         Initialize();
 
-        // [GIVEN] Transmission contains rejected and original-receipt submission references for tax year 2026.
+        // [GIVEN] 2026 transmission has rejected NEC and MISC submissions and saved original receipt.
 
-        // [WHEN] Rejected NEC and MISC submissions are replaced together.
+        // [WHEN] Send replacement for both rejected submissions.
         VerifyActualReplacement(2026, "Transmission Status IRIS"::Rejected, false);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] XML includes both submissions and original receipt at transmission level, without per-submission or correction references.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2448,15 +2452,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ActualPartialReplacementExcludesAcceptedSubmission()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A partial replacement includes only the rejected submission and its saved disclosures.
+        // [SCENARIO 653992] A partial replacement sends only the rejected submission and references its original submission ID.
         Initialize();
 
-        // [GIVEN] Transmission contains rejected and original-receipt submission references for tax year 2026.
+        // [GIVEN] 2026 transmission has rejected NEC and accepted MISC submissions with saved original references.
 
-        // [WHEN] Only rejected submission is replaced.
+        // [WHEN] Send replacement.
         VerifyActualReplacement(2026, "Transmission Status IRIS"::"Partially Accepted", true);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Only NEC is sent with its original submission reference and saved values; accepted MISC remains unchanged.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2465,15 +2469,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ActualReplacementAfterAcceptedCorrectionExcludesAcceptedSubmission()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An accepted correction must not cause another accepted submission to be resent by replacement.
+        // [SCENARIO 653992] Replacing a still-rejected submission after another correction was accepted does not resend the accepted submission.
         Initialize();
 
-        // [GIVEN] Transmission contains rejected and original-receipt submission references for tax year 2026.
+        // [GIVEN] 2026 transmission's latest status is Accepted, but NEC remains rejected and MISC is accepted.
 
-        // [WHEN] Previously rejected submission remains after another submission was corrected and accepted.
+        // [WHEN] Send replacement for remaining rejected submission.
         VerifyActualReplacement(2026, "Transmission Status IRIS"::Accepted, true);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Only NEC is sent using its original submission reference; accepted MISC is neither sent nor changed.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2482,15 +2486,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure Actual2025WholeReplacementPreservesReferences()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual2025 Whole Replacement Preserves References.
+        // [SCENARIO 653992] A full 2025 replacement keeps the original receipt reference and includes both rejected submissions.
         Initialize();
 
-        // [GIVEN] Transmission contains rejected and original-receipt submission references for tax year 2025.
+        // [GIVEN] 2025 transmission has rejected NEC and MISC submissions and saved original receipt.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Send replacement for both submissions.
         VerifyActualReplacement(2025, "Transmission Status IRIS"::Rejected, false);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] XML includes both submissions with transmission-level original receipt reference, no correction references and unchanged source values.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2499,15 +2503,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure Actual2025PartialReplacementExcludesAcceptedSubmission()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual2025 Partial Replacement Excludes Accepted Submission.
+        // [SCENARIO 653992] A partial 2025 replacement excludes an already accepted submission.
         Initialize();
 
-        // [GIVEN] Transmission contains rejected and original-receipt submission references for tax year 2025.
+        // [GIVEN] 2025 transmission has rejected NEC and accepted MISC submissions.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Send replacement.
         VerifyActualReplacement(2025, "Transmission Status IRIS"::"Partially Accepted", true);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Only NEC is sent with its original submission reference; accepted MISC and saved source values remain unchanged.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2516,15 +2520,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure Actual2026NecManualCorrectionPreservesUnselectedSource()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual2026 Nec Manual Correction Preserves Unselected Source.
+        // [SCENARIO 653992] A 2026 NEC correction sends edited values only for the selected document.
         Initialize();
 
-        // [GIVEN] Transmission contains selected tax year 2026 NEC Form Document and unselected Form Document.
+        // [GIVEN] Accepted NEC document D1 is selected and edited to income 6000, tips 120 and overtime 60; accepted D2 is not selected.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Send correction with nonzero amounts.
         VerifyActualNonzeroCorrection(2026, 'NEC');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] D1's edited values and accepted reference appear in XML, its new accepted receipt is saved, and D2 remains unchanged.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2533,15 +2537,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure Actual2026MiscManualCorrectionPreservesUnselectedSource()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual2026 Misc Manual Correction Preserves Unselected Source.
+        // [SCENARIO 653992] A 2026 MISC correction sends edited values only for the selected document.
         Initialize();
 
-        // [GIVEN] Transmission contains selected tax year 2026 MISC Form Document and unselected Form Document.
+        // [GIVEN] Accepted MISC document D1 is selected and edited to income 6000, tips 120 and overtime 60; accepted D2 is not selected.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Send correction with nonzero amounts.
         VerifyActualNonzeroCorrection(2026, 'MISC');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] D1's edited values and accepted reference appear in XML, its new accepted receipt is saved, and D2 remains unchanged.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2550,15 +2554,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure Actual2025NecManualCorrectionPreservesUnselectedSource()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual2025 Nec Manual Correction Preserves Unselected Source.
+        // [SCENARIO 653992] A 2025 NEC correction sends edited income only for the selected document.
         Initialize();
 
-        // [GIVEN] Transmission contains selected tax year 2025 NEC Form Document and unselected Form Document.
+        // [GIVEN] Accepted NEC document D1 is selected and edited to income 6000; accepted D2 is not selected.
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Send correction with nonzero amounts.
         VerifyActualNonzeroCorrection(2025, 'NEC');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] XML includes only D1 with income 6000 and its accepted reference, without changing D2 or treating D1 as zero correction.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2575,14 +2579,14 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AcknowledgmentBytes: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual History Downloads Selected Attempt Bytes Without Regeneration.
+        // [SCENARIO 653992] History downloads return the exact saved request, response and acknowledgment without regenerating them.
         Initialize();
 
-        // [GIVEN] Transmission contains tax year 2026 NEC Form Document.
+        // [GIVEN] 2026 NEC transmission is ready to send using simulated HTTP responses.
         CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Send it, change current schema and income, then download its saved request, response and acknowledgment from history.
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         FindLastAttempt(Transmission, TransmissionLog);
         PayloadBytes := ReadAttemptContentBytes(TransmissionLog, 20);
@@ -2597,7 +2601,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         HistoryPage.GoToRecord(TransmissionLog);
         HistoryPage.DownloadTransmContent.Invoke();
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Each download matches saved bytes and attempt ID, with no XML rewrite or extra HTTP requests.
         VerifyCapturedDownload(PayloadBytes, 'Transmission_', TransmissionLog."Unique Transmission ID");
         HistoryPage.DownloadRespContent.Invoke();
         VerifyCapturedDownload(ResponseBytes, 'Response_', TransmissionLog."Unique Transmission ID");
@@ -2621,20 +2625,20 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         ErrorInformation: Record "Error Information IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Actual Record Error Acknowledgment Retains Supplemental Source.
+        // [SCENARIO 653992] A record-level acknowledgment error is saved without changing supplemental values or resending.
         Initialize();
 
-        // [GIVEN] Transmission contains tax year 2026 NEC Form Document with saved disclosures.
+        // [GIVEN] 2026 NEC document has saved supplemental values, and simulated acknowledgment returns Accepted with Errors and record error.
         CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         OfflineStatus := 'Accepted with Errors';
         OfflineSubmissionStatuses.Add('1', OfflineStatus);
         OfflineRecordError := true;
 
-        // [WHEN] Requested operation is executed through its existing entry point.
+        // [WHEN] Send original transmission.
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Transmission is Accepted with Errors, document is In Progress, error is linked to correct record, and saved values remain unchanged without resend.
         VerifyLifecycleStatus(Transmission, IRS1099FormDocHeader, "Transmission Status IRIS"::"Accepted with Errors", IRS1099FormDocHeader.Status::"In Progress");
         Assert.IsTrue(ErrorInformation.FindLast(), 'The actual acknowledgment creates a record error.');
         Assert.AreEqual(Transmission."Document ID", ErrorInformation."Transmission Document ID", 'Error belongs to this transmission.');
@@ -2661,10 +2665,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         StatusText: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Production-origin history is diagnostic only when queried from a sandbox.
+        // [SCENARIO 653992] Querying production history from a sandbox uses current sandbox endpoints without regenerating the old XML.
         Initialize();
 
-        // [GIVEN] Actual orchestrated production-environment attempt using only intercepted synthetic endpoints.
+        // [GIVEN] Transmission was sent in simulated production mode, with all HTTP requests intercepted by test.
         CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
@@ -2674,7 +2678,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         StoredPayload := ReadAttemptContentBytes(TransmissionLog, 20);
         StoredResponse := ReadAttemptContentBytes(TransmissionLog, 30);
 
-        // [WHEN] Current schema configuration becomes unavailable and status is requested in sandbox by receipt and UTID.
+        // [WHEN] Switch to sandbox, remove current schema configuration, and request status by receipt ID and unique transmission ID.
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
         SetPeriodSchema('2026', "XML Schema Version IRIS"::" ");
         OfflineStatus := 'Not Found';
@@ -2682,7 +2686,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.AreEqual('Not Found', StatusText, 'A not-found response does not trigger a production retry.');
         LibraryIRS1099IRIS.RequestStatus('', TransmissionLog."Unique Transmission ID", StatusText);
 
-        // [THEN] All probes and requests use only current sandbox slot; historical payload bytes and source remain unchanged.
+        // [THEN] All requests use sandbox endpoints, while saved production request bytes and document values remain unchanged.
         VerifyRequestPaths(5, 8, 'https://test.example/status');
         Assert.AreEqual(8, OfflineRequestPaths.Count(), 'No cross-environment retry or automatic resend.');
         Assert.AreEqual(StoredPayload, ReadAttemptContentBytes(TransmissionLog, 20), 'Configuration changes never regenerate stored XML bytes.');
@@ -2702,10 +2706,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TransmissionPage: TestPage "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Receipt, processing, rejection, partial acceptance and final acceptance are distinct states.
+        // [SCENARIO 653992] Status polling distinguishes processing, rejection, partial acceptance and final acceptance without resending.
         Initialize();
 
-        // [GIVEN] HTTP receipt with nonterminal acknowledgment.
+        // [GIVEN] Send returns receipt but its first acknowledgment is not final.
         CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         OfflineStatus := 'Processing';
@@ -2715,13 +2719,13 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
 
-        // [WHEN] Real Request Status action processes each simulated acknowledgment.
+        // [WHEN] Use Request Status to process simulated acknowledgments for each lifecycle state.
         VerifyStatusAction(TransmissionPage, Transmission, IRS1099FormDocHeader, 'Rejected', "Transmission Status IRIS"::Rejected, "IRS 1099 Form Doc. Status"::"In Progress");
         VerifyStatusAction(TransmissionPage, Transmission, IRS1099FormDocHeader, 'Partially Accepted', "Transmission Status IRIS"::"Partially Accepted", "IRS 1099 Form Doc. Status"::"In Progress");
         VerifyStatusAction(TransmissionPage, Transmission, IRS1099FormDocHeader, 'Accepted with Errors', "Transmission Status IRIS"::"Accepted with Errors", "IRS 1099 Form Doc. Status"::"In Progress");
         VerifyStatusAction(TransmissionPage, Transmission, IRS1099FormDocHeader, 'Accepted', "Transmission Status IRIS"::Accepted, "IRS 1099 Form Doc. Status"::Submitted);
 
-        // [THEN] Status polling never submits new payload or destroys saved disclosures.
+        // [THEN] Each status is handled distinctly, with no new submission or loss of saved supplemental values.
         Assert.AreEqual(12, OfflineRequestPaths.Count(), 'Four polls each have a validity probe, not another submission.');
         VerifyRequestPaths(5, 12, 'https://test.example/status');
         VerifySavedSupplementalValues(IRS1099FormDocHeader, 100, 50, '101', '000');
@@ -2742,10 +2746,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         StoredPayload: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Pre-receipt validation preserves UTID history and permits explicit receipt assignment without resend.
+        // [SCENARIO 653992] A failure before a usable receipt is obtained keeps the unique transmission ID available for status recovery.
         Initialize();
 
-        // [GIVEN] Actual sender receives simulated pre-receipt schema failure.
+        // [GIVEN] Sender receives simulated schema-validation failure before usable receipt is obtained.
         CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         OfflinePreReceiptError := true;
@@ -2754,14 +2758,14 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         FindLastAttempt(Transmission, TransmissionLog);
         StoredPayload := ReadAttemptContent(TransmissionLog, 20);
 
-        // [THEN] HTTP receipt is not accepted as final document or transmission status.
+        // [THEN] Response is not treated as final acceptance of document or transmission.
         Assert.AreEqual('', Transmission."Receipt ID", 'Pre-receipt failure cannot assign a usable receipt.');
         Assert.AreEqual("Transmission Status IRIS"::None, Transmission.Status, 'Pre-receipt failure is not ordinary rejection.');
         ErrorInformation.SetRange("Transmission Document ID", Transmission."Document ID");
         ErrorInformation.SetRange("Error Code", 'XML Schema Validation Error');
         Assert.RecordIsNotEmpty(ErrorInformation);
 
-        // [WHEN] Status by UTID and explicit manual receipt assignment are used through real page.
+        // [WHEN] Request status by unique transmission ID and manually assign recovered receipt through transmission page.
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
         TransmissionPage.RequestTransmissionStatusByUTID.Invoke();
@@ -2770,7 +2774,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TransmissionPage.AssignReceiptIDManually.Invoke();
         TransmissionPage.RequestTransmissionStatusByRID.Invoke();
 
-        // [THEN] Requests retain their identity and source bytes, without blind resubmission.
+        // [THEN] Recovery uses same request and saved XML without blindly resending original.
         Transmission.Get(Transmission."Document ID");
         Assert.AreEqual(OfflineReceiptID, Transmission."Receipt ID", 'Explicit recovered receipt is assigned.');
         Assert.AreEqual("Transmission Status IRIS"::Processing, Transmission.Status, 'Recovered receipt can be polled.');
@@ -2787,15 +2791,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure FailedZeroCorrectionCannotCompletePreviouslyAcceptedDocuments()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An HTTP failure cannot be confused with the previous accepted submission.
+        // [SCENARIO 653992] A failed zero-correction send cannot reuse the original filing's accepted status to mark the document zero-corrected.
         Initialize();
 
-        // [GIVEN] Form Document was accepted before its selected zero-correction attempt.
+        // [GIVEN] Document D was accepted before its selected zero-correction attempt.
 
-        // [WHEN] Selected zero correction receives simulated service-unavailable response.
+        // [WHEN] Send zero correction and simulate HTTP 503 Service Unavailable.
         VerifyUnacceptedZeroCorrection(503, 'Accepted');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Old accepted filing does not make failed correction complete or abandon document D.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2804,15 +2808,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure ProcessingZeroCorrectionCompletesOnlyAfterAcceptedPoll()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Processing cannot complete a zero correction; a later accepted acknowledgment completes it once.
+        // [SCENARIO 653992] A zero correction completes only after IRS acceptance, not while Processing.
         Initialize();
 
-        // [GIVEN] Form Document was accepted before its selected zero-correction attempt.
+        // [GIVEN] Document D was accepted before its selected zero-correction attempt.
 
-        // [WHEN] Selected correction receives Processing, then actual Request Status receives acceptance.
+        // [WHEN] Send correction with Processing acknowledgment, then poll status with Accepted acknowledgment.
         VerifyUnacceptedZeroCorrection(200, 'Processing');
 
-        // [THEN] Expected result and preserved data are verified.
+        // [THEN] Processing leaves correction pending; later acceptance completes it once.
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2822,15 +2826,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Transmission: Record "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Ordinary OnPrem guards remain ahead of authentication and transport.
+        // [SCENARIO 653992] Original, replacement and correction sends remain SaaS-only in an ordinary on-premises environment.
         Initialize();
 
-        // [GIVEN] Current environment is ordinary OnPrem, not simulated SaaS.
+        // [GIVEN] Environment is on-premises and is not simulated as SaaS.
 
-        // [WHEN] Every supported send operation is attempted without simulating SaaS.
+        // [WHEN] Try each of three send operations.
         asserterror LibraryIRS1099IRIS.SendOriginal(Transmission);
 
-        // [THEN] Released SaaS-only error remains for all three paths.
+        // [THEN] Each operation fails with existing SaaS-only error before authentication or HTTP transport.
         Assert.ExpectedError('only be sent electronically in the SaaS environment');
         Assert.ExpectedErrorCode('Dialog');
         asserterror LibraryIRS1099IRIS.SendReplacement(Transmission);
@@ -2850,20 +2854,20 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A receipt recovered from acknowledgment must not complete an older zero-correction attempt.
+        // [SCENARIO 653992] A receipt recovered from acknowledgment belongs to the current retry, not an older zero correction.
         Initialize();
 
-        // [GIVEN] Form Document has rejected zero correction and nonzero retry whose receipt is returned only in acknowledgment.
+        // [GIVEN] Document D has rejected zero correction and new nonzero retry whose receipt appears only in acknowledgment.
         CreateRejectedZeroCorrection(Transmission, IRS1099FormDocHeader);
         OfflineReceiptID := 'ACCEPTED-NONZERO';
         OfflineOmitSubmitReceipt := true;
         OfflineStatus := 'Accepted';
         OfflineSubmissionStatuses.Set('1', 'Accepted');
 
-        // [WHEN] Nonzero retry is sent.
+        // [WHEN] Send nonzero retry.
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
-        // [THEN] Only retry completes, and its receipt is saved without abandoning Form Document.
+        // [THEN] Retry's receipt is saved and only that retry completes; document D is not Abandoned as though old zero correction succeeded.
         VerifyRecoveredNonzeroCorrection(Transmission, IRS1099FormDocHeader);
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -2877,18 +2881,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Acceptance of a pending zero correction cannot discard newer released values.
+        // [SCENARIO 653992] Late acceptance of a zero correction does not overwrite newer Released values.
         Initialize();
 
-        // [GIVEN] Form Document has pending zero correction and newer Released disclosures.
+        // [GIVEN] Document D has pending zero correction and newer supplemental values that are already Released.
         CreatePendingZeroCorrection(Transmission, IRS1099FormDocHeader);
         ReopenAndEditPendingCorrection(IRS1099FormDocHeader);
         LibraryIRS1099Document.ReleaseDocument(IRS1099FormDocHeader);
 
-        // [WHEN] Earlier correction is accepted.
+        // [WHEN] Process acceptance of older zero correction.
         RequestAcceptedCorrection(Transmission);
 
-        // [THEN] Released values remain unsent and selected for correction.
+        // [THEN] Newer Released values remain unsent and selected for correction.
         VerifyPendingCorrectionEdits(Transmission, IRS1099FormDocHeader, IRS1099FormDocHeader.Status::Released);
         Assert.IsTrue(IRS1099FormDocHeader."IRIS Updated Not Sent", 'Newer released values must remain unsent.');
         FinishOfflineTransport();
@@ -2903,17 +2907,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Acceptance of a pending zero correction cannot close a document being edited.
+        // [SCENARIO 653992] Late acceptance of a zero correction does not close a document with newer Open edits.
         Initialize();
 
-        // [GIVEN] Form Document has pending zero correction and newer disclosures still Open.
+        // [GIVEN] Document D has pending zero correction and newer supplemental values still being edited.
         CreatePendingZeroCorrection(Transmission, IRS1099FormDocHeader);
         ReopenAndEditPendingCorrection(IRS1099FormDocHeader);
 
-        // [WHEN] Earlier correction is accepted.
+        // [WHEN] Process acceptance of older zero correction.
         RequestAcceptedCorrection(Transmission);
 
-        // [THEN] Form Document stays Open with its newer values selected for correction.
+        // [THEN] Document D stays Open, keeping newer values selected for correction.
         VerifyPendingCorrectionEdits(Transmission, IRS1099FormDocHeader, IRS1099FormDocHeader.Status::Open);
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -2928,10 +2932,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Transmission: Record "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A direct transmission update after a zero correction is sent remains unsent when its acknowledgment arrives.
+        // [SCENARIO 653992] Late acknowledgment does not mark income recalculated after a zero-correction send as already sent.
         Initialize();
 
-        // [GIVEN] Form Document has pending zero correction and selected recalculation to 6000.
+        // [GIVEN] Document D has pending zero correction and selected income recalculation to 6000.
         CreatePendingZeroCorrection(Transmission, IRS1099FormDocHeader);
         IRS1099VendorFormBoxAdj.Validate("Period No.", IRS1099FormDocHeader."Period No.");
         IRS1099VendorFormBoxAdj.Validate("Vendor No.", IRS1099FormDocHeader."Vendor No.");
@@ -2943,10 +2947,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryVariableStorage.Enqueue(IRS1099FormDocHeader."Vendor No.");
         LibraryIRS1099Document.UpdateTransmission(Transmission);
 
-        // [WHEN] Earlier zero correction is accepted.
+        // [WHEN] Process acceptance of older zero correction.
         RequestAcceptedCorrection(Transmission);
 
-        // [THEN] New financial values remain unsent and source is not abandoned.
+        // [THEN] New income remains unsent, and document D is not Abandoned.
         VerifyPendingTransmissionUpdate(IRS1099FormDocHeader);
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -2961,19 +2965,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AcceptedModifiedAt: DateTime;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Reprocessing acceptance cannot resurrect a document already corrected to zero.
+        // [SCENARIO 653992] Polling the same accepted zero correction again does not reopen its Abandoned document.
         Initialize();
 
-        // [GIVEN] Form Document was Abandoned after acceptance of its zero correction.
+        // [GIVEN] Document D was already Abandoned after its zero correction was accepted.
         CreatePendingZeroCorrection(Transmission, DocHeader);
         RequestAcceptedCorrection(Transmission);
         DocHeader.Get(DocHeader.ID);
         AcceptedModifiedAt := DocHeader.SystemModifiedAt;
 
-        // [WHEN] Same acknowledgment is requested again.
+        // [WHEN] Request same acknowledgment again.
         RequestAcceptedCorrection(Transmission);
 
-        // [THEN] Form Document stays Abandoned without rewriting its history.
+        // [THEN] Document D stays Abandoned, and its saved history is not rewritten.
         VerifyAcceptedZeroCorrection(DocHeader);
         Assert.AreEqual(AcceptedModifiedAt, DocHeader.SystemModifiedAt, 'Repeated acceptance must not rewrite the abandoned source.');
         FinishOfflineTransport();
@@ -2988,20 +2992,20 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         DocHeader: Record "IRS 1099 Form Doc. Header";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] The shared Step 1 operation retains pending correction state until IRS acceptance.
+        // [SCENARIO 653992] Step 1 keeps a zero correction pending until an Accepted acknowledgment is received.
         Initialize();
 
-        // [GIVEN] Form Document is accepted and next acknowledgment is Processing.
+        // [GIVEN] Document D is accepted, and next simulated acknowledgment is Processing.
         CreateAcceptedCorrectionSource(Transmission, DocHeader);
         DocHeader."IRIS Needs Correction" := false;
         DocHeader.Modify();
         OfflineStatus := 'Processing';
         OfflineSubmissionStatuses.Add('1', 'Processing');
 
-        // [WHEN] Operation used by Step 1 page action sends all eligible documents.
+        // [WHEN] Run send operation used by Step 1 and later poll Accepted acknowledgment.
         LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
 
-        // [THEN] Form Document remains pending until its later accepted acknowledgment completes zero correction.
+        // [THEN] Document D remains pending while Processing and completes zero correction only after acceptance.
         VerifyPendingZeroCorrection(DocHeader);
         RequestAcceptedCorrection(Transmission);
         VerifyAcceptedZeroCorrection(DocHeader);
@@ -3019,10 +3023,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         ReplacementModifiedAt: DateTime;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Inherited receipt references do not make a recreated document part of an older send attempt.
+        // [SCENARIO 653992] Replaying an old acknowledgment does not update a replacement document that was not in that send attempt.
         Initialize();
 
-        // [GIVEN] Form Document was accepted and new box creates unsent replacement.
+        // [GIVEN] Accepted source document has new box, creating unsent replacement with inherited filing references.
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         LibraryIRS1099IRIS.SendOriginal(Transmission);
@@ -3034,10 +3038,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         FindUnsentReplacement(DocHeader, ReplacementDocHeader);
         ReplacementModifiedAt := ReplacementDocHeader.SystemModifiedAt;
 
-        // [WHEN] Original send's accepted acknowledgment is processed again.
+        // [WHEN] Process original send's Accepted acknowledgment again.
         RequestAcceptedCorrection(Transmission);
 
-        // [THEN] Replacement remains unsent and is not changed by attempt that did not contain it.
+        // [THEN] Replacement remains unsent and unchanged because old attempt did not contain it.
         VerifyUnsentReplacement(ReplacementDocHeader, ReplacementModifiedAt);
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -3048,33 +3052,36 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     var
         Transmission: Record "Transmission IRIS";
         DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
         TransmissionPage: TestPage "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] An accepted correction must not hide replacement of a remaining rejected submission.
+        // [SCENARIO 653992] An accepted correction does not hide the replacement action for a different rejected submission.
         Initialize();
 
-        // [GIVEN] Transmission's latest correction was accepted but earlier submission remains rejected.
+        // [GIVEN] Transmission's latest correction is accepted, but earlier submission is still rejected.
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         SetLifecycleReference(DocHeader, Transmission."Document ID", '1', '2', "Transmission Status IRIS"::Rejected, false);
+        CreateFilingAttempt(Transmission, "Transmission Type IRIS"::O, DocHeader."IRIS Last Receipt ID", TransmissionLog);
+        AddFilingAttemptDocument(TransmissionLog, DocHeader, 1);
         Transmission.Status := Transmission.Status::Accepted;
         Transmission."Last Type" := Transmission."Last Type"::C;
         Transmission.Modify();
         InitializeOfflineTransport(Transmission);
 
-        // [WHEN] Transmission is opened.
+        // [WHEN] Open transmission card.
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
 
-        // [THEN] Replacement is available for remaining rejection.
+        // [THEN] Replacement remains available for rejected submission.
         Assert.IsTrue(TransmissionPage.SendReplacement.Visible(), 'An accepted correction cannot hide remaining rejected submissions.');
 
-        // [WHEN] Latest correction itself is rejected instead.
+        // [WHEN] Change latest correction's status to Rejected.
         Transmission.Status := Transmission.Status::Rejected;
         Transmission.Modify();
         TransmissionPage.GoToRecord(Transmission);
 
-        // [THEN] Rejected correction still requires correction, not replacement.
+        // [THEN] That rejected correction requires correction retry, not replacement.
         Assert.IsFalse(TransmissionPage.SendReplacement.Visible(), 'A rejected correction must not become replaceable.');
         TransmissionPage.Close();
         FinishOfflineTransport();
@@ -3093,10 +3100,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AttemptCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A form recreated after an accepted zero correction cannot be sent as a correction.
+        // [SCENARIO 653992] A new document created after an accepted zero correction must be sent as an original, not a correction.
         Initialize();
 
-        // [GIVEN] Source document was Abandoned after its zero correction and Update Transmission creates unsent replacement document.
+        // [GIVEN] Source is Abandoned after zero correction, and Update Transmission creates unsent replacement document.
         CreatePendingZeroCorrection(Transmission, SourceDocHeader);
         RequestAcceptedCorrection(Transmission);
         SetTransmissionUpdateAdjustment(SourceDocHeader, 'NEC-01', 5000);
@@ -3113,10 +3120,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AttemptCount := TransmissionLog.Count();
         Commit();
 
-        // [WHEN] Replacement document is selected for correction.
+        // [WHEN] Try to correct new document.
         asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
-        // [THEN] Clear guidance replaces technical identifier error before XML or HTTP work.
+        // [THEN] Clear guidance blocks operation before XML generation or HTTP requests.
         Assert.ExpectedError(NoRecordedCorrectionTxt);
         Assert.ExpectedError('Clear Needs Correction');
         Assert.ExpectedError('original returns');
@@ -3140,10 +3147,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AcceptedRecordReference: Text;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Adding a box to an accepted return preserves its eligibility for correction.
+        // [SCENARIO 653992] Adding a box to an accepted return preserves the accepted reference needed for correction.
         Initialize();
 
-        // [GIVEN] Updating sent source document creates unsent replacement document with inherited identifiers.
+        // [GIVEN] Update Transmission creates unsent replacement from accepted source, retaining source's filing references.
         CreateLifecycleTransmission(Transmission, SourceDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         LibraryIRS1099IRIS.SendOriginal(Transmission);
@@ -3156,10 +3163,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Commit();
         LibraryIRS1099Document.UpdateTransmission(Transmission);
         FindUnsentReplacement(SourceDocHeader, DocHeader);
-        // [WHEN] The updated return is sent as a correction.
+        // [WHEN] Send updated return as correction.
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
-        // [THEN] The correction reports the new box against the accepted source return, not as another original.
+        // [THEN] XML reports new box against accepted source reference rather than sending another original.
         FindLastAttempt(Transmission, TransmissionLog);
         WriteTextBlob(Payload, ReadAttemptContent(TransmissionLog, 20));
         VerifyAcceptedUpdatedSource(SourceDocHeader, DocHeader, Payload, AcceptedRecordReference);
@@ -3169,7 +3176,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
 
     [Test]
     [HandlerFunctions('OfflineHttpHandler')]
-    procedure CorrectionWithMissingFilingDetailsRequiresSupport()
+    procedure CorrectionWithMissingFilingDetailsRequiresAcknowledgment()
     var
         Transmission: Record "Transmission IRIS";
         DocHeader: Record "IRS 1099 Form Doc. Header";
@@ -3178,10 +3185,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AttemptCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A previously sent document missing filing details must not be advised to send a new original.
+        // [SCENARIO 653992] A sent document with missing filing IDs requires recovery guidance, not a new original send.
         Initialize();
 
-        // [GIVEN] Form Document was submitted successfully but its saved filing record identifier is missing.
+        // [GIVEN] Successfully submitted document is missing its saved filing record ID.
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         LibraryIRS1099IRIS.SendOriginal(Transmission);
@@ -3195,12 +3202,13 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AttemptCount := TransmissionLog.Count();
         Commit();
 
-        // [WHEN] Correction is attempted.
+        // [WHEN] Try to send correction.
         asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
-        // [THEN] Recovery guidance is shown without send, identifier rewrite, or new attempt.
+        // [THEN] Acknowledgment guidance is shown before any send, new attempt or identifier changes.
         Assert.ExpectedError(PreviousFilingDetailsTxt);
-        Assert.ExpectedError('contact support');
+        Assert.ExpectedError('Use Request Status to retrieve the IRS acknowledgment');
+        Assert.ExpectedError('The document cannot be corrected in Business Central while these details are missing');
         Assert.ExpectedError('Do not submit this document as a new original return');
         Assert.ExpectedErrorCode('Dialog');
         VerifyBlockedCorrection(DocHeader, Transmission, RequestCount, AttemptCount);
@@ -3213,20 +3221,20 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalAllowsSandboxWithoutSaaSFlag()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Sandbox classification permits removal without requiring the SaaS deployment flag.
+        // [SCENARIO 653992] Sandbox transmission removal depends on sandbox classification, not the SaaS flag.
         Initialize();
 
-        // [GIVEN] Filed Transmission exists in sandbox with SaaS deployment flag cleared.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Filed transmission exists in sandbox whose SaaS flag is cleared.
+        CreateSandboxRemovalTestData();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         Commit();
 
         VerifySandboxRemovalVisibility(true);
 
-        // [WHEN] Reset is called directly.
+        // [WHEN] Call sandbox reset operation directly.
         Assert.IsTrue(LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, false), 'Sandbox reset must not require the SaaS deployment flag.');
 
-        // [THEN] Removal succeeds and related Form Document is reset.
+        // [THEN] Removal succeeds, and related document's filing state is reset.
         VerifySandboxResetDocHeader(SandboxDocHeader.ID, SandboxDocHeader.Status::Open);
         VerifySandboxRemovalCompleted();
         VerifySandboxRemovalConfirmation(SandboxResetDocumentsTxt);
@@ -3236,18 +3244,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalRejectsProduction()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Production cannot delete a Transmission using the sandbox backend.
+        // [SCENARIO 653992] Sandbox removal operations are unavailable and rejected in production.
         Initialize();
 
-        // [GIVEN] Filed Transmission exists in production.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Filed transmission exists in production.
+        CreateSandboxRemovalTestData();
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
         Commit();
 
-        // [WHEN] Delete is called directly.
+        // [WHEN] Call sandbox delete operation directly.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, true);
 
-        // [THEN] Backend rejects it, both actions are hidden, and no records change.
+        // [THEN] Backend rejects operation, both removal actions are hidden, and all records remain unchanged.
         Assert.ExpectedError(SandboxOnlyErr);
         Assert.ExpectedErrorCode('Dialog');
         VerifySandboxRemovalVisibility(false);
@@ -3258,20 +3266,20 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalRejectsConflictingHistoricalOwner()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Historical membership cannot take a document from another Transmission.
+        // [SCENARIO 653992] Sandbox reset fails if a historically related document now belongs to another transmission.
         Initialize();
 
-        // [GIVEN] Previously transmitted Form Document now belongs to another Transmission.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Document in transmission T1's history is now linked to T2.
+        CreateSandboxRemovalTestData();
         SandboxAbandonedDocHeader."IRIS Transmission Document ID" := SandboxOtherTransmission."Document ID";
         SandboxAbandonedDocHeader.Modify();
         CaptureSandboxAllRecords(SandboxAllSnapshot);
         Commit();
 
-        // [WHEN] Original Transmission is reset.
+        // [WHEN] Reset T1.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, false);
 
-        // [THEN] Conflicting document is named and all records remain unchanged.
+        // [THEN] Error identifies conflicting document, and no records are changed.
         VerifySandboxConflict(SandboxAbandonedDocHeader.ID);
         VerifySandboxRemovalUnchanged();
     end;
@@ -3280,19 +3288,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalRejectsConflictingHistoricalYear()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Historical membership cannot remove a document from another reporting year.
+        // [SCENARIO 653992] Sandbox deletion fails if a historically related document now belongs to another year.
         Initialize();
 
-        // [GIVEN] Previously transmitted Form Document belongs to different existing reporting year.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Document in transmission T's history now belongs to different existing reporting year.
+        CreateSandboxRemovalTestData();
         SetSandboxHistoricalYear();
         CaptureSandboxAllRecords(SandboxAllSnapshot);
         Commit();
 
-        // [WHEN] Transmission and its Form Documents are deleted.
+        // [WHEN] Delete T and its documents.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, true);
 
-        // [THEN] Conflicting document is named and all records remain unchanged.
+        // [THEN] Error identifies conflicting document, and no records are changed.
         VerifySandboxConflict(SandboxAbandonedDocHeader.ID);
         VerifySandboxRemovalUnchanged();
     end;
@@ -3302,16 +3310,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalResetKeepsContentsAndAbandonedVersions()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Reset clears filing state once per linked or historical document without changing contents.
+        // [SCENARIO 653992] Sandbox reset clears filing state but keeps document contents, including Abandoned versions.
         Initialize();
 
-        // [GIVEN] Transmission has active Form Document, detached Abandoned document, duplicate history membership, and missing historical header.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Transmission T has active document, detached Abandoned document, duplicate history links and history link to missing document.
+        CreateSandboxRemovalTestData();
 
-        // [WHEN] Transmission is removed while its Form Documents are retained.
+        // [WHEN] Remove T while retaining its documents.
         Assert.IsTrue(LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, false), 'Confirmed reset must succeed.');
 
-        // [THEN] Filing fields clear; document contents and unrelated records survive.
+        // [THEN] Each existing related document is reset once; document contents and unrelated records stay unchanged.
         VerifySandboxResetDocHeader(SandboxDocHeader.ID, SandboxDocHeader.Status::Open);
         VerifySandboxResetDocHeader(SandboxAbandonedDocHeader.ID, SandboxAbandonedDocHeader.Status::Abandoned);
         VerifySandboxContentsUnchanged();
@@ -3324,16 +3332,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalDeleteUsesDocumentCascade()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Deleting a Transmission removes active and Abandoned documents using their normal child cascade.
+        // [SCENARIO 653992] Sandbox deletion removes related documents and their child records, not posted source entries or setup.
         Initialize();
 
-        // [GIVEN] Transmission has Form Documents with lines, details, supplemental values, PDFs, and posted sources.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Transmission T has active and Abandoned documents with income lines, details, supplemental values and saved PDFs.
+        CreateSandboxRemovalTestData();
 
-        // [WHEN] Transmission and its associated Form Documents are removed.
+        // [WHEN] Delete T and its associated documents.
         Assert.IsTrue(LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, true), 'Confirmed deletion must succeed.');
 
-        // [THEN] Only associated headers and their children disappear, not sources or configuration.
+        // [THEN] Only T's documents, child records and history are deleted; posted sources and reporting setup remain.
         VerifySandboxDocumentDeleted(SandboxDocHeader.ID);
         VerifySandboxDocumentDeleted(SandboxAbandonedDocHeader.ID);
         VerifySandboxRemovalCompleted();
@@ -3345,16 +3353,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalResetActionDeclined()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Declining the reset action leaves the card usable and data unchanged.
+        // [SCENARIO 653992] Declining sandbox reset leaves the transmission card open and all data unchanged.
         Initialize();
 
-        // [GIVEN] Filed Transmission is open in sandbox.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Filed transmission is open in sandbox.
+        CreateSandboxRemovalTestData();
 
-        // [WHEN] Reset action is declined.
+        // [WHEN] Choose reset, then decline its confirmation.
         InvokeAndDeclineSandboxReset();
 
-        // [THEN] Confirmation identifies exact scope and no persisted records change.
+        // [THEN] Confirmation describes exactly what would be removed or reset, but nothing is changed and card stays usable.
         VerifySandboxRemovalConfirmation(SandboxResetDocumentsTxt);
         VerifySandboxRemovalUnchanged();
     end;
@@ -3364,16 +3372,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalDeleteActionDeclined()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Declining document deletion leaves the card usable and data unchanged.
+        // [SCENARIO 653992] Declining sandbox document deletion leaves the card open and all data unchanged.
         Initialize();
 
-        // [GIVEN] Filed Transmission is open in sandbox.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Filed transmission is open in sandbox.
+        CreateSandboxRemovalTestData();
 
-        // [WHEN] Delete action is declined.
+        // [WHEN] Choose deletion, then decline its confirmation.
         InvokeAndDeclineSandboxDelete();
 
-        // [THEN] Confirmation identifies exact scope and no persisted records change.
+        // [THEN] Confirmation describes exactly which documents would be deleted, but nothing is changed and card stays usable.
         VerifySandboxRemovalConfirmation(SandboxDeleteDocumentsTxt);
         VerifySandboxRemovalUnchanged();
     end;
@@ -3385,18 +3393,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TransmissionPage: TestPage "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A Processing Transmission can be reset locally without HTTP and its card closes.
+        // [SCENARIO 653992] A sandbox Processing transmission can be removed without HTTP while retaining and reopening its documents.
         Initialize();
 
-        // [GIVEN] Processing Transmission and unrelated Transmission share reporting year.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Processing transmission T1 and unrelated T2 share reporting year.
+        CreateSandboxRemovalTestData();
         SetSandboxTransmissionProcessing();
 
-        // [WHEN] Reset is confirmed from card.
+        // [WHEN] Confirm reset from T1's card.
         InvokeSandboxReset(TransmissionPage);
         Commit();
 
-        // [THEN] Only selected Transmission disappears and retained Form Document becomes Open.
+        // [THEN] T1 is removed and its card closes; its document becomes Open, and T2 remains unchanged.
         VerifySandboxResetDocHeader(SandboxDocHeader.ID, SandboxDocHeader.Status::Open);
         VerifySandboxRemovalCompleted();
         VerifySandboxRemovalConfirmation(SandboxResetDocumentsTxt);
@@ -3410,18 +3418,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TransmissionPage: TestPage "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A Processing Transmission can be deleted locally without HTTP and its card closes.
+        // [SCENARIO 653992] A sandbox Processing transmission and its documents can be deleted without HTTP.
         Initialize();
 
-        // [GIVEN] Processing Transmission and unrelated Transmission share reporting year.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Processing transmission T1 and unrelated T2 share reporting year.
+        CreateSandboxRemovalTestData();
         SetSandboxTransmissionProcessing();
 
-        // [WHEN] Deletion is confirmed from card.
+        // [WHEN] Confirm deletion from T1's card.
         InvokeSandboxDelete(TransmissionPage);
         Commit();
 
-        // [THEN] Selected Transmission and its Form Documents disappear while unrelated records remain.
+        // [THEN] T1 and its documents are deleted and card closes, while T2 and unrelated records remain.
         VerifySandboxDocumentDeleted(SandboxDocHeader.ID);
         VerifySandboxDocumentDeleted(SandboxAbandonedDocHeader.ID);
         VerifySandboxRemovalCompleted();
@@ -3434,17 +3442,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalRejectsChangedConfirmedScope()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Equal counts cannot conceal a changed set of historical members during confirmation.
+        // [SCENARIO 653992] Sandbox removal detects a changed document set even when its count stays the same.
         Initialize();
 
-        // [GIVEN] Transmission has removal scope that changes while its confirmation is open.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Transmission T's related-document set changes while its confirmation is open.
+        CreateSandboxRemovalTestData();
         Commit();
 
-        // [WHEN] Log member is replaced before confirmation returns.
+        // [WHEN] Replace one historical document link with another before confirming removal.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, false);
 
-        // [THEN] Operation fails rather than silently including new member.
+        // [THEN] Removal fails instead of including newly linked document without confirmation.
         Assert.ExpectedError(SandboxChangedErr);
         Assert.ExpectedErrorCode('Dialog');
         VerifySandboxRemovalUnchanged();
@@ -3457,19 +3465,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TransmissionPage: TestPage "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Changed document state aborts removal and leaves the original card usable.
+        // [SCENARIO 653992] A document change during confirmation cancels sandbox removal without closing the card.
         Initialize();
 
-        // [GIVEN] Transmission card is open and associated Form Document changes during confirmation.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Transmission T's card is open, and related document is changed during confirmation.
+        CreateSandboxRemovalTestData();
         Commit();
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(SandboxTransmission);
 
-        // [WHEN] Reset sees newer document receipt.
+        // [WHEN] Confirm reset after that document receives newer receipt.
         asserterror TransmissionPage.RemoveTransmissionAndResetDocuments.Invoke();
 
-        // [THEN] No cleanup occurs and card still shows original Transmission.
+        // [THEN] No cleanup is performed, and card still shows T.
         Assert.ExpectedError(SandboxChangedErr);
         Assert.ExpectedErrorCode('Dialog');
         TransmissionPage."Period No.".AssertEquals(SandboxTransmission."Period No.");
@@ -3484,19 +3492,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         FailureSubscriber: Codeunit "IRS 1099 IRIS Tests";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A later history deletion failure rolls back document resets and earlier log-line deletions.
+        // [SCENARIO 653992] A history-deletion error rolls back earlier document resets and log-line deletions.
         Initialize();
 
-        // [GIVEN] Test subscriber rejects deletion of Transmission's history after its Form Documents have been changed.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Test subscriber will reject deletion of T's history after its documents have been reset.
+        CreateSandboxRemovalTestData();
         FailureSubscriber.FailSandboxRemovalOnHistory(SandboxHistoryID);
         BindSubscription(FailureSubscriber);
         Commit();
 
-        // [WHEN] Reset reaches history deletion.
+        // [WHEN] Run sandbox reset until it reaches history deletion.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, false);
 
-        // [THEN] All earlier mutations roll back.
+        // [THEN] Operation fails, restoring all original document state and history records.
         Assert.ExpectedError(SandboxFailureErr);
         Assert.ExpectedErrorCode('Dialog');
         UnbindSubscription(FailureSubscriber);
@@ -3511,19 +3519,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         FailureSubscriber: Codeunit "IRS 1099 IRIS Tests";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A later failure restores deleted headers, child cascades, and history.
+        // [SCENARIO 653992] A history-deletion error restores documents and child records already deleted by sandbox removal.
         Initialize();
 
-        // [GIVEN] Test subscriber rejects deletion of Transmission's history after document cascades have run.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Test subscriber will reject deletion of T's history after document deletion has run.
+        CreateSandboxRemovalTestData();
         FailureSubscriber.FailSandboxRemovalOnHistory(SandboxHistoryID);
         BindSubscription(FailureSubscriber);
         Commit();
 
-        // [WHEN] Document deletion reaches history cleanup.
+        // [WHEN] Delete T and its documents until history cleanup fails.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(SandboxTransmission, true);
 
-        // [THEN] Every document and child row is restored with original history.
+        // [THEN] All original document headers, child records and history are restored.
         Assert.ExpectedError(SandboxFailureErr);
         Assert.ExpectedErrorCode('Dialog');
         UnbindSubscription(FailureSubscriber);
@@ -3535,17 +3543,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure SandboxRemovalDoesNotRelaxOrdinaryDelete()
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Ordinary deletion of a sent Transmission remains blocked even in a sandbox.
+        // [SCENARIO 653992] Normal table deletion of a sent transmission stays blocked even in sandbox.
         Initialize();
 
-        // [GIVEN] Accepted Transmission exists in sandbox.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Accepted transmission exists in sandbox.
+        CreateSandboxRemovalTestData();
         Commit();
 
-        // [WHEN] Ordinary table deletion is attempted.
+        // [WHEN] Try ordinary table deletion instead of sandbox removal operation.
         asserterror SandboxTransmission.Delete(true);
 
-        // [THEN] Existing restriction remains effective without changing any data.
+        // [THEN] Existing deletion restriction raises error, and no data changes.
         Assert.ExpectedError('A transmission with status other than None cannot be deleted.');
         Assert.ExpectedErrorCode('Dialog');
         VerifySandboxRemovalUnchanged();
@@ -3557,18 +3565,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         StaleTransmission: Record "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A stale selection cannot reset a replacement Transmission with the same numeric ID.
+        // [SCENARIO 653992] Reset cannot act on a different transmission that has reused a stale selection's numeric ID.
         Initialize();
 
-        // [GIVEN] Original Transmission was replaced by another Transmission with same numeric ID and new SystemId.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Selected transmission was replaced by another record with same numeric ID but different SystemId.
+        CreateSandboxRemovalTestData();
         RecreateSandboxRemovalTransmission(StaleTransmission);
         Commit();
 
-        // [WHEN] Reset is invoked with saved stale selection.
+        // [WHEN] Call reset using old selected record.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(StaleTransmission, false);
 
-        // [THEN] Changed-record error precedes confirmation, and replacement Transmission, its documents and history, and unrelated records are untouched.
+        // [THEN] Changed-record error occurs before confirmation, leaving replacement transmission, documents and history untouched.
         Assert.ExpectedError(SandboxChangedErr);
         Assert.ExpectedErrorCode('Dialog');
         VerifySandboxRemovalUnchanged();
@@ -3581,18 +3589,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         StaleTransmission: Record "Transmission IRIS";
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] A stale selection cannot delete a replacement Transmission with the same numeric ID.
+        // [SCENARIO 653992] Delete cannot act on a different transmission that has reused a stale selection's numeric ID.
         Initialize();
 
-        // [GIVEN] Original Transmission was replaced by another Transmission with same numeric ID and new SystemId.
-        CreateSandboxRemovalFixture();
+        // [GIVEN] Selected transmission was replaced by another record with same numeric ID but different SystemId.
+        CreateSandboxRemovalTestData();
         RecreateSandboxRemovalTransmission(StaleTransmission);
         Commit();
 
-        // [WHEN] Delete is invoked with saved stale selection.
+        // [WHEN] Call delete using old selected record.
         asserterror LibraryIRS1099IRIS.RemoveSandboxTransmission(StaleTransmission, true);
 
-        // [THEN] Changed-record error precedes confirmation, and replacement Transmission, its documents and history, and unrelated records are untouched.
+        // [THEN] Changed-record error occurs before confirmation, leaving replacement transmission, documents and history untouched.
         Assert.ExpectedError(SandboxChangedErr);
         Assert.ExpectedErrorCode('Dialog');
         VerifySandboxRemovalUnchanged();
@@ -3609,10 +3617,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AttemptCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO 653992] Copied filing identifiers alone do not make an unfiled document eligible for correction.
+        // [SCENARIO 653992] Copied filing IDs do not make a document that was never sent eligible for correction.
         Initialize();
 
-        // [GIVEN] An unfiled document has copied identifiers but no submission status or send history.
+        // [GIVEN] Unfiled document has copied IDs but no submission status or send history.
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         SetLifecycleReference(DocHeader, Transmission."Document ID", '1', '1', "Transmission Status IRIS"::None, true);
         Transmission.Status := Transmission.Status::Accepted;
@@ -3625,14 +3633,510 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         AttemptCount := TransmissionLog.Count();
         Commit();
 
-        // [WHEN] A correction is attempted.
+        // [WHEN] Try to send correction.
         asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
-        // [THEN] The correction is blocked before XML generation or HTTP calls.
+        // [THEN] Operation is blocked before XML generation or HTTP requests.
         Assert.ExpectedError(NoRecordedCorrectionTxt);
         Assert.ExpectedError('Clear Needs Correction');
         Assert.ExpectedErrorCode('Dialog');
         VerifyBlockedCorrection(DocHeader, Transmission, RequestCount, AttemptCount);
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,OfflineErrorMessageHandler')]
+    procedure OriginalReceiptSurvivesFailedAcknowledgment()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] An original send keeps its receipt when the immediate acknowledgment request fails, so status can be retried without resending.
+        Initialize();
+
+        // [GIVEN] Released document D is ready to send, and acknowledgment endpoint returns HTTP 503.
+        CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
+        InitializeOfflineTransport(Transmission);
+        OfflineStatusHttpStatus := 503;
+
+        // [WHEN] Send original.
+        LibraryIRS1099IRIS.SendOriginal(Transmission);
+
+        // [THEN] Receipt is saved, and another original send is blocked before HTTP.
+        VerifyPendingIntake(Transmission, DocHeader, "Transmission Type IRIS"::O);
+        asserterror LibraryIRS1099IRIS.SendOriginal(Transmission);
+        Assert.ExpectedError('still being processed');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(2, OfflineRequestPaths.Count(), 'A duplicate intake must not be sent.');
+
+        // [WHEN] Restore acknowledgment endpoint and request status.
+        OfflineStatusHttpStatus := 200;
+        RequestAcceptedCorrection(Transmission);
+
+        // [THEN] Saved attempt becomes Accepted without another submission.
+        DocHeader.Get(DocHeader.ID);
+        Assert.AreEqual(DocHeader.Status::Submitted, DocHeader.Status, 'The original must complete through polling.');
+        Assert.AreEqual(3, OfflineRequestPaths.Count(), 'Recovery must only request an acknowledgment.');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,OfflineErrorMessageHandler')]
+    procedure OriginalReceiptSurvivesUnparseableAcknowledgment()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] An acknowledgment without a status does not discard the receipt from a successful original send.
+        Initialize();
+
+        // [GIVEN] Released document D is ready to send, and acknowledgment response has no status.
+        CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
+        InitializeOfflineTransport(Transmission);
+        OfflineStatus := '';
+
+        // [WHEN] Send original.
+        LibraryIRS1099IRIS.SendOriginal(Transmission);
+
+        // [THEN] Parsing error leaves saved receipt and pending state available for status recovery.
+        VerifyPendingIntake(Transmission, DocHeader, "Transmission Type IRIS"::O);
+        VerifySavedSupplementalValues(DocHeader, 100, 50, '101', '000');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,OfflineErrorMessageHandler')]
+    procedure CorrectionReceiptSurvivesFailedAcknowledgment()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] A correction keeps its new receipt after acknowledgment failure without losing the original accepted reference.
+        Initialize();
+
+        // [GIVEN] Document D corrects accepted filing, and acknowledgment endpoint returns HTTP 503.
+        CreateAcceptedCorrectionSource(Transmission, DocHeader);
+        OfflineStatusHttpStatus := 503;
+
+        // [WHEN] Send correction.
+        LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+
+        // [THEN] Duplicate correction is blocked, and D keeps its original accepted reference.
+        VerifyPendingIntake(Transmission, DocHeader, "Transmission Type IRIS"::C);
+        Assert.AreEqual('ACCEPTED', DocHeader."IRIS Last Accepted Receipt ID", 'Intake is not acceptance.');
+        Assert.IsTrue(DocHeader."IRIS Needs Correction", 'Unacknowledged correction must remain pending.');
+        asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+        Assert.ExpectedError('still being processed');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(2, OfflineRequestPaths.Count(), 'A pending correction must not be resubmitted.');
+
+        // [WHEN] Successfully poll new receipt.
+        OfflineStatusHttpStatus := 200;
+        RequestAcceptedCorrection(Transmission);
+
+        // [THEN] Nonzero correction completes only after Accepted acknowledgment.
+        DocHeader.Get(DocHeader.ID);
+        Assert.IsTrue(DocHeader."IRIS Corrected", 'The recorded correction must complete.');
+        Assert.IsFalse(DocHeader."IRIS Needs Correction", 'Accepted correction selection must be cleared.');
+        Assert.IsFalse(DocHeader."IRIS Corrected to Zeros", 'A nonzero correction must not be reclassified.');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,OfflineErrorMessageHandler')]
+    procedure FailedTwoStepSendPreservesOriginalSelection()
+    var
+        Transmission: Record "Transmission IRIS";
+        OtherTransmission: Record "Transmission IRIS";
+        SelectedDocHeader: Record "IRS 1099 Form Doc. Header";
+        UnselectedDocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] A failed Step 1 send restores the user's original correction selections.
+        Initialize();
+
+        // [GIVEN] Accepted documents D1 and D2 have different correction selections.
+        CreateAcceptedCorrectionSource(Transmission, SelectedDocHeader);
+        CreateLifecycleTransmission(OtherTransmission, UnselectedDocHeader, 2026, 'NEC');
+        SetLifecycleReference(UnselectedDocHeader, Transmission."Document ID", '1', '3', "Transmission Status IRIS"::Accepted, false);
+        OfflineSubmitHttpStatus := 400;
+
+        // [WHEN] Send two-step zero correction and simulate failure during submission.
+        LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
+
+        // [THEN] Both documents retain their original selection flags and accepted filing references.
+        SelectedDocHeader.Get(SelectedDocHeader.ID);
+        UnselectedDocHeader.Get(UnselectedDocHeader.ID);
+        Assert.IsTrue(SelectedDocHeader."IRIS Needs Correction", 'Existing selection must remain.');
+        Assert.IsFalse(UnselectedDocHeader."IRIS Needs Correction", 'The action-added selection must be restored.');
+        Assert.AreEqual('ACCEPTED', Transmission."Receipt ID", 'Failed intake must not replace the accepted receipt.');
+        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Failed intake must not request acknowledgment.');
+        VerifySavedSupplementalValues(UnselectedDocHeader, 100, 50, '101', '000');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,ConfirmYes,RecoveredReceiptHandler,OfflineErrorMessageHandler')]
+    procedure ManualReceiptWithoutHistoryUpdatesOnlyTransmission()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+        TransmissionPage: TestPage "Transmission IRIS";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] A manually recovered receipt can update a transmission without inventing document send history.
+        Initialize();
+
+        // [GIVEN] Document D has no locally saved send attempt.
+        CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
+        InitializeOfflineTransport(Transmission);
+        OfflineUTID := 'RECOVERED-UTID';
+        OfflineSkipHistoryPayload := true;
+
+        // [WHEN] Assign recovered receipt on transmission page and request its status.
+        TransmissionPage.OpenEdit();
+        TransmissionPage.GoToRecord(Transmission);
+        TransmissionPage.AssignReceiptIDManually.Invoke();
+        TransmissionPage.RequestTransmissionStatusByRID.Invoke();
+
+        // [THEN] Only transmission becomes Accepted; document D is unchanged and no attempt or document membership is created.
+        VerifyManualReceiptRecovery(Transmission, DocHeader);
+        TransmissionLog.SetRange("Transmission Document ID", Transmission."Document ID");
+        Assert.RecordIsEmpty(TransmissionLog);
+        TransmissionPage.Close();
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,ConfirmYes,RecoveredReceiptHandler,OfflineErrorMessageHandler')]
+    procedure ManualReceiptDoesNotReuseUnrelatedAttempt()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+        TransmissionPage: TestPage "Transmission IRIS";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Assigning a recovered receipt does not link it to an older attempt with a different receipt.
+        Initialize();
+
+        // [GIVEN] Transmission T has older history belonging to another receipt.
+        CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
+        CreateFilingAttempt(Transmission, "Transmission Type IRIS"::O, 'OLDER-RECEIPT', TransmissionLog);
+        InitializeOfflineTransport(Transmission);
+        OfflineUTID := 'RECOVERED-UTID';
+        OfflineSkipHistoryPayload := true;
+
+        // [WHEN] Assign different recovered receipt and request status.
+        TransmissionPage.OpenEdit();
+        TransmissionPage.GoToRecord(Transmission);
+        TransmissionPage.AssignReceiptIDManually.Invoke();
+        TransmissionPage.RequestTransmissionStatusByRID.Invoke();
+
+        // [THEN] Older attempt and its unique transmission ID remain unchanged and are not reused for new receipt.
+        VerifyManualReceiptRecovery(Transmission, DocHeader);
+        TransmissionLog.Get(TransmissionLog."Line ID");
+        Assert.AreEqual('OLDER-RECEIPT', TransmissionLog."Receipt ID", 'Unrelated history must remain unchanged.');
+        TransmissionPage.Close();
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler')]
+    procedure OlderRejectedCorrectionCannotBecomeReplacement()
+    var
+        Transmission: Record "Transmission IRIS";
+        OtherTransmission: Record "Transmission IRIS";
+        NECDocHeader: Record "IRS 1099 Form Doc. Header";
+        MISCDocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+        Payload: Codeunit "Temp Blob";
+        OriginalRecordReference: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] A rejected NEC correction remains a correction retry after a later MISC correction is accepted.
+        Initialize();
+
+        // [GIVEN] NEC and MISC originals were accepted with schema 2.0.3, then NEC correction was rejected and later MISC correction was accepted.
+        CreateLifecycleTransmission(Transmission, NECDocHeader, 2025, 'NEC');
+        CreateLifecycleTransmission(OtherTransmission, MISCDocHeader, 2025, 'MISC');
+        MISCDocHeader."IRIS Transmission Document ID" := Transmission."Document ID";
+        MISCDocHeader.Modify();
+        SetPeriodSchema('2025', "XML Schema Version IRIS"::"2.0.3");
+        InitializeOfflineTransport(Transmission);
+        LibraryIRS1099IRIS.SendOriginal(Transmission);
+        NECDocHeader.Get(NECDocHeader.ID);
+        OriginalRecordReference := StrSubstNo('%1|%2|%3', NECDocHeader."IRIS Last Accepted Receipt ID", NECDocHeader."IRIS Submission ID", NECDocHeader."IRIS Record ID");
+        NECDocHeader."IRIS Needs Correction" := true;
+        NECDocHeader.Modify();
+        OfflineReceiptID := 'REJECTED-NEC-CORRECTION';
+        OfflineStatus := 'Rejected';
+        Clear(OfflineSubmissionStatuses);
+        OfflineSubmissionStatuses.Add(NECDocHeader."IRIS Submission ID", 'Rejected');
+        LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+        NECDocHeader.Get(NECDocHeader.ID);
+        NECDocHeader."IRIS Needs Correction" := false;
+        NECDocHeader.Modify();
+        MISCDocHeader.Get(MISCDocHeader.ID);
+        MISCDocHeader."IRIS Needs Correction" := true;
+        MISCDocHeader.Modify();
+        OfflineReceiptID := 'ACCEPTED-MISC-CORRECTION';
+        OfflineStatus := 'Accepted';
+        Clear(OfflineSubmissionStatuses);
+        LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+
+        // [WHEN] Try replacement while NEC correction is still rejected.
+        asserterror LibraryIRS1099IRIS.SendReplacement(Transmission);
+
+        // [THEN] Operation does not turn older NEC correction into replacement of original submission.
+        Assert.ExpectedError('can only be corrected');
+        Assert.ExpectedErrorCode('Dialog');
+        NECDocHeader.Get(NECDocHeader.ID);
+        NECDocHeader."IRIS Needs Correction" := true;
+        NECDocHeader.Modify();
+        OfflineReceiptID := 'ACCEPTED-NEC-RETRY';
+        Clear(OfflineSubmissionStatuses);
+        LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+        FindLastAttempt(Transmission, TransmissionLog);
+        WriteTextBlob(Payload, ReadAttemptContent(TransmissionLog, 20));
+        InitXMLReader(Payload);
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:TransmissionTypeCd', 'C');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:Form1099NECDetail/n1:CorrectedInd', '1');
+        LibraryXPathXMLReader.VerifyXmlNodeValue('//n1:PrevSubmittedRecRecipientGrp/n1:UniqueRecordId', OriginalRecordReference);
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYes')]
+    procedure Schema507Marks2024AsPriorYear()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        Payload: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Schema 5.0.7 marks confirmed 2024 data as prior-year data.
+        Initialize();
+
+        // [GIVEN] Document D reports tax year 2024 with explicit schema 5.0.7 override.
+        CreateContractTransmission(Transmission, DocHeader, 2024);
+
+        // [WHEN] Accept unverified-year warning and generate XML.
+        CreateSupplementalXml(Transmission, "Transmission Type IRIS"::O, false, Payload);
+
+        // [THEN] XML retains tax year 2024 and sets prior-year indicator.
+        VerifyContractManifest(Payload, '2024', '24TEST0001', '1');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,OfflineErrorMessageHandler')]
+    procedure DelayedPreReceiptRejectionRestoresOriginalState()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] A later validation rejection restores the state from before submission.
+        Initialize();
+
+        // [GIVEN] Document D received initial submission response, but its immediate acknowledgment was unavailable.
+        CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
+        InitializeOfflineTransport(Transmission);
+        OfflineStatusHttpStatus := 503;
+        LibraryIRS1099IRIS.SendOriginal(Transmission);
+        FindLastAttempt(Transmission, TransmissionLog);
+
+        // [WHEN] Poll status and confirm that IRS rejected validation before issuing usable receipt.
+        OfflineStatusHttpStatus := 200;
+        OfflinePreReceiptError := true;
+        OfflineStatus := 'Rejected';
+        LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, Transmission."Receipt ID", TransmissionLog."Unique Transmission ID");
+
+        // [THEN] Unusable receipt and temporary Processing state are cleared, restoring earlier state.
+        Transmission.Get(Transmission."Document ID");
+        DocHeader.Get(DocHeader.ID);
+        Assert.AreEqual(Transmission.Status::None, Transmission.Status, 'A pre-receipt failure is not a completed submission.');
+        Assert.AreEqual('', Transmission."Receipt ID", 'A failed pre-receipt intake has no usable receipt.');
+        Assert.AreEqual('', Transmission."Original Receipt ID", 'An invalid intake must not replace the original reference.');
+        Assert.AreEqual(DocHeader.Status::Released, DocHeader.Status, 'The pre-intake document state must be restored.');
+        Assert.AreEqual('', DocHeader."IRIS Last Receipt ID", 'The invalid receipt must not remain on the document.');
+        VerifySavedSupplementalValues(DocHeader, 100, 50, '101', '000');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYes,DeclineIRISPrivacyConsent')]
+    procedure DeclinedTwoStepConsentDoesNotChangeSelection()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionPage: TestPage "Transmission IRIS";
+        OriginalConsent: Boolean;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Declining privacy consent for Step 1 changes no correction selections and sends no HTTP requests.
+        Initialize();
+
+        // [GIVEN] Accepted document D is not selected for correction, and privacy consent has not been given.
+        CreateAcceptedCorrectionSource(Transmission, DocHeader);
+        DocHeader."IRIS Needs Correction" := false;
+        DocHeader.Modify();
+        OriginalConsent := LibraryIRS1099IRIS.GetPrivacyConsent();
+        LibraryIRS1099IRIS.SetPrivacyConsent(false);
+
+        // [WHEN] Accept destination confirmation but decline privacy consent.
+        TransmissionPage.OpenEdit();
+        TransmissionPage.GoToRecord(Transmission);
+        TransmissionPage.Step1CorrectionToZero.Invoke();
+
+        // [THEN] Consent stays unset, no correction selection is changed, and no filing is sent.
+        DocHeader.Get(DocHeader.ID);
+        Assert.IsFalse(DocHeader."IRIS Needs Correction", 'Declined consent must not select every document.');
+        Assert.IsFalse(LibraryIRS1099IRIS.GetPrivacyConsent(), 'Decline must not persist consent.');
+        Assert.AreEqual(0, OfflineRequestPaths.Count(), 'Declined consent must not send any request.');
+        Assert.IsTrue(StrPos(LibraryVariableStorage.DequeueText(), 'By choosing this action') > 0, 'The existing filing consent text must be shown.');
+        LibraryIRS1099IRIS.SetPrivacyConsent(OriginalConsent);
+        TransmissionPage.Close();
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,OfflineErrorMessageHandler')]
+    procedure UnconfirmedTwoStepSendCompletesAfterAcceptedPoll()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] An uncertain Step 1 delivery stays pending and completes when IRS later accepts it.
+        Initialize();
+
+        // [GIVEN] Accepted document D is not selected for correction, and intake returns HTTP 503.
+        CreateAcceptedCorrectionSource(Transmission, DocHeader);
+        DocHeader."IRIS Needs Correction" := false;
+        DocHeader.Modify();
+        OfflineSubmitHttpStatus := 503;
+
+        // [WHEN] Send Step 1 without receiving a confirmed intake response.
+        LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
+
+        // [THEN] Correction selection remains pending and another filing is blocked.
+        DocHeader.Get(DocHeader.ID);
+        Assert.IsTrue(DocHeader."IRIS Needs Correction", 'Uncertain delivery must retain the pending zero correction.');
+        Assert.AreEqual(Transmission.Status::Processing, Transmission.Status, 'Uncertain delivery must block resending.');
+        Assert.AreEqual('', Transmission."Receipt ID", 'The old accepted receipt must not identify the uncertain attempt.');
+        Assert.AreEqual('ACCEPTED', DocHeader."IRIS Last Accepted Receipt ID", 'Uncertain delivery is not acceptance.');
+        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Uncertain intake must not be submitted again.');
+
+        // [WHEN] Poll the recorded UTID and receive an Accepted acknowledgment.
+        RequestAcceptedCorrection(Transmission);
+
+        // [THEN] The same zero correction completes without another submission.
+        VerifyAcceptedZeroCorrection(DocHeader);
+        Assert.AreEqual(2, OfflineRequestPaths.Count(), 'Recovery must only poll the existing attempt.');
+        VerifySavedSupplementalValues(DocHeader, 100, 50, '101', '000');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler,OfflineErrorMessageHandler')]
+    procedure RepeatedRejectionPreservesRecoveredManualReceipt()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+        TransmissionLog: Record "Transmission Log IRIS";
+        RecoveredReceiptID: Text[100];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Replaying an old rejection cannot erase a newer manual receipt or remove its filing guard.
+        Initialize();
+
+        // [GIVEN] An original attempt was rejected before receipt validation.
+        CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
+        InitializeOfflineTransport(Transmission);
+        OfflinePreReceiptError := true;
+        OfflineStatus := 'Rejected';
+        LibraryIRS1099IRIS.SendOriginal(Transmission);
+        FindLastAttempt(Transmission, TransmissionLog);
+
+        // [GIVEN] A different manually assigned receipt has been reconciled without local send history.
+        RecoveredReceiptID := 'RECOVERED-LATER-RECEIPT';
+        Transmission."Receipt ID" := RecoveredReceiptID;
+        Transmission."Receipt ID Assigned Manually" := true;
+        Transmission.Modify();
+        OfflineReceiptID := RecoveredReceiptID;
+        OfflineUTID := 'RECOVERED-LATER-UTID';
+        OfflineSkipHistoryPayload := true;
+        OfflinePreReceiptError := false;
+        OfflineStatus := 'Accepted';
+        LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, RecoveredReceiptID, '');
+
+        // [WHEN] Request the old rejected attempt again by its UTID.
+        OfflineReceiptID := TransmissionLog."Receipt ID";
+        OfflineUTID := TransmissionLog."Unique Transmission ID";
+        OfflinePreReceiptError := true;
+        OfflineStatus := 'Rejected';
+        LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, '', TransmissionLog."Unique Transmission ID");
+
+        // [THEN] The recovered identity remains active and original filing remains blocked.
+        Transmission.Get(Transmission."Document ID");
+        Assert.AreEqual(RecoveredReceiptID, Transmission."Receipt ID", 'Old rejection must not erase the recovered receipt.');
+        Assert.AreEqual(Transmission.Status::Accepted, Transmission.Status, 'Old rejection must remain history-only.');
+        Assert.IsTrue(Transmission."Receipt ID Assigned Manually", 'Old rejection must not remove the manual-history guard.');
+        asserterror LibraryIRS1099IRIS.SendOriginal(Transmission);
+        Assert.ExpectedError('no matching local submission history');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(4, OfflineRequestPaths.Count(), 'Replaying history must not submit another filing.');
+        FinishOfflineTransport();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('OfflineHttpHandler')]
+    procedure PreReceiptRejectionPreservesNewerCorrectionEdits()
+    var
+        Transmission: Record "Transmission IRIS";
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 653992] Rejecting Step 1 preserves newer edits and their correction flag after the intake commit.
+        Initialize();
+
+        // [GIVEN] Document D is edited while its Step 1 acknowledgment is being requested.
+        CreateAcceptedCorrectionSource(Transmission, DocHeader);
+        DocHeader."IRIS Needs Correction" := false;
+        DocHeader.Modify();
+        OfflineEditDocumentID := DocHeader.ID;
+        OfflinePreReceiptError := true;
+        OfflineStatus := 'Rejected';
+
+        // [WHEN] Send Step 1 and receive a pre-receipt rejection after the newer edit.
+        LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
+
+        // [THEN] Snapshot restoration does not trigger another rollback of the newer correction selection.
+        DocHeader.Get(DocHeader.ID);
+        Assert.IsTrue(DocHeader."IRIS Updated Not Sent", 'The newer amounts must remain unsent.');
+        Assert.IsTrue(DocHeader."IRIS Needs Correction", 'The newer edit must remain selected for correction.');
+        Assert.IsFalse(DocHeader."IRIS Corrected to Zeros", 'Rejected Step 1 must not complete the correction.');
+        VerifyDocLineAmount(DocHeader, 'NEC-01', 6000);
+        VerifySavedSupplementalValues(DocHeader, 100, 50, '101', '000');
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -3653,6 +4157,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Clear(OfflineRecordError);
         Clear(OfflineOmitSubmitReceipt);
         OfflineSubmitHttpStatus := 200;
+        OfflineStatusHttpStatus := 200;
+        Clear(OfflineSkipHistoryPayload);
+        Clear(OfflineEditDocumentID);
+        Clear(OfflineUTID);
         AzureKeyVaultTestLibrary.ClearSecrets();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
@@ -3714,6 +4222,19 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         IRS1099FormDocLine."Vendor No." := IRS1099FormDocHeader."Vendor No.";
         IRS1099FormDocLine.Insert();
         SetSupplementalValues(IRS1099FormDocHeader, 100, 50, '101', '000');
+    end;
+
+    local procedure AddFilingAttemptDocument(TransmissionLog: Record "Transmission Log IRIS"; DocHeader: Record "IRS 1099 Form Doc. Header"; LineNo: Integer)
+    var
+        TransmissionLogLine: Record "Transmission Log Line IRIS";
+    begin
+        TransmissionLogLine."Transmission Log ID" := TransmissionLog."Line ID";
+        TransmissionLogLine."Line ID" := LineNo;
+        TransmissionLogLine."IRS 1099 Form Document ID" := DocHeader.ID;
+        TransmissionLogLine."Submission ID" := DocHeader."IRIS Submission ID";
+        TransmissionLogLine."Record ID" := DocHeader."IRIS Record ID";
+        TransmissionLogLine."Submission Status Text" := Format(DocHeader."IRIS Submission Status");
+        TransmissionLogLine.Insert();
     end;
 
     local procedure CaptureLatestOfflinePayload()
@@ -4020,6 +4541,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         InitializeOfflineTransport(Transmission);
     end;
 
+    local procedure CreateFilingAttempt(Transmission: Record "Transmission IRIS"; TransmissionType: Enum "Transmission Type IRIS"; ReceiptID: Text[100]; var TransmissionLog: Record "Transmission Log IRIS")
+    begin
+        TransmissionLog.Init();
+        TransmissionLog."Transmission Document ID" := Transmission."Document ID";
+        TransmissionLog."Period No." := Transmission."Period No.";
+        TransmissionLog."Transmission Type" := TransmissionType;
+        TransmissionLog."Receipt ID" := ReceiptID;
+        TransmissionLog."Unique Transmission ID" := Format(CreateGuid());
+        TransmissionLog."Response Http Status Code" := 200;
+        TransmissionLog.Insert();
+    end;
+
     local procedure CreatePendingZeroCorrection(var Transmission: Record "Transmission IRIS"; var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
     begin
         CreateAcceptedCorrectionSource(Transmission, IRS1099FormDocHeader);
@@ -4053,7 +4586,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         exit(TransmissionLog."Line ID");
     end;
 
-    local procedure CreateSandboxRemovalFixture()
+    local procedure CreateSandboxRemovalTestData()
     var
         TransmissionLogLine: Record "Transmission Log Line IRIS";
         ErrorInformation: Record "Error Information IRIS";
@@ -4137,7 +4670,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         DocLineDetail.Insert();
         FormReport."Document ID" := DocHeader.ID;
         FormReport."File Content".CreateOutStream(Content);
-        Content.WriteText('retained PDF fixture');
+        Content.WriteText('retained test PDF');
         FormReport.Insert();
     end;
 
@@ -4357,7 +4890,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         SandboxTransmission."Receipt ID" := 'REPLACEMENT-RECEIPT';
         SandboxTransmission.Insert(true);
         SandboxTransmission.Get(SandboxTransmission."Document ID");
-        Assert.AreNotEqual(StaleTransmission.SystemId, SandboxTransmission.SystemId, 'The fixture must reuse only the numeric ID, not the transmission identity.');
+        Assert.AreNotEqual(StaleTransmission.SystemId, SandboxTransmission.SystemId, 'The new test transmission must reuse the numeric ID but have a different SystemId.');
         CaptureSandboxAllRecords(SandboxAllSnapshot);
     end;
 
@@ -4572,6 +5105,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Vendor.Modify();
     end;
 
+    local procedure SetUnsentCorrectionDuringAcknowledgment(DocumentID: Integer)
+    var
+        DocHeader: Record "IRS 1099 Form Doc. Header";
+    begin
+        DocHeader.Get(DocumentID);
+        SetDocLineAmount(DocHeader, 'NEC-01', 6000, 2000);
+        DocHeader."IRIS Updated Not Sent" := true;
+        DocHeader."IRIS Needs Correction" := true;
+        DocHeader.Modify();
+    end;
+
     local procedure VerifyActualNonzeroCorrection(Year: Integer; FormNo: Code[20])
     var
         Transmission: Record "Transmission IRIS";
@@ -4648,6 +5192,9 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Transmission.Modify();
         InitializeOfflineTransport(Transmission);
 
+        CreateFilingAttempt(Transmission, "Transmission Type IRIS"::O, 'ACCEPTED', TransmissionLog);
+        AddFilingAttemptDocument(TransmissionLog, RejectedIRS1099FormDocHeader, 1);
+        AddFilingAttemptDocument(TransmissionLog, OtherIRS1099FormDocHeader, 2);
         LibraryIRS1099IRIS.SendReplacement(Transmission);
 
         FindLastAttempt(Transmission, TransmissionLog);
@@ -4888,6 +5435,21 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     local procedure VerifyOpenDocumentConfirmation()
     begin
         Assert.IsTrue(LibraryVariableStorage.DequeueText().Contains('opened or/and abandoned'), 'The existing document-selection warning must run before preflight.');
+    end;
+
+    local procedure VerifyManualReceiptRecovery(var Transmission: Record "Transmission IRIS"; var DocHeader: Record "IRS 1099 Form Doc. Header")
+    begin
+        Transmission.Get(Transmission."Document ID");
+        DocHeader.Get(DocHeader.ID);
+        Assert.AreEqual(Transmission.Status::Accepted, Transmission.Status, 'The manually recovered transmission can be reconciled.');
+        Assert.AreEqual(DocHeader.Status::Released, DocHeader.Status, 'Unproven document membership must not be inferred.');
+        Assert.AreEqual('', DocHeader."IRIS Last Accepted Receipt ID", 'Recovery must not invent an accepted document reference.');
+        Assert.IsFalse(DocHeader."IRIS Corrected", 'Incomplete history must not complete a correction.');
+        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Recovery must not submit or probe an unrelated attempt.');
+        asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+        Assert.ExpectedError('no matching local submission history');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Incomplete recovered history must block another filing.');
     end;
 
     local procedure VerifyPagesOpenWithoutSubmitEndpoint()
@@ -5134,6 +5696,16 @@ codeunit 148022 "IRS 1099 IRIS Tests"
             VerifyLifecycleSource(IRS1099FormDocHeader, 2026);
         end;
         FinishOfflineTransport();
+    end;
+
+    local procedure VerifyPendingIntake(var Transmission: Record "Transmission IRIS"; var DocHeader: Record "IRS 1099 Form Doc. Header"; TransmissionType: Enum "Transmission Type IRIS")
+    begin
+        Transmission.Get(Transmission."Document ID");
+        DocHeader.Get(DocHeader.ID);
+        Assert.AreEqual(OfflineReceiptID, Transmission."Receipt ID", 'The successful intake receipt must persist before acknowledgment.');
+        Assert.AreEqual(TransmissionType, Transmission."Last Type", 'The pending intake type must be recorded.');
+        Assert.AreEqual(Transmission.Status::Processing, Transmission.Status, 'Unacknowledged intake must block another send.');
+        Assert.AreEqual(OfflineReceiptID, DocHeader."IRIS Last Receipt ID", 'The sent document must retain its intake receipt.');
     end;
 
     local procedure VerifyPendingCorrectionEdits(Transmission: Record "Transmission IRIS"; var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; ExpectedStatus: Enum "IRS 1099 Form Doc. Status")
@@ -5401,10 +5973,15 @@ codeunit 148022 "IRS 1099 IRIS Tests"
                 end;
             'https://test.example/status', 'https://production.example/status':
                 begin
-                    CaptureLatestOfflinePayload();
+                    if OfflineEditDocumentID <> 0 then begin
+                        SetUnsentCorrectionDuringAcknowledgment(OfflineEditDocumentID);
+                        Clear(OfflineEditDocumentID);
+                    end;
+                    if not OfflineSkipHistoryPayload then
+                        CaptureLatestOfflinePayload();
                     OfflineAcknowledgment := CreateOfflineAcknowledgment();
                     Response.Content.WriteFrom(OfflineAcknowledgment);
-                    Response.HttpStatusCode := 200;
+                    Response.HttpStatusCode := OfflineStatusHttpStatus;
                 end;
         end;
         // Never allow any intercepted request, including unexpected destinations, onto the network.
@@ -5433,6 +6010,13 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     [MessageHandler]
     procedure OfflineErrorMessageHandler(MessageText: Text[1024])
     begin
+    end;
+
+    [ModalPageHandler]
+    procedure DeclineIRISPrivacyConsent(var ConsentPage: TestPage "Cust. Consent Confirmation")
+    begin
+        LibraryVariableStorage.Enqueue(ConsentPage.ConsentText.Value());
+        ConsentPage.Cancel.Invoke();
     end;
 
     [ModalPageHandler]

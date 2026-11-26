@@ -25,6 +25,10 @@ codeunit 10046 "OAuth Client IRIS"
         GetTokensEventTxt: Label 'GetTokens', Locked = true;
         SubmitTransmEventTxt: Label 'SubmitTransmission', Locked = true;
         RequestTransmStatusOrAckEventTxt: Label 'RequestTransmissionStatusOrAck', Locked = true;
+        RefreshTokensEventTxt: Label 'RefreshTokens', Locked = true;
+        ValidateAccessTokenEventTxt: Label 'ValidateAccessToken', Locked = true;
+        TokenProbeFailedErr: Label 'The access-token validation request failed.', Locked = true;
+        RefreshTokenRejectedErr: Label 'IRIS rejected the refresh-token request.', Locked = true;
         GrantTypeTxt: Label 'urn:ietf:params:oauth:grant-type:jwt-bearer', Locked = true;
         ClientAssertionTypeTxt: Label 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer', Locked = true;
         UrlEncodedContentTypeTxt: Label 'application/x-www-form-urlencoded', Locked = true;
@@ -337,7 +341,8 @@ codeunit 10046 "OAuth Client IRIS"
         // use current access token to send dummy status request
         UserParamsIRIS.GetRecord();
         RequestXml := Helper.WriteTempBlobToText(GetStatusRequestContentBlob);
-        if SendPOSTHttpRequestXml(RequestXml, KeyVaultClient.GetStatusEndpointURL(), GetToken(UserParamsIRIS."Access Token Key"), HttpResponseMessage) then;
+        if not SendPOSTHttpRequestXml(RequestXml, KeyVaultClient.GetStatusEndpointURL(), GetToken(UserParamsIRIS."Access Token Key"), HttpResponseMessage) then
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), ValidateAccessTokenEventTxt, TokenProbeFailedErr);
         HttpStatusCode := HttpResponseMessage.HttpStatusCode();
 
         // check if 401 Unauthorized was returned
@@ -361,6 +366,7 @@ codeunit 10046 "OAuth Client IRIS"
         ClientID: Text;
         ClientJWT: Text;
         AuthURL: Text;
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         ClientID := KeyVaultClient.GetAPIClientIDFromKV();
         if ClientID = '' then
@@ -371,8 +377,11 @@ codeunit 10046 "OAuth Client IRIS"
 
         if not SendPOSTHttpRequestUrlEncoded(RequestBody, AuthURL, HttpResponseMessage) then
             ShowRequestSendError(HttpResponseMessage.IsBlockedByEnvironment());
-        if not HttpResponseMessage.IsSuccessStatusCode() then
+        if not HttpResponseMessage.IsSuccessStatusCode() then begin
+            CustomDimensions.Add('HttpStatusCode', Format(HttpResponseMessage.HttpStatusCode(), 0, 9));
+            FeatureTelemetry.LogError('', Helper.GetIRISFeatureName(), RefreshTokensEventTxt, RefreshTokenRejectedErr, '', CustomDimensions);
             exit;       // no need to show error here as both access and refresh tokens will be requested again
+        end;
 
         HttpResponseMessage.Content().ReadAs(ResponseText);
         JObject.ReadFrom(ResponseText);
@@ -414,7 +423,8 @@ codeunit 10046 "OAuth Client IRIS"
         end;
         Helper.WriteTextToTempBlob(ResponseContentBlob, ResponseText);
 
-        FeatureTelemetry.LogUsage('0000PAJ', Helper.GetIRISFeatureName(), SubmitTransmEventTxt);
+        if HttpResponseMessage.IsSuccessStatusCode() and (ResponseText <> '') then
+            FeatureTelemetry.LogUsage('0000PAJ', Helper.GetIRISFeatureName(), SubmitTransmEventTxt);
     end;
 
     procedure RequestTransmStatusOrAcknowledgement(StatusRequestBlob: Codeunit "Temp Blob"; var ResponseBlob: Codeunit "Temp Blob"; var HttpStatusCode: Integer)
@@ -447,7 +457,8 @@ codeunit 10046 "OAuth Client IRIS"
         end;
         Helper.WriteTextToTempBlob(ResponseBlob, ResponseText);
 
-        FeatureTelemetry.LogUsage('0000PAK', Helper.GetIRISFeatureName(), RequestTransmStatusOrAckEventTxt);
+        if HttpResponseMessage.IsSuccessStatusCode() and (ResponseText <> '') then
+            FeatureTelemetry.LogUsage('0000PAK', Helper.GetIRISFeatureName(), RequestTransmStatusOrAckEventTxt);
     end;
 
     local procedure PrepareMultipartContent(Payload: Text; Boundary: Text): Text

@@ -81,7 +81,9 @@ codeunit 10044 "Data Check IRIS"
     local procedure ValidateTransmission(Transmission: Record "Transmission IRIS")
     begin
         if not Helper.ValidateTaxYear(Transmission."Period No.") then
-            ErrorMessageMgt.LogFieldError(Transmission, Transmission.FieldNo("Period No."), GetLastErrorText());
+            ErrorMessageMgt.LogContextFieldError(
+                Transmission.FieldNo("Period No."), GetLastErrorText(),
+                Transmission, Transmission.FieldNo("Period No."), '');
     end;
 
     local procedure ValidateCompanyInformation()

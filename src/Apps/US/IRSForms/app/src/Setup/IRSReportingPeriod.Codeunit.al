@@ -152,6 +152,8 @@ codeunit 10042 "IRS Reporting Period"
     procedure CopyReportingPeriodSetup(FromPeriodNo: Code[20]; ToPeriodNo: Code[20]; var TempSelectedCompany: Record Company temporary)
     var
         CurrCompanyIRSReportingPeriod, IRSReportingPeriod : Record "IRS Reporting Period";
+        SupplBox: Record "IRS 1099 Suppl. Box";
+        IRSFormsData: Codeunit "IRS Forms Data";
         SetupCompletedMessage: Text;
         SomethingHasBeenCopied, SummaryMessageCreated : Boolean;
     begin
@@ -160,6 +162,19 @@ codeunit 10042 "IRS Reporting Period"
             exit;
         end;
         CurrCompanyIRSReportingPeriod.Get(ToPeriodNo);
+        IRSFormsData.ValidatePeriodNoForSupplementalSetup(CurrCompanyIRSReportingPeriod);
+        SupplBox.SetRange("Period No.", FromPeriodNo);
+        if not SupplBox.IsEmpty() then begin
+            IRSReportingPeriod.Get(FromPeriodNo);
+            IRSFormsData.ValidatePeriodNoForSupplementalSetup(IRSReportingPeriod);
+        end;
+        repeat
+            IRSReportingPeriod.ChangeCompany(TempSelectedCompany.Name);
+            if not IRSReportingPeriod.Get(ToPeriodNo) then
+                IRSReportingPeriod := CurrCompanyIRSReportingPeriod;
+            IRSFormsData.ValidatePeriodNoForSupplementalSetup(IRSReportingPeriod);
+        until TempSelectedCompany.Next() = 0;
+        TempSelectedCompany.FindSet();
         SetupCompletedMessage := StrSubstNo(CopiedSetupWithDetailsMsg, FromPeriodNo, ToPeriodNo);
         repeat
             IRSReportingPeriod.ChangeCompany(TempSelectedCompany.Name);
@@ -448,14 +463,16 @@ codeunit 10042 "IRS Reporting Period"
         StatementLine: Record "IRS 1099 Form Statement Line";
         IRSFormsData: Codeunit "IRS Forms Data";
         Conflict: Text;
+        DetailsBuilder: TextBuilder;
     begin
+        DetailsBuilder.Append(Details);
         SupplBox.ChangeCompany(TargetCompany);
         SupplBox.SetRange("Period No.", PeriodNo);
         if SupplBox.FindSet() then
             repeat
                 Conflict := IRSFormsData.GetSupplBoxSetupConflictMessage(SupplBox, TargetCompany);
                 if Conflict <> '' then
-                    Details += StrSubstNo(SupplBoxConflictMsg, TargetCompany, PeriodNo, SupplBox."Form No.", SupplBox."No.", Conflict);
+                    DetailsBuilder.Append(StrSubstNo(SupplBoxConflictMsg, TargetCompany, PeriodNo, SupplBox."Form No.", SupplBox."No.", Conflict));
             until SupplBox.Next() = 0;
         SupplBox.Reset();
         SupplBox.ChangeCompany(TargetCompany);
@@ -469,8 +486,9 @@ codeunit 10042 "IRS Reporting Period"
                 else
                     Conflict := MissingSelectedSupplBoxMsg;
                 if Conflict <> '' then
-                    Details += StrSubstNo(StatementConflictMsg, TargetCompany, PeriodNo, StatementLine."Form No.", Format(StatementLine."Line No.", 0, 9), StatementLine."Supplemental Box No.", Conflict);
+                    DetailsBuilder.Append(StrSubstNo(StatementConflictMsg, TargetCompany, PeriodNo, StatementLine."Form No.", Format(StatementLine."Line No.", 0, 9), StatementLine."Supplemental Box No.", Conflict));
             until StatementLine.Next() = 0;
+        Details := DetailsBuilder.ToText();
     end;
 
     local procedure UpdateSummaryMessage(var SetupCompletedMessage: Text; var SomethingHasBeenCopied: Boolean; TableCaption: Text; RecordsCount: Integer; SummaryMessageCreated: Boolean)
@@ -513,6 +531,13 @@ codeunit 10042 "IRS Reporting Period"
 
         if ToYear <> (FromYear + 1) then
             Error(ConsecutiveTYUpdateErr, FromYear, ToYear);
+
+        if TempSelectedCompany.FindSet() then
+            repeat
+                IRSReportingPeriod.ChangeCompany(TempSelectedCompany.Name);
+                IRSReportingPeriod.Get(ToPeriodNo);
+                IRSFormsData.ValidatePeriodNoForSupplementalSetup(IRSReportingPeriod);
+            until TempSelectedCompany.Next() = 0;
 
         if (FromYear = 2024) and (ToYear = 2025) then
             if IsUpdateFrom2024To2025Required(ToPeriodNo, TempSelectedCompany, ConfirmBeforeUpdate) then
