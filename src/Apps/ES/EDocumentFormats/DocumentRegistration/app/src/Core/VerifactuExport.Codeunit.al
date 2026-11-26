@@ -5,6 +5,7 @@
 namespace Microsoft.EServices.EDocument.Verifactu;
 
 using Microsoft.EServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
@@ -205,7 +206,7 @@ codeunit 10778 "Verifactu Export"
 
         InsertRecipient(
             InvoiceXMLNode, SalesInvoiceHeader."Bill-to Name", SalesInvoiceHeader."VAT Registration No.",
-            GetRecipientCountryRegionCode(SalesInvoiceHeader."VAT Country/Region Code", SalesInvoiceHeader."Bill-to Country/Region Code"),
+            GetRecipientCountryRegionCode(SalesInvoiceHeader."Alt. VAT Registration No.", SalesInvoiceHeader."VAT Country/Region Code", SalesInvoiceHeader."Bill-to Country/Region Code", SalesInvoiceHeader."Sell-to Country/Region Code"),
             SalesInvoiceHeader."ID Type");
     end;
 
@@ -231,7 +232,7 @@ codeunit 10778 "Verifactu Export"
             until SalesInvoiceLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
-        IsIntraCommunity := IsIntraCommunityRecipient(SalesInvoiceHeader."VAT Country/Region Code", SalesInvoiceHeader."Bill-to Country/Region Code");
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(SalesInvoiceHeader."Alt. VAT Registration No.", SalesInvoiceHeader."VAT Country/Region Code", SalesInvoiceHeader."Bill-to Country/Region Code", SalesInvoiceHeader."Sell-to Country/Region Code"));
 
         TempSalesInvoiceLine.Reset();
         TempSalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
@@ -397,7 +398,7 @@ codeunit 10778 "Verifactu Export"
 
         InsertRecipient(
             InvoiceXMLNode, ServiceInvoiceHeader."Bill-to Name", ServiceInvoiceHeader."VAT Registration No.",
-            GetRecipientCountryRegionCode(ServiceInvoiceHeader."VAT Country/Region Code", ServiceInvoiceHeader."Bill-to Country/Region Code"),
+            GetRecipientCountryRegionCode(false, ServiceInvoiceHeader."VAT Country/Region Code", ServiceInvoiceHeader."Bill-to Country/Region Code", ServiceInvoiceHeader."Country/Region Code"),
             ServiceInvoiceHeader."ID Type");
     end;
 
@@ -423,7 +424,7 @@ codeunit 10778 "Verifactu Export"
             until ServiceInvoiceLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
-        IsIntraCommunity := IsIntraCommunityRecipient(ServiceInvoiceHeader."VAT Country/Region Code", ServiceInvoiceHeader."Bill-to Country/Region Code");
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(false, ServiceInvoiceHeader."VAT Country/Region Code", ServiceInvoiceHeader."Bill-to Country/Region Code", ServiceInvoiceHeader."Country/Region Code"));
 
         TempServiceInvoiceLine.Reset();
         TempServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
@@ -591,7 +592,7 @@ codeunit 10778 "Verifactu Export"
 
         InsertRecipient(
             InvoiceXMLNode, SalesCrMemoHeader."Bill-to Name", SalesCrMemoHeader."VAT Registration No.",
-            GetRecipientCountryRegionCode(SalesCrMemoHeader."VAT Country/Region Code", SalesCrMemoHeader."Bill-to Country/Region Code"),
+            GetRecipientCountryRegionCode(SalesCrMemoHeader."Alt. VAT Registration No.", SalesCrMemoHeader."VAT Country/Region Code", SalesCrMemoHeader."Bill-to Country/Region Code", SalesCrMemoHeader."Sell-to Country/Region Code"),
             SalesCrMemoHeader."ID Type");
     end;
 
@@ -617,7 +618,7 @@ codeunit 10778 "Verifactu Export"
             until SalesCrMemoLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
-        IsIntraCommunity := IsIntraCommunityRecipient(SalesCrMemoHeader."VAT Country/Region Code", SalesCrMemoHeader."Bill-to Country/Region Code");
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(SalesCrMemoHeader."Alt. VAT Registration No.", SalesCrMemoHeader."VAT Country/Region Code", SalesCrMemoHeader."Bill-to Country/Region Code", SalesCrMemoHeader."Sell-to Country/Region Code"));
 
         TempSalesCrMemoLine.Reset();
         TempSalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
@@ -802,7 +803,7 @@ codeunit 10778 "Verifactu Export"
 
         InsertRecipient(
             InvoiceXMLNode, ServiceCrMemoHeader."Bill-to Name", ServiceCrMemoHeader."VAT Registration No.",
-            GetRecipientCountryRegionCode(ServiceCrMemoHeader."VAT Country/Region Code", ServiceCrMemoHeader."Bill-to Country/Region Code"),
+            GetRecipientCountryRegionCode(false, ServiceCrMemoHeader."VAT Country/Region Code", ServiceCrMemoHeader."Bill-to Country/Region Code", ServiceCrMemoHeader."Country/Region Code"),
             ServiceCrMemoHeader."ID Type");
     end;
 
@@ -828,7 +829,7 @@ codeunit 10778 "Verifactu Export"
             until ServiceCrMemoLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
-        IsIntraCommunity := IsIntraCommunityRecipient(ServiceCrMemoHeader."VAT Country/Region Code", ServiceCrMemoHeader."Bill-to Country/Region Code");
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(false, ServiceCrMemoHeader."VAT Country/Region Code", ServiceCrMemoHeader."Bill-to Country/Region Code", ServiceCrMemoHeader."Country/Region Code"));
 
         TempServiceCrMemoLine.Reset();
         TempServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
@@ -1265,18 +1266,26 @@ codeunit 10778 "Verifactu Export"
         exit(Prefix + VATRegistrationNo);
     end;
 
-    local procedure GetRecipientCountryRegionCode(VATCountryRegionCode: Code[10]; BillToCountryRegionCode: Code[10]): Code[10]
+    local procedure GetRecipientCountryRegionCode(AltVATRegistrationNo: Boolean; VATCountryRegionCode: Code[10]; BillToCountryRegionCode: Code[10]; SellToCountryRegionCode: Code[10]): Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
-        if VATCountryRegionCode <> '' then
+        // VAT Country/Region Code follows the ship-to country; it only identifies the recipient when an alternative VAT registration was used.
+        if AltVATRegistrationNo and (VATCountryRegionCode <> '') then
             exit(VATCountryRegionCode);
+
+        GeneralLedgerSetup.SetLoadFields("Bill-to/Sell-to VAT Calc.");
+        if GeneralLedgerSetup.Get() then
+            if GeneralLedgerSetup."Bill-to/Sell-to VAT Calc." = GeneralLedgerSetup."Bill-to/Sell-to VAT Calc."::"Sell-to/Buy-from No." then
+                exit(SellToCountryRegionCode);
         exit(BillToCountryRegionCode);
     end;
 
-    local procedure IsIntraCommunityRecipient(VATCountryRegionCode: Code[10]; BillToCountryRegionCode: Code[10]): Boolean
+    local procedure IsIntraCommunityRecipient(RecipientCountryRegionCode: Code[10]): Boolean
     var
         SIIManagement: Codeunit "SII Management";
     begin
-        exit(SIIManagement.IsIntracommunity(GetRecipientCountryRegionCode(VATCountryRegionCode, BillToCountryRegionCode)));
+        exit(SIIManagement.IsIntracommunity(RecipientCountryRegionCode));
     end;
 
     local procedure GetOperationQualification(DocumentNo: Code[20]; PostingDate: Date; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATIdentifier: Code[20]; IsCreditMemo: Boolean): Text

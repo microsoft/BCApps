@@ -2239,17 +2239,18 @@ codeunit 148004 "Test Verifactu Export"
         CreateCustomerWithCountry(Customer, 'GB', false, '116185526');
         CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0, '');
 
-        // [GIVEN] Posted sales invoice "I" with special scheme code "02 Export" and 0% VAT
+        // [GIVEN] Posted sales invoice "I" with special scheme code "02 Export", 0% VAT and a blank ID Type
         Amount := LibraryRandom.RandIntInRange(100, 500);
         CreatePostedSalesInvoiceWithSpecialScheme(
             SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"02 Export", Amount);
+        ClearPostedIDType(SalesInvoiceHeader);
 
         // [WHEN] Invoice "I" is exported
         ExportInvoice(SalesInvoiceHeader, XMLText);
 
         // [THEN] The breakdown is OperacionExenta E2
         VerifyExemptBreakdown(XMLText, 'E2', Amount);
-        // [THEN] The recipient is identified by IDOtro with CodigoPais "GB", IDType "04" and ID "V"
+        // [THEN] The recipient is identified by IDOtro with CodigoPais "GB", the non-EU fallback IDType "04" and ID "V"
         VerifyRecipientIDOtro(XMLText, 'GB', '04', '116185526');
     end;
 
@@ -2270,17 +2271,18 @@ codeunit 148004 "Test Verifactu Export"
         // [GIVEN] Reverse charge VAT posting setup for goods
         CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT", 21, '');
 
-        // [GIVEN] Posted sales invoice "I" with special scheme code "01 General"
+        // [GIVEN] Posted sales invoice "I" with special scheme code "01 General" and a blank ID Type
         Amount := LibraryRandom.RandIntInRange(100, 500);
         CreatePostedSalesInvoiceWithSpecialScheme(
             SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"01 General", Amount);
+        ClearPostedIDType(SalesInvoiceHeader);
 
         // [WHEN] Invoice "I" is exported
         ExportInvoice(SalesInvoiceHeader, XMLText);
 
         // [THEN] The breakdown is OperacionExenta E5
         VerifyExemptBreakdown(XMLText, 'E5', Amount);
-        // [THEN] The recipient is identified by IDOtro with CodigoPais "PT", IDType "02" and the prefixed ID "PT500441553"
+        // [THEN] The recipient is identified by IDOtro with CodigoPais "PT", the EU fallback IDType "02" and the prefixed ID "PT500441553"
         VerifyRecipientIDOtro(XMLText, 'PT', '02', 'PT500441553');
     end;
 
@@ -2364,18 +2366,77 @@ codeunit 148004 "Test Verifactu Export"
         CreateCustomerWithCountry(Customer, 'GB', false, '116185526');
         CreateVATPostingSetupForExemption(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0, '');
 
-        // [GIVEN] Posted sales invoice "I" with ID Type "06-Other Probative Document"
+        // [GIVEN] Posted sales invoice "I" with ID Type "03-Passport"
         CreatePostedSalesInvoiceWithSpecialScheme(
             SalesInvoiceHeader, Customer, VATPostingSetup, SalesInvoiceHeader."Special Scheme Code"::"02 Export",
             LibraryRandom.RandIntInRange(100, 500));
-        SalesInvoiceHeader."ID Type" := SalesInvoiceHeader."ID Type"::"06-Other Probative Document";
+        SalesInvoiceHeader."ID Type" := SalesInvoiceHeader."ID Type"::"03-Passport";
         SalesInvoiceHeader.Modify();
 
         // [WHEN] Invoice "I" is exported
         ExportInvoice(SalesInvoiceHeader, XMLText);
 
-        // [THEN] The recipient IDOtro has IDType "06"
-        VerifyRecipientIDOtro(XMLText, 'GB', '06', '116185526');
+        // [THEN] The recipient IDOtro has IDType "03"
+        VerifyRecipientIDOtro(XMLText, 'GB', '03', '116185526');
+    end;
+
+    [Test]
+    procedure ExportInvoiceForSpanishCustomerWithForeignShipToUsesNIF()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        ShipToCountryRegion: Record "Country/Region";
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] A Spanish customer shipped to another EU country is still identified by NIF
+        Initialize();
+
+        // [GIVEN] Spanish customer "C" with NIF "N"
+        CreateCustomerWithCountry(Customer, 'ES', false, 'B76543214');
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", LibraryRandom.RandDecInRange(100, 500, 2), 21);
+
+        // [GIVEN] Posted invoice "I" has VAT Country/Region Code "PT" from its ship-to address, without an alternative VAT registration
+        CreateCountryWithISOCode(ShipToCountryRegion, 'PT', true);
+        SalesInvoiceHeader."Ship-to Country/Region Code" := ShipToCountryRegion.Code;
+        SalesInvoiceHeader."VAT Country/Region Code" := ShipToCountryRegion.Code;
+        SalesInvoiceHeader."Alt. VAT Registration No." := false;
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The recipient is identified by NIF "N"
+        VerifyRecipientNIF(XMLText, 'B76543214');
+    end;
+
+    [Test]
+    procedure ExportInvoiceWithAlternativeVATRegistrationUsesVATCountry()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        Customer: Record Customer;
+        AltVATCountryRegion: Record "Country/Region";
+        XMLText: Text;
+    begin
+        // [SCENARIO 660661] An alternative customer VAT registration is identified with its own VAT country
+        Initialize();
+
+        // [GIVEN] Spanish customer "C"
+        CreateCustomerWithCountry(Customer, 'ES', false, 'B76543214');
+        CreatePostedSalesInvoice(SalesInvoiceHeader, Customer."No.", LibraryRandom.RandDecInRange(100, 500, 2), 21);
+
+        // [GIVEN] Posted invoice "I" uses alternative VAT registration "PT500441553" for VAT country "PT" with a blank ID Type
+        CreateCountryWithISOCode(AltVATCountryRegion, 'PT', true);
+        SalesInvoiceHeader."VAT Country/Region Code" := AltVATCountryRegion.Code;
+        SalesInvoiceHeader."VAT Registration No." := 'PT500441553';
+        SalesInvoiceHeader."Alt. VAT Registration No." := true;
+        SalesInvoiceHeader."ID Type" := SalesInvoiceHeader."ID Type"::" ";
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] Invoice "I" is exported
+        ExportInvoice(SalesInvoiceHeader, XMLText);
+
+        // [THEN] The recipient is identified by IDOtro with CodigoPais "PT", IDType "02" and ID "PT500441553"
+        VerifyRecipientIDOtro(XMLText, 'PT', '02', 'PT500441553');
     end;
     #endregion
 
@@ -2787,16 +2848,27 @@ codeunit 148004 "Test Verifactu Export"
     var
         CountryRegion: Record "Country/Region";
     begin
-        LibraryERM.CreateCountryRegion(CountryRegion);
-        CountryRegion."ISO Code" := ISOCode;
-        if IsEUCountry then
-            CountryRegion."EU Country/Region Code" := ISOCode;
-        CountryRegion.Modify();
+        CreateCountryWithISOCode(CountryRegion, ISOCode, IsEUCountry);
 
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("Country/Region Code", CountryRegion.Code);
         Customer."VAT Registration No." := VATRegistrationNo;
         Customer.Modify(true);
+    end;
+
+    local procedure CreateCountryWithISOCode(var CountryRegion: Record "Country/Region"; ISOCode: Code[2]; IsEUCountry: Boolean)
+    begin
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        CountryRegion."ISO Code" := ISOCode;
+        if IsEUCountry then
+            CountryRegion."EU Country/Region Code" := ISOCode;
+        CountryRegion.Modify();
+    end;
+
+    local procedure ClearPostedIDType(var SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+        SalesInvoiceHeader."ID Type" := SalesInvoiceHeader."ID Type"::" ";
+        SalesInvoiceHeader.Modify();
     end;
 
     local procedure CreateVATPostingSetupForExemption(var VATPostingSetup: Record "VAT Posting Setup"; VATCalculationType: Enum "Tax Calculation Type"; VATPercent: Decimal; VATClauseCode: Code[20])
