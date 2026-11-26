@@ -1,0 +1,3 @@
+# RESEARCH ONLY: paths changed by the CI stack itself
+build/*
+.github/*

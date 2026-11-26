@@ -375,6 +375,14 @@ function Get-PullRequestMergeChangedFiles {
 
         $files = @(& git -c core.quotePath=false diff --name-only $parents[0] HEAD -- 2>$null)
         if ($LASTEXITCODE -ne 0 -or $files.Count -eq 0) { return $null }
+        # RESEARCH ONLY (do not merge): hide the CI stack's own files so probe changes measure a single PR class
+        $ignoreFile = Join-Path $PSScriptRoot 'ResearchIgnorePaths.txt'
+        if (Test-Path $ignoreFile) {
+            $ignore = @(Get-Content $ignoreFile | Where-Object { $_ -and -not $_.StartsWith('#') })
+            $files = @($files | Where-Object { $f = $_; -not ($ignore | Where-Object { $f -like $_ }) })
+            Write-Host "BUILD OPTIMIZATION: RESEARCH ignoring CI stack files, $($files.Count) probe file(s) remain: $($files -join ', ')"
+            if ($files.Count -eq 0) { return $null }
+        }
         Write-Host "BUILD OPTIMIZATION: Pull request merge commit changes $($files.Count) file(s)"
         return [string[]]$files
     }
