@@ -122,7 +122,6 @@ report 708 "Inventory Order Details"
                     SubtotalsBackOrderQty += BackOrderQty;
                     SubtotalsOutstandingAmt += "Outstanding Amount";
                     TotalsOutstandingAmt += "Outstanding Amount";
-
                     if not ReportHasData then
                         ReportHasData := true;
                 end;
@@ -198,12 +197,25 @@ report 708 "Inventory Order Details"
             Type = Excel;
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory Order Details Word';
             LayoutFile = '.\Inventory\Reports\InventoryOrderDetails.docx';
             Type = Word;
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventoryOrderDetailsBody.docx';
+            Caption = 'Body-only: Inventory Order Details Word';
+            Summary = 'Landscape orientated. Lists the orders for each item with sales order number, bill-to name, shipment date, quantity, outstanding and back order quantity, unit price, discount, and outstanding amount. Includes totals.';
         }
     }
 
@@ -214,6 +226,7 @@ report 708 "Inventory Order Details"
         InventoryOrderDetailsPrint = 'Inventory Order Details (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
         InvOrderDetailsAnalysis = 'Inv. Order Details (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
         PostingDateFilterLabel = 'Posting Date Filter:';
+        TotalLabel = 'Total';
         // About the report labels
         AboutTheReportLabel = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
         EnvironmentLabel = 'Environment';

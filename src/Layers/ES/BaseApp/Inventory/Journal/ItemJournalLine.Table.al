@@ -565,7 +565,7 @@ table 83 "Item Journal Line"
 
             trigger OnValidate()
             begin
-                if ("Order Type" <> GetOrderTypeProduction()) or ("Order No." = '') then
+                if not IsOrderTypeProduction() or ("Order No." = '') then
                     CreateDimFromDefaultDim(rec.FieldNo("Salespers./Purch. Code"));
             end;
         }
@@ -886,7 +886,7 @@ table 83 "Item Journal Line"
                 PhysInvtEntered := false;
             end;
         }
-        field(55; "Last Item Ledger Entry No."; Integer)
+        field(55; "Last Item Ledger Entry No."; BigInteger)
         {
             Caption = 'Last Item Ledger Entry No.';
             Editable = false;
@@ -2217,9 +2217,7 @@ table 83 "Item Journal Line"
             OnSetUpNewLineOnAfterFindItemJnlLine(Rec, ItemJnlLine, LastItemJnlLine);
             "Posting Date" := LastItemJnlLine."Posting Date";
             "Document Date" := LastItemJnlLine."Posting Date";
-            if (ItemJnlTemplate.Type in
-                [ItemJnlTemplate.GetConsumptionTemplateType(), ItemJnlTemplate.GetOutputTemplateType()])
-            then begin
+            if ItemJnlTemplate.IsConsumptionTemplateType() or ItemJnlTemplate.IsOutputTemplateType() then begin
                 if not IsDocNoProdOrderNo() then
                     "Document No." := LastItemJnlLine."Document No."
             end else
@@ -2229,8 +2227,7 @@ table 83 "Item Journal Line"
             "Document Date" := WorkDate();
             if ItemJnlBatch."No. Series" <> '' then
                 "Document No." := NoSeries.PeekNextNo(ItemJnlBatch."No. Series", "Posting Date");
-            if (ItemJnlTemplate.Type in
-                [ItemJnlTemplate.GetConsumptionTemplateType(), ItemJnlTemplate.GetOutputTemplateType()]) and
+            if (ItemJnlTemplate.IsConsumptionTemplateType() or ItemJnlTemplate.IsOutputTemplateType()) and
                not IsDocNoProdOrderNo()
             then
                 if ItemJnlBatch."No. Series" <> '' then
@@ -3755,6 +3752,11 @@ table 83 "Item Journal Line"
         OnAfterIsEntryTypeProduction(Rec, Result);
     end;
 
+    procedure IsOrderTypeProduction() Result: Boolean
+    begin
+        OnAfterIsOrderTypeProduction(Rec, Result);
+    end;
+
     procedure IsOrderTypeAsmOrProd() Result: Boolean
     begin
         OnAfterIsOrderTypeAsmOrProd(Rec, Result);
@@ -5273,6 +5275,11 @@ table 83 "Item Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetOrderTypeProduction(var OrderType: Enum "Inventory Order Type")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsOrderTypeProduction(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
     end;
 

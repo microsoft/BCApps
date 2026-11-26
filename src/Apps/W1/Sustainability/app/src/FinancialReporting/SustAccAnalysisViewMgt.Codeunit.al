@@ -26,7 +26,7 @@ codeunit 6239 "Sust. Acc. Analysis View Mgt."
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Update Analysis View", 'OnBeforeUpdateOneUpdateEntries', '', false, false)]
-    local procedure HandleOnUpdateOneOnBeforeUpdateEntries(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: Integer; var TableID: Integer; var Supproted: Boolean)
+    local procedure HandleOnUpdateOneOnBeforeUpdateEntries(var NewAnalysisView: Record "Analysis View"; Which: Option "Ledger Entries","Budget Entries",Both; var LastReportedEntryNo: BigInteger; var TableID: Integer; var Supproted: Boolean)
     begin
         if not IsSustainability(NewAnalysisView) then
             exit;

@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+/// <summary>
+/// Displays a spend request document with its header and detail lines.
+/// </summary>
 page 6841 "Spend Request Card"
 {
     Caption = 'Spend Request';
