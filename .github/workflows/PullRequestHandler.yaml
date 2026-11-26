@@ -60,6 +60,13 @@ jobs:
           lfs: true
           ref: ${{ github.event_name == 'pull_request' && github.sha || github.event_name == 'merge_group' && github.ref || format('refs/pull/{0}/merge', github.event.pull_request.number) }}
 
+      - name: Scope pull request build
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          Import-Module ./build/scripts/PullRequestBuildScope.psm1 -Force
+          Set-PullRequestBuildScope -BaseFolder $env:GITHUB_WORKSPACE
+
       - name: Initialize the workflow
         id: init
         uses: microsoft/AL-Go/Actions/WorkflowInitialize@ea8d8a61e8d3968406c09635951edb7f0f95200a
