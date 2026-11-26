@@ -386,6 +386,8 @@ Describe "BuildOptimization" {
         }
         BeforeEach {
             Remove-Item $cacheFile -ErrorAction SilentlyContinue
+            # Tests drive change detection through Get-ChangedFilesForCI; do not read the real PR when running in a PR build
+            Mock -ModuleName BuildOptimization Get-PullRequestMergeChangedFiles { return $null }
         }
         AfterAll {
             Remove-Item $cacheFile -ErrorAction SilentlyContinue
