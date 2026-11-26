@@ -5441,6 +5441,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         AdjAmount: array[4] of Decimal;
         DtldVendLedgEntryNoOffset: BigInteger;
         SaveEntryNo: BigInteger;
+        PayablesAccountNo: Code[20];
         IsHandled: Boolean;
     begin
         if GenJournalLine."Account Type" <> GenJournalLine."Account Type"::Vendor then
@@ -5483,14 +5484,41 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         IsHandled := false;
         OnPostDtldVendLedgEntriesOnBeforeCreateGLEntriesForTotalAmounts(VendPostingGr, DetailedCVLedgEntryBuffer, GenJournalLine, TempDimensionPostingBuffer, AdjAmount, SaveEntryNo, LedgEntryInserted, IsHandled);
-        if not IsHandled then
+        if not IsHandled then begin
+            PayablesAccountNo := GetVendorPayablesAccount2(DetailedCVLedgEntryBuffer, GenJournalLine, VendPostingGr);
             CreateGLEntriesForTotalAmounts(
-                GenJournalLine, TempDimensionPostingBuffer, AdjAmount, SaveEntryNo, GetVendorPayablesAccount2(DetailedCVLedgEntryBuffer, GenJournalLine, VendPostingGr), LedgEntryInserted);
+                GenJournalLine, TempDimensionPostingBuffer, AdjAmount, SaveEntryNo, PayablesAccountNo, LedgEntryInserted);
+
+            if MultiplePostingGroups then begin
+                DetailedCVLedgEntryBuffer.Reset();
+                DetailedCVLedgEntryBuffer.SetFilter("Entry Type", '%1|%2', DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain", DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss");
+                if DetailedCVLedgEntryBuffer.FindSet() then
+                    repeat
+                        PostUnrealizedVendGainLossTransfer(GenJournalLine, DetailedCVLedgEntryBuffer, PayablesAccountNo);
+                    until DetailedCVLedgEntryBuffer.Next() = 0;
+            end;
+        end;
 
         OnPostDtldVendLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(TempGLEntryBuf, GlobalGLEntry, NextTransactionNo);
 
+        DetailedCVLedgEntryBuffer.Reset();
         DtldLedgEntryInserted := not DetailedCVLedgEntryBuffer.IsEmpty();
         DetailedCVLedgEntryBuffer.DeleteAll();
+    end;
+
+    local procedure PostUnrealizedVendGainLossTransfer(GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; PayablesAccountNo: Code[20])
+    var
+        UnrealizedPayablesAccountNo: Code[20];
+    begin
+        if DetailedCVLedgEntryBuffer."Amount (LCY)" = 0 then
+            exit;
+
+        // Keep the unrealized reversal on the payable account that was originally revalued.
+        UnrealizedPayablesAccountNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
+        if UnrealizedPayablesAccountNo <> PayablesAccountNo then begin
+            CreateGLEntryGainLoss(GenJournalLine, UnrealizedPayablesAccountNo, DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+            CreateGLEntryGainLoss(GenJournalLine, PayablesAccountNo, -DetailedCVLedgEntryBuffer."Amount (LCY)", DetailedCVLedgEntryBuffer."Currency Code" = AddCurrencyCode);
+        end;
     end;
 
     local procedure PostDtldVendLedgEntry(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; VendPostingGr: Record "Vendor Posting Group"; var AdjAmount: array[4] of Decimal)
@@ -6451,6 +6479,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextDtldLedgEntryNo: BigInteger;
         xGLEntryNo: BigInteger;
         xVATEntryNo: BigInteger;
+        PayablesAccountNo: Code[20];
         UnapplyVATEntries: Boolean;
         PmtDiscTolExists: Boolean;
         IsHandled: Boolean;
@@ -6651,6 +6680,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NewDetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer";
+        TempUnrealizedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer" temporary;
         VATEntry: Record "VAT Entry";
         TempVATEntry2: Record "VAT Entry" temporary;
         CurrencyLCY: Record Currency;
@@ -6784,6 +6814,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
             PostDtldVendLedgEntryUnapply(
               GenJournalLineToPost, DetailedCVLedgEntryBuffer, VendorPostingGroup, DetailedVendorLedgEntry2."Transaction No.");
 
+            if MultiplePostingGroups and (DetailedCVLedgEntryBuffer."Entry Type" in [
+                DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Gain", DetailedCVLedgEntryBuffer."Entry Type"::"Unrealized Loss"])
+            then begin
+                TempUnrealizedCVLedgEntryBuffer := DetailedCVLedgEntryBuffer;
+                TempUnrealizedCVLedgEntryBuffer.Insert();
+            end;
+
             OnUnapplyVendLedgEntryOnBeforeUpdateDetailedVendLedgEntry2(DetailedVendorLedgEntry2, DetailedCVLedgEntryBuffer);
 
             DetailedVendorLedgEntry2.Unapplied := true;
@@ -6796,8 +6833,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         IsHandled := false;
         OnBeforeCreateGLEntriesForTotalAmountsUnapplyVendorV19(DetailedVendorLedgEntry, VendorPostingGroup, GenJournalLineToPost, TempDimensionPostingBuffer, IsHandled);
-        if not IsHandled then
-            CreateGLEntriesForTotalAmountsUnapply(GenJournalLineToPost, TempDimensionPostingBuffer, GetVendorPayablesAccount(GenJournalLineToPost, VendorPostingGroup));
+        if not IsHandled then begin
+            PayablesAccountNo := GetVendorPayablesAccount(GenJournalLineToPost, VendorPostingGroup);
+            CreateGLEntriesForTotalAmountsUnapply(GenJournalLineToPost, TempDimensionPostingBuffer, PayablesAccountNo);
+            if TempUnrealizedCVLedgEntryBuffer.FindSet() then
+                repeat
+                    PostUnrealizedVendGainLossTransfer(GenJournalLineToPost, TempUnrealizedCVLedgEntryBuffer, PayablesAccountNo);
+                until TempUnrealizedCVLedgEntryBuffer.Next() = 0;
+        end;
 
         OnUnapplyVendLedgEntryOnAfterCreateGLEntriesForTotalAmounts(GenJournalLine, DetailedVendorLedgEntry, GLReg, GenJournalLineToPost, NextTaxEntryNo, NextEntryNo, NextCheckEntryNo, NextTransactionNo);
         if IsTempGLEntryBufEmpty() then
