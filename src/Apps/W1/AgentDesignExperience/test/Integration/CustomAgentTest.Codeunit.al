@@ -180,12 +180,14 @@ codeunit 133754 "Custom Agent Test"
         CustomAgentSetup: Record "Custom Agent Setup";
         CustomAgentMetadataProvider: Codeunit "Custom Agent Metadata Provider";
         EmptyGuid: Guid;
+        ClearedDescription: Text;
+        DeletedSetupDescription: Text;
+        NullIdDescription: Text;
+        UnknownIdDescription: Text;
     begin
         // [SCENARIO] Discovery returns an empty string when no saved description is available.
-        // [GIVEN] Two agents have saved setup records.
+        // [GIVEN] One agent's description is cleared, and the other agent's setup record is deleted.
         Initialize();
-
-        // [WHEN] One description is cleared and the other agent's setup record is deleted.
         CustomAgentSetup.Get(TestAgentId1);
         Clear(CustomAgentSetup.Description);
         CustomAgentSetup.Modify(true);
@@ -193,11 +195,17 @@ codeunit 133754 "Custom Agent Test"
         CustomAgentSetup.Delete(true);
         Initialized := false;
 
-        // [THEN] Neither agent has a description, and neither does a null or unknown agent ID.
-        Assert.AreEqual('', CustomAgentMetadataProvider.GetDescription(TestAgentId1), 'A cleared description should remain empty.');
-        Assert.AreEqual('', CustomAgentMetadataProvider.GetDescription(TestAgentId2), 'An agent without a setup record should have no description.');
-        Assert.AreEqual('', CustomAgentMetadataProvider.GetDescription(EmptyGuid), 'A null agent ID should have no description.');
-        Assert.AreEqual('', CustomAgentMetadataProvider.GetDescription(CreateGuid()), 'An unknown agent should have no description.');
+        // [WHEN] Descriptions are read for both agents and for a null and an unknown agent ID.
+        ClearedDescription := CustomAgentMetadataProvider.GetDescription(TestAgentId1);
+        DeletedSetupDescription := CustomAgentMetadataProvider.GetDescription(TestAgentId2);
+        NullIdDescription := CustomAgentMetadataProvider.GetDescription(EmptyGuid);
+        UnknownIdDescription := CustomAgentMetadataProvider.GetDescription(CreateGuid());
+
+        // [THEN] All four descriptions are empty.
+        Assert.AreEqual('', ClearedDescription, 'A cleared description should remain empty.');
+        Assert.AreEqual('', DeletedSetupDescription, 'An agent without a setup record should have no description.');
+        Assert.AreEqual('', NullIdDescription, 'A null agent ID should have no description.');
+        Assert.AreEqual('', UnknownIdDescription, 'An unknown agent should have no description.');
     end;
 
     [Test]
