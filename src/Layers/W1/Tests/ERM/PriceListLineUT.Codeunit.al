@@ -27,6 +27,8 @@ codeunit 134123 "Price List Line UT"
         PriceListLinesServiceNameTxt: Label 'PriceListLinesODataTest', Locked = true;
         PriceListLineODataKeyTxt: Label 'Price_List_Code=''%1'',Line_No=%2', Locked = true;
         RecordIdentificationTxt: Label '%1=''%2'',%3=''%4''', Locked = true;
+        WebServiceKeyRetrievalFailedErr: Label 'The web service key of the current user could not be retrieved.';
+        EmptyWebServiceKeyErr: Label 'An empty web service key was returned for the current user.';
         StartingDateErr: Label 'Starting Date %1 cannot be after Ending Date %2.', Comment = '%1 and %2 - dates';
         CampaignDateErr: Label 'If Source Type is Campaign, then you can only change Starting Date and Ending Date from the Campaign Card.';
         AssetTypeForUOMErr: Label 'Product Type must be equal to Item or Resource.';
@@ -4043,6 +4045,48 @@ codeunit 134123 "Price List Line UT"
         if PriceListCode <> '' then
             RecordKey := StrSubstNo(PriceListLineODataKeyTxt, PriceListCode, Format(LineNo, 0, 9));
         exit(LibraryGraphMgt.CreateTargetURL(RecordKey, Page::"Price List Lines", PriceListLinesServiceNameTxt));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Library - Graph Mgt", 'OnAfterInitializeWebRequestWithURL', '', false, false)]
+    local procedure AddBasicAuthenticationOnAfterInitializeWebRequestWithURL(var HttpWebRequestMgt: Codeunit "Http Web Request Mgt.")
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        IdentityManagement: Codeunit "Identity Management";
+    begin
+        // Library - Graph Mgt sends only the default Windows credentials, which a server with NavUserPassword authentication rejects,
+        // so authenticate the OData requests with the current user's web service key.
+        if EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+        if not IdentityManagement.IsUserNamePasswordAuthentication() then
+            exit;
+
+        HttpWebRequestMgt.AddBasicAuthentication(UserId(), GetWebServiceKey());
+    end;
+
+    [NonDebuggable]
+    local procedure GetWebServiceKey(): SecretText
+    var
+        IdentityManagement: Codeunit "Identity Management";
+        WebServiceKey: Text[80];
+        ExpiryDate: DateTime;
+    begin
+        // Identity Management returns the error text instead of the key on failure, so check the error state
+        ClearLastError();
+        WebServiceKey := IdentityManagement.GetWebServicesKey(UserSecurityId());
+        if GetLastErrorText() <> '' then
+            Error(WebServiceKeyRetrievalFailedErr);
+        ExpiryDate := IdentityManagement.GetWebServiceExpiryDate(UserSecurityId());
+        if GetLastErrorText() <> '' then
+            Error(WebServiceKeyRetrievalFailedErr);
+
+        if (WebServiceKey = '') or ((ExpiryDate <> 0DT) and (ExpiryDate <= CurrentDateTime())) then begin
+            WebServiceKey := IdentityManagement.CreateWebServicesKey(UserSecurityId(), CurrentDateTime() + 24 * 60 * 60 * 1000);
+            // The request is authenticated by a separate server session, which only sees committed data
+            Commit();
+        end;
+        if WebServiceKey = '' then
+            Error(EmptyWebServiceKeyErr);
+        exit(WebServiceKey);
     end;
 
     local procedure FindSinglePriceListLineAndDeleteViaOData(var PriceListLine: Record "Price List Line"; PriceListCode: Code[20])
