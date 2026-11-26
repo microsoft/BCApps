@@ -564,6 +564,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
     local procedure InjectSupplierIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; CompanyInformation: Record "Company Information")
     var
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         SupplierPartyNode: XmlNode;
         PartyNode: XmlNode;
         PartyIdElement: XmlElement;
@@ -586,7 +587,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         // Add SIREN (BT-30, schemeID=0002) as PartyLegalEntity/CompanyID.
         // A valid SIRET always carries its coherent SIREN in the first nine digits.
-        SIRENNo := GetSIRENNo(CompanyInformation."Registration No.", CompanyInformation."SIRET No.");
+        SIRENNo := FREDocHelpers.GetSIRENNo(CompanyInformation."Registration No.", CompanyInformation."SIRET No.");
         if SIRENNo <> '' then
             InjectLegalEntitySIREN(PartyNode, NamespaceMgr, CopyStr(SIRENNo, 1, 20));
     end;
@@ -594,47 +595,24 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure InjectBuyerIdentification(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
     var
         Customer: Record Customer;
-        FRCIIXMLBuilder: Codeunit "CII XML Builder";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
         CustomerNoFieldRef: FieldRef;
         BuyerPartyNode: XmlNode;
         CustomerNo: Code[20];
         SIRENNo: Text;
-        VATRegistrationNo: Text;
     begin
         if not XmlDoc.SelectSingleNode('//cac:AccountingCustomerParty/cac:Party', NamespaceMgr, BuyerPartyNode) then
             exit;
-        if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
+        if not FREDocHelpers.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit;
         CustomerNo := CustomerNoFieldRef.Value();
         Customer.SetLoadFields("Registration Number", "FR Electronic Address", "VAT Registration No.");
         if not Customer.Get(CustomerNo) then
             exit;
 
-        SIRENNo := GetSIRENNo(Customer."Registration Number", Customer."Registration Number");
-        if SIRENNo = '' then
-            if IsNumericIdentifier(CopyStr(Customer."FR Electronic Address", 1, 9), 9) then
-                SIRENNo := CopyStr(Customer."FR Electronic Address", 1, 9);
-        if SIRENNo = '' then begin
-            VATRegistrationNo := DelChr(Customer."VAT Registration No.", '=', ' ');
-            if (StrLen(VATRegistrationNo) = 13) and (CopyStr(VATRegistrationNo, 1, 2).ToUpper() = 'FR') then
-                if IsNumericIdentifier(CopyStr(VATRegistrationNo, 5, 9), 9) then
-                    SIRENNo := CopyStr(VATRegistrationNo, 5, 9);
-        end;
+        SIRENNo := FREDocHelpers.GetBuyerSIREN(Customer);
         if SIRENNo <> '' then
             InjectLegalEntitySIREN(BuyerPartyNode, NamespaceMgr, CopyStr(SIRENNo, 1, 20));
-    end;
-
-    local procedure GetSIRENNo(RegistrationNo: Text; SIRETNo: Text): Text
-    begin
-        if IsNumericIdentifier(SIRETNo, 14) then
-            exit(CopyStr(SIRETNo, 1, 9));
-        if IsNumericIdentifier(RegistrationNo, 9) then
-            exit(RegistrationNo);
-    end;
-
-    local procedure IsNumericIdentifier(Identifier: Text; RequiredLength: Integer): Boolean
-    begin
-        exit((StrLen(Identifier) = RequiredLength) and (DelChr(Identifier, '=', '0123456789') = ''));
     end;
 
     local procedure InjectLegalEntitySIREN(PartyNode: XmlNode; NamespaceMgr: XmlNamespaceManager; SIRENNo: Text[20])
@@ -730,12 +708,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure GetCustomerElecAddress(SourceDocumentHeader: RecordRef; EDocumentServiceCode: Code[20]; var ElecAddress: Text[250]; var ElecAddressScheme: Enum "Electronic Address Scheme"): Boolean
     var
         Customer: Record Customer;
-        FRCIIXMLBuilder: Codeunit "CII XML Builder";
         FREDocHelpers: Codeunit "EDoc. Helpers";
         CustomerNoFieldRef: FieldRef;
         CustomerNo: Code[20];
     begin
-        if not FRCIIXMLBuilder.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
+        if not FREDocHelpers.TryGetCustomerNoFieldRef(SourceDocumentHeader, CustomerNoFieldRef) then
             exit(false);
 
         CustomerNo := CustomerNoFieldRef.Value();

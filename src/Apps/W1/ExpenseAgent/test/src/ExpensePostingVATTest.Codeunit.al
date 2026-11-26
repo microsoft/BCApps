@@ -1285,8 +1285,6 @@ codeunit 148330 "Expense Posting VAT Test"
 
     local procedure Initialize()
     var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryVariableStorage.Clear();
@@ -1298,10 +1296,7 @@ codeunit 148330 "Expense Posting VAT Test"
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Posting VAT Test");
 
-        ExpenseAgentSetup.Get();
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
-        ExpenseAgentSetup.Modify(true);
+        LibraryExpense.UpdateVATBusinessPostingGroupInAgentSetup();
 
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryERMCountryData.UpdateLocalData();

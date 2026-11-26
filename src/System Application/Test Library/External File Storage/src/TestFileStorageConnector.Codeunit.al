@@ -124,16 +124,34 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         Clear(StoredFileIndexes);
     end;
 
+    internal procedure ResetDirectoryPaths()
+    begin
+        Clear(LastCreatedDirectoryPath);
+        Clear(LastDirectoryExistsPath);
+    end;
+
+    internal procedure GetLastCreatedDirectoryPath(): Text
+    begin
+        exit(LastCreatedDirectoryPath);
+    end;
+
+    internal procedure GetLastDirectoryExistsPath(): Text
+    begin
+        exit(LastDirectoryExistsPath);
+    end;
+
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
     begin
     end;
 
     procedure CreateDirectory(AccountId: Guid; Path: Text);
     begin
+        LastCreatedDirectoryPath := Path;
     end;
 
     procedure DirectoryExists(AccountId: Guid; Path: Text): Boolean;
     begin
+        LastDirectoryExistsPath := Path;
     end;
 
     procedure DeleteDirectory(AccountId: Guid; Path: Text);
@@ -191,6 +209,8 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         StoreFileContent: Boolean;
         FileExistsCallCount: Integer;
         LastDeletedFilePath: Text;
+        LastCreatedDirectoryPath: Text;
+        LastDirectoryExistsPath: Text;
         FailedToGetFileErr: Label 'Failed to get file.';
         FailedToCreateFileErr: Label 'Failed to create file.';
         FileNotFoundErr: Label 'The file %1 does not exist.', Comment = '%1 = File path';

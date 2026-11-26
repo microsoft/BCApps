@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Intrastat;
 
+using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Transfer;
 
 tableextension 31323 "Direct Trans. Line CZ" extends "Direct Trans. Line"
@@ -15,6 +16,12 @@ tableextension 31323 "Direct Trans. Line CZ" extends "Direct Trans. Line"
             Caption = 'Statistic Indication';
             DataClassification = CustomerContent;
             TableRelation = "Statistic Indication CZ".Code where("Tariff No." = field("Tariff No. CZL"));
+        }
+        field(31310; "Country/Reg. of Orig. Code CZ"; Code[10])
+        {
+            Caption = 'Country/Region of Origin Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Country/Region";
         }
     }
 }

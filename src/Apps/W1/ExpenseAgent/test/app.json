@@ -20,7 +20,7 @@
     },
     {
       "id": "66efe10c-8033-403b-a86d-77c0887178ba",
-      "name": "Expense Agent (Preview)",
+      "name": "Expense Agent",
       "publisher": "Microsoft",
       "version": "29.2.0.0"
     },
@@ -59,11 +59,7 @@
     },
     {
       "from": 148330,
-      "to": 148350
-    },
-    {
-      "from": 148361,
-      "to": 148361
+      "to": 148369
     }
   ],
   "features": [
