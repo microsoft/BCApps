@@ -2219,6 +2219,87 @@ codeunit 137260 "SCM Inventory Item Tracking"
             SalesHeader."No.", SalesLine."Line No.", Item."No."));
     end;
 
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler,PickCreatedMessageHandler')]
+    [Scope('OnPrem')]
+    procedure PartialPostInvtPickSplitByLotWithStrictExpirationPosting()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        Bin: Record Bin;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LotNo: array[2] of Code[10];
+        Quantity: array[2] of Integer;
+    begin
+        // [FEATURE] [Inventory Pick] [Expiration Date]
+        // [SCENARIO 657960] Partially posting an inventory pick split by lot for a sales line without item tracking succeeds when "Strict Expiration Posting" is enabled.
+        Initialize();
+        Quantity[1] := LibraryRandom.RandIntInRange(5, 10);
+        Quantity[2] := LibraryRandom.RandIntInRange(5, 10);
+
+        // [GIVEN] Location with "Require Pick" and "Bin Mandatory".
+        CreateLocationWithRequirePickAndBin(Location, Bin);
+
+        // [GIVEN] Lot-tracked item with "Use Expiration Dates" and "Strict Expiration Posting".
+        ItemTrackingCode.Get(CreateItemTrackingCode(false, true, true, false, true));
+        ItemTrackingCode.Validate("Strict Expiration Posting", true);
+        ItemTrackingCode.Modify(true);
+        CreateItem(Item, ItemTrackingCode.Code);
+
+        // [GIVEN] Lots "L1" and "L2" in stock, both not expired, "L1" expires first.
+        SelectItemJournalAndPostItemJournalLine(
+          LotNo[1], Bin.Code, '', Item."No.", Location.Code, '', Quantity[1], CalcDate('<1M>', WorkDate()),
+          ItemJournalBatch."Template Type"::Item, ItemJournalLine."Entry Type"::"Positive Adjmt.", false);
+        SelectItemJournalAndPostItemJournalLine(
+          LotNo[2], Bin.Code, '', Item."No.", Location.Code, '', Quantity[2], CalcDate('<2M>', WorkDate()),
+          ItemJournalBatch."Template Type"::Item, ItemJournalLine."Entry Type"::"Positive Adjmt.", false);
+
+        // [GIVEN] Released sales order for the total quantity of "L1" and "L2" without item tracking.
+        CreateSalesDocument(SalesLine, Item."No.", Location.Code, Quantity[1] + Quantity[2]);
+        SalesHeader.Get(SalesLine."Document Type", SalesLine."Document No.");
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+
+        // [GIVEN] Inventory pick with one line per lot.
+        LibraryWarehouse.CreateInvtPutPickMovement(
+          WarehouseActivityHeader."Source Document"::"Sales Order", SalesHeader."No.", false, true, false);
+        FindWhseActivityHeaderBySalesHeader(WarehouseActivityHeader, SalesHeader);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        Assert.RecordCount(WarehouseActivityLine, 2);
+
+        // [GIVEN] "Qty. to Handle" is set to the full quantity on the "L1" line and to 0 on the "L2" line.
+        WarehouseActivityLine.FindSet(true);
+        repeat
+            if WarehouseActivityLine."Lot No." = LotNo[1] then
+                WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine.Quantity)
+            else
+                WarehouseActivityLine.Validate("Qty. to Handle", 0);
+            WarehouseActivityLine.Modify(true);
+        until WarehouseActivityLine.Next() = 0;
+
+        // [WHEN] Post the inventory pick (ship only).
+        LibraryWarehouse.PostInventoryActivity(WarehouseActivityHeader, false);
+
+        // [THEN] The sales line is partially shipped with the quantity of lot "L1".
+        SalesLine.Find();
+        SalesLine.TestField("Quantity Shipped", Quantity[1]);
+
+        // [THEN] The sales item ledger entry is posted for lot "L1" only.
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        Assert.RecordCount(ItemLedgerEntry, 1);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Lot No.", LotNo[1]);
+        ItemLedgerEntry.TestField(Quantity, -Quantity[1]);
+    end;
+
     local procedure FindWhseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; ActivityType: Enum "Warehouse Activity Type"; LocationCode: Code[10]; SourceNo: Code[20]; ActionType: Enum "Warehouse Action Type")
     begin
         FindWarehouseActivityNo(WarehouseActivityLine, SourceNo, ActivityType);

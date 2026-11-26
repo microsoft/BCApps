@@ -22,11 +22,11 @@ codeunit 6195 "E-Doc. AI Tool Processor"
     InherentEntitlements = X;
 
     var
-        AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AISystem: Interface IEDocAISystem;
+        DeploymentName: Text;
         TelemetryDimensions: Dictionary of [Text, Text];
         ModelSwitchSecretNameTok: Label 'EDocAIModelSwitch', Locked = true;
         GPT56CeresTok: Label 'GPT56Ceres', Locked = true;
@@ -40,23 +40,17 @@ codeunit 6195 "E-Doc. AI Tool Processor"
     /// <returns>True if setup was successful, false otherwise.</returns>
     procedure Setup(EDocAISystem: Interface IEDocAISystem): Boolean
     var
-        CopilotCapability: Codeunit "Copilot Capability";
-        DeploymentName: Text;
         UseCase: Option "Matching Assistance","PDF Extraction";
     begin
         Clear(TelemetryDimensions);
 
         RegisterCapabilityIfNeeded();
 
-        if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document Matching Assistance") then
-            exit(false);
-        if not CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"E-Document Matching Assistance") then
+        if not IsCopilotCapabilityActive() then
             exit(false);
 
         // Use the same resolved deployment for authorization and telemetry.
         DeploymentName := GetChatCompletionsDeployment(UseCase::"Matching Assistance");
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", DeploymentName);
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"E-Document Matching Assistance");
 
         // Setup parameters
         AOAIChatCompletionParams.SetMaxTokens(GetDefaultMaxOutputTokens());
@@ -105,7 +99,7 @@ codeunit 6195 "E-Doc. AI Tool Processor"
 
         // Process with timing
         StartTime := CurrentDateTime();
-        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIResponse);
+        GenerateChatCompletion(DeploymentName, AOAIChatMessages, AOAIChatCompletionParams, AOAIResponse);
         TelemetryDimensions.Add('ProcessingTime', Format(CurrentDateTime() - StartTime));
 
         // Handle response
@@ -277,6 +271,28 @@ codeunit 6195 "E-Doc. AI Tool Processor"
     procedure GetEDocumentMatchingAssistanceName(): Text
     begin
         exit('E-Document Matching Assistance');
+    end;
+
+    internal procedure IsCopilotCapabilityActive() IsActive: Boolean
+    begin
+        OnIsCopilotCapabilityActive(IsActive);
+    end;
+
+    [NonDebuggable]
+    internal procedure GenerateChatCompletion(Deployment: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; ChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response")
+    begin
+        OnGenerateChatCompletion(Deployment, ChatMessages, ChatCompletionParams, AOAIOperationResponse);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnIsCopilotCapabilityActive(var IsActive: Boolean)
+    begin
+    end;
+
+    [NonDebuggable]
+    [InternalEvent(false)]
+    local procedure OnGenerateChatCompletion(Deployment: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; ChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response")
+    begin
     end;
 
 }
