@@ -283,7 +283,8 @@ codeunit 8060 "Create Billing Documents"
             SalesLine.Validate("Unit of Measure Code", ServiceObject."Unit of Measure");
         SalesLine.Validate(Quantity, TempBillingLine.GetSign() * ServiceObject.Quantity);
         UnitPrice := SalesLine.GetSalesDocumentSign() * TempBillingLine."Unit Price";
-        if SalesHeader."Prices Including VAT" then
+        // Sales-order subscriptions store net prices; manually created subscriptions retain the entered price.
+        if SalesHeader."Prices Including VAT" and (ServiceObject."Sales Order No." <> '') then
             UnitPrice := ToVATInclusiveUnitPrice(UnitPrice, SalesLine."VAT %", SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT", SalesLine."Currency Code");
         // Unit Price is assigned directly; the following Validate("Line Discount %") recalculates the line amount.
         SalesLine."Unit Price" := UnitPrice;

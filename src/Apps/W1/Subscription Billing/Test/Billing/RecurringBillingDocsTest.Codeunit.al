@@ -807,21 +807,35 @@ codeunit 139687 "Recurring Billing Docs Test"
 
     [Test]
     [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
-    procedure ContractSalesInvoiceUnitPriceIsVATInclusiveWhenCustomerPricesIncludeVAT()
+    procedure ManualContractSalesInvoicePreservesVATInclusiveAmount()
     var
         Currency: Record Currency;
         VATPostingSetup: Record "VAT Posting Setup";
-        NetUnitPrice: Decimal;
-        ExpectedUnitPrice: Decimal;
+        ContractUnitPrice: Decimal;
+        ExpectedAmount: Decimal;
+        ContractPriceErr: Label 'The billing proposal must retain the entered contract price.', Locked = true;
+        ManualUnitPriceErr: Label 'Manual contract invoice unit price must retain the entered VAT-inclusive price.', Locked = true;
+        ManualAmountIncludingVATErr: Label 'VAT must not be added on top of the manual contract amount.', Locked = true;
+        ManualVATBaseErr: Label 'The VAT base must be extracted from the manual contract amount.', Locked = true;
     begin
-        // [SCENARIO] When a Subscription Contract is billed for a customer whose prices include VAT,
-        // the resulting contract invoice sales line "Unit Price" is grossed up to a VAT-inclusive value.
+        // [FEATURE] [AI test]
+        // [SCENARIO 660772] A manually entered contract amount includes VAT when the customer's prices include VAT.
         Initialize();
 
         // [GIVEN] A customer with "Prices Including VAT" = YES and a subscription item with a non-zero VAT rate
         CreateCustomerContractWithVATItem(VATPostingSetup, true);
+        ServiceObject.SetHideValidationDialog(true);
+        ServiceObject.Validate(Quantity, 1);
+        ServiceObject.Modify(true);
+        ServiceCommitment.Validate("Subscription Line Start Date", WorkDate());
+        Evaluate(ServiceCommitment."Billing Base Period", '<1M>');
+        Evaluate(ServiceCommitment."Billing Rhythm", '<1M>');
+        ServiceCommitment.Validate("Calculation Base Amount", 24);
+        ServiceCommitment.Validate("Discount %", 0);
+        ServiceCommitment.Modify(true);
 
         // [GIVEN] A billing proposal for the contract
+        ContractTestLibrary.CreateRecurringBillingTemplate(BillingTemplate, '', '<1M-1D>', '', Enum::"Service Partner"::Customer);
         ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
 
         // [WHEN] Billing documents are created
@@ -832,21 +846,97 @@ codeunit 139687 "Recurring Billing Docs Test"
         BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
         BillingLine.SetRange(Partner, BillingTemplate.Partner);
         BillingLine.FindFirst();
-        NetUnitPrice := SumBillingProposalUnitPrice();
-        Assert.AreNotEqual(0, NetUnitPrice, 'The net unit price should not be zero, otherwise the test is meaningless.');
+        ContractUnitPrice := SumBillingProposalUnitPrice();
+        ServiceObject.TestField("Sales Order No.", '');
+        Assert.AreEqual(24, ContractUnitPrice, ContractPriceErr);
 
         SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
         SalesHeader.TestField("Prices Including VAT", true);
 
-        // [THEN] The sales line unit price equals the net price grossed up by VAT
+        // [THEN] VAT is extracted from the contract amount instead of being added to it
         SalesLine.Reset();
         FilterSalesLineOnDocumentLine(BillingLine.GetSalesDocumentTypeFromBillingDocumentType(), BillingLine."Document No.", BillingLine."Document Line No.");
         SalesLine.FindFirst();
         SalesLine.TestField("VAT %", VATPostingSetup."VAT %");
 
         Currency.InitRoundingPrecision();
+        ExpectedAmount := Round(ContractUnitPrice * SalesLine.Quantity, Currency."Amount Rounding Precision");
+        Assert.AreEqual(ContractUnitPrice, SalesLine."Unit Price", ManualUnitPriceErr);
+        Assert.AreEqual(ExpectedAmount, SalesLine."Amount Including VAT", ManualAmountIncludingVATErr);
+        Assert.AreEqual(
+            Round(ExpectedAmount / (1 + VATPostingSetup."VAT %" / 100), Currency."Amount Rounding Precision"),
+            SalesLine.Amount, ManualVATBaseErr);
+    end;
+
+    [Test]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler')]
+    procedure ContractSalesInvoiceUnitPriceIsVATInclusiveWhenCustomerPricesIncludeVAT()
+    var
+        Item: Record Item;
+        ItemSubscriptionPackage: Record "Item Subscription Package";
+        SalesSubscriptionLine: Record "Sales Subscription Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Currency: Record Currency;
+        CustomerNo: Code[20];
+        SalesOrderNo: Code[20];
+        NetUnitPrice: Decimal;
+        ExpectedUnitPrice: Decimal;
+        SubscriptionNetPriceErr: Label 'The order-created subscription must store its price excluding VAT.', Locked = true;
+        NonZeroNetUnitPriceErr: Label 'The net unit price should not be zero, otherwise the test is meaningless.', Locked = true;
+        VATInclusiveUnitPriceErr: Label 'Contract invoice unit price should be VAT-inclusive when the customer prices include VAT.', Locked = true;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 660772] Subscriptions created by posting a VAT-inclusive sales order retain net-to-gross conversion.
+        Initialize();
+        CreateCustomerContractWithVATItem(VATPostingSetup, true);
+        CustomerNo := CustomerContract."Sell-to Customer No.";
+        Item.Get(ServiceObject."Source No.");
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+        ItemSubscriptionPackage.SetRange("Item No.", Item."No.");
+        ItemSubscriptionPackage.FindFirst();
+        ItemSubscriptionPackage.Validate(Standard, true);
+        ItemSubscriptionPackage.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, CustomerNo);
+        SalesOrderNo := SalesHeader."No.";
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", WorkDate(), 1);
+        SalesSubscriptionLine.FilterOnSalesLine(SalesLine);
+        SalesSubscriptionLine.FindFirst();
+        SalesSubscriptionLine.Validate("Calculation Base Amount", 24);
+        SalesSubscriptionLine.Validate("Calculation Base %", 100);
+        SalesSubscriptionLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        ServiceObject.Reset();
+        ServiceObject.SetRange("Sales Order No.", SalesOrderNo);
+        ServiceObject.FindFirst();
+        ServiceObject.TestField("Sales Order No.", SalesOrderNo);
+        ContractTestLibrary.CreateCustomerContractAndCreateContractLinesForItems(CustomerContract, ServiceObject, CustomerNo);
+        ContractTestLibrary.DisableDeferralsForCustomerContract(CustomerContract, false);
+        GetCustomerContractServiceCommitment(CustomerContract."No.");
+        Currency.InitRoundingPrecision();
+        Assert.AreEqual(
+            Round(24 / (1 + VATPostingSetup."VAT %" / 100), Currency."Unit-Amount Rounding Precision"),
+            ServiceCommitment.Price, SubscriptionNetPriceErr);
+
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        CreateBillingDocuments(false);
+
+        BillingLine.Reset();
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange("Subscription Line Entry No.", ServiceCommitment."Entry No.");
+        BillingLine.FindFirst();
+        SalesHeader.Get(Enum::"Sales Document Type"::Invoice, BillingLine."Document No.");
+        SalesHeader.TestField("Prices Including VAT", true);
+        SalesLine.Get(SalesHeader."Document Type", SalesHeader."No.", BillingLine."Document Line No.");
+        SalesLine.TestField("VAT %", VATPostingSetup."VAT %");
+        BillingLine.SetRange("Document Line No.", BillingLine."Document Line No.");
+        BillingLine.CalcSums("Unit Price");
+        NetUnitPrice := BillingLine."Unit Price";
+        Assert.AreNotEqual(0, NetUnitPrice, NonZeroNetUnitPriceErr);
         ExpectedUnitPrice := Round(NetUnitPrice * (1 + VATPostingSetup."VAT %" / 100), Currency."Unit-Amount Rounding Precision");
-        Assert.AreEqual(ExpectedUnitPrice, SalesLine."Unit Price", 'Contract invoice unit price should be VAT-inclusive when the customer prices include VAT.');
+        Assert.AreEqual(ExpectedUnitPrice, SalesLine."Unit Price", VATInclusiveUnitPriceErr);
     end;
 
     [Test]
