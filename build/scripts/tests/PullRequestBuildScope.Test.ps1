@@ -37,6 +37,44 @@ Describe "PullRequestBuildScope" {
         }
     }
 
+    Context "Remove-PullRequestCleanBuildMode" {
+        It "removes Clean only from app projects while preserving other modes" {
+            $root = Join-Path ([System.IO.Path]::GetTempPath()) "PullRequestBuildModes_$([System.Guid]::NewGuid())"
+            $appSettingsPath = Join-Path $root 'build/projects/Apps W1/.AL-Go/settings.json'
+            $testSettingsPath = Join-Path $root 'build/projects/Test Apps W1/.AL-Go/settings.json'
+            New-Item -ItemType Directory -Path (Split-Path $appSettingsPath) -Force | Out-Null
+            New-Item -ItemType Directory -Path (Split-Path $testSettingsPath) -Force | Out-Null
+            @{
+                ConditionalSettings = @(
+                    @{ branches = @('main'); settings = @{ buildModes = @('Clean'); preprocessorSymbols = @('CLEAN30') } },
+                    @{ branches = @('releases/0.*'); settings = @{ buildModes = @('Strict') } },
+                    @{ branches = @('main'); settings = @{ buildModes = @('Default', 'Clean'); customSetting = 'preserved' } }
+                )
+            } | ConvertTo-Json -Depth 10 | Set-Content $appSettingsPath
+            @{
+                ConditionalSettings = @(
+                    @{ branches = @('main'); settings = @{ buildModes = @('Clean') } }
+                )
+            } | ConvertTo-Json -Depth 10 | Set-Content $testSettingsPath
+
+            try {
+                Remove-PullRequestCleanBuildMode -BaseFolder $root
+
+                $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                @($appSettings.ConditionalSettings).Count | Should -Be 2
+                @($appSettings.ConditionalSettings | Where-Object { $_.settings.buildModes -contains 'Clean' }).Count | Should -Be 0
+                $appSettings.ConditionalSettings[0].settings.buildModes | Should -Be @('Strict')
+                $appSettings.ConditionalSettings[1].settings.buildModes | Should -Be @('Default')
+                $appSettings.ConditionalSettings[1].settings.customSetting | Should -Be 'preserved'
+
+                $testSettings = Get-Content $testSettingsPath -Raw | ConvertFrom-Json
+                $testSettings.ConditionalSettings[0].settings.buildModes | Should -Be @('Clean')
+            } finally {
+                Remove-Item $root -Recurse -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
     Context "Set-PullRequestBuildScope" {
         BeforeEach {
             $root = Join-Path ([System.IO.Path]::GetTempPath()) "PullRequestBuildScope_$([System.Guid]::NewGuid())"

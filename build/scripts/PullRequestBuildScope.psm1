@@ -102,6 +102,54 @@ function Get-PullRequestTestBuildModes {
 
 <#
 .SYNOPSIS
+    Removes the Clean app build mode from the current pull request workspace.
+.DESCRIPTION
+    Clean app builds still run on post-merge and release branches. Removing the mode from
+    pull request workspaces avoids repeating that compilation for every revision.
+.PARAMETER BaseFolder
+    Root of the repository checkout.
+#>
+function Remove-PullRequestCleanBuildMode {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    param(
+        [Parameter(Mandatory)]
+        [string] $BaseFolder
+    )
+
+    $projectsFolder = Join-Path $BaseFolder 'build/projects'
+    $projectSettingsFiles = Get-ChildItem -Path $projectsFolder -Directory |
+        Where-Object { $_.Name -match '^Apps (?:W1|[A-Z]{2})$' } |
+        ForEach-Object { Join-Path $_.FullName '.AL-Go/settings.json' } |
+        Where-Object { Test-Path $_ }
+
+    foreach ($projectSettingsFile in $projectSettingsFiles) {
+        $projectSettings = Get-Content $projectSettingsFile -Raw | ConvertFrom-Json
+        $conditionalSettings = @($projectSettings.ConditionalSettings)
+        $changed = $false
+        $remainingSettings = foreach ($conditional in $conditionalSettings) {
+            $modes = @($conditional.settings.buildModes)
+            if ($modes -notcontains 'Clean') {
+                $conditional
+                continue
+            }
+
+            $changed = $true
+            $remainingModes = @($modes | Where-Object { $_ -ne 'Clean' })
+            if ($remainingModes.Count -gt 0) {
+                $conditional.settings.buildModes = $remainingModes
+                $conditional
+            }
+        }
+
+        if ($changed -and $PSCmdlet.ShouldProcess($projectSettingsFile, 'Remove Clean build mode')) {
+            $projectSettings.ConditionalSettings = @($remainingSettings)
+            $projectSettings | ConvertTo-Json -Depth 20 | Set-Content -Path $projectSettingsFile -Encoding UTF8
+        }
+    }
+}
+
+<#
+.SYNOPSIS
     Rewrites the Pull Request Build settings in the current workspace to scope a pull request build.
 .DESCRIPTION
     No-op for other events, when the pull request has the full-country-matrix label, or when the
@@ -117,6 +165,8 @@ function Set-PullRequestBuildScope {
     )
 
     if ($env:GITHUB_EVENT_NAME -ne 'pull_request') { return }
+
+    Remove-PullRequestCleanBuildMode -BaseFolder $BaseFolder
 
     $prEvent = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
     if (@($prEvent.pull_request.labels | Where-Object { $_.name -eq $script:FullMatrixLabel }).Count -gt 0) {
@@ -169,6 +219,7 @@ function Set-PullRequestBuildScope {
         "",
         "- Countries built besides W1: $countryText",
         "- Test modes skipped (no affected legacy test app): $modeText",
+        "- Clean app compilation deferred to post-merge validation.",
         "- Add the ``$($script:FullMatrixLabel)`` label and re-run to build every country.",
         ""
     ) + @($scope.Reasons | ForEach-Object { "  - $_" })
@@ -176,4 +227,4 @@ function Set-PullRequestBuildScope {
     if ($env:GITHUB_STEP_SUMMARY) { $summary | Add-Content -Path $env:GITHUB_STEP_SUMMARY -Encoding UTF8 }
 }
 
-Export-ModuleMember -Function Get-PullRequestCountries, Get-PullRequestTestBuildModes, Set-PullRequestBuildScope
+Export-ModuleMember -Function Get-PullRequestCountries, Get-PullRequestTestBuildModes, Remove-PullRequestCleanBuildMode, Set-PullRequestBuildScope
