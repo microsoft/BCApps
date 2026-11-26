@@ -943,18 +943,20 @@ codeunit 137214 CameraBarcodeScanItemTrackTest
         PurchaseLine: Record "Purchase Line";
         PurchaseHeader: Record "Purchase Header";
         PurchLineReserve: Codeunit "Purch. Line-Reserve";
+        LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         ItemTrackingLines: Page "Item Tracking Lines";
     begin
         // [SCENARIO] [Barcode Scanner]
         // When open item tracking lines with purchase order, but it's subtype is not Order, error is not thrown
         Initialize();
+        LibraryERMCountryData.CreateVATData();
 
         // [GIVEN] Create item 
         LibraryItemTracking.CreateSerialItem(Item);
         // [GIVEN] Init Purchase Header 
-        LibraryPurchase.CreatePurchaseCreditMemo(PurchaseHeader);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", LibraryPurchase.CreateVendorNo());
         // [GIVEN] Init Purchase Line
-        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, "Purchase Document Type"::Invoice, Item."No.", 1);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
         // [GIVEN] Init Item tracking Lines
         PurchLineReserve.InitFromPurchLine(TrackingSpecification, PurchaseLine);
         ItemTrackingLines.SetSourceSpec(TrackingSpecification, ItemJournalLine."Posting Date");

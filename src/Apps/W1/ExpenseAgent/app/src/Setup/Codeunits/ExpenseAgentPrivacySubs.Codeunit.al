@@ -62,6 +62,7 @@ codeunit 6950 "Expense Agent Privacy Subs."
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Team");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Approval Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Agent Access Control");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Activities Cue");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"Expense Activity Log Entry");
         DataClassificationMgt.SetFieldToPersonal(
             Database::"Expense Activity Log Entry", ExpenseActivityLogEntry.FieldNo("Actor Record System ID"));

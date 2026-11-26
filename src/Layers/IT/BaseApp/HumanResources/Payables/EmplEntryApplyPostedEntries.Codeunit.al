@@ -275,7 +275,8 @@ codeunit 224 "EmplEntry-Apply Posted Entries"
         MaxPostingDate: Date;
     begin
         MaxPostingDate := 0D;
-        GLEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            GLEntry.LockTable();
         DtldEmplLedgEntry.LockTable();
         EmplLedgEntry.LockTable();
         EmplLedgEntry.Get(DtldEmplLedgEntry2."Employee Ledger Entry No.");

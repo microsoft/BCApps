@@ -354,7 +354,8 @@ codeunit 227 "VendEntry-Apply Posted Entries"
             exit;
 
         MaxPostingDate := 0D;
-        GLEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            GLEntry.LockTable();
         DtldVendLedgEntry.LockTable();
         VendLedgEntry.LockTable();
         GLSetup.GetRecordOnce();

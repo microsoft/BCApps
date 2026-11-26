@@ -626,6 +626,7 @@ codeunit 139480 "Notification Lifecycle Tests"
 
         NotificationLifecycleMgt.DisableSubscribers();
         PurchaseInvoice.OpenView();
+        PurchaseInvoice.New();
         Assert.IsFalse(NotificationLifecycleMgt.AreSubscribersDisabled(),
           'Notification Lifecycle Mgt should be enabled after opening purchase invoice.');
         NotificationLifecycleMgt.DisableSubscribers();
@@ -635,6 +636,7 @@ codeunit 139480 "Notification Lifecycle Tests"
 
         NotificationLifecycleMgt.DisableSubscribers();
         PurchaseCreditMemo.OpenView();
+        PurchaseCreditMemo.New();
         Assert.IsFalse(NotificationLifecycleMgt.AreSubscribersDisabled(),
           'Notification Lifecycle Mgt should be enabled after opening purchase credit memo.');
         NotificationLifecycleMgt.DisableSubscribers();
