@@ -1,4 +1,4 @@
-codeunit 134154 "ERM Intercompany III"
+﻿codeunit 134154 "ERM Intercompany III"
 {
     Permissions = TableData "Cust. Ledger Entry" = rimd,
                   TableData "Vendor Ledger Entry" = rimd;
@@ -3134,12 +3134,12 @@ codeunit 134154 "ERM Intercompany III"
     procedure VerifyICReferenceDocNoOnSalesHeader()
     var
         ICInboxSalesHeader: Record "IC Inbox Sales Header";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Location: Record Location;
         SalesShipmentHeader: Record "Sales Shipment Header";
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
     begin
         // [SCENARIO 450015] Verify no Error message "The length of the string is X, but it must be less than or equal to 20 characters." when posting Warehouse Shipment from an IC Sales Order
         Initialize();
@@ -3250,8 +3250,8 @@ codeunit 134154 "ERM Intercompany III"
         SalesHeader: Record "Sales Header";
         ICInboxTransaction: Record "IC Inbox Transaction";
         ICOutboxTransaction: Record "IC Outbox Transaction";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         DimensionValue: array[5] of Record "Dimension Value";
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
     begin
         // [SCENARIO] A sales order received from intercompany is posted.
         Initialize();
@@ -3283,8 +3283,8 @@ codeunit 134154 "ERM Intercompany III"
         SalesLine: Record "Sales Line";
         ICInboxSalesHeader: Record "IC Inbox Sales Header";
         ICInboxSalesLine: Record "IC Inbox Sales Line";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         DimensionValue: array[5] of Record "Dimension Value";
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         CustomerNo: Code[20];
     begin
         // [SCENARIO] A sales order with a discount amount and prices including VAT is received from intercompany. The amounts are preserved
@@ -3329,8 +3329,8 @@ codeunit 134154 "ERM Intercompany III"
         SalesLine: Record "Sales Line";
         ICInboxSalesHeader: Record "IC Inbox Sales Header";
         ICInboxSalesLine: Record "IC Inbox Sales Line";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         DimensionValue: array[5] of Record "Dimension Value";
+        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         CustomerNo: Code[20];
     begin
         // [SCENARIO] A sales order with a discount amount is received from intercompany. The amounts are preserved
@@ -4286,8 +4286,8 @@ codeunit 134154 "ERM Intercompany III"
 
     local procedure RunCopyICDimensionsFromDimensions()
     var
-        ICDimensionsSelector: TestPage "IC Dimensions Selector";
         ERMIntercompanyIII: Codeunit "ERM Intercompany III";
+        ICDimensionsSelector: TestPage "IC Dimensions Selector";
     begin
         ICDimensionsSelector.OpenView();
         BindSubscription(ERMIntercompanyIII);
@@ -4788,11 +4788,19 @@ codeunit 134154 "ERM Intercompany III"
         GLPostingPreview.Close();
     end;
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforeSendICDocument', '', false, false)]
     local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
         Error('OnBeforeSendICDocument should not be called');
     end;
+#else
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"IC Sales-Post", 'OnBeforeSendICDocument', '', false, false)]
+    local procedure OnBeforeSendICDocument(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
+    begin
+        Error('OnBeforeSendICDocument should not be called');
+    end;
+#endif
 
     [EventSubscriber(ObjectType::Page, Page::"IC Dimensions Selector", 'OnBeforeSelectingDimensions', '', false, false)]
     local procedure OnBeforeSelectingDimensions(var IsHandled: Boolean; var Dimension: Record Dimension)

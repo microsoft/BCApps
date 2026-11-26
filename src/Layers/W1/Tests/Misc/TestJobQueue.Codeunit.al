@@ -1439,9 +1439,16 @@ codeunit 139026 "Test Job Queue"
     local procedure IssueFinanceChargeMemo(No: Code[20])
     var
         FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        FinChrgMemoIssue: Codeunit "FinChrgMemo-Issue";
     begin
         FinanceChargeMemoHeader.Get(No);
-        LibraryERM.IssueFinanceChargeMemo(FinanceChargeMemoHeader);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        FinChrgMemoIssue.Set(FinanceChargeMemoHeader, false, FinanceChargeMemoHeader."Posting Date");
+        FinChrgMemoIssue.SetGenJnlBatch(GenJournalBatch);
+        LibraryERM.RunFinChrgMemoIssue(FinChrgMemoIssue);
     end;
 
     local procedure CreateAndIssueReminder(var ReminderHeader: Record "Reminder Header"; CustomerNo: Code[20])

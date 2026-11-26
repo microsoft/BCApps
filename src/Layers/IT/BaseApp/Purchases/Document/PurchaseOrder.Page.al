@@ -15,10 +15,6 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Outbox;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
@@ -1035,15 +1031,15 @@ page 50 "Purchase Order"
                 {
                     ApplicationArea = Prepayments;
                 }
-                field("Prepayment Due Date"; Rec."Prepayment Due Date")
-                {
-                    ApplicationArea = Prepayments;
-                    Importance = Promoted;
-                }
                 field("Prepmt. Payment Terms Code"; Rec."Prepmt. Payment Terms Code")
                 {
                     ApplicationArea = Prepayments;
                     ToolTip = 'Specifies the code that represents the payment terms for prepayment invoices related to the purchase document.';
+                }
+                field("Prepayment Due Date"; Rec."Prepayment Due Date")
+                {
+                    ApplicationArea = Prepayments;
+                    Importance = Promoted;
                 }
                 field("Prepmt. Payment Discount %"; Rec."Prepmt. Payment Discount %")
                 {
@@ -1677,44 +1673,6 @@ page 50 "Purchase Order"
                         CurrPage.Update(false);
                     end;
                 }
-                action("Send Intercompany Purchase Order")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send Intercompany Purchase Order';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Send the purchase order to the intercompany outbox or directly to the intercompany partner if automatic transaction sending is enabled.';
-
-                    trigger OnAction()
-                    var
-                        ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                        ICFeedback: Codeunit "IC Feedback";
-                    begin
-                        if ApprovalsMgmt.PrePostApprovalCheckPurch(Rec) then begin
-                            ICInOutboxMgt.SendPurchDoc(Rec, false);
-                            ICFeedback.ShowIntercompanyMessage(Rec, Enum::"IC Transaction Document Type"::Order);
-                        end;
-                    end;
-                }
-                action("Reject IC Purchase Order")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Reject IC Purchase Order';
-                    Enabled = RejectICPurchaseOrderEnabled;
-                    Image = Cancel;
-                    ToolTip = 'Deletes the order and sends the rejection to the company that created it.';
-
-                    trigger OnAction()
-                    var
-                        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-                    begin
-                        if not ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec) then
-                            exit;
-                        if Confirm(SureToRejectMsg) then
-                            ICInboxOutboxMgt.RejectAcceptedPurchaseHeader(Rec);
-                    end;
-                }
 
                 group(IncomingDocument)
                 {
@@ -2209,9 +2167,6 @@ page 50 "Purchase Order"
                 actionref("Create Inventor&y Put-away/Pick_Promoted"; "Create Inventor&y Put-away/Pick")
                 {
                 }
-                actionref("Send Intercompany Purchase Order_Promoted"; "Send Intercompany Purchase Order")
-                {
-                }
                 actionref("Archive Document_Promoted"; "Archive Document")
                 {
                 }
@@ -2355,10 +2310,7 @@ page 50 "Purchase Order"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
     begin
-        RejectICPurchaseOrderEnabled := ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec);
         CalculateCurrentShippingAndPayToOption();
         ShowOverReceiptNotification();
         Rec.GetContactDetails(BuyFromContact, PayToContact);
@@ -2381,9 +2333,7 @@ page 50 "Purchase Order"
         JobQueueUsed := PurchSetup.JobQueueActive();
         SetExtDocNoMandatoryCondition();
         ShowShippingOptionsWithLocation := ApplicationAreaMgmtFacade.IsLocationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled();
-
         SetIsActivityCodeMandatory();
-
         IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
     end;
 
@@ -2411,8 +2361,6 @@ page 50 "Purchase Order"
 
     trigger OnOpenPage()
     var
-        PurchaseHeader: Record "Purchase Header";
-        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
 #if not CLEAN28
         LegacySubcFeatureHandler: Codeunit Microsoft.Manufacturing.Setup."Legacy Subc. Feature Handler";
@@ -2432,27 +2380,9 @@ page 50 "Purchase Order"
         ActivateFields();
 
         CheckShowBackgrValidationNotification();
-        RejectICPurchaseOrderEnabled := ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec);
-        if RejectICPurchaseOrderEnabled then begin
-            PurchaseHeader.SetRange("IC Direction", PurchaseHeader."IC Direction"::Incoming);
-            PurchaseHeader.SetFilter("IC Reference Document No.", '<>%1', '');
-            PurchaseHeader.SetRange("Buy-from IC Partner Code", Rec."Buy-from IC Partner Code");
-            PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Invoice);
-            PurchaseHeader.SetRange("Vendor Order No.", Rec."Vendor Order No.");
-            if PurchaseHeader.FindFirst() then
-                ICInboxOutboxMgt.ShowDuplicateICDocumentWarning(PurchaseHeader);
-        end;
-        if (Rec."IC Direction" = Rec."IC Direction"::Outgoing) and (Rec."Buy-from IC Partner Code" <> '') and (Rec."IC Status" = Rec."IC Status"::Sent) then begin
-            PurchaseHeader.Reset();
-            PurchaseHeader.SetRange("IC Direction", PurchaseHeader."IC Direction"::Incoming);
-            PurchaseHeader.SetRange("Buy-from IC Partner Code", Rec."Buy-from IC Partner Code");
-            PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Invoice);
-            PurchaseHeader.SetRange("Your Reference", Rec."No.");
-            if PurchaseHeader.FindFirst() then
-                ICInboxOutboxMgt.ShowDuplicateICDocumentWarning(PurchaseHeader, ICIncomingInvoiceFromOriginalOrderMsg);
-        end;
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         IsVendorInvoiceEditable := not Rec."Self-Billing Invoice";
+        OnAfterOpenPage(Rec);
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -2497,8 +2427,6 @@ page 50 "Purchase Order"
         CanCancelApprovalForRecord: Boolean;
         DocumentIsPosted: Boolean;
         OpenPostedPurchaseOrderQst: Label 'The order is posted as number %1 and moved to the Posted Purchase Invoices window.\\Do you want to open the posted invoice?', Comment = '%1 = posted document number';
-        SureToRejectMsg: Label 'Rejecting this order will remove it from your company and send it back to the partner company.\\Do you want to continue?';
-        ICIncomingInvoiceFromOriginalOrderMsg: Label 'There is an %1 with no. %2 received from intercompany after you sent this order. You can remove this order and post that invoice instead.', Comment = '%1 - either "order", "invoice", or "posted invoice", %2 - a code';
         CanRequestApprovalForFlow: Boolean;
         CanCancelApprovalForFlow: Boolean;
         ShowShippingOptionsWithLocation: Boolean;
@@ -2512,7 +2440,6 @@ page 50 "Purchase Order"
         IsPurchaseLinesEditable: Boolean;
         ShouldSearchForVendByName: Boolean;
         IsRemitToCountyVisible: Boolean;
-        RejectICPurchaseOrderEnabled: Boolean;
         VATDateEnabled: Boolean;
         IsVendorInvoiceEditable: Boolean;
 
@@ -2693,7 +2620,7 @@ page 50 "Purchase Order"
     var
         DocumentNoVisibility: Codeunit DocumentNoVisibility;
     begin
-        DocNoVisible := DocumentNoVisibility.PurchaseDocumentNoIsVisible(Enum::"Purchase Document Type"::Order.AsInteger(), Rec."No.");
+        DocNoVisible := DocumentNoVisibility.PurchaseDocumentNoIsVisible("Purchase Document Type"::Order.AsInteger(), Rec."No.");
     end;
 
     local procedure SetExtDocNoMandatoryCondition()
@@ -2752,12 +2679,11 @@ page 50 "Purchase Order"
         OrderPurchaseHeader: Record "Purchase Header";
         PurchInvHeader: Record "Purch. Inv. Header";
         InstructionMgt: Codeunit "Instruction Mgt.";
-        ICFeedback: Codeunit "IC Feedback";
     begin
         if not OrderPurchaseHeader.Get(Rec."Document Type", Rec."No.") then begin
             PurchInvHeader.SetRange("No.", Rec."Last Posting No.");
             if PurchInvHeader.FindFirst() then begin
-                ICFeedback.ShowIntercompanyMessage(Rec, Enum::"IC Transaction Document Type"::Order);
+                OnShowPostedConfirmationMessageIC(Rec);
                 if InstructionMgt.ShowConfirm(StrSubstNo(OpenPostedPurchaseOrderQst, PurchInvHeader."No."),
                      InstructionMgt.ShowPostedConfirmationMessageCode())
                 then
@@ -2921,6 +2847,16 @@ page 50 "Purchase Order"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostDocumentOnAfterCalcDocumentIsScheduledForPosting(var PurchaseHeader: Record "Purchase Header"; var DocumentIsScheduledForPosting: Boolean; var DocumentIsPosted: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterOpenPage(var PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShowPostedConfirmationMessageIC(var PurchaseHeader: Record "Purchase Header")
     begin
     end;
 }

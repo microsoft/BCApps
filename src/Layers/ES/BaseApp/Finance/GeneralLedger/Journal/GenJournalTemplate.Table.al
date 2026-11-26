@@ -12,8 +12,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Projects.Project.Journal;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -139,11 +137,6 @@ table 80 "Gen. Journal Template"
                         begin
                             "Source Code" := SourceCodeSetup."Fixed Asset G/L Journal";
                             "Page ID" := PAGE::"Fixed Asset G/L Journal";
-                        end;
-                    Type::Intercompany:
-                        begin
-                            "Source Code" := SourceCodeSetup."IC General Journal";
-                            "Page ID" := PAGE::"IC General Journal";
                         end;
                     Type::Jobs:
                         begin
@@ -276,9 +269,7 @@ table 80 "Gen. Journal Template"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account"
             else
-            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset"
-            else
-            if ("Bal. Account Type" = const("IC Partner")) "IC Partner";
+            if ("Bal. Account Type" = const("Fixed Asset")) "Fixed Asset";
 
             trigger OnValidate()
             begin
@@ -438,8 +429,8 @@ table 80 "Gen. Journal Template"
         /// </summary>
         field(32; "Allow Posting Date From"; Date)
         {
+            Caption = 'Allow Posting Date From';
             ToolTip = 'Specifies the earliest date when posting to the journal template is allowed.';
-            Caption = 'Allow Posting From';
 
             trigger OnValidate()
             begin
@@ -456,8 +447,8 @@ table 80 "Gen. Journal Template"
         /// </summary>
         field(33; "Allow Posting Date To"; Date)
         {
+            Caption = 'Allow Posting Date To';
             ToolTip = 'Specifies the last date when posting to the journal template is allowed.';
-            Caption = 'Allow Posting To';
 
             trigger OnValidate()
             begin

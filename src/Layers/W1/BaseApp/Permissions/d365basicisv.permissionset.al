@@ -95,7 +95,6 @@ using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Integration.PowerBI;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
@@ -589,7 +588,6 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Human Resource Unit of Measure" = RIMD,
                   tabledata "Human Resources Setup" = RIMD,
                   tabledata "Hybrid Deployment Setup" = Rimd,
-                  tabledata "IC Setup" = RIMD,
                   tabledata "Image Analysis Setup" = RIMD,
                   tabledata "Image Analysis Scenario" = R,
                   tabledata "Import G/L Transaction" = RIMD,

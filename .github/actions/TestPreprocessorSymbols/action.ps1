@@ -3,6 +3,8 @@
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\TestPreprocessorSymbols.psm1" -Force
+Import-Module "$PSScriptRoot\..\..\..\build\scripts\CountryPreprocessorSymbols.psm1" -Force
+$allowedSymbols = @(Get-CountryPreprocessorSymbols -AllApplications)
 
 # Get the major build version from the main branch
 $mainVersion = Get-MaxAllowedObsoleteVersion
@@ -33,7 +35,7 @@ $invalidStemSymbols = @()
 $alfiles = (Get-ChildItem -Filter '*.al' -Recurse) | Select-Object -ExpandProperty FullName
 foreach ($file in $alfiles) {
     # Call the Test-PreprocessorSymbols function with the file path and calculated version bounds
-    $result = Test-PreprocessorSymbols -filePath $file -symbolConfigs $symbolConfigs
+    $result = Test-PreprocessorSymbols -filePath $file -symbolConfigs $symbolConfigs -allowedSymbols $allowedSymbols
     if ($null -ne $result) {
         $invalidLowercaseSymbols += $result.invalidLowercaseSymbols
         $invalidPatternSymbols += $result.invalidPatternSymbols

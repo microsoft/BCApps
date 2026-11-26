@@ -24,8 +24,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Location;
 using Microsoft.Pricing.Calculation;
@@ -294,7 +292,8 @@ table 5109 "Purchase Header Archive"
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
         }
@@ -600,35 +599,75 @@ table 5109 "Purchase Header Archive"
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Invoice Discount Value';
         }
+#if not CLEANSCHEMA30
         field(123; "Send IC Document"; Boolean)
         {
             Caption = 'Send IC Document';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        field(124; "IC Status"; Enum "Purchase Document IC Status")
+#endif
+#if not CLEANSCHEMA30
+        field(124; "IC Status"; Enum Microsoft.Intercompany.Setup."Purchase Document IC Status")
         {
             Caption = 'IC Status';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
+#if not CLEANSCHEMA30
         field(125; "Buy-from IC Partner Code"; Code[20])
         {
             Caption = 'Buy-from IC Partner Code';
+            DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
+#if not CLEANSCHEMA30
         field(126; "Pay-to IC Partner Code"; Code[20])
         {
             Caption = 'Pay-to IC Partner Code';
+            DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
+#if not CLEANSCHEMA30
         field(127; "IC Reference Document No."; Code[20])
         {
             Caption = 'IC Reference Document No.';
+            DataClassification = CustomerContent;
             Editable = false;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        field(129; "IC Direction"; Enum "IC Direction Type")
+#endif
+#if not CLEANSCHEMA30
+        field(129; "IC Direction"; Enum Microsoft.Intercompany.Setup."IC Direction Type")
         {
             Caption = 'IC Direction';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         field(130; "Prepayment No."; Code[20])
         {
             Caption = 'Prepayment No.';
@@ -976,7 +1015,6 @@ table 5109 "Purchase Header Archive"
         OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if UserSetupManagement.GetPurchasesFilter() <> '' then begin
             FilterGroup(2);
             SetRange("Responsibility Center", UserSetupManagement.GetPurchasesFilter());

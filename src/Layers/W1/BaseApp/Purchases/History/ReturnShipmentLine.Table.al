@@ -355,11 +355,18 @@ table 6651 "Return Shipment Line"
         {
             Caption = 'Posting Date';
         }
+#if not CLEANSCHEMA30
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';

@@ -117,16 +117,6 @@ page 6641 "Purchase Return Order Subform"
                         CurrPage.Update();
                     end;
                 }
-                field("IC Partner Ref. Type"; Rec."IC Partner Ref. Type")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
-                field("IC Partner Reference"; Rec."IC Partner Reference")
-                {
-                    ApplicationArea = Intercompany;
-                    Visible = false;
-                }
                 field("Variant Code"; Rec."Variant Code")
                 {
                     ApplicationArea = Planning;

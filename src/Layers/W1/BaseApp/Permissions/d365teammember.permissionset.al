@@ -108,14 +108,6 @@ using Microsoft.Integration.Entity;
 using Microsoft.Integration.Graph;
 using Microsoft.Integration.PowerBI;
 using Microsoft.Integration.SyncEngine;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.Comment;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
-using Microsoft.Intercompany.Inbox;
-using Microsoft.Intercompany.Outbox;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.BOM;
@@ -831,44 +823,11 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Generic Chart Y-Axis" = RM,
                   tabledata Geolocation = RM,
                   tabledata "Grounds for Termination" = RM,
-                  tabledata "Handled IC Inbox Jnl. Line" = RM,
-                  tabledata "Handled IC Inbox Purch. Header" = RM,
-                  tabledata "Handled IC Inbox Purch. Line" = RM,
-                  tabledata "Handled IC Inbox Sales Header" = RM,
-                  tabledata "Handled IC Inbox Sales Line" = RM,
-                  tabledata "Handled IC Inbox Trans." = RM,
-                  tabledata "Handled IC Outbox Jnl. Line" = RM,
-                  tabledata "Handled IC Outbox Purch. Hdr" = RM,
-                  tabledata "Handled IC Outbox Purch. Line" = RM,
-                  tabledata "Handled IC Outbox Sales Header" = RM,
-                  tabledata "Handled IC Outbox Sales Line" = RM,
-                  tabledata "Handled IC Outbox Trans." = RM,
                   tabledata "HR Confidential Comment Line" = RM,
                   tabledata "Human Resource Comment Line" = RM,
                   tabledata "Human Resource Unit of Measure" = RM,
                   tabledata "Human Resources Setup" = RM,
                   tabledata "Hybrid Deployment Setup" = RIMD,
-                  tabledata "IC Bank Account" = RM,
-                  tabledata "IC Comment Line" = RM,
-                  tabledata "IC Dimension" = RM,
-                  tabledata "IC Dimension Value" = RM,
-                  tabledata "IC Document Dimension" = RM,
-                  tabledata "IC G/L Account" = RM,
-                  tabledata "IC Inbox Jnl. Line" = RM,
-                  tabledata "IC Inbox Purchase Header" = RM,
-                  tabledata "IC Inbox Purchase Line" = RM,
-                  tabledata "IC Inbox Sales Header" = RM,
-                  tabledata "IC Inbox Sales Line" = RM,
-                  tabledata "IC Inbox Transaction" = RM,
-                  tabledata "IC Inbox/Outbox Jnl. Line Dim." = RM,
-                  tabledata "IC Outbox Jnl. Line" = RM,
-                  tabledata "IC Outbox Purchase Header" = RM,
-                  tabledata "IC Outbox Purchase Line" = RM,
-                  tabledata "IC Outbox Sales Header" = RM,
-                  tabledata "IC Outbox Sales Line" = RM,
-                  tabledata "IC Outbox Transaction" = RM,
-                  tabledata "IC Partner" = RM,
-                  tabledata "IC Setup" = RM,
                   tabledata "Image Analysis Setup" = RM,
                   tabledata "Image Analysis Scenario" = R,
                   tabledata "Import G/L Transaction" = RM,

@@ -13,8 +13,6 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
@@ -1320,23 +1318,6 @@ page 6630 "Sales Return Order"
                     begin
                         ArchiveManagement.ArchiveSalesDocument(Rec);
                         CurrPage.Update(false);
-                    end;
-                }
-                action("Send IC Return Order Cnfmn.")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send IC Return Order Cnfmn.';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Prepare to send the return order confirmation to an intercompany partner.';
-
-                    trigger OnAction()
-                    var
-                        ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        if ApprovalsMgmt.PrePostApprovalCheckSales(Rec) then
-                            ICInOutboxMgt.SendSalesDoc(Rec, false);
                     end;
                 }
                 separator(Action135)

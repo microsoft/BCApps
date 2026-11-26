@@ -12,7 +12,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using System.Reflection;
@@ -336,8 +335,6 @@ report 10019 "G/L Register"
         G_L_Entry__Source_Type_CaptionLbl: Label 'Source Type';
 
     procedure SetSourceType(AccountType: Option " ",Customer,Vendor,"Bank Account","Fixed Asset",Employee,"IC Partner"; AccountNo: Code[20])
-    var
-        ICParnter: Record "IC Partner";
     begin
         SourceName := '';
         SourceType := SourceType::" ";
@@ -373,12 +370,13 @@ report 10019 "G/L Register"
                         SourceType := AccountType;
                     end;
             AccountType::" ":
-                if ICParnter.ReadPermission then
-                    if ICParnter.Get(AccountNo) then begin
-                        SourceName := ICParnter.Name;
-                        SourceType := SourceType::"IC Partner";
-                    end;
+                OnSetICSourceType(AccountNo, SourceName, SourceType);
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetICSourceType(AccountNo: Code[20]; var SourceName: Text; var SourceType: Option " ",Customer,Vendor,"Bank Account","Fixed Asset",Employee,"IC Partner")
+    begin
     end;
 
     procedure MapBalAccType(BalAccType: Option "G/L Account",Customer,Vendor,"Bank Account","Fixed Asset","IC Partner",Employee; BalAccNo: Code[20])
@@ -398,4 +396,3 @@ report 10019 "G/L Register"
         end;
     end;
 }
-

@@ -11,7 +11,6 @@ using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Intercompany.GLAccount;
 
 table 10722 "New G/L Account"
 {
@@ -295,7 +294,6 @@ table 10722 "New G/L Account"
         field(66; "Default IC Partner G/L Acc. No"; Code[20])
         {
             Caption = 'Default IC Partner G/L Acc. No';
-            TableRelation = "IC G/L Account"."No.";
         }
         field(10700; "Income Stmt. Bal. Acc."; Code[20])
         {

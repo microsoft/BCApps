@@ -10,7 +10,14 @@
   "help": "https://go.microsoft.com/fwlink/?linkid=2187180",
   "url": "https://go.microsoft.com/fwlink/?linkid=724011",
   "logo": "./ExtensionLogo.png",
-  "dependencies": [],
+  "dependencies": [
+    {
+      "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+      "name": "Intercompany",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    }
+  ],
   "internalsVisibleTo": [
     {
       "id": "7533ce37-ae5d-4ed1-bdf9-4c39720e934c",

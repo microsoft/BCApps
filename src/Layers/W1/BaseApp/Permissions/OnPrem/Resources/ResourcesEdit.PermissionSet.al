@@ -10,7 +10,6 @@ using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.ExtendedText;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Inventory.BOM;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
@@ -46,7 +45,6 @@ permissionset 6427 "Resources - Edit"
                   tabledata "Extended Text Header" = RIMD,
                   tabledata "Extended Text Line" = RIMD,
                   tabledata "Gen. Product Posting Group" = R,
-                  tabledata "IC G/L Account" = R,
                   tabledata Job = rm,
                   tabledata "Job Journal Line" = RM,
                   tabledata "Job Ledger Entry" = RM,

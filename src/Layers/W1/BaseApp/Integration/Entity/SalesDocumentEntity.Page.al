@@ -555,31 +555,6 @@ page 6402 "Sales Document Entity"
                     ApplicationArea = All;
                     Caption = 'Invoice Discount Value', Locked = true;
                 }
-                field(sendIcDocument; Rec."Send IC Document")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Send IC Document', Locked = true;
-                }
-                field(icStatus; Rec."IC Status")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Status', Locked = true;
-                }
-                field(sellToIcPartnerCode; Rec."Sell-to IC Partner Code")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Sell-to IC Partner Code', Locked = true;
-                }
-                field(billToIcPartnerCode; Rec."Bill-to IC Partner Code")
-                {
-                    ApplicationArea = All;
-                    Caption = 'Bill-to IC Partner Code', Locked = true;
-                }
-                field(icDirection; Rec."IC Direction")
-                {
-                    ApplicationArea = All;
-                    Caption = 'IC Direction', Locked = true;
-                }
                 field(prepaymentPercent; Rec."Prepayment %")
                 {
                     ApplicationArea = All;

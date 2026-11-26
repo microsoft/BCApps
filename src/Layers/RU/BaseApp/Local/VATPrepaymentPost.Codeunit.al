@@ -418,7 +418,6 @@ codeunit 12410 "VAT Prepayment-Post"
         GenJnlLine."Source Code" := SourceCodeSetup."Vendor Prepayments";
         GenJnlLine."Source Type" := GenJnlLine."Source Type"::Vendor;
         GenJnlLine."Source No." := VendLedgEntry."Vendor No.";
-        GenJnlLine."IC Partner Code" := VendLedgEntry."IC Partner Code";
         GenJnlLine."VAT Posting" := GenJnlLine."VAT Posting"::"Automatic VAT Entry";
         GenJnlLine."Agreement No." := VendLedgEntry."Agreement No.";
         GenJnlLine."Dimension Set ID" := VendLedgEntry."Dimension Set ID";

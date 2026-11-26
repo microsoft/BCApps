@@ -16,7 +16,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
@@ -290,13 +289,28 @@ codeunit 46 SelectionFilterManagement
         exit(GetSelectionFilter(RecRef, BusinessUnit.FieldNo(Code)));
     end;
 
-    procedure GetSelectionFilterForICPartner(var ICPartner: Record "IC Partner"): Text
+#if not CLEAN30 and not CLEANSCHEMA30
+    [Obsolete('Moved to codeunit "IC Selection Filter Mgt.".', '30.0')]
+    procedure GetSelectionFilterForICPartner(var ICPartner: Record Microsoft.Intercompany.Partner."IC Partner"): Text
     var
-        RecRef: RecordRef;
+        ICPartnerRecRef: RecordRef;
+        SelectionFilter: Text;
+        IsHandled: Boolean;
+        IntercompanyAppRequiredErr: Label 'The Intercompany app must be installed to get a selection filter for intercompany partners.';
     begin
-        RecRef.GetTable(ICPartner);
-        exit(GetSelectionFilter(RecRef, ICPartner.FieldNo(Code)));
+        ICPartnerRecRef.GetTable(ICPartner);
+        OnGetSelectionFilterForICPartner(ICPartnerRecRef, SelectionFilter, IsHandled);
+        if not IsHandled then
+            Error(IntercompanyAppRequiredErr);
+        exit(SelectionFilter);
     end;
+
+    [Obsolete('Compatibility event for the obsolete GetSelectionFilterForICPartner procedure.', '30.0')]
+    [InternalEvent(false, false)]
+    local procedure OnGetSelectionFilterForICPartner(var ICPartnerRecRef: RecordRef; var SelectionFilter: Text; var IsHandled: Boolean)
+    begin
+    end;
+#endif
 
     procedure GetSelectionFilterForCashFlow(var CashFlowForecast: Record "Cash Flow Forecast"): Text
     var

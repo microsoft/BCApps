@@ -8,8 +8,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
@@ -558,23 +556,6 @@ page 9311 "Purchase Return Order List"
                 separator(Action1102601020)
                 {
                 }
-                action("Send IC Return Order")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send IC Return Order';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Send the document to the intercompany outbox or directly to the intercompany partner if automatic transaction sending is enabled.';
-
-                    trigger OnAction()
-                    var
-                        ICInOutMgt: Codeunit ICInboxOutboxMgt;
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        if ApprovalsMgmt.PrePostApprovalCheckPurch(Rec) then
-                            ICInOutMgt.SendPurchDoc(Rec, false);
-                    end;
-                }
                 action("Delete Invoiced Orders")
                 {
                     ApplicationArea = PurchReturnOrder;
@@ -785,9 +766,6 @@ page 9311 "Purchase Return Order List"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
-                actionref("Send IC Return Order_Promoted"; "Send IC Return Order")
-                {
-                }
                 actionref("Get Posted Doc&ument Lines to Reverse_Promoted"; "Get Posted Doc&ument Lines to Reverse")
                 {
                 }

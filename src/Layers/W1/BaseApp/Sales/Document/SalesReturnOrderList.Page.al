@@ -8,8 +8,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
@@ -536,23 +534,6 @@ page 9304 "Sales Return Order List"
                 }
                 separator(Action1102601021)
                 {
-                }
-                action("Send IC Return Order Cnfmn.")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send IC Return Order Cnfmn.';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Send the document to the intercompany outbox or directly to the intercompany partner if automatic transaction sending is enabled.';
-
-                    trigger OnAction()
-                    var
-                        ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        if ApprovalsMgmt.PrePostApprovalCheckSales(Rec) then
-                            ICInboxOutboxMgt.SendSalesDoc(Rec, false);
-                    end;
                 }
                 action("Delete Invoiced Orders")
                 {

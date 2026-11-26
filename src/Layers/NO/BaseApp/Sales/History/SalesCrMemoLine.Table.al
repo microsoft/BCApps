@@ -19,7 +19,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.UOM;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -583,20 +582,28 @@ table 115 "Sales Cr.Memo Line"
             Caption = 'VAT Identifier';
             Editable = false;
         }
-        /// <summary>
-        /// Specifies the type of intercompany partner reference.
-        /// </summary>
-        field(107; "IC Partner Ref. Type"; Enum "IC Partner Reference Type")
+#if not CLEANSCHEMA30
+        field(107; "IC Partner Ref. Type"; Enum Microsoft.Intercompany.Partner."IC Partner Reference Type")
         {
             Caption = 'IC Partner Ref. Type';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany partner reference for cross-company transactions.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(108; "IC Partner Reference"; Code[20])
         {
             Caption = 'IC Partner Reference';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Indicates whether this is a prepayment credit memo line.
         /// </summary>
@@ -605,15 +612,18 @@ table 115 "Sales Cr.Memo Line"
             Caption = 'Prepayment Line';
             Editable = false;
         }
-        /// <summary>
-        /// Specifies the intercompany partner code for cross-company transactions.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(130; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
+            DataClassification = CustomerContent;
             ToolTip = 'Specifies the code of the intercompany partner that the transaction is related to if the entry was created from an intercompany transaction.';
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the posting date of the credit memo line.
         /// </summary>
@@ -621,14 +631,18 @@ table 115 "Sales Cr.Memo Line"
         {
             Caption = 'Posting Date';
         }
-        /// <summary>
-        /// Specifies the intercompany item reference number for cross-company transactions.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(138; "IC Item Reference No."; Code[50])
         {
             AccessByPermission = TableData "Item Reference" = R;
             Caption = 'IC Item Reference No.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the payment discount amount for the line.
         /// </summary>
@@ -1211,22 +1225,18 @@ table 115 "Sales Cr.Memo Line"
         SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         ValueEntry: Record "Value Entry";
     begin
-        if Rec.Type = Rec.Type::Item then begin
-            CheckApplFromItemLedgEntry(ItemLedgerEntry);
+        CheckApplFromItemLedgEntry(ItemLedgerEntry);
 
-            if ItemLedgerEntry."Entry No." = 0 then
-                FindItemLedgerEntryFromItemApplicationEntry(ItemLedgerEntry);
+        if ItemLedgerEntry."Entry No." = 0 then
+            FindItemLedgerEntryFromItemApplicationEntry(ItemLedgerEntry);
 
-            if ItemLedgerEntry."Entry No." <> 0 then begin
-                ValueEntry.SetLoadFields("Item Ledger Entry No.", "Item Ledger Entry Type", "Document Type", "Document No.", "Document Line No.");
-                ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
-                ValueEntry.SetRange("Item Ledger Entry Type", ItemLedgerEntry."Entry Type");
-                ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Sales Invoice");
-                if ValueEntry.FindFirst() then begin
-                    SalesInvoiceLine.Get(ValueEntry."Document No.", ValueEntry."Document Line No.");
-                    exit;
-                end;
-            end;
+        ValueEntry.SetLoadFields("Item Ledger Entry No.", "Item Ledger Entry Type", "Document Type", "Document No.", "Document Line No.");
+        ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
+        ValueEntry.SetRange("Item Ledger Entry Type", ItemLedgerEntry."Entry Type");
+        ValueEntry.SetRange("Document Type", ValueEntry."Document Type"::"Sales Invoice");
+        if ValueEntry.FindFirst() then begin
+            SalesInvoiceLine.Get(ValueEntry."Document No.", ValueEntry."Document Line No.");
+            exit;
         end;
 
         if ItemLedgerEntry."Entry No." = 0 then begin
@@ -1422,7 +1432,7 @@ table 115 "Sales Cr.Memo Line"
         ItemTrackingDocMgmt: Codeunit "Item Tracking Doc. Management";
     begin
         ItemTrackingDocMgmt.RetrieveEntriesFromPostedInvoice(TempItemLedEntry, RowID1());
-        if TempItemLedEntry.IsEmpty() then
+        if TempItemLedEntry.IsEmpty then
             exit;
 
         TempItemLedEntry.FindFirst();

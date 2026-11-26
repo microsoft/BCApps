@@ -13,8 +13,6 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
@@ -1336,23 +1334,6 @@ page 6640 "Purchase Return Order"
                     begin
                         ArchiveManagement.ArchivePurchDocument(Rec);
                         CurrPage.Update(false);
-                    end;
-                }
-                action("Send IC Return Order")
-                {
-                    AccessByPermission = TableData "IC G/L Account" = R;
-                    ApplicationArea = Intercompany;
-                    Caption = 'Send IC Return Order';
-                    Image = IntercompanyOrder;
-                    ToolTip = 'Prepare to send the return order to an intercompany partner.';
-
-                    trigger OnAction()
-                    var
-                        ICInOutMgt: Codeunit ICInboxOutboxMgt;
-                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                    begin
-                        if ApprovalsMgmt.PrePostApprovalCheckPurch(Rec) then
-                            ICInOutMgt.SendPurchDoc(Rec, false);
                     end;
                 }
                 separator(Action134)

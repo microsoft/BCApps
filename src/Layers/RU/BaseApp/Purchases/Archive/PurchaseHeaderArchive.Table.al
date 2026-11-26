@@ -24,8 +24,6 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Location;
 using Microsoft.Pricing.Calculation;
@@ -601,35 +599,6 @@ table 5109 "Purchase Header Archive"
             AutoFormatExpression = Rec."Currency Code";
             Caption = 'Invoice Discount Value';
         }
-        field(123; "Send IC Document"; Boolean)
-        {
-            Caption = 'Send IC Document';
-        }
-        field(124; "IC Status"; Enum "Purchase Document IC Status")
-        {
-            Caption = 'IC Status';
-        }
-        field(125; "Buy-from IC Partner Code"; Code[20])
-        {
-            Caption = 'Buy-from IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        field(126; "Pay-to IC Partner Code"; Code[20])
-        {
-            Caption = 'Pay-to IC Partner Code';
-            Editable = false;
-            TableRelation = "IC Partner";
-        }
-        field(127; "IC Reference Document No."; Code[20])
-        {
-            Caption = 'IC Reference Document No.';
-            Editable = false;
-        }
-        field(129; "IC Direction"; Enum "IC Direction Type")
-        {
-            Caption = 'IC Direction';
-        }
         field(130; "Prepayment No."; Code[20])
         {
             Caption = 'Prepayment No.';
@@ -750,7 +719,7 @@ table 5109 "Purchase Header Archive"
 
             trigger OnLookup()
             begin
-                ShowDimensions();
+                Rec.ShowDimensions();
             end;
         }
         field(3998; "Source Doc. Exists"; Boolean)

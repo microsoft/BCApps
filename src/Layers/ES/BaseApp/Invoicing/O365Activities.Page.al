@@ -148,27 +148,6 @@ page 1310 "O365 Activities"
                     ToolTip = 'Specifies the number of payments to vendors that are due next week.';
                 }
             }
-            cuegroup(Intercompany)
-            {
-                Caption = 'Intercompany';
-                Visible = ShowIntercompanyActivities;
-                field("IC Inbox Transactions"; Rec."IC Inbox Transactions")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Pending Inbox Transactions';
-                    Tooltip = 'Specifies the number of pending incoming intercompany transactions.';
-                    DrillDownPageID = "IC Inbox Transactions";
-                    Visible = Rec."IC Inbox Transactions" <> 0;
-                }
-                field("IC Outbox Transactions"; Rec."IC Outbox Transactions")
-                {
-                    ApplicationArea = Intercompany;
-                    Caption = 'Pending Outbox Transactions';
-                    ToolTip = 'Specifies the number of pending outgoing intercompany transactions.';
-                    DrillDownPageID = "IC Outbox Transactions";
-                    Visible = Rec."IC Outbox Transactions" <> 0;
-                }
-            }
             cuegroup(Payments)
             {
                 Caption = 'Payments';
@@ -409,7 +388,6 @@ page 1310 "O365 Activities"
         PrepareOnLoadDialog();
 
         ShowAwaitingIncomingDoc := OCRServiceMgt.OcrServiceIsEnable();
-        ShowIntercompanyActivities := false;
         ShowDocumentsPendingDocExchService := false;
         IntegrationSynchJobErrors.SetDataIntegrationUIElementsVisible(ShowDataIntegrationCues);
         ShowD365SIntegrationCues := CRMIntegrationManagement.IsIntegrationEnabled() or CDSIntegrationMgt.IsIntegrationEnabled();
@@ -444,7 +422,6 @@ page 1310 "O365 Activities"
         HasCamera: Boolean;
         ShowDocumentsPendingDocExchService: Boolean;
         ShowAwaitingIncomingDoc: Boolean;
-        ShowIntercompanyActivities: Boolean;
         TileGettingStartedVisible: Boolean;
         ReplayGettingStartedVisible: Boolean;
         WhatIsNewTourVisible: Boolean;
@@ -578,16 +555,10 @@ page 1310 "O365 Activities"
     local procedure SetActivityGroupVisibility()
     var
         DocExchServiceSetup: Record "Doc. Exch. Service Setup";
-        ICSetup: Record "IC Setup";
     begin
         DocExchServiceSetup.SetLoadFields("Enabled");
         if DocExchServiceSetup.Get() then
             ShowDocumentsPendingDocExchService := DocExchServiceSetup.Enabled;
-
-        ICSetup.SetLoadFields("IC Partner Code");
-        if ICSetup.Get() then
-            ShowIntercompanyActivities :=
-              (ICSetup."IC Partner Code" <> '') and ((Rec."IC Inbox Transactions" <> 0) or (Rec."IC Outbox Transactions" <> 0));
     end;
 
     local procedure StartWhatIsNewTour(hasTourCompleted: Boolean): Boolean

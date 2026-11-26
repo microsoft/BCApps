@@ -138,11 +138,6 @@ page 370 "Bank Account Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-                field(IntercompanyEnable; Rec.IntercompanyEnable)
-                {
-                    ApplicationArea = Intercompany;
-                    Importance = Additional;
-                }
                 group(Control45)
                 {
                     ShowCaption = false;

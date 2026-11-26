@@ -28,8 +28,6 @@ using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.BankAccount;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
@@ -112,8 +110,6 @@ permissionset 9221 "Customer - Edit"
                   tabledata "Gen. Journal Batch" = r,
                   tabledata "Gen. Journal Line" = r,
                   tabledata "Gen. Journal Template" = r,
-                  tabledata "IC Bank Account" = Rm,
-                  tabledata "IC Partner" = Rm,
                   tabledata "Interaction Log Entry" = R,
                   tabledata "Item Analysis View Budg. Entry" = r,
                   tabledata "Item Analysis View Entry" = rid,

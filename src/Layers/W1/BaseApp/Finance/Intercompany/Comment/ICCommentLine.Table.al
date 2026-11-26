@@ -2,10 +2,8 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Comment;
-
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 
 /// <summary>
 /// Stores comment lines for intercompany transactions enabling detailed communication between partner companies.
@@ -15,6 +13,10 @@ table 424 "IC Comment Line"
 {
     Caption = 'IC Comment Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -40,7 +42,6 @@ table 424 "IC Comment Line"
         field(3; "IC Partner Code"; Code[20])
         {
             Caption = 'IC Partner Code';
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Sequential line number for organizing multiple comments within a transaction.
@@ -92,38 +93,5 @@ table 424 "IC Comment Line"
     fieldgroups
     {
     }
-
-    /// <summary>
-    /// Initializes a new comment line with default values including current date and IC partner code.
-    /// Sets up proper filtering context for the comment based on transaction and partner information.
-    /// </summary>
-    procedure SetUpNewLine()
-    var
-        ICCommentLine: Record "IC Comment Line";
-        ICSetup: Record "IC Setup";
-    begin
-        ICCommentLine.SetRange("Table Name", "Table Name");
-        ICCommentLine.SetRange("Transaction No.", "Transaction No.");
-        ICCommentLine.SetRange("IC Partner Code", "IC Partner Code");
-        ICCommentLine.SetRange("Transaction Source", "Transaction Source");
-        ICCommentLine.SetRange(Date, WorkDate());
-        if not ICCommentLine.FindFirst() then
-            Date := WorkDate();
-
-        if ICSetup.Get() then
-            Rec."Created By IC Partner Code" := ICSetup."IC Partner Code";
-
-        OnAfterSetUpNewLine(Rec, ICCommentLine);
-    end;
-
-    /// <summary>
-    /// Integration event raised after setting up a new comment line for custom initialization logic.
-    /// </summary>
-    /// <param name="ICCommentLineRec">New comment line record being initialized</param>
-    /// <param name="ICCommentLineFilter">Filtered comment line record used for context</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterSetUpNewLine(var ICCommentLineRec: Record "IC Comment Line"; var ICCommentLineFilter: Record "IC Comment Line")
-    begin
-    end;
 }
-
+#endif

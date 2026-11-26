@@ -30,7 +30,6 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Task;
 using Microsoft.HumanResources.Employee;
-using Microsoft.Intercompany;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Analysis;
@@ -88,10 +87,6 @@ page 9022 "Business Manager Role Center"
             part(ApprovalsActivities; "Approvals Activities")
             {
                 ApplicationArea = Suite;
-            }
-            part("Intercompany Activities"; "Intercompany Activities")
-            {
-                ApplicationArea = Intercompany;
             }
             part(Control46; "Team Member Activities No Msgs")
             {

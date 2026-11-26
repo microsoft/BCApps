@@ -85,11 +85,6 @@ page 537 "Dimension Values"
                 {
                     ApplicationArea = Dimensions;
                 }
-                field("Map-to IC Dimension Value Code"; Rec."Map-to IC Dimension Value Code")
-                {
-                    ApplicationArea = Dimensions;
-                    Visible = false;
-                }
                 field("Consolidation Code"; Rec."Consolidation Code")
                 {
                     ApplicationArea = Dimensions;

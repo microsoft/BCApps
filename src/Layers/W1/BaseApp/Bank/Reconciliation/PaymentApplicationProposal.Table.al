@@ -14,7 +14,6 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -109,7 +108,7 @@ table 1293 "Payment Application Proposal"
             else
             if ("Account Type" = const("Fixed Asset")) "Fixed Asset"
             else
-            if ("Account Type" = const("IC Partner")) "IC Partner";
+            if ("Account Type" = const(Employee)) Employee;
 
             trigger OnValidate()
             begin

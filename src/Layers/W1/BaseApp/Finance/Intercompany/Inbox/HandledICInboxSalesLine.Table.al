@@ -2,18 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+#if not CLEANSCHEMA30
 namespace Microsoft.Intercompany.Inbox;
 
 using Microsoft.Finance.Currency;
-using Microsoft.Finance.Dimension;
-using Microsoft.Intercompany.Dimension;
-using Microsoft.Intercompany.GLAccount;
 using Microsoft.Intercompany.Partner;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
-using Microsoft.Utilities;
 
 /// <summary>
 /// Archives sales document line details for processed intercompany inbox transactions.
@@ -23,6 +19,10 @@ table 439 "Handled IC Inbox Sales Line"
 {
     Caption = 'Handled IC Inbox Sales Line';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'Moved to the Intercompany app.';
+    ObsoleteState = Moved;
+    ObsoleteTag = '30.0';
+    MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
 
     fields
     {
@@ -209,13 +209,6 @@ table 439 "Handled IC Inbox Sales Line"
         {
             Caption = 'IC Partner Reference';
             Editable = false;
-            TableRelation = if ("IC Partner Ref. Type" = const(" ")) "Standard Text"
-            else
-            if ("IC Partner Ref. Type" = const("G/L Account")) "IC G/L Account"
-            else
-            if ("IC Partner Ref. Type" = const(Item)) Item
-            else
-            if ("IC Partner Ref. Type" = const("Charge (Item)")) "Item Charge";
         }
         /// <summary>
         /// Intercompany partner code that sent this handled sales line transaction.
@@ -224,7 +217,6 @@ table 439 "Handled IC Inbox Sales Line"
         {
             Caption = 'IC Partner Code';
             Editable = false;
-            TableRelation = "IC Partner";
         }
         /// <summary>
         /// Unique transaction number identifying the handled intercompany transaction.
@@ -299,25 +291,5 @@ table 439 "Handled IC Inbox Sales Line"
     fieldgroups
     {
     }
-
-    trigger OnDelete()
-    var
-        DimMgt: Codeunit DimensionManagement;
-    begin
-        DimMgt.DeleteICDocDim(
-          DATABASE::"Handled IC Inbox Sales Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
-
-    /// <summary>
-    /// Opens the dimensions page to display IC document dimensions for this handled sales line.
-    /// </summary>
-    procedure ShowDimensions()
-    var
-        ICDocDim: Record "IC Document Dimension";
-    begin
-        TestField("IC Transaction No.");
-        TestField("Line No.");
-        ICDocDim.ShowDimensions(
-          DATABASE::"Handled IC Inbox Sales Line", "IC Transaction No.", "IC Partner Code", "Transaction Source", "Line No.");
-    end;
 }
+#endif

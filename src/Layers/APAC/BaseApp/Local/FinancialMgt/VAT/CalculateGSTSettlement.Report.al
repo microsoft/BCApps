@@ -14,8 +14,6 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Intercompany.Journal;
-using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
@@ -174,7 +172,6 @@ report 11603 "Calculate GST Settlement"
                         ClearingVATAmount := 0;
                         ClearingPostingDate := 0D;
                         ClearingDescription := '';
-
                         case Type of
                             Type::"G/L Entry":
                                 begin
@@ -199,7 +196,6 @@ report 11603 "Calculate GST Settlement"
                                                 if VATPostingSetup."Purchase VAT Account" <> '' then
                                                     ClearingAccNo := VATPostingSetup."Purchase VAT Account";
                                         end;
-
                                     case "Amount Type" of
                                         "Amount Type"::Base, "Amount Type"::Amount:
                                             begin
@@ -216,7 +212,6 @@ report 11603 "Calculate GST Settlement"
                                     ClearingDescription := StrSubstNo(Text1450015, VATEntry.TableCaption(), VATEntry."Entry No.");
                                 end;
                         end;
-
                         if (ClearingAccNo = '') and (ClearingVATAmount <> 0) then
                             Error(Text1450009, VATEntry.TableCaption(), VATEntry."Entry No.");
                         if (AccType = AccType::"G/L Account") and (ClearingAccNo = AccNo) then
@@ -226,7 +221,6 @@ report 11603 "Calculate GST Settlement"
 
                         TotalClearingAmount := TotalClearingAmount + ClearingAmount;
                         TotalClearingVATAmount := TotalClearingVATAmount + ClearingVATAmount;
-
                         if Post then
                             if not TempGLAccountNetChange.Get(ClearingAccNo) then begin
                                 TempGLAccountNetChange.Init();
@@ -346,7 +340,6 @@ report 11603 "Calculate GST Settlement"
                     begin
                         if not Post then
                             CurrReport.Break();
-
                         if TempGLAccountNetChange.Find('-') then begin
                             // Post clearing accounts
                             repeat
@@ -529,10 +522,8 @@ report 11603 "Calculate GST Settlement"
                         else
                             CurrReport.Break();
                     end;
-
                     if Post then
                         Window.Update(3, StrSubstNo('Field %1', CurrFieldID));
-
                     if CurrAmt = 0 then
                         CurrReport.Skip();
 
@@ -580,7 +571,6 @@ report 11603 "Calculate GST Settlement"
             begin
                 if Post and (AccNo = '') then
                     Error(Text1450001);
-
                 if Post then
                     Window.Open(
                       Text1450002 +
@@ -666,13 +656,6 @@ report 11603 "Calculate GST Settlement"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Inter Company';
                         ToolTip = 'Specifies that the settlement includes intercompany transactions.';
-                    }
-                    field(ICPartnerCode; ICPartnerCode)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'IC Partner Code';
-                        TableRelation = "IC Partner";
-                        ToolTip = 'Specifies the intercompany partner.';
                     }
                 }
             }
@@ -777,6 +760,8 @@ report 11603 "Calculate GST Settlement"
         GenJnlLine1__Account_No__CaptionLbl: Label 'Account No.';
         GenJnlLine1__Account_Type_CaptionLbl: Label 'Account Type';
         GenJnlLine1__Posting_Date_CaptionLbl: Label 'Posting Date';
+
+    protected var
         ICPartnerCode: Code[20];
 
     local procedure SetBASDataForGenJnlLine(var GenJournalLine: Record "Gen. Journal Line")
@@ -812,8 +797,7 @@ report 11603 "Calculate GST Settlement"
             end;
         end;
         NewGenJnlLine.Init();
-        if ICPartner then
-            NewGenJnlLine.Validate("IC Account No.", '');
+        OnAfterInitGenJnlLine(NewGenJnlLine, ICPartner);
         NewGenJnlLine.Validate("Posting Date", PostDate);
         NewGenJnlLine.Validate("Document Date", PostDate);
         NewGenJnlLine.Validate("Document No.", DocNo);
@@ -843,9 +827,17 @@ report 11603 "Calculate GST Settlement"
             end;
         end;
 
-        if (GenJournalLine."IC Account Type" = "IC Journal Account Type"::"G/L Account") then
-            GenJournalLine.Validate("IC Account No.", ICPartnerGLAccount);
-        GenJournalLine."IC Partner Code" := ICPartnerCode;
+        OnAfterInitializeGenJournalLineForInterCompany(GenJournalLine, ICPartnerGLAccount, ICPartnerCode);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitGenJnlLine(var GenJournalLine: Record "Gen. Journal Line"; IsICPartner: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitializeGenJournalLineForInterCompany(var GenJournalLine: Record "Gen. Journal Line"; ICPartnerGLAccount: Code[20]; PartnerCode: Code[20])
+    begin
     end;
 
     local procedure SetSettlementAmount(var GenJournalLine: Record "Gen. Journal Line")
@@ -856,4 +848,3 @@ report 11603 "Calculate GST Settlement"
             GenJournalLine.Validate(Amount, CurrAmt);
     end;
 }
-

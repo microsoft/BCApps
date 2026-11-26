@@ -13,6 +13,12 @@
   "logo": "ExtensionLogo.png",
   "dependencies": [
     {
+      "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+      "name": "Intercompany",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "7a129d06-5fd6-4fb6-b82b-0bf539c779d0",
       "name": "_Exclude_Bank Deposits",
       "publisher": "Microsoft",

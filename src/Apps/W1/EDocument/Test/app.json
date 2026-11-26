@@ -13,6 +13,12 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
   "dependencies": [
     {
+      "id": "74676280-1b87-43cc-8ca2-3b2b17a5b81d",
+      "name": "Intercompany",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "name": "E-Document Core",
       "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",
       "publisher": "Microsoft",

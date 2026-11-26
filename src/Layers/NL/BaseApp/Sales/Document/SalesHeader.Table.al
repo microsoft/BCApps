@@ -40,9 +40,6 @@ using Microsoft.Foundation.Shipping;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Integration.Graph;
-using Microsoft.Intercompany;
-using Microsoft.Intercompany.Partner;
-using Microsoft.Intercompany.Setup;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item;
@@ -124,7 +121,6 @@ table 36 "Sales Header"
                 OnValidateSellToCustomerNoOnAfterTestStatusOpen(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if ("Sell-to Customer No." <> xRec."Sell-to Customer No.") and
                    (xRec."Sell-to Customer No." <> '')
                 then begin
@@ -171,7 +167,6 @@ table 36 "Sales Header"
                         exit;
                     end;
                 end;
-
                 if ("Document Type" = "Document Type"::Order) and
                    (xRec."Sell-to Customer No." <> "Sell-to Customer No.")
                 then begin
@@ -196,15 +191,11 @@ table 36 "Sales Header"
                 OnAfterCheckSellToCust(Rec, xRec, Customer, CurrFieldNo);
 
                 CopySellToCustomerAddressFieldsFromCustomer(Customer);
-
                 if "Sell-to Customer No." = xRec."Sell-to Customer No." then
                     if ShippedSalesLinesExist() or ReturnReceiptExist() then begin
                         TestField("VAT Bus. Posting Group", xRec."VAT Bus. Posting Group");
                         TestField("Gen. Bus. Posting Group", xRec."Gen. Bus. Posting Group");
                     end;
-
-                "Sell-to IC Partner Code" := Customer."IC Partner Code";
-                "Send IC Document" := ("Sell-to IC Partner Code" <> '') and ("IC Direction" = "IC Direction"::Outgoing);
 
                 UpdateShipToCodeFromCust();
                 IsHandled := false;
@@ -218,14 +209,12 @@ table 36 "Sales Header"
                 GetShippingTime(FieldNo("Sell-to Customer No."));
 
                 SetRcvdFromCountry(Customer."Country/Region Code");
-
                 if (xRec."Sell-to Customer No." <> "Sell-to Customer No.") or
                    (xRec."Currency Code" <> "Currency Code") or
                    (xRec."Gen. Bus. Posting Group" <> "Gen. Bus. Posting Group") or
                    (xRec."VAT Bus. Posting Group" <> "VAT Bus. Posting Group")
                 then
                     RecreateSalesLines(SellToCustomerTxt);
-
                 if not InsertMode and ("Sell-to Customer No." <> '') then
                     StandardCodesMgtGlobal.CheckCreateSalesRecurringLines(Rec);
 
@@ -236,7 +225,6 @@ table 36 "Sales Header"
                 OnValidateSellToCustomerNoOnBeforeRecallModifyAddressNotification(Rec, xRec);
                 if (xRec."Sell-to Customer No." <> '') and (xRec."Sell-to Customer No." <> "Sell-to Customer No.") then
                     Rec.RecallModifyAddressNotification(GetModifyCustomerAddressNotificationId());
-
                 if xRec."Sell-to Customer No." <> "Sell-to Customer No." then
                     if not IsNullGuid(Rec.SystemId) then
                         SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
@@ -283,7 +271,6 @@ table 36 "Sales Header"
                 OnValidateBillToCustomerNoOnAfterCheckBilltoCustomerNoChanged(Rec, xRec, CurrFieldNo, IsHandled, IsHandledDoExist);
                 if IsHandledDoExist then
                     exit;
-
                 if BilltoCustomerNoChanged and not IsHandled then
                     if xRec."Bill-to Customer No." = '' then begin
                         SkipDocNoOccurrenceReset := true;
@@ -316,7 +303,6 @@ table 36 "Sales Header"
 
                 SetBillToCustomerAddressFieldsFromCustomer(Customer);
                 Validate("Currency Code");
-
                 if not BilltoCustomerNoChanged then
                     if ShippedSalesLinesExist() then begin
                         TestField("Customer Disc. Group", xRec."Customer Disc. Group");
@@ -330,7 +316,6 @@ table 36 "Sales Header"
                 Validate("Payment Method Code");
                 Validate("Transaction Mode Code");
                 Validate("Prepayment %");
-
                 if (xRec."Sell-to Customer No." = "Sell-to Customer No.") and
                    (xRec."Bill-to Customer No." <> "Bill-to Customer No.")
                 then begin
@@ -340,13 +325,10 @@ table 36 "Sales Header"
                 if not SkipBillToContact then
                     UpdateBillToCont("Bill-to Customer No.");
 
-                "Bill-to IC Partner Code" := Customer."IC Partner Code";
-                "Send IC Document" := ("Bill-to IC Partner Code" <> '') and ("IC Direction" = "IC Direction"::Outgoing);
-
+                OnValidateBillToCustomerNoOnBeforeUpdateSendICDocument(Rec, Customer);
                 OnValidateBillToCustomerNoOnBeforeRecallModifyAddressNotification(Rec, xRec);
                 if (xRec."Bill-to Customer No." <> '') and (xRec."Bill-to Customer No." <> "Bill-to Customer No.") then
                     Rec.RecallModifyAddressNotification(Rec.GetModifyBillToCustomerAddressNotificationId());
-
                 if xRec."Bill-to Customer No." <> "Bill-to Customer No." then
                     if not IsNullGuid(Rec.SystemId) then
                         SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
@@ -413,7 +395,8 @@ table 36 "Sales Header"
         {
             Caption = 'Bill-to City';
             ToolTip = 'Specifies the city of the customer on the sales document.';
-            TableRelation = if ("Bill-to Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Bill-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Bill-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Bill-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -490,7 +473,6 @@ table 36 "Sales Header"
                 OnBeforeValidateShipToCode(Rec, xRec, Customer, ShipToAddr, IsHandled);
                 if IsHandled then
                     exit;
-
                 if ("Document Type" = "Document Type"::Order) and
                    (xRec."Ship-to Code" <> "Ship-to Code")
                 then begin
@@ -525,7 +507,6 @@ table 36 "Sales Header"
                 UpdateShipToSalespersonCode(FieldNo("Ship-to Code"));
                 GetShipmentMethodCode();
                 GetShippingTime(FieldNo("Ship-to Code"));
-
                 if (xRec."Sell-to Customer No." = "Sell-to Customer No.") and
                    (xRec."Ship-to Code" <> "Ship-to Code")
                 then
@@ -583,7 +564,8 @@ table 36 "Sales Header"
         {
             Caption = 'Ship-to City';
             ToolTip = 'Specifies the city of the customer on the sales document.';
-            TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Ship-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Ship-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -664,7 +646,6 @@ table 36 "Sales Header"
 
                 UpdateVATReportingDate(FieldNo("Posting Date"));
                 UpdateDocumentDateFromLinkedPostingDate(true);
-
                 if ("Document Type" in ["Document Type"::Invoice, "Document Type"::"Credit Memo"]) and
                    not ("Posting Date" = xRec."Posting Date")
                 then
@@ -681,7 +662,6 @@ table 36 "Sales Header"
                         ConfirmCurrencyFactorUpdate();
                 end;
                 OnValidatePostingDateOnAfterCheckNeedUpdateCurrencyFactor(Rec, xRec, NeedUpdateCurrencyFactor);
-
                 if "Posting Date" <> xRec."Posting Date" then
                     if DeferralHeadersExist() then
                         ConfirmUpdateDeferralDate();
@@ -731,7 +711,6 @@ table 36 "Sales Header"
                 OnBeforeValidatePaymentTermsCode(Rec, xRec, CurrFieldNo, UpdateDocumentDate, IsHandled);
                 if IsHandled then
                     exit;
-
                 if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
                     PaymentTerms.Get("Payment Terms Code");
                     if IsCreditDocType() and not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
@@ -805,7 +784,6 @@ table 36 "Sales Header"
                 OnBeforeValidatePaymentDiscount(Rec, CurrFieldNo, IsHandled);
                 if IsHandled then
                     exit;
-
                 if not (CurrFieldNo in [0, FieldNo("Posting Date"), FieldNo("Document Date")]) then
                     TestStatusOpen();
                 GLSetup.Get();
@@ -938,7 +916,6 @@ table 36 "Sales Header"
                     TestStatusOpen();
 
                 ResetInvoiceDiscountValue();
-
                 if (CurrFieldNo <> FieldNo("Currency Code")) and ("Currency Code" = xRec."Currency Code") then
                     UpdateCurrencyFactor()
                 else
@@ -950,14 +927,11 @@ table 36 "Sales Header"
                             if "Currency Factor" <> xRec."Currency Factor" then
                                 ConfirmCurrencyFactorUpdate();
                         end;
-
                 if ShouldCheckShowRecurringSalesLines(xRec, Rec) then
                     StandardCodesMgt.CheckShowSalesRecurringLinesNotification(Rec);
-
                 if "Currency Code" <> xRec."Currency Code" then
                     if not IsNullGuid(Rec.SystemId) then
                         SalesCalcDiscountByType.ApplyDefaultInvoiceDiscount(0, Rec, true);
-
                 if Status = Status::Open then
                     SetCompanyBankAccount();
             end;
@@ -976,7 +950,6 @@ table 36 "Sales Header"
             trigger OnValidate()
             begin
                 ResetInvoiceDiscountValue();
-
                 if "Currency Factor" <> xRec."Currency Factor" then
                     UpdateSalesLinesByFieldNo(FieldNo("Currency Factor"), false);
             end;
@@ -1012,7 +985,6 @@ table 36 "Sales Header"
                 InvDiscRounding: Decimal;
             begin
                 TestStatusOpen();
-
                 if "Prices Including VAT" <> xRec."Prices Including VAT" then begin
                     SalesLine.SetRange("Document Type", "Document Type");
                     SalesLine.SetRange("Document No.", "No.");
@@ -1251,10 +1223,8 @@ table 36 "Sales Header"
                 OnBeforeValidateAppliesToDocNo(Rec, CustLedgEntry, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Applies-to Doc. No." <> '' then
                     TestField("Bal. Account No.", '');
-
                 if ("Applies-to Doc. No." <> xRec."Applies-to Doc. No.") and (xRec."Applies-to Doc. No." <> '') and
                    ("Applies-to Doc. No." <> '')
                 then begin
@@ -1276,7 +1246,8 @@ table 36 "Sales Header"
         field(55; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account"
             else
             if ("Bal. Account Type" = const("Bank Account")) "Bank Account";
 
@@ -1461,7 +1432,6 @@ table 36 "Sales Header"
                         if not Customer.Get("Sell-to Customer No.") then
                             exit;
                 end;
-
                 if "VAT Registration No." = Customer."VAT Registration No." then
                     exit;
 
@@ -1473,7 +1443,6 @@ table 36 "Sales Header"
 
                 if ApplicableCountryCode = '' then
                     ApplicableCountryCode := VATRegistrationNoFormat."Country/Region Code";
-
                 if not VATRegNoSrvConfig.VATRegNoSrvIsEnabled() then begin
                     if AltCustVATRegFacade.UpdateVATRegNoInCustFromSalesHeader(Rec, Customer) then begin
                         Customer."VAT Registration No." := "VAT Registration No.";
@@ -1488,7 +1457,6 @@ table 36 "Sales Header"
                 VATRegistrationLogMgt.CheckVIESForVATNo(
                     ResultRecRef, VATRegistrationLog, CustomerToValidate, Customer."No.",
                     ApplicableCountryCode, VATRegistrationLog."Account Type"::Customer.AsInteger());
-
                 if VATRegistrationLog.Status = VATRegistrationLog.Status::Valid then begin
                     Message(ValidVATNoMsg);
                     if AltCustVATRegFacade.UpdateVATRegNoInCustFromSalesHeader(Rec, Customer) then begin
@@ -1619,7 +1587,6 @@ table 36 "Sales Header"
                         LookupStateManager.ClearSavedRecord();
                     exit;
                 end;
-
                 if LookupStateManager.IsRecordSaved() then begin
                     Customer := LookupStateManager.GetSavedRecord();
                     if Customer."No." <> '' then begin
@@ -1677,7 +1644,8 @@ table 36 "Sales Header"
         {
             Caption = 'Sell-to City';
             ToolTip = 'Specifies the city of the customer on the sales document.';
-            TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code".City
+            TableRelation =
+            if ("Sell-to Country/Region Code" = const('')) "Post Code".City
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Sell-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -1721,7 +1689,6 @@ table 36 "Sales Header"
                 OnBeforeLookupSelltoContact(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Document Type" <> "Document Type"::Quote then
                     if "Sell-to Customer No." = '' then
                         exit;
@@ -1810,7 +1777,8 @@ table 36 "Sales Header"
         {
             Caption = 'Sell-to Post Code';
             ToolTip = 'Specifies the postal code of the customer''s main address.';
-            TableRelation = if ("Sell-to Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Sell-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Sell-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Sell-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -1833,7 +1801,6 @@ table 36 "Sales Header"
                 OnBeforeValidateSellToPostCode(Rec, PostCode, CurrFieldNo, IsHandled, DoExit);
                 if DoExit then
                     exit;
-
                 if not IsHandled then
                     PostCode.ValidatePostCode(
                         "Sell-to City", "Sell-to Post Code", "Sell-to County", "Sell-to Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
@@ -1883,7 +1850,8 @@ table 36 "Sales Header"
         {
             Caption = 'Ship-to Post Code';
             ToolTip = 'Specifies the postal code of the address that the items are shipped to.';
-            TableRelation = if ("Ship-to Country/Region Code" = const('')) "Post Code"
+            TableRelation =
+            if ("Ship-to Country/Region Code" = const('')) "Post Code"
             else
             if ("Ship-to Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Ship-to Country/Region Code"));
             ValidateTableRelation = false;
@@ -1978,12 +1946,10 @@ table 36 "Sales Header"
                     exit;
 
                 UpdateVATReportingDate(FieldNo("Document Date"));
-
                 if xRec."Document Date" <> "Document Date" then
                     UpdateDocumentDate := true;
                 Validate("Payment Terms Code");
                 Validate("Prepmt. Payment Terms Code");
-
                 if UpdateDocumentDate and ("Document Type" = "Document Type"::Quote) and ("Document Date" <> 0D) then
                     CalcQuoteValidUntilDate();
                 UpdateDocumentDate := false;
@@ -2006,13 +1972,11 @@ table 36 "Sales Header"
                 OnBeforeValidateExternalDocumentNo(Rec, xRec, CurrFieldNo, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "External Document No." <> '' then
                     if FindDocumentWithSameExternalDocNo() then
                         ShowExternalDocAlreadyExistNotification()
                     else
                         RecallExternalDocAlreadyExistsNotification();
-
                 if (xRec."External Document No." <> "External Document No.") and (Status = Status::Released) and
                    ("Document Type" in ["Document Type"::Order, "Document Type"::"Return Order"])
                 then
@@ -2190,7 +2154,6 @@ table 36 "Sales Header"
                 OnBeforeValidateShippingNoSeries(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Shipping No. Series" <> '' then begin
                     GetSalesSetup();
                     SalesSetup.TestField("Posted Shipment Nos.");
@@ -2307,7 +2270,6 @@ table 36 "Sales Header"
                 OnBeforeValidateVATBaseDiscountPct(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if not (CurrFieldNo in [0, FieldNo("Posting Date"), FieldNo("Document Date")]) then
                     TestStatusOpen();
                 GLSetup.Get();
@@ -2317,7 +2279,6 @@ table 36 "Sales Header"
                       FieldCaption("VAT Base Discount %"),
                       GLSetup.FieldCaption("VAT Tolerance %"),
                       GLSetup.TableCaption());
-
                 if ("VAT Base Discount %" = xRec."VAT Base Discount %") and (CurrFieldNo <> 0) then
                     exit;
 
@@ -2353,73 +2314,75 @@ table 36 "Sales Header"
             Caption = 'Invoice Discount Value';
             Editable = false;
         }
-        /// <summary>
-        /// Indicates whether an intercompany document should be sent to the IC partner.
-        /// </summary>
+#if not CLEANSCHEMA30
         field(123; "Send IC Document"; Boolean)
         {
             Caption = 'Send IC Document';
-
-            trigger OnValidate()
-            var
-                IsHandled: Boolean;
-            begin
-                if "Send IC Document" then begin
-                    if "Bill-to IC Partner Code" = '' then
-                        TestField("Sell-to IC Partner Code");
-                    IsHandled := false;
-                    OnValidateSendICDocumentOnBeforeCheckICDirection(Rec, IsHandled);
-                    if not IsHandled then
-                        TestField("IC Direction", "IC Direction"::Outgoing);
-                end;
-            end;
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany processing status of the document.
-        /// </summary>
-        field(124; "IC Status"; Enum "Sales Document IC Status")
+#endif
+#if not CLEANSCHEMA30
+        field(124; "IC Status"; Enum Microsoft.Intercompany.Setup."Sales Document IC Status")
         {
             Caption = 'IC Status';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany partner code of the sell-to customer.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(125; "Sell-to IC Partner Code"; Code[20])
         {
             Caption = 'Sell-to IC Partner Code';
+            DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the intercompany partner code of the bill-to customer.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(126; "Bill-to IC Partner Code"; Code[20])
         {
             Caption = 'Bill-to IC Partner Code';
+            DataClassification = CustomerContent;
             Editable = false;
-            TableRelation = "IC Partner";
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies the document number from the intercompany partner.
-        /// </summary>
+#endif
+#if not CLEANSCHEMA30
         field(127; "IC Reference Document No."; Code[20])
         {
             Caption = 'IC Reference Document No.';
+            DataClassification = CustomerContent;
             Editable = false;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
-        /// <summary>
-        /// Specifies whether this is an outgoing or incoming intercompany document.
-        /// </summary>
-        field(129; "IC Direction"; Enum "IC Direction Type")
+#endif
+#if not CLEANSCHEMA30
+        field(129; "IC Direction"; Enum Microsoft.Intercompany.Setup."IC Direction Type")
         {
             Caption = 'IC Direction';
-
-            trigger OnValidate()
-            begin
-                if "IC Direction" = "IC Direction"::Incoming then
-                    "Send IC Document" := false;
-            end;
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Moved to the Intercompany app.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '30.0';
+            MovedTo = '74676280-1b87-43cc-8ca2-3b2b17a5b81d';
         }
+#endif
         /// <summary>
         /// Specifies the prepayment percentage required before delivery.
         /// </summary>
@@ -2475,7 +2438,6 @@ table 36 "Sales Header"
                 OnBeforeValidatePrepmtNoSeries(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Prepayment No. Series" <> '' then begin
                     GetSalesSetup();
                     SalesSetup.TestField("Posted Prepmt. Inv. Nos.");
@@ -2536,7 +2498,6 @@ table 36 "Sales Header"
                 OnBeforeValidatePrepmtCrMemoNoSeries(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Prepmt. Cr. Memo No." <> '' then begin
                     GetSalesSetup();
                     SalesSetup.TestField("Posted Prepmt. Cr. Memo Nos.");
@@ -2578,7 +2539,6 @@ table 36 "Sales Header"
                 OnBeforeValidatePrepmtPaymentTermsCode(Rec, xRec, FieldNo("Prepmt. Payment Terms Code"), CurrFieldNo, UpdateDocumentDate, IsHandled);
                 if IsHandled then
                     exit;
-
                 if ("Prepmt. Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
                     PaymentTerms.Get("Prepmt. Payment Terms Code");
                     if IsCreditDocType() and not PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
@@ -3057,7 +3017,6 @@ table 36 "Sales Header"
                 ShouldUpdateOpportunity: Boolean;
             begin
                 TestStatusOpen();
-
                 if "Sell-to Contact No." <> '' then
                     if Cont.Get("Sell-to Contact No.") then
                         Cont.CheckIfPrivacyBlockedGeneric();
@@ -3066,7 +3025,6 @@ table 36 "Sales Header"
                 OnValidateSellToContactNoOnAfterContCheckIfPrivacyBlockedGeneric(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if ("Sell-to Contact No." <> xRec."Sell-to Contact No.") and
                    (xRec."Sell-to Contact No." <> '')
                 then begin
@@ -3097,7 +3055,6 @@ table 36 "Sales Header"
                         exit;
                     end;
                 end;
-
                 if ("Sell-to Customer No." <> '') and ("Sell-to Contact No." <> '') and
                    ("Document Type" <> "Document Type"::Quote)
                 then
@@ -3110,7 +3067,6 @@ table 36 "Sales Header"
                         if Cont.Get("Sell-to Contact No.") then
                             if ("Salesperson Code" = '') and (Cont."Salesperson Code" <> '') then
                                 Validate("Salesperson Code", Cont."Salesperson Code");
-
                 if ("Sell-to Contact No." <> xRec."Sell-to Contact No.") then
                     UpdateSellToCust("Sell-to Contact No.");
                 UpdateSellToCustTemplateCode();
@@ -3137,7 +3093,6 @@ table 36 "Sales Header"
                 OnBeforeLookupBillToContactNo(IsHandled, Rec, xRec);
                 if IsHandled then
                     exit;
-
                 if "Bill-to Customer No." <> '' then
                     if Cont.Get("Bill-to Contact No.") then
                         Cont.SetRange("Company No.", Cont."Company No.")
@@ -3146,7 +3101,6 @@ table 36 "Sales Header"
                             Cont.SetRange("Company No.", ContBusinessRelation."Contact No.")
                         else
                             Cont.SetRange("No.", '');
-
                 if "Bill-to Contact No." <> '' then
                     if Cont.Get("Bill-to Contact No.") then;
                 if PAGE.RunModal(0, Cont) = ACTION::LookupOK then begin
@@ -3161,11 +3115,9 @@ table 36 "Sales Header"
                 IsHandled: Boolean;
             begin
                 TestStatusOpen();
-
                 if "Bill-to Contact No." <> '' then
                     if Cont.Get("Bill-to Contact No.") then
                         Cont.CheckIfPrivacyBlockedGeneric();
-
                 if ("Bill-to Contact No." <> xRec."Bill-to Contact No.") and
                    (xRec."Bill-to Contact No." <> '')
                 then begin
@@ -3184,7 +3136,6 @@ table 36 "Sales Header"
                         exit;
                     end;
                 end;
-
                 if ("Bill-to Customer No." <> '') and ("Bill-to Contact No." <> '') then
                     CheckContactRelatedToCustomerCompany("Bill-to Contact No.", "Bill-to Customer No.");
 
@@ -3198,7 +3149,8 @@ table 36 "Sales Header"
         {
             Caption = 'Opportunity No.';
             ToolTip = 'Specifies the number of the opportunity that the sales quote is assigned to.';
-            TableRelation = if ("Document Type" = filter(<> Order)) Opportunity."No." where("Contact No." = field("Sell-to Contact No."),
+            TableRelation =
+            if ("Document Type" = filter(<> Order)) Opportunity."No." where("Contact No." = field("Sell-to Contact No."),
                                                                                           Closed = const(false))
             else
             if ("Document Type" = const(Order)) Opportunity."No." where("Contact No." = field("Sell-to Contact No."),
@@ -3225,7 +3177,6 @@ table 36 "Sales Header"
             begin
                 EnsureDocumentTypeIsQuote();
                 TestStatusOpen();
-
                 if not InsertMode and
                    ("Sell-to Customer Templ. Code" <> xRec."Sell-to Customer Templ. Code") and
                    (xRec."Sell-to Customer Templ. Code" <> '')
@@ -3242,10 +3193,8 @@ table 36 "Sales Header"
                         exit;
                     end;
                 end;
-
                 if SellToCustTemplate.Get("Sell-to Customer Templ. Code") then
                     CopyFromNewSellToCustTemplate(SellToCustTemplate);
-
                 if not InsertMode and
                    ((xRec."Sell-to Customer Templ. Code" <> "Sell-to Customer Templ. Code") or
                     (xRec."Currency Code" <> "Currency Code"))
@@ -3267,7 +3216,6 @@ table 36 "Sales Header"
             begin
                 TestField("Document Type", "Document Type"::Quote);
                 TestStatusOpen();
-
                 if not InsertMode and
                    ("Bill-to Customer Templ. Code" <> xRec."Bill-to Customer Templ. Code") and
                    (xRec."Bill-to Customer Templ. Code" <> '')
@@ -3292,7 +3240,6 @@ table 36 "Sales Header"
                 CreateDimFromDefaultDim(Rec.FieldNo("Bill-to Customer Templ. Code"));
 
                 OnValidateBilltoCustomerTemplCodeOnBeforeRecreateSalesLines(Rec, CurrFieldNo);
-
                 if not InsertMode and
                    (xRec."Sell-to Customer Templ. Code" = "Sell-to Customer Templ. Code") and
                    (xRec."Bill-to Customer Templ. Code" <> "Bill-to Customer Templ. Code")
@@ -3330,7 +3277,6 @@ table 36 "Sales Header"
                 CreateDimFromDefaultDim(Rec.FieldNo("Responsibility Center"));
 
                 OnValidateResponsibilityCenterOnBeforeRecreateSalesLines(Rec, CurrFieldNo);
-
                 if xRec."Responsibility Center" <> "Responsibility Center" then begin
                     RecreateSalesLines(FieldCaption("Responsibility Center"));
                     "Assigned User ID" := '';
@@ -3443,7 +3389,6 @@ table 36 "Sales Header"
 
                 TestStatusOpen();
                 CheckPromisedDeliveryDate();
-
                 if "Requested Delivery Date" <> xRec."Requested Delivery Date" then
                     UpdateSalesLinesByFieldNo(FieldNo("Requested Delivery Date"), CurrFieldNo <> 0);
             end;
@@ -3595,7 +3540,6 @@ table 36 "Sales Header"
                 OnBeforeValidateReturnReceiptNoSeries(Rec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if "Return Receipt No. Series" <> '' then begin
                     GetSalesSetup();
                     SalesSetup.TestField("Posted Return Receipt Nos.");
@@ -3783,10 +3727,8 @@ table 36 "Sales Header"
         InsertMode := true;
 
         Rec.SetSellToCustomerFromFilter();
-
         if GetFilterContNo() <> '' then
             Validate("Sell-to Contact No.", GetFilterContNo());
-
         if "Sell-to Customer No." <> '' then
             StandardCodesMgtGlobal.CheckCreateSalesRecurringLines(Rec);
 
@@ -4031,7 +3973,6 @@ table 36 "Sales Header"
         InitShipmentDate();
 
         InitPostingDate();
-
         if SalesSetup."Default Posting Date" = SalesSetup."Default Posting Date"::"No Date" then
             "Posting Date" := 0D;
         NewOrderDate := WorkDate();
@@ -4042,7 +3983,6 @@ table 36 "Sales Header"
             "Document Date" := WorkDate();
         if "Document Type" = "Document Type"::Quote then
             CalcQuoteValidUntilDate();
-
         if "Sell-to Customer No." <> '' then
             GetCust("Sell-to Customer No.");
         LocationCode := Customer."Location Code";
@@ -4054,7 +3994,6 @@ table 36 "Sales Header"
                     LocationCode := ShipToAddress."Location Code";
         end;
         UpdateLocationCode(LocationCode);
-
         if IsCreditDocType() then begin
             GLSetup.Get();
             Correction := GLSetup."Mark Cr. Memos as Corrections";
@@ -4087,7 +4026,6 @@ table 36 "Sales Header"
         OnInitRecordOnBeforeAssignShipmentDate(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Document Type" in ["Document Type"::Order, "Document Type"::Invoice, "Document Type"::Quote] then
             "Shipment Date" := WorkDate();
     end;
@@ -4105,7 +4043,6 @@ table 36 "Sales Header"
         OnInitRecordOnBeforeAssignWorkDateToPostingDate(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if not ("Document Type" in ["Document Type"::"Blanket Order", "Document Type"::Quote]) and
            ("Posting Date" = 0D)
         then
@@ -4283,7 +4220,6 @@ table 36 "Sales Header"
         OnBeforeGetNoSeriesCode(Rec, SalesSetup, NoSeriesCode, IsHandled);
         if IsHandled then
             exit(NoSeriesCode);
-
         case "Document Type" of
             "Document Type"::Quote:
                 NoSeriesCode := SalesSetup."Quote Nos.";
@@ -4301,10 +4237,8 @@ table 36 "Sales Header"
         OnAfterGetNoSeriesCode(Rec, SalesSetup, NoSeriesCode);
         if not SelectNoSeriesAllowed then
             exit(NoSeriesCode);
-
         if NoSeries.IsAutomatic(NoSeriesCode) then
             exit(NoSeriesCode);
-
         if NoSeries.HasRelatedSeries(NoSeriesCode) then
             if NoSeries.LookupRelatedNoSeries(NoSeriesCode, "No. Series") then
                 exit("No. Series");
@@ -4414,7 +4348,6 @@ table 36 "Sales Header"
         OnBeforeCheckNoAndShowConfirm(Rec, SalesShptHeader, SalesInvHeader, SalesCrMemoHeader, ReturnRcptHeader, SalesInvHeaderPrepmt, SalesCrMemoHeaderPrepmt, SourceCode, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if SalesShptHeader."No." <> '' then
             if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(Text009, SalesShptHeader."No."), true) then
                 exit;
@@ -4444,7 +4377,6 @@ table 36 "Sales Header"
     procedure GetCust(CustNo: Code[20]): Record Customer
     begin
         OnBeforeGetCust(Rec, Customer, CustNo);
-
         if not (("Document Type" = "Document Type"::Quote) and (CustNo = '')) then begin
             if CustNo <> Customer."No." then
                 Customer.Get(CustNo);
@@ -4488,7 +4420,6 @@ table 36 "Sales Header"
         OnBeforeResetInvoiceDiscountValue(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Invoice Discount Value" <> 0 then begin
             CalcFields("Invoice Discount Amount");
             if "Invoice Discount Amount" = 0 then
@@ -4543,7 +4474,6 @@ table 36 "Sales Header"
                     ConfirmText := RecreateSalesLinesMsg;
                 Confirmed := Confirm(ConfirmText, false, ChangedFieldName);
             end;
-
         if Confirmed then begin
             SalesLine.LockTable();
             ItemChargeAssgntSales.LockTable();
@@ -4579,7 +4509,6 @@ table 36 "Sales Header"
                     SalesLineReserve.CopyReservEntryFromTemp(TempReservEntry, TempSalesLine, SalesLine."Line No.");
                     RecreateReqLine(TempReqLine, TempSalesLine, SalesLine."Line No.", false);
                     SynchronizeForReservations(SalesLine, TempSalesLine);
-
                     if TempATOLink.AsmExistsForSalesLine(TempSalesLine) then begin
                         ATOLink := TempATOLink;
                         ATOLink."Document Line No." := SalesLine."Line No.";
@@ -4629,10 +4558,8 @@ table 36 "Sales Header"
                 CreateSalesLine(TempSalesLine);
             ExtendedTextAdded := false;
             OnAfterRecreateSalesLine(SalesLine, TempSalesLine, Rec);
-
             if SalesLine.Type = SalesLine.Type::Item then
                 RecreateSalesLinesFillItemChargeAssignment(SalesLine, TempSalesLine, TempItemChargeAssgntSales);
-
             if SalesLine.Type = SalesLine.Type::"Charge (Item)" then begin
                 TempInteger.Init();
                 TempInteger.Number := SalesLine."Line No.";
@@ -4731,7 +4658,6 @@ table 36 "Sales Header"
         OnBeforeMessageIfSalesLinesExist(Rec, ChangedFieldName, IsHandled);
         if IsHandled then
             exit;
-
         if SalesLinesExist() and not GetHideValidationDialog() then begin
             MessageText := StrSubstNo(LinesNotUpdatedMsg, ChangedFieldName);
             MessageText := StrSubstNo(SplitMessageTxt, MessageText, Text019);
@@ -4752,7 +4678,6 @@ table 36 "Sales Header"
         OnBeforePriceMessageIfSalesLinesExist(Rec, ChangedFieldName, IsHandled);
         if IsHandled then
             exit;
-
         if SalesLinesExist() and not GetHideValidationDialog() then begin
             MessageText := StrSubstNo(LinesNotUpdatedDateMsg, ChangedFieldName);
             if "Currency Code" <> '' then
@@ -4772,13 +4697,11 @@ table 36 "Sales Header"
         OnBeforeUpdateCurrencyFactor(Rec, Updated, CurrExchRate, xRec);
         if Updated then
             exit;
-
         if "Currency Code" <> '' then begin
             if Rec."Posting Date" <> 0D then
                 CurrencyDate := "Posting Date"
             else
                 CurrencyDate := WorkDate();
-
             if UpdateCurrencyExchangeRates.ExchangeRatesForCurrencyExist(CurrencyDate, "Currency Code") then begin
                 "Currency Factor" := CurrExchRate.ExchangeRate(CurrencyDate, "Currency Code");
                 if ("Currency Code" <> xRec."Currency Code") and (xRec."No." <> '') then
@@ -4807,7 +4730,6 @@ table 36 "Sales Header"
         OnBeforeConfirmUpdateCurrencyFactor(Rec, HideValidationDialog, xRec, IsHandled, ForceConfirm);
         if IsHandled then
             exit;
-
         if GetHideValidationDialog() or not GuiAllowed() or ForceConfirm then
             Confirmed := true
         else
@@ -4940,7 +4862,6 @@ table 36 "Sales Header"
             Session.LogMessage('0000G92', SalesHeaderIsTemporaryLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SalesLinesCategoryLbl);
             exit;
         end;
-
         if IsNullGuid(Rec.SystemId) then begin
             Session.LogMessage('0000G93', SalesHeaderDoesNotExistLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SalesLinesCategoryLbl);
             exit;
@@ -4998,7 +4919,6 @@ table 36 "Sales Header"
             Session.LogMessage('0000G95', SalesHeaderIsTemporaryLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SalesLinesCategoryLbl);
             exit;
         end;
-
         if IsNullGuid(Rec.SystemId) then begin
             Session.LogMessage('0000G96', SalesHeaderDoesNotExistLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SalesLinesCategoryLbl);
             exit;
@@ -5008,13 +4928,10 @@ table 36 "Sales Header"
         OnBeforeUpdateSalesLinesByFieldNo(Rec, ChangedFieldNo, AskQuestion, IsHandled, xRec, CurrFieldNo);
         if IsHandled then
             exit;
-
         if not SalesLinesExist() then
             exit;
-
         if not Field.Get(DATABASE::"Sales Header", ChangedFieldNo) then
             Field.Get(DATABASE::"Sales Line", ChangedFieldNo);
-
         if AskQuestion then begin
             Question := StrSubstNo(Text031, Field."Field Caption");
             if GuiAllowed and not GetHideValidationDialog() then
@@ -5156,7 +5073,6 @@ table 36 "Sales Header"
             Rec, CurrFieldNo, DefaultDimSource, SourceCodeSetup.Sales, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
 
         OnCreateDimOnBeforeUpdateLines(Rec, xRec, CurrFieldNo, OldDimSetID, DefaultDimSource);
-
         if (OldDimSetID <> "Dimension Set ID") and (OldDimSetID <> 0) and GuiAllowed and not GetHideValidationDialog() then
             if CouldDimensionsBeKept() then
                 if not ConfirmKeepExistingDimensions(OldDimSetID) then begin
@@ -5164,7 +5080,6 @@ table 36 "Sales Header"
                     DimMgt.UpdateGlobalDimFromDimSetID(Rec."Dimension Set ID", Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
                     OnCreateDimOnKeepDimensionsOnAfterUpdateGlobalDim(Rec, xRec, CurrFieldNo, OldDimSetID);
                 end;
-
         if (OldDimSetID <> "Dimension Set ID") and SalesLinesExist() then begin
             OnCreateDimOnBeforeModify(Rec, xRec, CurrFieldNo, OldDimSetID);
             Modify();
@@ -5195,7 +5110,6 @@ table 36 "Sales Header"
                 exit(false);
             if (xRec."Bill-to Customer No." <> '') and (xRec."Bill-to Customer No." <> Rec."Bill-to Customer No.") then
                 exit(false);
-
             if (xRec."Location Code" <> Rec."Location Code") and (xRec."Bill-to Customer No." <> '') then
                 exit(true);
             if (xRec."Salesperson Code" <> '') and (xRec."Salesperson Code" <> Rec."Salesperson Code") then
@@ -5229,7 +5143,6 @@ table 36 "Sales Header"
         DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
         if "No." <> '' then
             Modify();
-
         if OldDimSetID <> "Dimension Set ID" then begin
             OnValidateShortcutDimCodeOnBeforeUpdateAllLineDim(Rec, xRec, FieldNumber);
             if not IsNullGuid(Rec.SystemId) then
@@ -5349,13 +5262,11 @@ table 36 "Sales Header"
         OnCheckCustomerCreatedOnBeforeConfirmProcess(Rec, Prompt, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if Prompt then
             if not ConfirmManagement.GetResponseOrDefault(Text035, true) then
                 exit(false);
 
         OnCheckCustomerCreatedOnAfterConfirmProcess(Rec);
-
         if "Sell-to Customer No." = '' then begin
             TestField("Sell-to Contact No.");
             TestField("Sell-to Customer Templ. Code");
@@ -5364,7 +5275,6 @@ table 36 "Sales Header"
             Commit();
             Get("Document Type"::Quote, "No.");
         end;
-
         if "Bill-to Customer No." = '' then begin
             TestField("Bill-to Contact No.");
             TestField("Bill-to Customer Templ. Code");
@@ -5433,7 +5343,6 @@ table 36 "Sales Header"
         OnBeforeCheckShipmentInfo(Rec, xRec, SalesLine, BillTo, IsHandled);
         if IsHandled then
             exit;
-
         if "Document Type" = "Document Type"::Order then
             SalesLine.SetFilter("Quantity Shipped", '<>0')
         else
@@ -5442,7 +5351,6 @@ table 36 "Sales Header"
                     SalesLine.SetRange("Sell-to Customer No.", xRec."Sell-to Customer No.");
                 SalesLine.SetFilter("Shipment No.", '<>%1', '');
             end;
-
         if SalesLine.FindFirst() then
             if "Document Type" = "Document Type"::Order then
                 TestQuantityShippedField(SalesLine)
@@ -5460,7 +5368,6 @@ table 36 "Sales Header"
         OnBeforeCheckPrepmtInfo(Rec, xRec, SalesLine, IsHandled);
         if IsHandled then
             exit;
-
         if "Document Type" = "Document Type"::Order then begin
             SalesLine.SetFilter("Prepmt. Amt. Inv.", '<>0');
             if SalesLine.Find('-') then
@@ -5477,7 +5384,6 @@ table 36 "Sales Header"
         OnBeforeCheckReturnInfo(Rec, IsHandled, xRec, BillTo);
         if IsHandled then
             exit;
-
         if "Document Type" = "Document Type"::"Return Order" then
             SalesLine.SetFilter("Return Qty. Received", '<>0')
         else
@@ -5486,7 +5392,6 @@ table 36 "Sales Header"
                     SalesLine.SetRange("Sell-to Customer No.", xRec."Sell-to Customer No.");
                 SalesLine.SetFilter("Return Receipt No.", '<>%1', '');
             end;
-
         if SalesLine.FindFirst() then
             if "Document Type" = "Document Type"::"Return Order" then
                 SalesLine.TestField("Return Qty. Received", 0)
@@ -5497,7 +5402,6 @@ table 36 "Sales Header"
     local procedure CopyFromNewSellToCustTemplate(SellToCustTemplate: Record "Customer Templ.")
     begin
         OnBeforeCopyFromNewSellToCustTemplate(Rec, xRec, SellToCustTemplate);
-
         if not ApplicationAreaMgmt.IsSalesTaxEnabled() then
             SellToCustTemplate.TestField("Gen. Bus. Posting Group");
         "Gen. Bus. Posting Group" := SellToCustTemplate."Gen. Bus. Posting Group";
@@ -5636,7 +5540,6 @@ table 36 "Sales Header"
         OnBeforeUpdateBillToCont(Rec, CustomerNo, SkipBillToContact, IsHandled);
         if IsHandled then
             exit;
-
         if Cust.Get(CustomerNo) then begin
             if Cust."Primary Contact No." <> '' then
                 "Bill-to Contact No." := Cust."Primary Contact No."
@@ -5677,7 +5580,6 @@ table 36 "Sales Header"
         IsHandled: Boolean;
     begin
         OnBeforeUpdateSellToCust(Rec, Cont, Customer, ContactNo);
-
         if not Cont.Get(ContactNo) then begin
             "Sell-to Contact" := '';
             exit;
@@ -5688,7 +5590,6 @@ table 36 "Sales Header"
         OnUpdateSellToCustOnAfterSetSellToContactNo(Rec, Customer, Cont, IsHandled);
         if IsHandled then
             exit;
-
         if Cont.Type = Cont.Type::Person then
             ContactBusinessRelationFound := ContBusinessRelation.FindByContact(ContBusinessRelation."Link to Table"::Customer, Cont."No.");
         if not ContactBusinessRelationFound then begin
@@ -5700,10 +5601,8 @@ table 36 "Sales Header"
         end;
 
         OnUpdateSellToCustOnAfterFindContactBusinessRelation(Rec, Cont, ContBusinessRelation, ContactBusinessRelationFound);
-
         if ContactBusinessRelationFound then begin
             CheckCustomerContactRelation(Cont, "Sell-to Customer No.", ContBusinessRelation."No.");
-
             if "Sell-to Customer No." = '' then begin
                 SkipSellToContact := true;
                 Validate("Sell-to Customer No.", ContBusinessRelation."No.");
@@ -5743,7 +5642,6 @@ table 36 "Sales Header"
         end;
 
         UpdateSellToCustContact(Customer, Cont);
-
         if "Document Type" = "Document Type"::Quote then begin
             if Customer.Get("Sell-to Customer No.") or Customer.Get(ContBusinessRelation."No.") then begin
                 if Customer."Copy Sell-to Addr. to Qte From" = Customer."Copy Sell-to Addr. to Qte From"::Company then
@@ -5776,7 +5674,6 @@ table 36 "Sales Header"
         OnBeforeUpdateSellToEmail(Rec, Contact, IsHandled);
         if IsHandled then
             exit;
-
         if (Contact."E-Mail" = '') and ("Sell-to E-Mail" <> '') and GuiAllowed then begin
             if Confirm(ConfirmEmptyEmailQst, false, Contact."No.", "Sell-to E-Mail") then
                 Validate("Sell-to E-Mail", Contact."E-Mail");
@@ -5792,7 +5689,6 @@ table 36 "Sales Header"
         OnBeforeUpdateSellToCustContact(Rec, Cont, IsHandled);
         if IsHandled then
             exit;
-
         if (Cont.Type = Cont.Type::Company) and Customer.Get("Sell-to Customer No.") then
             "Sell-to Contact" := Customer.Contact
         else
@@ -5811,7 +5707,6 @@ table 36 "Sales Header"
         OnBeforeCheckCustomerContactRelation(Rec, Cont, IsHandled, CustomerNo, ContBusinessRelationNo);
         if IsHandled then
             exit;
-
         if (CustomerNo <> '') and (CustomerNo <> ContBusinessRelationNo) then
             if FindContactBusinessRelation(CustomerNo, Cont."Company No.", ContactBusinessRelationLinkType::Customer) then
                 Error(Text037, Cont."No.", Cont.Name, CustomerNo);
@@ -5830,7 +5725,6 @@ table 36 "Sales Header"
         OnBeforeUpdateBillToCust(Rec, ContactNo, IsHandled);
         if IsHandled then
             exit;
-
         if not Cont.Get(ContactNo) then begin
             "Bill-to Contact" := '';
             exit;
@@ -5838,7 +5732,6 @@ table 36 "Sales Header"
         "Bill-to Contact No." := Cont."No.";
 
         UpdateBillToCustContact(Cont);
-
         if Cont.Type = Cont.Type::Person then
             ContactBusinessRelationFound := ContBusinessRelation.FindByContact(ContBusinessRelation."Link to Table"::Customer, Cont."No.");
         if not ContactBusinessRelationFound then begin
@@ -5850,7 +5743,6 @@ table 36 "Sales Header"
         end;
 
         OnUpdateBillToCustOnAfterFindContactBusinessRelation(Rec, Cont, ContBusinessRelation, ContactBusinessRelationFound);
-
         if ContactBusinessRelationFound then begin
             if "Bill-to Customer No." = '' then begin
                 SkipBillToContact := true;
@@ -5878,7 +5770,6 @@ table 36 "Sales Header"
                 "Format Region" := SearchContact."Format Region";
 
                 OnUpdateBillToCustOnAfterSalesQuote(Rec, SearchContact);
-
                 if ("Bill-to Customer Templ. Code" = '') and (not CustomerTempl.IsEmpty) then
                     Validate("Bill-to Customer Templ. Code", Cont.FindNewCustomerTemplate());
             end else begin
@@ -5899,7 +5790,6 @@ table 36 "Sales Header"
         OnBeforeUpdateBillToCustContact(Rec, Cont, IsHandled);
         if IsHandled then
             exit;
-
         if Customer.Get("Bill-to Customer No.") and (Cont.Type = Cont.Type::Company) then
             "Bill-to Contact" := Customer.Contact
         else
@@ -5927,7 +5817,6 @@ table 36 "Sales Header"
         OnBeforeGetShipmentMethodCode(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Ship-to Code" <> '' then begin
             ShipToAddress.SetLoadFields("Shipment Method Code");
             ShipToAddress.Get("Sell-to Customer No.", "Ship-to Code");
@@ -5936,7 +5825,6 @@ table 36 "Sales Header"
                 IsShipmentMethodCodeAssigned := true;
             end;
         end;
-
         if (not IsShipmentMethodCodeAssigned) and ("Sell-to Customer No." <> '') then begin
             GetCust("Sell-to Customer No.");
             Validate("Shipment Method Code", Customer."Shipment Method Code");
@@ -6012,10 +5900,8 @@ table 36 "Sales Header"
         OnBeforeCheckCreditMaxBeforeInsert(Rec, IsHandled, HideCreditCheckDialogue, GetFilterCustNo(), GetFilterContNo());
         if IsHandled then
             exit;
-
         if HideCreditCheckDialogue then
             exit;
-
         if (GetFilterCustNo() <> '') or ("Sell-to Customer No." <> '') then begin
             if "Sell-to Customer No." <> '' then
                 Customer.Get("Sell-to Customer No.")
@@ -6049,7 +5935,6 @@ table 36 "Sales Header"
     procedure CreateInvtPutAwayPick()
     begin
         OnBeforeCreateInvtPutAwayPick(Rec);
-
         if "Document Type" = "Document Type"::Order then
             if not IsApprovedForPosting() then
                 exit;
@@ -6094,7 +5979,6 @@ table 36 "Sales Header"
         OnBeforeUpdateShipToAddress(Rec, IsHandled, CurrFieldNo);
         if IsHandled then
             exit;
-
         if IsCreditDocType() then
             if "Location Code" <> '' then begin
                 Location.Get("Location Code");
@@ -6191,7 +6075,6 @@ table 36 "Sales Header"
         OnBeforeUpdateAllLineDim(Rec, NewParentDimSetID, OldParentDimSetID, IsHandled, xRec);
         if IsHandled then
             exit;
-
         if NewParentDimSetID = OldParentDimSetID then
             exit;
         if not GetHideValidationDialog() and GuiAllowed then
@@ -6210,7 +6093,6 @@ table 36 "Sales Header"
                 if SalesLine."Dimension Set ID" <> NewDimSetID then begin
                     xSalesLine := SalesLine;
                     SalesLine."Dimension Set ID" := NewDimSetID;
-
                     if not GetHideValidationDialog() and GuiAllowed then
                         VerifyShippedReceivedItemLineDimChange(ShippedReceivedItemLineDimChangeConfirmed);
 
@@ -6251,7 +6133,6 @@ table 36 "Sales Header"
         SalesLine.SetRange("Document No.", "No.");
         TempValueEntry.Reset();
         TempValueEntry.DeleteAll();
-
         case "Document Type" of
             "Document Type"::Order, "Document Type"::Invoice:
                 if SalesLine.FindSet() then
@@ -6268,7 +6149,6 @@ table 36 "Sales Header"
                             SalesShptLine.SetRange(Correction, false);
                             if QtyType = QtyType::Invoicing then
                                 SalesShptLine.SetFilter("Qty. Shipped Not Invoiced", '<>0');
-
                             if SalesShptLine.FindSet() then
                                 repeat
                                     SalesShptLine.FilterPstdDocLnItemLedgEntries(ItemLedgEntry);
@@ -6294,7 +6174,6 @@ table 36 "Sales Header"
                             ReturnRcptLine.SetRange(Correction, false);
                             if QtyType = QtyType::Invoicing then
                                 ReturnRcptLine.SetFilter("Return Qty. Rcd. Not Invd.", '<>0');
-
                             if ReturnRcptLine.FindSet() then
                                 repeat
                                     ReturnRcptLine.FilterPstdDocLnItemLedgEntries(ItemLedgEntry);
@@ -6437,7 +6316,6 @@ table 36 "Sales Header"
         OnBeforeSetSecurityFilterOnRespCenter(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if UserSetupMgt.GetSalesFilter() <> '' then begin
             FilterGroup(2);
             SetRange("Responsibility Center", UserSetupMgt.GetSalesFilter());
@@ -6530,7 +6408,6 @@ table 36 "Sales Header"
         IsHandled: Boolean;
     begin
         SalesHeader2 := Rec;
-
         if GuiAllowed and
            (CurrFieldNo <> 0) and CheckCreditLimitCondition() and SalesHeader2.Find()
         then begin
@@ -6627,7 +6504,6 @@ table 36 "Sales Header"
         OnBeforeIsApprovedForPosting(Rec, Approved, IsHandled);
         if IsHandled then
             exit(Approved);
-
         if ApprovalsMgmt.PrePostApprovalCheckSales(Rec) then begin
             if PrepaymentMgt.TestSalesPrepayment(Rec) then
                 Error(PrepaymentInvoicesNotPaidErr, "Document Type", "No.");
@@ -6702,7 +6578,6 @@ table 36 "Sales Header"
         OnBeforeSendToPosting(Rec, IsSuccess, IsHandled, PostingCodeunitID);
         if IsHandled then
             exit(IsSuccess);
-
         if not IsApprovedForPosting() then
             exit;
 
@@ -6789,7 +6664,6 @@ table 36 "Sales Header"
         IsHandled: Boolean;
     begin
         OnBeforeGetFullDocTypeTxt(Rec, FullDocTypeTxt, IsHandled);
-
         if IsHandled then
             exit;
 
@@ -6810,7 +6684,6 @@ table 36 "Sales Header"
         OnBeforeLinkSalesDocWithOpportunity(Rec, OldOpportunityNo, IsHandled);
         if IsHandled then
             exit;
-
         if "Opportunity No." <> OldOpportunityNo then begin
             if "Opportunity No." <> '' then
                 if Opportunity.Get("Opportunity No.") then begin
@@ -6991,7 +6864,6 @@ table 36 "Sales Header"
         OnBeforeCheckCreditLimitIfLineNotInsertedYet(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "No." = '' then begin
             HideCreditCheckDialogue := false;
             Rec.CheckCreditMaxBeforeInsert();
@@ -7115,7 +6987,6 @@ table 36 "Sales Header"
             Error(StatisticsInsuffucientPermissionsErr);
 
         CalcInvDiscForHeader();
-
         if IsOrderDocument() then
             CreateDimSetForPrepmtAccDefaultDim();
 
@@ -7144,15 +7015,12 @@ table 36 "Sales Header"
         OnBeforeCheckAvailableCreditLimit(Rec, ReturnValue, IsHandled);
         if IsHandled then
             exit(ReturnValue);
-
         if ("Bill-to Customer No." = '') and ("Sell-to Customer No." = '') then
             exit(0);
-
         if not Customer.Get("Bill-to Customer No.") then
             Customer.Get("Sell-to Customer No.");
 
         AvailableCreditLimit := Customer.CalcAvailableCredit();
-
         if AvailableCreditLimit < 0 then
             CustomerCreditLimitExceeded()
         else
@@ -7210,13 +7078,11 @@ table 36 "Sales Header"
                 SalesLine.Nonstock := false;
                 SalesLine.Modify();
             end;
-
             if ATOLink.AsmExistsForSalesLine(TempSalesLine) then begin
                 TempATOLink := ATOLink;
                 TempATOLink.Insert();
                 ATOLink.Delete();
             end;
-
             if not IsServiceChargeLine(SalesLine) then
                 TempSalesLine.Insert();
             OnAfterInsertTempSalesLine(SalesLine, TempSalesLine);
@@ -7282,7 +7148,6 @@ table 36 "Sales Header"
         end else begin
             SalesLine.Validate("No.", TempSalesLine."No.");
             OnCreateSalesLineOnAfterValidateNo(SalesLine, TempSalesLine);
-
             if SalesLine.Type <> SalesLine.Type::" " then begin
                 OnCreateSalesLineOnBeforeTransferFieldsFromTempSalesLine(SalesLine, TempSalesLine, Rec);
                 SalesLine.Validate("Unit of Measure Code", TempSalesLine."Unit of Measure Code");
@@ -7346,7 +7211,6 @@ table 36 "Sales Header"
         OnBeforeUpdateOutboundWhseHandlingTime(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if "Location Code" <> '' then begin
             if Location.Get("Location Code") then
                 "Outbound Whse. Handling Time" := Location."Outbound Whse. Handling Time";
@@ -7467,7 +7331,6 @@ table 36 "Sales Header"
         OnBeforeSetSellToCustomerFromFilter(Rec);
 
         SellToCustomerNo := GetSellToCustomerFromFilter();
-
         if SellToCustomerNo <> '' then
             Validate("Sell-to Customer No.", SellToCustomerNo);
 
@@ -7517,7 +7380,6 @@ table 36 "Sales Header"
         OnBeforeConfirmBillToCustomerChange(Rec, xRec, CurrFieldNo, Confirmed, IsHandled);
         if IsHandled then
             exit(Confirmed);
-
         if GetHideValidationDialog() or not GuiAllowed then
             Confirmed := true
         else
@@ -7532,7 +7394,6 @@ table 36 "Sales Header"
         OnBeforeConfirmUpdateDeferralDate(Rec, xRec, CurrFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if GetHideValidationDialog() or not GuiAllowed then
             Confirmed := true
         else
@@ -7558,12 +7419,10 @@ table 36 "Sales Header"
             exit;
         if not DeferralHeadersExist() then
             exit;
-
         if ReplacePostingDate then
             "Posting Date" := PostingDateReq;
         if ReplaceVATDate then
             "VAT Reporting Date" := VATDateReq;
-
         case BatchConfirm of
             BatchConfirm::" ":
                 begin
@@ -7601,10 +7460,8 @@ table 36 "Sales Header"
             UpdateCurrencyFactor();
             UpdateSalesLinesByFieldNo(SalesHeader.FieldNo("Currency Factor"), false);
         end;
-
         if ReplaceVATDate then
             "VAT Reporting Date" := VATDateReq;
-
         if ReplacePostingDate and ReplaceDocDate and ("Document Date" <> PostingDateReq) then begin
             UpdateDocumentDate := true;
             Validate("Document Date", PostingDateReq);
@@ -7637,10 +7494,8 @@ table 36 "Sales Header"
         OnBeforeSetDefaultPaymentServices(Rec, IsHandled);
         if IsHandled then
             exit;
-
         if not PaymentServiceSetup.CanChangePaymentService(Rec) then
             exit;
-
         if PaymentServiceSetup.GetDefaultPaymentServices(SetID) then
             Validate("Payment Service Set ID", SetID);
     end;
@@ -7683,7 +7538,6 @@ table 36 "Sales Header"
         OnBeforeHasSellToAddress(Rec, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         case true of
             "Sell-to Address" <> '':
                 exit(true);
@@ -7716,7 +7570,6 @@ table 36 "Sales Header"
         OnBeforeHasShipToAddress(Rec, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         case true of
             "Ship-to Address" <> '':
                 exit(true);
@@ -7749,7 +7602,6 @@ table 36 "Sales Header"
         OnBeforeHasBillToAddress(Rec, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         case true of
             "Bill-to Address" <> '':
                 exit(true);
@@ -7892,7 +7744,6 @@ table 36 "Sales Header"
         OnBeforeSetCustomerLocationCode(Rec, IsHandled, SellToCustomer);
         if IsHandled then
             exit;
-
         if SellToCustomer."Location Code" <> '' then
             Validate("Location Code", SellToCustomer."Location Code");
     end;
@@ -7986,7 +7837,6 @@ table 36 "Sales Header"
             "Bill-to Contact" := BillToCustomer.Contact;
         "Payment Terms Code" := BillToCustomer."Payment Terms Code";
         "Prepmt. Payment Terms Code" := BillToCustomer."Payment Terms Code";
-
         if "Document Type" in ["Document Type"::"Credit Memo", "Document Type"::"Return Order"] then begin
             "Payment Method Code" := '';
             if PaymentTerms.Get("Payment Terms Code") then
@@ -8094,7 +7944,6 @@ table 36 "Sales Header"
         OnBeforeUpdateShipToAddressFromSellToAddress(Rec, FieldNumber, IsHandled);
         if IsHandled then
             exit;
-
         if ("Ship-to Code" = '') and ShipToAddressEqualsOldSellToAddress() then begin
             case FieldNumber of
                 FieldNo("Ship-to Address"):
@@ -8214,10 +8063,8 @@ table 36 "Sales Header"
     begin
         if not (CurrFieldNo in [FieldNo("Sell-to Contact"), FieldNo("Sell-to Contact No.")]) then
             exit;
-
         if IsCreditDocType() then
             exit;
-
         if "Ship-to Code" <> '' then
             if ShipToAddress.Get("Sell-to Customer No.", "Ship-to Code") then
                 if ShipToAddress.Contact <> '' then
@@ -8242,13 +8089,11 @@ table 36 "Sales Header"
         OnBeforeConfirmCloseUnposted(Rec, Result, IsHandled);
         if IsHandled then
             exit(Result);
-
         if SalesLinesExist() then begin
             IsHandled := false;
             OnConfirmCloseUnpostedOnSalesLinesExist(Rec, Result, IsHandled);
             if IsHandled then
                 exit(Result);
-
             if InstructionMgt.IsUnpostedEnabledForRecord(Rec) then
                 exit(InstructionMgt.ShowConfirm(DocumentNotPostedClosePageQst, InstructionMgt.QueryPostOnCloseCode()));
         end;
@@ -8266,13 +8111,10 @@ table 36 "Sales Header"
         OnBeforeUpdateOpportunity(IsHandled, Rec);
         if IsHandled then
             exit;
-
         if not ("Opportunity No." <> '') or not ("Document Type" in ["Document Type"::Quote, "Document Type"::Order]) then
             exit;
-
         if not Opp.Get("Opportunity No.") then
             exit;
-
         if "Document Type" = "Document Type"::Order then begin
             if not ConfirmManagement.GetResponseOrDefault(Text040, true) then
                 Error(Text044);
@@ -8457,7 +8299,6 @@ table 36 "Sales Header"
         OnBeforeLookupContact(CustomerNo, ContactNo, Contact, IsHandled);
         if IsHandled then
             exit;
-
         if ContactBusinessRelation.FindByRelation(ContactBusinessRelation."Link to Table"::Customer, CustomerNo) then
             Contact.SetRange("Company No.", ContactBusinessRelation."Contact No.")
         else
@@ -8553,7 +8394,6 @@ table 36 "Sales Header"
         BatchProcessingMgt.BatchProcess(SalesHeader, Codeunit::"Sales Manual Release", Enum::"Error Handling Options"::"Show Error", NoOfSelected, NoOfSkipped);
         SalesHeader.SetRange(Status);
         SalesHeader.FilterGroup(PrevFilterGroup);
-
     end;
 
     /// <summary>
@@ -8628,19 +8468,14 @@ table 36 "Sales Header"
         GetSalesSetup();
         if SalesSetup."Ignore Updated Addresses" then
             exit;
-
         if IsCreditDocType() then
             exit;
-
         if ("Bill-to Customer No." = "Sell-to Customer No.") then
             exit;
-
         if not HasBillToAddress() then
             exit;
-
         if not Customer.Get("Bill-to Customer No.") then
             exit;
-
         if not HasDifferentBillToAddress(Customer) then
             exit;
 
@@ -8680,10 +8515,8 @@ table 36 "Sales Header"
         OnBeforeShowModifyAddressNotification(IsHandled, Rec, CustomerNumber);
         if IsHandled then
             exit;
-
         if not MyNotifications.Get(UserId, NotificationID) then
             PageMyNotifications.InitializeNotificationsWithDefaultState();
-
         if not MyNotifications.IsEnabled(NotificationID) then
             exit;
 
@@ -8927,7 +8760,6 @@ table 36 "Sales Header"
         if GeneralLedgerSetup.Get() then
             if ("Currency Code" = '') or ("Currency Code" = GeneralLedgerSetup."LCY Code") then
                 exit(GeneralLedgerSetup.GetCurrencySymbol());
-
         if Currency.Get("Currency Code") then
             exit(Currency.GetCurrencySymbol());
 
@@ -8976,7 +8808,6 @@ table 36 "Sales Header"
         // one-step logic - Default
         if SalespersonCode = '' then
             SetSalespersonCode('', SalespersonCode);
-
         if SalespersonCode <> "Salesperson Code" then
             Validate("Salesperson Code", SalespersonCode);
     end;
@@ -8998,7 +8829,6 @@ table 36 "Sales Header"
         OnBeforeSetSalespersonCode(Rec, SalesPersonCodeToCheck, SalesPersonCodeToAssign, IsHandled);
         if IsHandled then
             exit;
-
         if SalesPersonCodeToCheck = '' then
             SalesPersonCodeToCheck := GetUserSetupSalespersonCode();
         if Salesperson.Get(SalesPersonCodeToCheck) then begin
@@ -9050,10 +8880,8 @@ table 36 "Sales Header"
         OnBeforeShouldSearchForCustomerByName(CustomerNo, Result, IsHandled, CurrFieldNo, Rec, xRec);
         if IsHandled then
             exit(Result);
-
         if CustomerNo = '' then
             exit(true);
-
         if not Customer2.Get(CustomerNo) then
             exit(true);
 
@@ -9159,7 +8987,6 @@ table 36 "Sales Header"
     procedure TestStatusOpen()
     begin
         OnBeforeTestStatusOpen(Rec, xRec, CurrFieldNo);
-
         if StatusCheckSuspended then
             exit;
 
@@ -9179,10 +9006,8 @@ table 36 "Sales Header"
     procedure TestStatusOpen(ThrowErrorIfNot: Boolean): Boolean
     begin
         OnBeforeTestStatusOpen(Rec, xRec, CurrFieldNo);
-
         if StatusCheckSuspended then
             exit(true);
-
         if Rec.Status <> Rec.Status::Open then begin
             if ThrowErrorIfNot then
                 Error(DocumentNotOpenErr);
@@ -9221,7 +9046,6 @@ table 36 "Sales Header"
         CurrentSalesLine.SetFilter("No.", '<>''''');
         if "Document Type" = "Document Type"::"Blanket Order" then
             CurrentSalesLine.SetFilter("Qty. to Ship", '<>0');
-
         if CurrentSalesLine.FindSet() then
             repeat
                 case CurrentSalesLine.Type of
@@ -9229,7 +9053,6 @@ table 36 "Sales Header"
                         begin
                             Item.Get(CurrentSalesLine."No.");
                             Item.TestField(Blocked, false);
-
                             if CurrentSalesLine."Variant Code" <> '' then begin
                                 ItemVariant.SetLoadFields(Blocked);
                                 ItemVariant.Get(CurrentSalesLine."No.", CurrentSalesLine."Variant Code");
@@ -9292,7 +9115,6 @@ table 36 "Sales Header"
         OnBeforeConfirmRecalculatePrice(Rec, xRec, CurrFieldNo, Result, HideValidationDialog, IsHandled);
         if IsHandled then
             exit;
-
         if GetHideValidationDialog() or not GuiAllowed then
             Result := true
         else
@@ -9319,7 +9141,6 @@ table 36 "Sales Header"
             Customer.Get("Sell-to Customer No.");
 
         OnLookupSellToCustomerNameOnBeforeSelectCustomer(Rec, Customer, CustomerName);
-
         if Customer.SelectCustomer(Customer) then begin
             if Rec."Sell-to Customer Name" = Customer.Name then
                 CustomerName := SearchCustomerName
@@ -9339,7 +9160,6 @@ table 36 "Sales Header"
         OnBeforeCheckPromisedDeliveryDate(IsHandled, Rec);
         if IsHandled then
             exit;
-
         if "Promised Delivery Date" <> 0D then
             Error(Text028, FieldCaption("Requested Delivery Date"), FieldCaption("Promised Delivery Date"));
     end;
@@ -9356,7 +9176,6 @@ table 36 "Sales Header"
         OnBeforeSetBillToCustomerNo(Rec, Cust, IsHandled, xRec, CurrFieldNo);
         if IsHandled then
             exit;
-
         if Cust."Bill-to Customer No." <> '' then
             Validate("Bill-to Customer No.", Cust."Bill-to Customer No.")
         else begin
@@ -9412,7 +9231,6 @@ table 36 "Sales Header"
         OnBeforeCheckCustomerPostingGroupChange(Rec, xRec, IsHandled);
         if IsHandled then
             exit;
-
         if ("Customer Posting Group" <> xRec."Customer Posting Group") and (xRec."Customer Posting Group" <> '') then begin
             TestField("Bill-to Customer No.");
             BillToCustomer.Get("Bill-to Customer No.");
@@ -9474,7 +9292,6 @@ table 36 "Sales Header"
                 PostingNoSeries := SalesSetup."Posted Credit Memo Nos."
             else
                 PostingNoSeries := SalesSetup."Posted Invoice Nos.";
-
         case "Document Type" of
             "Document Type"::Quote, "Document Type"::Order:
                 begin
@@ -9494,7 +9311,6 @@ table 36 "Sales Header"
                     else
                         if NoSeries.IsAutomatic(PostingNoSeries) then
                             "Posting No. Series" := PostingNoSeries;
-
                     if SalesSetup."Shipment on Invoice" then
                         if NoSeries.IsAutomatic(SalesSetup."Posted Shipment Nos.") then
                             "Shipping No. Series" := SalesSetup."Posted Shipment Nos.";
@@ -9578,7 +9394,6 @@ table 36 "Sales Header"
                     Contact.SetRange("Company No.", ContactBusinessRelation."Contact No.")
                 else
                     Contact.SetRange("No.", '');
-
         if "Sell-to Contact No." <> '' then
             if Contact.Get("Sell-to Contact No.") then;
         if Page.RunModal(0, Contact) = Action::LookupOK then begin
@@ -9646,7 +9461,6 @@ table 36 "Sales Header"
         if not MyNotifications.IsEnabled(GetShowExternalDocAlreadyExistNotificationId()) then
             exit;
         InstructionMgt.CreateMissingMyNotificationsWithDefaultState(GetShowExternalDocAlreadyExistNotificationId());
-
         if not IsDocAlreadyExistNotificationEnabled() then
             exit;
 
@@ -9716,7 +9530,6 @@ table 36 "Sales Header"
         QtyReservedFromStock := SalesLineReserve.GetReservedQtyFromInventory(Rec);
         if QtyReservedFromStock = 0 then
             exit(Result::None);
-
         if QtyReservedFromStock = CalculateReservableOutstandingQuantityBase() then
             exit(Result::Full);
 
@@ -9749,7 +9562,6 @@ table 36 "Sales Header"
         OnBeforeUpdateVATReportingDate(Rec, CalledByFieldNo, IsHandled);
         if IsHandled then
             exit;
-
         if not (CalledByFieldNo in [FieldNo("Posting Date"), FieldNo("Document Date")]) then
             exit;
 
@@ -9788,21 +9600,6 @@ table 36 "Sales Header"
                 Rec.Validate("Document Date", Rec."Posting Date")
             else
                 Rec."Document Date" := Rec."Posting Date";
-    end;
-
-    /// <summary>
-    /// Sends filtered sales documents to intercompany partners through the IC inbox/outbox.
-    /// </summary>
-    /// <param name="SalesHeader">Specifies the filtered sales header records to send.</param>
-    procedure SendICSalesDoc(var SalesHeader: Record "Sales Header")
-    var
-        ICInOutboxMgt: Codeunit ICInboxOutboxMgt;
-    begin
-        if SalesHeader.FindSet() then
-            repeat
-                if ApprovalsMgmt.PrePostApprovalCheckSales(SalesHeader) then
-                    ICInOutboxMgt.SendSalesDoc(SalesHeader, false);
-            until SalesHeader.Next() = 0;
     end;
 
     local procedure SetupDisableAggregateTableUpdate(var DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update")
@@ -13267,12 +13064,12 @@ table 36 "Sales Header"
     end;
 
     /// <summary>
-    /// Raised before checking the IC direction when validating send IC document.
+    /// Raised before updating the IC partner codes when the bill-to customer is changed.
     /// </summary>
     /// <param name="SalesHeader">The sales header record being validated.</param>
-    /// <param name="IsHandled">Set to true to skip the default check logic.</param>
+    /// <param name="Customer">The bill-to customer record.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnValidateSendICDocumentOnBeforeCheckICDirection(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    local procedure OnValidateBillToCustomerNoOnBeforeUpdateSendICDocument(var SalesHeader: Record "Sales Header"; Customer: Record Customer)
     begin
     end;
 
