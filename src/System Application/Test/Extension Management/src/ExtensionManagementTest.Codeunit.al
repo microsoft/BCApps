@@ -123,9 +123,9 @@ codeunit 133100 "Extension Management Test"
         PermissionsMock.Assign('Exten. Mgt. UI Test');
 
         // Base Application page extensions need data permissions only when that application is installed.
-        AggregatePermissionSet.SetRange("Role ID", 'D365 Basic - Read');
+        AggregatePermissionSet.SetRange("Role ID", 'D365 READ');
         if not AggregatePermissionSet.IsEmpty() then
-            PermissionsMock.Assign('D365 Basic - Read');
+            PermissionsMock.Assign('D365 READ');
     end;
 
     local procedure SetNavAppIds()
