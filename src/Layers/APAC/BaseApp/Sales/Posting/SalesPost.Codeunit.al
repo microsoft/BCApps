@@ -7771,8 +7771,8 @@ codeunit 80 "Sales-Post"
         if SalesLine.Type <> SalesLine.Type::" " then
             if SalesLine."Prepayment Line" then begin
                 TempPrepmtVATAmtBuf.Get(0, '', SalesLine."Line No.");
-                TempPrepmtVATAmtBuf.Amount := -SalesLine."Amount Including VAT" + SalesLine.Amount;
-                TempPrepmtVATAmtBuf."VAT Base Amount" := -SalesLine."VAT Base Amount";
+                TempPrepmtVATAmtBuf.Amount := SalesLine."Amount Including VAT" - SalesLine.Amount;
+                TempPrepmtVATAmtBuf."VAT Base Amount" := SalesLine."VAT Base Amount";
                 TempPrepmtVATAmtBuf.Modify();
             end else
                 if not SalesLine."System-Created Entry" then
