@@ -91,3 +91,5 @@ codeunit 11034 IntrastatReportDEUpgrade
         PerCompanyUpgradeTags.Add(GetIntrastatDECountryOfOriginGroupingTag());
     end;
 }
+
+// CI research probe: DE-app-only change (IntrastatDE) (do not merge)
