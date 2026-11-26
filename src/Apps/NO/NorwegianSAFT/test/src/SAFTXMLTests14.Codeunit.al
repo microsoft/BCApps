@@ -38,24 +38,6 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         Mapping13NotDoneErr: Label 'One or more G/L accounts do not have a mapping setup. Open the SAF-T Mapping Setup page for the selected mapping range and map each G/L account either to the category code and mapping number.';
 
     [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure ZeroNetChangeAccountExportsWithUnusedAccountWithoutCategory()
-    begin
-        // [SCENARIO] Offsetting entries are exported while an unused account without a category does not block SAF-T 1.4.
-        VerifyZeroNetChangeAccountExport(true);
-    end;
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoCommit)]
-    [HandlerFunctions('ConfirmYesHandler')]
-    procedure ZeroNetChangeAccountExportsWithUnusedAccountWithoutMappingNo()
-    begin
-        // [SCENARIO] An unused account with a category but no mapping number does not block SAF-T 1.4.
-        VerifyZeroNetChangeAccountExport(false);
-    end;
-
-    [Test]
     [HandlerFunctions('MappingErrorPageHandler')]
     procedure ZeroNetChangeAccountWithoutCategoryBlocksExport()
     begin
@@ -298,66 +280,6 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         else
             SAFTGLAccountMapping.Validate("No.", '');
         SAFTGLAccountMapping.Modify(true);
-    end;
-
-    local procedure VerifyZeroNetChangeAccountExport(ClearCategory: Boolean)
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-        SAFTExportHeader: Record "SAF-T Export Header";
-        SAFTExportLine: Record "SAF-T Export Line";
-        SAFTGLAccountMapping: Record "SAF-T G/L Account Mapping";
-        GLAccount: Record "G/L Account";
-        UnusedGLAccount: Record "G/L Account";
-        TempXMLBuffer: Record "XML Buffer" temporary;
-        TempNodes: Record "XML Buffer" temporary;
-        TempAccountChildren: Record "XML Buffer" temporary;
-        AccountXPath: Text;
-        AccountCount: Integer;
-        ClosingCreditBalanceCount: Integer;
-    begin
-        // [GIVEN] A mapped account has zero net change and another account has no entries or complete mapping.
-        GeneralLedgerSetup.Get();
-        CreateZeroNetChangeAccount(SAFTExportHeader, GLAccount, UnusedGLAccount);
-        ClearAccountMapping(SAFTExportHeader."Mapping Range Code", UnusedGLAccount."No.", ClearCategory);
-
-        // [WHEN] The entries are exported to SAF-T 1.4.
-        ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
-
-        // [THEN] Both journal lines and their mapped account are exported despite the zero balance.
-        Assert.IsTrue(
-            TempXMLBuffer.FindNodesByXPath(TempNodes,
-                '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:AccountID'),
-            'Journal account references were not exported.');
-        Assert.RecordCount(TempNodes, 2);
-        repeat
-            Assert.AreEqual(GLAccount."No.", TempNodes.Value, 'Unexpected journal account.');
-        until TempNodes.Next() = 0;
-        SAFTGLAccountMapping.Get(SAFTExportHeader."Mapping Range Code", GLAccount."No.");
-        SAFTGLAccountMapping.TestField("G/L Entries Exists", true);
-        SAFTGLAccountMapping.Get(SAFTExportHeader."Mapping Range Code", UnusedGLAccount."No.");
-        SAFTGLAccountMapping.TestField("G/L Entries Exists", false);
-        SAFTExportLine.SetRange("Master Data", true);
-        SAFTTestHelper.FindSAFTExportLine(SAFTExportLine, SAFTExportHeader.ID);
-        SAFTTestHelper.LoadXMLBufferFromSAFTExportLine(TempXMLBuffer, SAFTExportLine);
-        AccountXPath := '/n1:AuditFile/n1:MasterFiles/n1:GeneralLedgerAccounts/n1:Account';
-        Assert.IsTrue(TempXMLBuffer.FindNodesByXPath(TempNodes, AccountXPath + '/n1:AccountID'), 'Mapped accounts were not exported.');
-        repeat
-            Assert.AreNotEqual(UnusedGLAccount."No.", TempNodes.Value, 'The unmapped unused account must not be exported.');
-            if TempNodes.Value = GLAccount."No." then begin
-                AccountCount += 1;
-                Assert.IsTrue(TempXMLBuffer.Get(TempNodes."Parent Entry No."), 'The mapped account node is missing.');
-                Assert.IsTrue(TempXMLBuffer.FindChildElements(TempAccountChildren), 'The mapped account has no child elements.');
-                repeat
-                    Assert.AreNotEqual('ClosingDebitBalance', TempAccountChildren.Name, 'Unexpected closing debit balance for the test account.');
-                    if TempAccountChildren.Name = 'ClosingCreditBalance' then begin
-                        ClosingCreditBalanceCount += 1;
-                        SAFTTestHelper.AssertCurrentElementValue(TempAccountChildren, 'n1:ClosingCreditBalance', '0');
-                    end;
-                until TempAccountChildren.Next() = 0;
-            end;
-        until TempNodes.Next() = 0;
-        Assert.AreEqual(1, AccountCount, 'The mapped test account must be exported exactly once.');
-        Assert.AreEqual(1, ClosingCreditBalanceCount, 'The mapped test account must have one closing credit balance.');
     end;
 
     local procedure VerifyZeroNetChangeAccountMappingError(ClearCategory: Boolean)

@@ -410,7 +410,6 @@ codeunit 10672 "SAF-T Mapping Helper"
         SAFTMappingHelper.UpdateGLEntriesExistStateForGLAccMapping(MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Mapping Range Code", MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Category No.", '');
-        SAFTGLAccountMapping.SetRange("G/L Entries Exists", true);
         if not SAFTGLAccountMapping.IsEmpty() then begin
             SAFTMappingRange.Get(MappingRangeCode);
             LogError(SAFTMappingRange, Mapping13NotDoneErr);
