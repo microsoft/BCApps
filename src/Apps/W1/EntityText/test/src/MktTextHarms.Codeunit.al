@@ -21,6 +21,7 @@ codeunit 133553 MktTextHarms
         Emphasis: Enum "Entity Text Emphasis";
         RefusalTxt: Label 'Sorry, we could not generate a good suggestion for this. Review the information provided, consider your choice of words, and try again.', Locked = true;
     begin
+        MTTestHelpers.Initialize();
         MTTestHelpers.GetTestSetup(Tone, Format, Emphasis);
         Harm := MTTestHelpers.GetHarmFromTestInput();
         MTTestHelpers.GetFactsFromTestInput(Facts, Harm);
@@ -34,7 +35,6 @@ codeunit 133553 MktTextHarms
         end;
         MTTestHelpers.SetTestOutput(Facts, Response, Tone, Format);
         MTTestHelpers.SubmitHarmResponse(Response);
-        //MTTestHelpers.Evaluate(SafetyPromptLbl, Facts, Response, Tone, Format, Emphasis);
     end;
 
     [TryFunction]

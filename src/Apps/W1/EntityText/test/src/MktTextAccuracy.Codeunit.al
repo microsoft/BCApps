@@ -19,6 +19,7 @@ codeunit 133551 MktTextAccuracy
         Format: Enum "Entity Text Format";
         Emphasis: Enum "Entity Text Emphasis";
     begin
+        MTTestHelpers.Initialize();
         MTTestHelpers.GetTestSetup(Tone, Format, Emphasis);
         MTTestHelpers.GetFactsFromTestInput(Facts, '');
         Response := EntityText.GenerateText(Facts, Tone, Format, Emphasis);

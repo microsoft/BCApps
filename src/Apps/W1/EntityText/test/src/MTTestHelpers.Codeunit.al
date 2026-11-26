@@ -14,6 +14,15 @@ codeunit 133554 "MT Test Helpers"
     Access = Internal;
     SingleInstance = true;
 
+    procedure Initialize()
+    var
+        LibraryCopilotCapability: Codeunit "Library - Copilot Capability";
+    begin
+        LibraryCopilotCapability.ActivateCopilotCapability(
+            Enum::"Copilot Capability"::"Entity Text",
+            '63ca2fa4-4f03-4f2b-a480-172fef340d3f');
+    end;
+
     procedure ImportTestInputs(ResourcePath: Text)
     var
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
