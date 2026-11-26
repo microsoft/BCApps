@@ -83,6 +83,7 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
     end;
 
     [Test]
+    [HandlerFunctions('BinMessageHandler')]
     procedure OnwardWIPDirectTransferUsesSourceWorkCenter()
     begin
         // [SCENARIO 660222] Direct WIP transfers retain both source and destination work centers.
