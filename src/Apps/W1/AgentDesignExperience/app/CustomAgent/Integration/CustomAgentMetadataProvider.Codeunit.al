@@ -7,11 +7,12 @@ namespace System.Agents.Designer.CustomAgent;
 
 using System.Agents;
 using System.Agents.Designer;
+using System.Agents.Internal;
 using System.AI;
 using System.Reflection;
 using System.Security.AccessControl;
 
-codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentManualTaskCreation
+codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentManualTaskCreation, IAgentExperimental
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -108,6 +109,22 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
             2:
                 CustomAgentSetup.OpenEditInstructionsPage(AgentUserId);
         end;
+    end;
+
+    procedure GetPageScripts(AgentUserId: Guid; var AgentTaskPageScript: Record "Agent Task Page Script")
+    begin
+    end;
+
+    procedure IsOptInFeatureEnabled(AgentUserId: Guid; Feature: Enum "Agent Opt In Feature"): Boolean
+    var
+        CustomAgentSetupRecord: Record "Custom Agent Setup";
+    begin
+        if Feature <> Feature::BusinessIQ then
+            exit(false);
+        if not CustomAgentSetupRecord.Get(AgentUserId) then
+            exit(false);
+
+        exit(CustomAgentSetupRecord."Use Business Skills");
     end;
 
     var
