@@ -16,17 +16,16 @@ codeunit 6980 "Release Expense Document"
     begin
         Expense.Copy(Rec);
         Expense.SetHideValidationDialog(Rec.GetHideValidationDialog());
-        Code();
+        Code(false);
         Rec := Expense;
     end;
 
     var
         Expense: Record Expense;
-        AllowMissingCategory: Boolean;
         NoReceiptDeclarationNotCurrentErr: Label 'The no receipt declaration for expense %1 is missing or no longer current. Create the declaration again before releasing the expense.', Comment = '%1 = Expense No.';
         NoReceiptWithOriginalReceiptErr: Label 'Expense %1 has both an original receipt and a no receipt declaration. Cancel the no receipt declaration before releasing the expense.', Comment = '%1 = Expense No.';
 
-    local procedure "Code"()
+    local procedure "Code"(AllowMissingCategory: Boolean)
     var
         NoReceiptDeclarationMgt: Codeunit "No Receipt Declaration Mgt.";
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
@@ -68,9 +67,7 @@ codeunit 6980 "Release Expense Document"
         ExpenseRecord.TestField(Source, ExpenseRecord.Source::CorporateCard);
         Expense.Copy(ExpenseRecord);
         Expense.SetHideValidationDialog(ExpenseRecord.GetHideValidationDialog());
-        AllowMissingCategory := true;
-        Code();
-        AllowMissingCategory := false;
+        Code(true);
         ExpenseRecord := Expense;
     end;
 

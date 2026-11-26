@@ -931,32 +931,52 @@ codeunit 148370 EAReceiptMatchTests
     procedure ApplyReceiptDataConvertsVATSpecsToLCY()
     var
         Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
         CardReceiptData: Record "EA Card Receipt Data";
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         ExpenseVATSpecification: Record "Expense VAT Specification";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+        CorpCardTrans: Record "EA Corp Card Trans";
         CurrencyCode: Code[10];
+        AmountLCY: Decimal;
+        VATAmountLCY: Decimal;
     begin
-        // [SCENARIO] VAT specifications applied to a foreign currency card expense are converted to LCY with the expense currency factor.
+        // [SCENARIO] VAT specifications applied to a foreign currency card expense and its line are converted to LCY with the currency factor.
         Initialize();
 
-        // [GIVEN] A card expense in a foreign currency, and receipt data with a 19% VAT line.
+        // [GIVEN] A foreign currency card expense on an open report, and receipt data with a 19% VAT line.
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 2, 1);
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO HOTEL');
         Expense."Currency Code" := CurrencyCode;
         Expense."Currency Factor" := CurrencyExchangeRate.ExchangeRate(WorkDate(), CurrencyCode);
         Expense.Modify();
+        CorpCardTrans.Get(Expense."Credit Card Feed No.");
+        CorpCardTrans."Currency Code" := CurrencyCode;
+        CorpCardTrans.Modify();
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        ExpenseReportLine.TestField("Expense Currency Factor", Expense."Currency Factor");
         CreateCardReceiptData(CardReceiptData, Expense);
         AddCardReceiptVATSpec(CardReceiptData, 1, 19, 16.81, 3.19);
+        AmountLCY := Round(20 / Expense."Currency Factor");
+        VATAmountLCY := Round(3.19 / Expense."Currency Factor");
 
         // [WHEN] The receipt data is applied.
         CardReceiptDataApply.Apply(CardReceiptData);
 
-        // [THEN] The LCY amounts of the VAT specification use the expense currency factor.
+        // [THEN] The LCY amounts of the expense VAT specification use the expense currency factor.
         ExpenseVATSpecification.SetRange("Expense No.", Expense."No.");
         ExpenseVATSpecification.FindFirst();
-        ExpenseVATSpecification.TestField("VAT Amount (LCY)", Round(3.19 / Expense."Currency Factor"));
-        ExpenseVATSpecification.TestField("VAT Base Amount (LCY)", Round(16.81 / Expense."Currency Factor"));
-        ExpenseVATSpecification.TestField("Amount (LCY)", Round(20 / Expense."Currency Factor"));
+        ExpenseVATSpecification.TestField("Amount (LCY)", AmountLCY);
+        ExpenseVATSpecification.TestField("VAT Amount (LCY)", VATAmountLCY);
+        ExpenseVATSpecification.TestField("VAT Base Amount (LCY)", AmountLCY - VATAmountLCY);
+
+        // [THEN] The line VAT specification has the same LCY amounts, using the line currency factor.
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
+        ExpenseReportLineVATSpec.FindFirst();
+        ExpenseReportLineVATSpec.TestField("Amount (LCY)", AmountLCY);
+        ExpenseReportLineVATSpec.TestField("VAT Amount (LCY)", VATAmountLCY);
+        ExpenseReportLineVATSpec.TestField("VAT Base Amount (LCY)", AmountLCY - VATAmountLCY);
     end;
 
     [Test]
@@ -1256,10 +1276,32 @@ codeunit 148370 EAReceiptMatchTests
 
         // [THEN] The line has no itemization total violation.
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ItemizationTotalMismatchErr, 0, ExpenseReportLine.Amount)), 'A card line waiting for a receipt must not check the itemization total.');
+    end;
 
-        // [WHEN] The line gets a receipt and is validated again.
+    [Test]
+    procedure CardLineWithReceiptChecksItemizationTotal()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [SCENARIO] The itemization total is checked on a card line that has a receipt.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] A card line with a receipt, with a category that requires itemization and no items.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::Itemize);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Modify(true);
         ExpenseReportLine."Receipt Attached" := true;
         ExpenseReportLine.Modify();
+
+        // [WHEN] The line is validated against the rules.
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
 
         // [THEN] The line has the itemization total violation.
