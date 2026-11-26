@@ -2,7 +2,7 @@ namespace Microsoft.FabricExport;
 
 using System.Fabric;
 
-codeunit 140013 "Test FAB Setup API 4PS"
+codeunit 140013 "Test FAB Setup API"
 {
     Subtype = Test;
     TestType = IntegrationTest;
