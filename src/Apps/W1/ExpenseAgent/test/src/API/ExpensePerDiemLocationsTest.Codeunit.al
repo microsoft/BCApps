@@ -9,6 +9,7 @@ using Microsoft.ExpenseAgent;
 codeunit 148349 "Expense PerDiem Locations Test"
 {
     Subtype = Test;
+    TestHttpRequestPolicy = AllowAllOutboundRequests;
     TestType = IntegrationTest;
     TestPermissions = Disabled;
 
@@ -17,7 +18,6 @@ codeunit 148349 "Expense PerDiem Locations Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        APITestAuthHelper: Codeunit "Expense API Test Auth Helper";
         IsInitialized: Boolean;
 
     [Test]
@@ -80,13 +80,44 @@ codeunit 148349 "Expense PerDiem Locations Test"
             'Location whose category Expense Detail Required is not Per Diem must NOT be returned.');
     end;
 
+    [Test]
+    procedure PerDiemLocationsExcludesInactivePerDiemCategoryViaAPI()
+    var
+        ExpenseCategory: Record "Expense Category";
+        CategoryCode: Code[20];
+        Location: Code[20];
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] A location whose only Per Diem rule points to an inactive category cannot be used
+        //            on a travel request, so it must not be returned.
+        Initialize();
+
+        // [GIVEN] An inactive Per Diem category and a location linked to it through a rule.
+        CategoryCode := CreateExpenseCategory("Expense Detail Needed"::"Per Diem");
+        Location := CreateExpenseLocation();
+        CreatePerDiemRule(CategoryCode, Location);
+        ExpenseCategory.Get(CategoryCode);
+        ExpenseCategory.Inactive := true;
+        ExpenseCategory.Modify();
+        Commit();
+
+        // [WHEN] The expensePerDiemLocations collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateQueryTargetURL(Query::"Expense Per Diem Locations", '');
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] The location is not returned because its Per Diem category is inactive.
+        Assert.AreEqual(0, StrPos(ResponseText, Location),
+            'Location whose Per Diem category is inactive must NOT be returned.');
+    end;
+
     local procedure Initialize()
     begin
+        LibraryGraphMgt.SetLicenseSafeWorkDate();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Expense PerDiem Locations Test");
         if IsInitialized then
             exit;
 
-        BindSubscription(APITestAuthHelper);
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense PerDiem Locations Test");
         IsInitialized := true;
         Commit();

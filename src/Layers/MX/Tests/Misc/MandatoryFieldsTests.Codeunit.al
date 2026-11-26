@@ -15,10 +15,10 @@
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryTemplates: Codeunit "Library - Templates";
-        UnexpectedShowMandatoryValueTxt: Label 'Unexpected value of ShowMandatory property.';
-        UnexpectedVisibleValueTxt: Label 'Unexpected value of Visible property.';
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryApplicationArea: Codeunit "Library - Application Area";
+        UnexpectedShowMandatoryValueTxt: Label 'Unexpected value of ShowMandatory property.';
+        UnexpectedVisibleValueTxt: Label 'Unexpected value of Visible property.';
         IsInitialized: Boolean;
 
     local procedure Initialize()
@@ -380,7 +380,7 @@
         Assert.IsTrue(SalesInvoice.SalesLines."Tax Group Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesInvoice.SalesLines.FilteredTypeField.SetValue(SalesLine.Type::Item);
         Assert.IsTrue(SalesInvoice.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
-        SalesInvoice.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesInvoice.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         Assert.IsFalse(SalesInvoice.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesInvoice.Close();
 
@@ -412,7 +412,7 @@
         Assert.IsTrue(SalesOrder.SalesLines."Tax Group Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesOrder.SalesLines.FilteredTypeField.SetValue(SalesLine.Type::Item);
         Assert.IsTrue(SalesOrder.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
-        SalesOrder.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesOrder.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         Assert.IsFalse(SalesOrder.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesOrder.Close();
 
@@ -462,7 +462,7 @@
         Assert.IsTrue(SalesQuote.SalesLines."Tax Group Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesQuote.SalesLines.FilteredTypeField.SetValue(SalesLine.Type::Item);
         Assert.IsTrue(SalesQuote.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
-        SalesQuote.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesQuote.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         Assert.IsFalse(SalesQuote.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesQuote.Close();
     end;
@@ -487,7 +487,7 @@
         Assert.IsTrue(SalesCreditMemo.SalesLines."Tax Group Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesCreditMemo.SalesLines.FilteredTypeField.SetValue(SalesLine.Type::Item);
         Assert.IsTrue(SalesCreditMemo.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
-        SalesCreditMemo.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatType());
+        SalesCreditMemo.SalesLines.FilteredTypeField.SetValue(SalesLine.FormatTypeAsText());
         Assert.IsFalse(SalesCreditMemo.SalesLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         SalesCreditMemo.Close();
 
@@ -520,7 +520,7 @@
             PurchaseInvoice.PurchLines."Tax Group Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(PurchaseLine.Type::Item);
         Assert.IsTrue(PurchaseInvoice.PurchLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
-        PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatType());
+        PurchaseInvoice.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatTypeAsText());
         Assert.IsFalse(PurchaseInvoice.PurchLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         PurchaseInvoice.Close();
 
@@ -552,7 +552,7 @@
         Assert.IsTrue(PurchaseOrder.PurchLines."Tax Group Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         PurchaseOrder.PurchLines.FilteredTypeField.SetValue(PurchaseLine.Type::Item);
         Assert.IsTrue(PurchaseOrder.PurchLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
-        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatType());
+        PurchaseOrder.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatTypeAsText());
         Assert.IsFalse(PurchaseOrder.PurchLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         PurchaseOrder.Close();
 
@@ -585,7 +585,7 @@
         Assert.IsTrue(PurchaseCreditMemo.PurchLines."Tax Group Code".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(PurchaseLine.Type::Item);
         Assert.IsTrue(PurchaseCreditMemo.PurchLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
-        PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatType());
+        PurchaseCreditMemo.PurchLines.FilteredTypeField.SetValue(PurchaseLine.FormatTypeAsText());
         Assert.IsFalse(PurchaseCreditMemo.PurchLines."No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         PurchaseCreditMemo.Close();
     end;

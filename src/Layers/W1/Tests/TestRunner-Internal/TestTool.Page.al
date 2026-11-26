@@ -16,7 +16,6 @@ page 130021 "Test Tool"
             group(Suite)
             {
                 ShowCaption = false;
-                ShowAsTree = true;
                 field(CurrentSuiteName; CurrentSuiteName)
                 {
                     ApplicationArea = All;
@@ -525,10 +524,7 @@ page 130021 "Test Tool"
         if TestSuite.Name <> '' then
             TestLine.SetRange("Test Suite", TestSuite.Name);
 
-        TestLine.ModifyAll(Result, Result::" ");
-        TestLine.ModifyAll("First Error", '');
-        TestLine.ModifyAll("Start Time", 0DT);
-        TestLine.ModifyAll("Finish Time", 0DT);
+        TestLine.ModifyAll(Result, Result::" ", "First Error", '', "Start Time", 0DT, "Finish Time", 0DT);
     end;
 
     local procedure FindError(Which: Code[10])

@@ -7,10 +7,30 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
-pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Order"
+pageextension 20504 "Subc. Rel. Prod. Order" extends "Released Production Order"
 {
+    layout
+    {
+        addfirst(factboxes)
+        {
+            part(SubcontractingSummary; "Subc. Order Summary FactBox")
+            {
+                ApplicationArea = Subcontracting;
+                SubPageLink = Status = field(Status), "No." = field("No.");
+                Visible = ShowSubcontractingSummary;
+            }
+        }
+    }
+
     actions
     {
+        modify(RefreshProductionOrder)
+        {
+            trigger OnAfterAction()
+            begin
+                CurrPage.Update(false);
+            end;
+        }
         addafter("Registered Put-away Lines")
         {
             action("Subcontracting Purchase Lines")
@@ -36,6 +56,7 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
                     SubcPurchFactboxMgmt.ShowTransferOrdersFromProductionOrder(Rec);
                 end;
             }
+
         }
         addafter("&Warehouse Entries")
         {
@@ -78,8 +99,24 @@ pageextension 99001504 "Subc. Rel. Prod. Order" extends "Released Production Ord
                     WIPAdjustmentPage.SetWIPLedgerEntry(WIPLedgerEntry);
                     WIPAdjustmentPage.SetDocumentNo(Rec."No.");
                     WIPAdjustmentPage.RunModal();
+                    CurrPage.Update(false);
                 end;
             }
         }
     }
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        UpdateSummaryVisibility();
+    end;
+
+    local procedure UpdateSummaryVisibility()
+    var
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+    begin
+        ShowSubcontractingSummary := SummaryMgmt.GetRoutingCount(Rec) > 0;
+    end;
+
+    var
+        ShowSubcontractingSummary: Boolean;
 }

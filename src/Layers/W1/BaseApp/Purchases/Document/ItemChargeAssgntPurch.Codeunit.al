@@ -88,6 +88,7 @@ codeunit 5805 "Item Charge Assgnt. (Purch.)"
         if TempToItemChargeAssignmentPurch.FindSet() then
             repeat
                 if (TempToItemChargeAssignmentPurch."Item Charge No." <> ToItemChargeAssignmentPurch."Item Charge No.") or
+                   (TempToItemChargeAssignmentPurch."Applies-to Doc. Type" <> ToItemChargeAssignmentPurch."Applies-to Doc. Type") or
                    (TempToItemChargeAssignmentPurch."Applies-to Doc. No." <> ToItemChargeAssignmentPurch."Applies-to Doc. No.") or
                    (TempToItemChargeAssignmentPurch."Applies-to Doc. Line No." <> ToItemChargeAssignmentPurch."Applies-to Doc. Line No.")
                 then begin
@@ -401,10 +402,7 @@ codeunit 5805 "Item Charge Assgnt. (Purch.)"
         ItemChargeAssgntPurch.SetRange("Document Line No.", PurchLine."Line No.");
 
         if not ItemChargeAssgntPurch.IsEmpty() then begin
-            ItemChargeAssgntPurch.ModifyAll("Amount to Assign", 0);
-            ItemChargeAssgntPurch.ModifyAll("Qty. to Assign", 0);
-            ItemChargeAssgntPurch.ModifyAll("Amount to Handle", 0);
-            ItemChargeAssgntPurch.ModifyAll("Qty. to Handle", 0);
+            ItemChargeAssgntPurch.ModifyAll("Amount to Assign", 0, "Qty. to Assign", 0, "Amount to Handle", 0, "Qty. to Handle", 0);
             OnAssignItemChargesFromLineOnAfterItemChargeAssignmentModifyAll(PurchLine, ItemChargeAssgntPurch);
             ItemChargeAssgntPurch.FindSet();
 
@@ -1137,4 +1135,3 @@ codeunit 5805 "Item Charge Assgnt. (Purch.)"
     begin
     end;
 }
-

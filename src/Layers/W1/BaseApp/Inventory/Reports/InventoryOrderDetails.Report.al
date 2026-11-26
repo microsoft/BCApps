@@ -23,14 +23,6 @@ report 708 "Inventory Order Details"
         {
             PrintOnlyIfDetail = true;
             RequestFilterFields = "No.", "Search Description", "Assembly BOM", "Inventory Posting Group", "Statistics Group", "Bin Filter";
-#if not CLEAN27
-            column(CompanyName; COMPANYPROPERTY.DisplayName())
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             column(ItemTableCaptItemFilter; ItemFilterText)
             {
             }
@@ -63,92 +55,6 @@ report 708 "Inventory Order Details"
             {
                 IncludeCaption = true;
             }
-#if not CLEAN27
-            column(VariantFilter_Item; "Variant Filter")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(LocationFilter_Item; "Location Filter")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(GlobalDim1Filter_Item; "Global Dimension 1 Filter")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(GlobalDim2Filter_Item; "Global Dimension 2 Filter")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(BinFilter_Item; "Bin Filter")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(InvntryOrderDetailCapt; InvntryOrderDetailCaptLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(CurrReportPageNoCaption; CurrReportPageNoCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalesHeaderBilltoNameCapt; SalesHeaderBilltoNameCaptLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalesLineShipDateCaption; SalesLineShipDateCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(BackOrderQtyCaption; BackOrderQtyCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalesLineLineDiscCaption; SalesLineLineDiscCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalesLineInvDiscAmtCapt; SalesLineInvDiscAmtCaptLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(SalesLineOutstngAmtCapt; SalesLineOutstngAmtCaptLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-            column(TotalCaption; TotalCaptionLbl)
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'RDLC Only layout column. To be removed along with the RDLC layout.';
-                ObsoleteTag = '27.0';
-            }
-#endif
             dataitem("Sales Line"; "Sales Line")
             {
                 DataItemLink = "No." = field("No."), "Variant Code" = field("Variant Filter"), "Location Code" = field("Location Filter"), "Shortcut Dimension 1 Code" = field("Global Dimension 1 Filter"), "Shortcut Dimension 2 Code" = field("Global Dimension 2 Filter"), "Bin Code" = field("Bin Filter");
@@ -216,7 +122,6 @@ report 708 "Inventory Order Details"
                     SubtotalsBackOrderQty += BackOrderQty;
                     SubtotalsOutstandingAmt += "Outstanding Amount";
                     TotalsOutstandingAmt += "Outstanding Amount";
-
                     if not ReportHasData then
                         ReportHasData := true;
                 end;
@@ -292,25 +197,26 @@ report 708 "Inventory Order Details"
             Type = Excel;
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Inventory Order Details Word';
             LayoutFile = '.\Inventory\Reports\InventoryOrderDetails.docx';
             Type = Word;
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
-        }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Inventory Order Details RDLC';
-            LayoutFile = '.\Inventory\Reports\InventoryOrderDetails.rdlc';
-            Type = RDLC;
             ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = '.\Inventory\Reports\InventoryOrderDetailsBody.docx';
+            Caption = 'Body-only: Inventory Order Details Word';
+            Summary = 'Landscape orientated. Lists the orders for each item with sales order number, bill-to name, shipment date, quantity, outstanding and back order quantity, unit price, discount, and outstanding amount. Includes totals.';
+        }
     }
 
     labels
@@ -320,6 +226,7 @@ report 708 "Inventory Order Details"
         InventoryOrderDetailsPrint = 'Inventory Order Details (Print)', MaxLength = 31, Comment = 'Excel worksheet name.';
         InvOrderDetailsAnalysis = 'Inv. Order Details (Analysis)', MaxLength = 31, Comment = 'Excel worksheet name.';
         PostingDateFilterLabel = 'Posting Date Filter:';
+        TotalLabel = 'Total';
         // About the report labels
         AboutTheReportLabel = 'About the report', MaxLength = 31, Comment = 'Excel worksheet name.';
         EnvironmentLabel = 'Environment';
@@ -360,26 +267,7 @@ report 708 "Inventory Order Details"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ItemFilterCaptLbl: Label 'Item: %1', Comment = '%1 - item filter';
-#if not CLEAN27
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        TotalCaptionLbl: Label 'Total';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        InvntryOrderDetailCaptLbl: Label 'Inventory Order Details';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        CurrReportPageNoCaptionLbl: Label 'Page';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        SalesHeaderBilltoNameCaptLbl: Label 'Customer';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        SalesLineShipDateCaptionLbl: Label 'Shipment Date';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        BackOrderQtyCaptionLbl: Label 'Quantity on Back Order';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        SalesLineLineDiscCaptionLbl: Label 'Line Discount %';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        SalesLineInvDiscAmtCaptLbl: Label 'Invoice Discount Amount';
-        [Obsolete('RDLC Only layout field caption. To be removed along with the RDLC layout', '27.0')]
-        SalesLineOutstngAmtCaptLbl: Label 'Amount on Order Inclusive VAT';
-#endif
+
     protected var
         SalesHeader: Record "Sales Header";
 }

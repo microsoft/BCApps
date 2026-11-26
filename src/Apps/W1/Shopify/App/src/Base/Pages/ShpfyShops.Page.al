@@ -80,5 +80,6 @@ page 30102 "Shpfy Shops"
         ShopMgt: Codeunit "Shpfy Shop Mgt.";
     begin
         ShopMgt.SendBelgianLocalizationNotification();
+        ShopMgt.SendNorthAmericaLocalizationNotification();
     end;
 }

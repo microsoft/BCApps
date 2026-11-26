@@ -1,3 +1,34 @@
+namespace Microsoft.Inventory.Intrastat;
+
+using Microsoft.FixedAssets.Depreciation;
+using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Shipping;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Item.Catalog;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Journal;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Setup;
+using Microsoft.Service.Document;
+using Microsoft.Service.Setup;
+using Microsoft.Service.Test;
+using System.IO;
+using System.Utilities;
+
 codeunit 148126 "Library - CZ Intrastat"
 {
     Subtype = Test;
@@ -43,7 +74,7 @@ codeunit 148126 "Library - CZ Intrastat"
         IntrastatReportHeader.Validate("No.", GetIntrastatNo());
         IntrastatReportHeader.Insert();
 
-        IntrastatReportHeader.Validate("Statistics Period", GetStatisticalPeriod(ReportDate));
+        IntrastatReportHeader.Validate("Statistics Period", CopyStr(GetStatisticalPeriod(ReportDate), 1, MaxStrLen(IntrastatReportHeader."Statistics Period")));
         IntrastatReportHeader.Modify();
 
         IntrastatReportNo := IntrastatReportHeader."No.";
@@ -165,6 +196,28 @@ codeunit 148126 "Library - CZ Intrastat"
         LibraryJob.PostJobJournal(JobJournalLine);
 
         exit(JobJournalLine."No.");
+    end;
+
+    internal procedure CreateJobJournalLineWithItem(var JobJournalLine: Record "Job Journal Line"; ItemNo: Code[20]; LocationCode: Code[10])
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        SourceCodeSetup: Record "Source Code Setup";
+    begin
+        LibraryJob.CreateJob(Job);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryJob.CreateJobJournalLineForType(LibraryJob.UsageLineTypeBlank(), LibraryJob.ItemType(), JobTask, JobJournalLine);
+        JobJournalLine.Validate("No.", ItemNo);
+        JobJournalLine.Validate("Location Code", LocationCode);
+        JobJournalLine.Validate(Quantity, LibraryRandom.RandIntInRange(1, 10));
+        SourceCodeSetup.Get();
+        JobJournalLine.Validate("Source Code", SourceCodeSetup."Job Journal");
+        JobJournalLine.Modify(true);
+    end;
+
+    internal procedure PostJobJournalLine(var JobJournalLine: Record "Job Journal Line")
+    begin
+        LibraryJob.PostJobJournal(JobJournalLine);
     end;
 
     procedure CreateSalesDocument(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CustomerNo: Code[20]; PostingDate: Date; DocumentType: Enum "Sales Document Type"; Type: Enum "Sales Line Type"; No: Code[20];
@@ -427,12 +480,10 @@ codeunit 148126 "Library - CZ Intrastat"
     begin
         // Create Purchase Order With Random Quantity and Direct Unit Cost.
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
-        with PurchaseHeader do begin
-            Validate("Posting Date", PostingDate);
-            LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
-            Validate("Location Code", Location.Code);
-            Modify(true);
-        end;
+        PurchaseHeader.Validate("Posting Date", PostingDate);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        PurchaseHeader.Validate("Location Code", Location.Code);
+        PurchaseHeader.Modify(true);
     end;
 
     procedure CreatePurchaseLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Type: Enum "Purchase Line Type"; No: Code[20])
@@ -444,7 +495,6 @@ codeunit 148126 "Library - CZ Intrastat"
         // Take Random Values for Purchase Line.
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, Type, No, LibraryRandom.RandDec(10, 2));
         PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
-
         if PurchaseLine.Type = PurchaseLine.Type::"Fixed Asset" then begin
             LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
             DepreciationBook.Validate("G/L Integration - Acq. Cost", true);
@@ -616,23 +666,22 @@ codeunit 148126 "Library - CZ Intrastat"
     procedure GetIntrastatNo() NoSeriesCode: Code[20]
     var
         IntrastatReportSetup: Record "Intrastat Report Setup";
-        NoSeries: Record "No. Series";
         NoSeriesCodeunit: Codeunit "No. Series";
     begin
-        NoSeries.SetFilter(NoSeries.Code, IntrastatReportSetup."Intrastat Nos.");
-        NoSeries.FindFirst();
-        NoSeriesCode := NoSeriesCodeunit.GetNextNo(NoSeries.Code);
+        IntrastatReportSetup.Get();
+        IntrastatReportSetup.TestField("Intrastat Nos.");
+        NoSeriesCode := NoSeriesCodeunit.GetNextNo(IntrastatReportSetup."Intrastat Nos.");
     end;
 
-    procedure GetStatisticalPeriod(ReportDate: Date): code[20]
+    procedure GetStatisticalPeriod(ReportDate: Date): Code[20]
     var
         Month: Code[2];
         Year: Code[4];
     begin
-        Month := format(Date2DMY(ReportDate, 2));
+        Month := CopyStr(Format(Date2DMY(ReportDate, 2)), 1, MaxStrLen(Month));
         if StrLen(Month) < 2 then
-            Month := '0' + Month;
-        Year := CopyStr(format(Date2DMY(ReportDate, 3)), 3, 2);
+            Month := CopyStr('0' + Month, 1, MaxStrLen(Month));
+        Year := CopyStr(Format(Date2DMY(ReportDate, 3)), 3, 2);
         exit(Year + Month);
     end;
 
@@ -688,7 +737,9 @@ codeunit 148126 "Library - CZ Intrastat"
         PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         PurchRcptLine.SetRange("Document No.", DocumentNo);
+#pragma warning disable AA0210
         PurchRcptLine.SetRange("No.", No);
+#pragma warning restore AA0210
         PurchRcptLine.FindFirst();
         LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
     end;
@@ -721,7 +772,9 @@ codeunit 148126 "Library - CZ Intrastat"
         SalesShipmentLine: Record "Sales Shipment Line";
     begin
         SalesShipmentLine.SetRange("Document No.", DocumentNo);
+#pragma warning disable AA0210
         SalesShipmentLine.SetRange("No.", No);
+#pragma warning restore AA0210
         SalesShipmentLine.FindFirst();
         LibrarySales.UndoSalesShipmentLine(SalesShipmentLine);
     end;

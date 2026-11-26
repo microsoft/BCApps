@@ -52,7 +52,9 @@ table 2000000 "Payment Journal Template"
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(15; "Test Report Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Report),
                                                                            "Object ID" = field("Test Report ID")));
@@ -60,7 +62,9 @@ table 2000000 "Payment Journal Template"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning disable AL0685 // Accepted: changing the field length is a breaking schema change
         field(16; "Page Name"; Text[80])
+#pragma warning restore AL0685
         {
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Page),
                                                                            "Object ID" = field("Page ID")));

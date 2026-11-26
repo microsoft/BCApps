@@ -19,8 +19,13 @@ codeunit 6992 "Install Expense Agent Setup"
     trigger OnInstallAppPerCompany()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
+        UpgradeExpReportVATSpec: Codeunit "Upgrade Exp. Report VAT Spec";
+        AppInfo: ModuleInfo;
     begin
         ExpenseAgentSetup.InitRecord();
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        if AppInfo.DataVersion() = Version.Create('0.0.0.0') then
+            UpgradeExpReportVATSpec.SetBackfillReimbursementAmountsUpgradeTag();
     end;
 
     trigger OnInstallAppPerDatabase()
@@ -48,12 +53,14 @@ codeunit 6992 "Install Expense Agent Setup"
         EnvironmentInformation: Codeunit "Environment Information";
         LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2351709', Locked = true;
     begin
-        if EnvironmentInformation.IsSaaSInfrastructure() then
-            if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Expense Agent") then
-                CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Expense Agent",
-                Enum::"Copilot Availability"::Preview,
-                Enum::"Copilot Billing Type"::"Microsoft Billed",
-                LearnMoreUrlTxt);
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+
+        // An existing registration, including one made while the agent was in preview, is updated to generally available.
+        if CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Expense Agent") then
+            CopilotCapability.ModifyCapability(Enum::"Copilot Capability"::"Expense Agent", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlTxt)
+        else
+            CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Expense Agent", Enum::"Copilot Availability"::"Generally Available", Enum::"Copilot Billing Type"::"Microsoft Billed", LearnMoreUrlTxt);
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Copy Company", 'OnAfterCreatedNewCompanyByCopyCompany', '', false, false)]

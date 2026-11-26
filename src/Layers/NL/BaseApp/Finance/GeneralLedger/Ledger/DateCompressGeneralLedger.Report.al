@@ -186,11 +186,17 @@ report 98 "Date Compress General Ledger"
                 DateComprRetainFields."Retain Global Dimension 2" :=
                     TempSelectedDim.Get(UserId, 3, REPORT::"Date Compress General Ledger", '', GLSetup."Global Dimension 2 Code");
 
-                NewGLEntry.LockTable();
-                GLReg.LockTable();
+                ConcurrentPosting := GLSetup.UseConcurrentPosting();
+                if not ConcurrentPosting then begin
+                    NewGLEntry.LockTable();
+                    GLReg.LockTable();
+                end;
                 DateComprReg.LockTable();
                 NewGLEntry.GetLastEntry(LastEntryNo, NextTransactionNo);
-                NextTransactionNo := NextTransactionNo + 1;
+                if ConcurrentPosting then
+                    NextTransactionNo := GLTransaction.GetNextTransactionNo()
+                else
+                    NextTransactionNo := NextTransactionNo + 1;
                 SetRange("Entry No.", 0, LastEntryNo);
                 SetRange("Posting Date", EntrdDateComprReg."Starting Date", EntrdDateComprReg."Ending Date");
                 SetRange(Open, true);
@@ -383,12 +389,13 @@ report 98 "Date Compress General Ledger"
         DimMgt: Codeunit DimensionManagement;
         DataArchive: Codeunit "Data Archive";
         Window: Dialog;
-        LastEntryNo: Integer;
-        NextTransactionNo: Integer;
+        LastEntryNo: BigInteger;
+        NextTransactionNo: BigInteger;
         NoOfDeleted: Integer;
         GLRegExists: Boolean;
-        ComprDimEntryNo: Integer;
-        DimEntryNo: Integer;
+        ConcurrentPosting: Boolean;
+        ComprDimEntryNo: BigInteger;
+        DimEntryNo: BigInteger;
         RetainDimText: Text[250];
         UseDataArchive: Boolean;
         DataArchiveProviderExists: Boolean;
@@ -412,7 +419,7 @@ report 98 "Date Compress General Ledger"
     begin
         OnBeforeInitRegisters("G/L Entry");
 
-        GLReg.Initialize(GLReg.GetLastEntryNo() + 1, LastEntryNo + 1, 0, SourceCodeSetup."Compress G/L", '', '');
+        GLReg.Initialize(GLReg.GetNextRegisterNo(not ConcurrentPosting), LastEntryNo + 1, 0, SourceCodeSetup."Compress G/L", '', '');
 
         DateComprReg.InitRegister(
           DATABASE::"G/L Entry", DateComprReg.GetLastEntryNo() + 1, EntrdDateComprReg."Starting Date", EntrdDateComprReg."Ending Date",
@@ -456,8 +463,8 @@ report 98 "Date Compress General Ledger"
 
     local procedure InsertRegisters(var GLReg: Record "G/L Register"; var DateComprReg: Record "Date Compr. Register")
     var
-        FoundLastEntryNo: Integer;
-        LastTransactionNo: Integer;
+        FoundLastEntryNo: BigInteger;
+        LastTransactionNo: BigInteger;
     begin
         GLReg."To Entry No." := NewGLEntry."Entry No.";
 
@@ -471,9 +478,12 @@ report 98 "Date Compress General Ledger"
         end;
         Commit();
 
+        DateComprReg.LockTable();
+        if ConcurrentPosting then
+            exit;
+
         NewGLEntry.LockTable();
         GLReg.LockTable();
-        DateComprReg.LockTable();
 
         NewGLEntry.GetLastEntry(FoundLastEntryNo, LastTransactionNo);
         if LastEntryNo <> FoundLastEntryNo then begin
@@ -555,9 +565,9 @@ report 98 "Date Compress General Ledger"
     procedure ComprCollectedEntries()
     var
         GLEntry: Record "G/L Entry";
-        OldDimEntryNo: Integer;
+        OldDimEntryNo: BigInteger;
         Found: Boolean;
-        GLEntryNo: Integer;
+        GLEntryNo: BigInteger;
         DummyCount: Integer;
     begin
         OldDimEntryNo := 0;
@@ -585,7 +595,12 @@ report 98 "Date Compress General Ledger"
     /// <param name="NewGLEntry">G/L entry record to initialize with compression defaults</param>
     procedure InitNewEntry(var NewGLEntry: Record "G/L Entry")
     begin
-        LastEntryNo := LastEntryNo + 1;
+        if ConcurrentPosting then begin
+            LastEntryNo := NewGLEntry.GetNextEntryNo();
+            if DateComprReg."No. of New Records" = 0 then
+                GLReg."From Entry No." := LastEntryNo;
+        end else
+            LastEntryNo := LastEntryNo + 1;
 
         NewGLEntry.Init();
         NewGLEntry."Entry No." := LastEntryNo;
@@ -623,7 +638,7 @@ report 98 "Date Compress General Ledger"
         OnAfterInitNewEntry(NewGLEntry);
     end;
 
-    local procedure InsertNewEntry(var GLEntry: Record "G/L Entry"; DimEntryNo: Integer)
+    local procedure InsertNewEntry(var GLEntry: Record "G/L Entry"; DimEntryNo: BigInteger)
     var
         TempDimBuf: Record "Dimension Buffer" temporary;
         TempDimSetEntry: Record "Dimension Set Entry" temporary;

@@ -183,6 +183,26 @@
     ]
   },
   {
+    "name": "Business Skills Test Library",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "TestLibraries"
+      }
+    ]
+  },
+  {
     "name": "Application Test Library",
     "groups": [
       {
@@ -288,6 +308,20 @@
   },
   {
     "name": "Tests-Dimension",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-Concurrent Posting",
     "groups": [
       {
         "name": "Base"
@@ -826,20 +860,6 @@
     ]
   },
   {
-    "name": "Tests-Performance-Internal",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
     "name": "TestRunner-Internal",
     "groups": [
       {
@@ -893,6 +913,19 @@
       },
       {
         "name": "TestFramework"
+      }
+    ]
+  },
+  {
+    "name": "Test Runner Tests",
+    "groups": [
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -1877,6 +1910,22 @@
     ]
   },
   {
+    "name": "Depreciation Differences FI",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Tests",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
     "name": "DK Core",
     "groups": [
       {
@@ -2197,6 +2246,48 @@
   },
   {
     "name": "Shopify Connector BE Test",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Shopify Connector NA",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Shopify Connector NA Test",
     "groups": [
       {
         "name": "AllExtensions"
@@ -2973,24 +3064,19 @@
     "name": "Subcontracting",
     "groups": [
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
+        "name": "FinancialsExtensions"
       },
       {
-        "name": "OnPrem",
-        "doNotInstall": true
+        "name": "OnPrem"
       },
       {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
+        "name": "OnPremExtensions"
       }
     ]
   },
@@ -2998,24 +3084,19 @@
     "name": "Subcontracting-Tests",
     "groups": [
       {
-        "name": "AllExtensions",
-        "doNotInstall": true
+        "name": "AllExtensions"
       },
       {
-        "name": "Financials",
-        "doNotInstall": true
+        "name": "Financials"
       },
       {
-        "name": "FinancialsExtensions",
-        "doNotInstall": true
+        "name": "FinancialsExtensions"
       },
       {
-        "name": "OnPrem",
-        "doNotInstall": true
+        "name": "OnPrem"
       },
       {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
+        "name": "OnPremExtensions"
       }
     ]
   },
@@ -3081,6 +3162,53 @@
       },
       {
         "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Report Filename Manager",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Report Filename Manager Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -3305,6 +3433,9 @@
       },
       {
         "name": "OnPremExtensions"
+      },
+      {
+        "name": "Internal"
       }
     ]
   },
@@ -3345,6 +3476,9 @@
       },
       {
         "name": "OnPremExtensions"
+      },
+      {
+        "name": "Internal"
       }
     ]
   },
@@ -3590,6 +3724,26 @@
   },
   {
     "name": "External Storage - Document Attachments",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "External Storage - Document Attachments Tests",
     "groups": [
       {
         "name": "AllExtensions"
@@ -4690,6 +4844,52 @@
     ]
   },
   {
+    "name": "Depreciation Differences FI Demo Data",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "ContosoDemoData"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Demo Data Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Contoso Coffee Demo Dataset (FR)",
     "groups": [
       {
@@ -5029,28 +5229,6 @@
     ]
   },
   {
-    "name": "PEPPOL DE",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "OnPrem",
-        "doNotInstall": true
-      },
-      {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
-      }
-    ]
-  },
-  {
     "name": "PEPPOL NA",
     "groups": [
       {
@@ -5167,6 +5345,20 @@
     ]
   },
   {
+    "name": "Tests-Company Creation",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-Misc",
     "groups": [
       {
@@ -5233,6 +5425,28 @@
       },
       {
         "name": "Internal"
+      }
+    ]
+  },
+  {
+    "name": "PEPPOL DE",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
       }
     ]
   },
@@ -6859,6 +7073,50 @@
     ]
   },
   {
+    "name": "Business Central Mirroring to Fabric",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Business Central Mirroring to Fabric Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Service Management",
     "groups": [
       {
@@ -7221,13 +7479,16 @@
     "name": "Create Product Information With Copilot",
     "groups": [
       {
-        "name": "AllExtensions"
+        "name": "AllExtensions",
+        "doNotInstall": true
       },
       {
-        "name": "Financials"
+        "name": "Financials",
+        "doNotInstall": true
       },
       {
-        "name": "FinancialsExtensions"
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
       },
       {
         "name": "OnPrem",
@@ -7423,6 +7684,50 @@
   },
   {
     "name": "FEC Audit File Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "XML Audit File FR",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "XML Audit File FR Tests",
     "groups": [
       {
         "name": "AllExtensions"
@@ -8640,177 +8945,7 @@
     ]
   },
   {
-    "name": "Expense Agent (Preview)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (US)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (NZ)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (AT)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (AU)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (CA)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (DE)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (DK)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (ES)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (FR)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent (Preview) (GB)",
+    "name": "Expense Agent",
     "groups": [
       {
         "name": "AllExtensions"
@@ -8845,176 +8980,6 @@
   },
   {
     "name": "Expense Agent Demo Data",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (US)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (GB)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (CA)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (NZ)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (AU)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (ES)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (DK)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (FR)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (DE)",
-    "groups": [
-      {
-        "name": "AllExtensions"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "FinancialsExtensions"
-      },
-      {
-        "name": "ContosoDemoData"
-      }
-    ]
-  },
-  {
-    "name": "Expense Agent Demo Data (AT)",
     "groups": [
       {
         "name": "AllExtensions"
@@ -9379,6 +9344,23 @@
     ]
   },
   {
+    "name": "Payables Agent Unit Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "VAT Audit Reports GB",
     "groups": [
       {
@@ -9558,6 +9540,56 @@
     ]
   },
   {
+    "name": "Sales FR",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Sales FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "Financials",
+        "doNotInstall": true
+      },
+      {
+        "name": "FinancialsExtensions",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPrem",
+        "doNotInstall": true
+      },
+      {
+        "name": "OnPremExtensions",
+        "doNotInstall": true
+      }
+    ]
+  },
+  {
     "name": "Reports GB",
     "groups": [
       {
@@ -9714,6 +9746,20 @@
       },
       {
         "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Expense Withholding Tax",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
       }
     ]
   },

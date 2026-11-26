@@ -50,7 +50,7 @@ codeunit 99000830 "Create Reserv. Entry"
         Text001: Label 'Cannot match item tracking.';
 #pragma warning restore AA0074
 
-    procedure CreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: Integer; Status: Enum "Reservation Status")
+    procedure CreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: BigInteger; Status: Enum "Reservation Status")
     var
         ReservEntry: Record "Reservation Entry";
         ReservEntry2: Record "Reservation Entry";
@@ -222,7 +222,7 @@ codeunit 99000830 "Create Reserv. Entry"
         CreateEntry(ItemNo, VariantCode, LocationCode, Description, ExpectedReceiptDate, ShipmentDate, 0, ReservationStatus::Reservation);
     end;
 
-    procedure CreateReservEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferedFromEntryNo: Integer)
+    procedure CreateReservEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferedFromEntryNo: BigInteger)
     var
         ReservationStatus: Enum "Reservation Status";
     begin
@@ -394,6 +394,7 @@ codeunit 99000830 "Create Reserv. Entry"
         IsHandled: Boolean;
         DoCreateNewButUnchangedVersion: Boolean;
         ShouldCreateWhseItemTrkgLines: Boolean;
+        NewTrackingTransferred: Boolean;
     begin
         if TransferQty = 0 then
             exit;
@@ -433,6 +434,7 @@ codeunit 99000830 "Create Reserv. Entry"
         if (NewType = Database::"Item Journal Line") and (NewSubtype in [3, 5, 6]) or OverruleItemTracking then
             if InsertReservEntry.NewTrackingExists() then begin
                 NewReservEntry.CopyTrackingFromReservEntryNewTracking(InsertReservEntry);
+                NewTrackingTransferred := true;
                 if NewReservEntry."Qty. to Handle (Base)" = 0 then
                     NewReservEntry."Qty. to Handle (Base)" := NewReservEntry."Quantity (Base)";
 
@@ -468,6 +470,8 @@ codeunit 99000830 "Create Reserv. Entry"
             OnTransferReservEntryOnBeforeCreateNewReservEntry(NewReservEntry, OldReservEntry, IsHandled, TransferQty);
             if not IsHandled then begin
                 SetQtyToHandleAndInvoice(QtyToHandleThisLine, QtyToInvoiceThisLine);
+                if NewTrackingTransferred then
+                    InsertReservEntry.ClearNewTracking(); // The remaining entry stays on the original source
                 CreateRemainingReservEntry(OldReservEntry,
                   OldReservEntry.Quantity * CurrSignFactor,
                   OldReservEntry."Quantity (Base)" * CurrSignFactor);
@@ -505,6 +509,8 @@ codeunit 99000830 "Create Reserv. Entry"
                     QtyInvoiced := QtyToInvoiceThisLine;
                 SetQtyToHandleAndInvoice(QtyToHandleThisLine - TransferQty, QtyToInvoiceThisLine - QtyInvoiced);
                 OnTransferReservEntryOnBeforeCreateRemainingReservEntry(OldReservEntry, NewReservEntry, TransferQty);
+                if NewTrackingTransferred then
+                    InsertReservEntry.ClearNewTracking(); // The remaining entry stays on the original source
                 CreateRemainingReservEntry(OldReservEntry,
                   0, (OldReservEntry."Quantity (Base)" - TransferQty) * CurrSignFactor);
                 NewReservEntry.Validate("Quantity (Base)", TransferQty);
@@ -749,7 +755,7 @@ codeunit 99000830 "Create Reserv. Entry"
     var
         TempTrkgSpec3: Record "Tracking Specification" temporary;
         TempTrkgSpec4: Record "Tracking Specification" temporary;
-        LastEntryNo: Integer;
+        LastEntryNo: BigInteger;
         NextState: Option SetFilter1,SetFilter2,LoosenFilter1,LoosenFilter2,Split,Error,Finish;
         IsHandled: Boolean;
     begin
@@ -967,17 +973,17 @@ codeunit 99000830 "Create Reserv. Entry"
         end;
     end;
 
-    procedure SetItemLedgEntryNo(EntryNo: Integer)
+    procedure SetItemLedgEntryNo(EntryNo: BigInteger)
     begin
         InsertReservEntry."Item Ledger Entry No." := EntryNo;
     end;
 
-    procedure SetApplyToEntryNo(EntryNo: Integer)
+    procedure SetApplyToEntryNo(EntryNo: BigInteger)
     begin
         InsertReservEntry."Appl.-to Item Entry" := EntryNo;
     end;
 
-    procedure SetApplyFromEntryNo(EntryNo: Integer)
+    procedure SetApplyFromEntryNo(EntryNo: BigInteger)
     begin
         InsertReservEntry."Appl.-from Item Entry" := EntryNo;
     end;
@@ -1029,7 +1035,7 @@ codeunit 99000830 "Create Reserv. Entry"
         until ReservEntry."Source Ref. No." = CurrSourceRefNo;
     end;
 
-    local procedure SynchronizeTransferOutboundToInboundItemTracking(ReservationEntryNo: Integer)
+    local procedure SynchronizeTransferOutboundToInboundItemTracking(ReservationEntryNo: BigInteger)
     var
         FromReservationEntry: Record "Reservation Entry";
         ToReservationEntry: Record "Reservation Entry";
@@ -1350,7 +1356,7 @@ codeunit 99000830 "Create Reserv. Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: Integer; Status: Enum "Reservation Status")
+    local procedure OnBeforeCreateEntry(ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10]; Description: Text[100]; ExpectedReceiptDate: Date; ShipmentDate: Date; TransferredFromEntryNo: BigInteger; Status: Enum "Reservation Status")
     begin
     end;
 

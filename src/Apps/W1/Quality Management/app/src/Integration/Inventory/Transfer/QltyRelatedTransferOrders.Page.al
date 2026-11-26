@@ -381,15 +381,18 @@ page 20480 "Qlty. Related Transfer Orders"
     end;
 
     /// <summary>
-    /// Initializes the page with the provided Quality Inspection
+    /// Initializes the page filters from the specified quality inspection.
     /// </summary>
-    /// <param name="QltyInspectionHeader"></param>
+    /// <param name="QltyInspectionHeader">The quality inspection whose related transfer documents will be shown.</param>
     procedure InitializeWithInspection(var QltyInspectionHeader: Record "Qlty. Inspection Header")
     begin
         InspectionNo := QltyInspectionHeader."No.";
         ReinspectionNo := QltyInspectionHeader."Re-inspection No.";
     end;
 
+    /// <summary>
+    /// Rebuilds the temporary buffer with transfer documents related to the current inspection.
+    /// </summary>
     local procedure ReloadBuffer()
     var
         LastBufferEntryNo: Integer;
@@ -402,12 +405,20 @@ page 20480 "Qlty. Related Transfer Orders"
         PopulateBuffer_DirectTransferHeader(LastBufferEntryNo);
     end;
 
+    /// <summary>
+    /// Deletes all buffer entries and resets the entry number counter.
+    /// </summary>
+    /// <param name="LastBufferEntryNo">The entry number counter to reset.</param>
     local procedure ClearBuffer(var LastBufferEntryNo: Integer)
     begin
         Rec.DeleteAll();
         LastBufferEntryNo := 0;
     end;
 
+    /// <summary>
+    /// Adds open and released transfer orders related to the current inspection to the buffer.
+    /// </summary>
+    /// <param name="LastBufferEntryNo">The entry number counter updated for each added document.</param>
     local procedure PopulateBuffer_TransferHeader(var LastBufferEntryNo: Integer)
     var
         TransferHeader: Record "Transfer Header";
@@ -433,6 +444,10 @@ page 20480 "Qlty. Related Transfer Orders"
             until TransferHeader.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds posted transfer shipments related to the current inspection to the buffer.
+    /// </summary>
+    /// <param name="LastBufferEntryNo">The entry number counter updated for each added document.</param>
     local procedure PopulateBuffer_TransferShipmentHeader(var LastBufferEntryNo: Integer)
     var
         TransferShipmentHeader: Record "Transfer Shipment Header";
@@ -453,6 +468,10 @@ page 20480 "Qlty. Related Transfer Orders"
             until TransferShipmentHeader.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds posted transfer receipts related to the current inspection to the buffer.
+    /// </summary>
+    /// <param name="LastBufferEntryNo">The entry number counter updated for each added document.</param>
     local procedure PopulateBuffer_TransferReceiptHeader(var LastBufferEntryNo: Integer)
     var
         TransferReceiptHeader: Record "Transfer Receipt Header";
@@ -473,6 +492,10 @@ page 20480 "Qlty. Related Transfer Orders"
             until TransferReceiptHeader.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds posted direct transfers related to the current inspection to the buffer.
+    /// </summary>
+    /// <param name="LastBufferEntryNo">The entry number counter updated for each added document.</param>
     local procedure PopulateBuffer_DirectTransferHeader(var LastBufferEntryNo: Integer)
     var
         DirectTransHeader: Record "Direct Trans. Header";
@@ -493,6 +516,16 @@ page 20480 "Qlty. Related Transfer Orders"
             until DirectTransHeader.Next() = 0;
     end;
 
+    /// <summary>
+    /// Adds a transfer document and its status, locations, and posting date to the temporary buffer.
+    /// </summary>
+    /// <param name="DocumentNoToAdd">The transfer document number.</param>
+    /// <param name="TableNoToAdd">The table number that identifies the transfer document type.</param>
+    /// <param name="QltyTransferBufferStatusToAdd">The transfer document status.</param>
+    /// <param name="FromLocationCode">The transfer-from location code.</param>
+    /// <param name="ToLocationCode">The transfer-to location code.</param>
+    /// <param name="PostingDate">The transfer posting date.</param>
+    /// <param name="LastBufferEntryNo">The entry number counter incremented for the new buffer entry.</param>
     local procedure AddToBuffer(DocumentNoToAdd: Code[20]; TableNoToAdd: Integer; QltyTransferBufferStatusToAdd: Enum "Qlty. Transfer Buffer Status"; FromLocationCode: Code[10]; ToLocationCode: Code[10]; PostingDate: Date; var LastBufferEntryNo: Integer)
     begin
         LastBufferEntryNo += 1;

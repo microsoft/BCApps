@@ -10,6 +10,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Planning;
+using System.DataAdministration;
 using System.Security.User;
 
 page 99000886 "Subcontracting Worksheet"
@@ -471,8 +472,11 @@ page 99000886 "Subcontracting Worksheet"
 
     trigger OnOpenPage()
     var
+        ManufacturingSetupNotif: Codeunit "Manufacturing Setup Notif.";
         JnlSelected: Boolean;
     begin
+        ManufacturingSetupNotif.ShowInstallSubcontractingAppNotification();
+
         OpenedFromBatch := (Rec."Journal Batch Name" <> '') and (Rec."Worksheet Template Name" = '');
         if OpenedFromBatch then begin
             CurrentJnlBatchName := Rec."Journal Batch Name";

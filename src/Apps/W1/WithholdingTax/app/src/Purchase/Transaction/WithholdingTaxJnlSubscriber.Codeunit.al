@@ -187,7 +187,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
 
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforePostingDeferral, '', false, false)]
-    local procedure OnAfterVendLedgEntryInsert(GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry"; TaxAmount: Decimal; TaxAmountLCY: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; var IsHandled: Boolean; sender: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnAfterVendLedgEntryInsert(GenJnlLine: Record "Gen. Journal Line"; VendLedgEntry: Record "Vendor Ledger Entry"; TaxAmount: Decimal; TaxAmountLCY: Decimal; NextTransactionNo: BigInteger; var NextTaxEntryNo: Integer; var IsHandled: Boolean; sender: Codeunit "Gen. Jnl.-Post Line")
     var
         WithholdingTaxMgmt: Codeunit "Withholding Tax Mgmt.";
     begin
@@ -292,7 +292,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
              GenJnlLine."Wthldg. Tax Prod. Post. Group")
         then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if Abs(GenJnlLine.Amount) < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.IsWithholdingTaxApplicable(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WithholdingAmountLCY := 0;
     end;
 
@@ -433,7 +433,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if GenJnlLine.Amount < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.IsWithholdingTaxApplicable(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WHTAmountLCY := 0;
     end;
 
@@ -670,12 +670,13 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
     local procedure IsAboveWithholdingMinInvAmount(GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         WithholdingPostingSetup: Record "Withholding Tax Posting Setup";
+        WithholdingTaxMgmt: Codeunit "Withholding Tax Mgmt.";
     begin
         if not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"]) then
             exit(true);
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
-            exit(Abs(GenJnlLine.Amount) >= WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount");
+            exit(WithholdingTaxMgmt.IsWithholdingTaxApplicable(GenJnlLine.Amount, WithholdingPostingSetup));
 
         exit(false);
     end;
@@ -852,7 +853,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if Abs(GenJnlLine.Amount) < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.IsWithholdingTaxApplicable(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WithholdingAmountLCY := 0;
     end;
 
@@ -1421,7 +1422,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnUnapplyVendLedgEntryOnAfterCreateGLEntriesForTotalAmounts, '', false, false)]
-    local procedure OnUnapplyVendLedgEntryOnAfterCreateGLEntriesForTotalAmounts(var GenJournalLine: Record "Gen. Journal Line"; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; GenJournalLineToPost: Record "Gen. Journal Line"; var NextTaxEntryNo: Integer; var NextEntryNo: Integer; var NextCheckEntryNo: Integer; NextTransactionNo: Integer; sender: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnUnapplyVendLedgEntryOnAfterCreateGLEntriesForTotalAmounts(var GenJournalLine: Record "Gen. Journal Line"; DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; GenJournalLineToPost: Record "Gen. Journal Line"; var NextTaxEntryNo: Integer; var NextEntryNo: BigInteger; var NextCheckEntryNo: BigInteger; NextTransactionNo: BigInteger; sender: Codeunit "Gen. Jnl.-Post Line")
     var
         SourceCodeSetup: Record "Source Code Setup";
         WithholdingTaxMgmt: Codeunit "Withholding Tax Mgmt.";

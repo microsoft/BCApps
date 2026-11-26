@@ -587,10 +587,12 @@ codeunit 144102 "SCM Inventory reports"
 
     local procedure RunUnpostedTorg16Report(ItemDocumentNo: Code[20]; OperationType: Text; OrderNo: Text; OrderDate: Date; WriteOffSource: Text)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         InvtDocumentHeader: Record "Invt. Document Header";
         ItemWriteOffActTorg16: Report "Item Write-off act TORG-16";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         ItemWriteOffActTorg16.InitializeRequest(
           OperationType, OrderNo, OrderDate, WriteOffSource);
         LibraryReportValidation.SetFileName(ItemDocumentNo);
@@ -600,14 +602,17 @@ codeunit 144102 "SCM Inventory reports"
         ItemWriteOffActTorg16.SetFileNameSilent(FileName);
         ItemWriteOffActTorg16.UseRequestPage(false);
         ItemWriteOffActTorg16.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunPostedTorg16Report(ItemShipmentNo: Code[20]; OperationType: Text; OrderNo: Text; OrderDate: Date; WriteOffSource: Text)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         InvtShipmentHeader: Record "Invt. Shipment Header";
         PostedItemWriteOffActTorg16: Report "Posted Item Write-off TORG-16";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         PostedItemWriteOffActTorg16.InitializeRequest(
           OperationType, OrderNo, OrderDate, WriteOffSource);
         LibraryReportValidation.SetFileName(ItemShipmentNo);
@@ -617,14 +622,17 @@ codeunit 144102 "SCM Inventory reports"
         PostedItemWriteOffActTorg16.SetFileNameSilent(FileName);
         PostedItemWriteOffActTorg16.UseRequestPage(false);
         PostedItemWriteOffActTorg16.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunUnpostedTorg1Report(PurchaseDocNo: Code[20]; ShowActualQty: Boolean; ReportNo: Text; ReportDate: Date; ReportOperationType: Text)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         PurchaseHeader: Record "Purchase Header";
         ItemsReceiptActTORG1: Report "Items Receipt Act TORG-1";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         ItemsReceiptActTORG1.InitializeRequest(
           ShowActualQty, ReportNo, ReportDate, ReportOperationType);
         LibraryReportValidation.SetFileName(PurchaseDocNo);
@@ -634,13 +642,16 @@ codeunit 144102 "SCM Inventory reports"
         ItemsReceiptActTORG1.SetFileNameSilent(FileName);
         ItemsReceiptActTORG1.UseRequestPage(false);
         ItemsReceiptActTORG1.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunReceiptDeviationsTorg2Report(DocumentNo: Code[20]; OrderNo: Text; OrderDate: Date; OperationType: Text; TableId: Integer; DocumentType: Integer)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         ReceiptDeviationsTORG2: Report "Receipt Deviations TORG-2";
         FileName: Text;
     begin
+        BindSubscription(RUReportDownloadHandler);
         ReceiptDeviationsTORG2.InitializeRequest(OrderNo, OrderDate, OperationType);
         LibraryReportValidation.SetFileName(DocumentNo);
         FileName := LibraryReportValidation.GetFileName();
@@ -650,6 +661,7 @@ codeunit 144102 "SCM Inventory reports"
         ReceiptDeviationsTORG2.SetFileNameSilent(FileName);
         ReceiptDeviationsTORG2.UseRequestPage(false);
         ReceiptDeviationsTORG2.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure AddEmployeeSignatures(var Members: array[5, 2] of Text; ItemDocumentNo: Code[20])

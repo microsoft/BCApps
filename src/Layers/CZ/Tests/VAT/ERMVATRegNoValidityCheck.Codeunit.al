@@ -2,6 +2,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -28,6 +29,8 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         WrongLogEntryCountErr: Label 'Unexpected entry count in VAT Registration Log table.';
         LibraryApplicationArea: Codeunit "Library - Application Area";
         IsInitialized: Boolean;
+        CapturedVATRegNo: Text[20];
+        CapturedCountryCode: Code[10];
         GetVATRegNoErr: Label 'Unexpected output of GetVATRegNo method';
         GetCountryCodeErr: Label 'Not expected country code.';
         DisclaimerTxt: Label 'You are accessing a third-party website and service. Review the disclaimer before you continue.';
@@ -36,6 +39,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         EmptyCountryCodeErr: Label 'You must specify the country that issued the VAT registration number. Choose the country in the Country/Region Code field.';
         EmptyEUCountryCodeErr: Label 'You must specify the EU Country/Region Code for the country that issued the VAT registration number. You can specify that on the Country/Regions page.';
         CannotInsertMultipleSettingsErr: Label 'You cannot insert multiple settings.';
+        WrongVATRegNoValidatedErr: Label 'The VAT registration check was run for an unexpected VAT Registration No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -337,7 +341,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         VATRegistrationLog.FindFirst();
         ValidatedName := LibraryUtility.GenerateGUID();
         ValidatedAddress := LibraryUtility.GenerateGUID();
-        CreateValidVATCheckResponse(ValidVATResponseDoc, ValidatedName, ValidatedAddress);
+        CreateValidVATCheckResponseWithIdentifiers(ValidVATResponseDoc, VATRegistrationLog.GetCountryCode(), VATRegistrationLog.GetVATRegNo(), ValidatedName, ValidatedAddress);
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ValidVATResponseDoc, NamespaceTxt);
         VATRegistrationLog.TestField(Status, VATRegistrationLog.Status::Valid);
         VATRegistrationLog.TestField("Verified Name", ValidatedName);
@@ -367,7 +371,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         VATRegistrationLogCount := VATRegistrationLog.Count();
         VATRegistrationLog.Ascending(false);
         VATRegistrationLog.FindFirst();
-        CreateInvalidVATCheckResponse(InvalidVATResponseDoc);
+        CreateInvalidVATCheckResponse(InvalidVATResponseDoc, VATRegistrationLog.GetCountryCode(), VATRegistrationLog.GetVATRegNo());
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, InvalidVATResponseDoc, NamespaceTxt);
         VATRegistrationLog.TestField(Status, VATRegistrationLog.Status::Invalid);
         VATRegistrationLog.TestField("Verified Name", '');
@@ -400,7 +404,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         VATRegistrationLog.FindFirst();
         ValidatedName := LibraryUtility.GenerateGUID();
         ValidatedAddress := LibraryUtility.GenerateGUID();
-        CreateVATCheckResponseWithManyTags(ValidVATResponseDoc, ValidatedName, ValidatedAddress);
+        CreateVATCheckResponseWithManyTags(ValidVATResponseDoc, VATRegistrationLog.GetCountryCode(), VATRegistrationLog.GetVATRegNo(), ValidatedName, ValidatedAddress);
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ValidVATResponseDoc, NamespaceTxt);
         VATRegistrationLog.TestField(Status, VATRegistrationLog.Status::Valid);
         VATRegistrationLog.TestField("Verified Name", ValidatedName);
@@ -475,7 +479,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
             ValidatedName += LibraryUtility.GenerateGUID();
             ValidatedAddress += LibraryUtility.GenerateGUID();
         end;
-        CreateValidVATCheckResponse(ValidVATResponseDoc, ValidatedName, ValidatedAddress);
+        CreateValidVATCheckResponseWithIdentifiers(ValidVATResponseDoc, VATRegistrationLog.GetCountryCode(), VATRegistrationLog.GetVATRegNo(), ValidatedName, ValidatedAddress);
         VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ValidVATResponseDoc, NamespaceTxt);
         VATRegistrationLog.TestField(Status, VATRegistrationLog.Status::Valid);
         VATRegistrationLog.TestField("Verified Name", CopyStr(ValidatedName, 1, MaxStrLen(VATRegistrationLog."Verified Name")));
@@ -484,6 +488,156 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
 
         // Tear Down
         Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseIntegrityAcceptsMatchingIdentifiers()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
+        ResponseDoc: DotNet XmlDocument;
+        ValidatedName: Text;
+        ValidatedAddress: Text;
+    begin
+        // [SCENARIO] A VIES response that echoes the requested country code and VAT number passes the integrity check
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+        ValidatedName := LibraryUtility.GenerateGUID();
+        ValidatedAddress := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A valid response echoing the requested country code and VAT number
+        CreateValidVATCheckResponseWithIdentifiers(ResponseDoc, VATRegistrationLog.GetCountryCode(), VATRegistrationLog.GetVATRegNo(), ValidatedName, ValidatedAddress);
+
+        // [THEN] The response passes the integrity check and is logged as valid through the supported entry point
+        VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        VATRegistrationLog.TestField(Status, VATRegistrationLog.Status::Valid);
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseIntegrityRejectsMismatchedIdentifiers()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
+        ResponseDoc: DotNet XmlDocument;
+    begin
+        // [SCENARIO] A VIES response echoing a different VAT number than requested is rejected
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+
+        // [GIVEN] A valid response echoing a VAT number that does not match the request
+        CreateVATCheckResponseWithIdentifiers(ResponseDoc, VATRegistrationLog.GetCountryCode(), '00000000');
+        Commit(); // Keep the created customer past the asserterror rollback so tear-down can delete it.
+
+        // [THEN] The response is rejected as tampered/unrelated through the supported entry point
+        asserterror VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        Assert.ExpectedError('did not match the requested identifiers');
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseIntegrityRejectsMismatchedCountryCode()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
+        ResponseDoc: DotNet XmlDocument;
+    begin
+        // [SCENARIO] A VIES response echoing a different country code than requested is rejected
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+
+        // [GIVEN] A valid response echoing the requested VAT number but a wrong country code
+        CreateVATCheckResponseWithIdentifiers(ResponseDoc, 'XX', VATRegistrationLog.GetVATRegNo());
+        Commit(); // Keep the created customer past the asserterror rollback so tear-down can delete it.
+
+        // [THEN] The response is rejected as tampered/unrelated through the supported entry point
+        asserterror VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        Assert.ExpectedError('did not match the requested identifiers');
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseIntegrityRejectsMissingIdentifiers()
+    var
+        Customer: Record Customer;
+        VATRegistrationLog: Record "VAT Registration Log";
+        VATRegistrationLogMgt: Codeunit "VAT Registration Log Mgt.";
+        ResponseDoc: DotNet XmlDocument;
+        ValidatedName: Text;
+        ValidatedAddress: Text;
+    begin
+        // [SCENARIO] A valid=true VIES response that omits the echoed country code and VAT number is rejected as an invalid schema
+        Initialize();
+        CreateCustomer(Customer);
+        VATRegistrationLog.Ascending(false);
+        VATRegistrationLog.FindFirst();
+        ValidatedName := LibraryUtility.GenerateGUID();
+        ValidatedAddress := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A valid=true response that omits the country code and VAT number identifiers
+        CreateValidVATCheckResponse(ResponseDoc, ValidatedName, ValidatedAddress);
+        Commit(); // Keep the created customer past the asserterror rollback so tear-down can delete it.
+
+        // [THEN] The response is rejected because the required identifiers are missing, through the supported entry point
+        asserterror VATRegistrationLogMgt.LogVerification(VATRegistrationLog, ResponseDoc, NamespaceTxt);
+        Assert.ExpectedError('did not include the requested identifiers');
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseSizeRejectsOversizedPayload()
+    var
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A VIES response larger than the maximum allowed size is rejected before it is parsed
+        Initialize();
+
+        // [GIVEN] A raw response body that exceeds the 64 KB cap
+        WriteRawResponseToTempBlob(TempBlob, 70000);
+
+        // [THEN] The size check rejects it
+        asserterror VATLookupExtDataHndl.CheckResponseSize(TempBlob);
+        Assert.ExpectedError('exceeded the maximum allowed size');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestResponseSizeAcceptsWithinLimit()
+    var
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A VIES response within the maximum allowed size passes the size check
+        Initialize();
+
+        // [GIVEN] A raw response body within the 64 KB cap
+        WriteRawResponseToTempBlob(TempBlob, 1024);
+
+        // [THEN] The size check passes without error
+        VATLookupExtDataHndl.CheckResponseSize(TempBlob);
     end;
 
     [Test]
@@ -1408,6 +1562,88 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Customer.TestField("VAT Registration No.", CustomerVATRegistrationNo);
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ValidateHeaderVATRegistrationNoChecksEnteredNumberWhenCustomerHasNone()
+    begin
+        // [SCENARIO 658933] The document VAT number and country are used when the customer has a different country and no VAT number.
+        ValidateHeaderVATRegistrationNoCountry(true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ValidateHeaderVATRegistrationNoUsesCustomerCountryWhenDocumentCountryIsBlank()
+    begin
+        // [SCENARIO 658933] A blank document VAT country falls back to the customer country.
+        ValidateHeaderVATRegistrationNoCountry(false, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure ValidateHeaderVATRegistrationNoUsesCompanyCountryWhenDocumentAndCustomerCountriesAreBlank()
+    begin
+        // [SCENARIO 658933] Blank document and customer countries fall back to the company VAT format country.
+        ValidateHeaderVATRegistrationNoCountry(false, false);
+    end;
+
+    local procedure ValidateHeaderVATRegistrationNoCountry(UseDocumentCountry: Boolean; UseCustomerCountry: Boolean)
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        VATRegistrationNoFormat: Record "VAT Registration No. Format";
+        SalesHeader: Record "Sales Header";
+        VATLookupExtDataHndl: Codeunit "VAT Lookup Ext. Data Hndl";
+        ERMVATRegNoValidityCheck: Codeunit "ERM VAT Reg. No Validity Check";
+        EnteredVATRegistrationNo: Text[20];
+    begin
+        // [FEATURE] [Customer] [Sales] [Header]
+        // [SCENARIO 658933] Entering VAT Registration No. on a sales document validates the entered number when the customer has no VAT Registration No.
+        Initialize();
+
+        // [GIVEN] EU VAT Reg. No. validation service is enabled
+        SetVATRegSrvStatus(true, VATLookupExtDataHndl.GetVATRegNrValidationWebServiceURL());
+        BindSubscription(ERMVATRegNoValidityCheck);
+
+        // [GIVEN] A VAT format for the expected country and a customer without VAT Registration No.
+        LibrarySales.CreateCustomer(Customer);
+        CountryRegion.Get(CreateCountryCodeWithEUCode());
+        LibraryERM.CreateVATRegistrationNoFormat(VATRegistrationNoFormat, CountryRegion.Code);
+        VATRegistrationNoFormat.Validate(Format, '123######');
+        VATRegistrationNoFormat.Modify();
+        if UseDocumentCountry then
+            Customer.Validate("Country/Region Code", CreateCountryCodeWithEUCode())
+        else
+            if UseCustomerCountry then
+                Customer.Validate("Country/Region Code", CountryRegion.Code)
+            else begin
+                Customer.Validate("Country/Region Code", '');
+                UpdateCountryRegionInCompanyInformation(CountryRegion.Code);
+            end;
+        Customer.Modify(true);
+        Customer.TestField("VAT Registration No.", '');
+
+        // [GIVEN] Sales invoice for the customer
+        LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, Customer."No.");
+        if UseDocumentCountry then
+            SalesHeader."VAT Country/Region Code" := CountryRegion.Code
+        else
+            SalesHeader."VAT Country/Region Code" := '';
+
+        // [WHEN] VAT Registration No. "X" is entered on the sales invoice
+        EnteredVATRegistrationNo := LibraryERM.GenerateVATRegistrationNo(CountryRegion.Code);
+        SalesHeader.Validate("VAT Registration No.", EnteredVATRegistrationNo);
+
+        // [THEN] The VAT registration check was run for "X", not for the blank number on the customer
+        Assert.AreEqual(EnteredVATRegistrationNo, ERMVATRegNoValidityCheck.GetCapturedVATRegNo(), WrongVATRegNoValidatedErr);
+        Assert.AreEqual(CountryRegion.Code, ERMVATRegNoValidityCheck.GetCapturedCountryCode(), GetCountryCodeErr);
+
+        // Tear Down
+        Customer.Delete();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM VAT Reg. No Validity Check");
@@ -1437,7 +1673,7 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         Assert.RecordIsEmpty(VATRegistrationLog);
     end;
 
-    local procedure CreateInvalidVATCheckResponse(var XMLDoc: DotNet XmlDocument)
+    local procedure CreateInvalidVATCheckResponse(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text)
     var
         XMLDOMMgt: Codeunit "XML DOM Management";
         VATNode: DotNet XmlNode;
@@ -1445,7 +1681,18 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         XMLDoc := XMLDoc.XmlDocument();
         XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
+        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, InvalidNode);
+        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, InvalidNode);
         XMLDOMMgt.AddElement(VATNode, ValidTxt, 'false', NamespaceTxt, InvalidNode);
+    end;
+
+    local procedure WriteRawResponseToTempBlob(var TempBlob: Codeunit "Temp Blob"; ByteCount: Integer)
+    var
+        OutStream: OutStream;
+    begin
+        Clear(TempBlob);
+        TempBlob.CreateOutStream(OutStream);
+        OutStream.WriteText(PadStr('', ByteCount, 'A'));
     end;
 
     local procedure CreateValidVATCheckResponse(var XMLDoc: DotNet XmlDocument; ValidatedName: Text; ValidatedAddress: Text)
@@ -1461,7 +1708,22 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
         XMLDOMMgt.AddElement(VATNode, AddressTxt, ValidatedAddress, NamespaceTxt, InvalidNode);
     end;
 
-    local procedure CreateVATCheckResponseWithManyTags(var XMLDoc: DotNet XmlDocument; ValidatedName: Text; ValidatedAddress: Text)
+    local procedure CreateValidVATCheckResponseWithIdentifiers(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text; ValidatedName: Text; ValidatedAddress: Text)
+    var
+        XMLDOMMgt: Codeunit "XML DOM Management";
+        VATNode: DotNet XmlNode;
+        ChildNode: DotNet XmlNode;
+    begin
+        XMLDoc := XMLDoc.XmlDocument();
+        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
+        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, NameTxt, ValidatedName, NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, AddressTxt, ValidatedAddress, NamespaceTxt, ChildNode);
+    end;
+
+    local procedure CreateVATCheckResponseWithManyTags(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text; ValidatedName: Text; ValidatedAddress: Text)
     var
         XMLDOMMgt: Codeunit "XML DOM Management";
         VATNode: DotNet XmlNode;
@@ -1470,11 +1732,26 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         XMLDoc := XMLDoc.XmlDocument();
         XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
+        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, InvalidNode);
+        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, InvalidNode);
         for I := 1 to 500 do begin
             XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, InvalidNode);
             XMLDOMMgt.AddElement(VATNode, NameTxt, ValidatedName, NamespaceTxt, InvalidNode);
             XMLDOMMgt.AddElement(VATNode, AddressTxt, ValidatedAddress, NamespaceTxt, InvalidNode);
         end;
+    end;
+
+    local procedure CreateVATCheckResponseWithIdentifiers(var XMLDoc: DotNet XmlDocument; CountryCode: Text; VatNumber: Text)
+    var
+        XMLDOMMgt: Codeunit "XML DOM Management";
+        VATNode: DotNet XmlNode;
+        ChildNode: DotNet XmlNode;
+    begin
+        XMLDoc := XMLDoc.XmlDocument();
+        XMLDOMMgt.AddRootElementWithPrefix(XMLDoc, VATTxt, '', NamespaceTxt, VATNode);
+        XMLDOMMgt.AddElement(VATNode, 'countryCode', CountryCode, NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, 'vatNumber', VatNumber, NamespaceTxt, ChildNode);
+        XMLDOMMgt.AddElement(VATNode, ValidTxt, 'true', NamespaceTxt, ChildNode);
     end;
 
     local procedure CreateCountryCodeWithEUCode(): Code[10]
@@ -1704,5 +1981,28 @@ codeunit 134060 "ERM VAT Reg. No Validity Check"
     begin
         CustConsentConfPage.Accept.Invoke();
     end;
-}
 
+    [Scope('OnPrem')]
+    procedure GetCapturedVATRegNo(): Text[20]
+    begin
+        exit(CapturedVATRegNo);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetCapturedCountryCode(): Code[10]
+    begin
+        exit(CapturedCountryCode);
+    end;
+
+    // Captures the number and country sent for VIES validation and skips the external service call.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VAT Registration Log Mgt.", 'OnBeforeCheckVIESForVATNoField', '', false, false)]
+    local procedure CaptureVATRegNoOnBeforeCheckVIESForVATNoField(RecordVariant: Variant; CountryCode: Code[10]; var IsHandled: Boolean)
+    var
+        Customer: Record Customer;
+    begin
+        Customer := RecordVariant;
+        CapturedVATRegNo := Customer."VAT Registration No.";
+        CapturedCountryCode := CountryCode;
+        IsHandled := true;
+    end;
+}

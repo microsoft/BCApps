@@ -9,7 +9,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Utilities;
-using System.Security.User;
 
 page 6910 "Expense Report"
 {
@@ -115,18 +114,66 @@ page 6910 "Expense Report"
                     Importance = Additional;
                     Visible = false;
                 }
+                field("Employee Posting Group"; Rec."Employee Posting Group")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the employee posting group used when posting expenses for this expense report.';
+                    Importance = Additional;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
+                field("Final Approver No."; Rec."Final Approver No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the final approver for the expense report, prepopulated from the expense user''s approver.';
+                    Importance = Additional;
+                    Editable = false;
+                    Visible = AgentEnabled;
+                }
+                field("Interim Approver No."; Rec."Interim Approver No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the optional interim approver who approves before the final approver.';
+                    Importance = Additional;
+                    Editable = false;
+                    Visible = AgentEnabled;
+                }
                 group("Approver Comment")
                 {
-                    Caption = 'Approver Comment';
-                    Visible = Rec.Status = Rec.Status::Rejected;
+                    Caption = 'Approval Comments';
+
                     field(ApproverComment; ApproverComment)
                     {
                         ApplicationArea = Basic, Suite;
-                        Importance = Additional;
-                        MultiLine = true;
-                        ShowCaption = false;
+                        Caption = 'Approver Comment';
+                        DrillDown = true;
                         Editable = false;
-                        ToolTip = 'Specifies the approver comment for the expense report.';
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the approver. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if ApproverComment <> '' then
+                                Message(ApproverComment);
+                        end;
+                    }
+                    field(SubmitterComment; SubmitterComment)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Submitter Comment';
+                        DrillDown = true;
+                        Editable = false;
+                        Importance = Additional;
+                        ToolTip = 'Specifies the latest comment from the submitter. Drill down to view the full comment.';
+
+                        trigger OnDrillDown()
+                        begin
+                            if SubmitterComment <> '' then
+                                Message(SubmitterComment);
+                        end;
                     }
                 }
             }
@@ -232,6 +279,14 @@ page 6910 "Expense Report"
                 Provider = "Expense Report Subform";
                 UpdatePropagation = Both;
                 SubPageLink = "Expense Report No." = field("Document No."), "Report Line No." = field("Line No.");
+                Visible = Rec."No." <> '';
+            }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'History';
+                SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
                 Visible = Rec."No." <> '';
             }
             part("Expense Picture"; "Expense Picture")
@@ -422,10 +477,37 @@ page 6910 "Expense Report"
                         ReopenSubmittedExpenseReport();
                     end;
                 }
+                action("Assign Interim Approver")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Assign Interim Approver';
+                    Image = UserSetup;
+                    ToolTip = 'Assign an optional interim approver who approves before the final approver.';
+                    Visible = AgentEnabled;
+                    Enabled = AssignInterimApproverEnabled;
+
+                    trigger OnAction()
+                    begin
+                        AssignInterimApproverExpenseReport();
+                    end;
+                }
             }
         }
         area(Navigation)
         {
+            action(OpenExpenseApp)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open Expense App';
+                Image = LinkWeb;
+                Visible = AgentEnabled and (ExpenseAppUrl <> '');
+                ToolTip = 'Opens the Expense App dashboard.';
+
+                trigger OnAction()
+                begin
+                    Hyperlink(ExpenseAppUrl);
+                end;
+            }
             group("Expense")
             {
                 Caption = 'Expense';
@@ -454,6 +536,7 @@ page 6910 "Expense Report"
                         CurrPage.SaveRecord();
                     end;
                 }
+#if not CLEAN30
                 action(VATSpecification)
                 {
                     ApplicationArea = Basic, Suite;
@@ -462,7 +545,21 @@ page 6910 "Expense Report"
                     RunObject = Page "Expense Report Line VAT Spec.";
                     RunPageLink = "Document No." = field("No."), "Document Line No." = const(0);
                     ToolTip = 'View the VAT details for the record.';
-                    Visible = (Rec."No." <> '') and AllowVATReclaim;
+                    Visible = false;
+                    ObsoleteReason = 'Replaced by Expense Report Statistics';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                action("Spend Request")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Image = ProjectExpense;
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this expense report.';
+                    RunObject = Page "Travel Request Card";
+                    RunPageLink = "No." = field("Spend Request No.");
+                    Visible = Rec."Spend Request No." <> '';
                 }
                 action(Statistics)
                 {
@@ -592,6 +689,17 @@ page 6910 "Expense Report"
                 actionref(ReopenSubmitted_Promoted; ReopenSubmitted)
                 {
                 }
+                actionref(AssignInterimApprover_Promoted; "Assign Interim Approver")
+                {
+                }
+            }
+            group(Category_Navigate)
+            {
+                Caption = 'Navigate';
+
+                actionref(OpenExpenseApp_Promoted; OpenExpenseApp)
+                {
+                }
             }
             group(Category_Expense)
             {
@@ -603,7 +711,15 @@ page 6910 "Expense Report"
                 actionref(dimension_Promoted; Dimensions)
                 {
                 }
+#if not CLEAN30
                 actionref(VATSpecification_Promoted; VATSpecification)
+                {
+                    ObsoleteReason = 'Replaced by Expense Report Statistics';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                actionref("Spend Request_Promoted"; "Spend Request")
                 {
                 }
                 actionref(Statistics_Promoted; Statistics)
@@ -616,17 +732,17 @@ page 6910 "Expense Report"
     trigger OnOpenPage()
     var
         ExpenseUser: Record "Expense User";
-        UserSetup: Record "User Setup";
+        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAppUrl := EAHttpClient.GetExpenseAppBaseUrl();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
-            if not UserSetup."Unlimited Expense Approval" then begin
+            ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+            if not ExpenseUser."Unlimited Approval" then begin
                 CheckSetDefaultOwnerFilter();
-                ExpenseUserNo := ExpenseReportApprovalMgmt.GetExpenseUserNo();
-                ExpenseUser.Get(ExpenseUserNo);
+                ExpenseUserNo := ExpenseUser."No.";
             end;
         end;
 
@@ -653,6 +769,7 @@ page 6910 "Expense Report"
     begin
         SetControlVisibility();
         ApproverComment := Rec.GetApproverComment();
+        SubmitterComment := Rec.GetSubmitterComment();
     end;
 
     var
@@ -664,8 +781,11 @@ page 6910 "Expense Report"
         DocNoVisible: Boolean;
         ExpenseUserNo: Code[20];
         ApproverComment: Text;
-        AllowVATReclaim: Boolean;
+        SubmitterComment: Text;
         ApprovalActionsEnabled: Boolean;
+        AgentEnabled: Boolean;
+        ExpenseAppUrl: Text;
+        AssignInterimApproverEnabled: Boolean;
 
     protected var
         SubmitEnabled: Boolean;
@@ -681,9 +801,10 @@ page 6910 "Expense Report"
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
+        AssignInterimApproverEnabled := ExpenseReportApprovalMgt.CanAssignInterimApprover(Rec);
 
         ExpenseAgentSetup.GetRecordOnce();
-        AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
+        AgentEnabled := ExpenseAgentSetup."Enable Agent";
         ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;
 
@@ -727,6 +848,24 @@ page 6910 "Expense Report"
     begin
         if ExpenseReportApprovalMgt.ConfirmAction(RefActionType::"Reopen Submitted") then
             Process(RefActionType::"Reopen Submitted");
+    end;
+
+    local procedure AssignInterimApproverExpenseReport()
+    var
+        ExpenseUserInterimApprover: Record "Expense User";
+        ExpenseUsers: Page "Expense Users";
+    begin
+        ExpenseUserInterimApprover.SetRange("Can Approve", true);
+        ExpenseUserInterimApprover.SetFilter("No.", '<>%1', Rec."Expense User No.");
+
+        ExpenseUsers.LookupMode(true);
+        ExpenseUsers.SetTableView(ExpenseUserInterimApprover);
+        if ExpenseUsers.RunModal() <> Action::LookupOK then
+            exit;
+
+        ExpenseUsers.GetRecord(ExpenseUserInterimApprover);
+        Rec.AssignInterimApprover(ExpenseUserInterimApprover."No.");
+        CurrPage.Update(false);
     end;
 
     local procedure ProcessApprovalAction(ActionType: Enum "Expense Approval Action")

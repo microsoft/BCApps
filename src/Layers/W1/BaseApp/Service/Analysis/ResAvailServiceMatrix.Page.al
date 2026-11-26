@@ -659,7 +659,7 @@ page 9229 "Res. Avail. (Service) Matrix"
         CurrentDocumentType: Integer;
         CurrentDocumentNo: Code[20];
         CurrentServItemLineNo: Integer;
-        CurrentEntryNo: Integer;
+        CurrentEntryNo: BigInteger;
         SelectedDate: Date;
         PeriodType: Enum "Analysis Period Type";
         QualifiedForServItems: Option "Selected Service Item","All Service Items in Order";
@@ -711,7 +711,7 @@ page 9229 "Res. Avail. (Service) Matrix"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; ServItemLineNo: Integer; EntryNo: Integer; NewMatrixColumnCaptions: array[32] of Text[100]; var NewMatrixDateFilters: array[32] of Record Date; Period: Enum "Analysis Period Type")
+    procedure SetData(DocumentType: Integer; DocumentNo: Code[20]; ServItemLineNo: Integer; EntryNo: BigInteger; NewMatrixColumnCaptions: array[32] of Text[100]; var NewMatrixDateFilters: array[32] of Record Date; Period: Enum "Analysis Period Type")
     begin
         CurrentDocumentType := DocumentType;
         CurrentDocumentNo := DocumentNo;
@@ -762,6 +762,7 @@ page 9229 "Res. Avail. (Service) Matrix"
         end;
 
         SetVisible();
+        OnAfterMatrixOnAfterGetRecord(Rec, MATRIX_CellData, MatrixColumnDateFilters);
     end;
 
     local procedure MatrixOnDrillDown(Column: Integer)
@@ -841,5 +842,9 @@ page 9229 "Res. Avail. (Service) Matrix"
     local procedure OnBeforeMatrixOnAfterGetRecord(var MatrixRec: Record Resource; var MATRIX_CellData: array[32] of Decimal; var MatrixColumnDateFilters: array[32] of Record Date; var IsHandled: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterMatrixOnAfterGetRecord(Resource: Record Resource; var MatrixCellData: array[32] of Decimal; MatrixColumnDateFilters: array[32] of Record Date)
+    begin
+    end;
+}

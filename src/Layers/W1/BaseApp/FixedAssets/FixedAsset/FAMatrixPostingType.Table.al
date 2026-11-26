@@ -14,7 +14,7 @@ table 5647 "FA Matrix Posting Type"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -53,6 +53,7 @@ table 5647 "FA Matrix Posting Type"
             InsertRec(9, FADepreciationBook.FieldCaption("Gain/Loss"));
             InsertRec(10, FADepreciationBook.FieldCaption("Depreciable Basis"));
             InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
+            InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"));
         end else
             repeat
                 if "Entry No." = 1 then
@@ -110,11 +111,16 @@ table 5647 "FA Matrix Posting Type"
                         Delete();
                         InsertRec(11, FADepreciationBook.FieldCaption("Salvage Value"));
                     end;
+                if "Entry No." = 12 then
+                    if "FA Posting Type Name" <> FADepreciationBook.FieldCaption("Derogatory Amount") then begin
+                        Delete();
+                        InsertRec(12, FADepreciationBook.FieldCaption("Derogatory Amount"));
+                    end;
             until Next() = 0;
         OnAfterCreateTypes(Rec);
     end;
 
-    procedure InsertRec(EntryNo: Integer; FAPostingTypeName: Text)
+    procedure InsertRec(EntryNo: BigInteger; FAPostingTypeName: Text)
     begin
         "Entry No." := EntryNo;
         "FA Posting Type Name" := CopyStr(FAPostingTypeName, 1, MaxStrLen("FA Posting Type Name"));

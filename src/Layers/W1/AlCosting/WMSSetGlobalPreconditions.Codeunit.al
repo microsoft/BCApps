@@ -327,8 +327,7 @@ codeunit 103301 "WMS Set Global Preconditions"
         ServLine.DeleteAll();
         LotNoInfo.DeleteAll();
         ReqLine.DeleteAll();
-        Bin.ModifyAll(Empty, true);
-        Bin.ModifyAll("Block Movement", 0);
+        Bin.ModifyAll(Empty, true, "Block Movement", 0);
         PostValueEntryToGL.DeleteAll();
         GLItemLedgRelation.DeleteAll();
         GlEntryVatEntrylink.DeleteAll();

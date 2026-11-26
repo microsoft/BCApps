@@ -7,6 +7,7 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.UOM;
 using Microsoft.HumanResources.Employee;
@@ -355,6 +356,44 @@ codeunit 148309 "Expense Test II"
                 ExpenseCategory."Expense Detail Required",
                 ExpenseReportLine."Expense Detail Required",
                 StrSubstNo(ValueMustBeEqualErr, ExpenseReportLine.FieldCaption("Expense Detail Required"), ExpenseCategory."Expense Detail Required", ExpenseReportLine.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerNo,AddExpensesToExpenseReportModalPageHandler')]
+    procedure CreateExpenseReportUsesLocalCurrencyForForeignCurrencyExpense()
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseUser: Record "Expense User";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO 647169] Verify that a report created from a foreign currency expense uses local currency for reimbursement.
+        Initialize();
+
+        // [GIVEN] Create a released expense in a foreign currency.
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), LibraryRandom.RandDec(10, 2), LibraryRandom.RandDec(10, 2));
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, CurrencyCode, 100);
+        Expense.PerformManualRelease();
+
+        // [GIVEN] Select a new expense report.
+        LibraryVariableStorage.Enqueue(false);
+
+        // [WHEN] Create the expense report from the expense.
+        Expense.SetRange("No.", Expense."No.");
+        CreateExpenseReport.AddExpensesToReport(Expense);
+
+        // [THEN] The report uses local currency for reimbursement and retains the foreign currency on the line.
+        Expense.Get(Expense."No.");
+        ExpenseReportHeader.Get(Expense."Expense Report No.");
+        ExpenseReportHeader.TestField("Reimbursement Currency Code", '');
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLine.TestField("Expense Currency Code", CurrencyCode);
     end;
 
     [Test]
@@ -1067,7 +1106,7 @@ codeunit 148309 "Expense Test II"
 
         // [GIVEN] Create Expense with Expense Category.
         LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, '', '', true, '', Amount);
-        Expense.Validate("Merchant Name", LibraryRandom.RandText(10));
+        Expense.Validate("Merchant Name", CopyStr(LibraryRandom.RandText(10), 1, 100));
         Expense.Modify();
 
         // [WHEN] Update Amount Reduction in Expense to negative value.
@@ -1730,14 +1769,14 @@ codeunit 148309 "Expense Test II"
 
         // [GIVEN] Create Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser[1]);
-        ExpenseUser[1].Validate("E-mail", EmailId);
+        ExpenseUser[1].Validate("E-mail", CopyStr(EmailId, 1, 80));
         ExpenseUser[1].Modify();
 
         // [GIVEN] Create another Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser[2]);
 
         // [WHEN] Update the same Email ID in another Expense User.
-        asserterror ExpenseUser[2].Validate("E-mail", EmailId);
+        asserterror ExpenseUser[2].Validate("E-mail", CopyStr(EmailId, 1, 80));
 
         // [THEN] Verify that the error is thrown for duplicate Email ID in Expense User.
         Assert.ExpectedError(StrSubstNo(DuplicateEmailErr, ExpenseUser[2].FieldCaption("E-mail"), EmailId, ExpenseUser[2].TableCaption()));
@@ -1792,7 +1831,7 @@ codeunit 148309 "Expense Test II"
             StrSubstNo(ValueMustBeEqualErr, ExpenseUser.FieldCaption("E-mail"), Employee."Company E-Mail", ExpenseUser.TableCaption()));
 
         // [WHEN] Update Job Title in Employee.
-        Employee.Validate("Job Title", LibraryRandom.RandText(20));
+        Employee.Validate("Job Title", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [THEN] Verify that the Job Title is updated in Expense User.
         ExpenseUser.Get(ExpenseUser."No.");
@@ -1802,7 +1841,7 @@ codeunit 148309 "Expense Test II"
             StrSubstNo(ValueMustBeEqualErr, ExpenseUser.FieldCaption("Job Title"), Employee."Job Title", ExpenseUser.TableCaption()));
 
         // [WHEN] Update First Name in Employee.
-        Employee.Validate("First Name", LibraryRandom.RandText(20));
+        Employee.Validate("First Name", CopyStr(LibraryRandom.RandText(20), 1, 30));
 
         // [THEN] Verify that the Name is updated in Expense User.
         ExpenseUser.Get(ExpenseUser."No.");
@@ -2534,6 +2573,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenNameIsEmpty()
     var
         ExpenseUser: Record "Expense User";
@@ -2563,6 +2603,7 @@ codeunit 148309 "Expense Test II"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     procedure EmployeeIsNotCreatedFromExpenseUserWhenEmailIsEmpty()
     var
         ExpenseUser: Record "Expense User";
@@ -3113,6 +3154,103 @@ codeunit 148309 "Expense Test II"
 
         // [THEN] Verify that an error is thrown because a billable customer and a project are mutually exclusive.
         Assert.ExpectedError(StrSubstNo(BillableCustomerAndProjectErr, Expense.FieldCaption("Billable to Customer"), Expense.FieldCaption("Job No.")));
+    end;
+
+    [Test]
+    procedure DefaultApproverMustHaveUnlimitedApproval()
+    var
+        ExpenseUser: Record "Expense User";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        // [SCENARIO 626975] The configured default approver must retain unlimited approval.
+        Initialize();
+
+        // [GIVEN] An Expense User can approve, but has a finite approval limit.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := false;
+        ExpenseUser.Modify();
+        ExpenseAgentSetup.Get();
+
+        // [WHEN] The limited approver is selected as the default.
+        asserterror ExpenseAgentSetup.Validate("Default Approver No.", ExpenseUser."No.");
+
+        // [THEN] Setup rejects the value because it is not a valid default approver.
+        Assert.ExpectedError(ExpenseUser.TableCaption());
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Default Approver No.", '');
+    end;
+
+    [Test]
+    procedure RemovingApprovalRightsClearsLimitAndUnlimitedApproval()
+    var
+        ExpenseUser: Record "Expense User";
+    begin
+        // [SCENARIO 626975] Removing approval rights clears the related approval-limit settings.
+        Initialize();
+
+        // [GIVEN] An approver has approval rights and a finite limit.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ExpenseUser."Can Approve" := true;
+        ExpenseUser."Unlimited Approval" := false;
+        ExpenseUser."Approval Limit (LCY)" := 250;
+        ExpenseUser.Modify();
+
+        // [WHEN] Approval rights are removed.
+        ExpenseUser.Validate("Can Approve", false);
+
+        // [THEN] Approval is disabled and neither unlimited nor finite approval remains configured.
+        ExpenseUser.TestField("Can Approve", false);
+        ExpenseUser.TestField("Unlimited Approval", false);
+        ExpenseUser.TestField("Approval Limit (LCY)", 0);
+    end;
+
+    [Test]
+    procedure FindExpenseAccountByNameWithSpecialCharacters()
+    begin
+        // [SCENARIO 657205] Account names containing parentheses or apostrophes support case-insensitive wildcard matching.
+        Initialize();
+
+        VerifyExpenseAccountLookupWithSpecialCharacters('Rejseudgifter (pr. dag)', false);
+        VerifyExpenseAccountLookupWithSpecialCharacters('Employee''s travel', false);
+    end;
+
+    [Test]
+    procedure FindExpenseAccountBySubcategoryWithSpecialCharacters()
+    begin
+        // [SCENARIO 657205] Subcategory descriptions containing parentheses or apostrophes support case-insensitive wildcard matching.
+        Initialize();
+
+        VerifyExpenseAccountLookupWithSpecialCharacters('Rejseudgifter (pr. dag)', true);
+        VerifyExpenseAccountLookupWithSpecialCharacters('Employee''s travel', true);
+    end;
+
+    local procedure VerifyExpenseAccountLookupWithSpecialCharacters(SearchDescription: Text; MatchSubcategory: Boolean)
+    var
+        GLAccount: Record "G/L Account";
+        GLAccountCategory: Record "G/L Account Category";
+        CreateExpenseGLAccount: Codeunit "Create Expense GL Account";
+        MatchingDescription: Text;
+    begin
+        LibraryERM.CreateGLAccount(GLAccount);
+        GLAccount.Validate("Account Category", GLAccount."Account Category"::Expense);
+        SearchDescription := GLAccount."No." + ' ' + SearchDescription;
+        MatchingDescription := 'prefix ' + UpperCase(SearchDescription).Replace(' ', ' extra ') + ' suffix';
+
+        if MatchSubcategory then begin
+            GLAccountCategory.Init();
+            GLAccountCategory.Validate("Account Category", GLAccount."Account Category"::Expense);
+            GLAccountCategory.Validate(Description, CopyStr(MatchingDescription, 1, MaxStrLen(GLAccountCategory.Description)));
+            GLAccountCategory.Insert(true);
+            GLAccount.Validate("Account Subcategory Entry No.", GLAccountCategory."Entry No.");
+        end else
+            GLAccount.Validate(Name, CopyStr(MatchingDescription, 1, MaxStrLen(GLAccount.Name)));
+        GLAccount.Modify(true);
+
+        Assert.AreEqual(
+            GLAccount."No.",
+            CreateExpenseGLAccount.FindExistingExpenseAccount(GLAccount."Account Category", SearchDescription),
+            'The expense account must be found using a description containing special characters.');
     end;
 
     local procedure Initialize()

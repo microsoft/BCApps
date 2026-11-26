@@ -181,6 +181,14 @@ page 6913 "Posted Exp. Report Lines API"
                 {
                     Caption = 'Refundable';
                 }
+                field(spendRequestNo; Rec."Spend Request No.")
+                {
+                    Caption = 'Travel Request No.';
+                }
+                field(spendRequestClose; Rec."Spend Request Close")
+                {
+                    Caption = 'Travel Request Close';
+                }
                 field(purchaseInvoice; Rec."Purchase Invoice")
                 {
                     Caption = 'Purchase Invoice';
@@ -251,10 +259,36 @@ page 6913 "Posted Exp. Report Lines API"
                 field(creditCardFeedNo; Rec."Credit Card Feed No.")
                 {
                     Caption = 'Credit Card Feed No.';
+                    Editable = false;
+                }
+                field(corporateCardId; Rec."Corporate Card Id")
+                {
+                    Caption = 'Corporate Card Id';
+                    Editable = false;
                 }
                 field(expenseExtDocNo; Rec."Expense Ext. Doc. No.")
                 {
                     Caption = 'Expense External Document No.';
+                }
+                field(noReceiptType; Rec."No Receipt Type")
+                {
+                    Caption = 'No Receipt Type';
+                    Editable = false;
+                }
+                field(noReceiptReason; Rec."No Receipt Reason")
+                {
+                    Caption = 'No Receipt Reason';
+                    Editable = false;
+                }
+                field(complianceStatus; Rec."Compliance Status")
+                {
+                    Caption = 'Compliance Status';
+                    Editable = false;
+                }
+                field(complianceReason; Rec."Compliance Reason")
+                {
+                    Caption = 'Compliance Reason';
+                    Editable = false;
                 }
                 field(projectNo; Rec."Job No.")
                 {
@@ -294,6 +328,12 @@ page 6913 "Posted Exp. Report Lines API"
                     EntityName = 'postedExpenseReportLineAttachment';
                     EntitySetName = 'postedExpenseReportLineAttachments';
                     SubPageLink = "Document Id" = field(SystemId);
+                }
+                part(expensePolicyEvaluations; "Posted Policy Evaluations API")
+                {
+                    EntityName = 'postedExpensePolicyEvaluation';
+                    EntitySetName = 'postedExpensePolicyEvaluations';
+                    SubPageLink = "Subject System Id" = field(SystemId), "Subject Type" = const("Expense Report Line");
                 }
             }
         }

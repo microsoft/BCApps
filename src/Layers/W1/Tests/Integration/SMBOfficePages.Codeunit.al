@@ -55,8 +55,7 @@ codeunit 139048 "SMB Office Pages"
 
         // [GIVEN] Report selection for Sales Invoice has no email body or attachment configured.
         ReportSelections.SetRange(Usage, ReportSelections.Usage::"S.Invoice");
-        ReportSelections.ModifyAll("Use for Email Body", false);
-        ReportSelections.ModifyAll("Use for Email Attachment", false);
+        ReportSelections.ModifyAll("Use for Email Body", false, "Use for Email Attachment", false);
 
         // [GIVEN] Company information allows blank info (prevents unexpected confirm)
         CompanyInformation.Get();

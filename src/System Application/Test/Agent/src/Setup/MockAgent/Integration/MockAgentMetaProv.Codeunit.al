@@ -10,7 +10,7 @@ using System.AI;
 using System.Reflection;
 using System.Security.AccessControl;
 
-codeunit 133952 "Mock Agent Meta. Prov." implements IAgentMetadata, IAgentFactory
+codeunit 133952 "Mock Agent Meta. Prov." implements IAgentMetadata, IAgentFactory, IAgentArchiving
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -20,6 +20,11 @@ codeunit 133952 "Mock Agent Meta. Prov." implements IAgentMetadata, IAgentFactor
     var
         MockAgentSetup: Codeunit "Mock Agent Setup";
         MockAgentInitialLbl: Label 'MA', MaxLength = 4;
+
+    procedure IsArchivingSupported(): Boolean
+    begin
+        exit(false);
+    end;
 
     procedure GetDefaultInitials(): Text[4]
     begin

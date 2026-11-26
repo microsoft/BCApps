@@ -11,6 +11,7 @@ codeunit 8204 "Create Expense Categories DM"
 
     trigger OnRun()
     var
+        ExpenseCategory: Record "Expense Category";
         CreateExpenseGroup: Codeunit "Create Expense Group";
         CreateExpensePaymentMethod: Codeunit "Create Expense Payment Method";
         ContosoExpenseAgent: Codeunit "Contoso Expense Agent";
@@ -40,6 +41,8 @@ codeunit 8204 "Create Expense Categories DM"
         ContosoExpenseAgent.InsertExpenseCategory(Subscription(), ProfessionalSubscriptionsLbl, ProfessionalSubscriptionsPostingLbl, CreateExpensePostingGroup.ExpenseOther(), Enum::"Expense Attachment Enforcement"::Warning, CreateExpensePaymentMethod.Card(), false, false, CreateExpenseGroup.DayExpense(), true, Enum::"Expense Reimbursement Type"::"Credit Card", Enum::"Expense Detail Needed"::" ");
         ContosoExpenseAgent.InsertExpenseCategory(Tips(), TipsLbl, TipsPostingLbl, CreateExpensePostingGroup.ExpenseOther(), Enum::"Expense Attachment Enforcement"::" ", CreateExpensePaymentMethod.Cash(), false, false, CreateExpenseGroup.FoodBeverage(), false, Enum::"Expense Reimbursement Type"::"Employee Paid", Enum::"Expense Detail Needed"::" ");
         ContosoExpenseAgent.InsertExpenseCategory(Tolls(), TollRoadUsageFeeLbl, TollRoadUsageFeePostingLbl, CreateExpensePostingGroup.ExpenseOther(), Enum::"Expense Attachment Enforcement"::Warning, CreateExpensePaymentMethod.Cash(), false, false, CreateExpenseGroup.DayExpense(), true, Enum::"Expense Reimbursement Type"::"Employee Paid", Enum::"Expense Detail Needed"::" ");
+        if not ExpenseCategory.Get(PerDiem()) then
+            ContosoExpenseAgent.InsertExpenseCategory(PerDiem(), PerDiemLbl, PerDiemPostingLbl, CreateExpensePostingGroup.ExpenseTravel(), Enum::"Expense Attachment Enforcement"::" ", '', false, false, CreateExpenseGroup.Travel(), true, Enum::"Expense Reimbursement Type"::" ", Enum::"Expense Detail Needed"::" ");
     end;
 
     var
@@ -67,6 +70,7 @@ codeunit 8204 "Create Expense Categories DM"
         TipsTok: Label 'TIPS', MaxLength = 20, Locked = true;
         TollsTok: Label 'TOLLS', MaxLength = 20, Locked = true;
         FinesTok: Label 'FINES', MaxLength = 20, Locked = true;
+        PerDiemTok: Label 'PER-DIEM', MaxLength = 20, Locked = true;
         AirlineTicketsLbl: Label 'Expenses for commercial air travel, including airline tickets and airfare. Covers flights, passenger names, routes, carriers, booking references, fares, taxes, seat selection, baggage or change fees, and boarding passes.', MaxLength = 250;
         CarUsageFuelMaintenanceLbl: Label 'Expenses related to company car usage, including fuel, charging, car washes, small tools, consumables, and minor maintenance or repairs performed outside garage service. Excludes major servicing, leasing, and insurance.', MaxLength = 250;
         DeliveryExpenseLbl: Label 'Expenses for courier, delivery, and parcel services used to send or receive documents, packages, or goods. Includes postal services, express couriers, same-day delivery, shipping fees, and related surcharges.', MaxLength = 250;
@@ -79,18 +83,20 @@ codeunit 8204 "Create Expense Categories DM"
         GroundTransportationLbl: Label 'Expenses for ground transportation related to business travel, including buses, taxis and cabs, ride-hailing services, trains, metro or subway, trams, ferries or boats, limo services, and similar local or regional transport.', MaxLength = 250;
         HotelStayAccommodationLodgingLbl: Label 'Expenses for hotel and accommodation stays related to business travel. Includes room charges, mandatory hotel fees, city or tourist taxes, and in-stay services charged to the room.', MaxLength = 250;
         InternetFeesTravelLbl: Label 'Expenses for internet and data access related to business activities or travel. Includes hotel Wi-Fi charges, mobile data roaming fees, hotspot usage, prepaid data packages, and temporary internet services incurred while traveling.', MaxLength = 250;
-        MealsLbl: Label 'Expenses for meals provided to employees during working hours or business travel. Includes breakfasts, lunches, dinners, and meal allowances consumed during business-related activities. Excludes external entertainment and purely personal meals.', MaxLength = 250;
+        MealsLbl: Label 'Expenses for food and beverages, whether prepared or packaged, regardless of merchant type. Includes restaurant and cafe meals, takeaway, groceries, snacks, drinks, and similar food or beverage purchases.', MaxLength = 250;
         MileageLbl: Label 'Expenses for business mileage using a privately owned vehicle. Includes distance-based mileage claims for business travel, calculated per approved mileage rates. Excludes fuel receipts and company car expenses.', MaxLength = 250;
-        MiscellaneousExpensesLbl: Label 'Expenses that do not clearly fit into any other defined expense category. Used for infrequent or exceptional business-related costs not covered elsewhere, subject to review and company policy.', MaxLength = 250;
+        MiscellaneousExpensesLbl: Label 'Expenses for goods or services not covered by any other defined expense category.', MaxLength = 250;
         ParkingLbl: Label 'Expenses for parking related to business travel or work activities. Includes street parking, parking garages, airport parking, meters, and parking fees incurred while using a vehicle for business purposes.', MaxLength = 250;
         PassportVisaFeesLbl: Label 'Expenses for passport, visa, and other travel document fees required for business trips. Includes application, processing, service, and government fees directly related to obtaining travel authorization.', MaxLength = 250;
-        PharmacyDrugsBandagesGauzeLbl: Label 'Expenses for pharmacy purchases related to business activities or travel, including medicines, drugs, bandages, gauze, first-aid supplies, and similar medical or health-related items.', MaxLength = 250;
-        PersonalExpensesLbl: Label 'Expenses of a personal nature that are not related to business activities or work duties. Includes personal purchases, private travel, leisure activities, and other non-reimbursable costs.', MaxLength = 250;
+        PharmacyDrugsBandagesGauzeLbl: Label 'Expenses for medical and health-related products, regardless of merchant type. Includes medicines, supplements, first-aid supplies, and similar healthcare products.', MaxLength = 250;
+        PersonalExpensesLbl: Label 'Expenses for general retail goods for individual use that are not covered by a more specific category. Includes clothing, personal-care products, consumer electronics, and similar retail merchandise.', MaxLength = 250;
         PrepaymentsCashAdvanceLbl: Label 'Paid cash allowance for the business trip.', MaxLength = 250;
         CarRentalsLbl: Label 'Expenses for renting cars for business travel. Includes short- or long-term vehicle rental charges, mandatory rental fees, and basic insurance associated with the rental.', MaxLength = 250;
         ProfessionalSubscriptionsLbl: Label 'Expenses for professional or business-related subscriptions. Includes software licenses, online services, professional memberships, journals, publications, and recurring digital services required for work purposes.', MaxLength = 250;
         TipsLbl: Label 'Expenses for tips or gratuities paid in connection with business activities or travel. Includes tips for taxis, restaurants, hotels, delivery, luggage handling, and similar service-related gratuities.', MaxLength = 250;
         TollRoadUsageFeeLbl: Label 'Expenses for tolls and road usage fees incurred during business travel. Includes highway and bridge tolls, congestion charges, road pricing fees, vignettes, and similar charges for using public roads.', MaxLength = 250;
+        PerDiemLbl: Label 'Category to be used for automatic per-diem calculations during business travel.', MaxLength = 250;
+        PerDiemPostingLbl: Label 'Per Diem', MaxLength = 100;
         AirlineTicketsPostingLbl: Label 'Airline tickets', MaxLength = 100;
         CarUsageFuelMaintenancePostingLbl: Label 'Car usage, Fuel & Maintenance', MaxLength = 100;
         DeliveryExpensePostingLbl: Label 'Delivery expense', MaxLength = 100;
@@ -196,12 +202,10 @@ codeunit 8204 "Create Expense Categories DM"
         exit(PassportTok);
     end;
 
-#if not CLEAN29
-    [Obsolete('This function is no longer used.', '29.0')]
     procedure PerDiem(): Code[20]
     begin
+        exit(PerDiemTok);
     end;
-#endif
 
     procedure Personal(): Code[20]
     begin

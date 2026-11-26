@@ -39,6 +39,7 @@ codeunit 134099 "Purchase Documents"
         DocAmountFieldVisibleErr: Label 'The field %1 should be visible on the purchase invoice page.', Comment = '%1 = Field Caption';
         PurchaseInvoiceSelfBillingErr: Label 'Posted purchase invoice is not marked as self-billing invoice';
         SelfBillingInvoiceReportCaptionLbl: Label 'Self Billing Invoice ';
+        SelfBillingNoSeriesMissingErr: Label 'Specify a number series for self-billing invoices in the %1 field on vendor %2, or in the %3 field in %4.', Comment = '%1 = Self-Billing Invoice Nos. field caption, %2 = Vendor No., %3 = Posted Self-Billing Inv. Nos. field caption, %4 = Purchases & Payables Setup table caption';
 
     [Test]
     [HandlerFunctions('RecallNotificationHandler,SendNotificationHandler')]
@@ -2161,6 +2162,143 @@ codeunit 134099 "Purchase Documents"
         RequestPageXML := REPORT.RunRequestPage(REPORT::"Self Billing Invoice", RequestPageXML);
         LibraryReportDataset.RunReportAndLoad(REPORT::"Self Billing Invoice", PurchInvHeader, RequestPageXML);
         LibraryReportDataset.AssertElementWithValueExists('SelfBillingCaption', SelfBillingInvoiceReportCaptionLbl);
+    end;
+
+    [Test]
+    procedure PurchPostUsesVendorSelfBillingNoSeriesOverGlobal()
+    var
+        PurchHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        Vendor: Record Vendor;
+        VendorNoSeriesLine: Record "No. Series Line";
+        GlobalNoSeriesLine: Record "No. Series Line";
+        GlobalNoSeriesCode: Code[20];
+        VendorNoSeriesCode: Code[20];
+        SelfBillingInvoiceNo: Code[20];
+    begin
+        // [FEATURE] [Self-Billing]
+        // [SCENARIO 626320] When a vendor has "Self-Billing Invoice Nos.", posting uses the vendor series instead of the setup series.
+        Initialize();
+
+        // [GIVEN] A global number series is set in "Posted Self-Billing Inv. Nos." in Purchases & Payables Setup.
+        GlobalNoSeriesCode := LibraryERM.CreateNoSeriesCode();
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Posted Self-Billing Inv. Nos.", GlobalNoSeriesCode);
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] A self-billing vendor has its own value in "Self-Billing Invoice Nos.".
+        VendorNoSeriesCode := LibraryERM.CreateNoSeriesCode();
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Self-Billing Agreement", true);
+        Vendor.Validate("Self-Billing Invoice Nos.", VendorNoSeriesCode);
+        Vendor.Modify(true);
+
+        // [GIVEN] A purchase invoice is created for the vendor with an empty "Vendor Invoice No.".
+        LibraryPurchase.CreatePurchHeader(PurchHeader, PurchHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+
+        // [WHEN] The purchase document is posted.
+        SelfBillingInvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
+
+        // [THEN] "Vendor Invoice No." is assigned from the vendor-specific number series.
+        PurchInvHeader.Get(SelfBillingInvoiceNo);
+        VendorNoSeriesLine.SetRange("Series Code", VendorNoSeriesCode);
+        VendorNoSeriesLine.FindFirst();
+        Assert.AreEqual(VendorNoSeriesLine."Last No. Used", PurchInvHeader."Vendor Invoice No.", PurchInvHeader.FieldCaption("Vendor Invoice No."));
+
+        // [THEN] The global self-billing number series is not used.
+        GlobalNoSeriesLine.SetRange("Series Code", GlobalNoSeriesCode);
+        GlobalNoSeriesLine.FindFirst();
+        Assert.AreEqual('', GlobalNoSeriesLine."Last No. Used", 'The global self-billing number series should not be used when the vendor has its own series.');
+    end;
+
+    [Test]
+    procedure PurchPostSelfBillingFailsWithoutAnyNoSeries()
+    var
+        PurchHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        Vendor: Record Vendor;
+    begin
+        // [FEATURE] [Self-Billing]
+        // [SCENARIO 626320] Posting fails when neither vendor nor setup defines a self-billing number series.
+        Initialize();
+
+        // [GIVEN] "Posted Self-Billing Inv. Nos." in Purchases & Payables Setup is empty.
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Posted Self-Billing Inv. Nos.", '');
+        PurchasesPayablesSetup.Modify(true);
+
+        // [GIVEN] A self-billing vendor has no value in "Self-Billing Invoice Nos."
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Self-Billing Agreement", true);
+        Vendor.Modify(true);
+
+        // [GIVEN] A purchase invoice is created for the vendor.
+        LibraryPurchase.CreatePurchHeader(PurchHeader, PurchHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), 1);
+
+        // [WHEN] The purchase document is posted.
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchHeader, true, true);
+
+        // [THEN] Posting fails with the self-billing number series error that identifies the vendor and setup fields.
+        Assert.ExpectedError(
+            StrSubstNo(
+                SelfBillingNoSeriesMissingErr,
+                Vendor.FieldCaption("Self-Billing Invoice Nos."),
+                Vendor."No.",
+                PurchasesPayablesSetup.FieldCaption("Posted Self-Billing Inv. Nos."),
+                PurchasesPayablesSetup.TableCaption()));
+    end;
+
+    [Test]
+    procedure SelfBillingAgreementCannotBeDisabledWhileNoSeriesIsSet()
+    var
+        Vendor: Record Vendor;
+    begin
+        // [FEATURE] [Self-Billing]
+        // [SCENARIO 626320] "Self-Billing Agreement" cannot be turned off while the vendor still has a "Self-Billing Invoice Nos." series.
+        Initialize();
+
+        // [GIVEN] A self-billing vendor that has a vendor-specific "Self-Billing Invoice Nos." series assigned.
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Self-Billing Agreement", true);
+        Vendor.Validate("Self-Billing Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+        Vendor.Modify(true);
+
+        // [WHEN] Disabling "Self-Billing Agreement" without first clearing the number series.
+        asserterror Vendor.Validate("Self-Billing Agreement", false);
+
+        // [THEN] Validation fails, requiring "Self-Billing Invoice Nos." to be blank before the agreement can be disabled.
+        Assert.ExpectedError(Vendor.FieldCaption("Self-Billing Invoice Nos."));
+    end;
+
+    [Test]
+    procedure SelfBillingAgreementCanBeDisabledAfterClearingNoSeries()
+    var
+        Vendor: Record Vendor;
+    begin
+        // [FEATURE] [Self-Billing]
+        // [SCENARIO 626320] "Self-Billing Agreement" can be turned off once the "Self-Billing Invoice Nos." series is cleared.
+        Initialize();
+
+        // [GIVEN] A self-billing vendor that has a vendor-specific "Self-Billing Invoice Nos." series assigned.
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("Self-Billing Agreement", true);
+        Vendor.Validate("Self-Billing Invoice Nos.", LibraryERM.CreateNoSeriesCode());
+        Vendor.Modify(true);
+
+        // [GIVEN] The vendor-specific number series is cleared.
+        Vendor.Validate("Self-Billing Invoice Nos.", '');
+
+        // [WHEN] Disabling "Self-Billing Agreement".
+        Vendor.Validate("Self-Billing Agreement", false);
+
+        // [THEN] The agreement is disabled and the number series stays blank.
+        Vendor.TestField("Self-Billing Agreement", false);
+        Vendor.TestField("Self-Billing Invoice Nos.", '');
     end;
 
     local procedure Initialize()

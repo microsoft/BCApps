@@ -51,6 +51,7 @@ codeunit 7783 "AOAI User Message"
     /// Gets the assembled content parts as a JsonArray.
     /// </summary>
     /// <returns>The content parts JsonArray.</returns>
+    [NonDebuggable]
     internal procedure GetContentParts(): JsonArray
     begin
         exit(AOAIUserMessageImpl.GetContentParts());

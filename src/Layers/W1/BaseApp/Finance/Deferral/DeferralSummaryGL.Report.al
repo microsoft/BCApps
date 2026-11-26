@@ -24,7 +24,7 @@ report 1700 "Deferral Summary - G/L"
     {
         dataitem(GLAccount; "G/L Account")
         {
-            RequestFilterFields = "No.";
+            RequestFilterFields = "No.", "Global Dimension 1 Filter", "Global Dimension 2 Filter";
             // RDLC only
             column(CompanyName; COMPANYPROPERTY.DisplayName())
             {
@@ -143,6 +143,9 @@ report 1700 "Deferral Summary - G/L"
                     GLEntry: Record "G/L Entry";
                     LinesFound: Boolean;
                 begin
+                    if not EntryMatchesGlobalDimFilters("Entry No.") then
+                        CurrReport.Skip();
+
                     PreviousAccount := WorkingAccount;
                     if GLAccount.Get("Account No.") then begin
                         AccountName := GLAccount.Name;
@@ -277,25 +280,27 @@ report 1700 "Deferral Summary - G/L"
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.xlsx';
             Summary = 'Report layout primarily made for data analysis. Use an Excel editor to modify the layout.';
         }
+#if not CLEAN30
         layout(Word)
         {
             Caption = 'Deferral Summary G/L Word';
             Type = Word;
             LayoutFile = './Finance/Deferral/DeferralSummaryGL.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
-        }
-#if not CLEAN27
-        layout(RDLC)
-        {
-            Caption = 'Deferral Summary G/L RDLC';
-            Type = RDLC;
-            LayoutFile = './Finance/Deferral/DeferralSummaryGL.rdlc';
             ObsoleteState = Pending;
-            ObsoleteReason = 'The RDLC layout has been replaced by the Excel and Word layouts and will be removed in a future release.';
-            ObsoleteTag = '27.0';
-            Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
         }
 #endif
+
+        layout(WordBody)
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './Finance/Deferral/DeferralSummaryGLBody.docx';
+            Caption = 'Body-Only: Deferral Summary G/L Word';
+            Summary = 'Landscape orientated. Shows posting date, document, deferral account, start date, and number of periods for each G/L account, together with the amount recognized, the remaining amount, and the total deferred. Includes totals.';
+        }
     }
 
     labels
@@ -330,6 +335,8 @@ report 1700 "Deferral Summary - G/L"
     trigger OnPreReport()
     begin
         PostedDeferralFilter := "Posted Deferral Header".GetFilters();
+        GlobalDim1Filter := GLAccount.GetFilter("Global Dimension 1 Filter");
+        GlobalDim2Filter := GLAccount.GetFilter("Global Dimension 2 Filter");
         if HideZeroRemainingAmounts then
             "Posted Deferral Header".CalculatePeriodFilter(BalanceAsOfDateFilter, PeriodStartDate, PeriodEndDate);
     end;
@@ -365,6 +372,8 @@ report 1700 "Deferral Summary - G/L"
         PeriodStartDate: Date;
         PeriodEndDate: Date;
         LineCount: Integer;
+        GlobalDim1Filter: Text;
+        GlobalDim2Filter: Text;
         // RDLC Only layout field captions. To be removed in a future release along with the RDLC layout.
         PageCaptionLbl: Label 'Page';
         BalanceCaptionLbl: Label 'This also includes general ledger accounts that only have a balance.';
@@ -386,5 +395,20 @@ report 1700 "Deferral Summary - G/L"
     begin
         PrintOnlyOnePerPage := NewPrintOnlyOnePerPage;
         BalanceAsOfDateFilter := NewBalanceAsOfDateFilter;
+    end;
+
+    local procedure EntryMatchesGlobalDimFilters(GLEntryNo: BigInteger): Boolean
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        if (GlobalDim1Filter = '') and (GlobalDim2Filter = '') then
+            exit(true);
+
+        GLEntry.SetRange("Entry No.", GLEntryNo);
+        if GlobalDim1Filter <> '' then
+            GLEntry.SetFilter("Global Dimension 1 Code", GlobalDim1Filter);
+        if GlobalDim2Filter <> '' then
+            GLEntry.SetFilter("Global Dimension 2 Code", GlobalDim2Filter);
+        exit(not GLEntry.IsEmpty());
     end;
 }

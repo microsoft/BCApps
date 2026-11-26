@@ -524,11 +524,16 @@ page 42 "Sales Order"
                 {
                     ApplicationArea = BasicEU;
                 }
+                #if not CLEAN30
                 field("VAT Paid on Debits"; Rec."VAT Paid on Debits")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the VAT was paid on debits for this document.';
+                    ObsoleteReason = 'Moved to Sales FR app.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+                #endif
                 group(Control76)
                 {
                     ShowCaption = false;
@@ -838,8 +843,8 @@ page 42 "Sales Order"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Name 2';
-                            Editable = (BillToOptions = BillToOptions::"Another Customer");
-                            Enabled = (BillToOptions = BillToOptions::"Another Customer");
+                            Editable = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
+                            Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
                             Visible = false;

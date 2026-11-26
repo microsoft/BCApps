@@ -755,9 +755,7 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Exchange Folder" = RM,
                   tabledata "Exchange Object" = RM,
                   tabledata "Exchange Service Setup" = RM,
-#if not CLEAN28
                   tabledata "Exchange Sync" = RM,
-#endif
                   tabledata "Exp. Invt. Order Tracking" = RM,
                   tabledata "Experience Tier Buffer" = RM,
                   tabledata "Experience Tier Setup" = RM,

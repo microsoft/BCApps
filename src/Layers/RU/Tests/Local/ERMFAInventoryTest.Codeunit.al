@@ -214,9 +214,11 @@ codeunit 144716 "ERM FA Inventory Test"
 
     local procedure RunFAINV1Report(FAJournalBatch: Record "FA Journal Batch"; EmployeeNo: Code[20]; FALocationCode: Code[10])
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FAJournalLine: Record "FA Journal Line";
         FAPhysInventoryINV1: Report "FA Phys. Inventory INV-1";
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         FilterFAJnlLine(FAJournalLine, FAJournalBatch);
         FAJournalLine.SetRange("Employee No.", EmployeeNo);
@@ -228,13 +230,16 @@ codeunit 144716 "ERM FA Inventory Test"
         FAPhysInventoryINV1.UseRequestPage(true);
         Commit();
         FAPhysInventoryINV1.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure RunFAINV1aReport(FAJournalBatch: Record "FA Journal Batch")
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         FAJournalLine: Record "FA Journal Line";
         FAPhysInventoryINV1a: Report "FA Phys. Inventory INV-1a";
     begin
+        BindSubscription(RUReportDownloadHandler);
         ClearPrintingData(FAJournalBatch);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         FilterFAJnlLine(FAJournalLine, FAJournalBatch);
@@ -243,6 +248,7 @@ codeunit 144716 "ERM FA Inventory Test"
         FAPhysInventoryINV1a.SetTableView(FAJournalLine);
         FAPhysInventoryINV1a.UseRequestPage(false);
         FAPhysInventoryINV1a.Run();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure VerifyINV1FirstPageValues(EmployeeNo: Code[20]; FALocationCode: Code[10]; InventoryDocNo: Code[20]; InventoryDate: Date; DocumentNo: Code[20]; DocumentDate: Date; StartingDate: Date; EndingDate: Date)

@@ -89,8 +89,11 @@ table 5740 "Transfer Header"
                             TransferRoute.GetTransferRoute(
                               "Transfer-from Code", "Transfer-to Code", InTransitCode,
                               ShippingAgentCode, ShippingAgentServiceCode, "Direct Transfer", "Direct Transfer Posting");
-                            if not "Direct Transfer" then begin
+                            if "Direct Transfer Posting" = "Direct Transfer Posting"::"Direct Transfer" then
+                                "In-Transit Code" := ''
+                            else
                                 "In-Transit Code" := InTransitCode;
+                            if not "Direct Transfer" then begin
                                 "Shipping Agent Code" := ShippingAgentCode;
                                 "Shipping Agent Service Code" := ShippingAgentServiceCode;
                                 OnAfterGetTransferRoute(Rec, TransferRoute);
@@ -242,9 +245,12 @@ table 5740 "Transfer Header"
                             TransferRoute.GetTransferRoute(
                                   "Transfer-from Code", "Transfer-to Code", InTransitCode,
                                   ShippingAgentCode, ShippingAgentServiceCode, "Direct Transfer", "Direct Transfer Posting");
+                            if "Direct Transfer Posting" = "Direct Transfer Posting"::"Direct Transfer" then
+                                "In-Transit Code" := ''
+                            else
+                                "In-Transit Code" := InTransitCode;
                             if not "Direct Transfer" then begin
                                 "Inbound Whse. Handling Time" := Location."Inbound Whse. Handling Time";
-                                "In-Transit Code" := InTransitCode;
                                 "Shipping Agent Code" := ShippingAgentCode;
                                 "Shipping Agent Service Code" := ShippingAgentServiceCode;
                                 OnAfterGetTransferRoute(Rec, TransferRoute);
@@ -609,7 +615,8 @@ table 5740 "Transfer Header"
 
                 Modify(true);
 
-                VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
+                if "Direct Transfer" then
+                    VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
                 UpdateTransLines(Rec, FieldNo("Direct Transfer"));
             end;
         }
@@ -1083,7 +1090,11 @@ table 5740 "Transfer Header"
                         TransferLine.Validate("In-Transit Code", TransferHeader."In-Transit Code");
                     FieldNo("Transfer-from Code"):
                         begin
+                            TransferLine.SetTransferHeader(TransferHeader);
+                            TransferLine."Direct Transfer" := TransferHeader."Direct Transfer";
                             TransferLine.Validate("Transfer-from Code", TransferHeader."Transfer-from Code");
+                            if TransferHeader."Direct Transfer" then
+                                TransferLine.Validate("In-Transit Code", TransferHeader."In-Transit Code");
                             TransferLine.Validate("Shipping Agent Code", TransferHeader."Shipping Agent Code");
                             TransferLine.Validate("Shipping Agent Service Code", TransferHeader."Shipping Agent Service Code");
                             TransferLine.Validate("Shipment Date", TransferHeader."Shipment Date");
@@ -1092,7 +1103,11 @@ table 5740 "Transfer Header"
                         end;
                     FieldNo("Transfer-to Code"):
                         begin
+                            TransferLine.SetTransferHeader(TransferHeader);
+                            TransferLine."Direct Transfer" := TransferHeader."Direct Transfer";
                             TransferLine.Validate("Transfer-to Code", TransferHeader."Transfer-to Code");
+                            if TransferHeader."Direct Transfer" then
+                                TransferLine.Validate("In-Transit Code", TransferHeader."In-Transit Code");
                             TransferLine.Validate("Shipping Agent Code", TransferHeader."Shipping Agent Code");
                             TransferLine.Validate("Shipping Agent Service Code", TransferHeader."Shipping Agent Service Code");
                             TransferLine.Validate("Shipment Date", TransferHeader."Shipment Date");
@@ -1664,6 +1679,8 @@ table 5740 "Transfer Header"
     var
         DummyTrackingSpecification: Record "Tracking Specification";
     begin
+        OnBeforeTestTransferLine(TransferLine, Ship);
+
         if Ship then
             DummyTrackingSpecification.CheckItemTrackingQuantity(Database::"Transfer Line", 0, "No.", TransferLine."Line No.",
                 TransferLine."Qty. to Ship (Base)", TransferLine."Qty. to Ship (Base)", true, false)
@@ -2051,6 +2068,11 @@ table 5740 "Transfer Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnUpdateTransLinesOnAfterUpdateFromDirectTransfer(var TransferLine: Record "Transfer Line"; TempTransferLine: Record "Transfer Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestTransferLine(TransferLine: Record "Transfer Line"; Ship: Boolean)
     begin
     end;
 }

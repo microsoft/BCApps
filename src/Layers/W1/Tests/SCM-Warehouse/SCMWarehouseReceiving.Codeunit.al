@@ -80,6 +80,7 @@ codeunit 137152 "SCM Warehouse - Receiving"
         WarehouseHeaderDeleteConfirmationMsg: Label 'The Whse. Receipt is not completely received.\Do you really want to delete the Whse. Receipt?';
         ExceedsErr: Label 'exceeds the available capacity';
         FromBinBlankErr: Label 'From Bin Should be blank';
+        MovementCreatedErr: Label 'Movement ';
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -4216,7 +4217,7 @@ codeunit 137152 "SCM Warehouse - Receiving"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('SetLotItemWithQtyToHandleTrackingPageHandler,ConfirmHandlerTrue')]
+    [HandlerFunctions('SetLotItemWithQtyToHandleTrackingPageHandler,ConfirmHandlerTrue,MovementCreatedMessageHandler')]
     procedure CreateMovementFromMovementWorksheetWithExpirationDateOfFEFOItem()
     var
         Bin: array[5] of Record Bin;
@@ -4357,6 +4358,58 @@ codeunit 137152 "SCM Warehouse - Receiving"
         WarehouseEntry.SetRange("Source Document", WarehouseEntry."Source Document"::"P. Order");
         WarehouseEntry.SetRange("Source No.", PurchaseHeader."No.");
         Assert.RecordCount(WarehouseEntry, ExpectedLinesCount);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingPageHandler,EnterQuantityToCreatePageHandler')]
+    [Scope('OnPrem')]
+    procedure RegisterPutAwayWithBlankLotForSerialAndLotItemIsBlocked()
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        LotNo: Variant;
+        Quantity: Decimal;
+        ItemTrackingMode: Option "Assign Lot No.","Assign Lot And Serial","Assign Serial No.","Select Entries","Assign Multiple Lot No";
+    begin
+        // [FEATURE] [Item Tracking] [Put-away]
+        // [SCENARIO 642316] Registering a Put-away for a serial- and lot-tracked item must fail when the Lot No. is cleared on a line,
+        // because the item ledger entry being put away carries that Lot No. and the warehouse entry must match it,
+        // otherwise Item Ledger Entries and Warehouse Bin Content become permanently mismatched.
+
+        // [GIVEN] Item with both serial and lot tracking.
+        Initialize();
+        Quantity := LibraryRandom.RandInt(10);
+        CreateItemWithItemTrackingCode(Item, true, true, LibraryUtility.GetGlobalNoSeriesCode(), LibraryUtility.GetGlobalNoSeriesCode());  // Taking True for Serial and Lot.
+
+        // [GIVEN] Warehouse receipt from a purchase order is posted with serial and lot assigned, creating a Put-away activity.
+        CreateWarehouseReceiptFromPurchaseOrder(PurchaseHeader, LocationWhite.Code, Item."No.", Quantity, Item."Base Unit of Measure");
+        FindWarehouseReceiptLine(
+          WarehouseReceiptLine, WarehouseReceiptLine."Source Document"::"Purchase Order", PurchaseHeader."No.", LocationWhite.Code);
+        LibraryVariableStorage.Enqueue(ItemTrackingMode::"Assign Lot And Serial");  // Enqueue for ItemTrackingPageHandler.
+        WarehouseReceiptLine.OpenItemTrackingLines();
+        PostWarehouseReceiptFromPurchaseOrder(PurchaseHeader."No.", LocationWhite.Code);
+        LibraryVariableStorage.Dequeue(LotNo);  // Drain the Lot No. enqueued by ItemTrackingPageHandler.
+
+        // [GIVEN] The required Lot No. is cleared on a Put-away line, simulating a user leaving it blank.
+        FindWarehouseActivityLine(
+          WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Purchase Order", PurchaseHeader."No.",
+          WarehouseActivityLine."Activity Type"::"Put-away");
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Place);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Validate("Lot No.", '');
+        WarehouseActivityLine.Modify(true);
+
+        // [WHEN] Registering the Put-away activity.
+        asserterror RegisterWarehouseActivity(
+          WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Purchase Order", PurchaseHeader."No.",
+          WarehouseActivityLine."Activity Type"::"Put-away");
+
+        // [THEN] Registration is blocked because the line's Lot No. must equal the posted item ledger entry's Lot No.,
+        // preventing the ledger/bin content mismatch.
+        Assert.ExpectedTestFieldError(WarehouseActivityLine.FieldCaption("Lot No."), Format(LotNo));
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -6960,6 +7013,13 @@ codeunit 137152 "SCM Warehouse - Receiving"
         ItemTrackingLines."Quantity (Base)".SetValue(LibraryVariableStorage.DequeueDecimal());
         ItemTrackingLines."Expiration Date".SetValue(LibraryVariableStorage.DequeueDate());
         ItemTrackingLines.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure MovementCreatedMessageHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(StrPos(Message, MovementCreatedErr) > 0, Message);
     end;
 
     [ConfirmHandler]

@@ -22,6 +22,7 @@
         CannotBeLessThanMsg: Label 'cannot be less than %1', Comment = '.';
         CannotBeMoreThanMsg: Label 'cannot be more than %1', Comment = '.';
         DirectCostModifyMsg: Label 'must be %1 when the Prepayment Invoice has already been posted', Comment = 'starts with a field name; %1 - numeric value';
+        PrepmtAmtToDeductMisalignedErr: Label 'Prepmt Amt to Deduct must stay aligned with the posted prepayment after toggling Qty. to Invoice.';
 
     [Test]
     [Scope('OnPrem')]
@@ -810,6 +811,113 @@
         VerifyDescriptionOnPostedInvoiceRoundingLine(PurchaseHeaderOrder);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtAmtToDeductStableWhenTogglingQtyToInvoice()
+    var
+        PurchOrderHeader: Record "Purchase Header";
+        PurchInvoiceHeader: Record "Purchase Header";
+        PurchOrderLine: Record "Purchase Line";
+        ExpectedPrepmtAmtToDeduct: Decimal;
+    begin
+        // [FEATURE] [Rounding]
+        // [SCENARIO 644912] "Prepmt Amt to Deduct" does not fluctuate when "Qty. to Invoice" is toggled after posting the prepayment invoice
+        Initialize();
+
+        // [GIVEN] Purchase Order with 100% Prepayment, Qty = 2, "Qty. to Receive" = 1, "Qty. to Invoice" = 1, "Direct Unit Cost" = 42.963
+        PreparePurchOrder(PurchOrderHeader);
+        AddPurchOrderLine(PurchOrderLine, PurchOrderHeader, 2, 42.963, 100, 0);
+        UpdateQtysInLine(PurchOrderLine, 1, 1);
+
+        // [GIVEN] The value posted for the invoiced quantity is the prorated Round(1 * Round(2 * 42.963) / 2) = 42.97
+        ExpectedPrepmtAmtToDeduct := 42.97;
+
+        // [GIVEN] Prepayment invoice is posted
+        PostPurchPrepmtInvoice(PurchOrderHeader);
+        PurchOrderLine.Find();
+        PurchOrderLine.TestField("Prepmt Amt to Deduct", ExpectedPrepmtAmtToDeduct);
+
+        // [WHEN] "Qty. to Invoice" is changed to 0 and then back to 1
+        PurchOrderLine.Validate("Qty. to Invoice", 0);
+        PurchOrderLine.Modify(true);
+        PurchOrderLine.Validate("Qty. to Invoice", 1);
+        PurchOrderLine.Modify(true);
+
+        // [THEN] "Prepmt Amt to Deduct" stays 42.97 and does not flip to 42.96
+        Assert.AreEqual(
+          ExpectedPrepmtAmtToDeduct, PurchOrderLine."Prepmt Amt to Deduct",
+          PrepmtAmtToDeductMisalignedErr);
+
+        // [WHEN] The order is fully received and invoiced
+        PurchInvoiceHeader."Buy-from Vendor No." := PurchOrderHeader."Buy-from Vendor No.";
+        CreatePurchInvoice(PurchInvoiceHeader, PurchOrderHeader."Prices Including VAT");
+        UpdateQtysInLine(PurchOrderLine, 2, 0);
+        PurchOrderHeader.Find();
+        LibraryPurchase.PostPurchaseDocument(PurchOrderHeader, true, false);
+        GetReceiptLine(PurchInvoiceHeader, PurchOrderHeader."Last Receiving No.");
+        LibraryPurchase.PostPurchaseDocument(PurchInvoiceHeader, false, true);
+
+        // [THEN] The full posted prepayment (42.97 + 42.96 = 85.93) is deducted with no rounding lost
+        PurchOrderLine.Find();
+        PurchOrderLine.TestField("Prepmt Amt Deducted", PurchOrderLine."Prepmt. Amt. Inv.");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PrepmtLineAmountStaysAlignedAfterPartialInvoicesWithInvDiscRecalc()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        VendorInvoiceDisc: Record "Vendor Invoice Disc.";
+        ExpectedLineAmount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [Rounding] [Invoice Discount]
+        // [SCENARIO 656844] "Prepmt. Line Amount" does not drift below "Prepmt. Amt. Inv." after several partial invoices of a 100% prepaid order
+        Initialize();
+
+        // [GIVEN] "Calc. Inv. Discount" is enabled and the vendor has an invoice discount with "Discount %" = 0
+        LibraryPurchase.SetCalcInvDiscount(true);
+        PreparePurchOrder(PurchaseHeader);
+        LibraryERM.CreateInvDiscForVendor(VendorInvoiceDisc, PurchaseHeader."Invoice Disc. Code", '', 0);
+
+        // [GIVEN] Purchase order line with 100% prepayment, Quantity = 25, "Direct Unit Cost" = 98.802, "Line Amount" = 2470.05
+        ExpectedLineAmount := 2470.05;
+        AddPurchOrderLine(PurchaseLine, PurchaseHeader, 25, 98.802, 100, 0);
+        PurchaseLine.TestField("Line Amount", ExpectedLineAmount);
+
+        // [GIVEN] Posted prepayment invoice
+        PostPurchPrepmtInvoice(PurchaseHeader);
+
+        // [GIVEN] Four partial receipts and invoices of 2 units, each deducting a prepayment rounded down by 0.004 (197.60 instead of 197.604)
+        for i := 1 to 4 do begin
+            UpdateQtysInLine(PurchaseLine, 2, 2);
+            PurchaseHeader.Find();
+            InvoicePurchaseDocWithSavedVendorInvoiceNo(PurchaseHeader);
+        end;
+
+        // [WHEN] Reopen and release the order, which recalculates the invoice discount and the prepayment amounts
+        PurchaseHeader.Find();
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        // [THEN] "Prepmt. Line Amount" still equals "Prepmt. Amt. Inv." = 2470.05
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Prepmt. Amt. Inv.", ExpectedLineAmount);
+        PurchaseLine.TestField("Prepmt. Line Amount", PurchaseLine."Prepmt. Amt. Inv.");
+
+        // [WHEN] Reopen the order and receive and invoice the remaining 17 units
+        LibraryPurchase.ReopenPurchaseDocument(PurchaseHeader);
+        UpdateQtysInLine(PurchaseLine, 17, 17);
+        PurchaseLine.Find();
+        PurchaseLine.TestField("Prepmt Amt to Deduct", PurchaseLine."Prepmt. Amt. Inv." - PurchaseLine."Prepmt Amt Deducted");
+        PurchaseHeader.Find();
+        InvoicePurchaseDocWithSavedVendorInvoiceNo(PurchaseHeader);
+
+        // [THEN] The remaining prepayment is fully deducted and the final invoice balance is zero
+        VerifyZeroVendorAccEntry();
+    end;
+
     local procedure Initialize()
     var
         LibraryApplicationArea: Codeunit "Library - Application Area";
@@ -1083,6 +1191,14 @@
     begin
         PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure InvoicePurchaseDocWithSavedVendorInvoiceNo(var PurchaseHeader: Record "Purchase Header")
+    begin
+        // Posting a released order with "Calc. Inv. Discount" re-reads the header, so the new "Vendor Invoice No." must be stored
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
     end;
 
     local procedure UpdateQtysInLine(var PurchLine: Record "Purchase Line"; QtyToReceive: Decimal; QtyToInvoice: Decimal)

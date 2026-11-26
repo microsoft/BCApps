@@ -5,9 +5,11 @@
 namespace Microsoft.PowerBIReports;
 
 using Microsoft.Finance.PowerBIReports;
+using Microsoft.Foundation.Company;
 using Microsoft.Inventory.Analysis;
 using System.DateTime;
 using System.Environment;
+using System.Integration.PowerBI;
 
 page 36951 "PowerBI Reports Setup"
 {
@@ -44,6 +46,20 @@ page 36951 "PowerBI Reports Setup"
                         Editable = false;
                         MultiLine = false;
                         Style = Favorable;
+                    }
+                    field(PowerBIWorkspace; PowerBIWorkspaceName)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Power BI Workspace';
+                        ToolTip = 'Specifies the Power BI workspace that Power BI reports are deployed to. The workspace is configured on the Company Information page.';
+                        Editable = false;
+                        MultiLine = false;
+                        Style = Favorable;
+
+                        trigger OnDrillDown()
+                        begin
+                            Page.Run(Page::"Company Information");
+                        end;
                     }
                 }
 
@@ -617,9 +633,14 @@ page 36951 "PowerBI Reports Setup"
     trigger OnOpenPage()
     var
         PowerBIInitialization: Codeunit Initialization;
+        FinanceInstallationHandler: Codeunit "Finance Installation Handler";
+        PowerBIWorkspaceMgt: Codeunit "Power BI Workspace Mgt.";
     begin
         if not Rec.FindFirst() then
             PowerBIInitialization.SetupDefaultsForPowerBIReportsIfNotInitialized();
+
+        FinanceInstallationHandler.NotifyIfAccountCategoryMappingIncomplete();
+        PowerBIWorkspaceName := PowerBIWorkspaceMgt.GetTargetWorkspaceDisplayName();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -662,6 +683,7 @@ page 36951 "PowerBI Reports Setup"
         Initialization: Codeunit Initialization;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         SetupHelper: Codeunit "Power BI Report Setup";
+        PowerBIWorkspaceName: Text;
         ViewDeveloperDocLbl: Label 'Install Power BI apps for Business Central (documentation)';
         DevDocUrlTxt: Label 'https://learn.microsoft.com/dynamics365/business-central/across-powerbi-install-business-central-apps', Locked = true;
         StandardCalendarVisible: Boolean;

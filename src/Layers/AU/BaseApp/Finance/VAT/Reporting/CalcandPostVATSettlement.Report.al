@@ -783,7 +783,7 @@ report 20 "Calc. and Post VAT Settlement"
         VATReportHeader: Record "VAT Report Header";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         PrintVATEntries: Boolean;
-        NextVATEntryNo: Integer;
+        NextVATEntryNo: BigInteger;
         VATDate: Date;
         DocNo: Code[20];
         VATType: Enum "General Posting Type";
@@ -928,9 +928,15 @@ report 20 "Calc. and Post VAT Settlement"
         GenJournalLine."VAT Amount" := -VATEntry.Amount;
         GenJournalLine."VAT Base Amount" := -VATEntry.Base;
         GenJournalLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-        GenJournalLine."Source Currency Amount" := -VATEntry."Additional-Currency Amount";
-        GenJournalLine."Source Curr. VAT Amount" := -VATEntry."Additional-Currency Amount";
-        GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry."Additional-Currency Base";
+        if GLSetup."Additional Reporting Currency" = '' then begin
+            GenJournalLine."Source Currency Amount" := -VATEntry.Amount;
+            GenJournalLine."Source Curr. VAT Amount" := -VATEntry.Amount;
+            GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry.Base;
+        end else begin
+            GenJournalLine."Source Currency Amount" := -VATEntry."Additional-Currency Amount";
+            GenJournalLine."Source Curr. VAT Amount" := -VATEntry."Additional-Currency Amount";
+            GenJournalLine."Source Curr. VAT Base Amount" := -VATEntry."Additional-Currency Base";
+        end;
         GenJournalLine."Non-Deductible VAT Amount" := -VATEntry."Non-Deductible VAT Amount";
         GenJournalLine."Non-Deductible VAT Amount LCY" := -VATEntry."Non-Deductible VAT Amount";
         GenJournalLine."Non-Deductible VAT Amount ACY" := -VATEntry."Non-Deductible VAT Amount ACY";
@@ -955,7 +961,14 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlLine2."Account No." := AccountNo;
         GenJnlLine2.Amount := Amount;
         GenJnlLine2."Source Currency Code" := GLSetup."Additional Reporting Currency";
-        GenJnlLine2."Source Currency Amount" := AmountACY;
+        GenJnlLine2."Source Currency Amount" := SourceCurrencyAmount(Amount, AmountACY);
+    end;
+
+    local procedure SourceCurrencyAmount(AmountLCY: Decimal; AmountACY: Decimal): Decimal
+    begin
+        if GLSetup."Additional Reporting Currency" = '' then
+            exit(AmountLCY);
+        exit(AmountACY);
     end;
 
     local procedure PostSettlementGenJnlLine(PostAmount: Decimal; AddCurrencyPostAmount: Decimal)
@@ -978,7 +991,7 @@ report 20 "Calc. and Post VAT Settlement"
         GenJnlLine.Description := Text004;
         GenJnlLine.Amount := PostAmount;
         GenJnlLine."Source Currency Code" := GLSetup."Additional Reporting Currency";
-        GenJnlLine."Source Currency Amount" := AddCurrencyPostAmount;
+        GenJnlLine."Source Currency Amount" := SourceCurrencyAmount(PostAmount, AddCurrencyPostAmount);
         GenJnlLine."Source Code" := SourceCodeSetup."VAT Settlement";
         GenJnlLine."VAT Posting" := GenJnlLine."VAT Posting"::"Manual VAT Entry";
         if GSTEnabled then
@@ -1022,7 +1035,7 @@ report 20 "Calc. and Post VAT Settlement"
         OnAfterIncrementGenPostingType(OldGenPostingType, NewGenPostingType);
     end;
 
-    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer)
+    local procedure CloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -1031,8 +1044,7 @@ report 20 "Calc. and Post VAT Settlement"
         if IsHandled then
             exit;
 
-        VATEntry.ModifyAll("Closed by Entry No.", NextVATEntryNo);
-        VATEntry.ModifyAll(Closed, true);
+        VATEntry.ModifyAll("Closed by Entry No.", NextVATEntryNo, Closed, true);
     end;
 
     local procedure IsNotSettlement(GenPostingType: Enum "General Posting Type"): Boolean
@@ -1045,8 +1057,8 @@ report 20 "Calc. and Post VAT Settlement"
 
     local procedure GetSettlementVATEntryNo(PostVATSettlement: Boolean): Integer
     var
-        NextAvailableVATEntryNo: Integer;
-        LastPostedVATEntryNo: Integer;
+        NextAvailableVATEntryNo: BigInteger;
+        LastPostedVATEntryNo: BigInteger;
     begin
         if PostVATSettlement then begin
             NextAvailableVATEntryNo := GenJnlPostLine.GetNextVATEntryNo();
@@ -1122,7 +1134,7 @@ report 20 "Calc. and Post VAT Settlement"
     /// <param name="NextVATEntryNo">Next available VAT entry number for new entries</param>
     /// <param name="IsHandled">Set to true to skip standard VAT entry closure processing</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCloseVATEntriesOnPostSettlement(var VATEntry: Record "VAT Entry"; NextVATEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

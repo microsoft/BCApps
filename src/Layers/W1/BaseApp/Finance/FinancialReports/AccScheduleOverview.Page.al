@@ -55,6 +55,7 @@ page 490 "Acc. Schedule Overview"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Name';
                     Tooltip = 'Specifies the name (code) of the financial report.';
+                    Visible = not IsPreview;
 
                     trigger OnValidate()
                     var
@@ -86,6 +87,7 @@ page 490 "Acc. Schedule Overview"
                     Caption = 'Display Title';
                     Editable = not ViewOnlyMode;
                     ToolTip = 'Specifies a title of the financial report. The text is shown as a title on the final report when you run it to get a PDF or to print it.';
+                    Visible = not IsPreview;
                 }
                 field(CategoryCode; TempFinancialReport.CategoryCode)
                 {
@@ -95,6 +97,7 @@ page 490 "Acc. Schedule Overview"
                     Importance = Additional;
                     TableRelation = "Financial Report Category";
                     ToolTip = 'Specifies the category code for the financial report.';
+                    Visible = not IsPreview;
                 }
                 field(CurrentSchedName; TempFinancialReport."Financial Report Row Group")
                 {
@@ -185,6 +188,7 @@ page 490 "Acc. Schedule Overview"
                     Importance = Additional;
                     TableRelation = "Dimension Perspective Name";
                     ToolTip = 'Specifies the name (code) of the dimension perspective to be used for the report.';
+                    Visible = not IsPreview;
 
                     trigger OnAfterLookup(Selected: RecordRef)
                     var
@@ -367,6 +371,7 @@ page 490 "Acc. Schedule Overview"
                     Caption = 'Default Excel Layout';
                     Importance = Additional;
                     ToolTip = 'Specifies the Excel layout that will be used when exporting to Excel.';
+                    Visible = not IsPreview;
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
@@ -411,6 +416,7 @@ page 490 "Acc. Schedule Overview"
                     Editable = not ViewOnlyMode;
                     TableRelation = "Financial Report Status";
                     ToolTip = 'Specifies the status code for the financial report. The status code helps you organize the lifecycle of your financial reports.';
+                    Visible = not IsPreview;
                 }
                 field(InternalDescription; TempFinancialReport."Internal Description")
                 {
@@ -419,20 +425,22 @@ page 490 "Acc. Schedule Overview"
                     ToolTip = 'Specifies the internal description of this financial report.';
                     MultiLine = true;
                     Editable = not ViewOnlyMode;
+                    Visible = not IsPreview;
                 }
-                field("Last Run by User"; TempFinancialReport."Last Run by User")
+                field("Last Run by User"; TempFinancialReport."Last Run by Current User")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Your Last Run';
                     ToolTip = 'Specifies the last date-time this report was run by you.';
                     Editable = false;
+                    Visible = not IsPreview;
 
                     trigger OnDrillDown()
                     var
                         FinReportAuditLog: Record "Financial Report Audit Log";
                     begin
                         FinReportAuditLog.SetRange("Report Name", TempFinancialReport.Name);
-                        FinReportAuditLog.SetRange(User, UserId());
+                        FinReportAuditLog.SetRange(SystemCreatedBy, UserSecurityId());
                         Page.Run(0, FinReportAuditLog);
                     end;
                 }
@@ -1049,6 +1057,7 @@ page 490 "Acc. Schedule Overview"
                 trigger OnAction()
                 begin
                     AccSchedManagement.ForceRecalculate(true);
+                    PreserveCurrentPageFilters := true;
                     ReloadPage();
                 end;
             }
@@ -1462,6 +1471,10 @@ page 490 "Acc. Schedule Overview"
 #endif
         RowDefinitionBlocked: Boolean;
         ColDefinitionBlocked: Boolean;
+        PreserveCurrentPageFilters: Boolean;
+        IsPreview: Boolean;
+        PreviewCaption: Text;
+        PreviewLbl: Label 'Preview: %1', Comment = '%1 = row or column definition';
 
     protected var
         AnalysisView: Record "Analysis View";
@@ -1527,6 +1540,12 @@ page 490 "Acc. Schedule Overview"
     begin
         ViewOnlyMode := NewViewOnlyMode;
         ViewOnlyModeSet := true;
+    end;
+
+    internal procedure SetPreview(NewPreviewCaption: Text)
+    begin
+        IsPreview := true;
+        PreviewCaption := NewPreviewCaption;
     end;
 
     local procedure MarkAndFilterRowsOnFind(Which: Text): Boolean
@@ -1602,7 +1621,10 @@ page 490 "Acc. Schedule Overview"
 
         // `FinancialReportTemp` contains the state of the filters the user interacts with
         // `LoadFinancialReportFiltersOrDefault` loads this temporary record considering user overriden filters (if any).
-        LoadFinancialReportFiltersOrDefault(TempFinancialReport);
+        if PreserveCurrentPageFilters then
+            PreserveCurrentPageFilters := false
+        else
+            LoadFinancialReportFiltersOrDefault(TempFinancialReport);
 
         // Afterwards, we update all page state variables 
         SetFinancialReportTxt();
@@ -1721,7 +1743,8 @@ page 490 "Acc. Schedule Overview"
         // Transfer filters from FinancialReport
         FinancialReportToLoadTemp.Init();
         FinancialReportToLoadTemp.TransferFields(FinancialReport);
-        FinancialReportToLoadTemp.CalcFields("Last Run by User");
+        FinancialReportToLoadTemp.SetRange("User Security ID Filter", UserSecurityId());
+        FinancialReportToLoadTemp.CalcFields("Last Run by Current User");
         IntroductoryParagraph := FinancialReport.GetIntroductoryParagraph();
         ClosingParagraph := FinancialReport.GetClosingParagraph();
         if not ViewOnlyMode then
@@ -1812,6 +1835,11 @@ page 490 "Acc. Schedule Overview"
     var
         CurrentPageCaption: Text;
     begin
+        if IsPreview then begin
+            CurrPage.Caption(StrSubstNo(PreviewLbl, PreviewCaption));
+            exit;
+        end;
+
         if TempFinancialReport.Description <> '' then
             CurrentPageCaption := StrSubstNo('%1 (%2)', TempFinancialReport.Description, TempFinancialReport.Name)
         else
@@ -2027,30 +2055,14 @@ page 490 "Acc. Schedule Overview"
 
     protected procedure UpdateColumnCaptions()
     var
-#if not CLEAN27
-        ColumnCaptions80: array[15] of Text[80];
-#endif
         ColumnNo: Integer;
         i: Integer;
         IsHandled: Boolean;
     begin
-#if not CLEAN27
-#pragma warning disable AL0432
-        for i := 1 to ArrayLen(ColumnCaptions) do
-            ColumnCaptions80[i] := CopyStr(ColumnCaptions[i], 1, MaxStrLen(ColumnCaptions80[i]));
-        OnBeforeUpdateColumnCaptions(ColumnCaptions80, ColumnOffset, TempColumnLayout, NoOfColumns, IsHandled);
-        if IsHandled then begin
-            for i := 1 to ArrayLen(ColumnCaptions80) do
-                ColumnCaptions[i] := ColumnCaptions80[i];
-            exit;
-        end;
-#pragma warning restore AL0432
-#else
         IsHandled := false;
         OnBeforeUpdateColumnCaptions(ColumnCaptions, ColumnOffset, TempColumnLayout, NoOfColumns, IsHandled);
         if IsHandled then
             exit;
-#endif
 
         Clear(ColumnCaptions);
         if TempColumnLayout.FindSet() then
@@ -2298,20 +2310,20 @@ page 490 "Acc. Schedule Overview"
             SaveStateToFinancialReport();
     end;
 
-    /// <summary>
-    /// Formats column values according to column layout formatting specifications.
-    /// Returns formatted string representation of financial data for display purposes.
-    /// </summary>
-    /// <param name="ColumnNo">Column number to format</param>
-    /// <returns>Formatted string value for the specified column</returns>
     procedure FormatStr(ColumnNo: Integer): Text
     var
-        AddCurrency: Boolean;
-        Result: Text;
         IsHandled: Boolean;
+    begin
+        exit(GetColumnFormatString(ColumnNo, IsHandled));
+    end;
+
+    local procedure GetColumnFormatString(ColumnNo: Integer; var IsHandled: Boolean) Result: Text
+    var
+        AddCurrency: Boolean;
     begin
         GLSetup.Get();
         AddCurrency := TempFinancialReport.UseAmountsInAddCurrency and (GLSetup."Additional Reporting Currency" <> '');
+        IsHandled := false;
         OnAfterFormatStr(ColumnLayoutArr, UseAmtsInAddCurr, ColumnNo, TempFinancialReport.GetEffectiveNegativeAmountFormat(), Result, IsHandled);
         if IsHandled then
             exit(Result);
@@ -2538,12 +2550,7 @@ page 490 "Acc. Schedule Overview"
     /// <param name="NoOfColumns">Number of columns to process for caption update</param>
     /// <param name="IsHandled">Set to true to skip standard caption update processing</param>
     [IntegrationEvent(false, false)]
-#if not CLEAN27
-    [Obsolete('The ColumnCaptions parameter will be changed to array[15] of Text in a future release.', '27.0')]
-    local procedure OnBeforeUpdateColumnCaptions(var ColumnCaptions: array[15] of Text[80]; ColumnOffset: Integer; var TempColumnLayout: Record "Column Layout" temporary; NoOfColumns: Integer; var IsHandled: Boolean)
-#else
     local procedure OnBeforeUpdateColumnCaptions(var ColumnCaptions: array[15] of Text; ColumnOffset: Integer; var TempColumnLayout: Record "Column Layout" temporary; NoOfColumns: Integer; var IsHandled: Boolean)
-#endif
     begin
     end;
 

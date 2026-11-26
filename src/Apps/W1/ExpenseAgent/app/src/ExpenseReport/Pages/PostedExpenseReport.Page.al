@@ -76,6 +76,11 @@ page 6998 "Posted Expense Report"
                     Importance = Additional;
                     Visible = false;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
             }
             part("Posted Expense Report Subform"; "Posted Expense Report SubP.")
             {
@@ -165,6 +170,14 @@ page 6998 "Posted Expense Report"
                 UpdatePropagation = Both;
                 SubPageLink = "Posted Expense Report No." = field("No.");
             }
+            part(Activity; "Expense Activity Log FactBox")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'History';
+                SubPageLink = "Source Table ID" = const(Database::"Posted Expense Report Header"),
+                              "Source Record System ID" = field(SystemId);
+                Visible = Rec."No." <> '';
+            }
             part("Expense Picture"; "Expense Picture")
             {
                 ApplicationArea = Basic, Suite;
@@ -244,6 +257,16 @@ page 6998 "Posted Expense Report"
                     RunObject = Page "Expense User";
                     RunPageLink = "No." = field("Expense User No.");
                     ToolTip = 'View or edit detailed information about the expense user.';
+                }
+                action("Spend Request")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Image = ProjectExpense;
+                    Caption = 'Travel Request';
+                    ToolTip = 'View the details of the travel request associated with this posted expense report.';
+                    RunObject = Page "Travel Request Card";
+                    RunPageLink = "No." = field("Spend Request No.");
+                    Visible = Rec."Spend Request No." <> '';
                 }
             }
         }
@@ -326,6 +349,9 @@ page 6998 "Posted Expense Report"
                     {
                     }
                     actionref("Expense User_Promoted"; "Expense User")
+                    {
+                    }
+                    actionref("Spend Request_Promoted"; "Spend Request")
                     {
                     }
                 }

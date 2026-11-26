@@ -89,6 +89,10 @@ codeunit 99000784 "Mfg. Undo Purch. Rcpt. Line"
                 TempCapacityLedgEntry.Insert();
             until CapacityLedgEntry.Next() = 0;
 
+        // Only the last routing operation posts output to inventory
+        if not CapacityLedgEntry."Last Output Line" then
+            exit;
+
         FilterItemLedgerEntry(ItemLedgEntry, PurchRcptLine, CapacityLedgEntry."Item Register No.");
         ItemLedgEntry.SetRange("Source Type", ItemLedgEntry."Source Type"::Vendor);
         ItemLedgEntry.SetRange("Source No.", PurchRcptLine."Buy-from Vendor No.");
@@ -108,9 +112,17 @@ codeunit 99000784 "Mfg. Undo Purch. Rcpt. Line"
         CapacityLedgEntry.SetRange("Order Type", CapacityLedgEntry."Order Type"::Production);
         CapacityLedgEntry.SetRange("Order No.", PurchRcptLine."Prod. Order No.");
         CapacityLedgEntry.SetRange("Order Line No.", PurchRcptLine."Prod. Order Line No.");
+        CapacityLedgEntry.SetRange("Routing No.", PurchRcptLine."Routing No.");
+        CapacityLedgEntry.SetRange("Routing Reference No.", PurchRcptLine."Routing Reference No.");
+        CapacityLedgEntry.SetRange("Operation No.", PurchRcptLine."Operation No.");
+        // Exclude entries posted by a previous undo of the same receipt
+        if PurchRcptLine.Quantity > 0 then
+            CapacityLedgEntry.SetFilter("Output Quantity", '>0')
+        else
+            CapacityLedgEntry.SetFilter("Output Quantity", '<0');
     end;
 
-    local procedure FilterItemLedgerEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemRegisterNo: Integer)
+    local procedure FilterItemLedgerEntry(var ItemLedgEntry: Record "Item Ledger Entry"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemRegisterNo: BigInteger)
     begin
         ItemLedgEntry.ReadIsolation := IsolationLevel::ReadCommitted;
         ItemLedgEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type", "Prod. Order Comp. Line No.");
@@ -138,7 +150,10 @@ codeunit 99000784 "Mfg. Undo Purch. Rcpt. Line"
             TempItemLedgEntry.DeleteAll();
 
         FilterCapacityLedgerEntry(CapacityLedgerEntry, PurchRcptLine);
-        if CapacityLedgerEntry.FindLast() then;
+        if not CapacityLedgerEntry.FindLast() then
+            exit(false);
+        if not CapacityLedgerEntry."Last Output Line" then
+            exit(false);
 
         ItemLedgEntry.SetBaseLoadFields();
         FilterItemLedgerEntry(ItemLedgEntry, PurchRcptLine, CapacityLedgerEntry."Item Register No.");

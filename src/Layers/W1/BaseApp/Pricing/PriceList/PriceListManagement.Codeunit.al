@@ -85,7 +85,13 @@ codeunit 7017 "Price List Management"
     var
         ExistingPriceListLine: Record "Price List Line";
         PriceListLine: Record "Price List Line";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeAddLine(ToPriceListHeader, PriceAsset, PriceLineFilters, IsHandled);
+        if IsHandled then
+            exit;
+
         PriceListLine."Price List Code" := ToPriceListHeader.Code;
         PriceListLine.SetNextLineNo();
         PriceListLine.CopyFrom(ToPriceListHeader, true);
@@ -281,7 +287,7 @@ codeunit 7017 "Price List Management"
         PriceListLine: Record "Price List Line";
     begin
         PriceListLine.SetRange("Price List Code", PriceListHeader.Code);
-        PriceListLine.SetRange(Status, "Price Status"::Draft);
+        PriceListLine.SetFilter(Status, '<>%1', "Price Status"::Active);
         exit(FindDuplicatePrices(PriceListHeader, PriceListLine, SearchInside, DuplicatePriceLine));
     end;
 
@@ -1065,6 +1071,11 @@ codeunit 7017 "Price List Management"
 
     [IntegrationEvent(true, false)]
     local procedure OnAddLineOnAfterPopulatePriceListLineFields(var PriceListLine: Record "Price List Line"; ToPriceListHeader: Record "Price List Header"; PriceAsset: Record "Price Asset"; PriceLineFilters: Record "Price Line Filters")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeAddLine(PriceListHeader: Record "Price List Header"; PriceAsset: Record "Price Asset"; PriceLineFilters: Record "Price Line Filters"; var IsHandled: Boolean)
     begin
     end;
 

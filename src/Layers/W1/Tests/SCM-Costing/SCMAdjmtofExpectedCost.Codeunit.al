@@ -14,10 +14,12 @@ codeunit 137018 "SCM Adjmt. of Expected Cost"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibrarySales: Codeunit "Library - Sales";
+        LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         IsInitialized: Boolean;
         GLEntryTotalMismatchErr: Label 'GL Entry total for account %1 is %2, expected %3.', Comment = '%1 = G/L Account No., %2 = Actual Amount, %3 = Expected Amount';
+        ExpectedCostMismatchErr: Label 'Cost Amount (Expected) is %1, expected %2.', Comment = '%1 = Actual Amount, %2 = Expected Amount';
 
     [Test]
     [Scope('OnPrem')]
@@ -151,6 +153,84 @@ codeunit 137018 "SCM Adjmt. of Expected Cost"
         Assert.AreEqual(
             ExpectedTotalAmount, ActualTotalAmount,
             StrSubstNo(GLEntryTotalMismatchErr, InventoryPostingSetup."Inventory Account (Interim)", ActualTotalAmount, ExpectedTotalAmount));
+
+        // Teardown
+        SetInventorySetup(
+            OldInventorySetup, false,
+            OldInventorySetup."Automatic Cost Posting",
+            OldInventorySetup."Expected Cost Posting to G/L",
+            OldInventorySetup."Automatic Cost Adjustment");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure StandardCostItemExpectedCostUsesStandardCostOnReceipt()
+    var
+        Item: Record Item;
+        OldInventorySetup: Record "Inventory Setup";
+        GLAccount: Record "G/L Account";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ValueEntry: Record "Value Entry";
+        DirectUnitCost: Decimal;
+        ExpectedCostAmount: Decimal;
+        Qty: Decimal;
+        StandardCost: Decimal;
+    begin
+        // [FEATURE] [Standard Cost] [Expected Cost] [AI Test]
+        // [SCENARIO 645071] Expected cost of a purchase receipt for a Standard cost item is Standard Cost x Quantity, not Direct Unit Cost x Quantity.
+        Initialize();
+
+        // [GIVEN] Inventory Setup with Automatic Cost Posting and Expected Cost Posting to G/L enabled.
+        OldInventorySetup.Get();
+        SetInventorySetup(
+            OldInventorySetup, true, true, true,
+            OldInventorySetup."Automatic Cost Adjustment"::Never);
+
+        // [GIVEN] Item "I" with Costing Method = Standard and a random 3-decimal Standard Cost.
+        StandardCost := LibraryRandom.RandDecInDecimalRange(0.1, 0.2, 3);
+        DirectUnitCost := LibraryRandom.RandDecInDecimalRange(0.2, 0.3, 3);
+        Qty := 1000;
+        ExpectedCostAmount := StandardCost * Qty;
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Costing Method", Item."Costing Method"::Standard);
+        Item.Validate("Standard Cost", StandardCost);
+        Item.Modify(true);
+
+        // [GIVEN] The item matches the conditions of the cumulative expected cost rounding path.
+        Item.Get(Item."No.");
+        Item.Validate("Cost is Adjusted", false);
+        Item.Validate("Allow Online Adjustment", false);
+        Item.Validate("Flushing Method", Item."Flushing Method"::Manual);
+        Item.Modify(true);
+
+        // [GIVEN] Create new interim accounts.
+        InventoryPostingSetup.Get('', Item."Inventory Posting Group");
+        if InventoryPostingSetup."Inventory Account (Interim)" = '' then begin
+            LibraryERM.CreateGLAccount(GLAccount);
+            InventoryPostingSetup.Validate("Inventory Account (Interim)", GLAccount."No.");
+            InventoryPostingSetup.Modify(true);
+        end;
+
+        // [GIVEN] Purchase Order "PO" with Quantity = 1000 and a random Direct Unit Cost.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", Qty);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+
+        // [WHEN] Post the purchase receipt.
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [THEN] Cost Amount (Expected) = Standard Cost x Quantity, not Direct Unit Cost x Quantity.
+        ValueEntry.SetRange("Item No.", Item."No.");
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::"Direct Cost");
+        ValueEntry.SetRange("Expected Cost", true);
+        ValueEntry.CalcSums("Cost Amount (Expected)");
+        Assert.AreEqual(
+            ExpectedCostAmount, ValueEntry."Cost Amount (Expected)",
+            StrSubstNo(ExpectedCostMismatchErr, ValueEntry."Cost Amount (Expected)", ExpectedCostAmount));
 
         // Teardown
         SetInventorySetup(

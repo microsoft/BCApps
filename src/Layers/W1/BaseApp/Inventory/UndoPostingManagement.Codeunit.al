@@ -667,7 +667,10 @@ codeunit 5817 "Undo Posting Management"
 
             UndoValuePostingFromJob(ItemJnlLine, ItemApplicationEntry, TempApplyToItemLedgEntry);
 
-            TempItemEntryRelation."Item Entry No." := ItemJnlLine."Item Shpt. Entry No.";
+            if ItemJnlLine.Subcontracting and (ItemJnlPostLine.GetItemLedgerEntryNo() <> 0) then
+                TempItemEntryRelation."Item Entry No." := ItemJnlPostLine.GetItemLedgerEntryNo()
+            else
+                TempItemEntryRelation."Item Entry No." := ItemJnlLine."Item Shpt. Entry No.";
             TempItemEntryRelation.CopyTrackingFromItemJnlLine(ItemJnlLine);
             OnPostItemJnlLineAppliedToListOnBeforeTempItemEntryRelationInsert(TempItemEntryRelation, ItemJnlLine);
             TempItemEntryRelation.Insert();
@@ -1174,7 +1177,7 @@ codeunit 5817 "Undo Posting Management"
         exit(false);
     end;
 
-    local procedure SetItemJnlLineAppliesToEntry(var ItemJnlLine: Record "Item Journal Line"; AppliesToEntry: Integer)
+    local procedure SetItemJnlLineAppliesToEntry(var ItemJnlLine: Record "Item Journal Line"; AppliesToEntry: BigInteger)
     var
         Item: Record Item;
     begin
@@ -1199,7 +1202,7 @@ codeunit 5817 "Undo Posting Management"
         exit(not ATOLink.IsEmpty());
     end;
 
-    procedure TransferSourceValues(var ItemJnlLine: Record "Item Journal Line"; EntryNo: Integer)
+    procedure TransferSourceValues(var ItemJnlLine: Record "Item Journal Line"; EntryNo: BigInteger)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
         ValueEntry: Record "Value Entry";
@@ -1215,7 +1218,7 @@ codeunit 5817 "Undo Posting Management"
         ItemJnlLine."Salespers./Purch. Code" := ValueEntry."Salespers./Purch. Code";
     end;
 
-    procedure ReapplyJobConsumption(ItemRcptEntryNo: Integer)
+    procedure ReapplyJobConsumption(ItemRcptEntryNo: BigInteger)
     var
         ItemApplnEntry: Record "Item Application Entry";
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -1233,7 +1236,7 @@ codeunit 5817 "Undo Posting Management"
         ItemJnlPostLine.ReApply(ItemLedgEntry, ItemApplnEntry."Outbound Item Entry No.");
     end;
 
-    procedure FindItemReceiptApplication(var ItemApplnEntry: Record "Item Application Entry"; ItemRcptEntryNo: Integer)
+    procedure FindItemReceiptApplication(var ItemApplnEntry: Record "Item Application Entry"; ItemRcptEntryNo: BigInteger)
     begin
         ItemApplnEntry.Reset();
         ItemApplnEntry.SetRange("Inbound Item Entry No.", ItemRcptEntryNo);
@@ -1241,7 +1244,7 @@ codeunit 5817 "Undo Posting Management"
         ItemApplnEntry.FindFirst();
     end;
 
-    procedure FindItemShipmentApplication(var ItemApplnEntry: Record "Item Application Entry"; ItemShipmentEntryNo: Integer)
+    procedure FindItemShipmentApplication(var ItemApplnEntry: Record "Item Application Entry"; ItemShipmentEntryNo: BigInteger)
     begin
         ItemApplnEntry.Reset();
         ItemApplnEntry.SetRange("Item Ledger Entry No.", ItemShipmentEntryNo);
@@ -1335,7 +1338,7 @@ codeunit 5817 "Undo Posting Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeReapplyJobConsumption(ItemRcptEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeReapplyJobConsumption(ItemRcptEntryNo: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

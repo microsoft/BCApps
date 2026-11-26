@@ -44,7 +44,7 @@ codeunit 6430 "Logiq Auth"
         this.CheckUserCredentials(LogiqConnectionUserSetup);
 
         RequestMessage.Method('POST');
-        RequestMessage.SetRequestUri(LogiqConnectionSetup."Authentication URL");
+        RequestMessage.SetRequestUri(LogiqConnectionSetup.GetValidatedAuthenticationUrl());
 
         this.BuildTokenRequestBody(Content);
 

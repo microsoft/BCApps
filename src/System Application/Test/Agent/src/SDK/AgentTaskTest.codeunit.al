@@ -24,6 +24,67 @@ codeunit 133960 "Agent Task Test"
     end;
 
     [Test]
+    procedure GetTaskLogEntryDetailsForTaskWithoutSteps()
+    var
+        AgentTaskRecord: Record "Agent Task";
+        ExportJson: JsonObject;
+    begin
+        AgentTaskRecord := CreateTaskWithoutSteps();
+
+        ExportJson := AgentTask.GetTaskLogEntryDetails(AgentTaskRecord.ID);
+
+        Assert.AreEqual(Format(AgentTaskRecord.ID, 0, 9), ExportJson.GetObject('taskContext').GetText('taskId'), 'The export should identify the requested task even without log entries.');
+        Assert.AreEqual(AgentTaskRecord.Title, ExportJson.GetObject('taskContext').GetText('taskTitle'), 'The export should include task details.');
+        Assert.AreEqual(0, ExportJson.GetArray('logEntries').Count(), 'A task that has not run should have no log entries.');
+        Assert.AreEqual(0, ExportJson.GetArray('memoryEntries').Count(), 'The full-task export should include an empty memory collection.');
+    end;
+
+    [Test]
+    procedure GetTaskLogEntryDetailsRejectsMissingTask()
+    begin
+        asserterror AgentTask.GetTaskLogEntryDetails(-1);
+        Assert.ExpectedError('does not exist');
+    end;
+
+    [Test]
+    procedure GetTaskLogEntryDetailsRejectsMissingStep()
+    var
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
+    begin
+        AgentTaskRecord := CreateTaskWithoutSteps();
+        AgentTaskLogEntry."Task ID" := AgentTaskRecord.ID;
+        AgentTaskLogEntry.ID := 1;
+
+        asserterror AgentTask.GetTaskLogEntryDetails(AgentTaskLogEntry."Task ID", AgentTaskLogEntry.ID);
+
+        Assert.ExpectedErrorCannotFind(
+            Database::"Agent Task Log Entry",
+            StrSubstNo('%1=''%2'',%3=''%4''',
+                AgentTaskLogEntry.FieldCaption("Task ID"), AgentTaskLogEntry."Task ID",
+                AgentTaskLogEntry.FieldCaption(ID), AgentTaskLogEntry.ID));
+    end;
+
+    [Test]
+    procedure GetTaskLogEntryDetailsTextRejectsMissingStep()
+    var
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskLogEntry: Record "Agent Task Log Entry";
+    begin
+        AgentTaskRecord := CreateTaskWithoutSteps();
+        AgentTaskLogEntry."Task ID" := AgentTaskRecord.ID;
+        AgentTaskLogEntry.ID := 1;
+
+        asserterror AgentTask.GetTaskLogEntryDetailsText(AgentTaskLogEntry."Task ID", AgentTaskLogEntry.ID);
+
+        Assert.ExpectedErrorCannotFind(
+            Database::"Agent Task Log Entry",
+            StrSubstNo('%1=''%2'',%3=''%4''',
+                AgentTaskLogEntry.FieldCaption("Task ID"), AgentTaskLogEntry."Task ID",
+                AgentTaskLogEntry.FieldCaption(ID), AgentTaskLogEntry.ID));
+    end;
+
+    [Test]
     procedure CreateTaskWithoutMessageAndVerify()
     var
         AgentRecord: Record Agent;
@@ -1079,4 +1140,22 @@ codeunit 133960 "Agent Task Test"
     end;
 
     #endregion
+
+    local procedure CreateTaskWithoutSteps(): Record "Agent Task"
+    var
+        AgentRecord: Record Agent;
+        MockAgentSetup: Record "Mock Agent Setup";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+    begin
+        Initialize();
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."Display Name")), 1, MaxStrLen(AgentRecord."Display Name")),
+            CopyStr(Any.AlphanumericText(MaxStrLen(MockAgentSetup.Instructions)), 1, MaxStrLen(MockAgentSetup.Instructions)));
+        AgentTaskBuilder.Initialize(AgentUserId, 'Task without steps');
+        exit(AgentTaskBuilder.Create(false, false));
+    end;
 }

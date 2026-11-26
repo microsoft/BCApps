@@ -1122,12 +1122,18 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         DocumentSendingProfile: Record "Document Sending Profile";
         ElectronicDocumentFormat: Record "Electronic Document Format";
+        ReportFilenameSetup: Record Microsoft.Foundation.Reporting.FileNaming."Report Filename Setup";
         SalesInvoice: TestPage "Sales Invoice";
         FileNameLst: List of [Text];
     begin
         // [FEATURE] [Zip]
         // [SCENARIO 336642] Post And Send Sales Document in case Print, E-Mail - PDF & OIOUBL, Disk - PDF & OIOUBL are set in Document Sending Profile.
         Initialize();
+        // This scenario asserts built-in names, independently of company-specific filename patterns.
+        if ReportFilenameSetup.Get() then begin
+            ReportFilenameSetup.Enabled := false;
+            ReportFilenameSetup.Modify();
+        end;
         MailSetupInitialize();
         CreateElectronicDocumentFormat(
             OIOUBLFormatNameTxt, ElectronicDocumentFormat.Usage::"Sales Invoice", Codeunit::"OIOUBL-Export Sales Invoice");
@@ -1670,7 +1676,7 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         SalesInvoiceHeader.Get(PostedDocNo);
         SetDocumentSendingProfileToCustomer(SalesInvoiceHeader."Sell-to Customer No.", DocumentSendingProfile.Code);
         ExpectedFileName := CopyStr(
-            StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), Format("Sales Document Type"::Invoice), SalesInvoiceHeader."No.", 'XML'), 1, 250);
+            StrSubstNo('%1 - %2 %3.%4', FileMgt.StripNotsupportChrInFileName(CompanyName), Format("Sales Document Type"::Invoice), SalesInvoiceHeader."No.", 'xml'), 1, 250);
 
         // [WHEN] Export the xml file for electronic document
         SalesInvoiceHeader.SetRecFilter();
@@ -2654,4 +2660,3 @@ codeunit 148053 "OIOUBL-ERM Elec Document Sales"
         StandardSalesCreditMemo.Cancel().Invoke();
     end;
 }
-

@@ -359,9 +359,11 @@ codeunit 144712 "ERM TORG-29 Report"
 
     local procedure RunTORG29Report(LocationCode: Code[10]; PostingDate: Date)
     var
+        RUReportDownloadHandler: Codeunit "RU Report Download Handler";
         TORG29Rep: Report "Item Report TORG-29";
         SalesType: Option "Customer Price Group","All Customers",Campaign;
     begin
+        BindSubscription(RUReportDownloadHandler);
         LibraryReportValidation.SetFileName(LibraryUtility.GenerateGUID());
         TORG29Rep.SetFileNameSilent(LibraryReportValidation.GetFileName());
         TORG29Rep.InitializeRequest(
@@ -369,6 +371,7 @@ codeunit 144712 "ERM TORG-29 Report"
           AmountType::Cost, SalesType::"All Customers", '', true, true);
         TORG29Rep.UseRequestPage(false);
         TORG29Rep.RunModal();
+        UnbindSubscription(RUReportDownloadHandler);
     end;
 
     local procedure GetLastValueEntryDate(): Date

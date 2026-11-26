@@ -12,11 +12,11 @@ codeunit 20418 "Qlty. Utilities Integration"
     InherentPermissions = X;
 
     /// <summary>
-    /// To identify the card for custom table, which in turns helps Graphical Scheduler know to use the card with 'Details'
+    /// Provides the quality inspection card page for quality inspection header records.
     /// </summary>
-    /// <param name="RecRef"></param>
-    /// <param name="CardPageID"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="RecRef">The record for which to resolve a card page.</param>
+    /// <param name="CardPageID">The resolved card page ID.</param>
+    /// <param name="IsHandled">Set to true when the card page ID is resolved.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnBeforeGetConditionalCardPageID', '', true, true)]
     local procedure HandleOnBeforeGetConditionalCardPageID(RecRef: RecordRef; var CardPageID: Integer; var IsHandled: Boolean)
     begin
@@ -28,11 +28,11 @@ codeunit 20418 "Qlty. Utilities Integration"
     end;
 
     /// <summary>
-    /// Required for use with Business Central approval integration.
+    /// Provides the quality inspection list page for non-temporary quality inspection header records.
     /// </summary>
-    /// <param name="RecRef"></param>
-    /// <param name="PageID"></param>
-    /// <param name="IsHandled"></param>
+    /// <param name="RecRef">The record for which to resolve a list page.</param>
+    /// <param name="PageID">The resolved list page ID.</param>
+    /// <param name="IsHandled">Set to true when the list page ID is resolved.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Page Management", 'OnBeforeGetConditionalListPageID', '', true, true)]
     local procedure HandleOnBeforeGetConditionalListPageID(RecRef: RecordRef; var PageID: Integer; var IsHandled: Boolean);
     begin

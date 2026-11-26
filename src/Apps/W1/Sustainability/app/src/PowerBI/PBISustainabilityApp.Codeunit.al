@@ -39,25 +39,13 @@ codeunit 6287 "PBI Sustainability App" implements "Power BI Deployable Report", 
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         exit(PowerBIReportsSetup.FieldNo("Sustainability Report Id"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 
     procedure GetSetupReportNameFieldNo(): Integer
     var
         PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-#if not CLEAN27
-#pragma warning disable AL0801
-#endif
         exit(PowerBIReportsSetup.FieldNo("Sustainability Report Name"));
-#if not CLEAN27
-#pragma warning restore AL0801
-#endif
     end;
 }

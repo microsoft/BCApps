@@ -371,7 +371,7 @@ page 1173 "Document Attachment Details"
 
         DocumentAttachmentMgmt.SetDocumentAttachmentFiltersForRecRefInternal(Rec, RecRef, false);
 
-        OnAfterOpenForRecRef(Rec, RecRef, FlowFieldsEditable);
+        OnAfterOpenForRecRef(Rec, RecRef, FlowFieldsEditable, PurchaseDocumentFlow);
     end;
 
     local procedure ImportWithFilter(var TempBlob: Codeunit "Temp Blob"; var FileName: Text)
@@ -389,7 +389,7 @@ page 1173 "Document Attachment Details"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterOpenForRecRef(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef; var FlowFieldsEditable: Boolean)
+    local procedure OnAfterOpenForRecRef(var DocumentAttachment: Record "Document Attachment"; var RecRef: RecordRef; var FlowFieldsEditable: Boolean; var PurchaseDocumentFlow: Boolean)
     begin
     end;
 
@@ -398,4 +398,3 @@ page 1173 "Document Attachment Details"
     begin
     end;
 }
-

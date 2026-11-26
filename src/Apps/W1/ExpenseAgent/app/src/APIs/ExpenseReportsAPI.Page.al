@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
-using System.Text;
 
 page 6928 "Expense Reports API"
 {
@@ -163,6 +162,56 @@ page 6928 "Expense Reports API"
                     Caption = 'Approver Comment';
                     Editable = false;
                 }
+                field(submitterComment; Rec.GetSubmitterComment())
+                {
+                    Caption = 'Submitter Comment';
+                    Editable = false;
+                }
+                field(activeApproverExpenseUserNo; Rec."Approver Expense User No.")
+                {
+                    Caption = 'Approver Expense User No.';
+                    Editable = false;
+                }
+                field(finalApproverNo; Rec."Final Approver No.")
+                {
+                    Caption = 'Final Approver No.';
+                    Editable = false;
+                }
+                field(finalApproverName; Rec."Final Approver Name")
+                {
+                    Caption = 'Final Approver Name';
+                    Editable = false;
+                }
+                field(primaryFinalApproverNo; Rec."Primary Final Approver No.")
+                {
+                    Caption = 'Primary Final Approver No.';
+                    Editable = false;
+                }
+                field(alternateApproverNo; Rec."Alternate Approver No.")
+                {
+                    Caption = 'Alternate Approver No.';
+                    Editable = false;
+                }
+                field(alternateApproverName; Rec."Alternate Approver Name")
+                {
+                    Caption = 'Alternate Approver Name';
+                    Editable = false;
+                }
+                field(interimApproverNo; Rec."Interim Approver No.")
+                {
+                    Caption = 'Interim Approver No.';
+                    Editable = false;
+                }
+                field(interimApproverName; Rec."Interim Approver Name")
+                {
+                    Caption = 'Interim Approver Name';
+                    Editable = false;
+                }
+                field(primaryInterimApproverNo; Rec."Primary Interim Approver No.")
+                {
+                    Caption = 'Primary Interim Approver No.';
+                    Editable = false;
+                }
                 field(reimbursementCurrencyCode; ReimbursementCurrencyCodeDisplay)
                 {
                     Caption = 'Reimbursement Currency Code';
@@ -206,12 +255,41 @@ page 6928 "Expense Reports API"
                     Caption = 'Modified By Expense User Id';
                     Editable = false;
                 }
+                field(spendRequestNo; Rec."Spend Request No.")
+                {
+                    Caption = 'Travel Request No.';
+                }
+                field(travelRequestId; Rec."Travel Request SystemId")
+                {
+                    Caption = 'Travel Request Id';
+                    Editable = false;
+                }
+                field(spendRequestClose; Rec."Spend Request Close")
+                {
+                    Caption = 'Travel Request Close';
+                }
+                part(travelRequest; "Travel Requests API")
+                {
+                    Caption = 'Travel Request';
+                    EntityName = 'travelRequest';
+                    EntitySetName = 'travelRequests';
+                    Multiplicity = ZeroOrOne;
+                    SubPageLink = SystemId = field("Travel Request SystemId");
+                }
                 part(expenseReportLines; "Expense Report Lines API")
                 {
                     Caption = 'Expense Report Lines';
                     EntityName = 'expenseReportLine';
                     EntitySetName = 'expenseReportLines';
                     SubPageLink = "Document No." = field("No.");
+                }
+                part(activityLogEntries; "Expense Activity Log API")
+                {
+                    Caption = 'Activity Log Entries';
+                    EntityName = 'expenseActivityLogEntry';
+                    EntitySetName = 'expenseActivityLogEntries';
+                    SubPageLink = "Source Table ID" = const(Database::"Expense Report Header"),
+                                  "Source Record System ID" = field(SystemId);
                 }
             }
         }
@@ -225,7 +303,6 @@ page 6928 "Expense Reports API"
         CurrencyLCYDisplay: Code[10];
         ReimbursementCurrencyCodeDisplay: Code[10];
         ExpenseUserSystemId: Guid;
-        SubmitterFilter: Text;
         ExpenseReportCreatedLbl: Label 'Expense report created via API.', Locked = true;
 
     trigger OnInit()
@@ -237,13 +314,6 @@ page 6928 "Expense Reports API"
     begin
         // Avoid JIT load consistency errors by ensuring fields read in OnAfterGetRecord are included in the initial record buffer.
         Rec.AddLoadFields("Reimbursement Currency Code", "Expense User No.");
-    end;
-
-    trigger OnFindRecord(Which: Text): Boolean
-    begin
-        ProcessPendingApprovalByFilter();
-
-        exit(Rec.Find(Which));
     end;
 
     trigger OnAfterGetRecord()
@@ -277,72 +347,6 @@ page 6928 "Expense Reports API"
         Rec."Reimbursement Currency Code" := CurrencyHelper.GetCurrencyCodeFromAPI(ReimbursementCurrencyCodeDisplay);
         UpdateExpenseUserNoFromSystemId();
         exit(true);
-    end;
-
-    local procedure ProcessPendingApprovalByFilter()
-    var
-        ApproverCode: Code[20];
-        FilterGroup: Integer;
-    begin
-        FilterGroup := Rec.FilterGroup(4);
-        ApproverCode := CopyStr(Rec.GetFilter("Pending Approval By"), 1, MaxStrLen(ApproverCode));
-
-        Rec.SetRange("Pending Approval By");
-
-        if (SubmitterFilter = '') and (ApproverCode <> '') then begin
-            // The next line can be database intensive - limit its use
-            SubmitterFilter := GetSubmitterFilter(ApproverCode);
-
-            if SubmitterFilter <> '' then
-                Rec.SetFilter("Expense User No.", SubmitterFilter)
-            else
-                // If there is an approver filter that can approve for no submitter, we should show an empty list
-                Rec.SetRange(SystemId, CreateGuid());
-        end;
-
-        Rec.FilterGroup(FilterGroup);
-    end;
-
-    local procedure GetSubmitterFilter(ApproverCode: Code[20]) SubmitterFilterString: Text
-    var
-        ExpenseApprovalSetup: Record "Expense Approval Setup";
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        SelectionFilterManagement: Codeunit SelectionFilterManagement;
-        RecRef: RecordRef;
-    begin
-        ExpenseApprovalSetup.SetCurrentKey("Approver No.");
-        ExpenseApprovalSetup.SetRange("Approver No.", ApproverCode);
-
-        RecRef.GetTable(ExpenseApprovalSetup);
-        SubmitterFilterString := SelectionFilterManagement.GetSelectionFilter(RecRef, ExpenseApprovalSetup.FieldNo("Expense User No."));
-
-        ExpenseAgentSetup.Get();
-        if ExpenseAgentSetup."Default Approver No." <> ApproverCode then
-            exit;
-        AppendDefaultSubmittersForDefaultApprover(SubmitterFilterString);
-        if StrLen(SubmitterFilterString) > 2000 then
-            SubmitterFilterString := '*'; // to avoid failing sql statements
-    end;
-
-    local procedure AppendDefaultSubmittersForDefaultApprover(var SubmitterFilterString: Text)
-    var
-        ExpenseUser: Record "Expense User";
-        DefaultFilter: TextBuilder;
-    begin
-        if SubmitterFilterString <> '' then
-            DefaultFilter.Append(SubmitterFilterString);
-
-        ExpenseUser.SetAutoCalcFields("Approver No.");
-        ExpenseUser.SetFilter("Approver No.", '%1', '');
-        ExpenseUser.SetLoadFields("No.");
-        if ExpenseUser.FindSet() then
-            repeat
-                if DefaultFilter.Length > 0 then
-                    DefaultFilter.Append('|');
-                DefaultFilter.Append(ExpenseUser."No.");
-            until ExpenseUser.Next() = 0;
-
-        SubmitterFilterString := DefaultFilter.ToText();
     end;
 
     local procedure UpdateExpenseUserNoFromSystemId()
@@ -387,10 +391,24 @@ page 6928 "Expense Reports API"
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
 
+#if not CLEAN29
+    [Obsolete('Use ReleaseAndMarkPendingApprovalExpenseReportWithComment instead.', '29.0')]
     [ServiceEnabled]
     procedure ReleaseAndMarkPendingApprovalExpenseReport(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20])
     begin
-        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo);
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, '');
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+#endif
+    [ServiceEnabled]
+    procedure ReleaseAndMarkPendingApprovalExpenseReportWithComment(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text)
+    begin
+        Rec.PerformManualReleaseAndPendingApproval(SubmitterExpenseUserNo, SubmissionComment);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
@@ -402,6 +420,17 @@ page 6928 "Expense Reports API"
     procedure ApprovedExpenseReport(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20])
     begin
         Rec.PerformManualApproved(ApproverExpenseUserNo);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure ApprovedExpenseReportWithPolicyOverride(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean)
+    begin
+        Rec.PerformManualApproved(ApproverExpenseUserNo, SkipPolicyValidation);
 
         ActionContext.SetObjectType(ObjectType::Page);
         ActionContext.SetObjectId(Page::"Expense Reports API");
@@ -451,4 +480,27 @@ page 6928 "Expense Reports API"
         ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
     end;
+
+    [ServiceEnabled]
+    procedure AssignInterimApprover(var ActionContext: WebServiceActionContext; InterimApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
+    begin
+        Rec.AssignInterimApprover(InterimApproverExpenseUserNo, ActorExpenseUserNo);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure AssignAlternateApprover(var ActionContext: WebServiceActionContext; ActorExpenseUserNo: Code[20])
+    begin
+        Rec.AssignAlternateApprover(ActorExpenseUserNo);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
 }

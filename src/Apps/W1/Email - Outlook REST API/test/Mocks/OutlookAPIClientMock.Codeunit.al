@@ -13,14 +13,14 @@ codeunit 139754 "Outlook API Client Mock" implements "Email - Outlook API Client
         AccountName: Text[250];
 
 
-    internal procedure GetAccountInformation(AccessToken: SecretText; var Email: Text[250]; var Name: Text[250]): Boolean
+    procedure GetAccountInformation(AccessToken: SecretText; var Email: Text[250]; var Name: Text[250]): Boolean
     begin
         Email := EmailAddress;
         Name := AccountName;
         exit(true);
     end;
 
-    internal procedure SendEmail(AccessToken: SecretText; MessageJson: JsonObject)
+    procedure SendEmail(AccessToken: SecretText; MessageJson: JsonObject)
     begin
         Message := MessageJson;
     end;

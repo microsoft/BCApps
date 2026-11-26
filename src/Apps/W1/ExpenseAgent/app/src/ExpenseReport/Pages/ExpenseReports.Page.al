@@ -5,7 +5,6 @@
 namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Foundation.BatchProcessing;
-using System.Security.User;
 
 page 6997 "Expense Reports"
 {
@@ -126,6 +125,19 @@ page 6997 "Expense Reports"
     {
         area(Navigation)
         {
+            action(OpenExpenseApp)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Open Expense App';
+                Image = LinkWeb;
+                Visible = AgentEnabled and (ExpenseAppUrl <> '');
+                ToolTip = 'Opens the Expense App dashboard.';
+
+                trigger OnAction()
+                begin
+                    Hyperlink(ExpenseAppUrl);
+                end;
+            }
             group("Expense")
             {
                 Caption = 'Expense';
@@ -293,25 +305,38 @@ page 6997 "Expense Reports"
                 {
                 }
             }
+            group(Category_Navigate)
+            {
+                Caption = 'Navigate';
+
+                actionref(OpenExpenseApp_Promoted; OpenExpenseApp)
+                {
+                }
+            }
         }
     }
 
     trigger OnOpenPage()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
-        UserSetup: Record "User Setup";
+        ExpenseUser: Record "Expense User";
+        EAHttpClient: Codeunit "EA Http Client";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
     begin
         ExpenseAgentSetup.GetRecordOnce();
+        AgentEnabled := ExpenseAgentSetup."Enable Agent";
+        ExpenseAppUrl := EAHttpClient.GetExpenseAppBaseUrl();
 
         if ExpenseAgentSetup."Enable Approval Workflow" then begin
-            UserSetup.Get(UserId());
-            if not UserSetup."Unlimited Expense Approval" then
+            ExpenseReportApprovalMgmt.GetCurrentExpenseUserForApproval(ExpenseUser);
+            if not ExpenseUser."Unlimited Approval" then
                 ExpenseReportApprovalMgmt.FilterExpenseReports(Rec, Rec.FieldNo("Created By"));
         end;
     end;
 
     var
+        AgentEnabled: Boolean;
+        ExpenseAppUrl: Text;
         ReadyToPostQst: Label 'The number of expense reports that will be posted is %1. \Do you want to continue?', Comment = '%1 - selected count';
 
     local procedure PostDocument()

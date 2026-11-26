@@ -27,5 +27,41 @@ report 139595 TestReportLayoutsReport
             Type = RDLC;
             LayoutFile = 'Layouts/TestReportLayoutsReport.rdl';
         }
+        // Second extension-installed layout so tests can exercise multi-layout scenarios
+        // (e.g. mixed global/company scope in a batch status change - CP0529-338).
+        // Uses its own layout file: a layout file must not be shared between layouts (AL0835).
+        layout(MYLAYOUT2)
+        {
+            Type = RDLC;
+            LayoutFile = 'Layouts/TestReportLayoutsReport2.rdl';
+        }
+        layout(WordLayout)
+        {
+            Type = Word;
+            LayoutFile = 'Layouts/TestReportLayoutsReport.docx';
+        }
+        layout(ExcelLayout)
+        {
+            Type = Excel;
+            LayoutFile = 'Layouts/TestReportLayoutsReport.xlsx';
+        }
+        layout(WordBodyLayout)
+        {
+            Type = Word;
+            subtype = Body;
+            LayoutFile = 'Layouts/TestReportLayoutsReportBody.docx';
+        }
+        layout(WordHeaderLayout)
+        {
+            Type = Word;
+            subtype = HeaderFooter;
+            LayoutFile = 'Layouts/TestReportLayoutsReportHeader.docx';
+        }
+        layout(WordThemeLayout)
+        {
+            Type = Word;
+            subtype = Theme;
+            LayoutFile = 'Layouts/TestReportLayoutsReportTheme.dotx';
+        }
     }
 }

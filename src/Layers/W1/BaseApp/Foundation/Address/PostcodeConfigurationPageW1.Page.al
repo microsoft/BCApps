@@ -82,7 +82,8 @@ page 9143 "Postcode Configuration Page W1"
             Rec.SaveServiceKey(DisabledTok);
         end;
 
-        PrevValue := Rec.GetServiceKey();
+        ServiceKeyText := Rec.GetServiceKey();
+        PrevValue := ServiceKeyText;
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean

@@ -405,11 +405,16 @@ page 21 "Customer Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+#if not CLEAN30
                 field("SIREN No."; Rec."SIREN No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the SIREN No. for the customer.';
+                    ObsoleteReason = 'Moved to Sales FR app.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 group(PostingDetails)
                 {
                     Caption = 'Posting Details';
@@ -546,10 +551,14 @@ page 21 "Customer Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+#if not CLEAN30
                 field("Payment Balance (LCY)"; Rec."Balance (LCY)")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment amount that the customer owes for completed sales. This value is also known as the customer''s balance.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to the Payment Management FR first-party app';
+                    ObsoleteTag = '30.0';
 
                     trigger OnDrillDown()
                     var
@@ -563,6 +572,7 @@ page 21 "Customer Card"
                         CustLedgEntry.DrillDownOnEntries(DtldCustLedgEntry);
                     end;
                 }
+#endif
 #if not CLEAN28
                 field("Payment in progress (LCY)"; Rec."Payment in progress (LCY)")
                 {
