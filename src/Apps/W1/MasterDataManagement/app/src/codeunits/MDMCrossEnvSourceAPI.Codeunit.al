@@ -100,7 +100,8 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// numbers. Selector is either a change-feed cursor { modifiedAt, systemId } or a targeted
     /// { systemIds } list. Response carries records, hasMore and (cursor mode) nextCursor. The table read
     /// runs under the CALLER's permission set, so table-level access is enforced by permissions, not here; a table
-    /// the caller can't read is reported as readPermission:false (no records) so the subsidiary can name the fix.
+    /// the caller can't read is reported as readPermission:false and tableAvailable:false (no records), so the subsidiary
+    /// can name the fix and older subsidiaries still stop with an error.
     /// </summary>
     /// <param name="TableId">The source table ID to read.</param>
     /// <param name="FieldIds">A JSON array of the field numbers to project.</param>
@@ -135,11 +136,14 @@ codeunit 7241 "MDM Cross-Env Source API"
             exit(WriteResponse(Response, false, Records, false));
         if not TryOpenTable(TableId, RecRef) then
             exit(WriteResponse(Response, false, Records, false));
-        Response.Add('tableAvailable', true);
+        // An unreadable table is also reported as not available. Subsidiaries that know readPermission name the fix;
+        // older subsidiaries don't, and would otherwise read the empty page as "no changes" and silently stop
+        // synchronizing the table. tableAvailable:false makes them stop with an error instead.
         if not CanRead(TableId) then begin
             Response.Add('readPermission', false);
-            exit(WriteResponse(Response, true, Records, false));
+            exit(WriteResponse(Response, false, Records, false));
         end;
+        Response.Add('tableAvailable', true);
 
         // Missing field => HALT that table's sync (no partial records); subsidiary logs a synch error.
         // Fields that exist but are media/blob/flow are skipped silently (media sync is deferred).
