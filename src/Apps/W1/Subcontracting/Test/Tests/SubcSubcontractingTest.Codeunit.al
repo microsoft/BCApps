@@ -3270,7 +3270,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         OutboundFromCode, OutboundToCode : Code[10];
         QtyPartialShip: Decimal;
     begin
-        // [SCENARIO] Non-direct (in-transit) transfer: Return from Subcontractor must succeed when the outbound Transfer Order is only partially shipped, and a second Return attempt must be blocked with the existing error.
+        // [SCENARIO 660833] Non-direct (in-transit) transfer: Return from Subcontractor succeeds after partial shipment and explains an existing open return on a second attempt.
         // [SCENARIO] Pre-fix the report errored 'Return from Subcontractor has already been created' on the first call because CheckTransferLineExists matched the unrelated outbound line.
 
         // [GIVEN] Standard subcontracting setup with an in-transit transfer route (non-direct)
@@ -3342,8 +3342,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
         asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
 
-        // [THEN] The duplicate is blocked with the existing error
-        Assert.ExpectedError('Nothing to create. No components or WIP items to return for the specified subcontracting order');
+        // [THEN] The duplicate is blocked with guidance about the existing open return
+        Assert.ExpectedError(StrSubstNo(ReturnTransferOrderAlreadyExistsErr, PurchaseLine."Document No."));
     end;
 
     [Test]
@@ -3365,7 +3365,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         OutboundFromCode, OutboundToCode : Code[10];
         QtyPartialShip: Decimal;
     begin
-        // [SCENARIO] Direct transfer (no in-transit route): Return from Subcontractor must succeed when the outbound Transfer Order has been partially direct-transferred, and a second Return attempt must be blocked with the existing error.
+        // [SCENARIO 660833] Direct transfer: Return from Subcontractor succeeds after a partial direct transfer and explains an existing open return on a second attempt.
         // [SCENARIO] In direct-transfer mode Qty. to Ship is forced to equal Quantity, so a partial transfer is achieved by reducing the line Quantity before posting. After the post the items already sit at the subcontractor and the outbound line is consumed.
 
         // [GIVEN] Standard subcontracting setup WITHOUT an in-transit transfer route — the outbound TO will be Direct Transfer
@@ -3441,8 +3441,8 @@ codeunit 139989 "Subc. Subcontracting Test"
         PurchaseHeaderPage.GotoKey("Purchase Document Type"::Order, PurchaseLine."Document No.");
         asserterror PurchaseHeaderPage.CreateReturnFromSubcontractor.Invoke();
 
-        // [THEN] The duplicate is blocked with the existing error
-        Assert.ExpectedError('Nothing to create. No components or WIP items to return for the specified subcontracting order');
+        // [THEN] The duplicate is blocked with guidance about the existing open return
+        Assert.ExpectedError(StrSubstNo(ReturnTransferOrderAlreadyExistsErr, PurchaseLine."Document No."));
     end;
 
     [Test]
@@ -4729,6 +4729,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ConfirmDialogCalledCount: Integer;
         AlreadySpecifiedErr: Label 'You cannot open Tracking Specification because this component is already specified in Transfer Order %1.', Comment = '|%1 = Transfer Order No.';
         NothingToCreateErr: Label 'Nothing to create. No components or WIP to transfer for the specified subcontracting order.';
+        ReturnTransferOrderAlreadyExistsErr: Label 'A return transfer order already exists for subcontracting purchase order %1. Complete or delete the existing return transfer order before creating another return.', Locked = true, Comment = '%1=Subcontracting Purchase Order No.';
         PurchOrderRoutingErr: Label 'Purchase Order %1 should contain a line tied to Routing Reference No. %2', Comment = '%1 = Purchase Order No., %2 = Routing Reference No.';
 
 }
