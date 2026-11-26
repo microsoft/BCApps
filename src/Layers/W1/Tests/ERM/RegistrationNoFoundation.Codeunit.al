@@ -28,8 +28,13 @@ codeunit 139935 "Registration No. Foundation"
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryUtility: Codeunit "Library - Utility";
+        LibrarySales: Codeunit "Library - Sales";
         RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         AppendLegacyCompanySuffix: Boolean;
+        ExportRegistrationRequired: Boolean;
+        ExportSchemeRequired: Boolean;
+        ExportScheme: Text;
+        ExportMaximumLength: Integer;
 
     [Test]
     procedure MastersPreserveFiftyCharacters()
@@ -231,6 +236,8 @@ codeunit 139935 "Registration No. Foundation"
         SalesHeader."No." := LibraryUtility.GenerateRandomCode(SalesHeader.FieldNo("No."), Database::"Sales Header");
         SalesHeader."Registration Number" := PadStr('Counterparty 0012-/ ', 50, 'n');
         SalesHeader."Registration Country/Region" := 'AA';
+        SalesHeader."Bill-to Registration No." := PadStr('Bill-to 0012-/ ', 50, 'b');
+        SalesHeader."Bill-to Reg. Country/Region" := 'BB';
         SalesHeader.Insert(false);
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Order;
         PurchaseHeader."No." := LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("No."), Database::"Purchase Header");
@@ -255,12 +262,172 @@ codeunit 139935 "Registration No. Foundation"
 
         Assert.AreEqual(SalesHeader."Registration Number", SalesHeaderArchive.GetRegistrationNumber(), 'Archiving must retain all 50 customer characters.');
         Assert.AreEqual('AA', SalesHeaderArchive.GetRegistrationCountryCode(), 'The archived customer country must remain frozen.');
+        Assert.AreEqual(SalesHeader."Bill-to Registration No.", SalesHeaderArchive."Bill-to Registration No.", 'Archiving must retain the separate bill-to legal number.');
+        Assert.AreEqual('BB', SalesHeaderArchive."Bill-to Reg. Country/Region", 'Archiving must retain the bill-to country.');
         Assert.AreEqual(PurchaseHeader."Registration No.", PurchaseHeaderArchive.GetRegistrationNumber(), 'Archiving must retain all 50 vendor characters.');
         Assert.AreEqual('AA', PurchaseHeaderArchive.GetRegistrationCountryCode(), 'The archived vendor country must remain frozen.');
         Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), SalesHeaderArchive.GetCompanyRegistrationNumber(), 'The sales archive must use its company snapshot.');
         Assert.AreEqual('ZZ', SalesHeaderArchive.GetCompanyRegistrationCountryCode(), 'The sales archive company country must remain frozen.');
         Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), PurchaseHeaderArchive.GetCompanyRegistrationNumber(), 'The purchase archive must use its company snapshot.');
         Assert.AreEqual('ZZ', PurchaseHeaderArchive.GetCompanyRegistrationCountryCode(), 'The purchase archive company country must remain frozen.');
+    end;
+
+    [Test]
+    procedure BillToRegistrationSnapshotDoesNotReplaceSellTo()
+    var
+        SellToCustomer: Record Customer;
+        BillToCustomer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        SalesHeaderArchive: Record "Sales Header Archive" temporary;
+        BillToRegistrationNo: Text[50];
+    begin
+        SetFeatureEnabled(true);
+        LibrarySales.CreateCustomer(SellToCustomer);
+        LibrarySales.CreateCustomer(BillToCustomer);
+        SellToCustomer."Registration Number" := 'SELL-TO LEGAL';
+        SellToCustomer.Modify();
+        BillToRegistrationNo := PadStr('Bill-to 0012-/ ', 50, 'b');
+        BillToCustomer."Registration Number" := BillToRegistrationNo;
+        BillToCustomer.Modify();
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, SellToCustomer."No.");
+
+        SalesHeader.Validate("Bill-to Customer No.", BillToCustomer."No.");
+        BillToCustomer."Registration Number" := 'Changed after capture';
+        BillToCustomer.Modify();
+        SalesInvoiceHeader.TransferFields(SalesHeader);
+        SalesHeaderArchive.TransferFields(SalesHeader);
+
+        Assert.AreEqual('SELL-TO LEGAL', SalesHeader.GetRegistrationNumber(), 'The existing snapshot must remain sell-to.');
+        Assert.AreEqual(BillToRegistrationNo, SalesHeader."Bill-to Registration No.", 'Billing validation must capture the bill-to legal identity.');
+        Assert.AreEqual(BillToCustomer."Country/Region Code", SalesHeader."Bill-to Reg. Country/Region", 'Billing validation must capture the bill-to country.');
+        Assert.AreEqual(BillToRegistrationNo, SalesInvoiceHeader."Bill-to Registration No.", 'Posting transfer must preserve the bill-to snapshot.');
+        Assert.AreEqual(BillToRegistrationNo, SalesHeaderArchive."Bill-to Registration No.", 'Archiving transfer must preserve the bill-to snapshot.');
+    end;
+
+    [Test]
+    procedure ExportUsesOriginalDocumentAndExplicitPartyRoles()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        PurchInvHeader: Record "Purch. Inv. Header" temporary;
+        RegistrationNoExport: Codeunit "Registration No. Export";
+        Document: RecordRef;
+        Identifier: Text;
+        SchemeID: Text;
+    begin
+        SetFeatureEnabled(true);
+        SalesInvoiceHeader."Registration Number" := 'SELL-TO';
+        SalesInvoiceHeader."Bill-to Registration No." := PadStr('BILL-TO /- ', 50, 'b');
+        SalesInvoiceHeader."Company Registration No." := 'SALES COMPANY SNAPSHOT';
+        Document.GetTable(SalesInvoiceHeader);
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::"Sales Bill-to", '', Identifier, SchemeID);
+        Assert.AreEqual(SalesInvoiceHeader."Bill-to Registration No.", Identifier, 'BT-47 must use bill-to, not sell-to.');
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::Company, '', Identifier, SchemeID);
+        Assert.AreEqual(SalesInvoiceHeader."Company Registration No.", Identifier, 'BT-30 must use the original company snapshot.');
+
+        PurchInvHeader."Registration No." := PadStr('BUY-FROM /- ', 50, 'v');
+        PurchInvHeader."Company Registration No." := 'PURCHASE COMPANY SNAPSHOT';
+        Document.GetTable(PurchInvHeader);
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::"Purchase Buy-from", '', Identifier, SchemeID);
+        Assert.AreEqual(PurchInvHeader."Registration No.", Identifier, 'A self-billed seller is buy-from, not the company or pay-to.');
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::Company, '', Identifier, SchemeID);
+        Assert.AreEqual(PurchInvHeader."Company Registration No.", Identifier, 'A self-billed buyer is the company.');
+    end;
+
+    [Test]
+    procedure ExportOmitsMissingHistoricalSnapshotsAndHonorsMandatoryProfiles()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        CompanyInformation: Record "Company Information";
+        RegistrationNoFoundation: Codeunit "Registration No. Foundation";
+        RegistrationNoExport: Codeunit "Registration No. Export";
+        Document: RecordRef;
+        Identifier: Text;
+        SchemeID: Text;
+    begin
+        SetFeatureEnabled(true);
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := 'TODAYS COMPANY';
+        CompanyInformation.Modify();
+        SalesInvoiceHeader."Registration Number" := 'HISTORICAL SELL-TO';
+        Document.GetTable(SalesInvoiceHeader);
+        Identifier := 'LEGACY VAT';
+        SchemeID := 'VAT SCHEME';
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::Company, '', Identifier, SchemeID);
+        Assert.AreEqual('', Identifier, 'A historical company snapshot must not be backfilled.');
+        Assert.AreEqual('', SchemeID, 'An omitted identifier must not retain a VAT scheme.');
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::"Sales Bill-to", '', Identifier, SchemeID);
+        Assert.AreEqual('', Identifier, 'A missing bill-to snapshot must not reuse sell-to.');
+
+        RegistrationNoFoundation.SetExportPolicy(true, false, '', 50);
+        BindSubscription(RegistrationNoFoundation);
+        asserterror RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::Company, 'REGISTRATION-TEST', Identifier, SchemeID);
+        Assert.ExpectedError('legal registration snapshot is missing');
+        UnbindSubscription(RegistrationNoFoundation);
+    end;
+
+    [Test]
+    procedure ExportRegistrySchemeAndLengthComeFromTheProfile()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        RegistrationNoFoundation: Codeunit "Registration No. Foundation";
+        RegistrationNoExport: Codeunit "Registration No. Export";
+        Document: RecordRef;
+        Identifier: Text;
+        SchemeID: Text;
+    begin
+        SetFeatureEnabled(true);
+        SalesInvoiceHeader."Bill-to Registration No." := PadStr('Raw 0012-/ ', 50, 'r');
+        Document.GetTable(SalesInvoiceHeader);
+        RegistrationNoFoundation.SetExportPolicy(false, true, '0208', 50);
+        BindSubscription(RegistrationNoFoundation);
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::"Sales Bill-to", 'REGISTRATION-TEST', Identifier, SchemeID);
+        Assert.AreEqual(SalesInvoiceHeader."Bill-to Registration No.", Identifier, 'Export must preserve the original representation.');
+        Assert.AreEqual('0208', SchemeID, 'Only the profile/registry resolver may select a legal scheme.');
+        RegistrationNoFoundation.SetExportPolicy(false, true, '0208', 20);
+        asserterror RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::"Sales Bill-to", 'REGISTRATION-TEST', Identifier, SchemeID);
+        Assert.ExpectedError('exceeds the maximum length of 20');
+        UnbindSubscription(RegistrationNoFoundation);
+    end;
+
+    [Test]
+    procedure ExportRetainsLegacyValuesWhenFeatureDisabled()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header" temporary;
+        RegistrationNoExport: Codeunit "Registration No. Export";
+        Document: RecordRef;
+        Identifier: Text;
+        SchemeID: Text;
+    begin
+        SetFeatureEnabled(false);
+        SalesInvoiceHeader."Bill-to Registration No." := 'NEW SNAPSHOT';
+        Document.GetTable(SalesInvoiceHeader);
+        Identifier := 'LEGACY VAT';
+        SchemeID := 'LEGACY SCHEME';
+
+        RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::"Sales Bill-to", '', Identifier, SchemeID);
+
+        Assert.AreEqual('LEGACY VAT', Identifier, 'The disabled feature must preserve provider behavior.');
+        Assert.AreEqual('LEGACY SCHEME', SchemeID, 'The disabled feature must preserve the existing scheme.');
+    end;
+
+    procedure SetExportPolicy(RegistrationRequired: Boolean; SchemeRequired: Boolean; SchemeID: Text; MaximumLength: Integer)
+    begin
+        ExportRegistrationRequired := RegistrationRequired;
+        ExportSchemeRequired := SchemeRequired;
+        ExportScheme := SchemeID;
+        ExportMaximumLength := MaximumLength;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Registration No. Export", 'OnResolveProfileRequirements', '', false, false)]
+    local procedure ResolveExportPolicy(Document: RecordRef; PartyRole: Enum "Registration No. Party Role"; Profile: Text; RegistrationNo: Text[50]; CountryCode: Code[10]; var SchemeID: Text; var RegistrationRequired: Boolean; var SchemeRequired: Boolean; var MaximumLength: Integer)
+    begin
+        if Profile <> 'REGISTRATION-TEST' then
+            exit;
+        SchemeID := ExportScheme;
+        RegistrationRequired := ExportRegistrationRequired;
+        SchemeRequired := ExportSchemeRequired;
+        MaximumLength := ExportMaximumLength;
     end;
 
     [Test]

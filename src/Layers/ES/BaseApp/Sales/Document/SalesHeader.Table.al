@@ -3700,6 +3700,17 @@ table 36 "Sales Header"
             Editable = false;
             TableRelation = "Country/Region";
         }
+        field(7405; "Bill-to Registration No."; Text[50])
+        {
+            Caption = 'Bill-to Registration No.';
+            Editable = false;
+        }
+        field(7406; "Bill-to Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Bill-to Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
         field(10705; "Corrected Invoice No."; Code[20])
         {
             Caption = 'Corrected Invoice No.';
@@ -8090,6 +8101,8 @@ table 36 "Sales Header"
             exit;
 
         "Bill-to Customer Templ. Code" := '';
+        "Bill-to Registration No." := BillToCustomer.GetRegistrationNumber();
+        "Bill-to Reg. Country/Region" := BillToCustomer."Country/Region Code";
         "Bill-to Name" := BillToCustomer.Name;
         "Bill-to Name 2" := BillToCustomer."Name 2";
         if BillToCustomerIsReplaced() or

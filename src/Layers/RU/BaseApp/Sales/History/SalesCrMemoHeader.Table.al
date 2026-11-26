@@ -1156,6 +1156,17 @@ table 114 "Sales Cr.Memo Header"
             Editable = false;
             TableRelation = "Country/Region";
         }
+        field(7405; "Bill-to Registration No."; Text[50])
+        {
+            Caption = 'Bill-to Registration No.';
+            Editable = false;
+        }
+        field(7406; "Bill-to Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Bill-to Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
         field(12400; "External Document Text"; Text[100])
         {
             Caption = 'External Document Text';

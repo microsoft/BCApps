@@ -14,9 +14,11 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Foundation.Registration;
 using Microsoft.Inventory.Item;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -27,6 +29,7 @@ using Microsoft.Service.History;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using System.IO;
+using System.Environment.Configuration;
 using System.Text;
 using System.Utilities;
 
@@ -1789,6 +1792,234 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         // [THEN] No <RequestedDeliveryPeriod> element is exported, at header or line level
         InitXPathXMLReaderForOrder(TempBlob);
         LibraryXPathXMLReader.VerifyNodeAbsence('//cac:RequestedDeliveryPeriod');
+    end;
+
+    [Test]
+    procedure SalesInvoiceExportsBillToAndOriginalCompanyLegalIdentities()
+    begin
+        VerifyDocumentLegalIdentities(false, false);
+    end;
+
+    [Test]
+    procedure SalesCreditMemoExportsBillToAndOriginalCompanyLegalIdentities()
+    begin
+        VerifyDocumentLegalIdentities(true, false);
+    end;
+
+    [Test]
+    procedure HistoricalInvoiceOmitsMissingLegalIdentities()
+    begin
+        VerifyDocumentLegalIdentities(false, true);
+    end;
+
+    local procedure VerifyDocumentLegalIdentities(CreditMemo: Boolean; MissingSnapshots: Boolean)
+    var
+        CompanyInfo: Record "Company Information";
+        BillToCustomer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        InvoiceExport: XmlPort "Sales Invoice - PEPPOL30";
+        CreditMemoExport: XmlPort "Sales Cr.Memo - PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        Document: RecordRef;
+        Destination: OutStream;
+        DocumentNo: Code[20];
+        CompanyRegistrationNo: Text[50];
+        BillToRegistrationNo: Text[50];
+    begin
+        Initialize();
+        EnableRegistrationFeature();
+        CompanyRegistrationNo := PadStr('POSTED COMPANY /- ', 50, 'c');
+        BillToRegistrationNo := PadStr('POSTED BILL-TO /- ', 50, 'b');
+        CompanyInfo.Get();
+        CompanyInfo."Registration No." := CompanyRegistrationNo;
+        CompanyInfo."VAT Registration No." := 'DK12345678';
+        CompanyInfo."Use GLN in Electronic Document" := false;
+        CompanyInfo.Modify();
+        BillToCustomer.Get(CreateCustomerWithAddressAndVATRegNo());
+        BillToCustomer."Registration Number" := BillToRegistrationNo;
+        BillToCustomer."Country/Region Code" := 'BE';
+        BillToCustomer."VAT Registration No." := 'BE1234567890';
+        BillToCustomer."Use GLN in Electronic Document" := false;
+        BillToCustomer.Modify();
+        if CreditMemo then
+            SalesHeader."Document Type" := SalesHeader."Document Type"::"Credit Memo"
+        else
+            SalesHeader."Document Type" := SalesHeader."Document Type"::Invoice;
+        CreateSalesHeader(SalesHeader, CreateCustomerWithAddressAndVATRegNo(), SalesHeader."Document Type", '');
+        SalesHeader.Validate("Bill-to Customer No.", BillToCustomer."No.");
+        SalesHeader."Registration Number" := 'SELL-TO, NOT THE BUYER';
+        SalesHeader.Modify();
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), 1);
+        SalesLine.Validate("Unit Price", 10);
+        SalesLine.Modify(true);
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        if CreditMemo then begin
+            SalesCrMemoHeader.Get(DocumentNo);
+            SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
+            Document.GetTable(SalesCrMemoHeader);
+        end else begin
+            SalesInvoiceHeader.Get(DocumentNo);
+            Document.GetTable(SalesInvoiceHeader);
+        end;
+        if MissingSnapshots then begin
+            Document.Field(SalesInvoiceHeader.FieldNo("Bill-to Registration No.")).Value := '';
+            Document.Field(SalesInvoiceHeader.FieldNo("Bill-to Reg. Country/Region")).Value := '';
+            Document.Field(SalesInvoiceHeader.FieldNo("Company Registration No.")).Value := '';
+            Document.Field(SalesInvoiceHeader.FieldNo("Company Reg. Country/Region")).Value := '';
+            Document.Modify();
+        end;
+        CompanyInfo.Get();
+        CompanyInfo."Registration No." := 'TODAYS COMPANY';
+        CompanyInfo.Modify();
+        BillToCustomer."Registration Number" := 'TODAYS BILL-TO';
+        BillToCustomer.Modify();
+        TempBlob.CreateOutStream(Destination);
+        Document.SetRecFilter();
+        if CreditMemo then begin
+            CreditMemoExport.Initialize(Document, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+            CreditMemoExport.SetDestination(Destination);
+            CreditMemoExport.Export();
+            InitXPathXMLReaderForCreditNote(TempBlob);
+        end else begin
+            InvoiceExport.Initialize(Document, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
+            InvoiceExport.SetDestination(Destination);
+            InvoiceExport.Export();
+            InitXPathXMLReaderForInvoice(TempBlob);
+        end;
+        if MissingSnapshots then begin
+            LibraryXPathXMLReader.VerifyNodeAbsence('cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID');
+            LibraryXPathXMLReader.VerifyNodeAbsence('cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID');
+        end else begin
+            LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', CompanyRegistrationNo);
+            LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', BillToRegistrationNo);
+        end;
+        LibraryXPathXMLReader.VerifyNodeAbsence('cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID/@schemeID');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', 'DK12345678');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', BillToCustomer."VAT Registration No.");
+        VerifyCustomerEndpoint(BillToCustomer."VAT Registration No.", GetVATSchemaID(BillToCustomer."Country/Region Code"));
+    end;
+
+    [Test]
+    procedure SelfBilledInvoiceExportsBuyFromAndCompanyLegalIdentities()
+    begin
+        VerifySelfBilledLegalIdentities(false, false);
+    end;
+
+    [Test]
+    procedure SelfBilledCreditMemoExportsBuyFromAndCompanyLegalIdentities()
+    begin
+        VerifySelfBilledLegalIdentities(true, false);
+    end;
+
+    [Test]
+    procedure HistoricalSelfBilledInvoiceOmitsMissingLegalIdentities()
+    begin
+        VerifySelfBilledLegalIdentities(false, true);
+    end;
+
+    local procedure VerifySelfBilledLegalIdentities(CreditMemo: Boolean; MissingSnapshots: Boolean)
+    var
+        CompanyInfo: Record "Company Information";
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        ExportSelfBilledPEPPOL30: Codeunit "Export Self-Billed PEPPOL30";
+        TempBlob: Codeunit "Temp Blob";
+        Document: RecordRef;
+        DocumentNo: Code[20];
+        CompanyRegistrationNo: Text[50];
+        VendorRegistrationNo: Text[50];
+    begin
+        Initialize();
+        EnableRegistrationFeature();
+        CompanyRegistrationNo := PadStr('POSTED BUYER /- ', 50, 'c');
+        VendorRegistrationNo := PadStr('POSTED SELLER /- ', 50, 'v');
+        CompanyInfo.Get();
+        CompanyInfo."Registration No." := CompanyRegistrationNo;
+        CompanyInfo."VAT Registration No." := 'DK12345678';
+        CompanyInfo."Use GLN in Electronic Document" := false;
+        CompanyInfo.Modify();
+        CreateVendorWithAddressAndGLN(Vendor);
+        Vendor."Registration Number" := VendorRegistrationNo;
+        Vendor."VAT Registration No." := 'DK87654321';
+        Vendor.Modify();
+        if CreditMemo then
+            PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::"Credit Memo"
+        else
+            PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Invoice;
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type", Vendor."No.");
+        PurchaseHeader."Vendor Invoice No." := 'LEGAL-IDENTITY-TEST';
+        PurchaseHeader."Vendor Cr. Memo No." := 'LEGAL-IDENTITY-TEST';
+        PurchaseHeader.Modify();
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithPurchSetup(), 1);
+        PurchaseLine.Validate("Direct Unit Cost", 10);
+        PurchaseLine.Modify(true);
+        DocumentNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+        if CreditMemo then begin
+            PurchCrMemoHeader.Get(DocumentNo);
+            Document.GetTable(PurchCrMemoHeader);
+        end else begin
+            PurchInvHeader.Get(DocumentNo);
+            Document.GetTable(PurchInvHeader);
+        end;
+        if MissingSnapshots then begin
+            Document.Field(PurchInvHeader.FieldNo("Registration No.")).Value := '';
+            Document.Field(PurchInvHeader.FieldNo("Company Registration No.")).Value := '';
+            Document.Modify();
+        end;
+        CompanyInfo.Get();
+        CompanyInfo."Registration No." := 'TODAYS COMPANY';
+        CompanyInfo.Modify();
+        Vendor."Registration Number" := 'TODAYS VENDOR';
+        Vendor.Modify();
+
+        ExportSelfBilledPEPPOL30.GenerateXML(Document);
+        ExportSelfBilledPEPPOL30.GetXML(TempBlob);
+        if CreditMemo then
+            InitXPathXMLReaderForCreditNote(TempBlob)
+        else
+            InitXPathXMLReaderForInvoice(TempBlob);
+
+        if MissingSnapshots then begin
+            LibraryXPathXMLReader.VerifyNodeAbsence('cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID');
+            LibraryXPathXMLReader.VerifyNodeAbsence('cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID');
+        end else begin
+            LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', VendorRegistrationNo);
+            LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', CompanyRegistrationNo);
+        end;
+        LibraryXPathXMLReader.VerifyNodeAbsence('cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID/@schemeID');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Vendor."VAT Registration No.");
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingSupplierParty/cac:Party/cbc:EndpointID', Vendor.GLN);
+    end;
+
+    local procedure EnableRegistrationFeature()
+    var
+        FeatureKey: Record "Feature Key";
+        Status: Record "Feature Data Update Status";
+        Feature: Codeunit "Registration No. Feature";
+    begin
+        if not FeatureKey.Get(Feature.GetFeatureKey()) then begin
+            FeatureKey.ID := Feature.GetFeatureKey();
+            FeatureKey.Insert();
+        end;
+        FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+        FeatureKey."Data Update Required" := true;
+        FeatureKey.Modify();
+        if not Status.Get(FeatureKey.ID, CompanyName()) then begin
+            Status."Feature Key" := FeatureKey.ID;
+            Status."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(Status."Company Name"));
+            Status.Insert();
+        end;
+        Status."Feature Status" := Status."Feature Status"::Complete;
+        Status."Data Update Required" := true;
+        Status.Modify();
     end;
 
     local procedure Initialize()

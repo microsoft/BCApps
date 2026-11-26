@@ -1017,6 +1017,17 @@ table 110 "Sales Shipment Header"
             Editable = false;
             TableRelation = "Country/Region";
         }
+        field(7405; "Bill-to Registration No."; Text[50])
+        {
+            Caption = 'Bill-to Registration No.';
+            Editable = false;
+        }
+        field(7406; "Bill-to Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Bill-to Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
         field(11310; "Enterprise No."; Text[50])
         {
             Caption = 'Enterprise No.';

@@ -338,6 +338,47 @@ master-data target mapping. Review custom transformations rather than replacing
 them automatically. Scheme values are retained as source metadata, not inferred
 from a country or registration-number format.
 
+### Outbound PEPPOL legal identities
+
+The existing sales registration snapshot retains its sell-to meaning. Sales
+headers, archives and posted headers additionally carry `Bill-to Registration
+No.` (Text[50], field 7405) and `Bill-to Reg. Country/Region` (field 7406).
+Bill-to selection captures both values; posting and archiving transfer them
+without consulting today's customer.
+
+| Export | Legal party | Snapshot | UBL business term |
+|---|---|---|---|
+| Sales invoice/credit note | Supplier | Document company | BT-30 |
+| Sales invoice/credit note | Customer | Document bill-to | BT-47 |
+| Self-billed purchase invoice/credit note | Supplier | Document buy-from vendor | BT-30 |
+| Self-billed purchase invoice/credit note | Customer | Document company | BT-47 |
+
+`Registration No. Export` applies these identities only to
+`PartyLegalEntity/CompanyID`. Existing provider interfaces still run unchanged;
+the adapter receives the original document RecordRef, not its temporary
+Sales/Purchase Header projection. Modern and legacy XMLports, self-billing and
+the PEPPOL Data Exchange export subscribers use this context. VAT, endpoints,
+payees and the sell-to snapshot remain independent and unchanged.
+
+With `GlobalRegistrationNumbers` inactive, exports preserve their previous
+behavior. With it active, missing historical number/country snapshots are never
+reconstructed from masters or other party roles. Optional legal identifiers are
+omitted. Service documents currently have no equivalent legal snapshots and
+follow the same omission policy.
+
+The W1 default leaves optional legal `schemeID` attributes absent. No national
+registry mapping is implied. Profile/registry extensions subscribe to
+`OnResolveProfileRequirements`, using the customization identifier, role,
+snapshot and country to specify a registry scheme, mandatory identifier/scheme
+requirements and maximum supported length. Registration-format masks must not
+be used as schemes. Missing mandatory data or unsupported lengths raise explicit
+errors; export never truncates or normalizes a legal number.
+
+Data Exchange exports omit optional blank legal nodes and schemes through
+in-memory column options, without modifying installed/custom definitions.
+Custom profiles must supply their applicable registry policy before activation.
+There is no historical backfill or automatic master-data update.
+
 ## 10. Localization and Compatibility
 
 | Localization | Required treatment |

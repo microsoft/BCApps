@@ -1296,6 +1296,17 @@ table 112 "Sales Invoice Header"
             Editable = false;
             TableRelation = "Country/Region";
         }
+        field(7405; "Bill-to Registration No."; Text[50])
+        {
+            Caption = 'Bill-to Registration No.';
+            Editable = false;
+        }
+        field(7406; "Bill-to Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Bill-to Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
         field(7000000; "Applies-to Bill No."; Code[20])
         {
             Caption = 'Applies-to Bill No.';
