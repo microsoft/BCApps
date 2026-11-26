@@ -1016,10 +1016,11 @@ table 77 "Report Selections"
             EmailBodyUsageFound := false;
             OnGetEmailBodyVendorTextOnAfterNotFindEmailBodyUsage(
               ReportUsage.AsInteger(), RecordVariant, VendorNo, TempBodyReportSelections, IsHandled, EmailBodyUsageFound);
-            if not EmailBodyUsageFound then
+            if not EmailBodyUsageFound then begin
                 if IsHandled then
                     exit(true);
-            exit(false);
+                exit(false);
+            end;
         end;
 
         if TempBodyReportSelections."Email Body Layout Code" <> '' then
