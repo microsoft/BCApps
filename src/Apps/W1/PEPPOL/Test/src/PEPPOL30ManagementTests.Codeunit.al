@@ -4417,10 +4417,11 @@ codeunit 139235 "PEPPOL30 Management Tests"
         Initialize();
         CreateSubscriptionSalesLine(SalesHeader, SalesLine);
 
-        PEPPOL30Validation := GetFormat();
+        // Target the W1 implementation; the NA format overrides unit-code resolution.
+        PEPPOL30Validation := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
         PEPPOL30Validation.ValidateDocumentLines(SalesHeader);
 
-        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
         PEPPOLLineInfoProvider.GetLineUnitCodeInfo(SalesLine, UnitCode, UnitCodeListID);
         Assert.AreEqual('EA', UnitCode, SubscriptionLineUnitCodeErr);
         Assert.AreEqual('UNECERec20', UnitCodeListID, SubscriptionLineUnitCodeListErr);
@@ -4446,7 +4447,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         UnitOfMeasure.Validate("International Standard Code", '');
         UnitOfMeasure.Modify(true);
 
-        PEPPOL30Validation := GetFormat();
+        PEPPOL30Validation := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
         asserterror PEPPOL30Validation.ValidateDocumentLine(SalesLine);
         Assert.ExpectedError(StrSubstNo(NoInternationalStandardCodeErr, UnitOfMeasure.Code));
     end;
@@ -4465,7 +4466,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine."Unit of Measure Code" := '';
         SalesLine.Modify(false);
 
-        PEPPOL30Validation := GetFormat();
+        PEPPOL30Validation := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
         asserterror PEPPOL30Validation.ValidateDocumentLine(SalesLine);
         Assert.ExpectedError(StrSubstNo(NoInternationalStandardCodeErr, SalesLine."Unit of Measure Code"));
     end;
@@ -4486,7 +4487,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         SalesLine.Quantity := 0;
         SalesLine."Unit of Measure Code" := '';
 
-        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
         PEPPOLLineInfoProvider.GetLineUnitCodeInfo(SalesLine, UnitCode, UnitCodeListID);
         Assert.AreEqual('EA', UnitCode, 'Zero-quantity subscription lines must retain the piece unit fallback.');
         Assert.AreEqual('UNECERec20', UnitCodeListID, 'Zero-quantity lines must retain the UNECE unit code list.');
@@ -4507,7 +4508,7 @@ codeunit 139235 "PEPPOL30 Management Tests"
         CreateSubscriptionSalesLine(SalesHeader, SalesLine);
         SalesLine.Type := SalesLine.Type::" ";
 
-        PEPPOLLineInfoProvider := GetFormat();
+        PEPPOLLineInfoProvider := Enum::"PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales";
         PEPPOLLineInfoProvider.GetLineUnitCodeInfo(SalesLine, UnitCode, UnitCodeListID);
         Assert.AreEqual('', UnitCode, CommentLineUnitCodeErr);
         Assert.AreEqual('UNECERec20', UnitCodeListID, CommentLineUnitCodeListErr);
