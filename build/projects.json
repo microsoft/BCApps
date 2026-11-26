@@ -5291,6 +5291,7 @@
       "hasTranslations": true,
       "supportedCountries": "ES",
       "runStaticCodeAnalysis": true,
+      "installOnEnvironmentUpdate": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
@@ -5306,7 +5307,7 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\baseminorrelease.ruleset.json"
     },
-    "Expense Agent (Preview)": {
+    "Expense Agent": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\ExpenseAgent\\app",
       "hasTranslations": true,
       "supportedCountries": "All",

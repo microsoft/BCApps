@@ -90,6 +90,11 @@
     "method": "LegacySpendRequestsAPIRejectsTravelRequestOwnerChange"
   },
   {
+    "codeunitId": 148347,
+    "codeunitName": "Travel Requests API Test",
+    "method": "ApproveTravelRequestActionCreatesPerDiemLine"
+  },
+  {
     "codeunitId": 148318,
     "codeunitName": "Expense Capabilities API Test",
     "method": "CapabilitiesProjectsEnabledViaAPI"
@@ -163,6 +168,11 @@
     "codeunitId": 148349,
     "codeunitName": "Expense PerDiem Locations Test",
     "method": "PerDiemLocationsExcludesNonPerDiemCategoryViaAPI"
+  },
+  {
+    "codeunitId": 148349,
+    "codeunitName": "Expense PerDiem Locations Test",
+    "method": "PerDiemLocationsExcludesInactivePerDiemCategoryViaAPI"
   },
   {
     "codeunitId": 148331,
@@ -248,11 +258,6 @@
     "codeunitId": 148331,
     "codeunitName": "Expense Projects API Test",
     "method": "AssignedProjectsBlockedWhenProjectFieldsDisabledViaAPI"
-  },
-  {
-    "codeunitId": 148305,
-    "codeunitName": "Expense Test",
-    "method": "DescriptionMustBeFlowFromExpenseToExpenseItemization"
   },
   {
     "codeunitId": 148337,
