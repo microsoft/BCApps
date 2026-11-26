@@ -28,12 +28,476 @@ using Microsoft.Warehouse.Ledger;
 using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Setup;
 using Microsoft.Warehouse.Structure;
+using System.TestLibraries.Utilities;
 
 codeunit 149910 "Subc. WIP Transfer Post Test"
 {
     // [FEATURE] Subcontracting Warehouse Combined Scenarios Tests
     Subtype = Test;
     TestType = IntegrationTest;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,SummaryWIPDetailHandler')]
+    procedure SummaryWIPShipmentPartialAndFinalReceipt()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Actual shipment and partial/final receipts flow into the genuine card and exact ledger details.
+        Initialize();
+
+        // [GIVEN] A real first-operation subcontract transfer of ten.
+        PrepareSummaryWIPOrder(10, ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+
+        // [WHEN] Ten are shipped and four are received.
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 0, 10);
+        VerifySummaryWIPDetails(ProductionOrder);
+        FindSummaryOriginal(TransferHeader, TransferLine);
+        TransferLine.Validate("Qty. to Receive", 4);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+
+        // [THEN] The card is 4/6, then 10/0 after the remaining receipt; all signed source keys agree.
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 4, 6);
+        VerifySummaryWIPDetails(ProductionOrder);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 10, 0);
+        VerifySummaryWIPDetails(ProductionOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,SummaryWIPDetailHandler')]
+    procedure SummaryWIPReturnTransit()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        ReturnHeader: Record "Transfer Header";
+        ReturnLine: Record "Transfer Line";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] A native return includes negative subcontractor balances and both return-transit signs.
+        Initialize();
+
+        // [GIVEN] A real completed forward transfer has ten at the subcontractor and a still-existing PO.
+        PrepareSummaryWIPOrder(10, ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+        SubcWarehouseLibrary.CreateSummaryReturn(PurchaseHeader, ReturnHeader);
+        FindSummaryOriginal(ReturnHeader, ReturnLine);
+        ReturnLine.Validate(Quantity, 3);
+        ReturnLine.Modify(true);
+
+        // [WHEN] The native return is shipped then received.
+        LibraryWarehouse.PostTransferOrder(ReturnHeader, true, false);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 7, 3);
+        VerifySummaryWIPDetails(ProductionOrder);
+        LibraryWarehouse.PostTransferOrder(ReturnHeader, false, true);
+
+        // [THEN] Seven remain at the subcontractor and transit nets to zero.
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 7, 0);
+        VerifySummaryWIPDetails(ProductionOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,SummaryWIPDetailHandler')]
+    procedure SummaryWIPDirectTransfer()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        DirectHeader: Record "Direct Trans. Header";
+        DirectPost: Codeunit "TransferOrder-Post Transfer";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Native direct transfer contributes destination WIP without inventing transit entries.
+        Initialize();
+
+        // [GIVEN] A real linked transfer is validated into native direct-transfer mode before posting.
+        PrepareSummaryWIPOrder(10, ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        TransferHeader.Validate("Direct Transfer", true);
+        TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.Modify(true);
+
+        // [WHEN] The native direct-transfer posting codeunit persists the transfer.
+        DirectPost.SetHideValidationDialog(true);
+        DirectPost.Run(TransferHeader);
+
+        // [THEN] A real direct document exists and the card/detail balance is 10/0.
+        DirectHeader.SetRange("Transfer Order No.", TransferHeader."No.");
+        Assert.RecordIsNotEmpty(DirectHeader);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 10, 0);
+        VerifySummaryWIPDetails(ProductionOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,SummaryWIPDetailHandler')]
+    procedure SummaryFamilyMixedUOMWIP()
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Every real family contributor posts numeric base quantities, not just UOM labels.
+        Initialize();
+
+        // [GIVEN] A factor-six contributor and a base-unit contributor in real refreshed families.
+        // [WHEN] Both are shipped and partially/finally received.
+        // [THEN] Raw heterogeneous base sums and each persisted contributor match the approved arithmetic.
+        RunSummaryFamilyWIP(0.06, 0.10, 0.02, 0.05);
+        RunSummaryFamilyWIP(0.10, 0.20, 0.02, 0.05);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,SummaryWIPDetailHandler')]
+    procedure SummaryWIPIgnoresCurrentVendorLocation()
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        Vendor: Record Vendor;
+        Location: Record Location;
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        OriginalLocation: Code[10];
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Current vendor setup never filters away historical WIP at its original location.
+        Initialize();
+
+        // [GIVEN] Ten were natively received at the original subcontractor location.
+        PrepareSummaryWIPOrder(10, ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        OriginalLocation := Vendor."Subc. Location Code";
+
+        // [WHEN] The vendor is reconfigured to a different valid location.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Validate("Subc. Location Code", Location.Code);
+        Vendor.Modify(true);
+
+        // [THEN] The real card and matching source keys still show the original ten.
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 10, 0);
+        VerifySummaryWIPDetails(ProductionOrder);
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntry.SetRange("In Transit", false);
+        WIPEntry.SetRange("Location Code", OriginalLocation);
+        WIPEntry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(10, WIPEntry."Quantity (Base)", 'Historical location balance must be retained.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('SummaryWIPDetailHandler')]
+    procedure SummarySignedWIPStatusAndOrderIsolation()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        FinishedIdentity: Record "Production Order";
+        WorkCenter: Record "Work Center";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Calculation-only signed WIP is isolated by both status and order, without a positivity floor.
+        Initialize();
+
+        // [GIVEN] Explicit persisted reader fixtures, not a status-transition or negative-target workflow.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryOrder(10, OtherOrder, WorkCenter);
+        FinishedIdentity := ProductionOrder;
+        FinishedIdentity.Status := FinishedIdentity.Status::Finished;
+        InsertSummaryWIP(ProductionOrder, false, 5);
+        InsertSummaryWIP(ProductionOrder, false, -7);
+        InsertSummaryWIP(ProductionOrder, true, 3);
+        InsertSummaryWIP(ProductionOrder, true, -4);
+        InsertSummaryWIP(FinishedIdentity, false, 100);
+        InsertSummaryWIP(OtherOrder, false, 200);
+
+        // [WHEN] The actual Released consumer reads "A".
+        // [THEN] Only its signed current-status rows contribute.
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, -2, -1);
+        VerifySummaryWIPDetails(ProductionOrder);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder,SummaryReopenConfirmHandler,SummaryReopenedCardHandler')]
+    procedure SummaryWIPLateStatusAndReopen()
+    var
+        ProductionOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        FinishedOrder: Record "Production Order";
+        ReopenedOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        SummaryMgmt: Codeunit "Subc. Order Summary Mgmt.";
+        StatusManagement: Codeunit "Prod. Order Status Management";
+        FinishedCard: TestPage "Finished Production Order";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] Real finish and one-time reopen move persisted WIP identity without changing balances or another order.
+        Initialize();
+
+        // [GIVEN] Real completed WIP ten and real purchase-receipt output; another order has WIP four.
+        PrepareSummaryWIPOrder(10, ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PrepareSummaryWIPOrder(4, OtherOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+
+        // [WHEN] Native programmatic finish updates the actual resulting status and number.
+        StatusManagement.ChangeProdOrderStatus(ProductionOrder, FinishedOrder, FinishedOrder.Status::Finished, WorkDate(), false);
+
+        // [THEN] The old selection is empty; Finished has ten; the other order still has four.
+        Assert.AreEqual(0, SummaryMgmt.GetWIPQuantity(ProductionOrder, false), 'Old Released identity must no longer match.');
+        Assert.AreEqual(10, SummaryMgmt.GetWIPQuantity(FinishedOrder, false), 'New Finished identity must match all native relation updates.');
+        SubcWarehouseLibrary.VerifySummaryWIP(OtherOrder, 4, 0);
+        FinishedCard.OpenView();
+        FinishedCard.GoToRecord(FinishedOrder);
+        FinishedCard.ReopenFinishedProdOrder.Invoke();
+        ReopenedOrder.Get(ReopenedOrder.Status::Released, FinishedOrder."No.");
+        SubcWarehouseLibrary.VerifySummaryWIP(ReopenedOrder, 10, 0);
+        Assert.AreEqual(0, SummaryMgmt.GetWIPQuantity(FinishedOrder, false), 'Old Finished identity must no longer match after native reopen.');
+        SubcWarehouseLibrary.VerifySummaryWIP(OtherOrder, 4, 0);
+        Assert.AreEqual(10, LibraryVariableStorage.DequeueDecimal(), 'Native reopen must open the genuine Released card with ten.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder')]
+    procedure SummaryPreservesExistingFinishGate()
+    var
+        ProductionOrder: Record "Production Order";
+        AllowedOrder: Record "Production Order";
+        FinishedOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        StatusManagement: Codeunit "Prod. Order Status Management";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 636866] The existing open-transfer finish guard remains; Fully Invoiced No adds no finish prohibition.
+        Initialize();
+
+        // [GIVEN] A real order with posted output and a native original transfer still open.
+        PrepareSummaryWIPOrder(10, ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Finish is attempted with that original transfer.
+        asserterror StatusManagement.ChangeProdOrderStatus(ProductionOrder, FinishedOrder, FinishedOrder.Status::Finished, WorkDate(), false);
+
+        // [THEN] The intended native guard, not an output/setup error, is raised.
+        Assert.ExpectedError('There is an open transfer order');
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.IsTrue(ProductionOrder.Get(ProductionOrder.Status::Released, ProductionOrder."No."), 'Blocked order must remain Released.');
+
+        // [GIVEN] Another order has real output and a partially invoiced PO but no transfer.
+        SubcWarehouseLibrary.CreateSummaryOrder(10, AllowedOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(AllowedOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        SubcWarehouseLibrary.PostSummaryInvoice(PurchaseHeader, PurchaseLine, 4);
+        SubcWarehouseLibrary.VerifySummaryCard(AllowedOrder, 1, 10, 10, 4, false, 0, 0, 0, 0);
+
+        // [WHEN] The otherwise eligible order is finished.
+        Clear(StatusManagement);
+        StatusManagement.ChangeProdOrderStatus(AllowedOrder, FinishedOrder, FinishedOrder.Status::Finished, WorkDate(), false);
+
+        // [THEN] The source No indicator has introduced no new finish gate.
+        Assert.IsTrue(FinishedOrder.Get(FinishedOrder.Status::Finished, FinishedOrder."No."), 'Native finish must succeed with No alone.');
+    end;
+
+    local procedure PrepareSummaryWIPOrder(Quantity: Decimal; var ProductionOrder: Record "Production Order"; var WorkCenter: Record "Work Center"; var PurchaseHeader: Record "Purchase Header"; var TransferHeader: Record "Transfer Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        SubcWarehouseLibrary.CreateSummaryOrder(Quantity, ProductionOrder, WorkCenter);
+        SubcWarehouseLibrary.CreateSummaryPurchase(ProductionOrder, WorkCenter, PurchaseHeader, PurchaseLine);
+        SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+    end;
+
+    local procedure FindSummaryOriginal(TransferHeader: Record "Transfer Header"; var TransferLine: Record "Transfer Line")
+    begin
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.FindFirst();
+    end;
+
+    local procedure RunSummaryFamilyWIP(FirstQuantity: Decimal; SecondQuantity: Decimal; FirstPartial: Decimal; SecondPartial: Decimal)
+    var
+        ProductionOrder: Record "Production Order";
+        WorkCenter: Record "Work Center";
+        Items: array[2] of Record Item;
+        ItemUOM: Record "Item Unit of Measure";
+        ProductionLine: Record "Prod. Order Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+    begin
+        SubcWarehouseLibrary.CreateSummaryFamily(FirstQuantity * 6, SecondQuantity, ProductionOrder, WorkCenter, Items);
+        ProductionLine.SetRange(Status, ProductionOrder.Status);
+        ProductionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Assert.AreEqual(2, ProductionLine.Count(), 'Both family contributors must be real refreshed lines.');
+        ProductionLine.SetRange("Item No.", Items[1]."No.");
+        ProductionLine.FindFirst();
+        Assert.AreEqual(FirstQuantity * 6, ProductionLine."Quantity (Base)", 'First family output must support converted shipment.');
+        ProductionLine.SetRange("Item No.", Items[2]."No.");
+        ProductionLine.FindFirst();
+        Assert.AreEqual(SecondQuantity, ProductionLine."Quantity (Base)", 'Second family output must support shipment.');
+        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUOM, Items[1]."No.", 6);
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange("No.", Items[1]."No.");
+        PurchaseLine.FindFirst();
+        PurchaseLine.Validate("Unit of Measure Code", ItemUOM.Code);
+        PurchaseLine.Validate(Quantity, FirstQuantity);
+        PurchaseLine.Modify(true);
+        SubcWarehouseLibrary.CreateSummaryForward(ProductionOrder, WorkCenter, PurchaseHeader, TransferHeader);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, false);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, 0, FirstQuantity * 6 + SecondQuantity);
+        VerifySummaryItemWIP(ProductionOrder, Items[1], true, FirstQuantity * 6);
+        VerifySummaryItemWIP(ProductionOrder, Items[2], true, SecondQuantity);
+        VerifySummaryWIPDetails(ProductionOrder);
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.SetRange("Item No.", Items[1]."No.");
+        TransferLine.FindFirst();
+        Assert.AreEqual(ItemUOM.Code, TransferLine."Unit of Measure Code", 'Forward creation must use purchase UOM.');
+        TransferLine.Validate("Qty. to Receive", FirstPartial);
+        TransferLine.Modify(true);
+        TransferLine.SetRange("Item No.", Items[2]."No.");
+        TransferLine.FindFirst();
+        TransferLine.Validate("Qty. to Receive", SecondPartial);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, FirstPartial * 6 + SecondPartial, (FirstQuantity - FirstPartial) * 6 + SecondQuantity - SecondPartial);
+        VerifySummaryItemWIP(ProductionOrder, Items[1], false, FirstPartial * 6);
+        VerifySummaryItemWIP(ProductionOrder, Items[2], false, SecondPartial);
+        VerifySummaryItemWIP(ProductionOrder, Items[1], true, (FirstQuantity - FirstPartial) * 6);
+        VerifySummaryItemWIP(ProductionOrder, Items[2], true, SecondQuantity - SecondPartial);
+        VerifySummaryWIPDetails(ProductionOrder);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, false, true);
+        SubcWarehouseLibrary.VerifySummaryWIP(ProductionOrder, FirstQuantity * 6 + SecondQuantity, 0);
+        VerifySummaryItemWIP(ProductionOrder, Items[1], false, FirstQuantity * 6);
+        VerifySummaryItemWIP(ProductionOrder, Items[2], false, SecondQuantity);
+        VerifySummaryWIPDetails(ProductionOrder);
+    end;
+
+    local procedure VerifySummaryItemWIP(ProductionOrder: Record "Production Order"; Item: Record Item; InTransit: Boolean; Quantity: Decimal)
+    var
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+    begin
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntry.SetRange("Item No.", Item."No.");
+#pragma warning disable AA0210 // WIP is already restricted to the test order and item.
+        WIPEntry.SetRange("In Transit", InTransit);
+#pragma warning restore AA0210
+        WIPEntry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(Quantity, WIPEntry."Quantity (Base)", 'Every family contributor must have the expected numeric persisted balance.');
+        WIPEntry.FindSet();
+        repeat
+            Assert.AreEqual(Item."Base Unit of Measure", WIPEntry."Base Unit of Measure", 'Each movement must retain the item base UOM.');
+        until WIPEntry.Next() = 0;
+    end;
+
+    local procedure InsertSummaryWIP(ProductionOrder: Record "Production Order"; InTransit: Boolean; Quantity: Decimal)
+    var
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+        ProductionLine: Record "Prod. Order Line";
+        RoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProductionLine.SetRange(Status, ProductionLine.Status::Released);
+        ProductionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProductionLine.FindFirst();
+        RoutingLine.SetRange(Status, RoutingLine.Status::Released);
+        RoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        RoutingLine.FindFirst();
+        SubcontractingMgmtLibrary.CreateWIPLedgerEntry(
+            WIPEntry, ProductionLine."Item No.", ProductionLine."Location Code",
+            ProductionOrder, ProductionLine, RoutingLine, RoutingLine."Work Center No.", Quantity, InTransit);
+        if WIPEntry."Prod. Order Status" <> ProductionOrder.Status then begin
+            // The library creates Released entries; this reader fixture also exercises a same-number Finished identity.
+            WIPEntry."Prod. Order Status" := ProductionOrder.Status;
+            WIPEntry.Modify();
+        end;
+    end;
+
+    local procedure VerifySummaryWIPDetails(ProductionOrder: Record "Production Order")
+    var
+        ReleasedOrder: TestPage "Released Production Order";
+    begin
+        ReleasedOrder.OpenView();
+        ReleasedOrder.GoToRecord(ProductionOrder);
+        ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.DrillDown();
+        VerifySummaryWIPDetailRows(ProductionOrder, false);
+        ReleasedOrder.SubcontractingSummary.WIPInTransit.DrillDown();
+        VerifySummaryWIPDetailRows(ProductionOrder, true);
+        ReleasedOrder.Close();
+    end;
+
+    local procedure VerifySummaryWIPDetailRows(ProductionOrder: Record "Production Order"; InTransit: Boolean)
+    var
+        WIPEntry: Record "Subcontractor WIP Ledger Entry";
+    begin
+        WIPEntry.SetProductionOrderFilter(ProductionOrder, true);
+        WIPEntry.SetRange("In Transit", InTransit);
+        Assert.AreEqual(WIPEntry.Count(), LibraryVariableStorage.DequeueInteger(), 'Ledger detail count must match the exact population.');
+        if WIPEntry.FindSet() then
+            repeat
+                Assert.AreEqual(WIPEntry."Entry No.", LibraryVariableStorage.DequeueInteger(), 'Ledger detail must return the exact persisted entry key.');
+                Assert.AreEqual(WIPEntry."Quantity (Base)", LibraryVariableStorage.DequeueDecimal(), 'Ledger detail must retain the signed movement.');
+            until WIPEntry.Next() = 0;
+    end;
+
+    [PageHandler]
+    procedure SummaryWIPDetailHandler(var Entries: TestPage "Subc. WIP Ledger Entries")
+    var
+        EntryNumbers: List of [Integer];
+        Quantities: List of [Decimal];
+        EntryNo: Integer;
+        Quantity: Decimal;
+        RowIndex: Integer;
+    begin
+        if Entries.First() then
+            repeat
+                Evaluate(EntryNo, Entries."Entry No.".Value());
+                EntryNumbers.Add(EntryNo);
+                Evaluate(Quantity, Entries."Quantity (Base)".Value());
+                Quantities.Add(Quantity);
+            until not Entries.Next();
+        LibraryVariableStorage.Enqueue(EntryNumbers.Count());
+        for RowIndex := 1 to EntryNumbers.Count() do begin
+            LibraryVariableStorage.Enqueue(EntryNumbers.Get(RowIndex));
+            LibraryVariableStorage.Enqueue(Quantities.Get(RowIndex));
+        end;
+        Entries.Close();
+    end;
+
+    [ConfirmHandler]
+    procedure SummaryReopenConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
+    end;
+
+    [PageHandler]
+    procedure SummaryReopenedCardHandler(var ReleasedOrder: TestPage "Released Production Order")
+    var
+        Quantity: Decimal;
+    begin
+        Evaluate(Quantity, ReleasedOrder.SubcontractingSummary.WIPAtSubcontractor.Value());
+        LibraryVariableStorage.Enqueue(Quantity);
+        ReleasedOrder.Close();
+    end;
 
     [Test]
     procedure CreateTransferOrderWithWIPItemFlag_CreatesSimpleWIPTransferLine()
@@ -777,6 +1241,8 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         LibraryPlanning: Codeunit "Library - Planning";
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         SubcontractingMgmtLibrary: Codeunit "Subc. Management Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         SubSetupLibrary: Codeunit "Subc. Setup Library";
@@ -785,6 +1251,7 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"Subc. WIP Transfer Post Test");
+        LibraryVariableStorage.Clear();
         LibrarySetupStorage.Restore();
 
         SubcontractingMgmtLibrary.Initialize();

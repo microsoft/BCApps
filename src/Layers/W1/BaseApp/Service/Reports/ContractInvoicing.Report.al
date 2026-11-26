@@ -245,7 +245,7 @@ report 5984 "Contract Invoicing"
         InvoiceToDate: Date;
         InvoiceFrom: Date;
         InvoiceTo: Date;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         DateSep: Text[10];
         InvoiceSum: Decimal;
 

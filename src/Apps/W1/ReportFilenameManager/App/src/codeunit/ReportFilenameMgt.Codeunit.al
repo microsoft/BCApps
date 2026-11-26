@@ -274,14 +274,19 @@ codeunit 8125 "Report Filename Mgt."
     begin
         Clear(Filename);
 
-        if not FindDocument(ReportId, SourceRecRef, FilterViews, DocumentRecRef) then
-            exit;
+        if FindDocument(ReportId, SourceRecRef, FilterViews, DocumentRecRef) then begin
+            if IsNamedByReminderCommunication(DocumentRecRef) then
+                exit;
 
-        if IsNamedByReminderCommunication(DocumentRecRef) then
-            exit;
-
-        if not SelectPattern(ReportId, Channel, DocumentRecRef, Pattern, LanguageCode, LanguageKnown) then
-            exit;
+            if not SelectPattern(ReportId, Channel, DocumentRecRef, Pattern, LanguageCode, LanguageKnown) then
+                exit;
+        end else begin
+            // Integer-only reports have no document to identify. Only record-independent
+            // patterns may name them; never invent a row or read an unrelated whole table.
+            Clear(DocumentRecRef);
+            if not SelectPatternForTable(ReportId, Channel, 0, DocumentRecRef, Pattern, LanguageCode, LanguageKnown) then
+                exit;
+        end;
 
         // Re-read from the winner: selection read each candidate's language through that candidate's
         // own language field, which may differ from the winner's.
@@ -584,6 +589,11 @@ codeunit 8125 "Report Filename Mgt."
     /// Most specific pattern wins; a blank criterion applies to anything.
     /// </summary>
     local procedure SelectPattern(ReportId: Integer; Channel: Enum "Report Filename Output Route"; var DocumentRecRef: RecordRef; var Best: Record "Report Filename Pattern"; var BestLanguageCode: Code[10]; var BestLanguageKnown: Boolean): Boolean
+    begin
+        exit(SelectPatternForTable(ReportId, Channel, DocumentRecRef.Number(), DocumentRecRef, Best, BestLanguageCode, BestLanguageKnown));
+    end;
+
+    local procedure SelectPatternForTable(ReportId: Integer; Channel: Enum "Report Filename Output Route"; TableNo: Integer; var DocumentRecRef: RecordRef; var Best: Record "Report Filename Pattern"; var BestLanguageCode: Code[10]; var BestLanguageKnown: Boolean): Boolean
     var
         Candidate: Record "Report Filename Pattern";
         CandidateLanguageCode: Code[10];
@@ -597,6 +607,7 @@ codeunit 8125 "Report Filename Mgt."
         BestLanguageKnown := false;
         Candidate.SetCurrentKey(Enabled, "Report ID", "Table No.");
         Candidate.SetRange(Enabled, true);
+        Candidate.SetFilter("Table No.", '%1|%2', 0, TableNo);
         Candidate.SetLoadFields("Report ID", "Table No.", "Output Route Filter", "Language Code", "Language Code Field", "File Name Pattern", "Date Format", "Max. Values Named", "Separator");
         if not Candidate.FindSet() then
             exit(false);

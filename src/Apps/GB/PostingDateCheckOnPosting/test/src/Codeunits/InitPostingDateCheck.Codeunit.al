@@ -15,7 +15,7 @@ codeunit 144000 "Init Posting Date Check"
     begin
         PurchasesPayablesSetup.Delete();
         PurchasesPayablesSetup.Init();
-        PurchasesPayablesSetup.Insert();
+        PurchasesPayablesSetup.Insert(true);
 
         PurchasesPayablesSetup.TestField(
             PurchasesPayablesSetup."Posting Date Check on Posting", true);
@@ -28,7 +28,7 @@ codeunit 144000 "Init Posting Date Check"
     begin
         SalesReceivablesSetup.Delete();
         SalesReceivablesSetup.Init();
-        SalesReceivablesSetup.Insert();
+        SalesReceivablesSetup.Insert(true);
 
         SalesReceivablesSetup.TestField(
             SalesReceivablesSetup."Posting Date Check on Posting", true);

@@ -7,6 +7,7 @@ namespace System.TestTools.TestRunner;
 
 using System.TestLibraries.Utilities;
 
+// [FEATURE] Date and datetime test input placeholder resolution.
 codeunit 130486 "Date Placeholder Tests"
 {
     Subtype = Test;
