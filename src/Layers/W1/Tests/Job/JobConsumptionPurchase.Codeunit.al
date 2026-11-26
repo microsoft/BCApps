@@ -5435,6 +5435,48 @@ codeunit 136302 "Job Consumption Purchase"
             StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), GLEntry.Amount));
     end;
 
+    [Test]
+    [HandlerFunctions('PurchaseOrderStatisticsSetInvDiscountInvoicingPageHandler')]
+    procedure JobLedgerEntryTotalCostForGLAccLineInFCYWithChangedInvDiscAmountToInvoiceRoundedLCYUnitCostProjectInOtherFCY()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        CurrencyCode: Code[10];
+        JobCurrencyCode: Code[10];
+        ExpectedAmount: Decimal;
+    begin
+        // [FEATURE] [G/L Account] [Invoice Discount] [FCY] [Rounding]
+        // [SCENARIO 642385] Project ledger entry total cost in project currency is converted from the invoiced LCY amount when the project currency differs from the purchase currency and the unit cost in LCY is already rounded
+        Initialize();
+
+        // [GIVEN] Foreign currency "FCY1" with "Currency Factor" = 1 and foreign currency "FCY2" with "Currency Factor" = 0.333333
+        CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        JobCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.333333, 0.333333);
+
+        // [GIVEN] Purchase order in "FCY1" with G/L Account line linked to a task of a project in "FCY2": Quantity = 10000, "Direct Unit Cost" = 2.00, invoice discount = 10000
+        // [GIVEN] "Qty. to Invoice" = 3000 and invoice discount on the Invoicing tab of purchase order statistics changed to 0, so the unit cost in LCY is 2.00
+        // [WHEN] Receive and invoice the purchase order
+        PostGLAccLineWithInvDiscAmountToInvoice(
+            PurchaseHeader, PurchaseLine, GLEntry, JobLedgerEntry, 10000, 3000, 2, 10000, 0, false, 0, CurrencyCode, JobCurrencyCode, 0, 0);
+
+        // [THEN] G/L entry for the G/L Account has amount 2.00 * 3000 = 6000.00 LCY
+        ExpectedAmount := 6000;
+        Assert.AreEqual(ExpectedAmount, GLEntry.Amount, StrSubstNo(ValueMustMatchErr, GLEntry.FieldCaption(Amount), ExpectedAmount));
+
+        // [THEN] Project ledger entry "Total Cost (LCY)" is equal to the G/L entry amount
+        Assert.AreEqual(
+            GLEntry.Amount, JobLedgerEntry."Total Cost (LCY)",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost (LCY)"), GLEntry.Amount));
+
+        // [THEN] Project ledger entry "Total Cost" in "FCY2" is 6000.00 * 0.333333 = 2000.00, not 0.66667 * 3000 = 2000.01 converted from the rounded unit cost
+        ExpectedAmount := 2000;
+        Assert.AreEqual(
+            ExpectedAmount, JobLedgerEntry."Total Cost",
+            StrSubstNo(ValueMustMatchErr, JobLedgerEntry.FieldCaption("Total Cost"), ExpectedAmount));
+    end;
+
     local procedure Initialize()
     var
         WarehouseEmployee: Record "Warehouse Employee";

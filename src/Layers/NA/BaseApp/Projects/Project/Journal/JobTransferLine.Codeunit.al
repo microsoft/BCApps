@@ -883,9 +883,10 @@ codeunit 1004 "Job Transfer Line"
             exit(false);
         if PurchLine."Unit Cost (LCY)" <> Round(PurchLine."Unit Cost (LCY)", LCYCurrency."Unit-Amount Rounding Precision") then
             exit(true);
-        // A rounded unit cost in LCY only changes the totals of a project in LCY with a purchase in foreign currency, where they are otherwise
-        // converted again from the amount in the purchase currency, which does not preserve the LCY amount balanced against the document total.
-        if (JobCurrencyCode <> '') or (PurchLine."Currency Code" = '') then
+        // A rounded unit cost in LCY only changes the totals of a purchase in foreign currency for a project in another currency. They are otherwise
+        // converted again from the amount in the purchase currency for a project in LCY, or from the rounded unit cost for a project in a third currency,
+        // which does not preserve the LCY amount balanced against the document total.
+        if (PurchLine."Currency Code" = '') or (JobCurrencyCode = PurchLine."Currency Code") then
             exit(false);
         if not PurchLine."Allow Invoice Disc." or (PurchLine."Qty. to Invoice" = 0) then
             exit(false);
