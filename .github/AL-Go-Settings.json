@@ -165,7 +165,6 @@
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
-    ".github/*",
     "build/*",
     "src/rulesets/*",
     "src/Layers/*",

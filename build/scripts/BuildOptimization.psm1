@@ -436,7 +436,7 @@ function Get-ChangedFilesForCI {
 .SYNOPSIS
     Checks whether any changed files match the fullBuildPatterns from AL-Go settings.
 .DESCRIPTION
-    Reads the fullBuildPatterns array from .github/AL-Go-Settings.json and tests
+    Combines AL-Go's built-in .github/*.json guard with fullBuildPatterns from settings and tests
     each changed file path against each pattern using -like. When AL-Go detects
     matching files it forces a full compile, so the test side must also force a
     full test run (i.e., skip nothing).
@@ -458,11 +458,11 @@ function Test-FullBuildPatternsMatch {
     )
 
     $settingsPath = Join-Path $BaseFolder '.github/AL-Go-Settings.json'
-    if (-not (Test-Path $settingsPath)) { return $false }
-
-    $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
-    $patterns = $settings.fullBuildPatterns
-    if (-not $patterns -or $patterns.Count -eq 0) { return $false }
+    $patterns = @('.github/*.json')
+    if (Test-Path $settingsPath) {
+        $settings = Get-Content -Path $settingsPath -Raw | ConvertFrom-Json
+        $patterns += @($settings.fullBuildPatterns)
+    }
 
     foreach ($file in $ChangedFiles) {
         $normalized = $file.Replace('\', '/')

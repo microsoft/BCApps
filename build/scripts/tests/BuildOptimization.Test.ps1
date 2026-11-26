@@ -692,6 +692,23 @@ Describe "BuildOptimization" {
     }
 
     Context "Test-FullBuildPatternsMatch" {
+        It "uses AL-Go's built-in JSON guard without configured patterns for <Path>" -ForEach @(
+            @{ Path = '.github/AL-Go-Settings.json' }
+            @{ Path = '.github/actions/example/config.json' }
+            @{ Path = '.github\actions\example\config.json' }
+        ) {
+            Test-FullBuildPatternsMatch -ChangedFiles @($Path) -BaseFolder $TestDrive | Should -BeTrue
+        }
+
+        It "does not broadly match GitHub non-JSON files: <Path>" -ForEach @(
+            @{ Path = '.github/actions/example/action.yaml' }
+            @{ Path = '.github/workflows/CI.yaml' }
+            @{ Path = '.github/scripts/example.ps1' }
+            @{ Path = '.github/README.md' }
+        ) {
+            Test-FullBuildPatternsMatch -ChangedFiles @($Path) -BaseFolder $baseFolder | Should -BeFalse
+        }
+
         It "returns true when a changed file matches build/* pattern" {
             $result = Test-FullBuildPatternsMatch -ChangedFiles @('build/scripts/RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
             $result | Should -BeTrue

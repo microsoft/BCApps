@@ -239,8 +239,8 @@ Describe "ParallelTestExecution churn selection" {
     It "runs the full bucket for <Mode>" -ForEach @(
         @{ Mode = 'manual' }, @{ Mode = 'disabled' }, @{ Mode = 'no changes' }, @{ Mode = 'local' },
         @{ Mode = 'github settings'; ChangedPath = '.github/AL-Go-Settings.json' },
-        @{ Mode = 'github action'; ChangedPath = '.github/actions/example/action.yaml' },
-        @{ Mode = 'github workflow'; ChangedPath = '.github/workflows/CI.yaml' }
+        @{ Mode = 'github nested JSON'; ChangedPath = '.github/actions/example/config.json' },
+        @{ Mode = 'github configured workflow'; ChangedPath = '.github/workflows/_BuildALGoProject.yaml' }
     ) {
         $script:useRealAffectedAppNames = $true
         Mock -ModuleName BuildOptimization Get-AppDependencyGraph { throw 'Full-run fallback must not build the graph.' }
