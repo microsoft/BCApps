@@ -7,7 +7,6 @@ namespace Microsoft.Test.ExpenseAgent;
 using Microsoft.ExpenseAgent;
 using Microsoft.Foundation.Attachment;
 using Microsoft.HumanResources.Employee;
-using System.Security.User;
 using System.Utilities;
 
 codeunit 148369 "Expense API Pages Test"
@@ -25,7 +24,6 @@ codeunit 148369 "Expense API Pages Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         IsInitialized: Boolean;
         ExpensesServiceNameTok: Label 'expenses', Locked = true;
         ExpenseReportsServiceNameTok: Label 'expenseReports', Locked = true;
@@ -880,8 +878,7 @@ codeunit 148369 "Expense API Pages Test"
         CreateExpenseReportWithLineForUser(ExpenseReportHeader, ExpenseReportLine, ExpenseUser);
 
         // [GIVEN] Create an approver and configure the approval setup.
-        LibraryExpense.CreateExpenseUser(ApproverUser);
-        SetupApproverExpenseUser(ApproverUser);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ApproverUser, true);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", ApproverUser."No.");
 
         // [GIVEN] Release the report.
@@ -930,8 +927,7 @@ codeunit 148369 "Expense API Pages Test"
         CreateExpenseReportWithLineForUser(ExpenseReportHeader, ExpenseReportLine, ExpenseUser);
 
         // [GIVEN] Create an approver and configure the approval setup.
-        LibraryExpense.CreateExpenseUser(ApproverUser);
-        SetupApproverExpenseUser(ApproverUser);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ApproverUser, true);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", ApproverUser."No.");
 
         // [GIVEN] Get the open Expense Report.
@@ -977,8 +973,7 @@ codeunit 148369 "Expense API Pages Test"
         CreateExpenseReportWithLineForUser(ExpenseReportHeader, ExpenseReportLine, ExpenseUser);
 
         // [GIVEN] Create an approver and configure the approval setup.
-        LibraryExpense.CreateExpenseUser(ApproverUser);
-        SetupApproverExpenseUser(ApproverUser);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ApproverUser, true);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", ApproverUser."No.");
 
         // [GIVEN] Release the report and mark it Pending Approval.
@@ -1028,8 +1023,7 @@ codeunit 148369 "Expense API Pages Test"
         CreateExpenseReportWithLineForUser(ExpenseReportHeader, ExpenseReportLine, ExpenseUser);
 
         // [GIVEN] Create an approver and configure the approval setup.
-        LibraryExpense.CreateExpenseUser(ApproverUser);
-        SetupApproverExpenseUser(ApproverUser);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ApproverUser, true);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", ApproverUser."No.");
 
         // [GIVEN] Release the report and mark it Pending Approval.
@@ -1080,8 +1074,7 @@ codeunit 148369 "Expense API Pages Test"
         CreateExpenseReportWithLineForUser(ExpenseReportHeader, ExpenseReportLine, ExpenseUser);
 
         // [GIVEN] Create an approver and configure the approval setup.
-        LibraryExpense.CreateExpenseUser(ApproverUser);
-        SetupApproverExpenseUser(ApproverUser);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ApproverUser, true);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, ExpenseUser."No.", ApproverUser."No.");
 
         // [GIVEN] Release the report and mark it Pending Approval.
@@ -1343,16 +1336,6 @@ codeunit 148369 "Expense API Pages Test"
         LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpensePaymentMethod."Reimbursement Type"::"Employee Paid");
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandInt(100));
-    end;
-
-    local procedure SetupApproverExpenseUser(var ApproverUser: Record "Expense User")
-    var
-        ApproverUserSetup: Record "User Setup";
-    begin
-        LibraryDocumentApprovals.CreateMockupUserSetup(ApproverUserSetup);
-        ApproverUser."Can Approve" := true;
-        ApproverUser."User Id For Approvals" := ApproverUserSetup."User ID";
-        ApproverUser.Modify();
     end;
 
     local procedure Initialize()
