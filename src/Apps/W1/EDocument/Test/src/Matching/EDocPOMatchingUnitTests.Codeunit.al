@@ -46,8 +46,8 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     procedure LegacyPOModelDeploymentUsesTrimmedOverride()
     begin
         VerifyLegacyPOModelDeployment(true, '  gpt-41-latest  ', 'gpt-41-latest');
+        VerifyLegacyPOModelDeployment(true, ' GPT-41-LATEST ', 'gpt-41-latest');
         VerifyLegacyPOModelDeployment(true, 'gpt-56-ceres-latest', 'gpt-56-ceres-latest');
-        VerifyLegacyPOModelDeployment(true, 'custom-model-deployment', 'custom-model-deployment');
     end;
 
     [Test]
@@ -59,6 +59,7 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         VerifyLegacyPOModelDeployment(false, '', AOAIDeployments.GetGPT56CeresLatest());
         VerifyLegacyPOModelDeployment(true, '', AOAIDeployments.GetGPT56CeresLatest());
         VerifyLegacyPOModelDeployment(true, '   ', AOAIDeployments.GetGPT56CeresLatest());
+        VerifyLegacyPOModelDeployment(true, 'custom-model-deployment', AOAIDeployments.GetGPT56CeresLatest());
     end;
 
     local procedure VerifyLegacyPOModelDeployment(SecretExists: Boolean; OverrideValue: Text; ExpectedDeployment: Text)
