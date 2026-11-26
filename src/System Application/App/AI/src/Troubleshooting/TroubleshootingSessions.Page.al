@@ -27,7 +27,7 @@ page 7785 "Troubleshooting Sessions"
     Extensible = false;
     RefreshOnActivate = true;
     AboutTitle = 'About troubleshooting sessions';
-    AboutText = 'The list opens with sessions that are in progress or awaiting user input. To see sessions with any status, choose Show All Sessions.';
+    AboutText = 'The list opens with sessions that are in progress or awaiting user input. Saved reports currently have the Concluded status. To see them, choose Show all sessions.';
 
     layout
     {
@@ -60,11 +60,10 @@ page 7785 "Troubleshooting Sessions"
                     Caption = 'Revision';
                     ToolTip = 'Specifies the source revision of the saved report. Revisions increase as follow-up answers are saved and can contain gaps.';
                 }
-                field(OwnerUserSecurityId; Rec."Owner User Security Id")
+                field(OwnerName; OwnerName)
                 {
-                    Caption = 'Owner User Security ID';
-                    ToolTip = 'Specifies the security identifier of the user who owns the troubleshooting conversation.';
-                    Visible = false;
+                    Caption = 'Owner';
+                    ToolTip = 'Specifies the name of the user who owns the troubleshooting conversation, if available.';
                 }
             }
         }
@@ -76,7 +75,7 @@ page 7785 "Troubleshooting Sessions"
         {
             action(ShowAllSessions)
             {
-                Caption = 'Show All Sessions';
+                Caption = 'Show all sessions';
                 Image = AllLines;
                 ToolTip = 'Show troubleshooting sessions with any status that you can access.';
 
@@ -88,7 +87,7 @@ page 7785 "Troubleshooting Sessions"
             }
             action(ShowActiveSessions)
             {
-                Caption = 'Show Active Sessions';
+                Caption = 'Show active sessions';
                 Image = FilterLines;
                 ToolTip = 'Show troubleshooting sessions that are in progress or awaiting user input.';
 
@@ -99,12 +98,30 @@ page 7785 "Troubleshooting Sessions"
                 end;
             }
         }
+        area(Promoted)
+        {
+            actionref(ShowAllSessions_Promoted; ShowAllSessions)
+            {
+            }
+            actionref(ShowActiveSessions_Promoted; ShowActiveSessions)
+            {
+            }
+        }
     }
 
     trigger OnOpenPage()
     begin
         ApplyActiveStatusFilter();
     end;
+
+    trigger OnAfterGetRecord()
+    begin
+        OwnerName := SessionLookup.GetOwnerName(Rec."Owner User Security Id");
+    end;
+
+    var
+        SessionLookup: Codeunit "Troubleshooting Session Lookup";
+        OwnerName: Text;
 
     local procedure ApplyActiveStatusFilter()
     begin

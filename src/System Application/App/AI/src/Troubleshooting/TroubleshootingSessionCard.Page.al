@@ -6,7 +6,6 @@
 namespace System.AI.Troubleshooting;
 
 using System.AI.Workspace;
-using System.Security.AccessControl;
 
 page 7786 "Troubleshooting Session Card"
 {
@@ -90,7 +89,7 @@ page 7786 "Troubleshooting Session Card"
         if IsNullGuid(Rec."Troubleshooting Id") then
             exit;
 
-        OwnerName := GetOwnerName();
+        OwnerName := SessionLookup.GetOwnerName(Rec."Owner User Security Id");
         Rec.CalcFields(Details);
         if not Rec.Details.HasValue() then
             exit;
@@ -99,25 +98,11 @@ page 7786 "Troubleshooting Session Card"
         DetailsContent.Read(DetailsStream);
         DetailsContent.GetSubText(ReportJson, 1);
         // Encode report content so customer text is displayed, never interpreted as markup.
-        DetailsText := '<pre>' + ReportJson.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;') + '</pre>';
+        DetailsText := '<pre>' + ReportJson.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;') + '</pre>';
     end;
 
     var
+        SessionLookup: Codeunit "Troubleshooting Session Lookup";
         DetailsText: Text;
         OwnerName: Text;
-
-    local procedure GetOwnerName(): Text
-    var
-        User: Record User;
-    begin
-        if not User.ReadPermission() then
-            exit('');
-
-        if not User.Get(Rec."Owner User Security Id") then
-            exit('');
-
-        if User."Full Name" <> '' then
-            exit(User."Full Name");
-        exit(User."User Name");
-    end;
 }
