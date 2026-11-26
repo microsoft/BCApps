@@ -6479,7 +6479,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextDtldLedgEntryNo: BigInteger;
         xGLEntryNo: BigInteger;
         xVATEntryNo: BigInteger;
-        PayablesAccountNo: Code[20];
         UnapplyVATEntries: Boolean;
         PmtDiscTolExists: Boolean;
         IsHandled: Boolean;
@@ -6689,6 +6688,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextDtldLedgEntryNo: BigInteger;
         xGLEntryNo: BigInteger;
         xVATEntryNo: BigInteger;
+        PayablesAccountNo: Code[20];
         UnapplyVATEntries: Boolean;
         PmtDiscTolExists: Boolean;
         IsHandled: Boolean;
