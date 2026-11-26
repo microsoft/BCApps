@@ -15,6 +15,7 @@ codeunit 8356 "MCP Upgrade"
 
     trigger OnUpgradePerDatabase()
     begin
+        RemoveOrphanedMCPTools();
         UpgradeMCPAPIToolVersion();
         UpgradeMCPSystemDefaultAsDefault();
         EnableApiToolsOnExistingConfigurations();
@@ -23,6 +24,24 @@ codeunit 8356 "MCP Upgrade"
 #if not CLEAN27
         DisableDataQueryToolsOnExistingConfigurations();
 #endif
+    end;
+
+    internal procedure RemoveOrphanedMCPTools()
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasDatabaseUpgradeTag(GetMCPOrphanedToolsUpgradeTag()) then
+            exit;
+
+        if MCPConfigurationTool.FindSet(true) then
+            repeat
+                if not MCPConfiguration.GetBySystemId(MCPConfigurationTool.ID) then
+                    MCPConfigurationTool.Delete();
+            until MCPConfigurationTool.Next() = 0;
+
+        UpgradeTag.SetDatabaseUpgradeTag(GetMCPOrphanedToolsUpgradeTag());
     end;
 
     internal procedure UpgradeMCPAPIToolVersion()
@@ -119,6 +138,7 @@ codeunit 8356 "MCP Upgrade"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
+        PerDatabaseUpgradeTags.Add(GetMCPOrphanedToolsUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPAPIToolVersionUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPSystemDefaultAsDefaultUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPEnableApiToolsUpgradeTag());
@@ -127,6 +147,11 @@ codeunit 8356 "MCP Upgrade"
 #if not CLEAN27
         PerDatabaseUpgradeTags.Add(GetMCPDisableDataQueryToolsUpgradeTag());
 #endif
+    end;
+
+    local procedure GetMCPOrphanedToolsUpgradeTag(): Text[250]
+    begin
+        exit('MS-660855-RemoveOrphanedMCPTools-20261126');
     end;
 
     local procedure GetMCPAPIToolVersionUpgradeTag(): Text[250]
