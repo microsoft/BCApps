@@ -9,6 +9,7 @@ using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
@@ -173,6 +174,7 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
         BankAccount: Record "Bank Account";
         BankExportImportSetup: Record "Bank Export/Import Setup";
         CompanyInformation: Record "Company Information";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         CompanyRegistrationNo: Text;
         IsEmployee: Boolean;
     begin
@@ -244,6 +246,8 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
             TempPaymentExportData."Data Exch. Line Def Code" := PaymentMethod."Pmt. Export Line Definition";
         TempPaymentExportData."Recipient Creditor No." := GenJnlLine."Creditor No.";
         OnBeforeInsertPmtExportDataJnlFromGenJnlLine(TempPaymentExportData, GenJnlLine, GeneralLedgerSetup);
+        RegistrationNoMgt.ValidatePaymentExportField(TempPaymentExportData, TempPaymentExportData."Sender Reg. No.",
+            TempPaymentExportData.FieldNo("Sender Reg. No."), false, TempPaymentExportData.GetPreserveNonLatinCharacters());
         TempPaymentExportData.Insert(true);
     end;
 

@@ -9,6 +9,7 @@ using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.IRS;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Registration;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -47,7 +48,7 @@ codeunit 14600 "IS Core"
         if CustLedgerEntry."Customer No." = '' then
             exit;
         Customer.Get(CustLedgerEntry."Customer No.");
-        TempPaymentExportData."Recipient Reg. No." := CopyStr(Customer."Registration Number", 1, MaxStrLen(TempPaymentExportData."Recipient Reg. No."));
+        SetRecipientRegistrationNo(TempPaymentExportData, Customer.GetRegistrationNumber());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Pmt Export Mgt Gen. Jnl Line", OnBeforeInsertPmtExportDataJnlFromGenJnlLine, '', false, false)]
@@ -64,7 +65,7 @@ codeunit 14600 "IS Core"
         if VendorLedgerEntry."Vendor No." = '' then
             exit;
         Vendor.Get(VendorLedgerEntry."Vendor No.");
-        PaymentExportData."Recipient Reg. No." := CopyStr(Vendor."Registration Number", 1, MaxStrLen(PaymentExportData."Recipient Reg. No."));
+        SetRecipientRegistrationNo(PaymentExportData, Vendor.GetRegistrationNumber());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exp. Pre-Mapping Gen. Jnl.", OnBeforeInsertPaymentExoprtData, '', false, false)]
@@ -81,8 +82,17 @@ codeunit 14600 "IS Core"
             exit;
         if GenJournalLine."Account Type" = GenJournalLine."Account Type"::Vendor then begin
             Vendor.Get(GenJournalLine."Account No.");
-            PaymentExportData."Recipient Reg. No." := CopyStr(Vendor."Registration Number", 1, MaxStrLen(PaymentExportData."Recipient Reg. No."));
+            SetRecipientRegistrationNo(PaymentExportData, Vendor.GetRegistrationNumber());
         end;
+    end;
+
+    local procedure SetRecipientRegistrationNo(var PaymentExportData: Record "Payment Export Data"; RegistrationNo: Text)
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        RegistrationNoMgt.ValidatePaymentExportField(PaymentExportData, RegistrationNo, PaymentExportData.FieldNo("Recipient Reg. No."),
+            true, PaymentExportData.GetPreserveNonLatinCharacters());
+        PaymentExportData."Recipient Reg. No." := CopyStr(RegistrationNo, 1, MaxStrLen(PaymentExportData."Recipient Reg. No."));
     end;
 
     local procedure ClassifyTablesToNormal()

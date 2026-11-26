@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using System.IO;
@@ -170,6 +171,7 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         BankAccount: Record "Bank Account";
         BankExportImportSetup: Record "Bank Export/Import Setup";
         CompanyInformation: Record "Company Information";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         CompanyRegistrationNo: Text;
     begin
         GeneralLedgerSetup.Get();
@@ -225,6 +227,8 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
             TempPaymentExportData."Data Exch. Line Def Code" := PaymentMethod."Pmt. Export Line Definition";
         TempPaymentExportData."Recipient Creditor No." := VendorLedgerEntry."Creditor No.";
         OnBeforeInsertPmtExportDataJnlFromVendorLedgerEntry(TempPaymentExportData, VendorLedgerEntry, GeneralLedgerSetup);
+        RegistrationNoMgt.ValidatePaymentExportField(TempPaymentExportData, TempPaymentExportData."Sender Reg. No.",
+            TempPaymentExportData.FieldNo("Sender Reg. No."), false, TempPaymentExportData.GetPreserveNonLatinCharacters());
         TempPaymentExportData.Insert(true);
     end;
 

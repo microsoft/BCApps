@@ -379,6 +379,40 @@ in-memory column options, without modifying installed/custom definitions.
 Custom profiles must supply their applicable registry policy before activation.
 There is no historical backfill or automatic master-data update.
 
+### Payment format boundaries
+
+Payment fields named "registration" are not interchangeable legal identifiers.
+W1 `Recipient Reg. No.` remains Code[20] bank-branch storage. RU journal exports
+retain their balancing-account value in `Sender Reg. No.`; the generic journal
+pre-mapping path likewise retains its sender bank-account value. Neither path
+is reinterpreted as legal registration.
+
+The W1 journal, vendor-ledger and customer-ledger adapters that explicitly read
+the company legal getter validate their sender value before payment insertion
+can apply EPC/ASCII conversion. IS's existing legal-recipient overrides use the
+customer/vendor getters and validate before copying into Code[20], including
+the journal pre-mapping override. Overflow, case/space normalization by Code,
+control characters and lossy EPC conversion raise explicit errors rather than
+truncating, transliterating or changing master data. EPC conversion can alter
+ASCII punctuation as well as non-Latin letters.
+Configured output-column lengths are checked before fixed-text formatting can
+truncate a legal identifier.
+
+These checks use the existing `GlobalRegistrationNumbers` company-completion
+gate. Before activation, legacy narrowing and conversion remain unchanged.
+After activation, a format configured to preserve non-Latin characters may
+retain those characters, provided its destination field can also represent
+the identifier unchanged. Name/address/remittance conversion remains unchanged.
+Narrower format-specific character repertoires and custom transformations still
+require review in custom bank definitions before activation.
+
+No identified format requires new full-width recipient storage in this slice.
+IS's existing narrow contract rejects unsupported values; it does not widen or
+repurpose the W1 bank-branch field. AMC's existing unbounded XML legal-sender
+element already reads the company getter independently of the generic payment
+ASCII conversion, so no additional storage or guessed bank-specific limit is
+introduced there.
+
 ## 10. Localization and Compatibility
 
 | Localization | Required treatment |

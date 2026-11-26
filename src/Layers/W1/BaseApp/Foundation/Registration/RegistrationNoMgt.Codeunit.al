@@ -4,11 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Registration;
 
+using Microsoft.Bank.Payment;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
+using System.IO;
+using System.Text;
 
 codeunit 7402 "Registration No. Mgt."
 {
@@ -19,6 +22,8 @@ codeunit 7402 "Registration No. Mgt."
         DuplicateNotificationMsg: Label 'Registration number %1 is also used by %2 other organization(s) in country/region %3. Review the possible duplicates before continuing.', Comment = '%1 = Registration number, %2 = Number of other organizations, %3 = Country/region code';
         ShowDuplicatesLbl: Label 'Show possible duplicates';
         CompanyRegistrationNoTooLongErr: Label 'The company registration number exceeds the maximum document snapshot length of %1 characters.', Comment = '%1 = Maximum registration number length';
+        PaymentExportLengthErr: Label 'The legal registration number exceeds the maximum length of %1 characters for %2.', Comment = '%1 = Maximum length, %2 = Payment export field caption';
+        PaymentExportCharactersErr: Label 'The legal registration number cannot be exported unchanged in %1. Use a payment format that supports the original identifier.', Comment = '%1 = Payment export field caption';
 
     procedure GetRegistrationNo(RegistrationNo: Text[50]; CountryCode: Code[10]; SourceRecordId: RecordId) ResolvedRegistrationNo: Text[50]
     begin
@@ -46,6 +51,72 @@ codeunit 7402 "Registration No. Mgt."
         if not RegistrationNoFeature.IsEnabled() then
             exit;
         ValidateMigrationRegistrationNo(RegistrationNo, CountryCode, SourceRecordId);
+    end;
+
+    /// <summary>
+    /// Validates a known legal payment field before buffer conversion or fixed-width mapping can narrow its value.
+    /// </summary>
+    procedure ValidatePaymentExportField(PaymentExportData: Record "Payment Export Data"; RegistrationNo: Text; ExportFieldNo: Integer; CodeField: Boolean; PreserveNonLatinCharacters: Boolean)
+    var
+        DataExch: Record "Data Exch.";
+        DataExchFieldMapping: Record "Data Exch. Field Mapping";
+        DataExchColumnDef: Record "Data Exch. Column Def";
+        PaymentRecord: RecordRef;
+        ExportField: FieldRef;
+    begin
+        if not RegistrationNoFeature.IsEnabled() then
+            exit;
+        PaymentRecord.GetTable(PaymentExportData);
+        ExportField := PaymentRecord.Field(ExportFieldNo);
+        ValidatePaymentExportValue(RegistrationNo, ExportField.Length, PreserveNonLatinCharacters, CodeField, ExportField.Caption);
+        if PaymentExportData."Data Exch Entry No." = 0 then
+            exit;
+
+        DataExch.Get(PaymentExportData."Data Exch Entry No.");
+        DataExchFieldMapping.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
+        DataExchFieldMapping.SetRange("Data Exch. Line Def Code", PaymentExportData."Data Exch. Line Def Code");
+        DataExchFieldMapping.SetRange("Table ID", Database::"Payment Export Data");
+        DataExchFieldMapping.SetRange("Field ID", ExportFieldNo);
+        DataExchFieldMapping.SetRange("Use Default Value", false);
+        if DataExchFieldMapping.FindSet() then
+            repeat
+                DataExchColumnDef.Get(DataExchFieldMapping."Data Exch. Def Code", DataExchFieldMapping."Data Exch. Line Def Code", DataExchFieldMapping."Column No.");
+                if DataExchColumnDef.Length > 0 then
+                    if StrLen(RegistrationNo) > DataExchColumnDef.Length then
+                        Error(PaymentExportLengthErr, DataExchColumnDef.Length, ExportField.Caption);
+            until DataExchFieldMapping.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Rejects loss of legal identity through payment field narrowing, Code normalization or EPC character conversion.
+    /// Call only for fields that the payment adapter populates with a legal registration number.
+    /// </summary>
+    local procedure ValidatePaymentExportValue(RegistrationNo: Text; MaximumLength: Integer; PreserveNonLatinCharacters: Boolean; CodeField: Boolean; ExportFieldCaption: Text)
+    var
+        StringConversionManagement: Codeunit StringConversionManagement;
+        CodeValue: Code[50];
+        ExportValue: Text;
+        Index: Integer;
+    begin
+        if StrLen(RegistrationNo) > MaximumLength then
+            Error(PaymentExportLengthErr, MaximumLength, ExportFieldCaption);
+
+        ExportValue := RegistrationNo;
+        if CodeField then begin
+            if StrLen(RegistrationNo) > MaxStrLen(CodeValue) then
+                Error(PaymentExportLengthErr, MaxStrLen(CodeValue), ExportFieldCaption);
+            CodeValue := CopyStr(RegistrationNo, 1, MaxStrLen(CodeValue));
+            ExportValue := CodeValue;
+        end;
+        if not PreserveNonLatinCharacters then
+            ExportValue := StringConversionManagement.WindowsToASCII(ExportValue);
+        if StrLen(RegistrationNo) <> StrLen(ExportValue) then
+            Error(PaymentExportCharactersErr, ExportFieldCaption);
+        for Index := 1 to StrLen(RegistrationNo) do
+            if (RegistrationNo[Index] < 32) or (RegistrationNo[Index] in [127 .. 159]) or
+               (RegistrationNo[Index] <> ExportValue[Index])
+            then
+                Error(PaymentExportCharactersErr, ExportFieldCaption);
     end;
 
     procedure ValidateMigrationRegistrationNo(RegistrationNo: Text[50]; CountryCode: Code[10]; SourceRecordId: RecordId)
