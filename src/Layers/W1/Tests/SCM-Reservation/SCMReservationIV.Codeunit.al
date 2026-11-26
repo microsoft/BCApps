@@ -2954,6 +2954,37 @@ codeunit 137271 "SCM Reservation IV"
     end;
 
     [Test]
+    procedure CannotReserveNonInventoryItemFromPurchaseLine()
+    var
+        NonInventoryItem: Record Item;
+        Item: Record Item;
+        PurchaseLine: Record "Purchase Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+    begin
+        // [FEATURE] [Non-Inventory Item] [Purchase Order]
+        // [SCENARIO 660253] A non-inventory item cannot be reserved from a purchase line against a production order component.
+        Initialize();
+
+        // [GIVEN] A purchase order for a non-inventory item and a released production order requiring that item.
+        LibraryInventory.CreateNonInventoryTypeItem(NonInventoryItem);
+        CreatePurchaseOrder(PurchaseLine, NonInventoryItem."No.", '');
+
+        CreateAndCertifyProductionBOM(ProductionBOMHeader, PurchaseLine."No.", PurchaseLine."Unit of Measure Code", 1);
+        Item.Get(CreateItem(Item."Replenishment System"::"Prod. Order"));
+        UpdateProductionBOMOnItem(Item, ProductionBOMHeader."No.");
+        CreateAndRefreshProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, Item."No.", PurchaseLine.Quantity, '');
+
+        // [WHEN] Open reservation from the non-inventory purchase line.
+        asserterror PurchaseLine.ShowReservation();
+
+        // [THEN] Reservation is rejected because Reserve is Never.
+        Assert.ExpectedErrorCode('TestField');
+        Assert.ExpectedError(ReserveMustNotBeNeverErr);
+    end;
+
+    [Test]
     procedure CannotChangeReserveFieldOnSalesLineForServiceItem()
     var
         ServiceTypeItem: Record Item;
