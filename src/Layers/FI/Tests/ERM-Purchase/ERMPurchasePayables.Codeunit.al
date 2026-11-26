@@ -2754,7 +2754,6 @@
         UnappliedBalanceErr: Label 'Unapplying must restore the balance of payables account %1.', Comment = '%1 = G/L account number', Locked = true;
     begin
         Initialize();
-        SetJournalTemplNameMandatoryFalse();
         GeneratePostingDate(PostingDate);
         CreateCurrencyWithExchangeRates(Currency, CurrencyExchangeRate, PostingDate);
         CurrencyExchangeRate[2].Validate("Relational Exch. Rate Amount", AdjustmentRelationalRateAmount);
@@ -2767,7 +2766,8 @@
         CreateVendorWithAllowMultiplePostingGroups(
             Vendor, VendorPostingGroup[1].Code, Currency.Code, VATPostingSetup."VAT Bus. Posting Group");
         CreateVendorPostingGroupWithCopy(VendorPostingGroup);
-        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[1].Code, VendorPostingGroup[2].Code);
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[1].Code, 1, 10), CopyStr(VendorPostingGroup[2].Code, 1, 10));
         LibraryPurchase.CreateAltVendorPostingGroup(
             CopyStr(VendorPostingGroup[2].Code, 1, 10), CopyStr(VendorPostingGroup[1].Code, 1, 10));
         Item.Get(LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
@@ -2780,7 +2780,7 @@
         PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
         LibraryERM.RunExchRateAdjustment(
             Currency.Code, PostingDate[3], PostingDate[1], AdjustExchRateDefaultDescTxt,
-            PostingDate[2], LibraryRandom.RandText(10), false);
+            PostingDate[2], CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(GenJournalLine."Document No.")), false);
 
         LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, PurchInvHeader."No.");
         DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntry."Entry No.");
@@ -3041,8 +3041,10 @@
         CreateVendorPostingGroupWithCopy(VendorPostingGroup);
 
         // [GIVEN] Create Alternative Vendor Posting Group.
-        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[1].Code, VendorPostingGroup[2].Code);
-        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[2].Code, VendorPostingGroup[1].Code);
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[1].Code, 1, 10), CopyStr(VendorPostingGroup[2].Code, 1, 10));
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[2].Code, 1, 10), CopyStr(VendorPostingGroup[1].Code, 1, 10));
 
         // [GIVEN] Create GLAccount.
         GLAccount.Get(LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GenPostingType::Purchase));
