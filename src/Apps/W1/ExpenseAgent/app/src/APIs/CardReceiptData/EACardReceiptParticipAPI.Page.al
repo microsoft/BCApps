@@ -30,10 +30,6 @@ page 7422 "EA Card Receipt Particip. API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(receiptDataId; Rec."Receipt Data Id")
-                {
-                    Caption = 'Receipt Data Id';
-                }
                 field(lineNo; Rec."Line No.")
                 {
                     Caption = 'Line No.';
@@ -53,14 +49,6 @@ page 7422 "EA Card Receipt Particip. API"
                 field(participantOrganization; Rec."Participant Organization")
                 {
                     Caption = 'Participant Organization';
-                }
-                field(participantCountryRegion; Rec."Participant Country/Region")
-                {
-                    Caption = 'Participant Country/Region';
-                }
-                field(participantTitle; Rec."Participant Title")
-                {
-                    Caption = 'Participant Title';
                 }
                 field(participantEmail; Rec."Participant Email")
                 {

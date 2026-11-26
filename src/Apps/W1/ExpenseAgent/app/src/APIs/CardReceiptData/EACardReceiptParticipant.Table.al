@@ -47,16 +47,6 @@ table 7432 "EA Card Receipt Participant"
             Caption = 'Participant Organization';
             ToolTip = 'Specifies the organization of the participant.';
         }
-        field(14; "Participant Country/Region"; Code[10])
-        {
-            Caption = 'Participant Country/Region';
-            ToolTip = 'Specifies the country or region of the participant.';
-        }
-        field(15; "Participant Title"; Text[30])
-        {
-            Caption = 'Participant Title';
-            ToolTip = 'Specifies the title of the participant.';
-        }
         field(16; "Participant Email"; Text[80])
         {
             Caption = 'Participant Email';

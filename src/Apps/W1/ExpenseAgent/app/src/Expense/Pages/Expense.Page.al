@@ -75,7 +75,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the date the expense occurred.';
-                    Editable = Rec.Source <> Rec.Source::CorporateCard;
+                    Editable = CardFieldsEditable;
 
                     trigger OnValidate()
                     begin
@@ -105,14 +105,14 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the Currency of the Amount.';
-                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
+                    Editable = CardFieldsEditable and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
                     Importance = Promoted;
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the total amount in the expense currency.';
-                    Editable = (Rec.Source <> Rec.Source::CorporateCard) and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Editable = CardFieldsEditable and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
                     Importance = Promoted;
 
                     trigger OnValidate()
@@ -155,6 +155,7 @@ page 6988 "Expense"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the vendor or merchant for this expense.';
+                    Editable = MerchantEditable;
                 }
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
                 {
@@ -359,6 +360,7 @@ page 6988 "Expense"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment method used for this expense.';
                     Importance = Standard;
+                    Editable = CardFieldsEditable;
 
                     trigger OnValidate()
                     begin
@@ -802,6 +804,8 @@ page 6988 "Expense"
         CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
         CorporateCardDisplay: Text[150];
         CorporateCardEditable: Boolean;
+        CardFieldsEditable: Boolean;
+        MerchantEditable: Boolean;
         CorporateCardMandatory: Boolean;
         UseCardLookupErr: Label 'Choose a corporate card from the lookup instead of entering a card number.';
         IsMileageCategory, IsPerDiemCategory, IsParticipantCategory, IsItemizationCategory, IsEnforcedItemizationCategory : Boolean;
@@ -834,6 +838,9 @@ page 6988 "Expense"
         IsItemizationCategory := Rec.IsItemizationRequired();
         IsEnforcedItemizationCategory := Rec.IsEnforcedItemizationRequired();
         IsParticipantCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Participants;
+        // A merchant the card feed left blank can be filled in once.
+        CardFieldsEditable := not Rec.HasCardTransactionValues();
+        MerchantEditable := CardFieldsEditable or (Rec."Merchant Name" = '');
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
         AllowNoReceipt := ExpenseAgentSetup."Allow No Receipt";

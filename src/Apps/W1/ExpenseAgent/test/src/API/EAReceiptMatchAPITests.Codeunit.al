@@ -144,7 +144,7 @@ codeunit 148371 "EA Receipt Match API Tests"
     end;
 
     [Test]
-    procedure ExpensesAPIPendingCardExpenseIsTrueOnlyForOpenCardExpenseNotOnReport()
+    procedure ExpensesAPICardExpenseAwaitingReportIncludesOpenAndReleasedExpenses()
     var
         PendingExpense: Record Expense;
         ExpenseWithReceipt: Record Expense;
@@ -156,7 +156,7 @@ codeunit 148371 "EA Receipt Match API Tests"
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] pendingCardExpense is true for open card expenses linked to a transaction that are not on a report, whatever their receipt.
+        // [SCENARIO] An open or released off-report card expense awaits a report regardless of its receipt.
         Initialize();
 
         // [GIVEN] A card expense without a receipt, one with a receipt, one declared as lost receipt, one released, one no longer linked to its transaction and a manual expense paid with the card.
@@ -169,13 +169,14 @@ codeunit 148371 "EA Receipt Match API Tests"
         CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
         Commit();
 
-        // [WHEN] The expenses of the expense user are filtered on pendingCardExpense eq true.
+        // [WHEN] The expense user's expenses are filtered to those awaiting a report.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
-            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(GetUserScopedURL(PendingExpense, ExpensesServiceNameTok), '$filter=pendingCardExpense eq true'), 200);
+            ResponseText, LibraryGraphMgt.AppendQueryParameterToTargetURL(GetUserScopedURL(PendingExpense, ExpensesServiceNameTok), '$filter=cardExpenseAwaitingReport eq true'), 200);
 
-        // [THEN] Only the open card expenses linked to a transaction are returned.
+        // [THEN] Only the open or released card-origin expenses linked to a transaction are returned.
         GetExpenseIds(ResponseText, 'value', ExpenseIds);
-        Assert.AreEqual(3, ExpenseIds.Count(), 'Only open card expenses linked to a transaction must be pending.');
+        Assert.AreEqual(4, ExpenseIds.Count(), 'Only open or released off-report card expenses linked to a transaction must be returned.');
+        Assert.IsTrue(ExpenseIds.Contains(ReleasedExpense.SystemId), 'A released off-report card expense must await a report.');
         Assert.IsTrue(ExpenseIds.Contains(PendingExpense.SystemId), 'The card expense without a receipt must be pending.');
         Assert.IsTrue(ExpenseIds.Contains(ExpenseWithReceipt.SystemId), 'The card expense with a receipt must be pending.');
         Assert.IsTrue(ExpenseIds.Contains(LostReceiptExpense.SystemId), 'The card expense declared as lost receipt must be pending.');
@@ -183,39 +184,42 @@ codeunit 148371 "EA Receipt Match API Tests"
     end;
 
     [Test]
-    procedure ExpenseUsersAPIExpandFiltersExpensesOnPendingCardExpenseBeforeTop()
+    procedure ExpenseUsersAPIExpandFiltersExpensesOnCardExpenseAwaitingReportBeforeTop()
     var
+        ManualExpense: Record Expense;
+        CorpCard: Record "EA Corp Card";
         ReleasedExpense: Record Expense;
         UnlinkedExpense: Record Expense;
         PendingExpense: Record Expense;
-        OtherPendingExpense: Record Expense;
         ExpenseUser: Record "Expense User";
         ExpenseIds: List of [Guid];
         ResponseText: Text;
     begin
-        // [SCENARIO] Expanding the expenses of an expense user filtered on pendingCardExpense applies the filter before $top.
+        // [SCENARIO] The expanded awaiting-report filter applies before $top.
         Initialize();
 
         // [GIVEN] Two card expenses that are not pending, followed by two newer card expenses that are.
-        CreateReleasedCardExpense(ReleasedExpense);
+        CorpCard.Get(CardIdTok);
+        CorpCardTestLib.InsertExpense(ManualExpense, CorpCard);
         CreateUnlinkedCardExpense(UnlinkedExpense);
         CreateCardExpense(PendingExpense);
-        CreateCardExpense(OtherPendingExpense);
+        CreateReleasedCardExpense(ReleasedExpense);
         ExpenseUser.Get(PendingExpense."Expense User No.");
         Commit();
 
-        // [WHEN] The expense user is read with expenses expanded on pendingCardExpense eq false, newest first, top 2.
+        // [WHEN] Read the two newest expenses that do not await a report.
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
             ResponseText,
             LibraryGraphMgt.AppendQueryParameterToTargetURL(
                 LibraryGraphMgt.CreateTargetURL(Format(ExpenseUser.SystemId), Page::"Expense Users API", ExpenseUsersServiceNameTok),
-                '$expand=expenses($filter=pendingCardExpense eq false;$orderby=systemCreatedAt desc;$top=2)'),
+                '$expand=expenses($filter=cardExpenseAwaitingReport eq false;$orderby=systemCreatedAt desc;$top=2)'),
             200);
 
         // [THEN] The two expenses that are not pending are returned.
         GetExpenseIds(ResponseText, 'expenses', ExpenseIds);
         Assert.AreEqual(2, ExpenseIds.Count(), 'The filter must be applied before $top.');
-        Assert.IsTrue(ExpenseIds.Contains(ReleasedExpense.SystemId), 'The released expense must be returned.');
+        Assert.IsFalse(ExpenseIds.Contains(ReleasedExpense.SystemId), 'The released, linked card expense still awaits a report.');
+        Assert.IsTrue(ExpenseIds.Contains(ManualExpense.SystemId), 'The manual expense must be returned.');
         Assert.IsTrue(ExpenseIds.Contains(UnlinkedExpense.SystemId), 'The expense no longer linked to its transaction must be returned.');
         CompleteTest();
     end;

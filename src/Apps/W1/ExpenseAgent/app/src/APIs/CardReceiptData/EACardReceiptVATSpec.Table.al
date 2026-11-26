@@ -54,43 +54,6 @@ table 7434 "EA Card Receipt VAT Spec."
             Caption = 'Amount';
             ToolTip = 'Specifies the amount including VAT.';
         }
-        field(14; "VAT Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'VAT Amount (LCY)';
-            ToolTip = 'Specifies the VAT amount in local currency.';
-        }
-        field(15; "VAT Base Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'VAT Base Amount (LCY)';
-            ToolTip = 'Specifies the VAT base amount in local currency.';
-        }
-        field(16; "Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Amount (LCY)';
-            ToolTip = 'Specifies the amount including VAT in local currency.';
-        }
-        field(20; "VAT Bus. Posting Group"; Code[20])
-        {
-            Caption = 'VAT Bus. Posting Group';
-            ToolTip = 'Specifies the VAT business posting group of the VAT specification line.';
-        }
-        field(21; "VAT Prod. Posting Group"; Code[20])
-        {
-            Caption = 'VAT Prod. Posting Group';
-            ToolTip = 'Specifies the VAT product posting group of the VAT specification line.';
-        }
-        field(30; Confidence; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Confidence';
-            ToolTip = 'Specifies the confidence score (0-1) of the extracted VAT data.';
-            DecimalPlaces = 0 : 5;
-            MinValue = 0;
-            MaxValue = 1;
-        }
     }
 
     keys

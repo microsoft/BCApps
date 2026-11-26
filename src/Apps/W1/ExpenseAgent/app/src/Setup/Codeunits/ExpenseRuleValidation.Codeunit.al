@@ -14,6 +14,7 @@ codeunit 6902 "Expense Rule Validation"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
+        CardDuplicateFilterTok: Label '%1|%2', Locked = true;
         JustificationRequiredErr: Label 'Justification is required for this expense based on your organization''s rule.';
         ItemizationRequiredErr: Label 'Itemization is required for this expense based on your organization''s rule.';
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
@@ -109,6 +110,15 @@ codeunit 6902 "Expense Rule Validation"
         ExpenseAgentSetup.GetRecordOnce();
 
         exit(ExpenseAgentSetup."Use Rules" or (ExpenseDetailRequired = ExpenseDetailRequired::"Per Diem"));
+    end;
+
+    /// <summary>
+    /// The amount of a card transaction is locked, so the user cannot fix a fixed, minimum or maximum amount condition.
+    /// A justification on the card expense or line accepts the amount instead.
+    /// </summary>
+    local procedure IsJustifiedCardAmount(CreditCardFeedNo: Integer; Justification: Text[100]): Boolean
+    begin
+        exit((CreditCardFeedNo <> 0) and (Justification <> ''));
     end;
 
     procedure ValidateItemizationAmount(ExpenseNo: Code[20]; JustWarning: Boolean)
@@ -393,6 +403,8 @@ codeunit 6902 "Expense Rule Validation"
         DuplicateExpense.SetRange("Merchant Name", Expense."Merchant Name");
         DuplicateExpense.SetRange(Amount, Expense.Amount);
         DuplicateExpense.SetFilter("No.", '<>%1', Expense."No.");
+        if Expense."Credit Card Feed No." <> 0 then
+            DuplicateExpense.SetFilter("Credit Card Feed No.", CardDuplicateFilterTok, 0, Expense."Credit Card Feed No.");
         if not DuplicateExpense.IsEmpty() then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(ExpenseAlreadyExistErr, Expense."Expense Ext. Doc. No.", Expense."Expense Date", Expense."Merchant Name", Expense.Amount));
     end;
@@ -430,6 +442,8 @@ codeunit 6902 "Expense Rule Validation"
         DuplicateExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         DuplicateExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
         DuplicateExpenseReportLine.SetFilter(SystemId, '<>%1', ExpenseReportLine.SystemId); // Exclude current record to not consider it as duplicate of itself.
+        if ExpenseReportLine."Credit Card Feed No." <> 0 then
+            DuplicateExpenseReportLine.SetFilter("Credit Card Feed No.", CardDuplicateFilterTok, 0, ExpenseReportLine."Credit Card Feed No.");
         TravelRequestNo := GetPerDiemTravelRequestNo(ExpenseReportLine);
         if TravelRequestNo = '' then
             exit(not DuplicateExpenseReportLine.IsEmpty());
@@ -530,6 +544,8 @@ codeunit 6902 "Expense Rule Validation"
 
         PostedExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         PostedExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
+        if ExpenseReportLine."Credit Card Feed No." <> 0 then
+            PostedExpenseReportLine.SetFilter("Credit Card Feed No.", CardDuplicateFilterTok, 0, ExpenseReportLine."Credit Card Feed No.");
         TravelRequestNo := GetPerDiemTravelRequestNo(ExpenseReportLine);
         if TravelRequestNo = '' then
             exit(not PostedExpenseReportLine.IsEmpty());
@@ -724,6 +740,8 @@ codeunit 6902 "Expense Rule Validation"
 
     local procedure ValidateAmountsByDetailType(Expense: Record Expense; ExpenseRuleHeader: Record "Expense Rule Header")
     begin
+        if IsJustifiedCardAmount(Expense."Credit Card Feed No.", Expense.Justification) then
+            exit;
         case Expense."Expense Detail Required" of
             Expense."Expense Detail Required"::Itemize:
                 ValidateItemizationAmounts(Expense, ExpenseRuleHeader);
@@ -1231,6 +1249,8 @@ codeunit 6902 "Expense Rule Validation"
         AmountLCY: Decimal;
         CurrencyFactor: Decimal;
     begin
+        if IsJustifiedCardAmount(ExpenseReportLine."Credit Card Feed No.", ExpenseReportLine.Justification) then
+            exit;
         Amount := ExpenseReportLine.Amount - ExpenseReportLine."Non-Refundable Amount";
         AmountLCY := ExpenseReportLine."Amount (LCY)" - ExpenseReportLine."Non-Refundable Amount (LCY)";
         if ExpenseReportLine."Expense Currency Code" <> ExpenseRuleHeader."Currency Code" then

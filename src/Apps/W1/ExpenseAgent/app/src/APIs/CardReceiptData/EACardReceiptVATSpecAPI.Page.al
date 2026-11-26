@@ -30,10 +30,6 @@ page 7424 "EA Card Receipt VAT Spec. API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field(receiptDataId; Rec."Receipt Data Id")
-                {
-                    Caption = 'Receipt Data Id';
-                }
                 field(lineNo; Rec."Line No.")
                 {
                     Caption = 'Line No.';
@@ -53,30 +49,6 @@ page 7424 "EA Card Receipt VAT Spec. API"
                 field(amount; Rec.Amount)
                 {
                     Caption = 'Amount';
-                }
-                field(vatAmountLCY; Rec."VAT Amount (LCY)")
-                {
-                    Caption = 'VAT Amount (LCY)';
-                }
-                field(vatBaseAmountLCY; Rec."VAT Base Amount (LCY)")
-                {
-                    Caption = 'VAT Base Amount (LCY)';
-                }
-                field(amountLCY; Rec."Amount (LCY)")
-                {
-                    Caption = 'Amount (LCY)';
-                }
-                field(vatBusPostingGroup; Rec."VAT Bus. Posting Group")
-                {
-                    Caption = 'VAT Bus. Posting Group';
-                }
-                field(vatProdPostingGroup; Rec."VAT Prod. Posting Group")
-                {
-                    Caption = 'VAT Prod. Posting Group';
-                }
-                field(confidence; Rec.Confidence)
-                {
-                    Caption = 'Confidence';
                 }
             }
         }

@@ -245,6 +245,7 @@ table 6900 Expense
             begin
                 if xRec."Merchant Name" <> Rec."Merchant Name" then begin
                     TestStatusOpen();
+                    CheckCorporateCardSourceFields();
                     MarkNoReceiptDeclarationOutdated();
                     ApplyRule(false, true);
                 end;
@@ -311,6 +312,7 @@ table 6900 Expense
                 ExpensePaymentMethod: Record "Expense Payment Method";
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 if xRec."Payment Method Code" <> Rec."Payment Method Code" then begin
                     Rec.Validate("Reimbursement Type", Rec."Reimbursement Type"::" ");
                     if ExpensePaymentMethod.Get(Rec."Payment Method Code") then
@@ -528,6 +530,7 @@ table 6900 Expense
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 CorpCardSelectionMgt.ValidateExpenseCard(Rec, false);
             end;
 
@@ -536,17 +539,16 @@ table 6900 Expense
                 CorpCardSelectionMgt.LookupCard(Rec);
             end;
         }
-        field(108; "Pending Card Expense"; Boolean)
+        field(108; "Card Expense Awaiting Report"; Boolean)
         {
             Access = Internal;
-            Caption = 'Pending Card Expense';
-            ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is still open and waiting to be added to an expense report.';
+            Caption = 'Card Expense Awaiting Report';
+            ToolTip = 'Specifies whether the expense was created from a corporate card transaction and is open or released and not yet on a report.';
             FieldClass = FlowField;
-            // Keep in sync with "EA Receipt Expense Match".IsPendingCardExpense.
             CalcFormula = exist(Expense where("No." = field("No."),
                                               Source = const(CorporateCard),
                                               "Credit Card Feed No." = filter(<> 0),
-                                              Status = const(Open),
+                                              Status = filter(Open | Released),
                                               "Expense Report No." = const('')));
             Editable = false;
         }
@@ -939,7 +941,7 @@ table 6900 Expense
         ExpenseUserMustBeLinkedToAnEmployeeErr: Label 'Expense User %1 must be linked to an Employee No.', Comment = '%1 = Expense User No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ModifyOrDeleteErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
-        CorporateCardSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense created from a corporate card transaction.', Comment = '%1 = field caption';
+        CorporateCardSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense linked to a corporate card transaction.', Comment = '%1 = field caption';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
 
     /// <summary>
@@ -1140,7 +1142,7 @@ table 6900 Expense
             exit;
         if not StoredExpense.GetBySystemId(Rec.SystemId) then
             exit;
-        if StoredExpense.Source <> StoredExpense.Source::CorporateCard then
+        if not StoredExpense.HasCardTransactionValues() then
             exit;
 
         if Rec.Amount <> StoredExpense.Amount then
@@ -1149,6 +1151,18 @@ table 6900 Expense
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
         if Rec."Currency Code" <> StoredExpense."Currency Code" then
             Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Currency Code"));
+        // A merchant the card feed left blank can be filled in by the user; a merchant from the feed is kept.
+        if (StoredExpense."Merchant Name" <> '') and (Rec."Merchant Name" <> StoredExpense."Merchant Name") then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Merchant Name"));
+        if Rec."Payment Method Code" <> StoredExpense."Payment Method Code" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Payment Method Code"));
+        if Rec."Corporate Card Id" <> StoredExpense."Corporate Card Id" then
+            Error(CorporateCardSourceFieldCannotChangeErr, Rec.FieldCaption("Corporate Card Id"));
+    end;
+
+    internal procedure HasCardTransactionValues(): Boolean
+    begin
+        exit((Rec."Credit Card Feed No." <> 0) or (Rec.Source = Rec.Source::CorporateCard));
     end;
 
     internal procedure GetRuleStyleText() StatusStyleText: Text
@@ -1521,7 +1535,7 @@ table 6900 Expense
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
             // Card amounts come from the transaction; manual expenses keep their currency when the category is cleared.
-            if Rec.Source <> Rec.Source::CorporateCard then begin
+            if not Rec.HasCardTransactionValues() then begin
                 Rec.Amount := 0;
                 Rec.UpdateAmount();
             end;
@@ -1542,7 +1556,7 @@ table 6900 Expense
         Rec.Validate(Refundable, ExpenseCategory.Refundable);
         Rec.Validate(Description, ExpenseCategory."Posting Description");
         // Card expenses are always paid by the corporate card, regardless of the category defaults.
-        if Rec.Source <> Rec.Source::CorporateCard then begin
+        if not Rec.HasCardTransactionValues() then begin
             Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
             if ExpenseCategory."Default Payment Method" <> '' then
                 Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
@@ -1560,7 +1574,7 @@ table 6900 Expense
     local procedure ResetAmountFromExpenseCategory()
     begin
         // Amount and currency come from the card transaction and must survive a category change.
-        if Rec.Source = Rec.Source::CorporateCard then
+        if Rec.HasCardTransactionValues() then
             exit;
 
         Rec.Validate("Currency Code", '');

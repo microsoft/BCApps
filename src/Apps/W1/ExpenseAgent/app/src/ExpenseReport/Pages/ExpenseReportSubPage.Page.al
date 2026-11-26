@@ -111,6 +111,7 @@ page 6999 "Expense Report SubPage"
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = CardFieldsEditable;
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -121,7 +122,7 @@ page 6999 "Expense Report SubPage"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Corporate Card';
                     ToolTip = 'Specifies the provider short name and last four card digits. Expenses copied to a report retain the card selected on the expense.';
-                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec."Expense No." = '');
+                    Editable = CardFieldsEditable and (Rec."Expense No." = '');
                     ShowMandatory = CorporateCardMandatory;
 
                     trigger OnLookup(var Text: Text): Boolean
@@ -146,6 +147,7 @@ page 6999 "Expense Report SubPage"
                 field("Expense Date"; Rec."Expense Date")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = CardFieldsEditable;
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -154,7 +156,7 @@ page 6999 "Expense Report SubPage"
                 field("Expense Currency Code"; Rec."Expense Currency Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    Editable = not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
+                    Editable = CardFieldsEditable and not (Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem");
 
                     trigger OnValidate()
                     begin
@@ -169,7 +171,7 @@ page 6999 "Expense Report SubPage"
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = Basic, Suite;
-                    Editable = not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
+                    Editable = CardFieldsEditable and not ((Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem") or (Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage));
 
                     trigger OnValidate()
                     begin
@@ -654,6 +656,7 @@ page 6999 "Expense Report SubPage"
         CardDisplayDocumentNo: Code[20];
         CorporateCardDisplay: Text[150];
         CorporateCardMandatory: Boolean;
+        CardFieldsEditable: Boolean;
         TotalAmountLCY: Decimal;
         TotalVATAmountLCY: Decimal;
         TotalAmountWithoutVATLCY: Decimal;
@@ -678,6 +681,7 @@ page 6999 "Expense Report SubPage"
         end;
         CorporateCardDisplay := CorpCardSelectionMgt.GetCardDisplay(Rec."Corporate Card Id", CardDisplays);
         CorporateCardMandatory := Rec."Reimbursement Type" = Rec."Reimbursement Type"::"Credit Card";
+        CardFieldsEditable := not Rec.IsLinkedToCardTransaction();
         IsPerDiemCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::"Per Diem";
         IsMileageCategory := Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage;
         IsItemizationCategory := Rec.IsItemizationRequired();

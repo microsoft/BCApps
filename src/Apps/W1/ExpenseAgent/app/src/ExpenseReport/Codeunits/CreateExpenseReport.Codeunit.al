@@ -281,7 +281,6 @@ codeunit 6983 "Create Expense Report"
     /// </summary>
     /// <remarks>
     /// The expense must be released, belong to the same expense user as the report, and not already be on an expense report. No user interface is shown.
-    /// A pending card expense (created from a corporate card transaction and not on a report) can also be added while it is open, even without an expense category.
     /// </remarks>
     /// <param name="Expense">The expense to add.</param>
     /// <param name="ExpenseReportHeader">The expense report to add the expense to.</param>
@@ -301,13 +300,35 @@ codeunit 6983 "Create Expense Report"
     end;
 
     local procedure ValidateExpense(Expense: Record Expense; ExpenseReportHeader: Record "Expense Report Header")
-    var
-        ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
     begin
         Expense.TestField("Expense User No.", ExpenseReportHeader."Expense User No.");
-        if not ReceiptExpenseMatch.IsPendingCardExpense(Expense) then
-            Expense.TestField(Status, Expense.Status::Released);
+        Expense.TestField(Status, Expense.Status::Released);
         Expense.TestField("Expense Report No.", '');
+    end;
+
+    /// <summary>
+    /// Adds an expense created from a corporate card transaction to an open expense report for the Expense Agent. An open
+    /// card expense is released first without requiring an expense category, so the line can be added before the user
+    /// picks one; the report still requires a category on every line before it can be released.
+    /// </summary>
+    /// <param name="Expense">The card expense to add. It must belong to the report's expense user and not be on a report.</param>
+    /// <param name="ExpenseReportHeader">The open expense report to add the expense to.</param>
+    /// <returns>The created expense report line.</returns>
+    internal procedure AddCardExpenseToExpenseReport(var Expense: Record Expense; ExpenseReportHeader: Record "Expense Report Header"): Record "Expense Report Line"
+    var
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        Expense.TestField(Source, Expense.Source::CorporateCard);
+        Expense.TestField("Credit Card Feed No.");
+        Expense.TestField("Expense User No.", ExpenseReportHeader."Expense User No.");
+        Expense.TestField("Expense Report No.", '');
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);
+
+        if Expense.Status = Expense.Status::Open then
+            ReleaseExpenseDocument.ReleaseCardExpenseWithoutCategory(Expense);
+        Expense.TestField(Status, Expense.Status::Released);
+
+        exit(AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader));
     end;
 
     local procedure CopyAttachments(Expense: Record Expense; ExpenseReportLine: Record "Expense Report Line")

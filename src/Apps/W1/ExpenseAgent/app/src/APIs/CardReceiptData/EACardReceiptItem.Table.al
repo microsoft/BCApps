@@ -56,12 +56,6 @@ table 7433 "EA Card Receipt Item"
             Caption = 'Daily Rate';
             ToolTip = 'Specifies the rate per unit of the itemization line.';
         }
-        field(15; Amount; Decimal)
-        {
-            AutoFormatType = 0;
-            Caption = 'Amount';
-            ToolTip = 'Specifies the amount of the itemization line. Used when no daily rate is given.';
-        }
     }
 
     keys

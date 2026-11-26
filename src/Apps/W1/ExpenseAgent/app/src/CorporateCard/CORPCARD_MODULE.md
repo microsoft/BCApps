@@ -151,7 +151,7 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7447 | EA Corp Card Selection Mgt | Validates employee-card ownership, eligibility, and selection; formats compact card labels | ValidateExpenseCard, ValidateReportLine, LookupCard, LookupReportLineCard, GetCardDisplay |
 | 7448 | EA Corp Card Expense Match | Matches selected-card expenses across lifecycle states and links feed provenance without reposting | MatchExistingExpense, LinkExpense |
 | 7449 | EA Corp Card Liability Mgt | Transfers and reverses an already-posted manual expense liability | TransferLiability, ReverseLiability |
-| 7438 | EA Receipt Expense Match | Read-only matching of extracted receipt data to a card-created expense waiting for a receipt | SetPendingCardExpenseFilters, FindMatchingExpense, CheckMatchingExpense |
+| 7438 | EA Receipt Expense Match | Read-only matching of extracted receipt data to a card-created expense waiting for a receipt | FindMatchingExpense, CheckMatchingExpense |
 
 ### Corporate Card Pages and Page Extensions
 
@@ -547,16 +547,29 @@ Use the returned internal `corporateCardId` when creating or updating an eligibl
 
 The `expenses` API exposes a read-only `source` field. `Manual` is the default, including for existing expenses. Drafts created from imported corporate card transactions have source `CorporateCard`. Matching a transaction to an existing expense does not change its source.
 
-Once a `CorporateCard`-source expense is stored, its amount, expense date, and currency cannot be changed, including through receipt extraction/API updates. The Expense Card shows these fields as read-only. Updates that retain the financial values and updates to other receipt details remain allowed. `Manual`-source expenses are not subject to this restriction, even after matching to a transaction.
+Once an expense is created from a corporate card transaction or matched to one, its amount, expense date, currency, merchant name, payment method and corporate card cannot be changed. A merchant name the transaction left blank can be filled in once; after that it is locked too. A matched manual expense keeps its `Manual` source. Category, description, participants, itemization and justification remain editable under the ordinary document-status rules.
 
-The `expenses` API exposes a read-only, filterable `pendingCardExpense` flag (a FlowField, so it is always current). It is `true` for a corporate-card-created expense that is still waiting for a receipt, using the same rules as receipt matching: source `CorporateCard`, linked to a card transaction, no receipt, no **No Receipt Type**, status `Open`, and not on an expense report. Expenses marked *Lost Receipt* or *Receipt not needed* are `false`. Use it to split an expense user's expenses into card expenses waiting for a receipt and all others:
+The same fields are locked on every report line with a nonzero `Credit Card Feed No.`, including standalone lines and lines copied from a matched manual expense. Release and posting still independently check a linked line against the transaction. Per diem or mileage calculations that would change a locked amount or currency are rejected. While a card expense or line waits for its receipt (no receipt and no no-receipt reason), the receipt-dependent checks are skipped: the receipt number, the category's detail requirement, the itemization total and the justification requirement. Attachment, merchant and other applicable policy checks still run, also at report release. Once the receipt is attached, also directly, or a no-receipt reason such as a lost or not-needed receipt is set, all rules apply, including **Receipt No. Mandatory**. Because the card amount cannot be changed, a fixed, minimum or maximum amount condition is accepted when the card expense or line has a justification; without one, the amount violation stays. The justification always comes from the user, including one staged with the receipt data; receipt extraction never fills justifications or notes.
+
+The `expenses` API exposes a read-only, filterable `cardExpenseAwaitingReport` FlowField. It is `true` when the expense has `CorporateCard` source, a nonzero feed number, no report and status `Open` or `Released`. It indicates whether the expense awaits a **report**, not a receipt: an attachment or no-receipt declaration does not change the result. A matched manual expense is `false`.
 
 ```http
-GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/expenses?$filter=pendingCardExpense eq true
-GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=pendingCardExpense eq false;$orderby=systemCreatedAt desc;$top=50)
+GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/expenses?$filter=cardExpenseAwaitingReport eq true
+GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=cardExpenseAwaitingReport eq false;$orderby=systemCreatedAt desc;$top=50)
 ```
 
-Clients can detect support by checking for the `pendingCardExpense` property on the `expense` entity in `$metadata`.
+Clients can detect support by checking for the `cardExpenseAwaitingReport` property on the `expense` entity in `$metadata`. It replaces `pendingCardExpense`.
+
+### Adding a Card Expense Before Its Category Is Known
+
+The Expense Agent can add an expense created from a card transaction to an open report for the same expense user:
+
+```http
+POST .../expenseReports({reportId})/Microsoft.NAV.addCardExpenseToReport
+{ "expenseId": "{expenseId}" }
+```
+
+The action accepts only `CorporateCard`-source expenses that are linked to a card transaction (nonzero feed number) and not already on a report. It releases an open expense without requiring its category, then adds it as a submitted report line; a released expense can be added directly. Standard add requires a released expense. Standard expense release and report release still require a category.
 
 ### Receipt Matching (Card Expense Matches API)
 
@@ -567,9 +580,9 @@ POST .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expense
 { "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR", "merchantName": "Contoso Coffee", "cardLast4": "1234" }
 ```
 
-Candidates are the user's pending card expenses with the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. When the optional `cardLast4` is exactly four digits, candidates must also be paid with one of the user's cards whose **Masked Card No.** ends in those digits; other values are ignored. Without valid card digits nothing proves the receipt was paid by card, so a candidate must also have a similar merchant name: a similarity of at least 0.6 (Levenshtein), where the shorter name is also compared with the start of the longer one, so "Fourth Coffee" fits "FOURTH COFFEE CANARY WHARF". A receipt without a merchant name and card digits therefore matches nothing. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
+Candidates are the user's card expenses that are still waiting for a receipt: open or released card expenses that are not on an expense report (for example after they were removed from a report), and card expenses on an open expense report whose line has no receipt and no lost-receipt declaration. They must have the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. When the optional `cardLast4` is exactly four digits, candidates must also be paid with one of the user's cards whose **Masked Card No.** ends in those digits; other values are ignored. Without valid card digits nothing proves the receipt was paid by card, so a candidate must also have a similar merchant name: a similarity of at least 0.6 (Levenshtein), where the shorter name is also compared with the start of the longer one, so "Fourth Coffee" fits "FOURTH COFFEE CANARY WHARF". A receipt without a merchant name and card digits therefore matches nothing. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
 
-Recommended client flow for a matched expense:
+Recommended client flow for a matched open expense that is not on a report:
 
 1. Store the returned `expenseId` immediately, so a resumed run does not create a duplicate expense.
 2. Upload the receipt through `expenses({id})/attachments` **before** release; attachments cannot be changed once the expense is no longer open.
@@ -578,7 +591,9 @@ Recommended client flow for a matched expense:
 
 When there is no match, the client creates the expense as usual.
 
-When the user picks a pending card expense (`pendingCardExpense eq true`) and submits a receipt for it, the client can check that the extracted receipt really fits that expense by posting the same data with its `expenseId`:
+For a matched released expense or an expense already on an open report, use the **Card Receipt Data API** below. Do not reopen it or use the ordinary attachments API to bypass its status or report restrictions.
+
+When the user picks an off-report card expense (`cardExpenseAwaitingReport eq true`) that still needs a receipt, the client can check that the extracted receipt fits that expense by posting the same data with its `expenseId`:
 
 ```http
 POST .../expenseUsers({expenseUserId})/cardExpenseMatches
@@ -586,6 +601,26 @@ POST .../expenseUsers({expenseUserId})/cardExpenseMatches
 ```
 
 Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent. The merchant name is not checked, because the user picked the expense. The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
+
+### Applying a Receipt to a Card Expense (Card Receipt Data API)
+
+A card expense that is waiting for a receipt, including one whose line is on an open expense report, gets its receipt through `cardReceiptData` instead of the attachments API:
+
+1. `POST .../expenses({expenseId})/cardReceiptData` with `fileName` and the extracted values (`expenseCategory`, `description`, `justification`, `expenseExtDocNo`, `merchantRegistrationNo`, `merchantVATRegistrationNo`); `cardReceiptParticipants` (type, employee number, name, organization, email), `cardReceiptItems` (subcategory, description, start date, quantity, daily rate) and `cardReceiptVATSpecifications` (VAT %, VAT base, VAT amount, amount) can be sent in the same request. LCY amounts are calculated from the expense currency.
+2. Upload raw file bytes with `PATCH .../cardReceiptData({id})/attachmentContent`, `Content-Type: application/octet-stream` and `If-Match: *`. This property is an `Edm.Stream`, not an inline base64 JSON value.
+3. `POST .../cardReceiptData({id})/Microsoft.NAV.apply`. The response is the expense.
+
+Apply attaches the missing receipt to the expense and, when the expense is on an open report, to its line with the same **Document Reference ID**. It fills only empty fields; amount, currency, date, merchant, card and payment method always come from the card transaction. Manual expenses and lines, expenses on a report that is not open, and expenses that already have a receipt are rejected.
+
+The expense and its report line are checked independently for empty fields. A category or participant list already entered on the line is not overwritten by receipt data applied to the expense. Empty extracted values clear nothing. Participant, itemization and VAT specification collections are added only when that target has none; expense itemization also requires an itemized category.
+
+This action is an exception only for applying a missing receipt. It temporarily opens the underlying expense inside the transaction and restores its original status afterwards: an expense on a report stays **Submitted**, and a released expense not on a report stays **Released**. A released expense goes through the release checks again before it is released, so receipt data that would leave it in a state release rejects, such as a project without a project task, fails the apply. Subsequent edits, replacement and deletion use the existing attachment restrictions: the expense must be **Open** and not on a report, and the shared receipt cannot be changed independently on the report line. No permanent receipt-specific lock is added; if the expense is later open and off the report, its attachments follow the normal rules. Retrying while a receipt is attached is rejected with 400 and does not create another attachment. Staged data whose apply failed is not deleted.
+
+### Deleting and Moving Card Expenses
+
+Direct deletion of any expense with a nonzero `Credit Card Feed No.` is rejected by the expense table's delete trigger, regardless of its source. Deleting its report line, directly or by deleting the open report, leaves the unposted expense **Released**, off-report and still linked to the original transaction.
+
+Moving a line between open reports for the same expense user copies its card fields and child records to the target, including the attachment's **Document Reference ID**, before deleting the source with `Delete(true)`. The operation then points the underlying expense at the target report and restores **Submitted** within the same transaction. The moved line retains its feed link and receipt; moving does not leave the expense off a report.
 
 ### Upgrade Behavior
 

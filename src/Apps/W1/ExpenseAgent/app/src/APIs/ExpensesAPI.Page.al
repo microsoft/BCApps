@@ -126,9 +126,9 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Receipt Attached';
                 }
-                field(pendingCardExpense; Rec."Pending Card Expense")
+                field(cardExpenseAwaitingReport; Rec."Card Expense Awaiting Report")
                 {
-                    Caption = 'Pending Card Expense';
+                    Caption = 'Card Expense Awaiting Report';
                     Editable = false;
                 }
                 field(receiptEntry; Rec."Receipt Entry")

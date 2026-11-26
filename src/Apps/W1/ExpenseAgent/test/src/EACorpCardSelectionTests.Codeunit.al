@@ -23,6 +23,8 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardTestLib: Codeunit EACorpCardTestLib;
         LibraryExpense: Codeunit "Library - Expense";
         LinkedReportLineCannotDeleteErr: Label 'Expense report %1 line %2 cannot be deleted because it is linked to corporate card transaction %3.', Comment = '%1 = expense report number, %2 = report line number, %3 = corporate card transaction entry number';
+        CardLineSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense report line linked to a corporate card transaction.', Comment = '%1 = field caption';
+        CardExpenseFieldCannotChangeErr: Label '%1 cannot be changed on an expense linked to a corporate card transaction.', Comment = '%1 = field caption';
 
     [Test]
     procedure DefaultProviderSetupUsesNeutralShortNames()
@@ -387,10 +389,10 @@ codeunit 148364 EACorpCardSelectionTests
         // [SCENARIO] A manual expense must still match its linked feed amount when released, even when card selection is optional.
         Initialize();
 
-        // [GIVEN] A manually entered expense has been linked and then its amount is changed.
+        // [GIVEN] A legacy linked manual expense has an amount mismatch predating the edit lock.
         CreateLinkedManualExpense(Expense);
-        Expense.Validate(Amount, Expense.Amount + 10);
-        Expense.Modify(true);
+        Expense.Amount += 10;
+        Expense.Modify(false);
         Commit();
 
         // [WHEN] The expense is released.
@@ -408,10 +410,10 @@ codeunit 148364 EACorpCardSelectionTests
         // [SCENARIO] A manual expense must still match its linked feed currency when released, even when card selection is optional.
         Initialize();
 
-        // [GIVEN] A manually entered expense has been linked and then its currency is changed.
+        // [GIVEN] A legacy linked manual expense has a currency mismatch predating the edit lock.
         CreateLinkedManualExpense(Expense);
-        Expense.Validate("Currency Code", 'EUR');
-        Expense.Modify(true);
+        Expense."Currency Code" := 'EUR';
+        Expense.Modify(false);
         Commit();
 
         // [WHEN] The expense is released.
@@ -853,14 +855,14 @@ codeunit 148364 EACorpCardSelectionTests
     end;
 
     [Test]
-    procedure MatchedManualExpenseRetainsFinancialEditing()
+    procedure MatchedManualExpenseRejectsFinancialEditing()
     var
         CorpCard: Record "EA Corp Card";
         CorpCardTrans: Record "EA Corp Card Trans";
         Expense: Record Expense;
         CorpCardExpenseMatch: Codeunit "EA Corp Card Expense Match";
     begin
-        // [SCENARIO] Adding feed provenance does not restrict financial editing of a manually created expense.
+        // [SCENARIO] Linking a manual expense locks the transaction values, not the user's description.
         Initialize();
 
         // [GIVEN] A manual expense is linked to its matching card transaction.
@@ -870,19 +872,89 @@ codeunit 148364 EACorpCardSelectionTests
         CorpCardExpenseMatch.LinkExpense(CorpCardTrans, Expense."No.");
         Expense.Get(Expense."No.");
 
-        // [WHEN] The expense amount, date, and currency are updated.
-        Expense.Validate(Amount, 21);
-        Expense.Validate("Expense Date", CalcDate('<1D>', WorkDate()));
-        Expense.Validate("Currency Code", 'EUR');
-        Expense.Modify(true);
+        Commit();
+        asserterror Expense.Validate(Amount, CorpCardTrans.Amount + 1);
+        Assert.ExpectedError(StrSubstNo(CardExpenseFieldCannotChangeErr, Expense.FieldCaption(Amount)));
+        Expense.Get(Expense."No.");
+        asserterror Expense.Validate("Expense Date", CalcDate('<1D>', Expense."Expense Date"));
+        Assert.ExpectedError(StrSubstNo(CardExpenseFieldCannotChangeErr, Expense.FieldCaption("Expense Date")));
+        Expense.Get(Expense."No.");
+        Expense."Currency Code" := 'EUR';
+        asserterror Expense.Modify(true);
+        Assert.ExpectedError(StrSubstNo(CardExpenseFieldCannotChangeErr, Expense.FieldCaption("Currency Code")));
 
-        // [THEN] The financial changes are saved without changing the manual source or feed link.
+        // [THEN] A description change is saved without changing the card values, source or link.
+        Expense.Get(Expense."No.");
+        Expense.Validate(Description, 'Updated description');
+        Expense.Modify(true);
         Expense.Get(Expense."No.");
         Expense.TestField(Source, Expense.Source::Manual);
-        Expense.TestField(Amount, 21);
-        Expense.TestField("Expense Date", CalcDate('<1D>', WorkDate()));
-        Expense.TestField("Currency Code", 'EUR');
+        Expense.TestField(Description, 'Updated description');
+        Expense.TestField(Amount, CorpCardTrans.Amount);
+        Expense.TestField("Expense Date", CorpCardTrans."Trans Date");
+        Expense.TestField("Currency Code", CorpCardTrans."Currency Code");
         Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+    end;
+
+    [Test]
+    procedure LinkedManualExpenseReportLineRejectsCardFieldValidation()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+    begin
+        // [SCENARIO] A linked manual expense's report line protects the same card fields as a card-created expense's line.
+        Initialize();
+        CreateLinkedManualExpenseReportLine(ExpenseReportLine);
+        Commit();
+
+        asserterror ExpenseReportLine.Validate(Amount, ExpenseReportLine.Amount + 1);
+        Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption(Amount)));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        asserterror ExpenseReportLine.Validate("Expense Currency Code", 'EUR');
+        Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption("Expense Currency Code")));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        asserterror ExpenseReportLine.Validate("Expense Date", CalcDate('<1D>', ExpenseReportLine."Expense Date"));
+        Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption("Expense Date")));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        asserterror ExpenseReportLine.Validate("Merchant Name", 'Changed merchant');
+        Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption("Merchant Name")));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        asserterror ExpenseReportLine.Validate("Payment Method Code", 'CASH');
+        Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption("Payment Method Code")));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        asserterror ExpenseReportLine.Validate("Corporate Card Id", 'CORPCARD-0002');
+        Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption("Corporate Card Id")));
+    end;
+
+    [Test]
+    procedure LinkedManualExpenseReportLineRejectsDirectCardFieldChanges()
+    var
+        ExpenseReportLine: Record "Expense Report Line";
+        OriginalAmount: Decimal;
+    begin
+        // [SCENARIO] Modifying a linked manual expense's report line cannot bypass card locks, but other details stay editable.
+        Initialize();
+        CreateLinkedManualExpenseReportLine(ExpenseReportLine);
+        OriginalAmount := ExpenseReportLine.Amount;
+        Commit();
+
+        ExpenseReportLine.Amount += 1;
+        asserterror ExpenseReportLine.Modify(true);
+        Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption(Amount)));
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.Validate(Description, 'User description');
+        ExpenseReportLine.Validate(Justification, 'User justification');
+        ExpenseReportLine.Modify(true);
+
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField(Amount, OriginalAmount);
+        ExpenseReportLine.TestField(Description, 'User description');
+        ExpenseReportLine.TestField(Justification, 'User justification');
     end;
 
     [Test]
@@ -1641,6 +1713,20 @@ codeunit 148364 EACorpCardSelectionTests
         Expense.Get(Expense."No.");
         Expense.TestField(Source, Expense.Source::Manual);
         Expense.TestField("Credit Card Feed No.", CorpCardTrans."Entry No.");
+    end;
+
+    local procedure CreateLinkedManualExpenseReportLine(var ExpenseReportLine: Record "Expense Report Line")
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+        CreateExpenseReport: Codeunit "Create Expense Report";
+    begin
+        CreateLinkedManualExpense(Expense);
+        Expense.PerformManualRelease();
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Expense."Expense User No.", '', Expense."VAT Bus. Posting Group");
+        ExpenseReportLine := CreateExpenseReport.AddSingleExpenseToExpenseReport(Expense, ExpenseReportHeader);
+        ExpenseReportLine.TestField("Expense No.", Expense."No.");
+        ExpenseReportLine.TestField("Credit Card Feed No.", Expense."Credit Card Feed No.");
     end;
 
     local procedure CreateCorporateCardDraft(var Expense: Record Expense)
