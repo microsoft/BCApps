@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -7,11 +8,19 @@ namespace Microsoft.Foundation.PaymentTerms;
 using Microsoft.Finance.Currency;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
+using System.Environment.Configuration;
 
 codeunit 12192 "Serv. Payment Lines Mgt."
 {
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+
     var
         Currency: Record Currency;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
 
     [EventSubscriber(ObjectType::Page, Page::"Payment Date Lines", 'OnUpdateAmount', '', false, false)]
     local procedure PaymentDateLinesOnUpdateAmount(var PaymentLines: Record "Payment Lines"; var CurrencyCode: Code[10]; var DocumentAmount: Decimal; DocType: Option)
@@ -19,6 +28,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case PaymentLines."Sales/Purchase" of
             PaymentLines."Sales/Purchase"::Service:
                 if ServiceHeader.Get(DocType, PaymentLines.Code) then begin
@@ -47,6 +58,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ServiceCrMemoLine: Record "Service Cr.Memo Line";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case PostedPaymentLines."Sales/Purchase" of
             PostedPaymentLines."Sales/Purchase"::Service:
                 if ServiceInvoiceHeader.Get(PostedPaymentLines.Code) then begin
@@ -76,6 +89,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
     var
         ServiceHeader: Record "Service Header";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case PaymentLines."Sales/Purchase" of
             PaymentLines."Sales/Purchase"::Service:
                 begin
@@ -98,6 +113,8 @@ codeunit 12192 "Serv. Payment Lines Mgt."
         Month: Integer;
         Year: Integer;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         if ServiceHeader."No." = '' then
             exit;
 
@@ -218,3 +235,4 @@ codeunit 12192 "Serv. Payment Lines Mgt."
         end;
     end;
 }
+#endif

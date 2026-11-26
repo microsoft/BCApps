@@ -16,6 +16,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Vendor;
 using System.Automation;
+using System.Environment.Configuration;
 
 page 140 "Posted Purchase Credit Memo"
 {
@@ -641,8 +642,10 @@ page 140 "Posted Purchase Credit Memo"
                         ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
                     end;
                 }
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -651,7 +654,11 @@ page 140 "Posted Purchase Credit Memo"
                                   Type = const("Credit Memo"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(DocAttach)
                 {
                     ApplicationArea = All;
@@ -928,6 +935,9 @@ page 140 "Posted Purchase Credit Memo"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
         IsOfficeAddin := OfficeMgt.IsAvailable();
 
@@ -939,8 +949,14 @@ page 140 "Posted Purchase Credit Memo"
         PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         HasIncomingDocument: Boolean;
         IsOfficeAddin: Boolean;
         IsBuyFromCountyVisible: Boolean;

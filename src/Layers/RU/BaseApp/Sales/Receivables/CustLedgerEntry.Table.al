@@ -1076,6 +1076,31 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Sales Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted global installment plan.';
+        }
+        field(8841; "Installment No."; Integer)
+        {
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
+        }
+        field(8842; "No. of Installments"; Integer)
+        {
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of receivables in the installment plan.';
+        }
+        field(8843; "Invoice Entry No."; BigInteger)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
+        }
         field(12401; "Prepmt. Diff. Appln. Entry No."; Integer)
         {
             Caption = 'Prepmt. Diff. Appln. Entry No.';
@@ -1202,6 +1227,16 @@ table 21 "Cust. Ledger Entry"
         key(Key37; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
         key(Key12401; "Prepmt. Diff. Cust. Entry No.", "Prepmt. Diff. Appln. Entry No.")
         {

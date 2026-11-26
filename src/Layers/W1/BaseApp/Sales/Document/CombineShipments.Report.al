@@ -120,11 +120,11 @@ report 295 "Combine Shipments"
 
                     if OnlyStdPmtTerms then begin
                         Cust.Get("Bill-to Customer No.");
-                        PmtTerms.Get(Cust."Payment Terms Code");
-                        if PmtTerms.Code = "Payment Terms Code" then begin
-                            DueDate := CalcDate(PmtTerms."Due Date Calculation", "Document Date");
-                            PmtDiscDate := CalcDate(PmtTerms."Discount Date Calculation", "Document Date");
-                            PmtDiscPct := PmtTerms."Discount %";
+                        PaymentTerms.Get(Cust."Payment Terms Code");
+                        if PaymentTerms.Code = "Payment Terms Code" then begin
+                            DueDate := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                            PmtDiscDate := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                            PmtDiscPct := PaymentTerms."Discount %";
                             if (DueDate <> "Due Date") or
                                (PmtDiscDate <> "Pmt. Discount Date") or
                                (PmtDiscPct <> "Payment Discount %")
@@ -305,7 +305,7 @@ report 295 "Combine Shipments"
     var
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
-        PmtTerms: Record "Payment Terms";
+        PaymentTerms: Record "Payment Terms";
         SalesCalcDisc: Codeunit "Sales-Calc. Discount";
         SalesPost: Codeunit "Sales-Post";
         Window: Dialog;

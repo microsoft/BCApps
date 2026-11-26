@@ -382,6 +382,12 @@ table 379 "Detailed Cust. Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(8843; "Invoice Entry No."; BigInteger)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the customer entry that identifies the invoice balance group.';
+        }
         field(7000004; "Excluded from calculation"; Boolean)
         {
             Caption = 'Excluded from calculation';
@@ -466,6 +472,10 @@ table 379 "Detailed Cust. Ledg. Entry"
         key(Key12100; "Original Document Type", "Original Document No.")
         {
             SumIndexFields = Amount;
+        }
+        key(Invoice; "Invoice Entry No.")
+        {
+            SumIndexFields = Amount, "Amount (LCY)";
         }
     }
 

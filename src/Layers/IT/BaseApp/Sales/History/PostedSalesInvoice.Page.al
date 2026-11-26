@@ -20,6 +20,7 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.Automation;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Displays a single posted sales invoice document with header and line details.
@@ -790,6 +791,22 @@ page 132 "Posted Sales Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Suite;
@@ -860,8 +877,10 @@ page 132 "Posted Sales Invoice"
                 separator(Action1130000)
                 {
                 }
+#if not CLEAN30
                 action(Payments)
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Payments';
                     Image = Payment;
@@ -870,7 +889,11 @@ page 132 "Posted Sales Invoice"
                                   Type = const(Invoice),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 separator(Action171)
                 {
                 }
@@ -1345,6 +1368,7 @@ page 132 "Posted Sales Invoice"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, CRMIsCoupledToRecord, CRMIntegrationEnabled);
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -1380,6 +1404,10 @@ page 132 "Posted Sales Invoice"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not PaymentInstallmentsEnabled;
+#endif
         Rec.SetSecurityFilterOnRespCenter();
         CRMIntegrationEnabled := CRMIntegrationManagement.IsCRMIntegrationEnabled();
 
@@ -1393,9 +1421,14 @@ page 132 "Posted Sales Invoice"
     var
         SellToContact: Record Contact;
         BillToContact: Record Contact;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        PaymentInstallmentsEnabled: Boolean;
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         HasIncomingDocument: Boolean;
         DocExchStatusStyle: Text;
         CRMIntegrationEnabled: Boolean;
@@ -1407,6 +1440,7 @@ page 132 "Posted Sales Invoice"
         IsSellToCountyVisible: Boolean;
         IsShipToCountyVisible: Boolean;
         VATDateEnabled: Boolean;
+        HasInstallmentPlan: Boolean;
 
     protected var
         SalesInvHeader: Record "Sales Invoice Header";

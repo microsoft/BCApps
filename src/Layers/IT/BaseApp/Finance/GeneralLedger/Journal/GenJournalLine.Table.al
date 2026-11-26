@@ -184,7 +184,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Account No.';
             ToolTip = 'Specifies the account number that the entry on the journal line will be posted to.';
-            TableRelation = if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
+            TableRelation =
+            if ("Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                           Blocked = const(false))
             else
             if ("Account Type" = const(Customer)) Customer
@@ -444,7 +445,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Bal. Account No.';
             ToolTip = 'Specifies the number of the general ledger, customer, vendor, or bank account that the balancing entry is posted to, such as a cash account for cash purchases.';
-            TableRelation = if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
+            TableRelation =
+            if ("Bal. Account Type" = const("G/L Account")) "G/L Account" where("Account Type" = const(Posting),
                                                                                                Blocked = const(false))
             else
             if ("Bal. Account Type" = const(Customer)) Customer
@@ -752,7 +754,8 @@ table 81 "Gen. Journal Line"
             Caption = 'Bill-to/Pay-to No.';
             ToolTip = 'Specifies the number of the bill-to customer or pay-to vendor that the entry is linked to.';
             Editable = false;
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -776,7 +779,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Posting Group';
             ToolTip = 'Specifies the posting group that will be used in posting the journal line.The field is used only if the account type is either customer or vendor.';
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Posting Group"
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Account Type" = const(Vendor)) "Vendor Posting Group"
             else
@@ -1226,25 +1230,68 @@ table 81 "Gen. Journal Line"
 
             trigger OnValidate()
             var
+                IsHandled: Boolean;
             begin
                 "Due Date" := 0D;
                 "Pmt. Discount Date" := 0D;
                 "Payment Discount %" := 0;
-                if "Payment Terms Code" <> xRec."Payment Terms Code" then
-                    DeleteSalesPaymentLines();
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    if "Payment Terms Code" <> xRec."Payment Terms Code" then
+                        DeleteSalesPaymentLines();
+#endif
                 if ("Account Type" <> "Account Type"::"G/L Account") or
                    ("Bal. Account Type" <> "Bal. Account Type"::"G/L Account")
                 then
-                    if ("Document Type" in ["Document Type"::Invoice, "Document Type"::"Credit Memo"]) and
-                       ("Payment Terms Code" <> '') and ("Document Date" <> 0D) and
-                       (("Account Type" in ["Account Type"::Customer, "Account Type"::Vendor]) or
-                        ("Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor])) and
-                       ("Line No." <> 0)
-                    then begin
-                        if "Payment Terms Code" <> xRec."Payment Terms Code" then
-                            InsertPaymentTermsLines();
+#if not CLEAN30
+                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                        if ("Document Type" in ["Document Type"::Invoice, "Document Type"::"Credit Memo"]) and
+                           ("Payment Terms Code" <> '') and ("Document Date" <> 0D) and
+                           (("Account Type" in ["Account Type"::Customer, "Account Type"::Vendor]) or
+                            ("Bal. Account Type" in ["Bal. Account Type"::Customer, "Bal. Account Type"::Vendor])) and
+                           ("Line No." <> 0)
+                        then begin
+                            if "Payment Terms Code" <> xRec."Payment Terms Code" then
+                                InsertPaymentTermsLines();
+                        end else
+                            "Due Date" := "Posting Date";
                     end else
-                        "Due Date" := "Posting Date";
+#endif
+                    case "Document Type" of
+                        "Document Type"::Invoice:
+                            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                                PaymentTerms.Get("Payment Terms Code");
+                                IsHandled := false;
+                                OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
+                                if not IsHandled then
+                                    "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                                IsHandled := false;
+                                OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
+                                if not IsHandled then
+                                    "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                                "Payment Discount %" := PaymentTerms."Discount %";
+                            end else
+                                "Due Date" := "Document Date";
+                        "Document Type"::"Credit Memo":
+                            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
+                                PaymentTerms.Get("Payment Terms Code");
+                                if PaymentTerms."Calc. Pmt. Disc. on Cr. Memos" then begin
+                                    IsHandled := false;
+                                    OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
+                                    if not IsHandled then
+                                        "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                                    IsHandled := false;
+                                    OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
+                                    if not IsHandled then
+                                        "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                                    "Payment Discount %" := PaymentTerms."Discount %";
+                                end else
+                                    "Due Date" := "Document Date";
+                            end else
+                                "Due Date" := "Document Date";
+                        else
+                            "Due Date" := "Document Date";
+                    end;
             end;
         }
         /// <summary>
@@ -1495,8 +1542,11 @@ table 81 "Gen. Journal Line"
                     "Sell-to/Buy-from No." := '';
                     "VAT Registration No." := '';
                 end;
-                if xRec."Bal. Account Type" in [xRec."Bal. Account Type"::Customer, xRec."Bal. Account Type"::Vendor] then
-                    DeleteSalesPaymentLines();
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    if xRec."Bal. Account Type" in [xRec."Bal. Account Type"::Customer, xRec."Bal. Account Type"::Vendor] then
+                        DeleteSalesPaymentLines();
+#endif
                 if ("Account Type" in [
                                        "Account Type"::"G/L Account", "Account Type"::"Bank Account", "Account Type"::"Fixed Asset"]) and
                    ("Bal. Account Type" in [
@@ -1910,10 +1960,6 @@ table 81 "Gen. Journal Line"
                 Validate("VAT Reporting Date");
 
                 Validate("Payment Terms Code");
-
-
-
-                Validate("Payment Terms Code");
             end;
         }
         /// <summary>
@@ -1947,7 +1993,8 @@ table 81 "Gen. Journal Line"
         field(79; "Source No."; Code[20])
         {
             Caption = 'Source No.';
-            TableRelation = if ("Source Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
             else
@@ -2388,7 +2435,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Ship-to/Order Address Code';
             ToolTip = 'Specifies the address code of the ship-to customer or order-from vendor that the entry is linked to.';
-            TableRelation = if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Ship-to Address".Code where("Customer No." = field("Bill-to/Pay-to No."))
             else
             if ("Account Type" = const(Vendor)) "Order Address".Code where("Vendor No." = field("Bill-to/Pay-to No."))
             else
@@ -2461,7 +2509,8 @@ table 81 "Gen. Journal Line"
         field(118; "Sell-to/Buy-from No."; Code[20])
         {
             Caption = 'Sell-to/Buy-from No.';
-            TableRelation = if ("Account Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Account Type" = const(Customer)) Customer
             else
             if ("Bal. Account Type" = const(Customer)) Customer
             else
@@ -2760,7 +2809,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Recipient Bank Account';
             ToolTip = 'Specifies the bank account that the amount will be transferred to after it has been exported from the payment journal.';
-            TableRelation = if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
+            TableRelation =
+            if ("Account Type" = const(Customer)) "Customer Bank Account".Code where("Customer No." = field("Account No."))
             else
             if ("Account Type" = const(Vendor)) "Vendor Bank Account".Code where("Vendor No." = field("Account No."))
             else
@@ -3216,7 +3266,8 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Direct Debit Mandate ID';
             ToolTip = 'Specifies the identification of the direct-debit mandate that is being used on the journal lines to process a direct debit collection.';
-            TableRelation = if ("Account Type" = const(Customer)) "SEPA Direct Debit Mandate" where("Customer No." = field("Account No."));
+            TableRelation =
+            if ("Account Type" = const(Customer)) "SEPA Direct Debit Mandate" where("Customer No." = field("Account No."));
 
             trigger OnValidate()
             var
@@ -3931,6 +3982,23 @@ table 81 "Gen. Journal Line"
                 UpdateVendorNo();
             end;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            Editable = false;
+        }
+        field(8841; "Sales Invoice Source SystemId"; Guid)
+        {
+            Caption = 'Sales Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
+        field(8842; "Purch. Invoice Source SystemId"; Guid)
+        {
+            Caption = 'Purchase Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
         field(12100; "VAT Identifier"; Code[20])
         {
             Caption = 'VAT Identifier';
@@ -4110,7 +4178,8 @@ table 81 "Gen. Journal Line"
         field(12137; "Tax Representative No."; Code[20])
         {
             Caption = 'Tax Representative No.';
-            TableRelation = if ("Tax Representative Type" = filter(Vendor)) Vendor
+            TableRelation =
+            if ("Tax Representative Type" = filter(Vendor)) Vendor
             else
             if ("Tax Representative Type" = filter(Customer)) Customer
             else
@@ -4151,6 +4220,14 @@ table 81 "Gen. Journal Line"
         field(12171; "Applies-to Occurrence No."; Integer)
         {
             Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12172; "Bank Receipt"; Boolean)
         {
@@ -4263,8 +4340,10 @@ table 81 "Gen. Journal Line"
             DeleteRelatedPaymentFileErrors();
             ClearDataExchangeEntries(false);
 
-            DeleteSalesPaymentLines();
-
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                DeleteSalesPaymentLines();
+#endif
             GenJnlAlloc.SetRange("Journal Template Name", "Journal Template Name");
             GenJnlAlloc.SetRange("Journal Batch Name", "Journal Batch Name");
             GenJnlAlloc.SetRange("Journal Line No.", "Line No.");
@@ -4304,7 +4383,10 @@ table 81 "Gen. Journal Line"
         if "Source Code" = '' then
             "Source Code" := GenJnlTemplate."Source Code";
 
-        Validate("Payment Terms Code");
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            Validate("Payment Terms Code");
+#endif
         Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
         Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
 
@@ -4343,6 +4425,52 @@ table 81 "Gen. Journal Line"
     end;
 
     var
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        GenJnlTemplate: Record "Gen. Journal Template";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        GenJnlBatch: Record "Gen. Journal Batch";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        GenJnlLine: Record "Gen. Journal Line";
+        PaymentTerms: Record "Payment Terms";
+        CustLedgEntry: Record "Cust. Ledger Entry";
+        VendLedgEntry: Record "Vendor Ledger Entry";
+        EmplLedgEntry: Record "Employee Ledger Entry";
+        GenJnlAlloc: Record "Gen. Jnl. Allocation";
+        VATPostingSetup: Record "VAT Posting Setup";
+        GenBusPostingGrp: Record "Gen. Business Posting Group";
+        GenProdPostingGrp: Record "Gen. Product Posting Group";
+        GLSetup: Record "General Ledger Setup";
+        Job: Record Job;
+        SourceCodeSetup: Record "Source Code Setup";
+        TempJobJnlLine: Record "Job Journal Line" temporary;
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DefDueDates: Record "Deferring Due Dates";
+        FixedDueDate: Record "Fixed Due Dates";
+#if not CLEAN30
+        PaymentPurchase: Record "Payment Lines";
+        PaymentSales: Record "Payment Lines";
+        PaymentTermsLine: Record "Payment Lines";
+#endif
+        TmpWithholdingSocSec: Record "Tmp Withholding Contribution";
+        PaymentMethod: Record "Payment Method";
+        Bill: Record Bill;
+        Country: Record "Country/Region";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
+        CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
+        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
+        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
+        GenJnlShowCTEntries: Codeunit "Gen. Jnl.-Show CT Entries";
+        CustEntrySetApplID: Codeunit "Cust. Entry-SetAppl.ID";
+        VendEntrySetApplID: Codeunit "Vend. Entry-SetAppl.ID";
+        EmplEntrySetApplID: Codeunit "Empl. Entry-SetAppl.ID";
+        DimMgt: Codeunit DimensionManagement;
+        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        DeferralUtilities: Codeunit "Deferral Utilities";
+        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        NoSeriesBatch: Codeunit "No. Series - Batch";
 #pragma warning disable AA0074
         Text000: Label '%1 or %2 must be a G/L Account or Bank Account.', Comment = '%1=Account Type,%2=Balance Account Type';
 #pragma warning disable AA0470
@@ -4370,38 +4498,6 @@ table 81 "Gen. Journal Line"
         WrongJobQueueStatus: Label 'Journal line cannot be modified because it has been scheduled for posting.';
 #pragma warning restore AA0074
         RenumberDocNoQst: Label 'If you have many documents it can take time to sort them, and %1 might perform slowly during the process. In those cases we suggest that you sort them during non-working hours. Do you want to continue?', Comment = '%1= Business Central';
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        GenJnlTemplate: Record "Gen. Journal Template";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        GenJnlBatch: Record "Gen. Journal Batch";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        GenJnlLine: Record "Gen. Journal Line";
-        PaymentTerms: Record "Payment Terms";
-        CustLedgEntry: Record "Cust. Ledger Entry";
-        VendLedgEntry: Record "Vendor Ledger Entry";
-        EmplLedgEntry: Record "Employee Ledger Entry";
-        GenJnlAlloc: Record "Gen. Jnl. Allocation";
-        VATPostingSetup: Record "VAT Posting Setup";
-        GenBusPostingGrp: Record "Gen. Business Posting Group";
-        GenProdPostingGrp: Record "Gen. Product Posting Group";
-        GLSetup: Record "General Ledger Setup";
-        Job: Record Job;
-        SourceCodeSetup: Record "Source Code Setup";
-        TempJobJnlLine: Record "Job Journal Line" temporary;
-        SalespersonPurchaser: Record "Salesperson/Purchaser";
-        CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
-        SalesTaxCalculate: Codeunit "Sales Tax Calculate";
-        GenJnlApply: Codeunit "Gen. Jnl.-Apply";
-        GenJnlShowCTEntries: Codeunit "Gen. Jnl.-Show CT Entries";
-        CustEntrySetApplID: Codeunit "Cust. Entry-SetAppl.ID";
-        VendEntrySetApplID: Codeunit "Vend. Entry-SetAppl.ID";
-        EmplEntrySetApplID: Codeunit "Empl. Entry-SetAppl.ID";
-        DimMgt: Codeunit DimensionManagement;
-        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
-        DeferralUtilities: Codeunit "Deferral Utilities";
-        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
-        NoSeriesBatch: Codeunit "No. Series - Batch";
         Window: Dialog;
         DeferralDocType: Enum "Deferral Document Type";
         CurrencyCode: Code[10];
@@ -4424,22 +4520,13 @@ table 81 "Gen. Journal Line"
 #pragma warning restore AA0074
         GLSetupRead: Boolean;
         Day: Integer;
-        DefDueDates: Record "Deferring Due Dates";
-        FixedDueDate: Record "Fixed Due Dates";
         MaximumDay: Integer;
         Month: Integer;
         PaymentCounter: Integer;
-        PaymentPurchase: Record "Payment Lines";
-        PaymentSales: Record "Payment Lines";
-        PaymentTermsLine: Record "Payment Lines";
         Year: Integer;
-        TmpWithholdingSocSec: Record "Tmp Withholding Contribution";
-        PaymentMethod: Record "Payment Method";
         Text1130014: Label '%1 cannot be greater than %2';
         Text1130015: Label 'It''s not possible to change %1 when there are withholding lines associated. Delete this line \';
         Text1130016: Label 'or the associated withholding line.';
-        Bill: Record Bill;
-        Country: Record "Country/Region";
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';
@@ -5714,14 +5801,23 @@ table 81 "Gen. Journal Line"
             TmpWithholdingSocSec.Delete();
     end;
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [Scope('OnPrem')]
     procedure InsertPaymentLines()
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         InsertPaymentTermsLines();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure InsertPaymentTermsLines()
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         GenJnlTemplate.Get("Journal Template Name");
 
         PaymentTermsLine.Reset();
@@ -5738,9 +5834,14 @@ table 81 "Gen. Journal Line"
             until PaymentTermsLine.Next() = 0;
         end;
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure DeleteSalesPaymentLines()
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentSales.Reset();
         PaymentSales.SetRange("Sales/Purchase", PaymentSales."Sales/Purchase"::" ");
         PaymentSales.SetRange(Type, PaymentSales.Type::"General Journal");
@@ -5750,17 +5851,27 @@ table 81 "Gen. Journal Line"
         if PaymentSales.FindFirst() then
             PaymentSales.DeleteAll();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [Scope('OnPrem')]
     procedure PurchasePayment()
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         CreatePurchasePaymentLine();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure CreatePurchasePaymentLine();
     var
         Vend: Record Vendor;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentPurchase.Init();
         PaymentPurchase."Sales/Purchase" := PaymentPurchase."Sales/Purchase"::" ";
         PaymentPurchase.Type := PaymentPurchase.Type::"General Journal";
@@ -5834,9 +5945,14 @@ table 81 "Gen. Journal Line"
 
         PaymentPurchase.Insert();
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     procedure CreateSalesPaymentLine()
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentSales.Init();
         PaymentSales."Sales/Purchase" := PaymentSales."Sales/Purchase"::" ";
         PaymentSales.Type := PaymentSales.Type::"General Journal";
@@ -5916,6 +6032,7 @@ table 81 "Gen. Journal Line"
 
         PaymentSales.Insert();
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure ExchangeDate(): Date
@@ -6018,7 +6135,10 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithCustLedgEntry();
             UpdateDocumentTypeAndAppliesTo(CustLedgEntry."Document Type", CustLedgEntry."Document No.");
-            "Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                "Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#endif
             if "Document Type" = "Document Type"::Dishonored then begin
                 "Document No. to Close" := CustLedgEntry."Document No. to Close";
                 "Document Type to Close" := CustLedgEntry."Document Type to Close";
@@ -6113,7 +6233,10 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithVendLedgEntry();
             UpdateDocumentTypeAndAppliesTo(VendLedgEntry."Document Type", VendLedgEntry."Document No.");
-            "Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                "Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+#endif
             OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo(Rec, VendLedgEntry);
         end;
 
@@ -7145,7 +7268,10 @@ table 81 "Gen. Journal Line"
         if "Applies-to Doc. No." <> '' then begin
             CustLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
             CustLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-            CustLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                CustLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
+#endif
             if CustLedgEntry.FindFirst() then;
         end else
             if "Applies-to ID" <> '' then begin
@@ -7162,7 +7288,10 @@ table 81 "Gen. Journal Line"
         if "Applies-to Doc. No." <> '' then begin
             VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
             VendLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-            VendLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                VendLedgEntry.SetRange("Document Occurrence", "Applies-to Occurrence No.");
+#endif
             if VendLedgEntry.FindFirst() then;
         end else
             if "Applies-to ID" <> '' then begin
@@ -11038,16 +11167,19 @@ table 81 "Gen. Journal Line"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnCreatePurchasePaymentLineOnAfterCalculateDueDate(var PaymentPurchase: Record "Payment Lines"; PaymentTermsLine: Record "Payment Lines"; GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+#endif
+
     /// <summary>
     /// Event triggered after running the payment export process.
     /// This event allows developers to change custom logic after the export has been completed.
     /// </summary>
     /// <param name="GenJournalLine">The current General Journal Line record that was processed for payment export.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnCreatePurchasePaymentLineOnAfterCalculateDueDate(var PaymentPurchase: Record "Payment Lines"; PaymentTermsLine: Record "Payment Lines"; GenJournalLine: Record "Gen. Journal Line")
-    begin
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnExportPaymentFileOnAfterRunExport(var GenJournalLine: Record "Gen. Journal Line")
     begin
@@ -11456,6 +11588,30 @@ table 81 "Gen. Journal Line"
     /// <param name="BalVATAmountLCY">The updated "Bal. VAT Amount (LCY)" value.</param>
     [IntegrationEvent(true, false)]
     local procedure OnValidateBalVATPctOnAfterAssignBalVATAmountLCY(var BalVATAmountLCY: Decimal)
+    begin
+    end;
+
+    /// <summary>
+    /// Event triggered before calculating the "Due Date" based on the payment terms during the validation of the "Payment Terms Code" field.
+    /// This event allows developers to add custom logic or override the default calculation for the "Due Date".
+    /// </summary>
+    /// <param name="GenJournalLine">The current General Journal Line record being processed.</param>
+    /// <param name="PaymentTerms">The Payment Terms record retrieved with the "Payment Terms Code".</param>
+    /// <param name="IsHandled">A boolean variable that, if set to true, skips the default "Due Date" calculation.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(var GenJournalLine: Record "Gen. Journal Line"; PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Event triggered before calculating the "Pmt. Discount Date" based on the payment terms during the validation of the "Payment Terms Code" field.
+    /// This event allows developers to add custom logic or override the default calculation for the "Pmt. Discount Date".
+    /// </summary>
+    /// <param name="GenJournalLine">The current General Journal Line record being processed.</param>
+    /// <param name="PaymentTerms">The payment terms record associated with the "Payment Terms Code".</param>
+    /// <param name="IsHandled">A boolean variable that, if set to true, skips the default discount date calculation.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(var GenJournalLine: Record "Gen. Journal Line"; PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
     begin
     end;
 

@@ -9,6 +9,7 @@ using Microsoft.Bank.DirectDebit;
 using Microsoft.Foundation.Enums;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 report 12176 "Suggest Customer Bills"
 {
@@ -138,6 +139,9 @@ report 12176 "Suggest Customer Bills"
         CustomerBillLine: Record "Customer Bill Line";
         CustBankAcc: Record "Customer Bank Account";
         BankAcc: Record "Bank Account";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         NextLineNo: Integer;
         MaxAmount: Decimal;
         TotalPayments: Decimal;
@@ -177,7 +181,10 @@ report 12176 "Suggest Customer Bills"
                 CustomerBillLine."Temporary Cust. Bill No." := CustLedgEntry."Bank Receipt Temp. No.";
                 CustomerBillLine."Document Type" := CustLedgEntry."Document Type";
                 CustomerBillLine."Document No." := CustLedgEntry."Document No.";
-                CustomerBillLine."Document Occurrence" := CustLedgEntry."Document Occurrence";
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    CustomerBillLine."Document Occurrence" := CustLedgEntry."Document Occurrence";
+#endif
                 CustomerBillLine."Document Date" := CustLedgEntry."Document Date";
                 CustomerBillLine.Amount := CustLedgEntry."Remaining Amount";
                 CustomerBillLine."Due Date" := CustLedgEntry."Due Date";

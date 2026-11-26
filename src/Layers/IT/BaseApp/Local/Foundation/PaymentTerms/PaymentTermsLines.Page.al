@@ -1,8 +1,11 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.PaymentTerms;
+
+using System.Environment.Configuration;
 
 page 12170 "Payment Terms Lines"
 {
@@ -12,6 +15,9 @@ page 12170 "Payment Terms Lines"
     DelayedInsert = true;
     PageType = List;
     SourceTable = "Payment Lines";
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -47,5 +53,13 @@ page 12170 "Payment Terms Lines"
     actions
     {
     }
+    trigger OnOpenPage()
+    begin
+        FeatureKeyManagement.CheckLegacyPaymentInstallmentsEnabled();
+    end;
+
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
 }
+#endif
 

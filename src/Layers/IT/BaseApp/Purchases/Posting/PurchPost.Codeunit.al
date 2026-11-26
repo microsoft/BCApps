@@ -335,38 +335,6 @@ codeunit 90 "Purch.-Post"
     end;
 
     var
-#pragma warning disable AA0470
-        PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
-        PostingPurchasesAndVATMsg: Label 'Posting purchases and VAT  #3######\', Comment = 'Counter';
-        PostingVendorsMsg: Label 'Posting to vendors         #4######\', Comment = 'Counter';
-        PostingBalAccountMsg: Label 'Posting to bal. account    #5######', Comment = 'Counter';
-        PostingLines2Msg: Label 'Posting lines         #2######', Comment = 'Counter';
-#pragma warning restore AA0470
-        InvoiceNoMsg: Label '%1 %2 -> Invoice %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Invoice No.';
-        CreditMemoNoMsg: Label '%1 %2 -> Credit Memo %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Credit Memo No.';
-        ReceiptSameSignErr: Label 'must have the same sign as the receipt';
-        ReceiptLinesDeletedErr: Label 'Receipt lines have been deleted.';
-        PurchaseAlreadyExistsErr: Label 'Purchase %1 %2 already exists for this vendor.', Comment = '%1 = Document Type, %2 = Document No.';
-        InvoiceMoreThanReceivedErr: Label 'You cannot invoice order %1 for more than you have received.', Comment = '%1 = Order No.';
-#if not CLEAN28
-        CannotPostBeforeAssosSalesOrderErr: Label 'You cannot post this purchase order before the associated sales orders have been invoiced. Post sales order %1 before posting this purchase order.', Comment = '%1 = Sales Order No.';
-#endif
-        ExtDocNoNeededErr: Label 'You need to enter the document number of the document from the vendor in the %1 field, so that this document stays linked to the original.', Comment = '%1 = Field caption of e.g. Vendor Invoice No.';
-        VATAmountTxt: Label 'VAT Amount';
-        VATRateTxt: Label '%1% VAT', Comment = '%1 = VAT Rate';
-        BlanketOrderQuantityGreaterThanErr: Label 'in the associated blanket order must not be greater than %1', Comment = '%1 = Quantity';
-        BlanketOrderQuantityReducedErr: Label 'in the associated blanket order must be reduced';
-        ReceiveInvoiceShipErr: Label 'Please enter "Yes" in Receive and/or Invoice and/or Ship.';
-        WarehouseRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1/%2 = Document Type, %3/%4 - Document No.,%5/%6 = Line No.';
-        ReturnShipmentSamesSignErr: Label 'must have the same sign as the return shipment';
-        ReturnShipmentInvoicedErr: Label 'Line %1 of the return shipment %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
-        ReceiptInvoicedErr: Label 'Line %1 of the receipt %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
-        QuantityToInvoiceGreaterErr: Label 'The quantity you are attempting to invoice is greater than the quantity in receipt %1.', Comment = '%1 = Receipt No.';
-        CannotAssignMoreErr: Label 'You cannot assign more than %1 units in %2 = %3,%4 = %5,%6 = %7.', Comment = '%1 = Quantity, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
-        MustAssignErr: Label 'You must assign all item charges, if you invoice everything.';
-        CannotAssignInvoicedErr: Label 'You cannot assign item charges to the %1 %2 = %3,%4 = %5, %6 = %7, because it has been invoiced.', Comment = '%1 = Purchase Line, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
-        CheckTotalAmountPurchLinesErr: Label '%1 (%2) is not equal to total of lines (%3)', Comment = '%1 = FieldCaption of Doc. Amount Incl. VAT; %2 - Doc. Amount Incl. VAT; %3 - Amount Including VAT ';
-        CheckTotalAmountVATPurchLinesErr: Label '%1 (%2) is not equal to total of VAT on lines (%3)', Comment = '%1 - Doc. Amount VAT; %2 - Doc. Amount VAT; %3 - Amount Including VAT - PurchHeader.Amount';
         PurchSetup: Record "Purchases & Payables Setup";
         GLSetup: Record "General Ledger Setup";
         InventorySetup: Record "Inventory Setup";
@@ -409,6 +377,18 @@ codeunit 90 "Purch.-Post"
         TempSKU: Record "Stockkeeping Unit" temporary;
         TempDeferralHeader: Record "Deferral Header" temporary;
         TempDeferralLine: Record "Deferral Line" temporary;
+#if not CLEAN30
+        PaymentJournalLine: Record "Payment Lines";
+        PaymentTermsLine: Record "Payment Lines";
+        PostedPayments: Record "Posted Payment Lines";
+#endif
+        WithhSocSec: Record "Purch. Withh. Contribution";
+        CompWithhTax: Record "Computed Withholding Tax";
+        CompSocSec: Record "Computed Contribution";
+        TempFA: Record "Fixed Asset" temporary;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ErrorMessageMgt: Codeunit "Error Message Management";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
@@ -428,6 +408,38 @@ codeunit 90 "Purch.-Post"
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
         MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+#pragma warning disable AA0470
+        PostingLinesMsg: Label 'Posting lines              #2######\', Comment = 'Counter';
+        PostingPurchasesAndVATMsg: Label 'Posting purchases and VAT  #3######\', Comment = 'Counter';
+        PostingVendorsMsg: Label 'Posting to vendors         #4######\', Comment = 'Counter';
+        PostingBalAccountMsg: Label 'Posting to bal. account    #5######', Comment = 'Counter';
+        PostingLines2Msg: Label 'Posting lines         #2######', Comment = 'Counter';
+#pragma warning restore AA0470
+        InvoiceNoMsg: Label '%1 %2 -> Invoice %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Invoice No.';
+        CreditMemoNoMsg: Label '%1 %2 -> Credit Memo %3', Comment = '%1 = Document Type, %2 = Document No, %3 = Credit Memo No.';
+        ReceiptSameSignErr: Label 'must have the same sign as the receipt';
+        ReceiptLinesDeletedErr: Label 'Receipt lines have been deleted.';
+        PurchaseAlreadyExistsErr: Label 'Purchase %1 %2 already exists for this vendor.', Comment = '%1 = Document Type, %2 = Document No.';
+        InvoiceMoreThanReceivedErr: Label 'You cannot invoice order %1 for more than you have received.', Comment = '%1 = Order No.';
+#if not CLEAN28
+        CannotPostBeforeAssosSalesOrderErr: Label 'You cannot post this purchase order before the associated sales orders have been invoiced. Post sales order %1 before posting this purchase order.', Comment = '%1 = Sales Order No.';
+#endif
+        ExtDocNoNeededErr: Label 'You need to enter the document number of the document from the vendor in the %1 field, so that this document stays linked to the original.', Comment = '%1 = Field caption of e.g. Vendor Invoice No.';
+        VATAmountTxt: Label 'VAT Amount';
+        VATRateTxt: Label '%1% VAT', Comment = '%1 = VAT Rate';
+        BlanketOrderQuantityGreaterThanErr: Label 'in the associated blanket order must not be greater than %1', Comment = '%1 = Quantity';
+        BlanketOrderQuantityReducedErr: Label 'in the associated blanket order must be reduced';
+        ReceiveInvoiceShipErr: Label 'Please enter "Yes" in Receive and/or Invoice and/or Ship.';
+        WarehouseRequiredErr: Label 'Warehouse handling is required for %1 = %2, %3 = %4, %5 = %6.', Comment = '%1/%2 = Document Type, %3/%4 - Document No.,%5/%6 = Line No.';
+        ReturnShipmentSamesSignErr: Label 'must have the same sign as the return shipment';
+        ReturnShipmentInvoicedErr: Label 'Line %1 of the return shipment %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
+        ReceiptInvoicedErr: Label 'Line %1 of the receipt %2, which you are attempting to invoice, has already been invoiced.', Comment = '%1 = Line No., %2 = Document No.';
+        QuantityToInvoiceGreaterErr: Label 'The quantity you are attempting to invoice is greater than the quantity in receipt %1.', Comment = '%1 = Receipt No.';
+        CannotAssignMoreErr: Label 'You cannot assign more than %1 units in %2 = %3,%4 = %5,%6 = %7.', Comment = '%1 = Quantity, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
+        MustAssignErr: Label 'You must assign all item charges, if you invoice everything.';
+        CannotAssignInvoicedErr: Label 'You cannot assign item charges to the %1 %2 = %3,%4 = %5, %6 = %7, because it has been invoiced.', Comment = '%1 = Purchase Line, %2/%3 = Document Type, %4/%5 - Document No.,%6/%7 = Line No.';
+        CheckTotalAmountPurchLinesErr: Label '%1 (%2) is not equal to total of lines (%3)', Comment = '%1 = FieldCaption of Doc. Amount Incl. VAT; %2 - Doc. Amount Incl. VAT; %3 - Amount Including VAT ';
+        CheckTotalAmountVATPurchLinesErr: Label '%1 (%2) is not equal to total of VAT on lines (%3)', Comment = '%1 - Doc. Amount VAT; %2 - Doc. Amount VAT; %3 - Amount Including VAT - PurchHeader.Amount';
         InvoicePostingInterface: Interface "Invoice Posting";
         IsInterfaceInitialized: Boolean;
         Window: Dialog;
@@ -468,18 +480,13 @@ codeunit 90 "Purch.-Post"
         CannotBeGreaterThanErr: Label 'cannot be more than %1.', Comment = '%1 = Amount';
         CannotBeSmallerThanErr: Label 'must be at least %1.', Comment = '%1 = Amount';
         ItemJnlRollRndg: Boolean;
-        PaymentJournalLine: Record "Payment Lines";
-        PaymentTermsLine: Record "Payment Lines";
-        PostedPayments: Record "Posted Payment Lines";
-        WithhSocSec: Record "Purch. Withh. Contribution";
-        CompWithhTax: Record "Computed Withholding Tax";
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
         Text1130004: Label 'Total Reg. %1 is different from total Document %2.', Comment = '%1=Total Reg.;%2=Total of Document';
         Text1130005: Label 'Total Reg. %1 %3 is different from total Document %2 %3.', Comment = '%1=Total Reg.;%2=Total of Document;%3=Currency';
         Text1130006: Label '%1 the value in withholding tax must be higher than 0 when %2 is not blank.';
-        CompSocSec: Record "Computed Contribution";
-        TempFA: Record "Fixed Asset" temporary;
+#if not CLEAN30
         Text1130007: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries';
+#endif
         WhseReceive: Boolean;
         WhseShip: Boolean;
         InvtPickPutaway: Boolean;
@@ -833,49 +840,52 @@ codeunit 90 "Purch.-Post"
 
         IsHandled := false;
         OnCheckAndUpdateOnBeforePaymentsInsert(PurchHeader, IsHandled);
+#if not CLEAN30
         if not IsHandled then
-            if PurchHeader.Invoice then begin
-                PaymentTermsLine.Reset();
-                PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
-                PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
-                PaymentTermsLine.SetRange(Code, PurchHeader."No.");
-                if PaymentTermsLine.Find('-') then
-                    repeat
-                        PostedPayments.Init();
-                        PostedPayments."Sales/Purchase" := PaymentTermsLine."Sales/Purchase";
-                        if PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::Invoice] then begin
-                            PostedPayments.Type := PostedPayments.Type::Invoice;
-                            PostedPayments.Code := PurchInvHeader."No.";
-                        end else begin
-                            PostedPayments.Type := PostedPayments.Type::"Credit Memo";
-                            PostedPayments.Code := PurchCrMemoHeader."No.";
-                        end;
-                        PostedPayments."Line No." := PaymentTermsLine."Line No.";
-                        PostedPayments."Payment %" := PaymentTermsLine."Payment %";
-                        PostedPayments."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
-                        PostedPayments."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
-                        PostedPayments."Discount %" := PaymentTermsLine."Discount %";
-                        PostedPayments."Due Date" := PaymentTermsLine."Due Date";
-                        PostedPayments."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
-                        OnCheckAndUpdateOnBeforeInsertPostedPayments(PurchHeader, PaymentTermsLine, PostedPayments);
-                        PostedPayments.Insert();
-                        PaymentJournalLine.Init();
-                        PaymentJournalLine."Sales/Purchase" := 0;
-                        PaymentJournalLine.Type := PaymentJournalLine.Type::"General Journal";
-                        PaymentJournalLine."Line No." := PaymentTermsLine."Line No.";
-                        PaymentJournalLine."Payment %" := PaymentTermsLine."Payment %";
-                        PaymentJournalLine."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
-                        PaymentJournalLine."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
-                        PaymentJournalLine."Discount %" := PaymentTermsLine."Discount %";
-                        PaymentJournalLine."Due Date" := PaymentTermsLine."Due Date";
-                        PaymentJournalLine."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
-                        OnCheckAndUpdateOnBeforeInsertPaymentJournalLine(PurchHeader, PaymentTermsLine, PaymentJournalLine);
-                        PaymentJournalLine.Insert();
-                    until PaymentTermsLine.Next() = 0
-                else
-                    if PurchHeader."Payment Terms Code" <> '' then
-                        Error(Text1130003, PurchHeader.FieldCaption("Payment Terms Code"), PurchHeader."Payment Terms Code");
-            end;
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                if PurchHeader.Invoice then begin
+                    PaymentTermsLine.Reset();
+                    PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
+                    PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
+                    PaymentTermsLine.SetRange(Code, PurchHeader."No.");
+                    if PaymentTermsLine.Find('-') then
+                        repeat
+                            PostedPayments.Init();
+                            PostedPayments."Sales/Purchase" := PaymentTermsLine."Sales/Purchase";
+                            if PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::Invoice] then begin
+                                PostedPayments.Type := PostedPayments.Type::Invoice;
+                                PostedPayments.Code := PurchInvHeader."No.";
+                            end else begin
+                                PostedPayments.Type := PostedPayments.Type::"Credit Memo";
+                                PostedPayments.Code := PurchCrMemoHeader."No.";
+                            end;
+                            PostedPayments."Line No." := PaymentTermsLine."Line No.";
+                            PostedPayments."Payment %" := PaymentTermsLine."Payment %";
+                            PostedPayments."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
+                            PostedPayments."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
+                            PostedPayments."Discount %" := PaymentTermsLine."Discount %";
+                            PostedPayments."Due Date" := PaymentTermsLine."Due Date";
+                            PostedPayments."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
+                            OnCheckAndUpdateOnBeforeInsertPostedPayments(PurchHeader, PaymentTermsLine, PostedPayments);
+                            PostedPayments.Insert();
+                            PaymentJournalLine.Init();
+                            PaymentJournalLine."Sales/Purchase" := 0;
+                            PaymentJournalLine.Type := PaymentJournalLine.Type::"General Journal";
+                            PaymentJournalLine."Line No." := PaymentTermsLine."Line No.";
+                            PaymentJournalLine."Payment %" := PaymentTermsLine."Payment %";
+                            PaymentJournalLine."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
+                            PaymentJournalLine."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
+                            PaymentJournalLine."Discount %" := PaymentTermsLine."Discount %";
+                            PaymentJournalLine."Due Date" := PaymentTermsLine."Due Date";
+                            PaymentJournalLine."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
+                            OnCheckAndUpdateOnBeforeInsertPaymentJournalLine(PurchHeader, PaymentTermsLine, PaymentJournalLine);
+                            PaymentJournalLine.Insert();
+                        until PaymentTermsLine.Next() = 0
+                    else
+                        if PurchHeader."Payment Terms Code" <> '' then
+                            Error(Text1130003, PurchHeader.FieldCaption("Payment Terms Code"), PurchHeader."Payment Terms Code");
+                end;
+#endif
 
         IsHandled := false;
         OnCheckAndUpdateOnBeforeUpdateIncomingDocument(PurchHeader, IsHandled);
@@ -934,9 +944,12 @@ codeunit 90 "Purch.-Post"
             if Check then
                 Error(Text12100);
 
-        if PurchHeader."Applies-to Doc. No." <> '' then
-            if PurchHeader."Applies-to Occurrence No." = 0 then
-                Error(ErrorInfo.Create(StrSubstNo(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."))));
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            if PurchHeader."Applies-to Doc. No." <> '' then
+                if PurchHeader."Applies-to Occurrence No." = 0 then
+                    Error(ErrorInfo.Create(StrSubstNo(Text1130007, PurchHeader.FieldCaption("Applies-to Occurrence No."))));
+#endif
 
         CheckPostingDate(PurchHeader);
 
@@ -3345,11 +3358,15 @@ codeunit 90 "Purch.-Post"
         WithhSocSec.SetRange("Document Type", PurchHeader."Document Type");
         WithhSocSec.SetRange("No.", PurchHeader."No.");
         WithhSocSec.DeleteAll();
-        PaymentTermsLine.Reset();
-        PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
-        PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
-        PaymentTermsLine.SetRange(Code, PurchHeader."No.");
-        PaymentTermsLine.DeleteAll();
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PaymentTermsLine.Reset();
+            PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
+            PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
+            PaymentTermsLine.SetRange(Code, PurchHeader."No.");
+            PaymentTermsLine.DeleteAll();
+        end;
+#endif
 
         PurchCommentLine.DeleteComments(PurchHeader."Document Type".AsInteger(), PurchHeader."No.");
 
@@ -4169,6 +4186,7 @@ codeunit 90 "Purch.-Post"
     local procedure UpdatePurchaseHeader(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var PurchaseHeader: Record "Purchase Header")
     var
         GenJnlLine: Record "Gen. Journal Line";
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -4179,7 +4197,10 @@ codeunit 90 "Purch.-Post"
         case GenJnlLineDocType of
             GenJnlLine."Document Type"::Invoice:
                 begin
-                    FindVendorLedgerEntry(GenJnlLineDocType, GenJnlLineDocNo, VendorLedgerEntry);
+                    if IsNullGuid(PurchInvHeader."Installment Plan ID") then
+                        FindVendorLedgerEntry(GenJnlLineDocType, GenJnlLineDocNo, VendorLedgerEntry)
+                    else
+                        PurchaseInstallmentPosting.GetFinalVendorEntry(PurchInvHeader, VendorLedgerEntry);
                     PurchInvHeader."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
                     PurchInvHeader.Modify();
                 end;
@@ -10574,15 +10595,21 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeInsertPostedPayments(PurchaseHeader: Record "Purchase Header"; PaymentTermsLines: Record "Payment Lines"; var PostedPayments: Record "Posted Payment Lines")
     begin
     end;
+#endif
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeInsertPaymentJournalLine(PurchaseHeader: Record "Purchase Header"; PaymentTermsLine: Record "Payment Lines"; var PaymentJournalLine: Record "Payment Lines")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateAssocOrderPostingDateOnBeforeValidateDocumentDate(var SalesHeader: Record "Sales Header"; var OriginalDocumentDate: Date)

@@ -1150,8 +1150,10 @@ page 49 "Purchase Quote"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1160,7 +1162,11 @@ page 49 "Purchase Quote"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;
@@ -1563,6 +1569,9 @@ page 49 "Purchase Quote"
     var
         IsHandled: Boolean;
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         IsHandled := false;
         OnBeforeOpenPage(IsHandled);
         if IsHandled then
@@ -1583,6 +1592,9 @@ page 49 "Purchase Quote"
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
@@ -1592,6 +1604,9 @@ page 49 "Purchase Quote"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         StatusStyleTxt: Text;
         HasIncomingDocument: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;

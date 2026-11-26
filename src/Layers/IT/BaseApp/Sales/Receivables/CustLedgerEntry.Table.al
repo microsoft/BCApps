@@ -18,7 +18,6 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -357,7 +356,6 @@ table 21 "Cust. Ledger Entry"
             var
                 ReminderEntry: Record "Reminder/Fin. Charge Entry";
                 ReminderIssue: Codeunit "Reminder-Issue";
-                PostedPaymentLines: Record "Posted Payment Lines";
             begin
                 TestField(Open, true);
                 if "Due Date" <> xRec."Due Date" then begin
@@ -369,15 +367,6 @@ table 21 "Cust. Ledger Entry"
                         ReminderIssue.ChangeDueDate(ReminderEntry, "Due Date", xRec."Due Date");
                 end;
 
-                if PostedPaymentLines.Get(
-                  PostedPaymentLines."Sales/Purchase"::Sales,
-                  "Document Type",
-                  "Document No.",
-                  "Document Occurrence" * 10000)
-                then begin
-                    PostedPaymentLines."Due Date" := "Due Date";
-                    PostedPaymentLines.Modify();
-                end;
             end;
         }
         /// <summary>
@@ -1085,13 +1074,54 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            TableRelation = "Sales Installment Plan";
+            Editable = false;
+            ToolTip = 'Specifies the posted global installment plan.';
+        }
+        field(8841; "Installment No."; Integer)
+        {
+            Caption = 'Installment No.';
+            Editable = false;
+            ToolTip = 'Specifies the sequence number within the installment plan.';
+        }
+        field(8842; "No. of Installments"; Integer)
+        {
+            Caption = 'No. of Installments';
+            Editable = false;
+            ToolTip = 'Specifies the number of receivables in the installment plan.';
+        }
+        field(8843; "Invoice Entry No."; BigInteger)
+        {
+            Caption = 'Invoice Entry No.';
+            Editable = false;
+            ToolTip = 'Specifies the customer entry that identifies the invoice balance group. Ordinary entries identify themselves.';
+        }
         field(12170; "Document Occurrence"; Integer)
         {
             Caption = 'Document Occurrence';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12171; "Applies-to Occurrence No."; Integer)
         {
             Caption = 'Applies-to Occurrence No.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12172; "Bank Receipt"; Boolean)
         {
@@ -1203,10 +1233,12 @@ table 21 "Cust. Ledger Entry"
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
+#if not CLEAN30
         key(Key18; "Document Type", "Document No.", "Document Occurrence")
         {
             SumIndexFields = "Remaining Pmt. Disc. Possible";
         }
+#endif
         key(Key19; "Customer No.", Open, Positive, "Applies-to ID")
         {
             Enabled = false;
@@ -1223,9 +1255,11 @@ table 21 "Cust. Ledger Entry"
         key(Key23; "Posting Date", "Transaction No.", "Entry No.")
         {
         }
+#if not CLEAN30
         key(Key24; "Document Type", "Document No.", "Document Occurrence", "Customer No.", Open)
         {
         }
+#endif
         key(Key25; "Customer No.", "Bank Receipt", "Document Type", "Due Date", "Currency Code", "Bank Receipt Issued", Open)
         {
         }
@@ -1268,6 +1302,16 @@ table 21 "Cust. Ledger Entry"
         key(Key37; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        key(Installment; "Installment Plan ID", "Installment No.")
+        {
+        }
+        key(Invoice; "Invoice Entry No.", Open)
+        {
+        }
+        key(InstallmentApplication; "Customer No.", "Applies-to ID", Open, Positive, "Due Date", "Invoice Entry No.", "Installment No.")
+        {
+            MaintainSQLIndex = false;
         }
     }
 

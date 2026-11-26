@@ -15,11 +15,15 @@ using Microsoft.Sales.Receivables;
 using Microsoft.Service.Contract;
 using Microsoft.Service.History;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 codeunit 12140 "Serv. Document Mgt. IT"
 {
     var
         ShipmentMethod: Record "Shipment Method";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         Text1130013: Label 'You cannot change %1 because %2 is not blank';
         Text1130016: Label '%1 will be modified according to %2';
         Text1130017: Label '%1 cannot be less than %2';
@@ -137,16 +141,20 @@ codeunit 12140 "Serv. Document Mgt. IT"
             CurrencyDate := ServiceHeader."Document Date";
     end;
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnDeleteOnBeforeShowPostedDocsToPrint', '', false, false)]
     local procedure OnDeleteOnBeforeShowPostedDocsToPrint(var ServiceHeader: Record "Service Header")
     var
         PaymentSales: Record "Payment Lines";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentSales.Reset();
         PaymentSales.SetRange(Type, ServiceHeader."Document Type");
         PaymentSales.SetRange(Code, ServiceHeader."No.");
         PaymentSales.DeleteAll();
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyBillToCustomerFields', '', false, false)]
     local procedure OnAfterCopyBillToCustomerFields(var ServiceHeader: Record "Service Header")
@@ -185,11 +193,15 @@ codeunit 12140 "Serv. Document Mgt. IT"
         IsHandled := true;
     end;
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterCopyAppliestoFieldsFromCustLedgerEntry', '', false, false)]
     local procedure OnAfterCopyAppliestoFieldsFromCustLedgerEntry(var ServiceHeader: Record "Service Header"; var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         ServiceHeader."Applies-to Occurrence No." := CustLedgerEntry."Document Occurrence";
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnValidatePostingDateOnAfterCheckPostingDate', '', false, false)]
     local procedure OnValidatePostingDateOnAfterCheckPostingDate(var ServiceHeader: Record "Service Header")
@@ -229,15 +241,19 @@ codeunit 12140 "Serv. Document Mgt. IT"
         end;
     end;
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnBeforeValidatePaymentTerms', '', false, false)]
     local procedure OnBeforeValidatePaymentTerms(var ServiceHeader: Record "Service Header"; var IsHandled: Boolean)
     var
         ServPaymentLinesMgt: Codeunit "Serv. Payment Lines Mgt.";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         ServPaymentLinesMgt.CreatePaymentLinesServices(ServiceHeader);
         ServiceHeader.CalcFields("Payment %");
         IsHandled := true;
     end;
+#endif
 
     [EventSubscriber(ObjectType::Table, Database::"Service Header", 'OnAfterInitRecord', '', false, false)]
     local procedure OnAfterInitRecord(var ServiceHeader: Record "Service Header")

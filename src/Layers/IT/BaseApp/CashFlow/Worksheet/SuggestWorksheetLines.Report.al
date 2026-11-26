@@ -684,6 +684,9 @@ report 840 "Suggest Worksheet Lines"
         GLBudgEntry: Record "G/L Budget Entry";
         GLSetup: Record "General Ledger Setup";
         FALedgerEntry: Record "FA Ledger Entry";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         CashFlowManagement: Codeunit "Cash Flow Management";
         TotalAccounts: List of [Code[20]];
@@ -698,8 +701,8 @@ report 840 "Suggest Worksheet Lines"
         DummyDate: Date;
         TaxLastSourceTableNumProcessed: Integer;
         TaxLastPayableDateProcessed: Date;
-
 #pragma warning disable AA0074
+
         Text000: Label 'You must choose a cash flow forecast.';
         Text001: Label 'Choose a valid cash flow forecast.';
 #pragma warning disable AA0470
@@ -725,9 +728,7 @@ report 840 "Suggest Worksheet Lines"
         Text030: Label '%1 Budget %2 ';
         Text033: Label 'Search for          #2####################\';
         Text034: Label 'Record found        #3####################';
-#pragma warning restore AA0470
 #pragma warning restore AA0074
-#pragma warning disable AA0470
         ManualPmtRevExpNeedsUpdateMsg: Label 'There are one or more Cash Flow Manual Revenues/Expenses with a Recurring Frequency.\But the Recurring Frequency cannot be applied because the Manual Payments To date in Cash Flow Forecast %1 is empty.\Fill in this date in order to get multiple lines.';
 #pragma warning restore AA0470
         JobsMsg: Label 'Projects';
@@ -791,7 +792,12 @@ report 840 "Suggest Worksheet Lines"
         IsHandled := false;
         OnInsertTempCFWorksheetLineOnBeforeCalculateCFAmountAndCFDate(TempCFWorksheetLine, IsHandled);
         if not IsHandled then
-            TempCFWorksheetLine.CalculateCFAmountAndCFDate(MaxPmtTolerance);
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                TempCFWorksheetLine.CalculateCFAmountAndCFDate(MaxPmtTolerance)
+            else
+#endif
+                TempCFWorksheetLine.CalculateCFAmountAndCFDate();
         SetCashFlowDate(TempCFWorksheetLine, TempCFWorksheetLine."Cash Flow Date");
 
         if Abs(TempCFWorksheetLine."Amount (LCY)") < Abs(MaxPmtTolerance) then

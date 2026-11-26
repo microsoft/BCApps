@@ -1623,8 +1623,10 @@ codeunit 130509 "Library - Sales"
 
         if SalesHeader."Operation Type" = '' then
             SalesHeader.Validate("Operation Type", LibraryERM.GetDefaultOperationType(SalesHeader."Sell-to Customer No.", DATABASE::Customer));
+#if not CLEAN30
         if (SalesHeader."Applies-to Doc. No." <> '') and (SalesHeader."Applies-to Occurrence No." = 0) then
             SalesHeader.Validate("Applies-to Occurrence No.", 1);
+#endif
         if SalesHeader."Operation Occurred Date" = 0D then
             SalesHeader.Validate("Operation Occurred Date", SalesHeader."Posting Date");
         SalesHeader.Modify(true);

@@ -166,6 +166,14 @@ tableextension 12152 "Service Header IT" extends "Service Header"
         {
             Caption = 'Applies-to Occurrence No.';
             DataClassification = CustomerContent;
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Replaced by global Payment Installments feature.';
         }
         field(12172; "Bank Account"; Code[20])
         {

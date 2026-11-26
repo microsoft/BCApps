@@ -8,11 +8,13 @@ namespace Microsoft.Finance.ExcelReports.Test;
 using Microsoft.Finance.ExcelReports;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Purchases.ExcelReports;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.ExcelReports;
+using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
 codeunit 139555 "Aged Accounts Excel Reports"
@@ -24,7 +26,10 @@ codeunit 139555 "Aged Accounts Excel Reports"
     var
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryInstallments: Codeunit "Library - ERM Installments";
         Assert: Codeunit Assert;
+        InstallmentAgingDate: Date;
         DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
         DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
         FilteredPostingGroupTok: Label 'EXRTOPLIST1', Locked = true;
@@ -34,6 +39,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
         // Apostrophes at the start, in the middle and at the end of a No. of the full 20 characters, so the escaped filter token is longer than the field.
         ApostropheAccountNoTok: Label '''T O''NEIL D''OR LOGI''', Locked = true;
         TopListRowCountErr: Label 'Both accounts should be exported';
+        InstallmentAgingEntryXPathTok: Label 'DataItem[@name="AgingData"][Column[@name="EntryNo"]="%1"]', Comment = '%1 = ledger entry number', Locked = true;
 
     [Test]
     [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
@@ -609,6 +615,187 @@ codeunit 139555 "Aged Accounts Excel Reports"
         Assert.AreEqual(1000, EXRTopVendorBalance.Balance_LCY, BalanceRowExpectedErr);
         Assert.IsFalse(EXRTopVendorBalance.Read(), OneRowExpectedErr);
         EXRTopVendorBalance.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('InstallmentAgingRequestPageHandler')]
+    procedure InstallmentAgingRetainsSeparateEntriesAcrossBucketBoundaries()
+    var
+        Invoice: Record "Sales Invoice Header";
+    begin
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+
+        VerifyInstallmentAging(Invoice, Invoice."Document Date" + 90, 41.67, 41.67, 41.66);
+
+        VerifyInstallmentPeriod(Invoice, 1, Invoice."Document Date" + 30, Invoice."Document Date" + 60);
+        VerifyInstallmentPeriod(Invoice, 2, Invoice."Document Date" + 60, Invoice."Document Date" + 90);
+        VerifyInstallmentPeriod(Invoice, 3, Invoice."Document Date" + 60, Invoice."Document Date" + 90);
+
+        VerifyInstallmentAging(Invoice, Invoice."Document Date" + 91, 41.67, 41.67, 41.66);
+
+        VerifyInstallmentPeriod(Invoice, 1, Invoice."Document Date" + 1, Invoice."Document Date" + 31);
+        VerifyInstallmentPeriod(Invoice, 2, Invoice."Document Date" + 31, Invoice."Document Date" + 61);
+        VerifyInstallmentPeriod(Invoice, 3, Invoice."Document Date" + 61, Invoice."Document Date" + 91);
+    end;
+
+    [Test]
+    [HandlerFunctions('InstallmentAgingRequestPageHandler')]
+    procedure InstallmentAgingReconstructsBalancesBeforeLaterPaymentAndCredit()
+    var
+        Invoice: Record "Sales Invoice Header";
+    begin
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 10, Invoice."Posting Date" + 45);
+        LibraryInstallments.CreditInstallment(Invoice, 2, 20, Invoice."Posting Date" + 75);
+
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 44, 41.67, 41.67, 41.66);
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 45, 31.67, 41.67, 41.66);
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 75, 31.67, 21.67, 41.66);
+    end;
+
+    [Test]
+    [HandlerFunctions('InstallmentAgingRequestPageHandler')]
+    procedure InstallmentAgingIncludesEntriesClosedAfterTheCutoff()
+    var
+        Invoice: Record "Sales Invoice Header";
+    begin
+        LibraryInstallments.CreatePostedInvoice(Invoice, '', false);
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 41.67, Invoice."Posting Date" + 45);
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 2, 41.67, Invoice."Posting Date" + 75);
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 3, 41.66, Invoice."Posting Date" + 75);
+
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 44, 41.67, 41.67, 41.66);
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 45, 0, 41.67, 41.66);
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 75, 0, 0, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('InstallmentAgingRequestPageHandler')]
+    procedure ForeignCurrencyInstallmentAgingReconcilesOriginalAndRemainingLCY()
+    var
+        Invoice: Record "Sales Invoice Header";
+    begin
+        LibraryInstallments.CreatePostedInvoice(
+            Invoice, LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 0.3, 0.3), false);
+        LibraryInstallments.PayInstallment(Invoice."Installment Plan ID", 1, 10, Invoice."Posting Date" + 45);
+
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 44, 41.67, 41.67, 41.66);
+        VerifyInstallmentAging(Invoice, Invoice."Posting Date" + 45, 31.67, 41.67, 41.66);
+    end;
+
+    local procedure VerifyInstallmentAging(Invoice: Record "Sales Invoice Header"; AsOfDate: Date; FirstAmount: Decimal; SecondAmount: Decimal; ThirdAmount: Decimal)
+    var
+        Customer: Record Customer;
+        Entry: Record "Cust. Ledger Entry";
+        PlanLine: Record "Sales Installment Plan Line";
+        CustomerVariant: Variant;
+        RequestPageXml: Text;
+        Value: Variant;
+        Expected: array[3] of Decimal;
+        Seen: array[3] of Boolean;
+        RemainingTotal: Decimal;
+        RemainingLCYTotal: Decimal;
+        OriginalTotal: Decimal;
+        ExpectedOriginalTotal: Decimal;
+        EntryNo: Integer;
+        Sequence: Integer;
+        ExpectedCount: Integer;
+    begin
+        Expected[1] := FirstAmount;
+        Expected[2] := SecondAmount;
+        Expected[3] := ThirdAmount;
+        for Sequence := 1 to 3 do
+            if Expected[Sequence] <> 0 then begin
+                ExpectedCount += 1;
+                PlanLine.SetRange("Plan ID", Invoice."Installment Plan ID");
+                PlanLine.SetRange("Installment No.", Sequence);
+                PlanLine.FindFirst();
+                ExpectedOriginalTotal += PlanLine.Amount;
+            end;
+        Customer.Get(Invoice."Bill-to Customer No.");
+        Customer.SetRecFilter();
+        CustomerVariant := Customer;
+        InstallmentAgingDate := AsOfDate;
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel");
+        Assert.AreNotEqual('', RequestPageXml, 'The aging request page must return report parameters.');
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", CustomerVariant, RequestPageXml);
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(ExpectedCount, LibraryReportDataset.RowCount(), 'Aging must retain each outstanding installment exactly once, including entries closed after the cutoff.');
+        while LibraryReportDataset.GetNextRow() do begin
+            LibraryReportDataset.FindCurrentRowValue('EntryNo', Value);
+            Evaluate(EntryNo, Format(Value), 9);
+            Entry.Get(EntryNo);
+            Entry.TestField("Installment Plan ID", Invoice."Installment Plan ID");
+            Sequence := Entry."Installment No.";
+            Assert.IsTrue(Sequence in [1 .. 3], 'Aging must retain the exact installment entry identity.');
+            Assert.IsFalse(Seen[Sequence], 'A shared document number must not duplicate an aging obligation.');
+            Seen[Sequence] := true;
+            Assert.AreNotEqual(0, Expected[Sequence], 'An entry settled by the cutoff must not be aged.');
+            Assert.AreEqual(Expected[Sequence], GetInstallmentAgingDecimal('RemainingAmount'), 'Aging must exclude payments and credits posted after its cutoff.');
+            PlanLine.SetRange("Plan ID", Invoice."Installment Plan ID");
+            PlanLine.SetRange("Installment No.", Sequence);
+            PlanLine.FindFirst();
+            Assert.AreEqual(PlanLine.Amount, GetInstallmentAgingDecimal('OriginalAmount'), 'Original amounts must remain per installment after settlement.');
+            Assert.AreEqual(PlanLine."Amount (LCY)", GetInstallmentAgingDecimal('OriginalAmountLCY'), 'Original LCY allocation must not be recalculated from current balances.');
+            Assert.AreEqual(Entry."Due Date", GetInstallmentAgingDate('DueDate'), 'Aging must use each original installment due date.');
+            Assert.AreEqual(Entry."Due Date", GetInstallmentAgingDate('ReportingDate'), 'Due-date aging must not substitute the anchor or posting date.');
+            if Invoice."Currency Code" <> '' then begin
+                LibraryReportDataset.FindCurrentRowValue('CurrencyCode', Value);
+                Assert.AreEqual(Invoice."Currency Code", Format(Value), 'FCY rows must retain their document currency.');
+            end;
+            Entry.SetRange("Date Filter", 0D, AsOfDate);
+            Entry.CalcFields("Remaining Amt. (LCY)");
+            Assert.AreEqual(Entry."Remaining Amt. (LCY)", GetInstallmentAgingDecimal('RemainingAmountLCY'), 'As-of aging LCY must reconcile to its exact ledger entry.');
+            RemainingTotal += GetInstallmentAgingDecimal('RemainingAmount');
+            RemainingLCYTotal += GetInstallmentAgingDecimal('RemainingAmountLCY');
+            OriginalTotal += GetInstallmentAgingDecimal('OriginalAmount');
+        end;
+        Assert.AreEqual(FirstAmount + SecondAmount + ThirdAmount, RemainingTotal, 'Invoice aging totals must not repeat the full header balance.');
+        Assert.AreEqual(ExpectedOriginalTotal, OriginalTotal, 'Original amounts must sum only the included installment obligations.');
+        Customer.SetRange("Date Filter", 0D, AsOfDate);
+        Customer.CalcFields("Net Change (LCY)");
+        Assert.AreEqual(Customer."Net Change (LCY)", RemainingLCYTotal, 'The fixture customer and installment aging must reconcile at the same cutoff.');
+    end;
+
+    local procedure VerifyInstallmentPeriod(Invoice: Record "Sales Invoice Header"; Sequence: Integer; PeriodStart: Date; PeriodEnd: Date)
+    var
+        Entry: Record "Cust. Ledger Entry";
+    begin
+        LibraryInstallments.GetInstallment(Entry, Invoice."Installment Plan ID", Sequence);
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetXmlNodeList(
+            StrSubstNo(InstallmentAgingEntryXPathTok, Format(Entry."Entry No.", 0, 9)));
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'Every installment must occupy exactly one native aging period.');
+        LibraryReportDataset.GetNextRow();
+        Assert.AreEqual(PeriodStart, GetInstallmentAgingDate('PeriodStart'), 'The due date must select its own native aging-period start.');
+        Assert.AreEqual(PeriodEnd, GetInstallmentAgingDate('PeriodEnd'), 'The due date must select its own native aging-period end.');
+    end;
+
+    local procedure GetInstallmentAgingDecimal(ColumnName: Text) Amount: Decimal
+    var
+        Value: Variant;
+    begin
+        LibraryReportDataset.FindCurrentRowValue(ColumnName, Value);
+        Evaluate(Amount, Format(Value), 9);
+    end;
+
+    local procedure GetInstallmentAgingDate(ColumnName: Text) DateValue: Date
+    var
+        Value: Variant;
+    begin
+        LibraryReportDataset.FindCurrentRowValue(ColumnName, Value);
+        Evaluate(DateValue, Format(Value), 9);
+    end;
+
+    [RequestPageHandler]
+    procedure InstallmentAgingRequestPageHandler(var RequestPage: TestRequestPage "EXR Aged Accounts Rec Excel")
+    begin
+        RequestPage.AgedAsOfOption.SetValue(InstallmentAgingDate);
+        RequestPage.AgingbyOption.SetValue('Due Date');
+        RequestPage.PeriodLengthOption.SetValue('<-30D>');
+        RequestPage.PeriodCountOption.SetValue(3);
+        RequestPage."Skip Zero Balance Customers".SetValue(false);
+        RequestPage.OK().Invoke();
     end;
 
     local procedure InitializeAgingData()

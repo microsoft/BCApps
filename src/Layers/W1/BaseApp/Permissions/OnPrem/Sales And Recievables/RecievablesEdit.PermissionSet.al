@@ -53,6 +53,8 @@ permissionset 7071 "Recievables - Edit"
                   tabledata "Gen. Journal Template" = R,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "General Posting Setup" = r,
+                  tabledata "Sales Installment Plan" = R,
+                  tabledata "Sales Installment Plan Line" = R,
                   tabledata "Issued Fin. Charge Memo Header" = Rimd,
                   tabledata "Issued Fin. Charge Memo Line" = Rimd,
                   tabledata "Issued Reminder Header" = Rimd,

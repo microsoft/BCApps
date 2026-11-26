@@ -15,6 +15,7 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Lists all posted sales invoices for viewing, printing, and navigation.
@@ -343,6 +344,22 @@ page 143 "Posted Sales Invoices"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Suite;
@@ -815,6 +832,7 @@ page 143 "Posted Sales Invoices"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, HasPostedSalesInvoices, CRMIsCoupledToRecord, CRMIntegrationEnabled);
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -841,6 +859,7 @@ page 143 "Posted Sales Invoices"
         OfficeMgt: Codeunit "Office Management";
         HasFilters: Boolean;
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         HasFilters := Rec.GetFilters() <> '';
         Rec.SetSecurityFilterOnRespCenter();
         OnOpenPageOnAfterSetFilters(Rec);
@@ -864,13 +883,16 @@ page 143 "Posted Sales Invoices"
     end;
 
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         TaxInvoiceMgt: Codeunit TaxInvoiceManagement;
+        PaymentInstallmentsEnabled: Boolean;
         DocExchStatusStyle: Text;
         CRMIntegrationEnabled: Boolean;
         CRMIsCoupledToRecord: Boolean;
         DocExchStatusVisible: Boolean;
         IsOfficeAddin: Boolean;
         HasPostedSalesInvoices: Boolean;
+        HasInstallmentPlan: Boolean;
 
     [IntegrationEvent(true, false)]
     local procedure OnOpenPageOnAfterSetFilters(var SalesInvoiceHeader: Record "Sales Invoice Header")

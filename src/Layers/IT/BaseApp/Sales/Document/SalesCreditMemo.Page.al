@@ -25,6 +25,7 @@ using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Privacy;
 using System.Security.User;
 using System.Threading;
@@ -370,11 +371,14 @@ page 44 "Sales Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+#if not CLEAN30
                 field("Applies-to Occurrence No."; Rec."Applies-to Occurrence No.")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the occurrence that applies to the transaction.';
                 }
+#endif
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1124,8 +1128,10 @@ page 44 "Sales Credit Memo"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -1134,7 +1140,11 @@ page 44 "Sales Credit Memo"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(GetPostedDocumentLinesToReverse)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1637,6 +1647,9 @@ page 44 "Sales Credit Memo"
         EnvironmentInfo: Codeunit "Environment Information";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         Rec.SetRange("Date Filter", 0D, WorkDate());
@@ -1673,6 +1686,9 @@ page 44 "Sales Credit Memo"
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         MoveNegSalesLines: Report "Move Negative Sales Lines";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ReportPrint: Codeunit "Test Report-Print";
         UserMgt: Codeunit "User Setup Management";
         SalesCalcDiscByType: Codeunit "Sales - Calc Discount By Type";
@@ -1681,6 +1697,9 @@ page 44 "Sales Credit Memo"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         WorkDescription: Text;
         StatusStyleTxt: Text;
         JobQueueVisible: Boolean;

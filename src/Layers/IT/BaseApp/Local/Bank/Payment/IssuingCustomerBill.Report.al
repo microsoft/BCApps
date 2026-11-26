@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 
 report 12180 "Issuing Customer Bill"
 {
@@ -68,7 +69,10 @@ report 12180 "Issuing Customer Bill"
                 GenJnlLine."Amount (LCY)" := -1 * "Remaining Amt. (LCY)";
                 GenJnlLine."Document Type to Close" := "Document Type";
                 GenJnlLine."Document No. to Close" := "Document No.";
-                GenJnlLine."Document Occurrence to Close" := "Document Occurrence";
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    GenJnlLine."Document Occurrence to Close" := "Document Occurrence";
+#endif
                 GenJnlLine."Allow Application" := true;
                 GenJnlLine."Bank Receipt" := true;
                 GenJnlLine."Allow Issue" := "Allow Issue";
@@ -193,6 +197,9 @@ report 12180 "Issuing Customer Bill"
         PaymentMethod: Record "Payment Method";
         BillCode: Record Bill;
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         Window: Dialog;
         PostingDate: Date;

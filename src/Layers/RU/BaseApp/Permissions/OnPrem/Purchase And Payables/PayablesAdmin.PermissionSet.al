@@ -44,6 +44,7 @@ permissionset 6092 "Payables - Admin"
                   tabledata "Gen. Journal Template" = RIMD,
                   tabledata "Item Charge" = RIMD,
                   tabledata "Payment Method" = RIMD,
+                  tabledata "Payment Term Installment" = RIMD,
                   tabledata "Payment Terms" = RIMD,
                   tabledata "Purchases & Payables Setup" = RIMD,
                   tabledata "Reason Code" = R,

@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 
 codeunit 12170 "Recall Customer Bill"
 {
@@ -68,7 +69,10 @@ codeunit 12170 "Recall Customer Bill"
             CustLedgEntry.SetRange("Document Type", CustLedgEntry2."Document Type"::Payment);
             CustLedgEntry.SetRange("Document Type to Close", CustLedgEntry2."Document Type");
             CustLedgEntry.SetRange("Document No. to Close", CustLedgEntry2."Document No.");
-            CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+#endif
 
             if not CustLedgEntry.FindFirst() then
                 Error(Text1130015);
@@ -107,12 +111,15 @@ codeunit 12170 "Recall Customer Bill"
         PaymentMethod: Record "Payment Method";
         GenJnlLine: Record "Gen. Journal Line";
         CustomerBillLine: Record "Customer Bill Line";
-        Text1130001: Label 'Do you want to recall the bills?';
         CustLedgEntry: Record "Cust. Ledger Entry";
         CustLedgEntry2: Record "Cust. Ledger Entry";
         Bill: Record Bill;
         SalesSetup: Record "Sales & Receivables Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
+        Text1130001: Label 'Do you want to recall the bills?';
         Window: Dialog;
         Text1130006: Label 'There is nothing to recall.';
         Text1130007: Label 'Recalling Customer Bill...\\';
@@ -160,7 +167,10 @@ codeunit 12170 "Recall Customer Bill"
         GenJnlLine."Bank Receipt" := CustLedgEntry."Bank Receipt";
         GenJnlLine."Applies-to Doc. Type" := CustLedgEntry."Document Type";
         GenJnlLine."Applies-to Doc. No." := CustLedgEntry."Document No.";
-        GenJnlLine."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            GenJnlLine."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#endif
         GenJnlLine."Document Type to Close" := CustLedgEntry."Document Type to Close";
         GenJnlLine."Document No. to Close" := CustLedgEntry."Document No. to Close";
         GenJnlLine."Document Occurrence to Close" := CustLedgEntry."Document Occurrence to Close";
@@ -230,7 +240,10 @@ codeunit 12170 "Recall Customer Bill"
                 CustLedgEntry.SetRange("Document Type", CustLedgEntry2."Document Type"::Payment);
                 CustLedgEntry.SetRange("Document Type to Close", CustLedgEntry2."Document Type");
                 CustLedgEntry.SetFilter("Document No. to Close", CustLedgEntry2."Document No.");
-                CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    CustLedgEntry.SetRange("Document Occurrence to Close", CustLedgEntry2."Document Occurrence");
+#endif
                 CustLedgEntry.SetRange(Open, true);
                 if not CustLedgEntry.FindFirst() then begin
                     CustLedgEntry.SetRange(Open, false);
@@ -247,7 +260,10 @@ codeunit 12170 "Recall Customer Bill"
                 CustLedgEntry."Bank Receipt Temp. No." := CustLedgEntry."Document No.";
                 CustLedgEntry."Customer Bill No." := CustLedgEntry2."Customer Bill No.";
                 CustLedgEntry."Bank Receipts List No." := CustLedgEntry2."Bank Receipts List No.";
-                CustLedgEntry."Document Occurrence" := CustLedgEntry2."Document Occurrence";
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    CustLedgEntry."Document Occurrence" := CustLedgEntry2."Document Occurrence";
+#endif
                 OnRecallIssuedBillOnBeforeCustLedgerEntryModify(CustLedgEntry, CustLedgEntry2);
                 CustLedgEntry.Modify();
 

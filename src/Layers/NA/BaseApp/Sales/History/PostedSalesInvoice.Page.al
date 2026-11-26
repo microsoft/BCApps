@@ -20,6 +20,7 @@ using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.Automation;
+using System.Environment.Configuration;
 using System.Telemetry;
 
 /// <summary>
@@ -866,6 +867,37 @@ page 132 "Posted Sales Invoice"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
+                action(Statistics)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked customer entries.';
+
+                    trigger OnAction()
+                    var
+                        SalesInstallmentHistory: Codeunit "Sales Installment History";
+                    begin
+                        SalesInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(SalesInvoiceStatistics)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1528,6 +1560,7 @@ page 132 "Posted Sales Invoice"
     begin
         IsHandled := false;
         OnBeforeOnAfterGetCurrRecord(Rec, IsHandled, CRMIsCoupledToRecord, CRMIntegrationEnabled);
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
         if IsHandled then
             exit;
 
@@ -1566,6 +1599,7 @@ page 132 "Posted Sales Invoice"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
         CRMIntegrationEnabled := CRMIntegrationManagement.IsCRMIntegrationEnabled();
 
@@ -1584,11 +1618,13 @@ page 132 "Posted Sales Invoice"
     var
         SellToContact: Record Contact;
         BillToContact: Record Contact;
+        FeatureKeyManagement: Codeunit "Feature Key Management";
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FormatAddress: Codeunit "Format Address";
         EInvoiceMgt: Codeunit "E-Invoice Mgt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
+        PaymentInstallmentsEnabled: Boolean;
         HasIncomingDocument: Boolean;
         DocExchStatusStyle: Text;
         MXInvoiceTok: Label 'MX Electronic Invoice', Locked = true;
@@ -1605,6 +1641,7 @@ page 132 "Posted Sales Invoice"
         SATCertificateCode: Text;
         SATCertificateName: Text;
         SATCertificateSource: Text;
+        HasInstallmentPlan: Boolean;
 
     protected var
         SalesInvHeader: Record "Sales Invoice Header";

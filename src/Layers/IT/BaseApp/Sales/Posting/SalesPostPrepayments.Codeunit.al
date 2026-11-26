@@ -29,6 +29,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Telemetry;
 using System.Utilities;
 
@@ -60,6 +61,9 @@ codeunit 442 "Sales-Post Prepayments"
         TempSalesLine: Record "Sales Line" temporary;
         GenJournalTemplate: Record "Gen. Journal Template";
         VATPostingSetup: Record "VAT Posting Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ErrorMessageMgt: Codeunit "Error Message Management";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
@@ -67,9 +71,9 @@ codeunit 442 "Sales-Post Prepayments"
         PrepmtDocumentType: Option ,,Invoice,"Credit Memo";
         SuppressCommit: Boolean;
         PreviewMode: Boolean;
-
 #pragma warning disable AA0074
 #pragma warning disable AA0470
+
         Text002: Label 'Posting Prepayment Lines   #2######\';
         Text003: Label '%1 %2 -> Invoice %3';
         Text004: Label 'Posting sales and VAT      #3######\';
@@ -97,7 +101,9 @@ codeunit 442 "Sales-Post Prepayments"
 #pragma warning restore AA0074
         PrepaymentSalesTok: Label 'Prepayment Sales', Locked = true;
         UpdateTok: Label '%1 %2', Locked = true;
+#if not CLEAN30
         Text1130004: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries.', Comment = '%1 = Applies-to Occurrence No.';
+#endif
         Text1130007: Label 'must not be prior to %1', Comment = '%1 = Date';
 
     /// <summary>
@@ -252,14 +258,16 @@ codeunit 442 "Sales-Post Prepayments"
                         Window.Update(1, StrSubstNo(Text011, SalesHeader."Document Type", SalesHeader."No.", SalesCrMemoHeader."No."));
                 end;
         end;
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            if DocumentType <> DocumentType::"Credit Memo" then
+                InsertPostedPaymentLines(SalesHeader, DocumentType, SalesInvHeader."No.")
+            else
+                InsertPostedPaymentLines(SalesHeader, DocumentType, SalesCrMemoHeader."No.");
 
-        if DocumentType <> DocumentType::"Credit Memo" then
-            InsertPostedPaymentLines(SalesHeader, DocumentType, SalesInvHeader."No.")
-        else
-            InsertPostedPaymentLines(SalesHeader, DocumentType, SalesCrMemoHeader."No.");
-
-        InsertPaymentJnlLine(SalesHeader);
-
+            InsertPaymentJnlLine(SalesHeader);
+        end;
+#endif
         GenJnlLineExtDocNo := SalesHeader."External Document No.";
         // Reverse old lines
         if DocumentType = DocumentType::Invoice then begin
@@ -474,9 +482,12 @@ codeunit 442 "Sales-Post Prepayments"
             SalesHeader.TestField("Activity Code");
         if SalesHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             SalesHeader.FieldError("Operation Occurred Date", Text1130007);
-        if SalesHeader."Applies-to Doc. No." <> '' then
-            if SalesHeader."Applies-to Occurrence No." = 0 then
-                Error(Text1130004, SalesHeader.FieldCaption("Applies-to Occurrence No."));
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            if SalesHeader."Applies-to Doc. No." <> '' then
+                if SalesHeader."Applies-to Occurrence No." = 0 then
+                    Error(Text1130004, SalesHeader.FieldCaption("Applies-to Occurrence No."));
+#endif
 
         ErrorMessageMgt.PushContext(ErrorContextElement, SalesHeader.RecordId, 0, '');
         if GenJnlCheckLine.DateNotAllowed(SalesHeader."Posting Date", SalesHeader."Journal Templ. Name") then
@@ -1581,7 +1592,10 @@ codeunit 442 "Sales-Post Prepayments"
 
         GenJnlLine."Applies-to Doc. Type" := DocType;
         GenJnlLine."Applies-to Doc. No." := DocNo;
-        GenJnlLine."Applies-to Occurrence No." := 1;
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            GenJnlLine."Applies-to Occurrence No." := 1;
+#endif
 
         GenJnlLine."Orig. Pmt. Disc. Possible" := TotalPrepmtInvLineBuffer."Orig. Pmt. Disc. Possible";
         GenJnlLine."Orig. Pmt. Disc. Possible(LCY)" := TotalPrepmtInvLineBufferLCY."Orig. Pmt. Disc. Possible";
@@ -1978,10 +1992,13 @@ codeunit 442 "Sales-Post Prepayments"
         OnAfterSalesCrMemoLineInsert(SalesCrMemoLine, SalesCrMemoHeader, PrepmtInvLineBuffer, SuppressCommit);
     end;
 
+#if not CLEAN30
     local procedure InsertPostedPaymentLines(SalesHeader: Record "Sales Header"; DocumentType: Option Invoice,"Credit Memo"; DocumentNo: Code[20])
     var
         PostedPaymentLines: Record "Posted Payment Lines";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         case DocumentType of
             DocumentType::Invoice:
                 PostedPaymentLines.Type := PostedPaymentLines.Type::Invoice;
@@ -1997,11 +2014,15 @@ codeunit 442 "Sales-Post Prepayments"
         PostedPaymentLines."Pmt. Discount Date" := SalesHeader."Prepmt. Pmt. Discount Date";
         PostedPaymentLines.Insert();
     end;
+#endif
 
+#if not CLEAN30
     local procedure InsertPaymentJnlLine(SalesHeader: Record "Sales Header")
     var
         PaymentLines: Record "Payment Lines";
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentLines.Init();
         PaymentLines."Sales/Purchase" := 0;
         PaymentLines.Type := PaymentLines.Type::"General Journal";
@@ -2012,6 +2033,7 @@ codeunit 442 "Sales-Post Prepayments"
         PaymentLines."Pmt. Discount Date" := SalesHeader."Prepmt. Pmt. Discount Date";
         PaymentLines.Insert();
     end;
+#endif
 
     local procedure GetCalcPmtDiscOnCrMemos(PrepmtPmtTermsCode: Code[10]): Boolean
     var
@@ -2141,7 +2163,7 @@ codeunit 442 "Sales-Post Prepayments"
         PrepmtAmt: Decimal;
     begin
         ApplyFilter(SalesHeader, 2, SalesLine);
-	    SalesLine.SetLoadFields(Amount, "Prepayment %");
+        SalesLine.SetLoadFields(Amount, "Prepayment %");
         if SalesLine.FindSet() then
             repeat
                 PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;

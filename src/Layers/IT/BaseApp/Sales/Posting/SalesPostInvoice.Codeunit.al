@@ -19,6 +19,7 @@ using Microsoft.Projects.Project.Posting;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Implements the invoice posting interface to create general ledger entries, customer ledger entries, and deferral schedules for sales invoices.
@@ -38,6 +39,9 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary;
         TotalSalesLine: Record "Sales Line";
         TotalSalesLineLCY: Record "Sales Line";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DeferralUtilities: Codeunit "Deferral Utilities";
         DimensionManagement: Codeunit DimensionManagement;
         JobPostLine: Codeunit "Job Post-Line";
@@ -643,6 +647,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine: Record "Gen. Journal Line";
         Bill: Record Bill;
         PaymentMethod: Record "Payment Method";
+        InstallmentPosting: Codeunit "Installment Posting";
         IsHandled: Boolean;
     begin
         SalesHeader := SalesHeaderVar;
@@ -672,7 +677,10 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         GenJnlLine.CopyFromSalesHeaderApplyTo(SalesHeader);
         GenJnlLine.CopyFromSalesHeaderPayment(SalesHeader);
-        GenJnlLine."Applies-to Occurrence No." := SalesHeader."Applies-to Occurrence No.";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            GenJnlLine."Applies-to Occurrence No." := SalesHeader."Applies-to Occurrence No.";
+#endif
         if PaymentMethod.Get(SalesHeader."Payment Method Code") and Bill.Get(PaymentMethod."Bill Code") then begin
             GenJnlLine."Bank Receipt" := Bill."Bank Receipt";
             GenJnlLine."Allow Issue" := Bill."Allow Issue";
@@ -685,6 +693,7 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
 
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
+        InstallmentPosting.PrepareJournalLine(SalesHeader, GenJnlLine);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         SalesPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);

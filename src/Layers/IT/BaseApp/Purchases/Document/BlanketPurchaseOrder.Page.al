@@ -16,6 +16,7 @@ using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using System.Automation;
+using System.Environment.Configuration;
 using System.Security.User;
 
 page 509 "Blanket Purchase Order"
@@ -888,8 +889,10 @@ page 509 "Blanket Purchase Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -898,7 +901,11 @@ page 509 "Blanket Purchase Order"
                                   Type = const("Blanket Order"),
                                   Code = field("No.");
                     ToolTip = 'View the list of related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Vendor Invoice Disc." = R;
@@ -1233,6 +1240,9 @@ page 509 "Blanket Purchase Order"
 
     trigger OnOpenPage()
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
 
         SetDocNoVisible();
@@ -1244,12 +1254,18 @@ page 509 "Blanket Purchase Order"
         BuyFromContact: Record Contact;
         PayToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
         ArchiveManagement: Codeunit ArchiveManagement;
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         DocNoVisible: Boolean;
         OpenApprovalEntriesExist: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;

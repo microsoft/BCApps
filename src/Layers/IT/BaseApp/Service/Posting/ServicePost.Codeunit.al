@@ -22,6 +22,7 @@ using Microsoft.Service.Setup;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
+using System.Environment.Configuration;
 
 codeunit 5980 "Service-Post"
 {
@@ -58,6 +59,9 @@ codeunit 5980 "Service-Post"
         WarehouseShipmentHeader: Record "Warehouse Shipment Header";
         TempWarehouseShipmentLine: Record "Warehouse Shipment Line" temporary;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ServDocumentsMgt: Codeunit "Serv-Documents Mgt.";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         WhsePostShpt: Codeunit "Whse.-Post Shipment";
@@ -81,7 +85,9 @@ codeunit 5980 "Service-Post"
         Text007: Label 'is not within your range of allowed posting dates';
 #pragma warning restore AA0074
         WhseShip: Boolean;
+#if not CLEAN30
         Text1130004: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries';
+#endif
         Text12100: Label 'The error is in line no. %1.';
         PreviewMode: Boolean;
         SuppressCommit: Boolean;
@@ -488,13 +494,16 @@ codeunit 5980 "Service-Post"
         if GLSetup."Use Activity Code" then
             PassedServiceHeader.TestField("Activity Code", ErrorInfo.Create());
 
-        if PassedServiceHeader."Applies-to Doc. No." <> '' then
-            if PassedServiceHeader."Applies-to Occurrence No." = 0 then
-                Error(
-                    ErrorInfo.Create(
-                        StrSubstNo(Text1130004, PassedServiceHeader.FieldCaption(PassedServiceHeader."Applies-to Occurrence No.")),
-                        true,
-                        PassedServiceHeader));
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            if PassedServiceHeader."Applies-to Doc. No." <> '' then
+                if PassedServiceHeader."Applies-to Occurrence No." = 0 then
+                    Error(
+                        ErrorInfo.Create(
+                            StrSubstNo(Text1130004, PassedServiceHeader.FieldCaption(PassedServiceHeader."Applies-to Occurrence No.")),
+                            true,
+                            PassedServiceHeader));
+#endif
 
         PassedServiceHeader.TestMandatoryFields(PassedServiceLine);
     end;

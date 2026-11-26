@@ -5,6 +5,7 @@
 namespace Microsoft.Foundation.PaymentTerms;
 
 using Microsoft.Integration.Dataverse;
+using System.Environment.Configuration;
 
 page 4 "Payment Terms"
 {
@@ -26,10 +27,44 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+#if not CLEAN30
                 field("Payment Nos."; Rec."Payment Nos.")
                 {
                     ApplicationArea = Basic, Suite;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteTag = '30.0';
                     ToolTip = 'Specifies the number of installments allowed for this payment term.';
+                    Visible = not PaymentInstallmentsEnabled;
+                }
+#endif 
+                field("Due Date Calculation"; Rec."Due Date Calculation")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
+                }
+                field("Discount Date Calculation"; Rec."Discount Date Calculation")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
+                }
+                field("Discount %"; Rec."Discount %")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
+                }
+                field("Calc. Pmt. Disc. on Cr. Memos"; Rec."Calc. Pmt. Disc. on Cr. Memos")
+                {
+                    ApplicationArea = Basic, Suite;
+#if not CLEAN30
+                    Visible = PaymentInstallmentsEnabled;
+#endif
                 }
                 field(Description; Rec.Description)
                 {
@@ -40,6 +75,11 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment terms for Fattura payments.';
+                }
+                field("Has Installments"; Rec."Has Installments")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = PaymentInstallmentsEnabled;
                 }
                 field("Coupled to Dataverse"; CDSIsCoupledToRecord)
                 {
@@ -70,15 +110,31 @@ page 4 "Payment Terms"
     {
         area(processing)
         {
+#if not CLEAN30
             action("&Calculation")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = '&Calculation';
                 Image = Calculate;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                ObsoleteTag = '30.0';
                 RunObject = Page "Payment Terms Lines";
                 RunPageLink = Type = const("Payment Terms"),
                               Code = field(Code);
                 ToolTip = 'View or edit the conditions of the current payment term.';
+                Visible = not PaymentInstallmentsEnabled;
+            }
+#endif
+            action(InstallmentLines)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Installment Lines';
+                Image = Payment;
+                RunObject = Page "Payment Term Installments";
+                RunPageLink = "Payment Terms Code" = field(Code);
+                ToolTip = 'View or edit global installment rules. Supported standalone sales invoices post one receivable per installment.';
+                Visible = PaymentInstallmentsEnabled;
             }
             action("T&ranslation")
             {
@@ -200,9 +256,17 @@ page 4 "Payment Terms"
             {
                 Caption = 'Payment Terms';
 
-                actionref("&Calculation_Promoted"; "&Calculation")
+                actionref(InstallmentLines_Promoted; InstallmentLines)
                 {
                 }
+#if not CLEAN30
+                actionref("&Calculation_Promoted"; "&Calculation")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteTag = '30.0';
+                }
+#endif
                 actionref("T&ranslation_Promoted"; "T&ranslation")
                 {
                 }
@@ -251,11 +315,14 @@ page 4 "Payment Terms"
     trigger OnOpenPage()
     var
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         CDSIntegrationEnabled := CRMIntegrationManagement.IsCDSIntegrationEnabled();
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
     end;
 
     var
         CDSIntegrationEnabled: Boolean;
         CDSIsCoupledToRecord: Boolean;
+        PaymentInstallmentsEnabled: Boolean;
 }

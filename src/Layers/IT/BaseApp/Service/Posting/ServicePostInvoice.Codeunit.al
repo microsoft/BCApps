@@ -17,6 +17,7 @@ using Microsoft.Sales.Setup;
 using Microsoft.Service.Document;
 using Microsoft.Service.Pricing;
 using Microsoft.Service.Setup;
+using System.Environment.Configuration;
 
 codeunit 817 "Service Post Invoice" implements "Invoice Posting"
 {
@@ -26,6 +27,9 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary;
         TotalServiceLine: Record "Service Line";
         TotalServiceLineLCY: Record "Service Line";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ServicePostInvoiceEvents: Codeunit "Service Post Invoice Events";
         FALineNo: Integer;
         HideProgressWindow: Boolean;
@@ -402,7 +406,10 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine.SetCurrencyFactor(ServiceHeader."Currency Code", ServiceHeader."Currency Factor");
 
         ServiceHeader.CopyToGenJournalLineApplyTo(GenJnlLine);
-        GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            GenJnlLine."Applies-to Occurrence No." := ServiceHeader."Applies-to Occurrence No.";
+#endif
         ServiceHeader.CopyToGenJournalLinePayment(GenJnlLine);
 
         GenJnlLine.Amount := -TotalServiceLine."Amount Including VAT";
@@ -493,7 +500,10 @@ codeunit 817 "Service Post Invoice" implements "Invoice Posting"
         GenJnlLine."Bal. Account No." := ServiceHeader."Bal. Account No.";
         GenJnlLine."Applies-to Doc. Type" := InvoicePostingParameters."Document Type";
         GenJnlLine."Applies-to Doc. No." := InvoicePostingParameters."Document No.";
-        GenJnlLine."Applies-to Occurrence No." := 1;
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            GenJnlLine."Applies-to Occurrence No." := 1;
+#endif
     end;
 
     local procedure FindCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")

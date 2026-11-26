@@ -25,6 +25,7 @@ using Microsoft.Sales.Pricing;
 using Microsoft.Utilities;
 using System.Automation;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Privacy;
 using System.Security.User;
 
@@ -1515,8 +1516,10 @@ page 41 "Sales Quote"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yment")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yment';
                     Image = Payment;
@@ -1525,7 +1528,11 @@ page 41 "Sales Quote"
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(CalculateInvoiceDiscount)
                 {
                     AccessByPermission = TableData "Cust. Invoice Disc." = R;
@@ -1843,6 +1850,9 @@ page 41 "Sales Quote"
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
         OnOpenPageOnAfterSetSecurityFilterOnRespCenter(Rec);
 
@@ -1864,6 +1874,9 @@ page 41 "Sales Quote"
         SellToContact: Record Contact;
         BillToContact: Record Contact;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
         ArchiveManagement: Codeunit ArchiveManagement;
@@ -1873,6 +1886,9 @@ page 41 "Sales Quote"
         PrivacyNotice: Codeunit "Privacy Notice";
         FlowServiceManagement: Codeunit "Flow Service Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         EnableSellToCustomerTemplateCode: Boolean;
         HasIncomingDocument: Boolean;
         DocNoVisible: Boolean;

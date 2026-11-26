@@ -615,6 +615,7 @@ codeunit 5477 "Sales Invoice Aggregator"
     local procedure SetStatusOptionFromCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry")
     var
         SalesInvoiceEntityAggregate: Record "Sales Invoice Entity Aggregate";
+        Plan: Record "Sales Installment Plan";
         DummyGuid: Guid;
     begin
         if not GraphMgtGeneralTools.IsApiEnabled() then
@@ -624,7 +625,14 @@ codeunit 5477 "Sales Invoice Aggregator"
             exit;
 
         SalesInvoiceEntityAggregate.SetLoadFields("Cust. Ledger Entry No.", Posted, "No.", Status);
-        SalesInvoiceEntityAggregate.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.");
+        if IsNullGuid(CustLedgerEntry."Installment Plan ID") then
+            SalesInvoiceEntityAggregate.SetRange("Cust. Ledger Entry No.", CustLedgerEntry."Entry No.")
+        else begin
+            Plan.Get(CustLedgerEntry."Installment Plan ID");
+            if Plan.Status <> Plan.Status::Posted then
+                exit;
+            SalesInvoiceEntityAggregate.SetRange("No.", Plan."Posted Invoice No.");
+        end;
         SalesInvoiceEntityAggregate.SetRange(Posted, true);
 
         if not SalesInvoiceEntityAggregate.FindSet(true) then

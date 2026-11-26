@@ -185,7 +185,9 @@ table 1060 "Payment Service Setup"
     procedure CreateReportingArgs(var PaymentReportingArgument: Record "Payment Reporting Argument"; DocumentRecordVariant: Variant)
     var
         DummySalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
         TempPaymentServiceSetup: Record "Payment Service Setup" temporary;
+        SalesInstallmentHistory: Codeunit "Sales Installment History";
         DataTypeMgt: Codeunit "Data Type Management";
         DocumentRecordRef: RecordRef;
         PaymentServiceFieldRef: FieldRef;
@@ -206,6 +208,19 @@ table 1060 "Payment Service Setup"
 
         if not TempPaymentServiceSetup.FindFirst() then
             exit;
+
+        case DocumentRecordRef.Number of
+            Database::"Sales Invoice Header":
+                begin
+                    DocumentRecordRef.SetTable(SalesInvoiceHeader);
+                    SalesInstallmentHistory.CheckPaymentService(SalesInvoiceHeader."Installment Plan ID");
+                end;
+            Database::"Sales Header":
+                begin
+                    DocumentRecordRef.SetTable(DummySalesHeader);
+                    SalesInstallmentHistory.CheckPaymentService(DummySalesHeader."Installment Plan ID");
+                end;
+        end;
 
         repeat
             LastKey := PaymentReportingArgument.Key;
@@ -446,8 +461,10 @@ table 1060 "Payment Service Setup"
     procedure ChangePaymentServicePostedInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header")
     var
         PaymentServiceSetup: Record "Payment Service Setup";
+        SalesInstallmentHistory: Codeunit "Sales Installment History";
         SetID: Integer;
     begin
+        SalesInstallmentHistory.CheckPaymentService(SalesInvoiceHeader."Installment Plan ID");
         SetID := SalesInvoiceHeader."Payment Service Set ID";
         if PaymentServiceSetup.SelectPaymentService(SetID) then begin
             SalesInvoiceHeader.Validate("Payment Service Set ID", SetID);

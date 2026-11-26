@@ -40,6 +40,7 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
+using System.Environment.Configuration;
 using System.IO;
 using System.Utilities;
 
@@ -61,6 +62,9 @@ codeunit 6620 "Copy Document Mgt."
         TempAsmLine: Record "Assembly Line" temporary;
         TempSalesInvLine: Record "Sales Invoice Line" temporary;
         GLSetup: Record "General Ledger Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         TranslationHelper: Codeunit "Translation Helper";
         CustCheckCreditLimit: Codeunit "Cust-Check Cr. Limit";
         ItemCheckAvail: Codeunit "Item-Check Avail.";
@@ -7306,7 +7310,10 @@ codeunit 6620 "Copy Document Mgt."
                 ToSalesHeader."Applies-to Doc. Type" := ToSalesHeader."Applies-to Doc. Type"::"Credit Memo";
                 ToSalesHeader."Applies-to Doc. No." := FromDocNo;
             end;
-            ToSalesHeader."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                ToSalesHeader."Applies-to Occurrence No." := CustLedgEntry."Document Occurrence";
+#endif
             CustLedgEntry.CalcFields("Remaining Amount");
             CustLedgEntry."Amount to Apply" := CustLedgEntry."Remaining Amount";
             CustLedgEntry."Accepted Payment Tolerance" := 0;
@@ -7341,7 +7348,10 @@ codeunit 6620 "Copy Document Mgt."
                     ToPurchHeader."Applies-to Doc. Type" := ToPurchHeader."Applies-to Doc. Type"::"Credit Memo";
                     ToPurchHeader."Applies-to Doc. No." := FromDocNo;
                 end;
-                ToPurchHeader."Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    ToPurchHeader."Applies-to Occurrence No." := VendLedgEntry."Document Occurrence";
+#endif
                 VendLedgEntry.CalcFields("Remaining Amount");
                 VendLedgEntry."Amount to Apply" := VendLedgEntry."Remaining Amount";
                 VendLedgEntry."Accepted Payment Tolerance" := 0;

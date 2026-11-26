@@ -690,6 +690,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine: Record "Gen. Journal Line";
         DTASetup: Record "DTA Setup";
         DTAMgt: Codeunit DtaMgt;
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin
         PurchHeader := PurchHeaderVar;
@@ -726,6 +727,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
+        PurchaseInstallmentPosting.PrepareJournalLine(PurchHeader, GenJnlLine);
         GenJnlPostLine.RunWithCheck(GenJnlLine);
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);

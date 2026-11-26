@@ -17,6 +17,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Request;
+using System.Environment.Configuration;
 using System.Security.User;
 
 page 12152 "Subcontracting Order"
@@ -423,15 +424,21 @@ page 12152 "Subcontracting Order"
             {
                 Caption = 'F&unctions';
                 Image = "Action";
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     Caption = 'Pa&yments';
                     RunObject = Page "Payment Date Lines";
                     RunPageLink = "Sales/Purchase" = const(Purchase),
                                   Type = field("Document Type"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action("Copy Document")
                 {
                     Caption = 'Copy Document';
@@ -713,6 +720,9 @@ page 12152 "Subcontracting Order"
 
     trigger OnOpenPage()
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         if UserMgt.GetPurchasesFilter() <> '' then begin
             Rec.FilterGroup(2);
             Rec.SetRange("Responsibility Center", UserMgt.GetPurchasesFilter());
@@ -723,11 +733,17 @@ page 12152 "Subcontracting Order"
     var
         CopyPurchDoc: Report "Copy Purchase Document";
         MoveNegPurchLines: Report "Move Negative Purchase Lines";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ReportPrint: Codeunit "Test Report-Print";
         DocPrint: Codeunit "Document-Print";
         UserMgt: Codeunit "User Setup Management";
         ArchiveManagement: Codeunit ArchiveManagement;
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
 
     local procedure PaytoVendorNoOnAfterValidate()
     begin

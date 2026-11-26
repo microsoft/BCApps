@@ -13,6 +13,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Posting;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Globalization;
 
 /// <summary>
@@ -122,30 +123,57 @@ report 295 "Combine Shipments"
 
                     if OnlyStdPmtTerms then begin
                         Cust.Get("Bill-to Customer No.");
-                        PaymentTermsLine.Reset();
-                        PaymentTermsLine.SetRange("Sales/Purchase", PaymentSales."Sales/Purchase"::" ");
-                        PaymentTermsLine.SetRange(Type, PaymentTermsLine.Type::"Payment Terms");
-                        PaymentTermsLine.SetRange(Code, Cust."Payment Terms Code");
-                        if PaymentTermsLine.Find('-') then
-                            repeat
-                                if PaymentTermsLine.Code = "Sales Shipment Header"."Payment Terms Code" then begin
-                                    PaymentSales.Get(PaymentSales."Sales/Purchase"::Sales, PaymentTermsLine.Type::Order,
-                                      "Sales Shipment Header"."Order No.", '', 0, PaymentTermsLine."Line No.");
-                                    DueDate := CalcDate(PaymentTermsLine."Due Date Calculation", "Document Date");
-                                    PmtDiscDate := CalcDate(PaymentTermsLine."Discount Date Calculation", "Document Date");
-                                    PmtDiscPct := PaymentTermsLine."Discount %";
-                                    if (DueDate <> PaymentSales."Due Date") or
-                                       (PmtDiscDate <> PaymentSales."Pmt. Discount Date") or
-                                       (PmtDiscPct <> PaymentSales."Discount %")
-                                    then begin
+#if not CLEAN30
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+                            PaymentTermsLine.Reset();
+                            PaymentTermsLine.SetRange("Sales/Purchase", PaymentSales."Sales/Purchase"::" ");
+                            PaymentTermsLine.SetRange(Type, PaymentTermsLine.Type::"Payment Terms");
+                            PaymentTermsLine.SetRange(Code, Cust."Payment Terms Code");
+                            if PaymentTermsLine.Find('-') then
+                                repeat
+                                    if PaymentTermsLine.Code = "Sales Shipment Header"."Payment Terms Code" then begin
+                                        PaymentSales.Get(PaymentSales."Sales/Purchase"::Sales, PaymentTermsLine.Type::Order,
+                                          "Sales Shipment Header"."Order No.", '', 0, PaymentTermsLine."Line No.");
+                                        DueDate := CalcDate(PaymentTermsLine."Due Date Calculation", "Document Date");
+                                        PmtDiscDate := CalcDate(PaymentTermsLine."Discount Date Calculation", "Document Date");
+                                        PmtDiscPct := PaymentTermsLine."Discount %";
+                                        if (DueDate <> PaymentSales."Due Date") or
+                                           (PmtDiscDate <> PaymentSales."Pmt. Discount Date") or
+                                           (PmtDiscPct <> PaymentSales."Discount %")
+                                        then begin
+                                            NoOfskippedShiment := NoOfskippedShiment + 1;
+                                            CurrReport.Skip();
+                                            exit;
+                                        end;
+                                    end else begin
                                         NoOfskippedShiment := NoOfskippedShiment + 1;
                                         CurrReport.Skip();
+                                        exit;
                                     end;
-                                end else begin
+                                until PaymentTermsLine.Next() = 0;
+                        end else begin
+#endif
+                            PaymentTerms.Get(Cust."Payment Terms Code");
+                            if PaymentTerms.Code = "Payment Terms Code" then begin
+                                DueDate := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
+                                PmtDiscDate := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
+                                PmtDiscPct := PaymentTerms."Discount %";
+                                if (DueDate <> "Due Date") or
+                                   (PmtDiscDate <> "Pmt. Discount Date") or
+                                   (PmtDiscPct <> "Payment Discount %")
+                                then begin
                                     NoOfskippedShiment := NoOfskippedShiment + 1;
                                     CurrReport.Skip();
+                                    exit;
                                 end;
-                            until PaymentTermsLine.Next() = 0;
+                            end else begin
+                                NoOfskippedShiment := NoOfskippedShiment + 1;
+                                CurrReport.Skip();
+                                exit;
+                            end;
+#if not CLEAN30
+                        end;
+#endif
                     end;
                 end;
 
@@ -360,8 +388,12 @@ report 295 "Combine Shipments"
         SalesSetup: Record "Sales & Receivables Setup";
         GLSetup: Record "General Ledger Setup";
         OperationType: Record "No. Series";
+        PaymentTerms: Record "Payment Terms";
+#if not CLEAN30
         PaymentTermsLine: Record "Payment Lines";
         PaymentSales: Record "Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         SalesCalcDisc: Codeunit "Sales-Calc. Discount";
         SalesPost: Codeunit "Sales-Post";
         LocalAppMgt: Codeunit LocalApplicationManagement;

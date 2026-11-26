@@ -17,6 +17,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Utilities;
 
 report 12120 "VAT Register - Print"
@@ -457,7 +458,10 @@ report 12120 "VAT Register - Print"
                                 begin
                                     SetDetailsForVendor("VAT Book Entry");
                                     VendLedgEntry.Reset();
-                                    VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#if not CLEAN30
+                                    if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                                        VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#endif
                                     VendLedgEntry.SetRange("Document Type", "Document Type");
                                     VendLedgEntry.SetRange("External Document No.", "External Document No.");
                                     VendLedgEntry.SetRange("Vendor No.", "Sell-to/Buy-from No.");
@@ -475,7 +479,10 @@ report 12120 "VAT Register - Print"
                                     if VATBookEntry."Reverse VAT Entry" then begin
                                         SetDetailsForVendor("VAT Book Entry");
                                         VendLedgEntry.Reset();
-                                        VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#if not CLEAN30
+                                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                                            VendLedgEntry.SetCurrentKey("Document Type", "External Document No.", "Vendor No.", "Document Occurrence");
+#endif
                                         VendLedgEntry.SetRange("Document Type", "Document Type");
                                         VendLedgEntry.SetRange("External Document No.", "External Document No.");
                                         VendLedgEntry.SetRange("Vendor No.", "Sell-to/Buy-from No.");
@@ -1234,17 +1241,6 @@ report 12120 "VAT Register - Print"
     end;
 
     var
-        Text1130008: Label 'Please select a %1.';
-        NotPrintedEntriesErr: Label 'There are entries in the previous period that were not printed.\First entry found: Entry No.: %1, Posting Date: %2.';
-        Text1130034: Label 'Start Date and End Date do not correspond to begin\end of period.';
-        Text1130035: Label 'This period has already been printed. Do you want to print it again?';
-        Text1130036: Label 'The print has been interrupted.';
-        Text1130040: Label 'Are you sure you want to print the VAT Register as final version ?';
-        Text1046: Label 'VAT Reg. No. ';
-        Text1038: Label 'Page %1/';
-        Text1049: Label 'All Company Information related fields should be filled in on the request form.';
-        Text1050: Label 'Test %1';
-        Text12100: Label 'You must update the %1 field in the %2 window when you have printed the report.';
         CustLedgEntry: Record "Cust. Ledger Entry";
         GLSetup: Record "General Ledger Setup";
         VendLedgEntry: Record "Vendor Ledger Entry";
@@ -1260,6 +1256,20 @@ report 12120 "VAT Register - Print"
         ReprintInfo: Record "Reprint Info Fiscal Reports";
         VATEntry2: Record "VAT Entry";
         VATBookEntryTemp2: Record "VAT Book Entry" temporary;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
+        Text1130008: Label 'Please select a %1.';
+        NotPrintedEntriesErr: Label 'There are entries in the previous period that were not printed.\First entry found: Entry No.: %1, Posting Date: %2.';
+        Text1130034: Label 'Start Date and End Date do not correspond to begin\end of period.';
+        Text1130035: Label 'This period has already been printed. Do you want to print it again?';
+        Text1130036: Label 'The print has been interrupted.';
+        Text1130040: Label 'Are you sure you want to print the VAT Register as final version ?';
+        Text1046: Label 'VAT Reg. No. ';
+        Text1038: Label 'Page %1/';
+        Text1049: Label 'All Company Information related fields should be filled in on the request form.';
+        Text1050: Label 'Test %1';
+        Text12100: Label 'You must update the %1 field in the %2 window when you have printed the report.';
         PrintLegend: Boolean;
         ShowFirstSection: Boolean;
         FirstOne: Boolean;

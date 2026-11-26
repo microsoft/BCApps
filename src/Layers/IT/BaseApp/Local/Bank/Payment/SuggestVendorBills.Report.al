@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Dimension;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 
 report 12177 "Suggest Vendor Bills"
 {
@@ -96,6 +97,9 @@ report 12177 "Suggest Vendor Bills"
         VendorBillHeader: Record "Vendor Bill Header";
         VendorBillLine: Record "Vendor Bill Line";
         VendBillLine2: Record "Vendor Bill Line";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         NextLineNo: Integer;
         UseSameABICode: Boolean;
 
@@ -118,7 +122,10 @@ report 12177 "Suggest Vendor Bills"
             VendBillLine2.Reset();
             VendBillLine2.SetRange("Vendor No.", "Vendor Ledger Entry"."Vendor No.");
             VendBillLine2.SetRange("Document No.", "Vendor Ledger Entry"."Document No.");
-            VendBillLine2.SetRange("Document Occurrence", "Vendor Ledger Entry"."Document Occurrence");
+#if not CLEAN30
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                VendBillLine2.SetRange("Document Occurrence", "Vendor Ledger Entry"."Document Occurrence");
+#endif
             VendBillLine2.SetRange("Document Date", "Vendor Ledger Entry"."Document Date");
             if not VendBillLine2.FindFirst() then begin
                 VendorBillLine.Init();
@@ -128,7 +135,10 @@ report 12177 "Suggest Vendor Bills"
                 VendorBillLine."Vendor Bank Acc. No." := "Vendor Ledger Entry"."Recipient Bank Account";
                 VendorBillLine."Document Type" := "Vendor Ledger Entry"."Document Type";
                 VendorBillLine."Document No." := "Vendor Ledger Entry"."Document No.";
-                VendorBillLine."Document Occurrence" := "Vendor Ledger Entry"."Document Occurrence";
+#if not CLEAN30
+                if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                    VendorBillLine."Document Occurrence" := "Vendor Ledger Entry"."Document Occurrence";
+#endif
                 VendorBillLine."Document Date" := "Vendor Ledger Entry"."Document Date";
                 VendorBillLine."External Document No." := "Vendor Ledger Entry"."External Document No.";
                 VendorBillLine."Instalment Amount" := Abs("Vendor Ledger Entry".Amount);

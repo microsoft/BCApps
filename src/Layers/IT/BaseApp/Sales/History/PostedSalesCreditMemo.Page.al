@@ -16,6 +16,7 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using System.Automation;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Displays a single posted sales credit memo document with header and line details.
@@ -731,8 +732,10 @@ page 134 "Posted Sales Credit Memo"
                         ApprovalsMgmt.ShowPostedApprovalEntries(Rec.RecordId);
                     end;
                 }
+#if not CLEAN30
                 action("Pa&yments")
                 {
+                    Visible = LegacyPaymentInstallmentsEnabled;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Pa&yments';
                     Image = Payment;
@@ -741,7 +744,11 @@ page 134 "Posted Sales Credit Memo"
                                   Type = const("Credit Memo"),
                                   Code = field("No.");
                     ToolTip = 'View the related payments.';
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 action(DocAttach)
                 {
                     ApplicationArea = All;
@@ -1102,6 +1109,9 @@ page 134 "Posted Sales Credit Memo"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         Rec.SetSecurityFilterOnRespCenter();
         IsOfficeAddin := OfficeMgt.IsAvailable();
 
@@ -1113,16 +1123,22 @@ page 134 "Posted Sales Credit Memo"
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         SellToContact: Record Contact;
         BillToContact: Record Contact;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         FormatAddress: Codeunit "Format Address";
         ChangeExchangeRate: Page "Change Exchange Rate";
-        HasIncomingDocument: Boolean;
-        DocExchStatusStyle: Text;
-        DocExchStatusVisible: Boolean;
-        IsOfficeAddin: Boolean;
-        IsBillToCountyVisible: Boolean;
-        IsSellToCountyVisible: Boolean;
-        IsShipToCountyVisible: Boolean;
-        VATDateEnabled: Boolean;
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
+                                HasIncomingDocument: Boolean;
+                                DocExchStatusStyle: Text;
+                                DocExchStatusVisible: Boolean;
+                                IsOfficeAddin: Boolean;
+                                IsBillToCountyVisible: Boolean;
+                                IsSellToCountyVisible: Boolean;
+                                IsShipToCountyVisible: Boolean;
+                                VATDateEnabled: Boolean;
 
     local procedure ActivateFields()
     begin

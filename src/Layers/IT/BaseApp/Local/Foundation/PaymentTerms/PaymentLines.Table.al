@@ -12,9 +12,19 @@ using Microsoft.Sales.Document;
 table 12170 "Payment Lines"
 {
     Caption = 'Payment Lines';
+#if not CLEAN30
     DrillDownPageID = "Payment Terms Lines";
     LookupPageID = "Payment Terms Lines";
+#endif
     DataClassification = CustomerContent;
+#if not CLEAN30
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '33.0';
+#endif
+    ObsoleteReason = 'Replaced by global Payment Installments feature.';
 
     fields
     {
@@ -26,7 +36,8 @@ table 12170 "Payment Lines"
         {
             Caption = 'Code';
             NotBlank = true;
-            TableRelation = if (Type = const("Payment Terms")) "Payment Terms";
+            TableRelation =
+            if (Type = const("Payment Terms")) "Payment Terms";
         }
         field(3; "Line No."; Integer)
         {
@@ -60,6 +71,7 @@ table 12170 "Payment Lines"
         {
             Caption = 'Due Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
                 FindDocument();
@@ -67,11 +79,13 @@ table 12170 "Payment Lines"
                 if "Due Date" < DocumentDate then
                     Error(InvalidDueDateErr);
             end;
+#endif
         }
         field(9; "Pmt. Discount Date"; Date)
         {
             Caption = 'Pmt. Discount Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
                 FindDocument();
@@ -79,6 +93,7 @@ table 12170 "Payment Lines"
                 if "Pmt. Discount Date" < DocumentDate then
                     Error(InvalidPmtDiscountDateErr);
             end;
+#endif
         }
         field(10; "Sales/Purchase"; Option)
         {
@@ -115,6 +130,7 @@ table 12170 "Payment Lines"
         {
             Caption = 'Prepmt. Due Date';
 
+#if not CLEAN30
             trigger OnValidate()
             begin
                 FindDocument();
@@ -122,6 +138,7 @@ table 12170 "Payment Lines"
                 if "Due Date" < DocumentDate then
                     Error(InvalidDueDateErr);
             end;
+#endif
         }
     }
 
@@ -138,6 +155,7 @@ table 12170 "Payment Lines"
     {
     }
 
+#if not CLEAN30
     trigger OnDelete()
     begin
         CheckPrepPaymentTermsLinked();
@@ -544,4 +562,5 @@ table 12170 "Payment Lines"
     local procedure OnDeletePaymentLinesOnAfterGetDocument(RecRef: RecordRef; var SalesPurchaseType: Option ,Sales,Purchase,Service; var DocumentType: Option; var DocumentNo: Code[20]; IsBlanketOrder: Boolean)
     begin
     end;
+#endif
 }

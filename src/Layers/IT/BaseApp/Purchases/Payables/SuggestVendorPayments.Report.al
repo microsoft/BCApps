@@ -15,6 +15,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Vendor;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Utilities;
 
 report 393 "Suggest Vendor Payments"
@@ -525,6 +526,9 @@ report 393 "Suggest Vendor Payments"
         SelectedDim: Record "Selected Dimension";
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
         TempErrorMessage: Record "Error Message" temporary;
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         DimMgt: Codeunit DimensionManagement;
         DimBufMgt: Codeunit "Dimension Buffer Management";
         Window: Dialog;
@@ -546,8 +550,8 @@ report 393 "Suggest Vendor Payments"
         ServiceFieldsVisibiity: Boolean;
         JnlTemplateName: Code[10];
         JnlBatchName: Code[10];
-
 #pragma warning disable AA0074
+
         Text000: Label 'In the Last Payment Date field, specify the last possible date that payments must be made.';
         Text001: Label 'In the Posting Date field, specify the date that will be used as the posting date for the journal entries.';
         Text002: Label 'In the Starting Document No. field, specify the first document number to be used.';
@@ -571,9 +575,7 @@ report 393 "Suggest Vendor Payments"
         Text024: Label 'There are one or more entries for which no payment suggestions have been made because the posting dates of the entries are later than the requested posting date. Do you want to see the entries?';
 #pragma warning disable AA0470
         Text025: Label 'The %1 with the number %2 has a %3 with the number %4.';
-#pragma warning restore AA0470
 #pragma warning restore AA0074
-#pragma warning disable AA0470
         BalAccountTypeErr: label 'Balancing account must be %1 or %2.';
 #pragma warning restore AA0470
         ReplacePostingDateMsg: Label 'For one or more entries, the requested posting date is before the work date.\\These posting dates will use the work date.';
@@ -782,7 +784,10 @@ report 393 "Suggest Vendor Payments"
                     OnBeforeHandledVendLedgEntry(VendLedgEntry, GenJnlLine1, HandledEntry);
                     if HandledEntry then begin
                         TempVendorPaymentBuffer."Vendor No." := VendLedgEntry."Vendor No.";
-                        TempVendorPaymentBuffer."Document Occurrence" := VendLedgEntry."Document Occurrence";
+#if not CLEAN30
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                            TempVendorPaymentBuffer."Document Occurrence" := VendLedgEntry."Document Occurrence";
+#endif
                         TempVendorPaymentBuffer."Currency Code" := VendLedgEntry."Currency Code";
                         TempVendorPaymentBuffer."Payment Method Code" := VendLedgEntry."Payment Method Code";
 
@@ -926,7 +931,10 @@ report 393 "Suggest Vendor Payments"
         GenJnlLine."Applies-to Doc. No." := TempVendorPaymentBuffer."Vendor Ledg. Entry Doc. No.";
         GenJnlLine."Applies-to Invoice Id" := TempVendorPaymentBuffer."Ledg. Entry System Id";
         GenJnlLine."Payment Method Code" := TempVendorPaymentBuffer."Payment Method Code";
-        GenJnlLine."Applies-to Occurrence No." := TempVendorPaymentBuffer."Document Occurrence";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            GenJnlLine."Applies-to Occurrence No." := TempVendorPaymentBuffer."Document Occurrence";
+#endif
         GenJnlLine."Remit-to Code" := TempVendorPaymentBuffer."Remit-to Code";
 
         TempVendorPaymentBuffer.CopyFieldsToGenJournalLine(GenJnlLine);

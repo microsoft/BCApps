@@ -99,6 +99,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
+using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.RoleCenters;
 using Microsoft.Sales.Setup;
@@ -170,6 +171,10 @@ permissionset 208 "D365 Basic - Edit"
                   tabledata Field = imd,
                   tabledata File = imd,
                   tabledata Integer = imd,
+                  tabledata "Sales Installment Plan" = rimd,
+                  tabledata "Purchase Installment Plan" = rimd,
+                  tabledata "Sales Installment Plan Line" = rimd,
+                  tabledata "Purchase Installment Plan Line" = rimd,
                   tabledata "Intelligent Cloud" = imd,
                   tabledata "Intelligent Cloud Status" = imd,
                   tabledata Key = imd,

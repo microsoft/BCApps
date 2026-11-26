@@ -721,6 +721,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine: Record "Gen. Journal Line";
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         PrepmtDiffVendorLedgerEntry: Record "Vendor Ledger Entry";
+        PurchaseInstallmentPosting: Codeunit "Purchase Installment Posting";
         IsHandled: Boolean;
     begin
         PurchHeader := PurchHeaderVar;
@@ -762,11 +763,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnBeforeGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
-        GenJnlPostLine.SetPreviewMode(PreviewMode);
-        if not InvoicePostingParameters."Change Transaction" then
-            GenJnlPostLine.SpecialRunWithCheck(GenJnlLine)
-        else
-            GenJnlPostLine.RunWithCheck(GenJnlLine);
+        PurchaseInstallmentPosting.PrepareJournalLine(PurchHeader, GenJnlLine);
+        GenJnlPostLine.RunWithCheck(GenJnlLine);
         PurchPostInvoiceEvents.RunOnPostLedgerEntryOnAfterGenJnlPostLine(
             GenJnlLine, PurchHeader, TotalPurchLine, TotalPurchLineLCY, PreviewMode, SuppressCommit, GenJnlPostLine);
     end;

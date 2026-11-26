@@ -33,6 +33,7 @@ using Microsoft.Service.Ledger;
 using Microsoft.Service.Pricing;
 using Microsoft.Service.Setup;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 using System.Utilities;
 
 codeunit 5988 "Serv-Documents Mgt."
@@ -80,6 +81,12 @@ codeunit 5988 "Serv-Documents Mgt."
         ServDocReg: Record "Service Document Register";
         ServiceCommentLine: Record "Service Comment Line";
         TempWarrantyLedgerEntry: Record "Warranty Ledger Entry" temporary;
+#if not CLEAN30
+        PaymentJournalLine: Record "Payment Lines";
+        PaymentTermsLine: Record "Payment Lines";
+        PostedPayments: Record "Posted Payment Lines";
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         ServPostingJnlsMgt: Codeunit "Serv-Posting Journals Mgt.";
         ServAmountsMgt: Codeunit "Serv-Amounts Mgt.";
         ServITRMgt: Codeunit "Serv-Item Tracking Rsrv. Mgt.";
@@ -135,9 +142,6 @@ codeunit 5988 "Serv-Documents Mgt."
 #pragma warning restore AA0074
         TrackingSpecificationExists: Boolean;
         ServLineInvoicedConsumedQty: Decimal;
-        PaymentJournalLine: Record "Payment Lines";
-        PaymentTermsLine: Record "Payment Lines";
-        PostedPayments: Record "Posted Payment Lines";
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
         Text1130000: Label 'must not be prior to %1';
         Text12100: Label 'It is not possible to post document with a customer with VAT exemption if an active VAT exemption doesn''t exist.';
@@ -246,50 +250,52 @@ codeunit 5988 "Serv-Documents Mgt."
         if not ServHeader.FindVATExemption(VATExemption, Check, true) then
             if Check then
                 Error(Text12100);
-        if Invoice then begin
-            PaymentTermsLine.Reset();
-            PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Service);
-            PaymentTermsLine.SetRange(Type, ServHeader."Document Type");
-            PaymentTermsLine.SetRange(Code, ServHeader."No.");
-            if PaymentTermsLine.Find('-') then
-                repeat
-                    PaymentTermsLine.TestField("Due Date");
-                    PostedPayments.Init();
-                    PostedPayments."Sales/Purchase" := PaymentTermsLine."Sales/Purchase";
-                    if ServHeader."Document Type" in [ServHeader."Document Type"::Order, ServHeader."Document Type"::Invoice] then begin
-                        PostedPayments.Type := PostedPayments.Type::Invoice;
-                        PostedPayments.Code := ServInvHeader."No.";
-                    end else begin
-                        PostedPayments.Type := PostedPayments.Type::"Credit Memo";
-                        PostedPayments.Code := ServCrMemoHeader."No.";
-                    end;
-                    PostedPayments."Line No." := PaymentTermsLine."Line No.";
-                    PostedPayments."Payment %" := PaymentTermsLine."Payment %";
-                    PostedPayments."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
-                    PostedPayments."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
-                    PostedPayments."Discount %" := PaymentTermsLine."Discount %";
-                    PostedPayments."Due Date" := PaymentTermsLine."Due Date";
-                    PostedPayments."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
-                    PostedPayments.Insert();
-                    PaymentJournalLine.Init();
-                    PaymentJournalLine."Sales/Purchase" := 0;
-                    PaymentJournalLine.Type := PaymentJournalLine.Type::"General Journal";
-                    PaymentJournalLine."Line No." := PaymentTermsLine."Line No.";
-                    PaymentJournalLine."Payment %" := PaymentTermsLine."Payment %";
-                    PaymentJournalLine."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
-                    PaymentJournalLine."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
-                    PaymentJournalLine."Discount %" := PaymentTermsLine."Discount %";
-                    PaymentJournalLine."Due Date" := PaymentTermsLine."Due Date";
-                    PaymentJournalLine."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
-                    PaymentJournalLine.Insert();
-                until PaymentTermsLine.Next() = 0
-            else
-                if ServHeader."Payment Terms Code" <> '' then
-                    Error(Text1130003,
-                      ServHeader.FieldCaption(ServHeader."Payment Terms Code"),
-                      ServHeader."Payment Terms Code");
-        end;
-
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            if Invoice then begin
+                PaymentTermsLine.Reset();
+                PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Service);
+                PaymentTermsLine.SetRange(Type, ServHeader."Document Type");
+                PaymentTermsLine.SetRange(Code, ServHeader."No.");
+                if PaymentTermsLine.Find('-') then
+                    repeat
+                        PaymentTermsLine.TestField("Due Date");
+                        PostedPayments.Init();
+                        PostedPayments."Sales/Purchase" := PaymentTermsLine."Sales/Purchase";
+                        if ServHeader."Document Type" in [ServHeader."Document Type"::Order, ServHeader."Document Type"::Invoice] then begin
+                            PostedPayments.Type := PostedPayments.Type::Invoice;
+                            PostedPayments.Code := ServInvHeader."No.";
+                        end else begin
+                            PostedPayments.Type := PostedPayments.Type::"Credit Memo";
+                            PostedPayments.Code := ServCrMemoHeader."No.";
+                        end;
+                        PostedPayments."Line No." := PaymentTermsLine."Line No.";
+                        PostedPayments."Payment %" := PaymentTermsLine."Payment %";
+                        PostedPayments."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
+                        PostedPayments."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
+                        PostedPayments."Discount %" := PaymentTermsLine."Discount %";
+                        PostedPayments."Due Date" := PaymentTermsLine."Due Date";
+                        PostedPayments."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
+                        PostedPayments.Insert();
+                        PaymentJournalLine.Init();
+                        PaymentJournalLine."Sales/Purchase" := 0;
+                        PaymentJournalLine.Type := PaymentJournalLine.Type::"General Journal";
+                        PaymentJournalLine."Line No." := PaymentTermsLine."Line No.";
+                        PaymentJournalLine."Payment %" := PaymentTermsLine."Payment %";
+                        PaymentJournalLine."Due Date Calculation" := PaymentTermsLine."Due Date Calculation";
+                        PaymentJournalLine."Discount Date Calculation" := PaymentTermsLine."Discount Date Calculation";
+                        PaymentJournalLine."Discount %" := PaymentTermsLine."Discount %";
+                        PaymentJournalLine."Due Date" := PaymentTermsLine."Due Date";
+                        PaymentJournalLine."Pmt. Discount Date" := PaymentTermsLine."Pmt. Discount Date";
+                        PaymentJournalLine.Insert();
+                    until PaymentTermsLine.Next() = 0
+                else
+                    if ServHeader."Payment Terms Code" <> '' then
+                        Error(Text1130003,
+                          ServHeader.FieldCaption(ServHeader."Payment Terms Code"),
+                          ServHeader."Payment Terms Code");
+            end;
+#endif
         LineCount := 0;
 
         OnBeforePostDocumentLines(ServHeader, ServLine, Ship, Consume, Invoice);
@@ -1120,12 +1126,15 @@ codeunit 5988 "Serv-Documents Mgt."
                 FinalizeHeader(PassedServHeader);
             end;
 
-        PaymentTermsLine.Reset();
-        PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Sales);
-        PaymentTermsLine.SetRange(Type, ServHeader."Document Type");
-        PaymentTermsLine.SetRange(Code, ServHeader."No.");
-        PaymentTermsLine.DeleteAll();
-
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then begin
+            PaymentTermsLine.Reset();
+            PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Sales);
+            PaymentTermsLine.SetRange(Type, ServHeader."Document Type");
+            PaymentTermsLine.SetRange(Code, ServHeader."No.");
+            PaymentTermsLine.DeleteAll();
+        end;
+#endif
         OnFinalizeOnAfterFinalizeDocuments(ServHeader, ServInvHeader, ServInvLine, ServCrMemoHeader, ServCrMemoLine, Invoice);
 
         OnAfterFinalize(PassedServHeader, CloseCondition);
@@ -2390,15 +2399,20 @@ codeunit 5988 "Serv-Documents Mgt."
         TempWarrantyLedgerEntry.DeleteAll();
     end;
 
+#if not CLEAN30
+    [Obsolete('Replaced by global Payment Installments feature.', '30.0')]
     [Scope('OnPrem')]
     procedure FinalizeDeletePmtTermLines()
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         PaymentTermsLine.Reset();
         PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Service);
         PaymentTermsLine.SetRange(Type, ServHeader."Document Type");
         PaymentTermsLine.SetRange(Code, ServHeader."No.");
         PaymentTermsLine.DeleteAll();
     end;
+#endif
 
     local procedure CheckCertificateOfSupplyStatus(ServShptHeader: Record "Service Shipment Header"; ServShptLine: Record "Service Shipment Line")
     var

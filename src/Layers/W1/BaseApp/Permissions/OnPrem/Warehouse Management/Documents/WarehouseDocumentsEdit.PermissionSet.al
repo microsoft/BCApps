@@ -9,8 +9,10 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Activity.History;
 using Microsoft.Warehouse.Comment;
@@ -34,6 +36,10 @@ permissionset 5888 "Warehouse Documents - Edit"
     Permissions = tabledata "Bin Content" = RI,
                   tabledata "Entry Summary" = RIMD,
                   tabledata Item = R,
+                  tabledata "Sales Installment Plan" = R,
+                  tabledata "Purchase Installment Plan" = R,
+                  tabledata "Sales Installment Plan Line" = R,
+                  tabledata "Purchase Installment Plan Line" = R,
                   tabledata "Item Application Entry" = RIMD,
                   tabledata "Item Ledger Entry" = R,
                   tabledata "Item Tracking Code" = R,

@@ -12,6 +12,7 @@ using Microsoft.Finance.WithholdingTax;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Utilities;
+using System.Environment.Configuration;
 
 codeunit 12173 "Vendor Bill List - Post"
 {
@@ -29,6 +30,9 @@ codeunit 12173 "Vendor Bill List - Post"
     end;
 
     var
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         DocumentErrorsMgt: Codeunit "Document Errors Mgt.";
         MustBeErr: Label '%1 must be %2.', Comment = '%1 = List Status, %2 = Status';
@@ -38,7 +42,10 @@ codeunit 12173 "Vendor Bill List - Post"
         BalanceAmount: Decimal;
         BalanceAmountLCY: Decimal;
 
-        Text12100: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.';
+#if not CLEAN30
+        Text12100: Label 'Meanwhile %1 has been modified for %2 %3 %4 %5. New amount is %6. Please recreate the bill list.', Comment = '%1 = Remaining Amount field caption, %2 = Document No. field caption, %3 = Document No., %4 = Document Occurrence field caption, %5 = Document Occurrence, %6 = absolute remaining amount';
+#endif
+        ModifiedRemainingAmountErr: Label 'Meanwhile %1 has been modified for %2 %3. New amount is %4. Please recreate the bill list.', Comment = '%1 = Remaining Amount field caption, %2 = Document No. field caption, %3 = Document No., %4 = absolute remaining amount';
         Text1130000: Label 'Do you want to post the lines?';
         Text1130011: Label 'Posting Vendor Bill...\\';
         Text1130012: Label 'Post Line #1##########\';
@@ -87,13 +94,22 @@ codeunit 12173 "Vendor Bill List - Post"
                     VendLedgEntry.Get(VendorBillLine."Vendor Entry No.");
                     VendLedgEntry.CalcFields("Remaining Amount");
                     if VendLedgEntry."Remaining Amount" + VendorBillLine."Remaining Amount" <> 0 then
-                        Error(Text12100,
-                          VendLedgEntry.FieldCaption("Remaining Amount"),
-                          VendLedgEntry.FieldCaption("Document No."),
-                          VendLedgEntry."Document No.",
-                          VendLedgEntry.FieldCaption("Document Occurrence"),
-                          VendLedgEntry."Document Occurrence",
-                          Abs(VendLedgEntry."Remaining Amount"));
+#if not CLEAN30
+                        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                            Error(Text12100,
+                              VendLedgEntry.FieldCaption("Remaining Amount"),
+                              VendLedgEntry.FieldCaption("Document No."),
+                              VendLedgEntry."Document No.",
+                              VendLedgEntry.FieldCaption("Document Occurrence"),
+                              VendLedgEntry."Document Occurrence",
+                              Abs(VendLedgEntry."Remaining Amount"))
+                        else
+#endif
+                            Error(ModifiedRemainingAmountErr,
+                              VendLedgEntry.FieldCaption("Remaining Amount"),
+                              VendLedgEntry.FieldCaption("Document No."),
+                              VendLedgEntry."Document No.",
+                              Abs(VendLedgEntry."Remaining Amount"));
                 end;
                 if not VendorBillLine."Manual Line" then
                     PostVendorBillLine(GenJnlLine, VendorBillHeader, VendorBillLine, VendLedgEntry, BillCode, AmountLCY)
@@ -199,8 +215,13 @@ codeunit 12173 "Vendor Bill List - Post"
         if not VendorBillLine."Manual Line" then begin
             GenJnlLine.Validate("Salespers./Purch. Code", VendLedgEntry."Purchaser Code");
             ApplyInvAndUpdateLedgEntry(GenJnlLine, VendorBillLine, Tax::" ");
+#if not CLEAN30
         end else
-            GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+            if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+                GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+#else
+        end;
+#endif
         GenJnlLine.Description := Bill.Description;
         GenJnlLine."Source Code" := Bill."Vend. Bill Source Code";
         GenJnlLine."System-Created Entry" := true;
@@ -353,7 +374,10 @@ codeunit 12173 "Vendor Bill List - Post"
             GenJnlLine."Applies-to Doc. Type" := GenJnlLine."Applies-to Doc. Type"::Invoice;
             GenJnlLine."Applies-to Doc. No." := VendorBillLine."Document No.";
         end;
-        GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+#if not CLEAN30
+        if not FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            GenJnlLine."Applies-to Occurrence No." := VendorBillLine."Document Occurrence";
+#endif
         GenJnlLine."Allow Application" := true;
         if VendorBillLine."Amount to Pay" + VendorBillLine."Withholding Tax Amount" <> VendorBillLine."Remaining Amount" then begin
             VendLedgEntry."Vendor Bill List" := '';
@@ -372,15 +396,20 @@ codeunit 12173 "Vendor Bill List - Post"
             TempVendorBillLine.Copy(VendorBillLine);
             TempVendorBillLine.Insert();
 
+#if not CLEAN30
             UpdateDocumentOccurrenceForManualLine(TempVendorBillLine, VendorBillLine);
+#endif
         until VendorBillLine.Next() = 0;
 
     end;
 
+#if not CLEAN30
     local procedure UpdateDocumentOccurrenceForManualLine(var TempVendorBillLine: Record "Vendor Bill Line"; VendorBillLine: Record "Vendor Bill Line")
     var
         Iterations: Integer;
     begin
+        if FeatureKeyManagement.IsPaymentInstallmentsEnabled() then
+            exit;
         if not VendorBillLine."Manual Line" then
             exit;
 
@@ -399,6 +428,7 @@ codeunit 12173 "Vendor Bill List - Post"
                 TempVendorBillLine.Modify(true);
             until TempVendorBillLine.Next() = 0;
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterPost(var VendorBillHeader: Record "Vendor Bill Header")

@@ -1871,6 +1871,7 @@ codeunit 144090 "ERM Withhold"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+#if not CLEAN30
     [Test]
     [HandlerFunctions('CreatePaymentMPH,ShowComputedWithholdContribModalPageHandler')]
     procedure PostPmtJournalAfterCreatePaymentAndCalcWithhTaxes()
@@ -1928,6 +1929,7 @@ codeunit 144090 "ERM Withhold"
 
         LibraryVariableStorage.AssertEmpty();
     end;
+#endif
 
     [Test]
     procedure ErrorOnCalcWithhTaxesFromPmtJournalAppliedToSeveralInvoices()

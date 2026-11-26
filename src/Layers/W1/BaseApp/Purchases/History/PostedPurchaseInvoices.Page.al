@@ -12,6 +12,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Comment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
+using System.Environment.Configuration;
 
 page 146 "Posted Purchase Invoices"
 {
@@ -295,6 +296,22 @@ page 146 "Posted Purchase Invoices"
             {
                 Caption = '&Invoice';
                 Image = Invoice;
+                action(InstallmentSchedule)
+                {
+                    Visible = PaymentInstallmentsEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Installment Schedule';
+                    Image = PaymentPeriod;
+                    Enabled = HasInstallmentPlan;
+                    ToolTip = 'View the original installment schedule, current unpaid amounts, and linked vendor entries.';
+
+                    trigger OnAction()
+                    var
+                        PurchaseInstallmentHistory: Codeunit "Purchase Installment History";
+                    begin
+                        PurchaseInstallmentHistory.ShowSchedule(Rec);
+                    end;
+                }
                 action(Statistics)
                 {
                     ApplicationArea = Suite;
@@ -578,6 +595,7 @@ page 146 "Posted Purchase Invoices"
     trigger OnAfterGetCurrRecord()
     begin
         CurrPage.IncomingDocAttachFactBox.PAGE.LoadDataFromRecord(Rec);
+        HasInstallmentPlan := PaymentInstallmentsEnabled and not IsNullGuid(Rec."Installment Plan ID");
     end;
 
     trigger OnOpenPage()
@@ -585,6 +603,7 @@ page 146 "Posted Purchase Invoices"
         OfficeMgt: Codeunit "Office Management";
         HasFilters: Boolean;
     begin
+        PaymentInstallmentsEnabled := FeatureKeyManagement.IsPaymentInstallmentsEnabled();
         HasFilters := Rec.GetFilters() <> '';
         Rec.SetSecurityFilterOnRespCenter();
         if HasFilters and not Rec.Find() then
@@ -602,5 +621,8 @@ page 146 "Posted Purchase Invoices"
     end;
 
     var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+        PaymentInstallmentsEnabled: Boolean;
         IsOfficeAddin: Boolean;
+        HasInstallmentPlan: Boolean;
 }

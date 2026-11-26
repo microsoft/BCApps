@@ -889,8 +889,10 @@ page 253 "Sales Journal"
         }
         area(processing)
         {
+#if not CLEAN30
             action("&Payments")
             {
+                Visible = LegacyPaymentInstallmentsEnabled;
                 ApplicationArea = Basic, Suite;
                 Caption = '&Payments';
                 Image = Payment;
@@ -901,7 +903,11 @@ page 253 "Sales Journal"
                               "Journal Template Name" = field("Journal Template Name"),
                               "Journal Line No." = field("Line No.");
                 ToolTip = 'View the related payments.';
+                ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
+#endif
             group("F&unctions")
             {
                 Caption = 'F&unctions';
@@ -1420,9 +1426,14 @@ page 253 "Sales Journal"
                 actionref(IncomingDoc_Promoted; IncomingDoc)
                 {
                 }
+#if not CLEAN30
                 actionref("&Payments_Promoted"; "&Payments")
                 {
+                    ObsoleteReason = 'Replaced by global Payment Installments feature.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
                 }
+#endif
             }
             group(Category_Category7)
             {
@@ -1523,6 +1534,9 @@ page 253 "Sales Journal"
         LastGenJnlBatch: Code[10];
         IsHandled: Boolean;
     begin
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled := not FeatureKeyManagement.IsPaymentInstallmentsEnabled();
+#endif
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
         UseAllocationAccountNumber := AllocationAccountMgt.UseAllocationAccountNoField();
@@ -1565,12 +1579,18 @@ page 253 "Sales Journal"
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
+#if not CLEAN30
+        FeatureKeyManagement: Codeunit "Feature Key Management";
+#endif
         GenJnlManagement: Codeunit GenJnlManagement;
         ClientTypeManagement: Codeunit "Client Type Management";
         JournalErrorsMgt: Codeunit "Journal Errors Mgt.";
         BackgroundErrorHandlingMgt: Codeunit "Background Error Handling Mgt.";
         ApprovalMgmt: Codeunit "Approvals Mgmt.";
         ChangeExchangeRate: Page "Change Exchange Rate";
+#if not CLEAN30
+        LegacyPaymentInstallmentsEnabled: Boolean;
+#endif
         GenJnlBatchApprovalStatus: Text[20];
         GenJnlLineApprovalStatus: Text[20];
         Balance: Decimal;

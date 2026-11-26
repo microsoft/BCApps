@@ -3883,6 +3883,23 @@ table 81 "Gen. Journal Line"
                 UpdateVendorNo();
             end;
         }
+        field(8840; "Installment Plan ID"; Guid)
+        {
+            Caption = 'Installment Plan ID';
+            Editable = false;
+        }
+        field(8841; "Sales Invoice Source SystemId"; Guid)
+        {
+            Caption = 'Sales Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
+        field(8842; "Purch. Invoice Source SystemId"; Guid)
+        {
+            Caption = 'Purchase Invoice Source SystemId';
+            Editable = false;
+            DataClassification = SystemMetadata;
+        }
         field(11310; "Enterprise No."; Text[50])
         {
             Caption = 'Enterprise No.';
