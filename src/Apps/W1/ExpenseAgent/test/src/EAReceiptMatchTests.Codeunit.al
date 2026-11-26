@@ -602,8 +602,8 @@ codeunit 148370 EAReceiptMatchTests
         CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
         AddCardExpenseToReport(Expense, ExpenseReportLine);
         CreateCardReceiptData(CardReceiptData, Expense);
-        CreateCardReceiptData(RetryCardReceiptData, Expense);
         CardReceiptDataApply.Apply(CardReceiptData);
+        CreateCardReceiptData(RetryCardReceiptData, Expense);
         Commit();
 
         asserterror CardReceiptDataApply.Apply(RetryCardReceiptData);
@@ -852,6 +852,57 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
+    procedure ReceiptDataCannotBeStagedForLostReceiptCardExpenseNotOnReport()
+    var
+        Expense: Record Expense;
+    begin
+        // [SCENARIO] Receipt data can't be staged for a card expense with a lost receipt, because it is not waiting for a receipt.
+        Initialize();
+
+        // [GIVEN] A released card expense that is not on a report, with a lost receipt.
+        CreateReleasedCardExpenseNotOnReport(Expense);
+        Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
+        Expense.Modify();
+
+        // [WHEN] Receipt data is staged for the expense.
+        asserterror CardReceiptDataApply.GetCardExpense(Expense.SystemId, Expense);
+
+        // [THEN] An error says the expense is not waiting for a receipt.
+        Assert.ExpectedError(StrSubstNo(NotWaitingForReceiptErr, Expense."No."));
+    end;
+
+    [Test]
+    procedure StagingReceiptDataReplacesOlderDataForSameExpense()
+    var
+        Expense: Record Expense;
+        OtherExpense: Record Expense;
+        OlderCardReceiptData: Record "EA Card Receipt Data";
+        OtherCardReceiptData: Record "EA Card Receipt Data";
+        CardReceiptData: Record "EA Card Receipt Data";
+        CardReceiptVATSpec: Record "EA Card Receipt VAT Spec.";
+    begin
+        // [SCENARIO] Only the latest staged receipt data is kept per expense, so data left by a failed apply is removed.
+        Initialize();
+
+        // [GIVEN] Two card expenses, each with staged receipt data, and a VAT line on the first expense's data.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO HOTEL');
+        CreateCardExpense(OtherExpense, 'CORPCARD-0001', WorkDate(), 'FABRIKAM TAXI');
+        CreateCardReceiptData(OlderCardReceiptData, Expense);
+        AddCardReceiptVATSpec(OlderCardReceiptData, 1, 19, 16.81, 3.19);
+        CreateCardReceiptData(OtherCardReceiptData, OtherExpense);
+
+        // [WHEN] New receipt data is staged for the first expense.
+        CreateCardReceiptData(CardReceiptData, Expense);
+
+        // [THEN] The older data and its VAT line are deleted, the new data is kept, and the other expense's data is untouched.
+        Assert.IsFalse(OlderCardReceiptData.Find(), 'The older staged receipt data must be deleted.');
+        CardReceiptVATSpec.SetRange("Receipt Data Id", OlderCardReceiptData.Id);
+        Assert.RecordIsEmpty(CardReceiptVATSpec);
+        Assert.IsTrue(CardReceiptData.Find(), 'The new staged receipt data must be kept.');
+        Assert.IsTrue(OtherCardReceiptData.Find(), 'Staged receipt data of another expense must be kept.');
+    end;
+
+    [Test]
     procedure ReceiptDataCannotBeAppliedToLostReceiptCardExpenseNotOnReport()
     var
         Expense: Record Expense;
@@ -866,12 +917,6 @@ codeunit 148370 EAReceiptMatchTests
         Expense."No Receipt Type" := Expense."No Receipt Type"::"Lost Receipt";
         Expense.Modify();
         Commit();
-
-        // [WHEN] Receipt data is staged for the expense.
-        asserterror CardReceiptDataApply.GetCardExpense(Expense.SystemId, Expense);
-
-        // [THEN] An error says the expense is not waiting for a receipt.
-        Assert.ExpectedError(StrSubstNo(NotWaitingForReceiptErr, Expense."No."));
 
         // [WHEN] The receipt data is applied.
         asserterror CardReceiptDataApply.Apply(CardReceiptData);

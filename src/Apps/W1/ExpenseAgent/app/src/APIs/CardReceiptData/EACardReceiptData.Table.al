@@ -6,7 +6,8 @@ namespace Microsoft.ExpenseAgent;
 
 /// <summary>
 /// Staging record for receipt data that is applied to a corporate card expense and its expense report line.
-/// Blank values mean "do not fill". The record and its lines are deleted when the data is applied.
+/// Blank values mean "do not fill". The record and its lines are deleted when the data is applied,
+/// or when newer data is staged for the same expense.
 /// </summary>
 table 7427 "EA Card Receipt Data"
 {
@@ -89,9 +90,19 @@ table 7427 "EA Card Receipt Data"
     }
 
     trigger OnInsert()
+    var
+        OlderCardReceiptData: Record "EA Card Receipt Data";
     begin
         if IsNullGuid(Rec.Id) then
             Rec.Id := CreateGuid();
+
+        // Only the latest staged data per expense is kept, so data from failed applies doesn't pile up.
+        OlderCardReceiptData.SetRange("Expense SystemId", Rec."Expense SystemId");
+        OlderCardReceiptData.SetFilter(Id, '<>%1', Rec.Id);
+        if OlderCardReceiptData.FindSet() then
+            repeat
+                OlderCardReceiptData.Delete(true);
+            until OlderCardReceiptData.Next() = 0;
     end;
 
     trigger OnDelete()
