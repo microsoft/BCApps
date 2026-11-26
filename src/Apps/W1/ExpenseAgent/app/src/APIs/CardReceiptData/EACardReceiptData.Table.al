@@ -61,11 +61,13 @@ table 7427 "EA Card Receipt Data"
         field(25; "Merchant Registration No."; Text[50])
         {
             Caption = 'Merchant Registration No.';
+            DataClassification = OrganizationIdentifiableInformation;
             ToolTip = 'Specifies the merchant registration number to set when the expense or line has none.';
         }
         field(26; "Merchant VAT Registration No."; Text[20])
         {
             Caption = 'Merchant VAT Registration No.';
+            DataClassification = OrganizationIdentifiableInformation;
             ToolTip = 'Specifies the merchant VAT registration number to set when the expense or line has none.';
         }
         field(27; "Expense Ext. Doc. No."; Code[30])

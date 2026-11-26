@@ -50,17 +50,18 @@ codeunit 7438 "EA Receipt Expense Match"
         HasCandidate := false;
         BestScore := 0;
         repeat
-            if IsPaidWithCard(Expense, FilterByCard, CardIds) and IsWaitingForReceipt(Expense) then begin
-                MerchantSimilarity := GetMerchantSimilarity(MerchantName, Expense."Merchant Name");
-                if FilterByCard or (MerchantSimilarity >= GetMinMerchantSimilarity()) then begin
-                    Score := CalculateMatchScore(ExpenseDate, MerchantSimilarity, Expense);
-                    if (not HasCandidate) or (Score > BestScore) then begin
-                        HasCandidate := true;
-                        BestScore := Score;
-                        ExpenseSystemId := Expense.SystemId;
+            if IsPaidWithCard(Expense, FilterByCard, CardIds) then
+                if IsWaitingForReceipt(Expense) then begin
+                    MerchantSimilarity := GetMerchantSimilarity(MerchantName, Expense."Merchant Name");
+                    if FilterByCard or (MerchantSimilarity >= GetMinMerchantSimilarity()) then begin
+                        Score := CalculateMatchScore(ExpenseDate, MerchantSimilarity, Expense);
+                        if (not HasCandidate) or (Score > BestScore) then begin
+                            HasCandidate := true;
+                            BestScore := Score;
+                            ExpenseSystemId := Expense.SystemId;
+                        end;
                     end;
                 end;
-            end;
         until Expense.Next() = 0;
     end;
 

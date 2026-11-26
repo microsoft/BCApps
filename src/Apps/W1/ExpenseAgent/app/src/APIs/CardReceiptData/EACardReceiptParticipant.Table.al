@@ -35,6 +35,7 @@ table 7432 "EA Card Receipt Participant"
         field(11; "Participant Employee No."; Code[20])
         {
             Caption = 'Participant Employee No.';
+            DataClassification = EndUserPseudonymousIdentifiers;
             ToolTip = 'Specifies the employee number when the participant is an employee.';
         }
         field(12; "Participant Name"; Text[100])
@@ -50,6 +51,7 @@ table 7432 "EA Card Receipt Participant"
         field(16; "Participant Email"; Text[80])
         {
             Caption = 'Participant Email';
+            DataClassification = EndUserIdentifiableInformation;
             ToolTip = 'Specifies the email address of the participant.';
         }
     }

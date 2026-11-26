@@ -1208,34 +1208,16 @@ codeunit 148370 EAReceiptMatchTests
     var
         Expense: Record Expense;
         ExpenseReportLine: Record "Expense Report Line";
-        ExpenseCategory: Record "Expense Category";
-        ExpenseRuleHeader: Record "Expense Rule Header";
-        ExpenseRuleCondition: Record "Expense Rule Condition";
         ExpenseRuleValidation: Codeunit "Expense Rule Validation";
     begin
         // [SCENARIO] A card line that will never get a receipt no longer waits for one, so all rules apply, including the receipt
-        // number and the justification. Its locked amount exceeds the maximum, and a justification accepts it.
+        // number and the justification.
         Initialize();
         EnableReceiptNoRule();
 
-        // [GIVEN] A rule for a category that requires a justification from 15 and allows at most 10.
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
-        LibraryExpense.CreateExpenseRuleWithCondition(
-            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, '', 0D, ExpenseRuleHeader."Justification Required"::"Against Conditions", '', '',
-            ExpenseRuleCondition."Condition Type"::"Max Amount", 10);
-        LibraryExpense.CreateExpenseRuleCondition(ExpenseRuleCondition, ExpenseRuleHeader, ExpenseRuleCondition."Condition Type"::"At Least Justification Needed", 15);
-
-        // [GIVEN] An itemized card line of 20 in that category on an open report, and the card expense and line don't need a receipt.
-        // Amount conditions are evaluated for itemized, participant and mileage lines.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
-        AddCardExpenseToReport(Expense, ExpenseReportLine);
-        Expense."No Receipt Type" := Expense."No Receipt Type"::"Receipt not needed";
-        Expense.Modify();
-        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
-        ExpenseReportLine.Modify(true);
-        ExpenseReportLine."Expense Detail Required" := ExpenseReportLine."Expense Detail Required"::Itemize;
-        ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Receipt not needed";
-        ExpenseReportLine.Modify();
+        // [GIVEN] An itemized card line of 20 on an open report that doesn't need a receipt, in a category with a rule that
+        // requires a justification from 15 and allows at most 10.
+        CreateReceiptNotNeededCardLineOverMaxAmount(Expense, ExpenseReportLine);
 
         // [WHEN] The line is validated against the rules.
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
@@ -1246,15 +1228,33 @@ codeunit 148370 EAReceiptMatchTests
         Assert.IsTrue(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'A card line that does not wait for a receipt must require a receipt number.');
         Assert.IsTrue(HasLineViolation(ExpenseReportLine, JustificationRequiredErr), 'The justification rule must apply to a card line that does not wait for a receipt.');
         Assert.IsTrue(HasLineViolationLike(ExpenseReportLine, MaxAmountTok), 'Without a justification, the exceeded maximum must be flagged.');
+    end;
 
-        // [WHEN] The user enters the receipt number and a justification.
-        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+    [Test]
+    procedure ReceiptNotNeededCardLineAcceptedWithReceiptNoAndJustification()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseRuleValidation: Codeunit "Expense Rule Validation";
+    begin
+        // [SCENARIO] A card line that will never get a receipt passes the rules once it has a receipt number and a justification,
+        // and the justification accepts its locked amount above the maximum.
+        Initialize();
+        EnableReceiptNoRule();
+
+        // [GIVEN] An itemized card line of 20 on an open report that doesn't need a receipt, in a category with a rule that
+        // requires a justification from 15 and allows at most 10.
+        CreateReceiptNotNeededCardLineOverMaxAmount(Expense, ExpenseReportLine);
+
+        // [GIVEN] The user entered the receipt number and a justification.
         ExpenseReportLine."Expense Ext. Doc. No." := 'R-0001';
         ExpenseReportLine.Justification := 'Client dinner';
         ExpenseReportLine.Modify();
+
+        // [WHEN] The line is validated against the rules.
         ExpenseRuleValidation.ValidateExpenseReportLineAgainstRule(ExpenseReportLine);
 
-        // [THEN] The receipt number, the justification and the locked amount are no longer flagged.
+        // [THEN] The receipt number, the justification and the locked amount are not flagged.
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No.")), 'The entered receipt number must satisfy the receipt number rule.');
         Assert.IsFalse(HasLineViolation(ExpenseReportLine, JustificationRequiredErr), 'The entered justification must satisfy the justification rule.');
         Assert.IsFalse(HasLineViolationLike(ExpenseReportLine, MaxAmountTok), 'A justification must accept the locked card amount.');
@@ -1508,6 +1508,30 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseReportLine := CreateExpenseReport.AddCardExpenseToExpenseReport(Expense, ExpenseReportHeader);
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         Expense.Get(Expense."No.");
+    end;
+
+    local procedure CreateReceiptNotNeededCardLineOverMaxAmount(var Expense: Record Expense; var ExpenseReportLine: Record "Expense Report Line")
+    var
+        ExpenseCategory: Record "Expense Category";
+        ExpenseRuleHeader: Record "Expense Rule Header";
+        ExpenseRuleCondition: Record "Expense Rule Condition";
+    begin
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseRuleWithCondition(
+            ExpenseRuleHeader, ExpenseRuleCondition, ExpenseCategory.Code, '', 0D, ExpenseRuleHeader."Justification Required"::"Against Conditions", '', '',
+            ExpenseRuleCondition."Condition Type"::"Max Amount", 10);
+        LibraryExpense.CreateExpenseRuleCondition(ExpenseRuleCondition, ExpenseRuleHeader, ExpenseRuleCondition."Condition Type"::"At Least Justification Needed", 15);
+
+        // Amount conditions are evaluated for itemized, participant and mileage lines.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        Expense."No Receipt Type" := Expense."No Receipt Type"::"Receipt not needed";
+        Expense.Modify();
+        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLine.Modify(true);
+        ExpenseReportLine."Expense Detail Required" := ExpenseReportLine."Expense Detail Required"::Itemize;
+        ExpenseReportLine."No Receipt Type" := ExpenseReportLine."No Receipt Type"::"Receipt not needed";
+        ExpenseReportLine.Modify();
     end;
 
     local procedure CreateCardReceiptData(var CardReceiptData: Record "EA Card Receipt Data"; Expense: Record Expense)
