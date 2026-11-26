@@ -27,7 +27,7 @@ page 7785 "Troubleshooting Sessions"
     Extensible = false;
     RefreshOnActivate = true;
     AboutTitle = 'About troubleshooting sessions';
-    AboutText = 'Review saved troubleshooting reports that you are authorized to read. A concluded iteration means an answer was returned, not that the business problem was resolved. Follow-up answers update the same report.';
+    AboutText = 'The list opens with active cases. To see closed cases as well, choose Show All Cases. A concluded iteration means an answer was returned, not that the case was closed.';
 
     layout
     {
@@ -44,6 +44,10 @@ page 7785 "Troubleshooting Sessions"
                 {
                     Caption = 'Status';
                     ToolTip = 'Specifies the saved troubleshooting state. Concluded means an iteration returned an answer, not that the business problem was resolved.';
+                }
+                field(CaseClosed; Rec."Case Closed")
+                {
+                    ToolTip = 'Specifies whether the owner closed the case.';
                 }
                 field(FirstSavedAt; Rec.SystemCreatedAt)
                 {
@@ -69,4 +73,40 @@ page 7785 "Troubleshooting Sessions"
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(ShowAllCases)
+            {
+                Caption = 'Show All Cases';
+                Image = AllLines;
+                ToolTip = 'Show both active and closed cases you can access.';
+
+                trigger OnAction()
+                begin
+                    Rec.SetRange("Case Closed");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ShowActiveCases)
+            {
+                Caption = 'Show Active Cases';
+                Image = FilterLines;
+                ToolTip = 'Show only active cases you can access.';
+
+                trigger OnAction()
+                begin
+                    Rec.SetRange("Case Closed", false);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+    }
+
+    trigger OnOpenPage()
+    begin
+        Rec.SetRange("Case Closed", false);
+    end;
 }

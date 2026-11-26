@@ -72,6 +72,8 @@ codeunit 132691 "Troubleshooting Session Pages"
         if SessionCard.First() then
             Error('The troubleshooting session card must respect its conversation filter.');
         SessionCard.Details.AssertEquals('');
+        if SessionCard.CloseCase.Enabled() then
+            Error('An empty card must not allow closing a case.');
         SessionCard.Close();
     end;
 }
