@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +14,9 @@ using System.Globalization;
 page 2507 "Upload And Deploy Extension"
 {
     Extensible = false;
+    ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '30.0';
     PageType = NavigatePage;
     SourceTable = "Published Application";
     SourceTableTemporary = true;
@@ -138,7 +142,9 @@ page 2507 "Upload And Deploy Extension"
                     if FilePath = '' then
                         Message(ExtensionNotUploadedMsg)
                     else begin
+#pragma warning disable AL0432
                         ExtensionOperationImpl.DeployAndUploadExtension(FileStream, LanguageID, DeployToValue, SyncModeValue);
+#pragma warning restore AL0432
                         CurrPage.Close();
                     end;
                 end;
@@ -183,4 +189,4 @@ page 2507 "Upload And Deploy Extension"
         DisclaimerLbl: Label 'Per-Tenant Extension (PTE) Disclaimer';
         IsAccepted: Boolean;
 }
-
+#endif
