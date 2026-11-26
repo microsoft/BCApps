@@ -5,7 +5,9 @@
 
 namespace System.Apps;
 
+#if not CLEAN30
 using System.Environment;
+#endif
 
 /// <summary>
 /// Displays the deployment status for extensions that are deployed or are scheduled for deployment.
@@ -119,16 +121,23 @@ page 2508 "Extension Deployment Status"
                         until NavAppTenantOperationTable.Next() = 0;
                 end;
             }
+#if not CLEAN30
             action("Upload Extension")
             {
                 ApplicationArea = All;
                 Caption = 'Upload Extension';
                 Image = Import;
+#pragma warning disable AL0432
                 RunObject = page "Upload And Deploy Extension";
+#pragma warning restore AL0432
                 ToolTip = 'Upload an extension to your application.';
                 Ellipsis = true;
                 Visible = IsSaaS;
+                ObsoleteReason = 'Use the Business Central admin center or the admin center API to upload per-tenant extensions.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
             }
+#endif
         }
         area(Navigation)
         {
@@ -168,15 +177,19 @@ page 2508 "Extension Deployment Status"
         Rec.SetCurrentKey("Started On");
         Rec.Ascending(false);
 
+#if not CLEAN30
         DetermineEnvironmentConfigurations();
+#endif
     end;
 
+#if not CLEAN30
     local procedure DetermineEnvironmentConfigurations()
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
     end;
+#endif
 
     var
         Version: Text;
@@ -184,7 +197,7 @@ page 2508 "Extension Deployment Status"
         AppPublisher: Text;
         AppName: Text;
         OperationType: Option Upload,Install;
+#if not CLEAN30
         IsSaaS: Boolean;
+#endif
 }
-
-

@@ -37,68 +37,170 @@ codeunit 148330 "Expense Posting VAT Test"
         NotApprovedForVATReclaimErr: Label 'VAT Reclaim Status is not set for Line with Expense Category %1 and Expense Subcategory %2.', Comment = '%1 = Expense Category, %2 = Expense Subcategory';
         ModifyOrDeleteAgentVATSpecErr: Label 'Modifications and delete are not allowed for records created by the Expense Agent API.';
         RoundingDifferenceTooLargeErr: Label 'exceeds the currency rounding precision';
+        FinancialItemizationTotalMismatchErr: Label 'The financial itemization total %2 for expense report line %1 must match the expense amount %3 within the currency rounding precision.', Comment = '%1 = Expense report line number, %2 = Financial itemization total in expense currency, %3 = Expense amount in expense currency';
 
     [Test]
-    procedure ExpenseCategoryCardCanEditVATDefaultsWhenReclaimEnabled()
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure HotelSubcategoriesUseDifferentAccountsWithCategoryFallback()
     var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
+        Expense: Record Expense;
+        ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
-        VATProductPostingGroup: Record "VAT Product Posting Group";
-        ExpenseCategoryCard: TestPage "Expense Category Card";
+        ExpenseSubcategory: array[4] of Record "Expense Subcategory";
+        ExpensePostingGroup: array[2] of Record "Expense Posting Group";
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        VATPostingSetup: array[3] of Record "VAT Posting Setup";
     begin
-        // [SCENARIO] Category VAT defaults can be maintained on the card when VAT reclaim is enabled.
+        // [SCENARIO] Subcategories use separate expense accounts without changing their VAT or blank-override fallback.
         Initialize();
 
-        // [GIVEN] VAT reclaim is enabled and a category has no VAT defaults.
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup.Validate("Allow VAT Reclaim", true);
-        ExpenseAgentSetup.Modify(true);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
-        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        // [GIVEN] Three hotel itemizations have different VAT rates, two posting-group overrides, and one category fallback.
+        CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
+        CreateSubcategoryWithVATRate(ExpenseSubcategory[1], ExpenseCategory.Code, 10, VATPostingSetup[1]);
+        CreateSubcategoryWithVATRate(ExpenseSubcategory[2], ExpenseCategory.Code, 20, VATPostingSetup[2]);
+        CreateSubcategoryWithVATRate(ExpenseSubcategory[3], ExpenseCategory.Code, 0, VATPostingSetup[3]);
+        SetSubcategoryPostingGroup(ExpenseSubcategory[1], ExpensePostingGroup[1]);
+        SetSubcategoryPostingGroup(ExpenseSubcategory[2], ExpensePostingGroup[2]);
+        CreateExpenseWithHotelItemizations(Expense, ExpenseUser, ExpenseCategory, ExpenseSubcategory, VATPostingSetup, 110, 120, 50, 0);
 
-        // [WHEN] The category VAT defaults are edited on the card.
-        ExpenseCategoryCard.OpenEdit();
-        ExpenseCategoryCard.GoToRecord(ExpenseCategory);
-        Assert.IsTrue(ExpenseCategoryCard."VAT Prod. Posting Group".Visible(), 'The category VAT posting group must be visible.');
-        Assert.IsTrue(ExpenseCategoryCard."Default VAT %".Visible(), 'The default VAT percentage must be visible.');
-        Assert.IsTrue(ExpenseCategoryCard."Default VAT Reclaim %".Visible(), 'The default VAT reclaim percentage must be visible.');
-        ExpenseCategoryCard."VAT Prod. Posting Group".SetValue(VATProductPostingGroup.Code);
-        ExpenseCategoryCard."Default VAT %".SetValue(20);
-        ExpenseCategoryCard."Default VAT Reclaim %".SetValue(50);
-        ExpenseCategoryCard.Close();
+        // [WHEN] The expense report is posted.
+        PostExpenseReport(ExpenseReportHeader, Expense, ExpenseUser);
 
-        // [THEN] All three VAT defaults are saved on the category.
-        ExpenseCategory.Get(ExpenseCategory.Code);
-        ExpenseCategory.TestField("VAT Prod. Posting Group", VATProductPostingGroup.Code);
-        ExpenseCategory.TestField("Default VAT %", 20);
-        ExpenseCategory.TestField("Default VAT Reclaim %", 50);
+        // [THEN] Each itemization uses its selected expense account without changing the VAT bases or amounts.
+        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
+        VerifyGLEntryWithVAT(PostedExpenseReportHeader."No.", ExpensePostingGroup[1]."Refundable Debit Account", 100, 10);
+        VerifyGLEntryWithVAT(PostedExpenseReportHeader."No.", ExpensePostingGroup[2]."Refundable Debit Account", 100, 20);
+        VerifyGLEntryWithVAT(PostedExpenseReportHeader."No.", GetRefundableDebitAccount(ExpenseCategory.Code), 50, 0);
+        VerifyVATEntryByPostingGroup(PostedExpenseReportHeader."No.", VATPostingSetup[1], 100, 10);
+        VerifyVATEntryByPostingGroup(PostedExpenseReportHeader."No.", VATPostingSetup[2], 100, 20);
     end;
 
     [Test]
-    procedure ExpenseCategoryCardHidesVATDefaultsWhenReclaimDisabled()
-    var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        ExpenseCategory: Record "Expense Category";
-        ExpenseCategoryCard: TestPage "Expense Category Card";
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure RefundableItemizationsUseSeparateAccountsWithoutVAT()
     begin
-        // [SCENARIO] Category VAT defaults are hidden when VAT reclaim is disabled.
+        // [SCENARIO] Refundable itemizations use subcategory accounts with category fallback when VAT is absent.
+        // [GIVEN] An employee-paid expense has refundable items sharing an account override and one using the category fallback.
+        // [WHEN] The expense report is posted.
+        // [THEN] Item amounts use their selected accounts while expense and project ledger totals remain aggregated.
+        VerifySubcategoryPostingWithoutVAT(true, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure RefundableItemizedProjectRequiresCategoryPostingGroup()
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        GLEntry: Record "G/L Entry";
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+        GLEntryCount: Integer;
+        JobLedgerEntryCount: Integer;
+    begin
+        // [SCENARIO] A valid subcategory override does not replace the parent category posting group required for aggregate project costs.
         Initialize();
 
-        // [GIVEN] VAT reclaim is disabled.
-        ExpenseAgentSetup.Get();
-        ExpenseAgentSetup.Validate("Allow VAT Reclaim", false);
-        ExpenseAgentSetup.Modify(true);
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        // [GIVEN] A refundable project expense has fully allocated financial itemizations and a valid subcategory posting-group override.
+        LibraryExpense.UpdateUseRulesInAgentSetup(false);
+        CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        SetSubcategoryPostingGroup(ExpenseSubcategory, ExpensePostingGroup);
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryJob.CreateJob(Job);
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        ExpenseReportLine.Validate("Expense Subcategory Code", ExpenseSubcategory.Code);
+        ExpenseReportLine.Validate(Refundable, true);
+        ExpenseReportLine.Validate(Amount, 150);
+        ExpenseReportLine.Validate("Job No.", JobTask."Job No.");
+        ExpenseReportLine.Validate("Job Task No.", JobTask."Job Task No.");
+        ExpenseReportLine.Modify(true);
+        LibraryExpense.CreateExpenseReportLineItemization(
+            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubcategory.Code, WorkDate(), 150, 1);
+        ExpenseReportHeader.PerformManualRelease();
 
-        // [WHEN] The expense category card is opened.
-        ExpenseCategoryCard.OpenEdit();
-        ExpenseCategoryCard.GoToRecord(ExpenseCategory);
+        // [GIVEN] The parent category has no posting group.
+        ExpenseCategory.Validate("Posting Group", '');
+        ExpenseCategory.Modify(true);
+        GLEntryCount := GLEntry.Count();
+        JobLedgerEntryCount := JobLedgerEntry.Count();
 
-        // [THEN] None of the VAT defaults are shown.
-        Assert.IsFalse(ExpenseCategoryCard."VAT Prod. Posting Group".Visible(), 'The category VAT posting group must be hidden.');
-        Assert.IsFalse(ExpenseCategoryCard."Default VAT %".Visible(), 'The default VAT percentage must be hidden.');
-        Assert.IsFalse(ExpenseCategoryCard."Default VAT Reclaim %".Visible(), 'The default VAT reclaim percentage must be hidden.');
-        ExpenseCategoryCard.Close();
+        // [WHEN] Posting is attempted.
+        asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
+
+        // [THEN] The required category posting group is identified before any posted document or ledger entries are created.
+        Assert.ExpectedTestFieldError(ExpenseCategory.FieldCaption("Posting Group"), '');
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(GLEntryCount, GLEntry.Count(), 'A missing project posting group must not create G/L entries.');
+        Assert.AreEqual(JobLedgerEntryCount, JobLedgerEntry.Count(), 'A missing project posting group must not create project ledger entries.');
+        PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(PostedExpenseReportHeader, 0);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure NonRefundableItemizationsUseSeparateAccountsWithoutVAT()
+    begin
+        // [SCENARIO] Non-refundable itemizations use subcategory accounts with category fallback when VAT is absent.
+        // [GIVEN] A company-paid expense has non-refundable items sharing an account override and one using the category fallback.
+        // [WHEN] The expense report is posted.
+        // [THEN] Item amounts use their selected non-refundable accounts and one parent expense ledger entry is retained.
+        VerifySubcategoryPostingWithoutVAT(false, true);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure RefundableExpenseUsesSubcategoryAccountWithoutItemizations()
+    begin
+        // [SCENARIO] A refundable expense uses its subcategory account without itemizations or VAT.
+        // [GIVEN] An employee-paid refundable expense has a subcategory posting-group override.
+        // [WHEN] The expense report is posted.
+        // [THEN] The full amount uses the subcategory's refundable account and the report balances.
+        VerifySubcategoryPostingWithoutVAT(true, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure NonRefundableExpenseUsesSubcategoryAccountWithoutItemizations()
+    begin
+        // [SCENARIO] A non-refundable expense uses its subcategory account without itemizations or VAT.
+        // [GIVEN] A company-paid non-refundable expense has a subcategory posting-group override.
+        // [WHEN] The expense report is posted.
+        // [THEN] The full amount uses the subcategory's non-refundable account and the report balances.
+        VerifySubcategoryPostingWithoutVAT(false, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure UnderallocatedFinancialItemizationsBlockPostingWithoutRules()
+    begin
+        // [SCENARIO] With rules disabled, a 150 LCY expense cannot post only 100 LCY of financial itemizations.
+        VerifyFinancialItemizationDifferenceBlocksPosting(100);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure OverallocatedFinancialItemizationsBlockPostingWithoutRules()
+    begin
+        // [SCENARIO] With rules disabled, a 150 LCY expense cannot post 200 LCY of financial itemizations.
+        VerifyFinancialItemizationDifferenceBlocksPosting(200);
     end;
 
     [Test]
@@ -186,6 +288,57 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseReportLineVATSpec.FindFirst();
         ExpenseReportLineVATSpec.TestField("VAT Bus. Posting Group", ExpenseVATSpecification."VAT Bus. Posting Group");
         VerifyCapturedAgentVAT(ExpenseReportLineVATSpec);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure PolicyOnlyItemizationsPreserveParentFinancialAllocation()
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ExpensePolicy: Record "Expense Policy";
+        ExpensePolicyEvaluation: Record "Expense Policy Evaluation";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+    begin
+        // [SCENARIO] Policy-only itemizations do not replace the parent report line's financial allocation.
+        Initialize();
+
+        // [GIVEN] A report line of 150 includes 30 non-refundable, a subcategory account override, and a policy-only itemization of 100.
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        SetSubcategoryPostingGroup(ExpenseSubcategory, ExpensePostingGroup);
+        LibraryExpense.CreateExpensePolicy(ExpensePolicy, ExpenseCategory.Code, 'Itemize expenses for this category.');
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        ExpenseReportLine.Validate("Expense Subcategory Code", ExpenseSubcategory.Code);
+        ExpenseReportLine.Validate(Refundable, true);
+        ExpenseReportLine.Validate(Amount, 150);
+        ExpenseReportLine.Validate("Non-Refundable Amount", 30);
+        ExpenseReportLine.Modify(true);
+        LibraryExpense.CreateExpenseReportLineItemization(
+            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, '', WorkDate(), 100, 1);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        LibraryExpense.CreateExpensePolicyEvaluation(
+            ExpensePolicyEvaluation, ExpenseReportLine, ExpensePolicy, 'The expense is itemized as required.', true);
+        ExpenseReportLine.MarkPoliciesEvaluated(ExpenseReportLine."Policy Eval Version");
+        ExpenseReportHeader.PerformManualRelease();
+
+        // [WHEN] The expense report is posted after the itemization policy is evaluated.
+        PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
+
+        // [THEN] Only the parent's refundable amount of 120 is posted to the subcategory's refundable account.
+        VerifyGLEntry(ExpenseReportHeader."Last Posting No.", ExpensePostingGroup."Refundable Debit Account", 120);
     end;
 
     [Test]
@@ -539,6 +692,7 @@ codeunit 148330 "Expense Posting VAT Test"
         ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
         ExpenseSubCategory: array[4] of Record "Expense Subcategory";
+        ExpensePostingGroup: array[2] of Record "Expense Posting Group";
         ExpenseReportHeader: Record "Expense Report Header";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
@@ -554,6 +708,8 @@ codeunit 148330 "Expense Posting VAT Test"
         CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
         CreateSubcategoryWithVATRate(ExpenseSubCategory[1], ExpenseCategory.Code, 10, VATPostingSetup[1]);
         CreateSubcategoryWithVATRate(ExpenseSubCategory[2], ExpenseCategory.Code, 20, VATPostingSetup[2]);
+        SetSubcategoryPostingGroup(ExpenseSubCategory[1], ExpensePostingGroup[1]);
+        SetSubcategoryPostingGroup(ExpenseSubCategory[2], ExpensePostingGroup[2]);
         CreateExpenseWithHotelItemizations(Expense, ExpenseUser, ExpenseCategory, ExpenseSubCategory, VATPostingSetup, 110, 120, 0, 0);
         LibraryJob.CreateJob(Job);
         LibraryJob.CreateJobTask(Job, JobTask);
@@ -577,8 +733,11 @@ codeunit 148330 "Expense Posting VAT Test"
 #pragma warning restore AA0210
         JobLedgerEntry.FindFirst();
         Assert.RecordCount(JobLedgerEntry, 1);
+        JobLedgerEntry.TestField("No.", GetRefundableDebitAccount(ExpenseCategory.Code));
         Assert.AreNearlyEqual(200, JobLedgerEntry."Unit Cost (LCY)", 0.01, 'Project unit cost must include all VAT specification journal amounts.');
         Assert.AreNearlyEqual(200, JobLedgerEntry."Unit Price (LCY)", 0.01, 'Project unit price must include all VAT specification journal amounts.');
+        VerifyGLEntry(PostedExpenseReportHeader."No.", ExpensePostingGroup[1]."Refundable Debit Account", 100);
+        VerifyGLEntry(PostedExpenseReportHeader."No.", ExpensePostingGroup[2]."Refundable Debit Account", 100);
     end;
 
     [Test]
@@ -1296,12 +1455,36 @@ codeunit 148330 "Expense Posting VAT Test"
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
     procedure VATSpecPostingBalancesForeignReimbursementCurrency()
+    begin
+        // [SCENARIO] Component rounding in a foreign reimbursement currency does not leave the G/L transaction out of balance.
+        VerifyVATSpecCurrencyRounding(false, 0.01);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure CurrencyRoundingUsesSubcategoryCreditAccount()
+    begin
+        // [SCENARIO] A credit rounding difference uses the report line's subcategory posting group.
+        VerifyVATSpecCurrencyRounding(true, 0.01);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
+    procedure CurrencyRoundingUsesSubcategoryDebitAccount()
+    begin
+        // [SCENARIO] A debit rounding difference uses the report line's subcategory posting group.
+        VerifyVATSpecCurrencyRounding(true, -0.01);
+    end;
+
+    local procedure VerifyVATSpecCurrencyRounding(UseSubcategoryPostingGroup: Boolean; RoundingAdjustment: Decimal)
     var
         Expense: Record Expense;
         ExpenseUser: Record "Expense User";
         ExpenseCategory: Record "Expense Category";
         ExpenseSubCategory: array[4] of Record "Expense Subcategory";
+        ExpensePostingGroup: Record "Expense Posting Group";
         ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
         PostedExpenseReportHeader: Record "Posted Expense Report Header";
         VATPostingSetup: array[3] of Record "VAT Posting Setup";
@@ -1309,8 +1492,8 @@ codeunit 148330 "Expense Posting VAT Test"
         CreateExpenseReport: Codeunit "Create Expense Report";
         ExpenseReportPost: Codeunit "Expense Report-Post";
         CurrencyCode: Code[10];
+        ExpectedRoundingAmountRCY: Decimal;
     begin
-        // [SCENARIO] Component rounding in a foreign reimbursement currency does not leave the G/L transaction out of balance.
         Initialize();
 
         // [GIVEN] A 200.02 LCY expense split into two VAT specs and an 8.56 reimbursement-currency exchange rate.
@@ -1321,16 +1504,30 @@ codeunit 148330 "Expense Posting VAT Test"
         CurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 8.56);
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", CurrencyCode, Expense."VAT Bus. Posting Group");
         AddExpensesToReport(CreateExpenseReport, ExpenseReportHeader, Expense."No.");
+        if UseSubcategoryPostingGroup then begin
+            SetSubcategoryPostingGroup(ExpenseSubCategory[1], ExpensePostingGroup);
+            ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+            ExpenseReportLine.FindFirst();
+            ExpenseReportLine.Validate("Expense Subcategory Code", ExpenseSubCategory[1].Code);
+            ExpenseReportLine.Modify(true);
+        end else
+            ExpensePostingGroup.Get(ExpenseCategory."Posting Group");
         ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportHeader."No.");
         ExpenseReportLineVATSpec.FindFirst();
-        ExpenseReportLineVATSpec."VAT Base Amount (LCY)" += 0.01;
-        ExpenseReportLineVATSpec."VAT Base Amount (RCY)" += 0.08;
-        ExpenseReportLineVATSpec."Amount (RCY)" += 0.08;
+        ExpenseReportLineVATSpec."VAT Base Amount (LCY)" += RoundingAdjustment;
+        ExpenseReportLineVATSpec."VAT Base Amount (RCY)" += RoundingAdjustment * 8;
+        ExpenseReportLineVATSpec."Amount (RCY)" += RoundingAdjustment * 8;
         ExpenseReportLineVATSpec.Modify();
 
         // [WHEN] The report is approved and posted.
         UpdateExpenseReportLinesWithVendor(ExpenseReportHeader);
         ExpenseReportHeader.PerformManualRelease();
+        ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
+        ExpenseReportLine.FindFirst();
+        ExpenseReportLineVATSpec.CalcSums("VAT Base Amount (RCY)", "VAT Amount (RCY)");
+        ExpectedRoundingAmountRCY :=
+            ExpenseReportLine."Reimbursable Amount" -
+            ExpenseReportLineVATSpec."VAT Base Amount (RCY)" - ExpenseReportLineVATSpec."VAT Amount (RCY)";
         PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
 
         // [THEN] The document balances in LCY and reimbursement currency.
@@ -1339,6 +1536,16 @@ codeunit 148330 "Expense Posting VAT Test"
         GLEntry.CalcSums(Amount, "Source Currency Amount");
         Assert.AreEqual(0, GLEntry.Amount, 'The posted G/L entries must balance in LCY.');
         Assert.AreEqual(0, GLEntry."Source Currency Amount", 'The posted G/L entries must balance in reimbursement currency.');
+
+        // [THEN] The rounding entry uses the selected posting group's debit or credit account.
+        if RoundingAdjustment > 0 then
+            GLEntry.SetRange("G/L Account No.", ExpensePostingGroup."Credit Rounding Account")
+        else
+            GLEntry.SetRange("G/L Account No.", ExpensePostingGroup."Debit Rounding Account");
+        Assert.RecordCount(GLEntry, 1);
+        GLEntry.FindFirst();
+        GLEntry.TestField(Amount, -RoundingAdjustment);
+        GLEntry.TestField("Source Currency Amount", ExpectedRoundingAmountRCY);
     end;
 
     [Test]
@@ -1660,6 +1867,189 @@ codeunit 148330 "Expense Posting VAT Test"
         GLEntry.SetRange("G/L Account No.", VATPostingSetup[1]."Non-Ded. Purchase VAT Account");
         GLEntry.CalcSums(Amount);
         Assert.AreNearlyEqual(ExpectedNonDeductibleVAT, GLEntry.Amount, 0.01, 'The non-deductible purchase VAT account must receive the non-reclaimable VAT amount.');
+    end;
+
+    local procedure SetSubcategoryPostingGroup(var ExpenseSubcategory: Record "Expense Subcategory"; var ExpensePostingGroup: Record "Expense Posting Group")
+    begin
+        LibraryExpense.CreateExpensePostingGroup(ExpensePostingGroup);
+        ExpenseSubcategory.Validate("Posting Group", ExpensePostingGroup.Code);
+        ExpenseSubcategory.Modify(true);
+    end;
+
+    local procedure VerifyFinancialItemizationDifferenceBlocksPosting(ItemizedAmount: Decimal)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseReportLineItem: Record "Expense Report Line Item";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        GLEntry: Record "G/L Entry";
+        ExpenseReportPost: Codeunit "Expense Report-Post";
+        GLEntryCount: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] Rules are disabled and a 150 LCY report line has a subcategory posting-group override and an invalid financial itemization total.
+        LibraryExpense.UpdateUseRulesInAgentSetup(false);
+        CreateExpenseUserAndCategory(ExpenseUser, ExpenseCategory);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory, ExpenseCategory.Code, true);
+        SetSubcategoryPostingGroup(ExpenseSubcategory, ExpensePostingGroup);
+        Employee.Get(ExpenseUser."Employee No.");
+        LibraryExpense.UpdateExpenseAccountInEmployeePostingGroup(Employee."Employee Posting Group");
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
+        LibraryExpense.CreateExpenseReportLine(
+            ExpenseReportLine, ExpenseReportHeader, ExpenseCategory.Code, false, '',
+            ExpenseReportLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo());
+        ExpenseReportLine.Validate("Expense Subcategory Code", ExpenseSubcategory.Code);
+        ExpenseReportLine.Validate(Refundable, true);
+        ExpenseReportLine.Validate(Amount, 150);
+        ExpenseReportLine.Modify(true);
+        LibraryExpense.CreateExpenseReportLineItemization(
+            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubcategory.Code, WorkDate(), ItemizedAmount, 1);
+        ExpenseReportHeader.PerformManualRelease();
+        GLEntryCount := GLEntry.Count();
+
+        // [WHEN] Posting is attempted.
+        asserterror PostExpenseReportWithConfirmation(ExpenseReportPost, ExpenseReportHeader);
+
+        // [THEN] The allocation error blocks posting instead of posting the difference to a rounding account.
+        Assert.ExpectedError(StrSubstNo(FinancialItemizationTotalMismatchErr, ExpenseReportLine."Line No.", ExpenseReportLineItem.Amount, ExpenseReportLine.Amount));
+        LibraryVariableStorage.AssertEmpty();
+        Assert.AreEqual(GLEntryCount, GLEntry.Count(), 'Invalid financial itemizations must not create G/L entries.');
+        PostedExpenseReportHeader.SetRange("Expense User No.", ExpenseUser."No.");
+        Assert.RecordCount(PostedExpenseReportHeader, 0);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Released);
+    end;
+
+    local procedure VerifySubcategoryPostingWithoutVAT(Refundable: Boolean; Itemized: Boolean)
+    var
+        Expense: Record Expense;
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        ExpenseUser: Record "Expense User";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: array[2] of Record "Expense Subcategory";
+        ExpensePostingGroup: Record "Expense Posting Group";
+        CategoryPostingGroup: Record "Expense Posting Group";
+        ExpensePaymentMethod: Record "Expense Payment Method";
+        ExpenseItemization: array[3] of Record "Expense Itemization";
+        ExpenseReportHeader: Record "Expense Report Header";
+        PostedExpenseReportHeader: Record "Posted Expense Report Header";
+        PostedExpenseReportLine: Record "Posted Expense Report Line";
+        PostedExpenseReportLineVATSpec: Record "Posted Exp. Rep. Line VAT Spec";
+        ExpenseLedgerEntry: Record "Expense Ledger Entry";
+        GLEntry: Record "G/L Entry";
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobLedgerEntry: Record "Job Ledger Entry";
+        ExpenseExtEventsSubscr: Codeunit "Expense Ext. Events Subscr.";
+        OverrideAccountNo: Code[20];
+        CategoryAccountNo: Code[20];
+        Sign: Integer;
+        DescriptionMarker: Text[20];
+    begin
+        Initialize();
+        LibraryExpense.CreateExpenseUser(ExpenseUser);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryExpense.CreateExpensePostingGroup(CategoryPostingGroup);
+        ExpenseCategory.Validate("Posting Group", CategoryPostingGroup.Code);
+        if not Refundable then
+            ExpenseCategory."Reimbursement Type" := ExpenseCategory."Reimbursement Type"::"Company Paid";
+        if Itemized then
+            ExpenseCategory."Expense Detail Required" := ExpenseCategory."Expense Detail Required"::Itemize;
+        ExpenseCategory.Modify(true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[1], ExpenseCategory.Code, true);
+        LibraryExpense.CreateExpenseSubCategory(ExpenseSubcategory[2], ExpenseCategory.Code, true);
+        SetSubcategoryPostingGroup(ExpenseSubcategory[1], ExpensePostingGroup);
+        LibraryExpense.CreateExpense(Expense, ExpenseUser."No.", ExpenseCategory.Code, ExpenseSubcategory[1].Code, '', Refundable, '', 150);
+        LibraryExpense.FindExpensePaymentMethod(ExpensePaymentMethod, ExpenseCategory."Reimbursement Type");
+        Expense.Validate("Payment Method Code", ExpensePaymentMethod.Code);
+        Expense.Modify(true);
+        if Itemized then begin
+            LibraryExpense.CreateExpenseItemization(ExpenseItemization[1], Expense, ExpenseCategory.Code, ExpenseSubcategory[2].Code, WorkDate(), 50, 1);
+            LibraryExpense.CreateExpenseItemization(ExpenseItemization[2], Expense, ExpenseCategory.Code, ExpenseSubcategory[1].Code, WorkDate(), 40, 1);
+            LibraryExpense.CreateExpenseItemization(ExpenseItemization[3], Expense, ExpenseCategory.Code, ExpenseSubcategory[1].Code, WorkDate(), 60, 1);
+        end;
+        Expense.Get(Expense."No.");
+        if Refundable and Itemized then begin
+            LibraryJob.CreateJob(Job);
+            LibraryJob.CreateJobTask(Job, JobTask);
+            Expense.Validate("Job No.", JobTask."Job No.");
+            Expense.Validate("Job Task No.", JobTask."Job Task No.");
+            Expense.Modify(true);
+        end;
+        ExpenseVATSpecification.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpenseVATSpecification, 0);
+        ReleaseExpenseAndUpdateAccounts(Expense, ExpenseUser);
+
+        if Itemized then begin
+            DescriptionMarker := 'Itemized posting';
+            ExpenseExtEventsSubscr.SetGenJnlLineDescriptionMarker(DescriptionMarker);
+            BindSubscription(ExpenseExtEventsSubscr);
+        end;
+
+        PostExpenseReport(ExpenseReportHeader, Expense, ExpenseUser);
+
+        if Itemized then
+            UnbindSubscription(ExpenseExtEventsSubscr);
+
+        FindPostedExpenseReport(PostedExpenseReportHeader, Expense);
+        PostedExpenseReportLineVATSpec.SetRange("Expense Report No.", PostedExpenseReportHeader."No.");
+        Assert.RecordCount(PostedExpenseReportLineVATSpec, 0);
+        if Itemized then begin
+            PostedExpenseReportLine.SetRange("Document No.", PostedExpenseReportHeader."No.");
+            PostedExpenseReportLine.FindFirst();
+#pragma warning disable AA0210
+            ExpenseLedgerEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
+#pragma warning restore AA0210
+            Assert.RecordCount(ExpenseLedgerEntry, 1);
+            ExpenseLedgerEntry.FindFirst();
+            ExpenseLedgerEntry.TestField("Expense Category", PostedExpenseReportLine."Expense Category");
+            ExpenseLedgerEntry.TestField("Expense Subcategory Code", PostedExpenseReportLine."Expense Subcategory Code");
+            ExpenseLedgerEntry.TestField(Description, PostedExpenseReportLine.Description);
+            ExpenseLedgerEntry.TestField(Amount, PostedExpenseReportLine.Amount);
+            ExpenseLedgerEntry.TestField("Amount (LCY)", PostedExpenseReportLine."Amount (LCY)");
+            ExpenseLedgerEntry.TestField("Currency Code", PostedExpenseReportLine."Expense Currency Code");
+            ExpenseLedgerEntry.TestField("Refundable Amount", PostedExpenseReportLine."Refundable Amount");
+            ExpenseLedgerEntry.TestField("Refundable Amount (LCY)", PostedExpenseReportLine."Refundable Amount (LCY)");
+        end;
+        if Refundable then begin
+            Sign := 1;
+            OverrideAccountNo := ExpensePostingGroup."Refundable Debit Account";
+            CategoryAccountNo := CategoryPostingGroup."Refundable Debit Account";
+        end else begin
+            Sign := -1;
+            OverrideAccountNo := ExpensePostingGroup."Non-Refundable Debit Account";
+            CategoryAccountNo := CategoryPostingGroup."Non-Refundable Debit Account";
+        end;
+        if Itemized then begin
+            VerifyGLEntry(PostedExpenseReportHeader."No.", OverrideAccountNo, Sign * 100);
+            VerifyGLEntry(PostedExpenseReportHeader."No.", CategoryAccountNo, Sign * 50);
+        end else
+            VerifyGLEntry(PostedExpenseReportHeader."No.", OverrideAccountNo, Sign * 150);
+        GLEntry.SetRange("Document No.", PostedExpenseReportHeader."No.");
+        GLEntry.CalcSums(Amount);
+        Assert.AreNearlyEqual(0, GLEntry.Amount, 0.01, 'Subcategory account selection must not change the report balance.');
+        if Itemized then begin
+            GLEntry.SetRange(Description, DescriptionMarker);
+            GLEntry.SetRange("G/L Account No.", OverrideAccountNo);
+            Assert.RecordCount(GLEntry, 2);
+            GLEntry.SetRange("G/L Account No.", CategoryAccountNo);
+            Assert.RecordCount(GLEntry, 1);
+        end;
+        if Refundable and Itemized then begin
+#pragma warning disable AA0210
+            JobLedgerEntry.SetRange("Expense Report No.", PostedExpenseReportHeader."No.");
+#pragma warning restore AA0210
+            JobLedgerEntry.FindFirst();
+            Assert.RecordCount(JobLedgerEntry, 1);
+            JobLedgerEntry.TestField("No.", CategoryAccountNo);
+            Assert.AreNearlyEqual(150, JobLedgerEntry."Unit Cost (LCY)", 0.01, 'Project costs must remain aggregated on the category account.');
+        end;
     end;
 
     local procedure Initialize()

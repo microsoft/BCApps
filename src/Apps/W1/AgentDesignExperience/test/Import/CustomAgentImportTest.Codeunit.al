@@ -14,6 +14,7 @@ using System.Test.Agents.Designer;
 using System.Utilities;
 
 codeunit 133753 "Custom Agent Import Test"
+// [FEATURE] [Custom Agent Import]
 {
     Subtype = Test;
     TestType = UnitTest;
@@ -830,6 +831,39 @@ codeunit 133753 "Custom Agent Import Test"
         // Should have no warnings and no errors
         AssertExactDiagnosticCount(TempDiagnostic, 0, Severity::Warning, 'TEST_IMP_AGENT_1');
         AssertExactDiagnosticCount(TempDiagnostic, 0, Severity::Error, 'TEST_IMP_AGENT_1');
+    end;
+
+    [Test]
+    procedure TestImportBufferPreservesMarkdownFormatting()
+    var
+        TempAgentImportBuffer: Record "Agent Import Buffer" temporary;
+        ExpectedInstructions: TextBuilder;
+        Instructions: Text;
+        CarriageReturn: Char;
+        LineFeed: Char;
+    begin
+        // [SCENARIO] Import buffers preserve Markdown whitespace while normalizing line endings.
+        // [GIVEN] Markdown with mixed line endings, indentation, blank lines, and trailing spaces
+        CarriageReturn := 13;
+        LineFeed := 10;
+        Instructions := '    Preserve indentation <tag> & text' + Format(CarriageReturn) + Format(LineFeed) +
+            '# Instructions' + Format(LineFeed) + Format(LineFeed) +
+            'Keep this hard break.  ' + Format(LineFeed) + 'Final instruction.  ';
+        ExpectedInstructions.AppendLine('    Preserve indentation <tag> & text');
+        ExpectedInstructions.AppendLine('# Instructions');
+        ExpectedInstructions.AppendLine();
+        ExpectedInstructions.AppendLine('Keep this hard break.  ');
+        ExpectedInstructions.Append('Final instruction.  ');
+        TempAgentImportBuffer."Entry No." := 1;
+
+        // [WHEN] The instructions are stored in the import buffer and read back
+        TempAgentImportBuffer.SetInstructions(Instructions);
+        TempAgentImportBuffer.Insert();
+
+        TempAgentImportBuffer.Get(1);
+
+        // [THEN] Markdown formatting is retained with normalized line endings
+        Assert.AreEqual(ExpectedInstructions.ToText(), TempAgentImportBuffer.GetInstructions(), 'Text-stream reads must normalize line endings without trimming Markdown indentation, blank lines, or hard-break spaces.');
     end;
 
     local procedure AssertAgentOneInBuffer(var TempAgentImportBuffer: Record "Agent Import Buffer" temporary)
