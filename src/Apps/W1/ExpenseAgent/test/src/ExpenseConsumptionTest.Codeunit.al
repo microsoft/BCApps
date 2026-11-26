@@ -909,6 +909,7 @@ codeunit 148299 "Expense Consumption Test"
     procedure MissingExpenseDisplayNameIncludesInvalidReceipt()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        SourceCompany: Text[30];
         TaskShortName: Text[30];
         TaskLongName: Text;
     begin
@@ -918,9 +919,10 @@ codeunit 148299 "Expense Consumption Test"
         // [GIVEN] A consumption source that does not identify an existing expense
         ExpenseAgentEnvConsumption."Consumption Source Type" := Enum::"Expense Agent Cons. Source"::Expense;
         ExpenseAgentEnvConsumption."Consumption Source System ID" := CreateGuid();
+        SourceCompany := CopyStr(CompanyName(), 1, MaxStrLen(SourceCompany));
 
         // [WHEN] The source display name is requested
-        ExpenseAgentEnvConsumption.GetTaskDisplayName(CompanyName(), TaskShortName, TaskLongName);
+        ExpenseAgentEnvConsumption.GetTaskDisplayName(SourceCompany, TaskShortName, TaskLongName);
 
         // [THEN] The label includes both explanations
         Assert.AreEqual('Deleted expense or invalid receipt', TaskLongName, 'Missing expense sources must not be described only as deleted.');
