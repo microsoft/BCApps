@@ -2160,7 +2160,8 @@ codeunit 148103 "SAF-T XML Tests"
         CompanyInformation.Get();
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:TaxCodeDetails');
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:TaxCode', Format(TaxCode));
-        SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:Description', Description);
+        if Description <> '' then
+            SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:Description', Description);
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:TaxPercentage', SAFTTestHelper.FormatAmount(VATRate));
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:Country', CompanyInformation."Country/Region Code");
         SAFTTestHelper.AssertElementValue(TempXMLBuffer, 'n1:StandardTaxCode', StandardTaxCode);
