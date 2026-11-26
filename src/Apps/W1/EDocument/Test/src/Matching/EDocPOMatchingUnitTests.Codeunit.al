@@ -6,6 +6,9 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+#if not CLEAN29
+using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -18,7 +21,6 @@ using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 #if not CLEAN29
-using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using System.AI;
 using System.Test.Library;
 using System.TestLibraries.Azure.KeyVault;
