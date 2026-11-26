@@ -36,24 +36,28 @@ page 4161 "Business Skill Card"
                 Caption = 'General';
                 Editable = CanMaintainSkill;
 
-                field("Title"; Rec."Title")
+                group(NameAndDescription)
                 {
-                    Editable = CanMaintainSkill;
+                    ShowCaption = false;
+                    field("Title"; Rec."Title")
+                    {
+                        Editable = CanMaintainSkill;
 
-                    trigger OnValidate()
-                    begin
-                        InitializeSkillContentEditor();
-                    end;
-                }
-                field(Description; Rec.Description)
-                {
-                    MultiLine = true;
-                    Editable = CanMaintainSkill;
+                        trigger OnValidate()
+                        begin
+                            InitializeSkillContentEditor();
+                        end;
+                    }
+                    field(Description; Rec.Description)
+                    {
+                        MultiLine = true;
+                        Editable = CanMaintainSkill;
 
-                    trigger OnValidate()
-                    begin
-                        InitializeSkillContentEditor();
-                    end;
+                        trigger OnValidate()
+                        begin
+                            InitializeSkillContentEditor();
+                        end;
+                    }
                 }
                 field("Status"; Rec."Status")
                 {
@@ -63,6 +67,7 @@ page 4161 "Business Skill Card"
                 }
                 field("Read-Only"; Rec."Read-Only")
                 {
+                    Importance = Additional;
                     Editable = false;
                 }
                 field(Version; Rec.Version)

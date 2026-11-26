@@ -27,7 +27,7 @@ page 4160 "Business Skills"
     InherentEntitlements = X;
     InherentPermissions = X;
     AboutTitle = 'About business skills';
-    AboutText = 'Open a skill card to edit the skill.';
+    AboutText = 'Open a skill card to edit its metadata and instructions, or activate and deactivate skills from the list.';
 
     layout
     {
@@ -51,6 +51,48 @@ page 4160 "Business Skills"
     {
         area(Processing)
         {
+            action(Activate)
+            {
+                Caption = 'Activate';
+                ToolTip = 'Set the selected skills to Active, making them visible to the Business Skill Service.';
+                Image = Approve;
+                Enabled = Rec.ID <> 0;
+
+                trigger OnAction()
+                var
+                    SelectedSkill: Record "Business Skill";
+                begin
+                    CurrPage.SaveRecord();
+                    CurrPage.SetSelectionFilter(SelectedSkill);
+                    if SelectedSkill.FindSet(true) then
+                        repeat
+                            BusinessSkillImpl.ActivateSkill(SelectedSkill.ID);
+                        until SelectedSkill.Next() = 0;
+                    Rec.Get(Rec.ID);
+                    CurrPage.Update(false);
+                end;
+            }
+            action(Deactivate)
+            {
+                Caption = 'Deactivate';
+                ToolTip = 'Stop including the selected skills in discovery without deleting their content.';
+                Image = Cancel;
+                Enabled = Rec.ID <> 0;
+
+                trigger OnAction()
+                var
+                    SelectedSkill: Record "Business Skill";
+                begin
+                    CurrPage.SaveRecord();
+                    CurrPage.SetSelectionFilter(SelectedSkill);
+                    if SelectedSkill.FindSet(true) then
+                        repeat
+                            BusinessSkillImpl.DeactivateSkill(SelectedSkill.ID);
+                        until SelectedSkill.Next() = 0;
+                    Rec.Get(Rec.ID);
+                    CurrPage.Update(false);
+                end;
+            }
             action(Import)
             {
                 Caption = 'Import';
@@ -100,6 +142,14 @@ page 4160 "Business Skills"
         }
         area(Promoted)
         {
+            group(Activation)
+            {
+                Caption = 'Activate';
+                ShowAs = SplitButton;
+
+                actionref(ActivateRef; Activate) { }
+                actionref(DeactivateRef; Deactivate) { }
+            }
             group(ExportImport)
             {
                 Caption = 'Export';

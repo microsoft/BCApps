@@ -83,7 +83,7 @@ codeunit 4166 "Business Skill Content History"
     end;
 
     /// <summary>
-    /// Records the supplied content for a manual skill unless it equals the latest version.
+    /// Records manual content unless it equals the latest version or is blank before history exists.
     /// </summary>
     procedure RecordContentVersion(SkillId: BigInteger; NewContent: SecretText; ContentVersion: Text[50])
     var
@@ -95,8 +95,11 @@ codeunit 4166 "Business Skill Content History"
         BusinessSkill.Get(SkillId);
         if not BusinessSkill.Manual then
             exit;
-        if GetLatestVersion(SkillId, LatestBusSkillContentVersion) then
+        if GetLatestVersion(SkillId, LatestBusSkillContentVersion) then begin
             if BusinessSkillImpl.ContentEquals(LatestBusSkillContentVersion.GetContent(), NewContent) then
+                exit;
+        end else
+            if BusinessSkillImpl.IsBlank(NewContent) then
                 exit;
         BusSkillContentVersion."Skill ID" := SkillId;
         BusSkillContentVersion."Content Version" := ContentVersion;
