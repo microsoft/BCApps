@@ -2507,7 +2507,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
                 GLEntry."Dimension Set ID", '', '', GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", SourceCode.Code, 0, -100);
         SAFTTestHelper.MockCustLedgEntry(
             GLEntryNo, SAFTExportHeader."Starting Date", Customer."No.", GLEntry."Transaction No.", Currency.Code,
-            -200, -200, -100, 2, "Gen. Journal Document Type"::Payment);
+            -50, -50, -100, 0.5, "Gen. Journal Document Type"::Payment);
         SAFTTestHelper.MockGLEntry(
             SAFTExportHeader."Ending Date", 'HOLISTIC', GLEntry."G/L Account No.", GLEntry."Transaction No.",
             GLEntry."Dimension Set ID", '', '', GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", SourceCode.Code, 0, -100);
@@ -2547,7 +2547,7 @@ codeunit 148110 "SAF-T XML Tests 1.3"
                 'The foreign-currency line must remain a credit.');
             Assert.RecordCount(TempXMLBuffer, 1);
             VerifyChildElementsCount(TempChildXMLBuffer, TempXMLBuffer, 4);
-            VerifyCurrencyAmountInfo(TempChildXMLBuffer, Currency.Code, 200, 100, 0.5);
+            VerifyCurrencyAmountInfo(TempChildXMLBuffer, Currency.Code, 50, 100, 2);
         until SAFTExportLine.Next() = 0;
 
         // [THEN] The last month contains both journals and the unchanged local-currency debit
@@ -2976,7 +2976,6 @@ codeunit 148110 "SAF-T XML Tests 1.3"
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:GeneralLedgerAccounts');
         SAFTMappingRange.Get(MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Mapping Range Code", MappingRangeCode);
-        SAFTGLAccountMapping.SetFilter("No.", '<>%1', '');
         SAFTGLAccountMapping.FindSet();
         repeat
             GLAccount.Get(SAFTGLAccountMapping."G/L Account No.");

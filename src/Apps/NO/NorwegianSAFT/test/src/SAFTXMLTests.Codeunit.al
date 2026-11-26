@@ -1969,7 +1969,6 @@ codeunit 148103 "SAF-T XML Tests"
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:GeneralLedgerAccounts');
         SAFTMappingRange.Get(MappingRangeCode);
         SAFTGLAccountMapping.SetRange("Mapping Range Code", MappingRangeCode);
-        SAFTGLAccountMapping.SetFilter("No.", '<>%1', '');
         TempAccountXMLBuffer.Copy(TempXMLBuffer, true);
         TempAccountXMLBuffer.Reset();
         Assert.IsTrue(
