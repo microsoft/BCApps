@@ -43,8 +43,6 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
     var
         CustomAgentSetupRecord: Record "Custom Agent Setup";
     begin
-        // The platform checks access before it asks for the description while building Agent records,
-        // so reading the Agent table here would call this procedure again.
         if IsNullGuid(AgentUserId) then
             exit('');
 
