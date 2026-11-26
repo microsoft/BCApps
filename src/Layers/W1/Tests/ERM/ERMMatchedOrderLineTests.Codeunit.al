@@ -25,6 +25,9 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
         EmptyGuid: Guid;
+        ReceiptOnInvoicePostFromMatchedInvoiceErr: Label 'Purchase Order with %1 selected can only be posted from matched purchase invoice', Comment = '%1 = Receipt on Invoice field name';
+        WrongQtyReceivedErr: Label 'Wrong Quantity Received on order line %1.', Comment = '%1 = Line No.';
+        WrongQtyInvoicedErr: Label 'Wrong Quantity Invoiced on order line %1.', Comment = '%1 = Line No.';
 
     // ============================================================================
     // REGION: E2E-1 Standard Invoice Matching Flow (No Receipt on Invoice)
@@ -1931,7 +1934,6 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", TotalQuantity);
         PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
         PurchaseLineOrder.Modify(true);
-
         for i := 1 to 3 do
             LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurchaseLineOrder, SerialNo[i], '', 1);
 
@@ -2060,7 +2062,6 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", TotalQuantity);
         PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
         PurchaseLineOrder.Modify(true);
-
         for i := 1 to 4 do
             LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurchaseLineOrder, SerialNo[i], '', 1);
 
@@ -4606,6 +4607,182 @@ codeunit 134468 "ERM Matched Order Line Tests"
 
     [Test]
     [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceInvoiceMatchedToSomeOrderLines()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 660778] Posting an invoice matched to only some lines of a purchase order with Receipt on Invoice
+        Initialize();
+        SetDefaultQtyToReceiveRemainder();
+
+        // [GIVEN] Purchase order with Receipt on Invoice and two lines "L1" and "L2"
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseHeaderOrder.Validate("Receipt on Invoice", true);
+        PurchaseHeaderOrder.Modify(true);
+
+        // [GIVEN] Purchase invoice matched to line "L1" only
+        CreateInvoiceMatchedToOrderLine(PurchaseHeaderInvoice, PurchaseLineInvoice, Vendor."No.", PurchaseLineOrder[1], Quantity[1]);
+
+        // [WHEN] Post the purchase invoice
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Line "L1" is received and invoiced
+        PurchaseLineOrder[1].Find();
+        Assert.AreEqual(Quantity[1], PurchaseLineOrder[1]."Quantity Received", 'Matched order line should be auto-received');
+        Assert.AreEqual(Quantity[1], PurchaseLineOrder[1]."Quantity Invoiced", 'Matched order line should be invoiced');
+
+        // [THEN] Line "L2" is not received and its Qty. to Receive is kept
+        PurchaseLineOrder[2].Find();
+        Assert.AreEqual(0, PurchaseLineOrder[2]."Quantity Received", 'Unmatched order line must not be received');
+        Assert.AreEqual(0, PurchaseLineOrder[2]."Quantity Invoiced", 'Unmatched order line must not be invoiced');
+        Assert.AreEqual(Quantity[2], PurchaseLineOrder[2]."Qty. to Receive", 'Qty. to Receive on unmatched order line should be kept');
+        PurchRcptLine.SetRange("Order No.", PurchaseLineOrder[2]."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder[2]."Line No.");
+        PurchRcptLine.SetFilter(Quantity, '<>0');
+        Assert.RecordIsEmpty(PurchRcptLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceDoesNotReceiveUnmatchedLineWithoutReceiptOnInvoice()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 660778] Posting an invoice matched to a Receipt on Invoice line does not receive other lines of the order
+        Initialize();
+        SetDefaultQtyToReceiveRemainder();
+
+        // [GIVEN] Purchase order with line "L1" with Receipt on Invoice and line "L2" without Receipt on Invoice
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
+        PurchaseLineOrder[1].Modify(true);
+
+        // [GIVEN] Purchase invoice matched to line "L1"
+        CreateInvoiceMatchedToOrderLine(PurchaseHeaderInvoice, PurchaseLineInvoice, Vendor."No.", PurchaseLineOrder[1], Quantity[1]);
+
+        // [WHEN] Post the purchase invoice
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Line "L1" is received and invoiced
+        PurchaseLineOrder[1].Find();
+        Assert.AreEqual(Quantity[1], PurchaseLineOrder[1]."Quantity Received", 'Matched order line should be auto-received');
+        Assert.AreEqual(Quantity[1], PurchaseLineOrder[1]."Quantity Invoiced", 'Matched order line should be invoiced');
+
+        // [THEN] Line "L2" is not received
+        PurchaseLineOrder[2].Find();
+        Assert.AreEqual(0, PurchaseLineOrder[2]."Quantity Received", 'Order line not matched to the invoice must not be received');
+        Assert.AreEqual(Quantity[2], PurchaseLineOrder[2]."Qty. to Receive", 'Qty. to Receive on unmatched order line should be kept');
+        PurchRcptLine.SetRange("Order No.", PurchaseLineOrder[2]."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder[2]."Line No.");
+        PurchRcptLine.SetFilter(Quantity, '<>0');
+        Assert.RecordIsEmpty(PurchRcptLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiveOrderWithReceiptOnInvoiceLineWithZeroQtyToReceive()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+    begin
+        // [SCENARIO 660778] Purchase order with a Receipt on Invoice line can be received directly when the line has nothing to receive
+        Initialize();
+        SetDefaultQtyToReceiveRemainder();
+
+        // [GIVEN] Purchase order with line "L1" with Receipt on Invoice and line "L2" without Receipt on Invoice
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
+        PurchaseLineOrder[1].Modify(true);
+        Commit();
+
+        // [WHEN] Receive the order while line "L1" has Qty. to Receive
+        asserterror LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [THEN] Error: the Receipt on Invoice line can only be posted from a matched invoice
+        Assert.ExpectedError(StrSubstNo(ReceiptOnInvoicePostFromMatchedInvoiceErr, PurchaseLineOrder[1].FieldCaption("Receipt on Invoice")));
+
+        // [WHEN] Set Qty. to Receive = 0 on line "L1" and receive the order
+        PurchaseLineOrder[1].Find();
+        PurchaseLineOrder[1].Validate("Qty. to Receive", 0);
+        PurchaseLineOrder[1].Modify(true);
+        PurchaseHeaderOrder.Find();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        // [THEN] Line "L2" is received, line "L1" is not
+        PurchaseLineOrder[1].Find();
+        Assert.AreEqual(0, PurchaseLineOrder[1]."Quantity Received", 'Receipt on Invoice line must not be received');
+        PurchaseLineOrder[2].Find();
+        Assert.AreEqual(Quantity[2], PurchaseLineOrder[2]."Quantity Received", 'Order line without Receipt on Invoice should be received');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceSuccessivePartialInvoicesOnMultiLineOrder()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
+        FirstPartQty: Decimal;
+    begin
+        // [SCENARIO 660778] Successive partial invoices matched to different lines of a purchase order with Receipt on Invoice
+        Initialize();
+        SetDefaultQtyToReceiveRemainder();
+
+        // [GIVEN] Purchase order with Receipt on Invoice and two lines "L1" (quantity Q1) and "L2" (quantity Q2)
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseHeaderOrder.Validate("Receipt on Invoice", true);
+        PurchaseHeaderOrder.Modify(true);
+        FirstPartQty := Round(Quantity[1] / 2, 1);
+
+        // [WHEN] Post invoice "I1" matched to line "L1" with part "P1" of Q1
+        CreateInvoiceMatchedToOrderLine(PurchaseHeaderInvoice, PurchaseLineInvoice, Vendor."No.", PurchaseLineOrder[1], FirstPartQty);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Line "L1" is received and invoiced with P1, line "L2" is not touched
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[1], FirstPartQty);
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[2], 0);
+        Assert.AreEqual(Quantity[1] - FirstPartQty, PurchaseLineOrder[1]."Qty. to Receive", 'Qty. to Receive on line "L1" should be reset to the remaining quantity');
+
+        // [WHEN] Post invoice "I2" matched to line "L2" with Q2, while line "L1" still has quantity to receive
+        CreateInvoiceMatchedToOrderLine(PurchaseHeaderInvoice, PurchaseLineInvoice, Vendor."No.", PurchaseLineOrder[2], Quantity[2]);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Line "L2" is fully received and invoiced, line "L1" is not changed
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[1], FirstPartQty);
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[2], Quantity[2]);
+
+        // [WHEN] Post invoice "I3" matched to line "L1" with the rest of Q1
+        CreateInvoiceMatchedToOrderLine(PurchaseHeaderInvoice, PurchaseLineInvoice, Vendor."No.", PurchaseLineOrder[1], Quantity[1] - FirstPartQty);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Both lines are fully received and invoiced
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[1], Quantity[1]);
+        VerifyOrderLineReceivedAndInvoiced(PurchaseLineOrder[2], Quantity[2]);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure VendorAutomaticReceiptOnInvoicePolicyInitializesOrderAndLine()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -4850,7 +5027,6 @@ codeunit 134468 "ERM Matched Order Line Tests"
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM Matched Order Line Tests");
         LibrarySetupStorage.Restore();
         LibraryVariableStorage.Clear();
-
         if IsInitialized then
             exit;
 
@@ -4863,6 +5039,57 @@ codeunit 134468 "ERM Matched Order Line Tests"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM Matched Order Line Tests");
+    end;
+
+    local procedure SetDefaultQtyToReceiveRemainder()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Default Qty. to Receive", PurchasesPayablesSetup."Default Qty. to Receive"::Remainder);
+        PurchasesPayablesSetup.Modify(true);
+    end;
+
+    local procedure CreatePurchaseOrderWithTwoItemLines(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: array[2] of Record "Purchase Line"; var Item: array[2] of Record Item; var Vendor: Record Vendor; var Quantity: array[2] of Decimal)
+    var
+        i: Integer;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        for i := 1 to ArrayLen(PurchaseLine) do begin
+            LibraryInventory.CreateItem(Item[i]);
+            Quantity[i] := LibraryRandom.RandIntInRange(10, 100);
+            LibraryPurchase.CreatePurchaseLine(PurchaseLine[i], PurchaseHeader, PurchaseLine[i].Type::Item, Item[i]."No.", Quantity[i]);
+            PurchaseLine[i].Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+            PurchaseLine[i].Modify(true);
+        end;
+    end;
+
+    local procedure CreateInvoiceMatchedToOrderLine(var PurchaseHeaderInvoice: Record "Purchase Header"; var PurchaseLineInvoice: Record "Purchase Line"; VendorNo: Code[20]; PurchaseLineOrder: Record "Purchase Line"; Quantity: Decimal)
+    var
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        PurchaseLineOrder.Find();
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, VendorNo);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, PurchaseLineOrder."No.", Quantity);
+        PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder."Direct Unit Cost");
+        PurchaseLineInvoice.Modify(true);
+
+        MatchedOrderLine.Init();
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineOrder.SystemId;
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := EmptyGuid;
+        MatchedOrderLine."Qty. to Invoice" := Quantity;
+        MatchedOrderLine."Qty. to Invoice (Base)" := PurchaseLineInvoice."Quantity (Base)";
+        MatchedOrderLine."Receipt on Invoice" := true;
+        MatchedOrderLine.Insert();
+    end;
+
+    local procedure VerifyOrderLineReceivedAndInvoiced(var PurchaseLine: Record "Purchase Line"; ExpectedQuantity: Decimal)
+    begin
+        PurchaseLine.Find();
+        Assert.AreEqual(ExpectedQuantity, PurchaseLine."Quantity Received", StrSubstNo(WrongQtyReceivedErr, PurchaseLine."Line No."));
+        Assert.AreEqual(ExpectedQuantity, PurchaseLine."Quantity Invoiced", StrSubstNo(WrongQtyInvoicedErr, PurchaseLine."Line No."));
     end;
 
     [RequestPageHandler]
