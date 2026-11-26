@@ -11,7 +11,11 @@ pageextension 2510 "Extension Subscribers" extends "Extension Management"
 {
     actions
     {
+#if not CLEAN30
         addafter("Deployment Status")
+#else
+        addafter(Refresh)
+#endif
         {
             action("Event Subscribers")
             {
