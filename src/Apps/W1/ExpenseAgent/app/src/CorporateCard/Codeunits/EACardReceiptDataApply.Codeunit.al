@@ -331,6 +331,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
         repeat
             ExpenseVATSpecification.Init();
             ExpenseVATSpecification."Expense No." := Expense."No.";
+            ExpenseVATSpecification."Line No." := 0;
             ExpenseVATSpecification.Source := ExpenseVATSpecification.Source::Agent;
             ExpenseVATSpecification."Expense Category" := Expense."Expense Category";
             ExpenseVATSpecification."Expense Subcategory" := Expense."Expense Subcategory";

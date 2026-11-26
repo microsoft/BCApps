@@ -744,6 +744,43 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
+    procedure ApplyReceiptDataWithSeveralVATRatesAddsAllVATSpecs()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        CardReceiptData: Record "EA Card Receipt Data";
+        ExpenseVATSpecification: Record "Expense VAT Specification";
+        ExpenseReportLineVATSpec: Record "Expense Report Line VAT Spec.";
+    begin
+        // [SCENARIO] Applying receipt data with several VAT rates adds one VAT specification per rate to the expense and the line.
+        Initialize();
+
+        // [GIVEN] A card expense on an open report, and receipt data with a 7% and a 19% VAT line.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO HOTEL');
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+        CreateCardReceiptData(CardReceiptData, Expense);
+        AddCardReceiptVATSpec(CardReceiptData, 1, 7, 9.35, 0.65);
+        AddCardReceiptVATSpec(CardReceiptData, 2, 19, 8.4, 1.6);
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The expense has both VAT specifications.
+        ExpenseVATSpecification.SetRange("Expense No.", Expense."No.");
+        Assert.RecordCount(ExpenseVATSpecification, 2);
+
+        // [THEN] The line has both VAT specifications, each linked to the matching expense VAT specification.
+        ExpenseReportLineVATSpec.SetRange("Document No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineVATSpec.SetRange("Document Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordCount(ExpenseReportLineVATSpec, 2);
+        ExpenseReportLineVATSpec.FindSet();
+        repeat
+            ExpenseVATSpecification.Get(Expense."No.", ExpenseReportLineVATSpec."Source Spec Line No.");
+            ExpenseVATSpecification.TestField("VAT %", ExpenseReportLineVATSpec."VAT %");
+        until ExpenseReportLineVATSpec.Next() = 0;
+    end;
+
+    [Test]
     procedure ApplyReceiptDataToReleasedCardExpenseNotOnReport()
     var
         Expense: Record Expense;
@@ -1557,6 +1594,20 @@ codeunit 148370 EAReceiptMatchTests
         CardReceiptParticipant."Participant Type" := CardReceiptParticipant."Participant Type"::External;
         CardReceiptParticipant."Participant Name" := ParticipantName;
         CardReceiptParticipant.Insert(true);
+    end;
+
+    local procedure AddCardReceiptVATSpec(CardReceiptData: Record "EA Card Receipt Data"; LineNo: Integer; VATPct: Decimal; VATBaseAmount: Decimal; VATAmount: Decimal)
+    var
+        CardReceiptVATSpec: Record "EA Card Receipt VAT Spec.";
+    begin
+        CardReceiptVATSpec.Init();
+        CardReceiptVATSpec."Receipt Data Id" := CardReceiptData.Id;
+        CardReceiptVATSpec."Line No." := LineNo;
+        CardReceiptVATSpec."VAT %" := VATPct;
+        CardReceiptVATSpec."VAT Base Amount" := VATBaseAmount;
+        CardReceiptVATSpec."VAT Amount" := VATAmount;
+        CardReceiptVATSpec.Amount := VATBaseAmount + VATAmount;
+        CardReceiptVATSpec.Insert(true);
     end;
 
     local procedure AddCardReceiptItem(CardReceiptData: Record "EA Card Receipt Data"; ExpenseSubcategoryCode: Code[20]; ItemAmount: Decimal)
