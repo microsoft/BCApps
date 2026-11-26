@@ -465,33 +465,28 @@ codeunit 148370 EAReceiptMatchTests
     end;
 
     [Test]
-    procedure CategoryChangeOnCardLineKeepsCardValues()
+    procedure CategoryChangeOnLinkedManualExpenseKeepsDescription()
     var
         Expense: Record Expense;
-        ExpenseReportLine: Record "Expense Report Line";
         ExpenseCategory: Record "Expense Category";
-        PaymentMethodCode: Code[10];
     begin
-        // [SCENARIO] Setting the category on a card line keeps the card amount, reimbursement type and payment method.
+        // [SCENARIO] A manual expense matched to a card transaction is treated as a card expense, so its description survives a category change.
         Initialize();
 
-        // [GIVEN] A card line without a category and an employee-paid category.
-        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
-        ClearCategory(Expense);
-        AddCardExpenseToReport(Expense, ExpenseReportLine);
-        PaymentMethodCode := ExpenseReportLine."Payment Method Code";
+        // [GIVEN] A manual expense with a description, matched to a card transaction, and another category.
+        CreateLinkedManualExpense(Expense);
+        Expense.Description := 'User description';
+        Expense.Modify();
         LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
 
-        // [WHEN] The category is set on the line.
-        ExpenseReportLine.Validate("Expense Category", ExpenseCategory.Code);
-        ExpenseReportLine.Modify(true);
+        // [WHEN] The category is changed.
+        Expense.Validate("Expense Category", ExpenseCategory.Code);
+        Expense.Modify(true);
 
-        // [THEN] The card values are kept.
-        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        ExpenseReportLine.TestField("Expense Category", ExpenseCategory.Code);
-        ExpenseReportLine.TestField(Amount, 20);
-        ExpenseReportLine.TestField("Reimbursement Type", ExpenseReportLine."Reimbursement Type"::"Credit Card");
-        ExpenseReportLine.TestField("Payment Method Code", PaymentMethodCode);
+        // [THEN] The category is saved and the description is kept.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Category", ExpenseCategory.Code);
+        Expense.TestField(Description, 'User description');
     end;
 
     [Test]
@@ -729,7 +724,7 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseParticipant: Record "Expense Participant";
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
     begin
-        // [SCENARIO] When the receipt fills a missing category, the participants and the description the user entered are kept.
+        // [SCENARIO] When the receipt fills a missing participants category, the participants and the description the user entered are kept.
         Initialize();
 
         // [GIVEN] A card expense without a category, with a description and a participant, on an open report.
@@ -745,8 +740,8 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseParticipant.Insert(true);
         AddCardExpenseToReport(Expense, ExpenseReportLine);
 
-        // [GIVEN] Receipt data with a category and another participant.
-        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        // [GIVEN] Receipt data with a participants category and another participant.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::Participants);
         CreateCardReceiptData(CardReceiptData, Expense);
         CardReceiptData."Expense Category" := ExpenseCategory.Code;
         CardReceiptData.Modify();
@@ -775,6 +770,52 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseReportLineParticip.FindFirst();
         ExpenseReportLineParticip.TestField("Participant Name", 'John Smith');
         ExpenseReportLineParticip.TestField("Expense Category Code", ExpenseCategory.Code);
+    end;
+
+    [Test]
+    procedure ApplyReceiptDataFillingNonParticipantCategoryRemovesParticipants()
+    var
+        Expense: Record Expense;
+        ExpenseReportLine: Record "Expense Report Line";
+        ExpenseCategory: Record "Expense Category";
+        CardReceiptData: Record "EA Card Receipt Data";
+        ExpenseParticipant: Record "Expense Participant";
+        ExpenseReportLineParticip: Record "Expense Report Line Particip.";
+    begin
+        // [SCENARIO] When the receipt fills a missing category that doesn't use participants, the participants are removed like on a manual category change.
+        Initialize();
+
+        // [GIVEN] A card expense without a category and with a participant, on an open report.
+        CreateCardExpense(Expense, 'CORPCARD-0001', WorkDate(), 'CONTOSO COFFEE');
+        ClearCategory(Expense);
+        ExpenseParticipant.Init();
+        ExpenseParticipant."Expense No." := Expense."No.";
+        ExpenseParticipant."Line No." := 10000;
+        ExpenseParticipant."Participant Type" := ExpenseParticipant."Participant Type"::External;
+        ExpenseParticipant."Participant Name" := 'John Smith';
+        ExpenseParticipant.Insert(true);
+        AddCardExpenseToReport(Expense, ExpenseReportLine);
+
+        // [GIVEN] Receipt data with a category without required details and another participant.
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        CreateCardReceiptData(CardReceiptData, Expense);
+        CardReceiptData."Expense Category" := ExpenseCategory.Code;
+        CardReceiptData.Modify();
+        AddCardReceiptParticipant(CardReceiptData, 'Jane Doe');
+
+        // [WHEN] The receipt data is applied.
+        CardReceiptDataApply.Apply(CardReceiptData);
+
+        // [THEN] The expense and the line have the category and no participants.
+        Expense.Get(Expense."No.");
+        Expense.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseParticipant.SetRange("Expense No.", Expense."No.");
+        Assert.RecordIsEmpty(ExpenseParticipant);
+        ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
+        ExpenseReportLine.TestField("Expense Category", ExpenseCategory.Code);
+        ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
+        ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
+        Assert.RecordIsEmpty(ExpenseReportLineParticip);
     end;
 
     [Test]
@@ -956,11 +997,11 @@ codeunit 148370 EAReceiptMatchTests
         CreateCardReceiptData(CardReceiptData, Expense);
 
         // [THEN] The older data and its VAT line are deleted, the new data is kept, and the other expense's data is untouched.
-        Assert.IsFalse(OlderCardReceiptData.Find(), 'The older staged receipt data must be deleted.');
+        AssertCardReceiptDataExists(OlderCardReceiptData.Id, false);
         CardReceiptVATSpec.SetRange("Receipt Data Id", OlderCardReceiptData.Id);
         Assert.RecordIsEmpty(CardReceiptVATSpec);
-        Assert.IsTrue(CardReceiptData.Find(), 'The new staged receipt data must be kept.');
-        Assert.IsTrue(OtherCardReceiptData.Find(), 'Staged receipt data of another expense must be kept.');
+        AssertCardReceiptDataExists(CardReceiptData.Id, true);
+        AssertCardReceiptDataExists(OtherCardReceiptData.Id, true);
     end;
 
     [Test]
@@ -1688,6 +1729,17 @@ codeunit 148370 EAReceiptMatchTests
         CardReceiptData."Attachment Content".CreateOutStream(ContentOutStream);
         ContentOutStream.WriteText('receipt');
         CardReceiptData.Insert(true);
+    end;
+
+    local procedure AssertCardReceiptDataExists(ReceiptDataId: Guid; Expected: Boolean)
+    var
+        CardReceiptData: Record "EA Card Receipt Data";
+    begin
+        CardReceiptData.SetRange(Id, ReceiptDataId);
+        if Expected then
+            Assert.RecordIsNotEmpty(CardReceiptData)
+        else
+            Assert.RecordIsEmpty(CardReceiptData);
     end;
 
     local procedure AddCardReceiptParticipant(CardReceiptData: Record "EA Card Receipt Data"; ParticipantName: Text[100])

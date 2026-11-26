@@ -14,7 +14,7 @@ codeunit 6902 "Expense Rule Validation"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
-        CardDuplicateFilterTok: Label '%1|%2', Locked = true, Comment = '%1 = excluded credit card feed number, %2 = current credit card feed number';
+        CardDuplicateFilterTok: Label '%1|%2', Locked = true, Comment = '%1 = 0 (expenses not from a credit card feed), %2 = current credit card feed number';
         JustificationRequiredErr: Label 'Justification is required for this expense based on your organization''s rule.';
         ItemizationRequiredErr: Label 'Itemization is required for this expense based on your organization''s rule.';
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';

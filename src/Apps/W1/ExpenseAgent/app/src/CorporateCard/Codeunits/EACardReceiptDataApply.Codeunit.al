@@ -83,7 +83,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
         FillExpenseFields(CardReceiptData, Expense);
         Expense.Modify(true);
         RestoreExpenseParticipants(Expense, TempExpenseParticipant);
-        AddExpenseParticipants(CardReceiptData, Expense);
+        if TempExpenseParticipant.IsEmpty() then
+            AddExpenseParticipants(CardReceiptData, Expense);
         AddExpenseItemization(CardReceiptData, Expense);
         AddExpenseVATSpecs(CardReceiptData, Expense, ExpenseVATLineNos);
         Expense.Get(Expense."No.");
@@ -96,7 +97,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
             FillReportLineFields(CardReceiptData, ExpenseReportLine);
             ExpenseReportLine.Modify(true);
             RestoreReportLineParticipants(ExpenseReportLine, TempExpenseReportLineParticip);
-            AddReportLineParticipants(CardReceiptData, ExpenseReportLine);
+            if TempExpenseReportLineParticip.IsEmpty() then
+                AddReportLineParticipants(CardReceiptData, ExpenseReportLine);
             AddReportLineItemization(CardReceiptData, ExpenseReportLine);
             AddReportLineVATSpecs(CardReceiptData, ExpenseReportLine, ExpenseVATLineNos);
             ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
@@ -196,8 +198,9 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLine.Validate("Merchant VAT Registration No.", CardReceiptData."Merchant VAT Registration No.");
     end;
 
-    // Filling a missing category deletes the participants through the category validation. The participants the user
-    // already entered are put back, so the receipt only adds participants where there were none.
+    // Filling a missing category deletes the participants through the category validation. When the new category uses
+    // participants, the ones the user already entered are put back. Otherwise they stay removed, like on a manual category
+    // change. The receipt only adds participants where the user had none.
     local procedure SaveExpenseParticipants(Expense: Record Expense; var TempExpenseParticipant: Record "Expense Participant" temporary)
     var
         ExpenseParticipant: Record "Expense Participant";
@@ -214,6 +217,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
     var
         ExpenseParticipant: Record "Expense Participant";
     begin
+        if Expense."Expense Detail Required" <> Expense."Expense Detail Required"::Participants then
+            exit;
         ExpenseParticipant.SetRange("Expense No.", Expense."No.");
         if not ExpenseParticipant.IsEmpty() then
             exit;
@@ -243,6 +248,8 @@ codeunit 7450 "EA Card Receipt Data Apply"
     var
         ExpenseReportLineParticip: Record "Expense Report Line Particip.";
     begin
+        if ExpenseReportLine."Expense Detail Required" <> ExpenseReportLine."Expense Detail Required"::Participants then
+            exit;
         ExpenseReportLineParticip.SetRange("Expense Report No.", ExpenseReportLine."Document No.");
         ExpenseReportLineParticip.SetRange("Expense Report Line No.", ExpenseReportLine."Line No.");
         if not ExpenseReportLineParticip.IsEmpty() then

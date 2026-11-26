@@ -45,6 +45,7 @@ codeunit 148374 "EA Card Report Line API Tests"
         ReceiptFileNameTok: Label 'receipt.png', Locked = true;
         OtherReceiptFileNameTok: Label 'other-receipt.jpg', Locked = true;
         RejectedByBusinessRuleTok: Label 'Response code is 400', Locked = true;
+        ExpenseDoesNotMatchParentErr: Label 'The expense ID in the request does not match the expense in the URL.';
         ExpenseOnReportAttachmentErr: Label 'You cannot update and delete attachment on an %1 %2 that is part of an %3 %4.', Comment = '%1 = Expense No. caption, %2 = expense number, %3 = Expense Report No. caption, %4 = report number';
         LineAttachmentOfExpenseErr: Label 'You cannot update and delete attachment on an %1 %2, %3 %4 that is part of an %5 %6.', Comment = '%1 = Expense Report No. caption, %2 = report number, %3 = Line No. caption, %4 = line number, %5 = Expense No. caption, %6 = expense number';
         OnePixelPngBase64Tok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAen63NgAAAAASUVORK5CYII=', Locked = true;
@@ -538,8 +539,8 @@ codeunit 148374 "EA Card Report Line API Tests"
             LibraryGraphMgt.CreateTargetURLWithSubpage(Format(Expense.SystemId), Page::"Expenses API", ExpensesServiceNameTok, CardReceiptDataServiceNameTok),
             RequestText, ResponseText, 201);
 
-        // [THEN] The request is rejected and no receipt data is staged.
-        AssertRejectedByBusinessRule();
+        // [THEN] The request is rejected by the expense ID check and no receipt data is staged.
+        AssertRejectedByBusinessRule(ExpenseDoesNotMatchParentErr);
         CardReceiptData.SetFilter("Expense SystemId", '%1|%2', Expense.SystemId, OtherExpense.SystemId);
         Assert.RecordIsEmpty(CardReceiptData);
         CompleteTest();
@@ -1026,6 +1027,12 @@ codeunit 148374 "EA Card Report Line API Tests"
     local procedure AssertRejectedByBusinessRule()
     begin
         Assert.ExpectedError(RejectedByBusinessRuleTok);
+    end;
+
+    local procedure AssertRejectedByBusinessRule(ExpectedErrorText: Text)
+    begin
+        Assert.ExpectedError(RejectedByBusinessRuleTok);
+        Assert.ExpectedError(ExpectedErrorText);
     end;
 
     local procedure GetLineURL(ExpenseReportLine: Record "Expense Report Line"): Text
