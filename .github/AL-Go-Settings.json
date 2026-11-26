@@ -195,7 +195,7 @@
   "runNumberOffset": 60000,
   "shortLivedArtifactsRetentionDays": 3,
   "incrementalBuilds": {
-    "onPush": false,
+    "onPush": true,
     "onPull_Request": true,
     "onSchedule": false,
     "mode": "modifiedApps"
