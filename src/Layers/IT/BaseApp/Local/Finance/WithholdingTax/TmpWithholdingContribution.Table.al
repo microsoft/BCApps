@@ -394,9 +394,6 @@ table 12113 "Tmp Withholding Contribution"
     }
 
     var
-        NegativeContributionBaseErr: Label 'The Contribution Base must be greater than 0.';
-        NegativeTaxableBaseErr: Label 'The Taxable Base must be greater than 0.';
-        NegativeINAILContributionBaseErr: Label 'The INAIL Contribution Base must be greater than 0.';
         WithholdCode: Record "Withhold Code";
         WithholdCodeLine: Record "Withhold Code Line";
         SocialSecurityCode: Record "Contribution Code";
@@ -404,6 +401,9 @@ table 12113 "Tmp Withholding Contribution"
         SocSecBracketLine: Record "Contribution Bracket Line";
         Vend: Record Vendor;
         WithholdingSocSec: Codeunit "Withholding - Contribution";
+        NegativeContributionBaseErr: Label 'The Contribution Base must be greater than 0.';
+        NegativeTaxableBaseErr: Label 'The Taxable Base must be greater than 0.';
+        NegativeINAILContributionBaseErr: Label 'The INAIL Contribution Base must be greater than 0.';
 
     local procedure CalculateAll(CallingFieldNo: Integer)
     var
