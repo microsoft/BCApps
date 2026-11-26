@@ -19,7 +19,7 @@ codeunit 148298 "Expense Quota Test"
         Assert: Codeunit Assert;
 
     [Test]
-    procedure RetryingV1TrialConsumptionDoesNotConsumeTrialQuota()
+    procedure RetryingV1TrialConsumptionCountsTrialOnce()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
@@ -29,15 +29,15 @@ codeunit 148298 "Expense Quota Test"
         SecondConsumptionId: Guid;
     begin
         // [FEATURE] [AI test 1.0]
-        // [SCENARIO] V1 trial consumption and retries do not consume trial quota or report paid usage
+        // [SCENARIO] V1 trial consumption decrements trial quota once without reporting paid usage
         InitializeQuotaProvider(ExpenseConsumptionHandler, ExpenseAgentQuotaMock, 1, true);
         ConsumptionSourceSystemId := CreateGuid();
 
         FirstConsumptionId := ExpenseConsumptionHandler.LogAIConsumption(
             1, Enum::"Copilot Quota Usage Type"::"Autonomous Action", 'Processed expense', 'Processed expense',
             Enum::"Expense Agent Cons. Source"::Expense, ConsumptionSourceSystemId, 'PROCESS', 'QUOTA TEST');
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1 consumption must preserve trial quota.');
-        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1 consumption must not decrement trial quota.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1 PROCESS consumption must decrement trial quota.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1 PROCESS consumption must be counted once.');
 
         SecondConsumptionId := ExpenseConsumptionHandler.LogAIConsumption(
             1, Enum::"Copilot Quota Usage Type"::"Autonomous Action", 'Processed expense', 'Processed expense',
@@ -48,11 +48,11 @@ codeunit 148298 "Expense Quota Test"
         Assert.IsTrue(ExpenseAgentEnvConsumption."Is Feature Trial", 'The retry should remain classified as trial consumption.');
         ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", ConsumptionSourceSystemId);
         Assert.AreEqual(1, ExpenseAgentEnvConsumption.Count(), 'The retry should not create another consumption record.');
-        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 consumption must be submitted on both requests.');
-        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'V1 trial consumption must be excluded from billing.');
-        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1 retries must not decrement trial quota.');
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1 retries must preserve trial quota.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 trials must not submit normal consumption.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Completed V1 trials must not be counted again.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1 retries must not decrement trial quota again.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetPaidReportCount(), 'The trial retry must not report paid consumption.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'The legacy action must never route to V2.');
     end;
 
     [Test]

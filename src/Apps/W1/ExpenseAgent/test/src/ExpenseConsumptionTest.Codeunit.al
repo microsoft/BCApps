@@ -386,7 +386,7 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
-    procedure V2ConsumptionReportsBothPipelinesWithSharedIdentity()
+    procedure V2ConsumptionReportsOnlyActivePipelineWithRequestContext()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
@@ -408,12 +408,8 @@ codeunit 148299 "Expense Consumption Test"
         ActualDisplayName: Text;
         ActualDescription: Text;
         IsFeatureTrial: Boolean;
-        Usage: Integer;
-        UsageType: Enum "Copilot Quota Usage Type";
-        ActionsSummary: Text[1024];
-        ActionsDescription: Text;
     begin
-        // [SCENARIO] V2 requests submit both pipelines with the companion row's stable identity and request context
+        // [SCENARIO] V2 requests submit only the active V2 pipeline with stable identity and request context
         Initialize();
 
         // [GIVEN] A paid consumption request with model usage and explicit session and principal identities
@@ -430,17 +426,11 @@ codeunit 148299 "Expense Consumption Test"
             Enum::"Expense Agent Cons. Source"::Expense, CreateGuid(), 'PROCESS EXPENSE', 'CONSUMPTION TEST',
             SessionId, InteractionId, PrincipalId, 'Expense user');
 
-        // [THEN] Both pipelines receive the companion identity and their respective usage payloads
+        // [THEN] Only V2 receives the companion identity and the model usage payload
         ExpenseAgentEnvConsumption.GetBySystemId(ConsumptionId);
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must be submitted once.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'The inactive V1 pipeline must not be called.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must be submitted once.');
-        Assert.AreEqual(ExpenseAgentEnvConsumption."Consumption Unique ID", ExpenseAgentQuotaMock.GetLastV1UniqueId(), 'V1 must use the companion text key.');
         Assert.AreEqual(ConsumptionId, ExpenseAgentQuotaMock.GetLastV2ConsumptionId(), 'V2 must use the companion SystemId.');
-        ExpenseAgentQuotaMock.GetLastV1Usage(Usage, UsageType, ActionsSummary, ActionsDescription);
-        Assert.AreEqual(1, Usage, 'V1 must use the legacy usage amount.');
-        Assert.AreEqual(Enum::"Copilot Quota Usage Type"::"Autonomous Action", UsageType, 'V1 must use the legacy usage type.');
-        Assert.AreEqual('Processed expense', ActionsSummary, 'V1 must receive the actions summary.');
-        Assert.AreEqual('Processed expense', ActionsDescription, 'V1 must receive the full description.');
         ExpenseAgentQuotaMock.GetLastV2Context(ActualSessionId, ActualInteractionId, ActualPayload,
             ActualPrincipalId, ActualDisplayName, ActualDescription, IsFeatureTrial);
         Assert.AreEqual(SessionId, ActualSessionId, 'V2 must receive the conversation session ID.');
@@ -455,7 +445,7 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(ExpectedPayload, ActualModelPayload, 'V2 must preserve all model usage dimensions.');
         Assert.AreEqual('Processed expense', ActualDescription, 'V2 must receive the full description.');
         Assert.IsFalse(IsFeatureTrial, 'Paid consumption must not be marked as a trial.');
-        Assert.IsFalse(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Paid V1 consumption must not be excluded from billing.');
+        Assert.IsTrue(ExpenseAgentEnvConsumption."Consumption Reported", 'Confirmed V2 consumption must be marked complete.');
     end;
 
     [Test]
@@ -514,28 +504,28 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
-    procedure V1OnlyProcessDoesNotConsumeTrial()
+    procedure V1OnlyProcessConsumesTrialWithoutBillingReport()
     var
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
     begin
-        // [SCENARIO] PROCESS consumption recorded only in V1 does not decrement trial quota
+        // [SCENARIO] An inactive V2 pipeline routes PROCESS to V1 trial counting without a billing report
         Initialize();
 
         // [GIVEN] Trial quota is available and V1 records the consumption
         ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
         ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
 
-        // [WHEN] Both pipelines are offered PROCESS consumption
+        // [WHEN] PROCESS consumption is submitted
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PROCESS');
 
-        // [THEN] V1 records consumption without invoking V2 or decrementing trial quota
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive the positive usage.');
-        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Completed V1 consumption must not be recorded again in V2.');
-        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'V1 trial consumption must be excluded from billing.');
-        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1-only consumption must not decrement trial quota.');
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1-only consumption must preserve trial quota.');
+        // [THEN] V1 only decrements the trial allowance and does not report paid consumption
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 trials must not submit normal consumption.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'The inactive V2 pipeline must not be called.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'V1 PROCESS must decrement trial quota.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'V1 PROCESS must consume the remaining trial allowance.');
     end;
 
     [Test]
@@ -596,7 +586,7 @@ codeunit 148299 "Expense Consumption Test"
     end;
 
     [Test]
-    procedure V2TrialReplayAfterExhaustionReportsBothWithoutCharging()
+    procedure V2TrialReplayAfterExhaustionIsNotReportedAgain()
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
@@ -605,7 +595,7 @@ codeunit 148299 "Expense Consumption Test"
         FirstId: Guid;
         SecondId: Guid;
     begin
-        // [SCENARIO] Repeating the final trial consumption submits both pipelines without consuming another trial
+        // [SCENARIO] Repeating the final completed trial consumption does not submit consumption again
         Initialize();
 
         // [GIVEN] The last available trial expense has been reported
@@ -621,9 +611,9 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(FirstId, SecondId, 'Repeated requests must reuse the companion ID.');
         ExpenseAgentEnvConsumption.GetBySystemId(FirstId);
         Assert.IsTrue(ExpenseAgentEnvConsumption."Is Feature Trial", 'The original trial classification must survive exhaustion.');
-        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must be submitted on both requests.');
-        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must be submitted on both requests.');
-        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Trial V1 reporting must be excluded from billing.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'The inactive V1 pipeline must not be called.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Completed V2 consumption must not be resubmitted.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Completed trial consumption must not be counted again.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetPaidReportCount(), 'Trial requests must not report paid usage.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Repeated requests must not decrement the trial again.');
         Assert.AreEqual(FirstId, ExpenseAgentQuotaMock.GetLastTrialConsumptionId(), 'Trial reporting must reuse the same ID.');
@@ -636,7 +626,7 @@ codeunit 148299 "Expense Consumption Test"
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
     begin
-        // [SCENARIO] Trial policy evaluations report both pipelines without consuming an expense trial
+        // [SCENARIO] Trial policy evaluations report only V2 without consuming an expense trial
         Initialize();
 
         // [GIVEN] One expense remains in the feature trial
@@ -646,12 +636,11 @@ codeunit 148299 "Expense Consumption Test"
         // [WHEN] A policy evaluation is reported
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PE:EVALUATE');
 
-        // [THEN] Both pipelines receive trial usage without consuming an expense allowance
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive the policy evaluation.');
+        // [THEN] Only V2 receives trial usage without consuming an expense allowance
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'The inactive V1 pipeline must not be called.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive the policy evaluation.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Policy evaluations must not increment the trial counter.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Policy evaluations must preserve trial quota.');
-        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Trial policy evaluations must not be billed.');
         VerifyLastV2Trial(ExpenseAgentQuotaMock);
     end;
 
@@ -709,7 +698,7 @@ codeunit 148299 "Expense Consumption Test"
         // [THEN] The committed ID is reused without creating another companion
         Assert.AreEqual(OriginalId, RepeatedId, 'A repeated request must reuse the committed ID.');
         Assert.AreEqual(1, ExpenseAgentEnvConsumption.Count(), 'A repeated request must not create another companion.');
-        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must be resubmitted after a failure.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V2 failures must not fall back to V1.');
         Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must be resubmitted after a failure.');
     end;
 
@@ -929,6 +918,431 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(CopyStr(TaskLongName, 1, MaxStrLen(TaskShortName)), TaskShortName, 'The short name must retain its existing length limit.');
     end;
 
+    [Test]
+    procedure InactiveV2RoutesPaidConsumptionToV1()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        ConsumptionId: Guid;
+        Usage: Integer;
+        UsageType: Enum "Copilot Quota Usage Type";
+        Summary: Text[1024];
+        Description: Text;
+    begin
+        // [SCENARIO] The inactive V2 pipeline routes positive legacy usage only to V1
+        Initialize();
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+
+        ConsumptionId := LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PROCESS');
+
+        ExpenseAgentEnvConsumption.GetBySystemId(ConsumptionId);
+        Assert.IsTrue(ExpenseAgentEnvConsumption."Consumption Reported", 'Confirmed V1 reporting must complete the companion.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Only V1 must receive paid consumption.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Inactive V2 must not receive consumption.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetPaidReportCount(), 'V1 paid consumption must be billed.');
+        Assert.IsFalse(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Paid V1 consumption must not be excluded from billing.');
+        ExpenseAgentQuotaMock.GetLastV1Usage(Usage, UsageType, Summary, Description);
+        Assert.AreEqual(1, Usage, 'The V1 usage amount must be preserved.');
+        Assert.AreEqual(Enum::"Copilot Quota Usage Type"::"Autonomous Action", UsageType, 'The V1 usage type must be preserved.');
+        Assert.AreEqual('Processed expense', Summary, 'The V1 summary must be preserved.');
+        Assert.AreEqual(Summary, Description, 'The V1 description must use the full summary.');
+    end;
+
+    [Test]
+    procedure InactiveV2SkipsZeroV1UsageDespiteModelTokens()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        RequestJson: JsonObject;
+        V1Json: JsonObject;
+        SourceId: Guid;
+        ConsumptionId: Guid;
+    begin
+        // [SCENARIO] Inactive V2 ignores model tokens when legacy usage is zero
+        Initialize();
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        RequestJson := CreateValidConsumptionJson();
+        V1Json := RequestJson.GetObject('v1');
+        V1Json.Replace('usage', 0);
+        RequestJson.Replace('v1', V1Json);
+        SourceId := CreateGuid();
+
+        ConsumptionId := ReportConsumptionRequest(ExpenseConsumptionHandler, RequestJson, SourceId);
+
+        Assert.IsTrue(IsNullGuid(ConsumptionId), 'Zero V1 usage must return no consumption ID.');
+        ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", SourceId);
+        Assert.IsTrue(ExpenseAgentEnvConsumption.IsEmpty(), 'Skipped usage must not create a companion.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Zero usage must not be reported to V1.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Inactive V2 must not receive model usage.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Skipped usage must not consume trial allowance.');
+    end;
+
+    [Test]
+    procedure ZeroV2TokensSkipPaidConsumption()
+    begin
+        // [SCENARIO] Zero model usage skips paid V2 consumption even with positive V1 usage
+        VerifyZeroModelUsageIsSkipped(0);
+    end;
+
+    [Test]
+    procedure ZeroV2TokensPreserveTrialAllowance()
+    begin
+        // [SCENARIO] Zero model usage skips trial V2 consumption even with positive V1 usage
+        VerifyZeroModelUsageIsSkipped(1);
+    end;
+
+    [Test]
+    procedure V2InputTokensAloneAreReported()
+    begin
+        // [SCENARIO] Positive input tokens prevent the zero-usage exit
+        VerifySingleModelCounterIsReported('inputTokenCount');
+    end;
+
+    [Test]
+    procedure V2OutputTokensAloneAreReported()
+    begin
+        // [SCENARIO] Positive output tokens prevent the zero-usage exit
+        VerifySingleModelCounterIsReported('outputTokenCount');
+    end;
+
+    [Test]
+    procedure V2CacheReadTokensAloneAreReported()
+    begin
+        // [SCENARIO] Positive cache-read tokens prevent the zero-usage exit
+        VerifySingleModelCounterIsReported('promptCacheReadTokenCount');
+    end;
+
+    [Test]
+    procedure V2CacheCreationTokensAloneAreReported()
+    begin
+        // [SCENARIO] Positive cache-creation tokens prevent the zero-usage exit
+        VerifySingleModelCounterIsReported('promptCacheCreationTokenCount');
+    end;
+
+    [Test]
+    procedure PendingV1ConsumptionUsesV2AfterCutover()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        FirstId: Guid;
+        RepeatedId: Guid;
+    begin
+        // [SCENARIO] A pending paid V1 event moves to V2 without becoming a trial
+        Initialize();
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        SourceId := CreateGuid();
+        FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(true);
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        Assert.AreEqual(FirstId, RepeatedId, 'Cutover must retain the original consumption identity.');
+        ExpenseAgentEnvConsumption.GetBySystemId(RepeatedId);
+        Assert.IsFalse(ExpenseAgentEnvConsumption."Is Feature Trial", 'Cutover must preserve the original paid classification.');
+        Assert.IsTrue(ExpenseAgentEnvConsumption."Consumption Reported", 'The retry must complete in the active pipeline.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'The retry must not resubmit to inactive V1.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'The pending retry must use active V2.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'New trial availability must not reclassify the event.');
+    end;
+
+    [Test]
+    procedure PendingV2ConsumptionUsesV1AfterRollback()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        FirstId: Guid;
+        RepeatedId: Guid;
+    begin
+        // [SCENARIO] A pending paid V2 event uses V1 after activation is rolled back
+        Initialize();
+        ExpenseAgentQuotaMock.SetV2RecordingEnabled(false);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        SourceId := CreateGuid();
+        FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        Assert.AreEqual(FirstId, RepeatedId, 'A pending retry must retain its consumption ID.');
+        ExpenseAgentEnvConsumption.GetBySystemId(RepeatedId);
+        Assert.IsFalse(ExpenseAgentEnvConsumption."Is Feature Trial", 'The original paid classification must survive rollback.');
+        Assert.IsTrue(ExpenseAgentEnvConsumption."Consumption Reported", 'Active V1 must complete the pending event.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'The retry must not resubmit to inactive V2.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'The retry must report through V1.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'The retry must not consume newly available trial allowance.');
+    end;
+
+    [Test]
+    procedure CompletedV1TrialIsNotRecordedAfterCutover()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        FirstId: Guid;
+        RepeatedId: Guid;
+    begin
+        // [SCENARIO] A completed counter-only V1 trial remains complete after V2 activation
+        Initialize();
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        SourceId := CreateGuid();
+        FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(true);
+        RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        Assert.AreEqual(FirstId, RepeatedId, 'A completed trial must retain its identity.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'The completed trial must be counted only once.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 trials must not create paid reports.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Cutover must not record a completed V1 trial again.');
+    end;
+
+    [Test]
+    procedure CompletedV2TrialIsNotReportedAfterRollback()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        FirstId: Guid;
+        RepeatedId: Guid;
+    begin
+        // [SCENARIO] A completed V2 trial is not billed by V1 after rollback
+        Initialize();
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        SourceId := CreateGuid();
+        FirstId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        Assert.AreEqual(FirstId, RepeatedId, 'Rollback must retain the completed trial identity.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Rollback must not count the trial again.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Completed V2 consumption must not be repeated.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Completed V2 consumption must not be billed through V1.');
+    end;
+
+    [Test]
+    procedure RecordedV2TrialRetriesOnlyFailedCounterAfterRollback()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        ConsumptionId: Guid;
+    begin
+        // [SCENARIO] A trial-counter failure after V2 recording retries the counter without recording again
+        Initialize();
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseAgentQuotaMock.SetFailTrialReporting(true);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        SourceId := CreateGuid();
+
+        asserterror LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+        Assert.ExpectedError('Trial consumption reporting failed.');
+        ExpenseAgentQuotaMock.SetFailTrialReporting(false);
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        ConsumptionId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        ExpenseAgentEnvConsumption.GetBySystemId(ConsumptionId);
+        Assert.IsTrue(ExpenseAgentEnvConsumption."Consumption Reported", 'The counter retry must complete the event.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'The existing V2 ledger entry must not be submitted again.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Rollback must not rebill existing V2 consumption.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetTrialReportCount(), 'The failed trial counter must be retried once.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'The trial allowance must be consumed once.');
+    end;
+
+    [Test]
+    procedure ExistingV1LedgerPreventsV2ReplayWithoutCompletionFlag()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        SourceId: Guid;
+        ConsumptionId: Guid;
+        RepeatedId: Guid;
+    begin
+        // [SCENARIO] Preexisting V1 ledger entries prevent V2 replay even without a completion flag
+        Initialize();
+        ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        SourceId := CreateGuid();
+        ConsumptionId := ExpenseConsumptionHandler.LogAIConsumption(
+            1, Enum::"Copilot Quota Usage Type"::"Autonomous Action", 'Processed expense', 'Processed expense',
+            Enum::"Expense Agent Cons. Source"::Expense, SourceId, 'PROCESS', 'CONSUMPTION TEST');
+        ExpenseAgentEnvConsumption.GetBySystemId(ConsumptionId);
+        ExpenseAgentEnvConsumption."Consumption Reported" := false;
+        ExpenseAgentEnvConsumption.Modify();
+
+        RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, 'PROCESS');
+
+        Assert.AreEqual(ConsumptionId, RepeatedId, 'The ledger lookup must retain the existing companion.');
+        ExpenseAgentEnvConsumption.GetBySystemId(RepeatedId);
+        Assert.IsTrue(ExpenseAgentEnvConsumption."Consumption Reported", 'The existing ledger must complete the companion.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'The existing V1 consumption must not be submitted again.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'A historical V1 entry must not be billed through V2.');
+    end;
+
+    [Test]
+    procedure V1TrialPolicyEvaluationPreservesAllowance()
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+    begin
+        // [SCENARIO] V1 trial policy evaluation doesn't decrement allowance or report paid consumption
+        Initialize();
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
+        ExpenseAgentQuotaMock.SetTrialQuota(1);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+
+        LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), 'PE:EVALUATE');
+
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Only PROCESS must consume trial allowance.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Policy evaluation must preserve trial allowance.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 trial operations must not report paid consumption.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Inactive V2 must not receive the operation.');
+    end;
+
+    [Test]
+    procedure MissingModelTokenCountIsRejected()
+    begin
+        // [SCENARIO] Missing model counters are invalid rather than silently treated as zero
+        VerifyInvalidModelTokenCount('inputTokenCount', '');
+    end;
+
+    [Test]
+    procedure NullModelTokenCountIsRejected()
+    begin
+        // [SCENARIO] Null model counters are invalid rather than silently treated as zero
+        VerifyInvalidModelTokenCount('outputTokenCount', 'null');
+    end;
+
+    [Test]
+    procedure NonnumericModelTokenCountIsRejected()
+    begin
+        // [SCENARIO] Nonnumeric model counters are rejected
+        VerifyInvalidModelTokenCount('promptCacheReadTokenCount', '"invalid"');
+    end;
+
+    [Test]
+    procedure NegativeModelTokenCountIsRejected()
+    begin
+        // [SCENARIO] Negative model counters are rejected
+        VerifyInvalidModelTokenCount('promptCacheCreationTokenCount', '-1');
+    end;
+
+    [Test]
+    procedure FractionalModelTokenCountIsRejected()
+    begin
+        // [SCENARIO] Token counters must be whole numbers
+        VerifyInvalidModelTokenCount('inputTokenCount', '0.5');
+    end;
+
+    local procedure VerifyInvalidModelTokenCount(FieldName: Text; ValueJson: Text)
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        RequestJson: JsonObject;
+        ModelJson: JsonObject;
+        Token: JsonToken;
+    begin
+        Initialize();
+        RequestJson := CreateValidConsumptionJson();
+        ModelJson := RequestJson.GetObject('model');
+        if ValueJson = '' then
+            ModelJson.Remove(FieldName)
+        else begin
+            Token.ReadFrom(ValueJson);
+            ModelJson.Replace(FieldName, Token);
+        end;
+        RequestJson.Replace('model', ModelJson);
+
+        Assert.IsFalse(ExpenseConsumptionHandler.ValidateConsumptionJson(RequestJson), 'Invalid model token counts must be rejected.');
+    end;
+
+    local procedure CreateZeroModelConsumptionJson() RequestJson: JsonObject
+    var
+        ModelJson: JsonObject;
+    begin
+        RequestJson := CreateValidConsumptionJson();
+        ModelJson := RequestJson.GetObject('model');
+        ModelJson.Replace('inputTokenCount', 0);
+        ModelJson.Replace('outputTokenCount', 0);
+        RequestJson.Replace('model', ModelJson);
+    end;
+
+    local procedure ReportConsumptionRequest(var ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler"; RequestJson: JsonObject; SourceId: Guid): Guid
+    begin
+        exit(ExpenseConsumptionHandler.LogAIConsumptionV2(RequestJson, 'Processed expense',
+            Enum::"Expense Agent Cons. Source"::Expense, SourceId, 'PROCESS', 'CONSUMPTION TEST',
+            CreateGuid(), CreateGuid(), CreateGuid(), 'Expense user'));
+    end;
+
+    local procedure VerifyZeroModelUsageIsSkipped(TrialQuota: Integer)
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        RequestJson: JsonObject;
+        SourceId: Guid;
+        ConsumptionId: Guid;
+    begin
+        Initialize();
+        ExpenseAgentQuotaMock.SetTrialQuota(TrialQuota);
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        RequestJson := CreateZeroModelConsumptionJson();
+        Assert.IsTrue(ExpenseConsumptionHandler.ValidateConsumptionJson(RequestJson), 'Zero counters are valid input.');
+        SourceId := CreateGuid();
+
+        ConsumptionId := ReportConsumptionRequest(ExpenseConsumptionHandler, RequestJson, SourceId);
+
+        Assert.IsTrue(IsNullGuid(ConsumptionId), 'Zero model usage must not return a consumption ID.');
+        ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", SourceId);
+        Assert.IsTrue(ExpenseAgentEnvConsumption.IsEmpty(), 'Zero model usage must not create a companion.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Zero V2 usage must not fall back to V1.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Zero model usage must not be reported.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Zero model usage must not consume trial allowance.');
+        Assert.AreEqual(TrialQuota, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Zero model usage must preserve trial allowance.');
+    end;
+
+    local procedure VerifySingleModelCounterIsReported(FieldName: Text)
+    var
+        ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
+        ExpenseAgentQuotaMock: Codeunit "Expense Agent Quota Mock";
+        RequestJson: JsonObject;
+        ModelJson: JsonObject;
+        V1Json: JsonObject;
+    begin
+        Initialize();
+        ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
+        RequestJson := CreateZeroModelConsumptionJson();
+        ModelJson := RequestJson.GetObject('model');
+        ModelJson.Replace(FieldName, 1);
+        RequestJson.Replace('model', ModelJson);
+        V1Json := RequestJson.GetObject('v1');
+        V1Json.Replace('usage', 0);
+        RequestJson.Replace('v1', V1Json);
+
+        ReportConsumptionRequest(ExpenseConsumptionHandler, RequestJson, CreateGuid());
+
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Any positive model counter must be reported.');
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V2 must not submit V1 usage.');
+    end;
+
     local procedure VerifyV2NonProcessingOperationDoesNotIncrementTrial(Operation: Code[50])
     var
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
@@ -943,12 +1357,11 @@ codeunit 148299 "Expense Consumption Test"
         // [WHEN] A non-processing operation is reported
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), Operation);
 
-        // [THEN] Both pipelines receive the operation without incrementing the trial counter
-        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive the non-processing operation.');
+        // [THEN] Only V2 receives the operation without incrementing the trial counter
+        Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV1ReportCount(), 'The inactive V1 pipeline must not be called.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV2ReportCount(), 'V2 must receive the non-processing operation.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetTrialReportCount(), 'Non-processing operations must not increment the trial counter.');
         Assert.AreEqual(1, ExpenseAgentQuotaMock.GetRemainingTrialQuota(), 'Non-processing operations must preserve trial quota.');
-        Assert.IsTrue(ExpenseAgentQuotaMock.GetLastV1ExcludedFromBilling(), 'Trial non-processing operations must not be billed.');
         VerifyLastV2Trial(ExpenseAgentQuotaMock);
     end;
 
@@ -1026,6 +1439,7 @@ codeunit 148299 "Expense Consumption Test"
         RepeatedId: Guid;
     begin
         Initialize();
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(false);
         ExpenseAgentQuotaMock.SetV1RecordingEnabled(true);
         ExpenseConsumptionHandler.SetQuotaProvider(ExpenseAgentQuotaMock);
         SourceId := CreateGuid();
@@ -1036,10 +1450,11 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'Consumption recorded in V1 must not be sent to V2.');
 
         ExpenseAgentQuotaMock.SetV1RecordingEnabled(false);
+        ExpenseAgentQuotaMock.SetV2ConsumptionActive(true);
         RepeatedId := LogV2Consumption(ExpenseConsumptionHandler, SourceId, Operation);
 
         Assert.AreEqual(FirstId, RepeatedId, 'A retry across cutover must reuse the companion ID.');
-        Assert.AreEqual(2, ExpenseAgentQuotaMock.GetV1ReportCount(), 'V1 must receive both recording attempts.');
+        Assert.AreEqual(1, ExpenseAgentQuotaMock.GetV1ReportCount(), 'Completed V1 consumption must not be resubmitted.');
         Assert.AreEqual(0, ExpenseAgentQuotaMock.GetV2ReportCount(), 'A retry after cutover must not record completed V1 consumption in V2.');
 
         LogV2Consumption(ExpenseConsumptionHandler, CreateGuid(), Operation);

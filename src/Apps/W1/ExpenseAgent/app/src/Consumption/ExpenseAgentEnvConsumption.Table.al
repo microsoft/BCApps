@@ -60,6 +60,11 @@ table 6969 "Expense Agent Env. Consumption"
             Caption = 'Source Company Name';
             DataClassification = OrganizationIdentifiableInformation;
         }
+        field(9; "Consumption Reported"; Boolean)
+        {
+            Caption = 'Consumption Reported';
+            DataClassification = SystemMetadata;
+        }
 #if not CLEANSCHEMA30
         field(101; "Consumption DateTime"; DateTime)
         {

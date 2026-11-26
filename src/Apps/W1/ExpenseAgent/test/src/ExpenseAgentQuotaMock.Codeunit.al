@@ -16,6 +16,7 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         V1ConsumptionIds: List of [Text];
         V2ConsumptionIds: List of [Guid];
         V1RecordingEnabled: Boolean;
+        UseV1Pipeline: Boolean;
         SkipV2Recording: Boolean;
         RemainingTrialQuota: Integer;
         PaidQuotaAvailable: Boolean;
@@ -42,7 +43,9 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         LastV2Description: Text;
         LastV2IsFeatureTrial: Boolean;
         FailV2Reporting: Boolean;
+        FailTrialReporting: Boolean;
         V2ReportingFailedErr: Label 'V2 consumption reporting failed.', Locked = true;
+        TrialReportingFailedErr: Label 'Trial consumption reporting failed.', Locked = true;
 
     procedure IsTrialStarted(): Boolean
     begin
@@ -65,6 +68,11 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         exit(PaidQuotaAvailable);
     end;
 
+    procedure IsV2ConsumptionActive(): Boolean
+    begin
+        exit(not UseV1Pipeline);
+    end;
+
     procedure CanConsumePaidQuota(ConsumptionEntraPrincipalId: Guid): Boolean
     begin
         LastPaidQuotaPrincipalId := ConsumptionEntraPrincipalId;
@@ -83,6 +91,8 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
 
     procedure ReportTrialConsumption(ConsumptionId: Guid; Quota: Integer)
     begin
+        if FailTrialReporting then
+            Error(TrialReportingFailedErr);
         TrialReportCount += 1;
         LastTrialConsumptionId := ConsumptionId;
         LastTrialQuota := Quota;
@@ -133,6 +143,11 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
         V1RecordingEnabled := IsEnabled;
     end;
 
+    internal procedure SetV2ConsumptionActive(IsActive: Boolean)
+    begin
+        UseV1Pipeline := not IsActive;
+    end;
+
     internal procedure SetV2RecordingEnabled(IsEnabled: Boolean)
     begin
         SkipV2Recording := not IsEnabled;
@@ -141,6 +156,11 @@ codeunit 148332 "Expense Agent Quota Mock" implements "Expense Agent Quota"
     internal procedure SetFailV2Reporting(ShouldFail: Boolean)
     begin
         FailV2Reporting := ShouldFail;
+    end;
+
+    internal procedure SetFailTrialReporting(ShouldFail: Boolean)
+    begin
+        FailTrialReporting := ShouldFail;
     end;
 
     internal procedure GetV1ReportCount(): Integer

@@ -13,6 +13,7 @@ interface "Expense Agent Quota"
     procedure IsTrialStarted(): Boolean;
     procedure GetRemainingTrialQuota(): Integer;
     procedure TrialQuotaAvailable(): Boolean;
+    procedure IsV2ConsumptionActive(): Boolean;
     procedure CanConsumePaidQuota(): Boolean;
     procedure CanConsumePaidQuota(ConsumptionEntraPrincipalId: Guid): Boolean;
     procedure IsConsumptionLogged(UniqueId: Text[1024]): Boolean;

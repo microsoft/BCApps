@@ -8,7 +8,7 @@ using System.AI;
 codeunit 6969 "Expense Consumption Handler"
 {
     Access = Internal;
-    Permissions = tabledata "Expense Agent Env. Consumption" = i;
+    Permissions = tabledata "Expense Agent Env. Consumption" = im;
 
     var
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
@@ -17,15 +17,26 @@ codeunit 6969 "Expense Consumption Handler"
         LogQuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent. Trying to log %1 %2. Copilot Quota already exists: %3. Expense Agent Consumption already exists: %4. Trial available: %5.', Locked = true;
         NonProcessingTrialSkippedTelemetryMsg: Label 'Skipped incrementing the Expense Agent feature trial for an operation other than PROCESS.', Locked = true;
         UniqueIdTooLongTelemetryErr: Label 'Unique ID is for Expense Agent charge is too long. This leads to truncation, which in turn can lead to missing charging/billing.', Locked = true;
+        ZeroUsageSkippedTelemetryMsg: Label 'Skipped consumption reporting because the active pipeline has zero usage.', Locked = true;
+        ConsumptionPendingTelemetryMsg: Label 'Consumption submission has not produced a ledger entry and remains pending.', Locked = true;
+        ConsumptionAlreadyReportedTelemetryMsg: Label 'Skipped consumption reporting because the event has already been reported.', Locked = true;
 
     internal procedure ValidateConsumptionJson(AiConsumptionRequestJson: JsonObject): Boolean
     var
         V1Json: JsonObject;
+        ModelJson: JsonObject;
         TempToken: JsonToken;
         Usage: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
     begin
         if not AiConsumptionRequestJson.Get('model', TempToken) or not TempToken.IsObject() then
+            exit(false);
+        ModelJson := TempToken.AsObject();
+        if not IsValidTokenCount(ModelJson, 'inputTokenCount') or
+           not IsValidTokenCount(ModelJson, 'outputTokenCount') or
+           not IsValidTokenCount(ModelJson, 'promptCacheReadTokenCount') or
+           not IsValidTokenCount(ModelJson, 'promptCacheCreationTokenCount')
+        then
             exit(false);
         if not AiConsumptionRequestJson.Get('v1', TempToken) or not TempToken.IsObject() then
             exit(false);
@@ -60,14 +71,28 @@ codeunit 6969 "Expense Consumption Handler"
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
     begin
-        if Usage = 0 then
+        if Usage = 0 then begin
+            LogZeroUsage('V1');
             exit;
+        end;
 
         GetOrCreateConsumption(ExpenseAgentEnvConsumption, Usage, CopilotQuotaUsageType,
             ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo);
+        if IsConsumptionReported(ExpenseAgentEnvConsumption) then
+            exit(ExpenseAgentEnvConsumption.SystemId);
 
-        QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription,
-            ExpenseAgentEnvConsumption."Consumption Unique ID", ExpenseAgentEnvConsumption."Is Feature Trial");
+        Commit();
+        if ExpenseAgentEnvConsumption."Is Feature Trial" then begin
+            IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation);
+            MarkConsumptionReported(ExpenseAgentEnvConsumption);
+        end else begin
+            QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, ActionsSummary, ActionsDescription,
+                ExpenseAgentEnvConsumption."Consumption Unique ID", false);
+            if QuotaProvider.IsConsumptionLogged(ExpenseAgentEnvConsumption."Consumption Unique ID") then
+                MarkConsumptionReported(ExpenseAgentEnvConsumption)
+            else
+                LogPendingConsumption('V1');
+        end;
 
         exit(ExpenseAgentEnvConsumption.SystemId);
     end;
@@ -92,29 +117,104 @@ codeunit 6969 "Expense Consumption Handler"
         Usage: Integer;
         CopilotQuotaUsageType: Enum "Copilot Quota Usage Type";
     begin
+        InitializeQuotaProvider();
         ReadV1Usage(AiConsumptionRequestJson, Usage, CopilotQuotaUsageType);
+        if not QuotaProvider.IsV2ConsumptionActive() then
+            exit(LogAIConsumption(Usage, CopilotQuotaUsageType, Truncate(ActionsSummary), ActionsSummary,
+                ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo));
+
         ModelJson := AiConsumptionRequestJson.GetObject('model');
+        if not HasModelUsage(ModelJson) then begin
+            LogZeroUsage('V2');
+            exit;
+        end;
+
         ConsumptionUsageJson.Add('model', ModelJson);
         ConsumptionUsageJson.WriteTo(ConsumptionUsagePayload);
         GetOrCreateConsumption(ExpenseAgentEnvConsumption, Usage, CopilotQuotaUsageType,
             ConsumptionSourceType, ConsumptionSourceSystemId, Operation, ExpenseUserNo);
+        if IsConsumptionReported(ExpenseAgentEnvConsumption) then
+            exit(ExpenseAgentEnvConsumption.SystemId);
 
         // The platform records V2 consumption in a separate transaction. Persist its idempotency ID first.
         Commit();
 
-        if Usage > 0 then
-            QuotaProvider.LogConsumption(Usage, CopilotQuotaUsageType, Truncate(ActionsSummary), ActionsSummary,
-                ExpenseAgentEnvConsumption."Consumption Unique ID", ExpenseAgentEnvConsumption."Is Feature Trial");
-        if not QuotaProvider.IsConsumptionLogged(ExpenseAgentEnvConsumption."Consumption Unique ID") then
-            QuotaProvider.RecordConsumption(ExpenseAgentEnvConsumption.SystemId, AgentConversationSessionId,
-                AgentTurnInteractionId, ConsumptionUsagePayload, ExpenseUserEntraId, ExpenseUserDisplayName,
-                ActionsSummary, ExpenseAgentEnvConsumption."Is Feature Trial");
+        QuotaProvider.RecordConsumption(ExpenseAgentEnvConsumption.SystemId, AgentConversationSessionId,
+            AgentTurnInteractionId, ConsumptionUsagePayload, ExpenseUserEntraId, ExpenseUserDisplayName,
+            ActionsSummary, ExpenseAgentEnvConsumption."Is Feature Trial");
 
-        if ExpenseAgentEnvConsumption."Is Feature Trial" then
-            if QuotaProvider.IsV2ConsumptionRecorded(ExpenseAgentEnvConsumption.SystemId) then
+        if QuotaProvider.IsV2ConsumptionRecorded(ExpenseAgentEnvConsumption.SystemId) then begin
+            if ExpenseAgentEnvConsumption."Is Feature Trial" then
                 IncrementTrial(ExpenseAgentEnvConsumption.SystemId, Operation);
+            MarkConsumptionReported(ExpenseAgentEnvConsumption);
+        end else
+            LogPendingConsumption('V2');
 
         exit(ExpenseAgentEnvConsumption.SystemId);
+    end;
+
+    local procedure IsValidTokenCount(ModelJson: JsonObject; FieldName: Text): Boolean
+    var
+        Token: JsonToken;
+        TokenCount: BigInteger;
+    begin
+        if not ModelJson.Get(FieldName, Token) then
+            exit(false);
+        if not Token.IsValue() then
+            exit(false);
+        if Token.AsValue().IsNull() then
+            exit(false);
+        if not Evaluate(TokenCount, Token.AsValue().AsText(), 9) then
+            exit(false);
+        exit(TokenCount >= 0);
+    end;
+
+    local procedure HasModelUsage(ModelJson: JsonObject): Boolean
+    begin
+        exit((ModelJson.GetBigInteger('inputTokenCount') > 0) or
+             (ModelJson.GetBigInteger('outputTokenCount') > 0) or
+             (ModelJson.GetBigInteger('promptCacheReadTokenCount') > 0) or
+             (ModelJson.GetBigInteger('promptCacheCreationTokenCount') > 0));
+    end;
+
+    local procedure IsConsumptionReported(var ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption"): Boolean
+    begin
+        if not ExpenseAgentEnvConsumption."Consumption Reported" then
+            if QuotaProvider.IsConsumptionLogged(ExpenseAgentEnvConsumption."Consumption Unique ID") then
+                MarkConsumptionReported(ExpenseAgentEnvConsumption)
+            else
+                if QuotaProvider.IsV2ConsumptionRecorded(ExpenseAgentEnvConsumption.SystemId) then begin
+                    if ExpenseAgentEnvConsumption."Is Feature Trial" then
+                        IncrementTrial(ExpenseAgentEnvConsumption.SystemId, ExpenseAgentEnvConsumption."Consumption Source Operation");
+                    MarkConsumptionReported(ExpenseAgentEnvConsumption);
+                end;
+
+        if ExpenseAgentEnvConsumption."Consumption Reported" then
+            Session.LogMessage('0000W46', ConsumptionAlreadyReportedTelemetryMsg, Verbosity::Normal,
+                DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
+                'Category', ExpenseAuditSubscribers.TelemetryCategory());
+        exit(ExpenseAgentEnvConsumption."Consumption Reported");
+    end;
+
+    local procedure MarkConsumptionReported(var ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption")
+    begin
+        ExpenseAgentEnvConsumption.GetBySystemId(ExpenseAgentEnvConsumption.SystemId);
+        ExpenseAgentEnvConsumption."Consumption Reported" := true;
+        ExpenseAgentEnvConsumption.Modify();
+    end;
+
+    local procedure LogZeroUsage(Pipeline: Text)
+    begin
+        Session.LogMessage('0000W44', ZeroUsageSkippedTelemetryMsg, Verbosity::Normal,
+            DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
+            'Category', ExpenseAuditSubscribers.TelemetryCategory(), 'Pipeline', Pipeline);
+    end;
+
+    local procedure LogPendingConsumption(Pipeline: Text)
+    begin
+        Session.LogMessage('0000W45', ConsumptionPendingTelemetryMsg, Verbosity::Warning,
+            DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
+            'Category', ExpenseAuditSubscribers.TelemetryCategory(), 'Pipeline', Pipeline);
     end;
 
     [NonDebuggable]

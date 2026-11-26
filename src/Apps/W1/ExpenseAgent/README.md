@@ -7,11 +7,16 @@ indicating support for `LogAIConsumptionV2` and `CanConsumeV2`.
 
 `userConsumptions` exposes `LogAIConsumptionV2`. The request contains a `model`
 object with model usage and a `v1` object with `usage` and `usageType`.
-The action submits V1 only when `v1.usage` is greater than zero and submits V2
-model usage independently. The platform selects which pipeline records the
-event. The V2 platform payload retains the top-level `model` object and excludes
-the `v1` object. The legacy V1-only action ignores zero usage without creating
-a companion record or reporting consumption.
+The action calls `Copilot Quota.IsV2ConsumptionActive()` and submits only the
+active pipeline. When V2 is inactive, it uses the V1 usage and usage type.
+When V2 is active, it uses only model usage; the V2 platform payload retains the
+top-level `model` object and excludes the `v1` object.
+The four model token counters must be present, whole, and non-negative:
+`inputTokenCount`, `outputTokenCount`, `promptCacheReadTokenCount`, and
+`promptCacheCreationTokenCount`.
+Zero V1 usage, or all four V2 counters being zero, emits skip telemetry and
+returns an empty GUID without creating a companion or reporting consumption.
+The legacy V1-only action retains its V1 routing regardless of V2 activation.
 
 The legacy `userConsumptions({id})/Microsoft.NAV.canConsume` action retains its
 empty request body and evaluates quota using the integration session's principal.
@@ -23,7 +28,8 @@ Entra ID differs from the supplied ID, the action emits error-level telemetry
 and continues recording with the supplied ID. A blank stored ID doesn't prevent
 recording.
 The System Application `Copilot Quota.CanConsume(Guid)` overload is scoped to
-OnPrem; the parameterless overload still resolves the principal from the session.
+OnPrem and evaluates paid quota in the active pipeline. The parameterless
+overload retains its legacy session-based behavior.
 The new production billing methods and the consumption API entry points are
 marked `NonDebuggable`. Identity-mismatch telemetry remains publisher-only.
 
@@ -32,16 +38,21 @@ system ID, and operation. V1 uses its text consumption key; V2 uses its
 `SystemId`. The record and its trial classification are committed before either
 submission because V2 records consumption in a separate system transaction.
 A failed submission can leave a pending companion record. Repeating the request
-reuses both IDs and the original trial classification.
-After the V1 call, the action checks whether that ledger contains the text key
-and skips V2 recording if it does. This prevents a completed V1 event from being
-recorded again in V2 when a retry crosses the billing cutover.
+reuses both IDs and the original trial classification. A completion flag records
+successful processing, including V1 trials that have no billing-ledger entry.
+Completed events aren't submitted again. Existing V1 and V2 ledger entries
+also prevent duplicate submission. If a V2 ledger entry exists but its trial
+counter failed, the retry finishes the counter using the same consumption ID.
+Pending events use the currently active pipeline when retried, including after
+a change in activation, without changing their identity or trial classification.
 
-Trial events are excluded from billing. V1 consumption never decrements trial
-allowance. Only a `PROCESS` event confirmed in the V2 consumption ledger
-increments the feature-trial counter, once per consumption ID, even when V1
-usage is zero. Other operations, failed V2 submissions, and submissions that
-don't create a V2 ledger entry don't increment it.
+Only `PROCESS` consumes trial allowance, once per consumption ID.
+V1 trial events update the trial counter without submitting normal V1
+consumption; other V1 trial operations are completed without consuming allowance.
+V2 trial events are always recorded with `IsFeatureTrial = true`, then update
+the trial counter after the V2 ledger entry is confirmed. Paid events use normal
+consumption reporting in the selected pipeline. Failed or ignored V2 recording
+doesn't consume trial allowance.
 
 The billing overview reads V2 details from `AI Consumption Log Entry` by
 `SystemId`, or V1 details from `User AI Consumption Data` by the text key.

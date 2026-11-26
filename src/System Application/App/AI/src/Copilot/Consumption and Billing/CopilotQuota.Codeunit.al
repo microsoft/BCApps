@@ -8,8 +8,7 @@ namespace System.AI;
 /// Codeunit that exposes functionality related to Copilot Quota, such as logging quota usage
 /// </summary>
 /// <remarks>
-/// During migration, callers must log the same consumption using both the V1 and V2 consumption pipelines.
-/// The platform selects the active pipeline and switches to V2 on the configured activation date.
+/// Call IsV2ConsumptionActive to select the active consumption pipeline during migration.
 /// </remarks>
 codeunit 7785 "Copilot Quota"
 {
@@ -55,7 +54,7 @@ codeunit 7785 "Copilot Quota"
     /// <param name="ActionsCharged">The actions that were charged for this usage. This should be a short text, for example Quote Operation, Processed E-Document and etc...</param>
     /// <param name="Description">A description of the usage. This text is providing the additional information to ActionsCharged, for example specifying which operation was done on which quote or which e-document was processed.</param>
     /// <param name="UniqueID">A unique identifier for this log entry. Parameter is mandatory. This value is used to avoid double charging. Platform will check if we have the entry already logged and will not double charge. If you want to charge always use CreateGuid() or a strategy that will always issue a charge.</param>
-    /// <remarks>Uses the V1 consumption pipeline. During migration, also call RecordAIConsumption for the same consumption.</remarks>
+    /// <remarks>Uses the V1 consumption pipeline. Call IsV2ConsumptionActive to select the active pipeline.</remarks>
     [Scope('OnPrem')]
     procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024])
     var
@@ -78,7 +77,7 @@ codeunit 7785 "Copilot Quota"
     /// <param name="Description">A description of the usage. This text is providing the additional information to ActionsCharged, for example specifying which operation was done on which quote or which e-document was processed.</param>
     /// <param name="UniqueID">A unique identifier for this log entry. Parameter is mandatory. This value is used to avoid double charging. Platform will check if we have the entry already logged and will not double charge. If you want to charge always use CreateGuid() or a strategy that will always issue a charge.</param>
     /// <param name="ExcludeFromBilling">If true, the usage will be logged but excluded from billing.</param>
-    /// <remarks>Uses the V1 consumption pipeline. During migration, also call RecordAIConsumption for the same consumption.</remarks>
+    /// <remarks>Uses the V1 consumption pipeline. Call IsV2ConsumptionActive to select the active pipeline.</remarks>
     [Scope('OnPrem')]
     procedure LogAgentUserAIConsumption(CopilotCapability: Enum "Copilot Capability"; Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; AgentTaskID: BigInteger; ActionsCharged: Text[1024]; Description: Text; UniqueID: Text[1024]; ExcludeFromBilling: Boolean)
     var
@@ -104,7 +103,7 @@ codeunit 7785 "Copilot Quota"
     /// <param name="Metadata">Optional metadata about the consumption. Pass blank text when not applicable.</param>
     /// <param name="Description">An optional description of the consumed work. Pass blank text when not applicable.</param>
     /// <param name="IsFeatureTrial">Whether this consumption belongs to a feature trial.</param>
-    /// <remarks>Uses the V2 consumption pipeline. During migration, also call LogAgentUserAIConsumption for the same consumption.</remarks>
+    /// <remarks>Uses the V2 consumption pipeline. Call IsV2ConsumptionActive to select the active pipeline.</remarks>
     [Scope('OnPrem')]
     [NonDebuggable]
     procedure RecordAIConsumption(CopilotCapability: Enum "Copilot Capability"; ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; CorrelationId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; AgentTaskId: BigInteger; Metadata: Text; Description: Text; IsFeatureTrial: Boolean)
@@ -144,6 +143,16 @@ codeunit 7785 "Copilot Quota"
     end;
 
     /// <summary>
+    /// Checks if the V2 AI consumption pipeline is active for the tenant.
+    /// </summary>
+    /// <returns>True if the V2 AI consumption pipeline is active; otherwise, false.</returns>
+    /// <remarks>Use this value to select the consumption pipeline before reporting usage.</remarks>
+    procedure IsV2ConsumptionActive(): Boolean
+    begin
+        exit(CopilotQuotaImpl.IsV2ConsumptionActive());
+    end;
+
+    /// <summary>
     /// Checks if the tenant is allowed to consume Copilot quota.
     /// </summary>
     /// <returns>True if allowed, false otherwise.</returns>
@@ -158,7 +167,7 @@ codeunit 7785 "Copilot Quota"
     /// </summary>
     /// <param name="ConsumptionEntraPrincipalId">The Entra principal whose quota is evaluated for V2 consumption.</param>
     /// <returns>True if allowed, false otherwise.</returns>
-    /// <remarks>Checks both V1 and V2 consumption quota and returns true if either pipeline allows consumption.</remarks>
+    /// <remarks>Checks V2 quota for the supplied principal when V2 is active; otherwise, checks V1 quota.</remarks>
     [Scope('OnPrem')]
     [NonDebuggable]
     procedure CanConsume(ConsumptionEntraPrincipalId: Guid): Boolean
