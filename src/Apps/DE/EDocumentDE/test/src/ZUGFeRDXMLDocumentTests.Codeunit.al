@@ -84,6 +84,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         DocumentLineTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:IncludedSupplyChainTradeLineItem', Locked = true;
         SellerTaxRegistrationTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:SellerTradeParty/ram:SpecifiedTaxRegistration/ram:ID', Locked = true;
         BuyerGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:GlobalID', Locked = true;
+        PaymentTermsTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradePaymentTerms', Locked = true;
         BuyerLegalOrganizationIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeAgreement/ram:BuyerTradeParty/ram:SpecifiedLegalOrganization/ram:ID', Locked = true;
         ShipToGlobalIdTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty/ram:GlobalID', Locked = true;
         ShipToTradePartyTok: Label '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeDelivery/ram:ShipToTradeParty', Locked = true;
@@ -812,6 +813,75 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with due date
         VerifyDueDate(SalesInvoiceHeader."Due Date", TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradePaymentTerms');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatWithDueDateTodayExportsDueDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] A due date on the current date is exported as the payment due date (BT-9)
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Due Date" = today
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Due Date" := Today();
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] DueDateDateTime = today
+        VerifyDueDate(Today(), TempXMLBuffer, PaymentTermsTok);
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatWithoutDueDateOmitsDueDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PaymentTerms: Record "Payment Terms";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] An empty due date is not exported as a payment due date (BT-9), while the payment terms (BT-20) still are
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with "Payment Terms Code" and without a "Due Date"
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        PaymentTerms.Get(SalesInvoiceHeader."Payment Terms Code");
+        SalesInvoiceHeader."Due Date" := 0D;
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] SpecifiedTradePaymentTerms holds the payment terms description and no DueDateDateTime
+        Assert.AreEqual(PaymentTerms.Description, GetNodeByPathWithError(TempXMLBuffer, PaymentTermsTok + '/ram:Description'), StrSubstNo(IncorrectValueErr, PaymentTermsTok + '/ram:Description'));
+        VerifyNodeDoesNotExist(TempXMLBuffer, PaymentTermsTok + '/ram:DueDateDateTime');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatWithoutDueDateAndPaymentTermsOmitsPaymentTerms()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Without payment terms, due date and mandate reference no empty SpecifiedTradePaymentTerms element is exported
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice without "Payment Terms Code", "Due Date" and direct debit mandate
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader."Payment Terms Code" := '';
+        SalesInvoiceHeader."Due Date" := 0D;
+        SalesInvoiceHeader."Direct Debit Mandate ID" := '';
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No SpecifiedTradePaymentTerms is exported, and the settlement totals are still exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, PaymentTermsTok);
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, MonetarySummationTok), StrSubstNo(IncorrectValueErr, MonetarySummationTok));
     end;
 
     [Test]
@@ -1745,6 +1815,32 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
 
         // [THEN] ZUGFeRD Electronic Document is created with due date
         VerifyDueDate(SalesCrMemoHeader."Due Date", TempXMLBuffer, '/rsm:CrossIndustryInvoice/rsm:SupplyChainTradeTransaction/ram:ApplicableHeaderTradeSettlement/ram:SpecifiedTradePaymentTerms');
+    end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInZUGFeRDFormatWithoutDueDateAndPaymentTermsOmitsPaymentTerms()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] Without payment terms and due date no empty SpecifiedTradePaymentTerms element is exported for a credit memo
+        Initialize();
+
+        // [GIVEN] Posted Sales Credit Memo without "Payment Terms Code" and without "Due Date"
+        SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesDocumentWithLine("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, false));
+        SalesHeader."Payment Terms Code" := '';
+        SalesHeader.Modify();
+        SalesCrMemoHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesCrMemoHeader."Due Date" := 0D;
+        SalesCrMemoHeader.Modify(false);
+
+        // [WHEN] Export ZUGFeRD Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No SpecifiedTradePaymentTerms is exported, and the settlement totals are still exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, PaymentTermsTok);
+        Assert.AreEqual(1, GetNodeCountByPath(TempXMLBuffer, MonetarySummationTok), StrSubstNo(IncorrectValueErr, MonetarySummationTok));
     end;
 
     [Test]
