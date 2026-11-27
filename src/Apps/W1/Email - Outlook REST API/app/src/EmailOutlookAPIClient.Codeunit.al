@@ -21,6 +21,7 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         SendEmailErr: Label 'Could not send the email message. Try again later.';
         SendEmailCodeErr: Label 'Failed to send email with status code %1.', Comment = '%1 - Http status code', Locked = true;
         SendEmailMessageErr: Label 'Failed to send email. Error:\\%1', Comment = '%1 = Error message';
+        InvalidSenderAddressErr: Label 'Could not send the email, because the sender email address of the account is missing or invalid.';
         SendEmailExternalUserErr: Label 'Could not send the email, because the user is delegated or external.';
         EmailSentTxt: Label 'Email sent.', Locked = true;
         DraftEmailCreatedTxt: Label 'Draft email created.', Locked = true;
@@ -49,6 +50,8 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         UpdateDraftUriTxt: Label '/v1.0/users/%1/messages/%2', Locked = true;
         CreateDraftReplyAllUriTxt: Label '/v1.0/users/%1/messages/%2/createReplyAll', Locked = true;
         SendDraftUriTxt: Label '/v1.0/users/%1/messages/%2/send', Locked = true;
+        SendMailUriTxt: Label '/v1.0/users/%1/sendMail', Comment = '%1 - Email address', Locked = true;
+        CreateDraftUriTxt: Label '/v1.0/users/%1/messages', Comment = '%1 - Email address', Locked = true;
         UploadAttachmentUriTxt: Label '/v1.0/users/%1/messages/%2/attachments/createUploadSession', Locked = true;
         UploadAttachmentMeUriTxt: Label '/v1.0/me/messages/%1/attachments/createUploadSession', Locked = true;
         PostAttachmentUriTxt: Label '/v1.0/users/%1/messages/%2/attachments', Locked = true;
@@ -105,6 +108,7 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
 
     /// <summary>
     /// Send email using Outlook API. If the message json parameter &lt;= 4 mb and wrapped in a message object it is sent in a single request, otherwise it is sent it in multiple requests.
+    /// If the message specifies a sender ("from" address), the email is sent through that mailbox (for example a shared mailbox), otherwise it is sent through the signed-in user's mailbox.
     /// </summary>
     /// <error>User is external and cannot authenticate to the exchange server.</error>
     /// <param name="AccessToken">Access token of the account.</param>
@@ -119,26 +123,65 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         Attachments: JsonArray;
         Attachment: JsonToken;
         MessageId: Text;
+        SenderAddress: Text[250];
     begin
         if AzureADUserManagement.IsUserDelegated(UserSecurityId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetExternalAccountantPlanId()) then
             Error(SendEmailExternalUserErr);
 
+        // When the message has an explicit sender (e.g. a Microsoft 365 / shared mailbox account), send through that mailbox
+        // instead of the signed-in user's mailbox, so the email is sent from the configured account.
+        SenderAddress := GetSenderAddress(MessageJson);
+
         if MessageJson.Contains('message') then
-            SendMailSingleRequest(AccessToken, MessageJson)
+            SendMailSingleRequest(AccessToken, SenderAddress, MessageJson)
         else begin
             MessageJson.Get('attachments', JToken);
             Attachments := JToken.AsArray();
             MessageJson.Remove('attachments');
-            MessageId := CreateDraftMail(AccessToken, MessageJson);
+            MessageId := CreateDraftMail(AccessToken, SenderAddress, MessageJson);
 
             foreach Attachment in Attachments do
                 if Attachment.AsObject().Contains('AttachmentItem') then
-                    UploadAttachment(AccessToken, '', Attachment.AsObject(), MessageId)
+                    UploadAttachment(AccessToken, SenderAddress, Attachment.AsObject(), MessageId)
                 else
-                    PostAttachment(AccessToken, '', Attachment.AsObject(), MessageId);
+                    PostAttachment(AccessToken, SenderAddress, Attachment.AsObject(), MessageId);
 
-            SendDraftMail(AccessToken, MessageId);
+            if SenderAddress = '' then
+                SendDraftMail(AccessToken, MessageId)
+            else
+                SendDraftMail(AccessToken, SenderAddress, MessageId);
         end;
+    end;
+
+    local procedure GetSenderAddress(MessageJson: JsonObject): Text[250]
+    var
+        MessageToken: JsonToken;
+        AddressToken: JsonToken;
+        MessageObject: JsonObject;
+        SenderAddress: Text[250];
+    begin
+        MessageObject := MessageJson;
+        if MessageJson.Get('message', MessageToken) then
+            if MessageToken.IsObject() then
+                MessageObject := MessageToken.AsObject();
+
+        // No sender requested: send through the signed-in user's mailbox.
+        if not MessageObject.Contains('from') then
+            exit('');
+
+        // A sender was requested, so never silently fall back to the signed-in user's mailbox.
+        if not MessageObject.SelectToken('from.emailAddress.address', AddressToken) then
+            Error(InvalidSenderAddressErr);
+        if not AddressToken.IsValue() then
+            Error(InvalidSenderAddressErr);
+        if AddressToken.AsValue().IsNull() then
+            Error(InvalidSenderAddressErr);
+
+        SenderAddress := CopyStr(AddressToken.AsValue().AsText().Trim(), 1, MaxStrLen(SenderAddress));
+        if SenderAddress = '' then
+            Error(InvalidSenderAddressErr);
+
+        exit(SenderAddress);
     end;
 
     procedure GetMailboxFolders(AccessToken: SecretText; OutlookAccount: Record "Email - Outlook Account"): JsonArray
@@ -600,7 +643,7 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
     end;
 
     [NonDebuggable]
-    local procedure SendMailSingleRequest(AccessToken: SecretText; MessageJson: JsonObject)
+    local procedure SendMailSingleRequest(AccessToken: SecretText; EmailAddress: Text[250]; MessageJson: JsonObject)
     var
         MailHttpContent: HttpContent;
         MailHttpRequestMessage: HttpRequestMessage;
@@ -613,7 +656,10 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         RequestUri: Text;
     begin
         MessageJson.WriteTo(MessageJsonText);
-        RequestUri := GraphURLTxt + '/v1.0/me/sendMail';
+        if EmailAddress = '' then
+            RequestUri := GraphURLTxt + '/v1.0/me/sendMail'
+        else
+            RequestUri := GraphURLTxt + StrSubstNo(SendMailUriTxt, EmailAddress);
 
         MailHttpRequestMessage.Method('POST');
         MailHttpRequestMessage.SetRequestUri(RequestUri);
@@ -671,7 +717,7 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
     end;
 
     [NonDebuggable]
-    local procedure CreateDraftMail(AccessToken: SecretText; MessageJson: JsonObject): Text
+    local procedure CreateDraftMail(AccessToken: SecretText; EmailAddress: Text[250]; MessageJson: JsonObject): Text
     var
         MailHttpContent: HttpContent;
         MailHttpRequestMessage: HttpRequestMessage;
@@ -688,7 +734,10 @@ codeunit 4508 "Email - Outlook API Client" implements "Email - Outlook API Clien
         MessageId: Text;
     begin
         MessageJson.WriteTo(MessageJsonText);
-        RequestUri := GraphURLTxt + '/v1.0/me/messages';
+        if EmailAddress = '' then
+            RequestUri := GraphURLTxt + '/v1.0/me/messages'
+        else
+            RequestUri := GraphURLTxt + StrSubstNo(CreateDraftUriTxt, EmailAddress);
 
         MailHttpRequestMessage.Method('POST');
         MailHttpRequestMessage.SetRequestUri(RequestUri);
