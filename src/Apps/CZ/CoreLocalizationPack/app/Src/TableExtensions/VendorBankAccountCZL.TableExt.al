@@ -30,12 +30,19 @@ tableextension 11708 "Vendor Bank Account CZL" extends "Vendor Bank Account"
 
     procedure IsPublicBankAccountCZL(): Boolean
     var
+        Vendor: Record Vendor;
         UnreliablePayerMgtCZL: Codeunit "Unreliable Payer Mgt. CZL";
     begin
+        if Rec."Third Party Bank Account CZL" then
+            exit(false);
         if Rec."Vendor No." = '' then
             exit(false);
+        if not Vendor.Get(Rec."Vendor No.") then
+            exit(false);
+        if not Vendor.IsUnreliablePayerCheckPossibleCZL() then
+            exit(false);
 
-        exit(UnreliablePayerMgtCZL.IsPublicBankAccount(Rec."Vendor No.", Rec.VendorVATRegistrationNoCZL(), Rec."Bank Account No.", Rec.IBAN));
+        exit(UnreliablePayerMgtCZL.IsPublicBankAccount(Vendor."VAT Registration No.", Rec."Bank Account No.", Rec.IBAN));
     end;
 
     procedure IsForeignBankAccountCZL(): Boolean

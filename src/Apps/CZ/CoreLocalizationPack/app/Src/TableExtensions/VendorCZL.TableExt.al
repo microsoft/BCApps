@@ -6,6 +6,7 @@ namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.Finance.Registration;
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Payables;
 using System.Utilities;
@@ -28,7 +29,6 @@ tableextension 11702 "Vendor CZL" extends Vendor
                 OnBeforeOnValidateRegistrationNoCZL(Rec, xRec, IsHandled);
                 if IsHandled then
                     exit;
-
                 if not RegistrationNoMgtCZL.CheckRegistrationNo(GetRegistrationNoTrimmedCZL(), "No.", Database::Vendor) then
                     exit;
 
@@ -40,10 +40,38 @@ tableextension 11702 "Vendor CZL" extends Vendor
                         if ResultRecordRef.Number <> 0 then
                             ResultRecordRef.SetTable(Rec);
                     end;
-
                 if LogNotVerified then
                     RegistrationLogMgtCZL.LogVendor(Rec);
             end;
+        }
+        field(11767; "Last Unreliab. Check Date CZL"; Date)
+        {
+            CalcFormula = max("Unreliable Payer Entry CZL"."Check Date" where("VAT Registration No." = field("VAT Registration No."),
+                                                                              Type = const(Payer)));
+            Caption = 'Last Unreliability Check Date';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+#if not CLEAN30
+        field(11768; "VAT Unreliable Payer CZL"; Option)
+        {
+            CalcFormula = lookup("Unreliable Payer Entry CZL"."Unreliable Payer" where("VAT Registration No." = field("VAT Registration No."),
+                                                                                      "Entry Type" = const(Payer),
+                                                                                      "Check Date" = field("Last Unreliab. Check Date CZL")));
+            Caption = 'VAT Unreliable Payer (Obsolete)';
+            Editable = false;
+            FieldClass = FlowField;
+            OptionCaption = ' ,NO,YES,NOTFOUND';
+            OptionMembers = " ",NO,YES,NOTFOUND;
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Replaced by "Unreliable Payer Status CZL" field.';
+        }
+#endif
+        field(11769; "Disable Unreliab. Check CZL"; Boolean)
+        {
+            Caption = 'Disable Unreliability Check';
+            DataClassification = CustomerContent;
         }
 #if not CLEANSCHEMA26
         field(11770; "Registration No. CZL"; Text[20])
@@ -70,29 +98,14 @@ tableextension 11702 "Vendor CZL" extends Vendor
             Caption = 'Validate Registration No.';
             DataClassification = CustomerContent;
         }
-        field(11767; "Last Unreliab. Check Date CZL"; Date)
+        field(11780; "Unreliable Payer Status CZL"; Enum "Unreliable Payer Status CZL")
         {
-            CalcFormula = max("Unreliable Payer Entry CZL"."Check Date" where("VAT Registration No." = field("VAT Registration No."),
-                                                                            "Entry Type" = const(Payer)));
-            Caption = 'Last Unreliability Check Date';
+            CalcFormula = lookup("Unreliable Payer Entry CZL".Status where("VAT Registration No." = field("VAT Registration No."),
+                                                                           Type = const(Payer),
+                                                                           "Check Date" = field("Last Unreliab. Check Date CZL")));
+            Caption = 'Unreliable Payer Status';
             Editable = false;
             FieldClass = FlowField;
-        }
-        field(11768; "VAT Unreliable Payer CZL"; Option)
-        {
-            CalcFormula = lookup("Unreliable Payer Entry CZL"."Unreliable Payer" where("VAT Registration No." = field("VAT Registration No."),
-                                                                                      "Entry Type" = const(Payer),
-                                                                                      "Check Date" = field("Last Unreliab. Check Date CZL")));
-            Caption = 'VAT Unreliable Payer';
-            Editable = false;
-            FieldClass = FlowField;
-            OptionCaption = ' ,NO,YES,NOTFOUND';
-            OptionMembers = " ",NO,YES,NOTFOUND;
-        }
-        field(11769; "Disable Unreliab. Check CZL"; Boolean)
-        {
-            Caption = 'Disable Unreliability Check';
-            DataClassification = CustomerContent;
         }
 #if not CLEANSCHEMA25
         field(31070; "Transaction Type CZL"; Code[10])
@@ -126,16 +139,11 @@ tableextension 11702 "Vendor CZL" extends Vendor
     }
 
     trigger OnDelete()
-    var
-        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
     begin
-        UnreliablePayerEntryCZL.SetRange("Vendor No.", Rec."No.");
-        UnreliablePayerEntryCZL.DeleteAll(true);
         RegistrationLogMgtCZL.DeleteVendorLog(Rec);
     end;
 
     var
-        UnrelPayerServiceSetupCZL: Record "Unrel. Payer Service Setup CZL";
         UnreliablePayerMgtCZL: Codeunit "Unreliable Payer Mgt. CZL";
         RegistrationLogMgtCZL: Codeunit "Registration Log Mgt. CZL";
         RegistrationNoMgtCZL: Codeunit "Registration No. Mgt. CZL";
@@ -144,58 +152,46 @@ tableextension 11702 "Vendor CZL" extends Vendor
 
     procedure ImportUnrPayerStatusCZL()
     var
-        UnreliablePayerEntry: Record "Unreliable Payer Entry CZL";
         ConfirmManagement: Codeunit "Confirm Management";
     begin
         if not UnreliablePayerMgtCZL.ImportUnrPayerStatusForVendor(Rec) then
             exit;
-
         if not ConfirmManagement.GetResponse(ImportSuccessfulQst, true) then
             exit;
 
         Commit();
-        UnreliablePayerEntry.SetRange("Vendor No.", "No.");
-        UnreliablePayerEntry."Vendor No." := "No.";
-        Page.RunModal(Page::"Unreliable Payer Entries CZL", UnreliablePayerEntry);
+        ShowUnreliableEntriesCZL();
     end;
 
     procedure IsUnreliablePayerCheckPossibleCZL(): Boolean
     begin
         if "Disable Unreliab. Check CZL" then
             exit(false);
-        if not UnrelPayerServiceSetupCZL.Get() then
-            exit(false);
-        if not UnrelPayerServiceSetupCZL.Enabled then
-            exit(false);
-        exit(UnreliablePayerMgtCZL.IsVATRegNoExportPossible("VAT Registration No.", "Country/Region Code"));
+        exit(UnreliablePayerMgtCZL.IsUnreliablePayerCheckPossible("VAT Registration No.", "Country/Region Code"));
     end;
-
+#if not CLEAN30
+    [Obsolete('Replaced by GetUnreliablePayerStatusCZL function with Enum "Unreliable Payer Status CZL".')]
     procedure GetUnreliablePayerStatusCZL(): Integer
     var
         UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
     begin
         UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
         UnreliablePayerEntryCZL.SetRange("VAT Registration No.", "VAT Registration No.");
-        UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::Payer);
+        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::Payer);
         if not UnreliablePayerEntryCZL.FindLast() then
-            exit(UnreliablePayerEntryCZL."Unreliable Payer"::NOTFOUND);
-        exit(UnreliablePayerEntryCZL."Unreliable Payer");
+            exit(UnreliablePayerEntryCZL.Status::NOTFOUND);
+        exit(UnreliablePayerEntryCZL.Status);
+    end;
+#endif
+
+    procedure GetUnreliablePayerStatusCZL(): Enum "Unreliable Payer Status CZL"
+    begin
+        exit(UnreliablePayerMgtCZL.GetLastUnreliablePayerStatus("VAT Registration No."));
     end;
 
     procedure ShowUnreliableEntriesCZL()
-    var
-        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
-        UnreliablePayerEntriesCZL: Page "Unreliable Payer Entries CZL";
-        UnreliablePayerEntriesCZLCaptionTok: Label '%1 - %2', Comment = '%1 = Vendor No., %2 = Page caption', Locked = true;
     begin
-        UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.", "Vendor No.", "Check Date");
-        UnreliablePayerEntryCZL.FilterGroup(2);
-        UnreliablePayerEntryCZL.SetRange("VAT Registration No.", Rec."VAT Registration No.");
-        UnreliablePayerEntryCZL.FilterGroup(0);
-        UnreliablePayerEntriesCZL.SetTableView(UnreliablePayerEntryCZL);
-        UnreliablePayerEntriesCZL.SetUnreliablePayerNoCZL(Rec."No.");
-        UnreliablePayerEntriesCZL.Caption := StrSubstNo(UnreliablePayerEntriesCZLCaptionTok, Rec."No.", UnreliablePayerEntriesCZL.Caption);
-        UnreliablePayerEntriesCZL.RunModal();
+        UnreliablePayerMgtCZL.ShowUnreliablePayerEntries("VAT Registration No.");
     end;
 
     procedure CheckVendorLedgerOpenEntriesCZL()

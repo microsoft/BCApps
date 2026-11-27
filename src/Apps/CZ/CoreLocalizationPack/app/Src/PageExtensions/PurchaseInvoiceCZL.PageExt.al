@@ -36,7 +36,7 @@ pageextension 11739 "Purchase Invoice CZL" extends "Purchase Invoice"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the date of the last check of unreliability.';
             }
-            field("VAT Unreliable Payer CZL"; Rec."VAT Unreliable Payer CZL")
+            field("VAT Unreliable Payer CZL"; Rec."Unreliable Payer Status CZL")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies if the vendor is unreliabe payer.';
@@ -92,7 +92,6 @@ pageextension 11739 "Purchase Invoice CZL" extends "Purchase Invoice"
                         ChangeExchangeRate.SetParameter(Rec."VAT Currency Code CZL", Rec."VAT Currency Factor CZL", Rec."VAT Reporting Date")
                     else
                         ChangeExchangeRate.SetParameter(Rec."VAT Currency Code CZL", Rec."VAT Currency Factor CZL", WorkDate());
-
                     if ChangeExchangeRate.RunModal() = Action::OK then begin
                         Rec.Validate("VAT Currency Factor CZL", ChangeExchangeRate.GetParameter());
                         CurrPage.Update();

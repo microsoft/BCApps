@@ -4,9 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
+using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.Utilities;
 
@@ -26,6 +28,10 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         VendUnrVATPayerStatusNotCheckedQst: Label 'The unreliability VAT payer status has not been checked for vendor %1 (%2).\\Do you want to continue?', Comment = '%1=Vendor No.;%2=VAT Registration No.';
         VendUnrVATPayerQst: Label 'The vendor %1 (%2) is unreliable VAT payer.\\Do you want to continue?', Comment = '%1=Vendor No.;%2=VAT Registration No.';
         UnreliablePayerServiceURLTok: Label 'https://adisrws.mfcr.cz/dpr/axis2/services/rozhraniCRPDPH.rozhraniCRPDPHSOAP', Locked = true;
+        ServiceNotEnabledMsg: Label 'The unreliable payer service is not enabled.';
+        VatRegNoEmptyMsg: Label 'Check is not possible.\%1 must not be empty and must match %2 in %3.', Comment = '%1 = VAT Registration No. FieldCaption, %2 =  Country/Region CodeFieldCaption, %3 = CompanyInfromation TabeCaption';
+        CheckCustomerDisabledMsg: Label 'Check is disabled for customer %1.', Comment = '%1 = Customer No.';
+        CheckVendorDisabledMsg: Label 'Check is disabled for vendor %1.', Comment = '%1 = Vendor No.';
 
     procedure GetUnreliablePayerServiceURL(): Text[250]
     begin
@@ -74,28 +80,40 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
     end;
 
     procedure ImportUnrPayerStatusForVendor(Vendor: Record Vendor): Boolean
-    var
-        CheckDisabledMsg: Label 'Check is disabled for vendor %1.', Comment = '%1 = Vendor No.';
-        ServiceNotEnabledMsg: Label 'The unreliable payer service is not enabled.';
-        VatRegNoEmptyMsg: Label 'Check is not possible.\%1 must not be empty and must match %2 in %3.', Comment = '%1 = VAT Registration No. FieldCaption, %2 =  Country/Region CodeFieldCaption, %3 = CompanyInfromation TabeCaption';
     begin
-        GetUnreliablePayerServiceSetup();
         if Vendor."Disable Unreliab. Check CZL" then begin
-            Message(CheckDisabledMsg, Vendor."No.");
-            exit(false);
-        end;
-        if not UnrelPayerServiceSetupCZL.Enabled then begin
-            Message(ServiceNotEnabledMsg);
+            Message(CheckVendorDisabledMsg, Vendor."No.");
             exit(false);
         end;
         if not IsVATRegNoExportPossible(Vendor."VAT Registration No.", Vendor."Country/Region Code") then begin
             Message(VatRegNoEmptyMsg, Vendor.FieldCaption("VAT Registration No."), CompanyInformation.FieldCaption("Country/Region Code"), CompanyInformation.TableCaption());
             exit(false);
         end;
+        exit(ImportUnrPayerStatus(Vendor."VAT Registration No."));
+    end;
 
+    procedure ImportUnrPayerStatusForCustomer(Customer: Record Customer): Boolean
+    begin
+        if Customer."Disable Unreliab. Check CZL" then begin
+            Message(CheckCustomerDisabledMsg, Customer."No.");
+            exit(false);
+        end;
+        if not IsVATRegNoExportPossible(Customer."VAT Registration No.", Customer."Country/Region Code") then begin
+            Message(VatRegNoEmptyMsg, Customer.FieldCaption("VAT Registration No."), CompanyInformation.FieldCaption("Country/Region Code"), CompanyInformation.TableCaption());
+            exit(false);
+        end;
+        exit(ImportUnrPayerStatus(Customer."VAT Registration No."));
+    end;
+
+    local procedure ImportUnrPayerStatus(VATRegistrationNo: Text[20]): Boolean
+    begin
+        if not IsUnreliablePayerServiceEnabled() then begin
+            Message(ServiceNotEnabledMsg);
+            exit(false);
+        end;
         ClearVATRegNoList();
-        if AddVATRegNoToList(Vendor."VAT Registration No.") then
-            exit(ImportUnrPayerStatus(false));
+        AddVATRegNoToList(VATRegistrationNo);
+        exit(ImportUnrPayerStatus(false));
     end;
 
     procedure ImportUnrPayerList(ShowMessage: Boolean): Boolean
@@ -212,7 +230,6 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         OnBeforeGetLongVATRegNo(VatRegNo, IsHandled);
         if IsHandled then
             exit(VatRegNo);
-
         if VatRegNo = '' then
             exit;
         TempCode := CopyStr(VatRegNo, 1, 1);
@@ -220,7 +237,8 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
             exit(CopyStr(CZCountryCodeTok + VatRegNo, 1, 20));
         exit(VatRegNo);
     end;
-
+#if not CLEAN30
+    [Obsolete('The function is not used anymore and will be removed.', '30.0')]
     procedure GetVendFromVATRegNo(VATRegNo: Code[20]): Code[20]
     var
         Vendor: Record Vendor;
@@ -239,11 +257,24 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
                 exit('');
         end;
     end;
+#endif
 
+    procedure GetLastUnreliablePayerStatus(VATRegistrationNo: Code[20]): Enum "Unreliable Payer Status CZL"
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+    begin
+        UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
+        UnreliablePayerEntryCZL.SetRange("VAT Registration No.", VATRegistrationNo);
+        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::Payer);
+        if not UnreliablePayerEntryCZL.FindLast() then
+            exit(UnreliablePayerEntryCZL.Status::NOTFOUND);
+        exit(UnreliablePayerEntryCZL.Status);
+    end;
+#if not CLEAN30
+    [Obsolete('Replaced by IsPublicBankAccount function without VendNo parameter.', '30.0')]
     procedure IsPublicBankAccount(VendNo: Code[20]; VATRegNo: Code[20]; BankAccountNo: Code[30]; IBAN: Code[50]) ReturnValue: Boolean
     var
         Vendor: Record Vendor;
-        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
     begin
         if Vendor.Get(VendNo) then
             if not Vendor.IsUnreliablePayerCheckPossibleCZL() then
@@ -253,9 +284,18 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         if not IsVATRegNoExportPossible(VATRegNo, Vendor."Country/Region Code") then
             exit;
 
+        ReturnValue := IsPublicBankAccount(VATRegNo, BankAccountNo, IBAN);
+    end;
+#endif
+
+    procedure IsPublicBankAccount(VATRegNo: Code[20]; BankAccountNo: Code[30]; IBAN: Code[50]) ReturnValue: Boolean
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+    begin
+        ReturnValue := false;
         UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.");
         UnreliablePayerEntryCZL.SetRange("VAT Registration No.", VATRegNo);
-        UnreliablePayerEntryCZL.SetRange("Entry Type", UnreliablePayerEntryCZL."Entry Type"::"Bank Account");
+        UnreliablePayerEntryCZL.SetRange(Type, UnreliablePayerEntryCZL.Type::"Bank Account");
         UnreliablePayerEntryCZL.SetRange("End Public Date", 0D);
         if BankAccountNo <> '' then begin
             UnreliablePayerEntryCZL.SetRange("Full Bank Account No.", BankAccountNo);
@@ -263,7 +303,6 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
         end;
         if ReturnValue then
             exit;
-
         if IBAN <> '' then begin
             UnreliablePayerEntryCZL.SetRange("Full Bank Account No.", IBAN);
             ReturnValue := not UnreliablePayerEntryCZL.IsEmpty();
@@ -288,71 +327,6 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
     begin
         VendorBankAccount.Get(VendNo, VendorBankAccountNo);
         exit(not VendorBankAccount.IsStandardFormatBankAccountCZL() and VendorBankAccount.IsForeignBankAccountCZL());
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Service Connection", 'OnRegisterServiceConnection', '', false, false)]
-    local procedure HandleUnrelPayerServiceConnection(var ServiceConnection: Record "Service Connection")
-    begin
-        if not UnrelPayerServiceSetupCZL.Get() then begin
-            if not UnrelPayerServiceSetupCZL.WritePermission then
-                exit;
-            UnrelPayerServiceSetupCZL.Init();
-            UnrelPayerServiceSetupCZL.Insert();
-        end;
-
-        if UnrelPayerServiceSetupCZL.Enabled then
-            ServiceConnection.Status := ServiceConnection.Status::Enabled
-        else
-            ServiceConnection.Status := ServiceConnection.Status::Disabled;
-        ServiceConnection.InsertServiceConnection(
-              ServiceConnection, UnrelPayerServiceSetupCZL.RecordId, UnrelPayerServiceSetupCZL.TableCaption, UnrelPayerServiceSetupCZL."Unreliable Payer Web Service", PAGE::"Unrel. Payer Service Setup CZL");
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', false, false)]
-    local procedure CheckUnreliablePayerOnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
-    var
-        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
-        TotalPurchaseLine: Record "Purchase Line";
-        TotalLCYPurchaseLine: Record "Purchase Line";
-        TempPurchaseLine: Record "Purchase Line" temporary;
-        PurchPost: Codeunit "Purch.-Post";
-        VATAmount: Decimal;
-        VATAmountText: Text[30];
-    begin
-        GetUnreliablePayerServiceSetup();
-        PurchaseHeader.CalcFields("Third Party Bank Account CZL", "Amount Including VAT");
-        if PurchaseHeader."Third Party Bank Account CZL" then
-            exit;
-
-        PurchPost.GetPurchLines(PurchaseHeader, TempPurchaseLine, 0);
-        Clear(PurchPost);
-        PurchPost.SumPurchLinesTemp(PurchaseHeader, TempPurchaseLine, 0, TotalPurchaseLine, TotalLCYPurchaseLine, VATAmount, VATAmountText);
-
-        if PurchaseHeader.IsUnreliablePayerCheckPossibleCZL() then begin
-            case PurchaseHeader.GetUnreliablePayerStatusCZL() of
-                UnreliablePayerEntryCZL."Unreliable Payer"::YES:
-                    ConfirmProcess(StrSubstNo(VendUnrVATPayerQst, PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No."));
-                UnreliablePayerEntryCZL."Unreliable Payer"::NOTFOUND:
-                    ConfirmProcess(StrSubstNo(VendUnrVATPayerStatusNotCheckedQst, PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No."));
-            end;
-
-            if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::"Credit Memo", PurchaseHeader."Document Type"::"Return Order"]) then begin
-                if PurchaseHeader."Bank Account Code CZL" = '' then begin
-                    if PublicBankAccountCheckPossible(PurchaseHeader."Posting Date", TotalLCYPurchaseLine."Amount Including VAT") then
-                        ConfirmProcess(BankAccCodeNotExistQst);
-                    exit;
-                end;
-
-                if PublicBankAccountCheckPossible(PurchaseHeader."Posting Date", TotalLCYPurchaseLine."Amount Including VAT") and
-                   not ForeignBankAccountCheckPossible(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Bank Account Code CZL") and
-                   not IsPublicBankAccount(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No.", PurchaseHeader."Bank Account No. CZL", PurchaseHeader."IBAN CZL")
-                then
-                    ConfirmProcess(StrSubstNo(BankAccNotPublicQst, PurchaseHeader."Bank Account No. CZL", PurchaseHeader."Pay-to Vendor No."));
-
-                if ForeignBankAccountCheckPossible(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Bank Account Code CZL") then
-                    ConfirmProcess(StrSubstNo(BankAccIsForeignQst, PurchaseHeader."Bank Account Code CZL", PurchaseHeader."Pay-to Vendor No."));
-            end;
-        end;
     end;
 
     procedure ConfirmProcess(ConfirmQuestion: Text)
@@ -396,6 +370,93 @@ codeunit 11758 "Unreliable Payer Mgt. CZL"
     begin
         DefaultUnrelPayerServiceSetupCZL."Unreliable Payer Web Service" := UnreliablePayerServiceURLTok;
         OnAfterSetDefaultUnreliablePayerServiceURL(DefaultUnrelPayerServiceSetupCZL);
+    end;
+
+    procedure IsUnreliablePayerCheckPossible(VATRegistrationNo: Text[20]; CountryRegionCode: Code[10]): Boolean
+    begin
+        exit(IsUnreliablePayerServiceEnabled() and IsVATRegNoExportPossible(VATRegistrationNo, CountryRegionCode));
+    end;
+
+    procedure IsUnreliablePayerServiceEnabled(): Boolean
+    begin
+        GetUnreliablePayerServiceSetup();
+        exit(UnrelPayerServiceSetupCZL.IsEnabled());
+    end;
+
+    internal procedure ShowUnreliablePayerEntries(VATRegistrationNo: Text[20])
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+        UnreliablePayerEntriesCZL: Page "Unreliable Payer Entries CZL";
+    // UnreliablePayerEntriesCZLCaptionTok: Label '%1 - %2', Comment = '%1 = Vendor No., %2 = Page caption', Locked = true;
+    begin
+        UnreliablePayerEntryCZL.SetCurrentKey("VAT Registration No.", Type, "Check Date");
+        UnreliablePayerEntryCZL.FilterGroup(2);
+        UnreliablePayerEntryCZL.SetRange("VAT Registration No.", VATRegistrationNo);
+        UnreliablePayerEntryCZL.FilterGroup(0);
+        UnreliablePayerEntriesCZL.SetTableView(UnreliablePayerEntryCZL);
+        // UnreliablePayerEntriesCZL.SetUnreliablePayerNoCZL(Rec."No."); // TODO: resolve
+        // UnreliablePayerEntriesCZL.Caption := StrSubstNo(UnreliablePayerEntriesCZLCaptionTok, Rec."No.", UnreliablePayerEntriesCZL.Caption);
+        UnreliablePayerEntriesCZL.RunModal();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Service Connection", OnRegisterServiceConnection, '', false, false)]
+    local procedure HandleUnrelPayerServiceConnection(var ServiceConnection: Record "Service Connection")
+    begin
+        if not UnrelPayerServiceSetupCZL.Get() then begin
+            if not UnrelPayerServiceSetupCZL.WritePermission then
+                exit;
+            UnrelPayerServiceSetupCZL.Init();
+            UnrelPayerServiceSetupCZL.Insert();
+        end;
+        if UnrelPayerServiceSetupCZL.Enabled then
+            ServiceConnection.Status := ServiceConnection.Status::Enabled
+        else
+            ServiceConnection.Status := ServiceConnection.Status::Disabled;
+        ServiceConnection.InsertServiceConnection(
+              ServiceConnection, UnrelPayerServiceSetupCZL.RecordId, UnrelPayerServiceSetupCZL.TableCaption, UnrelPayerServiceSetupCZL."Unreliable Payer Web Service", PAGE::"Unrel. Payer Service Setup CZL");
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", OnAfterReleasePurchaseDoc, '', false, false)]
+    local procedure CheckUnreliablePayerOnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean)
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+        TotalPurchaseLine: Record "Purchase Line";
+        TotalLCYPurchaseLine: Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        PurchPost: Codeunit "Purch.-Post";
+        VATAmount: Decimal;
+        VATAmountText: Text[30];
+    begin
+        GetUnreliablePayerServiceSetup();
+        PurchaseHeader.CalcFields("Third Party Bank Account CZL", "Amount Including VAT");
+        if PurchaseHeader."Third Party Bank Account CZL" then
+            exit;
+
+        PurchPost.GetPurchLines(PurchaseHeader, TempPurchaseLine, 0);
+        Clear(PurchPost);
+        PurchPost.SumPurchLinesTemp(PurchaseHeader, TempPurchaseLine, 0, TotalPurchaseLine, TotalLCYPurchaseLine, VATAmount, VATAmountText);
+        if PurchaseHeader.IsUnreliablePayerCheckPossibleCZL() then begin
+            case PurchaseHeader.GetUnreliablePayerStatusCZL() of
+                UnreliablePayerEntryCZL.Status::YES:
+                    ConfirmProcess(StrSubstNo(VendUnrVATPayerQst, PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No."));
+                UnreliablePayerEntryCZL.Status::NOTFOUND:
+                    ConfirmProcess(StrSubstNo(VendUnrVATPayerStatusNotCheckedQst, PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."VAT Registration No."));
+            end;
+            if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::"Credit Memo", PurchaseHeader."Document Type"::"Return Order"]) then begin
+                if PurchaseHeader."Bank Account Code CZL" = '' then begin
+                    if PublicBankAccountCheckPossible(PurchaseHeader."Posting Date", TotalLCYPurchaseLine."Amount Including VAT") then
+                        ConfirmProcess(BankAccCodeNotExistQst);
+                    exit;
+                end;
+                if PublicBankAccountCheckPossible(PurchaseHeader."Posting Date", TotalLCYPurchaseLine."Amount Including VAT") and
+                   not ForeignBankAccountCheckPossible(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Bank Account Code CZL") and
+                   not PurchaseHeader.IsPublicBankAccountCZL()
+                then
+                    ConfirmProcess(StrSubstNo(BankAccNotPublicQst, PurchaseHeader."Bank Account No. CZL", PurchaseHeader."Pay-to Vendor No."));
+                if ForeignBankAccountCheckPossible(PurchaseHeader."Pay-to Vendor No.", PurchaseHeader."Bank Account Code CZL") then
+                    ConfirmProcess(StrSubstNo(BankAccIsForeignQst, PurchaseHeader."Bank Account Code CZL", PurchaseHeader."Pay-to Vendor No."));
+            end;
+        end;
     end;
 
     [IntegrationEvent(false, false)]

@@ -141,6 +141,7 @@ codeunit 31017 "Upgrade Application CZL"
                   tabledata "EET Service Setup CZL" = m,
                   tabledata "EET Business Premises CZL" = m,
                   tabledata "EET Cash Register CZL" = m,
+                  tabledata "Unreliable Payer Entry CZL" = rm,
                   tabledata "Report Layout Selection" = im,
                   tabledata "Tenant Report Layout Selection" = im;
 
@@ -195,6 +196,7 @@ codeunit 31017 "Upgrade Application CZL"
         UpgradeStatutoryReportingSetupOfficialFullName();
         UpgradeEETTaxpayerCertificateCode();
         UpgradeEETBusinessPremisesExtendedDescription();
+        UpgradeUnreliablePayerEntryEnums();
 #endif
     end;
 
@@ -923,6 +925,23 @@ codeunit 31017 "Upgrade Application CZL"
         EETBusinessPremisesDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetEETBusinessPremisesExtendedDescriptionUpgradeTag());
+    end;
+
+    local procedure UpgradeUnreliablePayerEntryEnums()
+    var
+        UnreliablePayerEntryCZL: Record "Unreliable Payer Entry CZL";
+        UnreliablePayerEntryDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZL.GetUnreliablePayerEntryEnumsUpgradeTag()) then
+            exit;
+
+        UnreliablePayerEntryDataTransfer.SetTables(Database::"Unreliable Payer Entry CZL", Database::"Unreliable Payer Entry CZL");
+        UnreliablePayerEntryDataTransfer.AddFieldValue(UnreliablePayerEntryCZL.FieldNo("Unreliable Payer"), UnreliablePayerEntryCZL.FieldNo("Status"));
+        UnreliablePayerEntryDataTransfer.AddFieldValue(UnreliablePayerEntryCZL.FieldNo("Entry Type"), UnreliablePayerEntryCZL.FieldNo("Type"));
+        UnreliablePayerEntryDataTransfer.AddFieldValue(UnreliablePayerEntryCZL.FieldNo("Bank Account No. Type"), UnreliablePayerEntryCZL.FieldNo("Bank Account Type"));
+        UnreliablePayerEntryDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZL.GetUnreliablePayerEntryEnumsUpgradeTag());
     end;
 #endif
 

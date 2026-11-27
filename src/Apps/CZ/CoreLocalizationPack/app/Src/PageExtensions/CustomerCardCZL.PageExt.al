@@ -5,6 +5,7 @@
 namespace Microsoft.Sales.Customer;
 
 using Microsoft.Finance.Registration;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Receivables;
 
 pageextension 11704 "Customer Card CZL" extends "Customer Card"
@@ -31,9 +32,62 @@ pageextension 11704 "Customer Card CZL" extends "Customer Card"
                 Importance = Additional;
             }
         }
+        addlast(Invoicing)
+        {
+            field("Last Unrel. Check Date CZL"; Rec."Last Unreliab. Check Date CZL")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the date of the last check of unreliability.';
+            }
+            field("Unreliable Payer Status CZL"; Rec."Unreliable Payer Status CZL")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies if the Customer is VAT Unreliable Payer.';
+            }
+            field("Disable Unreliab. Check CZL"; Rec."Disable Unreliab. Check CZL")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies that the check of VAT Unreliable Payer is disabled.';
+            }
+        }
     }
     actions
     {
+        addlast("&Customer")
+        {
+            action(UnreliabilityStatusCZL)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Unreliability Status';
+                Image = CustomerRating;
+                ToolTip = 'View the VAT payer unreliable entries.';
+
+                trigger OnAction()
+                begin
+                    Rec.ShowUnreliableEntriesCZL();
+                end;
+            }
+        }
+        addlast("F&unctions")
+        {
+            action(UnreliableVATPaymentCheckCZL)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Unreliable VAT Payment Check';
+                Image = ElectronicPayment;
+                ToolTip = 'Checks unreliability of the VAT payer.';
+
+                trigger OnAction()
+                var
+                    UnreliablePayerMgtCZL: Codeunit "Unreliable Payer Mgt. CZL";
+                begin
+                    if not UnreliablePayerMgtCZL.IsUnreliablePayerServiceEnabled() then
+                        UnreliablePayerMgtCZL.CreateUnrelPayerServiceNotSetNotification();
+
+                    Rec.ImportUnrPayerStatusCZL();
+                end;
+            }
+        }
         addafter(BackgroundStatement)
         {
             action("Balance Reconciliation CZL")
