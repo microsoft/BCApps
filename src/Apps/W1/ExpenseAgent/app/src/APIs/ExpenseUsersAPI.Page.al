@@ -115,6 +115,12 @@ page 6918 "Expense Users API"
                     Multiplicity = ZeroOrOne;
                 }
 
+                part(availableApprovers; "Available Approvers API")
+                {
+                    EntityName = 'availableApprover';
+                    EntitySetName = 'availableApprovers';
+                }
+
                 part(expenseApprovalSetup; "Expense Approval Setup API")
                 {
                     EntityName = 'expenseApprovalSetup';

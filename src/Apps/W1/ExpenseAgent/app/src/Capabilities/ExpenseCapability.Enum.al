@@ -121,4 +121,20 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Active Approver Routing', Locked = true;
     }
+
+    /// <summary>
+    /// Interim approvers can be assigned when Allow Interim Approvers is enabled in Expense Agent Setup.
+    /// </summary>
+    value(12; InterimApprover)
+    {
+        Caption = 'Interim Approver', Locked = true;
+    }
+
+    /// <summary>
+    /// Approval actions return an explicit outcome, independently of interim approver setup.
+    /// </summary>
+    value(13; ApprovalsWithOutcome)
+    {
+        Caption = 'Approvals With Outcome', Locked = true;
+    }
 }

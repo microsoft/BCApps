@@ -5,7 +5,10 @@
 namespace Microsoft.EServices.EDocument.Verifactu;
 
 using Microsoft.EServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.History;
@@ -18,7 +21,7 @@ using System.Utilities;
 
 codeunit 10778 "Verifactu Export"
 {
-    Access = Internal;
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "E-Document" = rimd,
@@ -43,7 +46,7 @@ codeunit 10778 "Verifactu Export"
         EndEventNameTok: Label 'Export completed', Locked = true;
         MaxBatchSizeErr: Label 'Sending more than 1000 documents in a batch is not allowed.';
 
-    procedure Export(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    internal procedure Export(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
@@ -185,7 +188,7 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertInvoiceHeaderData(var InvoiceXMLNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; InvoiceType: Text)
     var
-        IDFacturaXMLNode, DestinatariosXMLNode, IDDestinatarioXMLNode : XmlElement;
+        IDFacturaXMLNode: XmlElement;
     begin
         InvoiceXMLNode.Add(XmlElement.Create('IDVersion', XmlNamespaceSum1, '1.0'));
 
@@ -201,19 +204,17 @@ codeunit 10778 "Verifactu Export"
             SalesInvoiceHeader."Operation Description" := SalesInvoiceHeader."No.";
         InvoiceXMLNode.Add(XmlElement.Create('DescripcionOperacion', XmlNamespaceSum1, SalesInvoiceHeader."Operation Description"));
 
-        DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
-        IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, SalesInvoiceHeader."Bill-to Name"));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, SalesInvoiceHeader."VAT Registration No."));
-        DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
-        InvoiceXMLNode.Add(DestinatariosXMLNode);
+        InsertRecipient(
+            InvoiceXMLNode, SalesInvoiceHeader."Bill-to Name", SalesInvoiceHeader."VAT Registration No.",
+            GetRecipientCountryRegionCode(SalesInvoiceHeader."Alt. VAT Registration No.", SalesInvoiceHeader."VAT Country/Region Code", SalesInvoiceHeader."Bill-to Country/Region Code", SalesInvoiceHeader."Sell-to Country/Region Code"),
+            SalesInvoiceHeader."ID Type");
     end;
 
     local procedure InsertInvoiceBreakdown(var InvoiceXMLNode: XmlElement; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
     var
         TempSalesInvoiceLine: Record "Sales Invoice Line" temporary;
-        DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
-        OperationQualification: Text;
+        DesgloseXMLNode: XmlElement;
+        IsIntraCommunity: Boolean;
     begin
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
@@ -231,20 +232,18 @@ codeunit 10778 "Verifactu Export"
             until SalesInvoiceLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(SalesInvoiceHeader."Alt. VAT Registration No.", SalesInvoiceHeader."VAT Country/Region Code", SalesInvoiceHeader."Bill-to Country/Region Code", SalesInvoiceHeader."Sell-to Country/Region Code"));
 
         TempSalesInvoiceLine.Reset();
         TempSalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
         if TempSalesInvoiceLine.FindSet() then
             repeat
-                DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
-                DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(SalesInvoiceHeader."Special Scheme Code")));
-                OperationQualification := GetOperationQualification(
-                    SalesInvoiceHeader."No.", SalesInvoiceHeader."Posting Date", TempSalesInvoiceLine."VAT Bus. Posting Group",
-                    TempSalesInvoiceLine."VAT Prod. Posting Group", TempSalesInvoiceLine."VAT Identifier", false);
-                AddVATBreakdownNodes(
-                    DetalleIVAXMLNode, OperationQualification, TempSalesInvoiceLine."VAT %", TempSalesInvoiceLine.Amount,
-                    TempSalesInvoiceLine."Amount Including VAT" - TempSalesInvoiceLine.Amount);
-                DesgloseXMLNode.Add(DetalleIVAXMLNode);
+                InsertBreakdownDetail(
+                    DesgloseXMLNode, SalesInvoiceHeader."No.", SalesInvoiceHeader."Posting Date",
+                    GetOptionFirstTwoChars(SalesInvoiceHeader."Special Scheme Code"), TempSalesInvoiceLine."VAT Bus. Posting Group",
+                    TempSalesInvoiceLine."VAT Prod. Posting Group", TempSalesInvoiceLine."VAT Identifier", TempSalesInvoiceLine."VAT %",
+                    TempSalesInvoiceLine.Amount, TempSalesInvoiceLine."Amount Including VAT" - TempSalesInvoiceLine.Amount,
+                    false, IsIntraCommunity);
             until TempSalesInvoiceLine.Next() = 0;
         TempSalesInvoiceLine.CalcSums(Amount, "Amount Including VAT");
 
@@ -381,7 +380,7 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertServiceInvoiceHeaderData(var InvoiceXMLNode: XmlElement; var ServiceInvoiceHeader: Record "Service Invoice Header"; InvoiceType: Text)
     var
-        IDFacturaXMLNode, DestinatariosXMLNode, IDDestinatarioXMLNode : XmlElement;
+        IDFacturaXMLNode: XmlElement;
     begin
         InvoiceXMLNode.Add(XmlElement.Create('IDVersion', XmlNamespaceSum1, '1.0'));
 
@@ -397,19 +396,17 @@ codeunit 10778 "Verifactu Export"
             ServiceInvoiceHeader."Operation Description" := ServiceInvoiceHeader."No.";
         InvoiceXMLNode.Add(XmlElement.Create('DescripcionOperacion', XmlNamespaceSum1, ServiceInvoiceHeader."Operation Description"));
 
-        DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
-        IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, ServiceInvoiceHeader."Bill-to Name"));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, ServiceInvoiceHeader."VAT Registration No."));
-        DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
-        InvoiceXMLNode.Add(DestinatariosXMLNode);
+        InsertRecipient(
+            InvoiceXMLNode, ServiceInvoiceHeader."Bill-to Name", ServiceInvoiceHeader."VAT Registration No.",
+            GetRecipientCountryRegionCode(false, ServiceInvoiceHeader."VAT Country/Region Code", ServiceInvoiceHeader."Bill-to Country/Region Code", ServiceInvoiceHeader."Country/Region Code"),
+            ServiceInvoiceHeader."ID Type");
     end;
 
     local procedure InsertServiceInvoiceBreakdown(var InvoiceXMLNode: XmlElement; var ServiceInvoiceHeader: Record "Service Invoice Header"; var ServiceInvoiceLine: Record "Service Invoice Line")
     var
         TempServiceInvoiceLine: Record "Service Invoice Line" temporary;
-        DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
-        OperationQualification: Text;
+        DesgloseXMLNode: XmlElement;
+        IsIntraCommunity: Boolean;
     begin
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         ServiceInvoiceLine.SetFilter(Type, '<>%1', ServiceInvoiceLine.Type::" ");
@@ -427,20 +424,18 @@ codeunit 10778 "Verifactu Export"
             until ServiceInvoiceLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(false, ServiceInvoiceHeader."VAT Country/Region Code", ServiceInvoiceHeader."Bill-to Country/Region Code", ServiceInvoiceHeader."Country/Region Code"));
 
         TempServiceInvoiceLine.Reset();
         TempServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         if TempServiceInvoiceLine.FindSet() then
             repeat
-                DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
-                DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(ServiceInvoiceHeader."Special Scheme Code")));
-                OperationQualification := GetOperationQualification(
-                    ServiceInvoiceHeader."No.", ServiceInvoiceHeader."Posting Date", TempServiceInvoiceLine."VAT Bus. Posting Group",
-                    TempServiceInvoiceLine."VAT Prod. Posting Group", TempServiceInvoiceLine."VAT Identifier", false);
-                AddVATBreakdownNodes(
-                    DetalleIVAXMLNode, OperationQualification, TempServiceInvoiceLine."VAT %", TempServiceInvoiceLine.Amount,
-                    TempServiceInvoiceLine."Amount Including VAT" - TempServiceInvoiceLine.Amount);
-                DesgloseXMLNode.Add(DetalleIVAXMLNode);
+                InsertBreakdownDetail(
+                    DesgloseXMLNode, ServiceInvoiceHeader."No.", ServiceInvoiceHeader."Posting Date",
+                    GetOptionFirstTwoChars(ServiceInvoiceHeader."Special Scheme Code"), TempServiceInvoiceLine."VAT Bus. Posting Group",
+                    TempServiceInvoiceLine."VAT Prod. Posting Group", TempServiceInvoiceLine."VAT Identifier", TempServiceInvoiceLine."VAT %",
+                    TempServiceInvoiceLine.Amount, TempServiceInvoiceLine."Amount Including VAT" - TempServiceInvoiceLine.Amount,
+                    false, IsIntraCommunity);
             until TempServiceInvoiceLine.Next() = 0;
         TempServiceInvoiceLine.CalcSums(Amount, "Amount Including VAT");
 
@@ -577,7 +572,7 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertCreditMemoHeaderData(var InvoiceXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; InvoiceType: Text)
     var
-        IDFacturaXMLNode, DestinatariosXMLNode, IDDestinatarioXMLNode : XmlElement;
+        IDFacturaXMLNode: XmlElement;
     begin
         InvoiceXMLNode.Add(XmlElement.Create('IDVersion', XmlNamespaceSum1, '1.0'));
 
@@ -595,19 +590,17 @@ codeunit 10778 "Verifactu Export"
             SalesCrMemoHeader."Operation Description" := SalesCrMemoHeader."No.";
         InvoiceXMLNode.Add(XmlElement.Create('DescripcionOperacion', XmlNamespaceSum1, SalesCrMemoHeader."Operation Description"));
 
-        DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
-        IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, SalesCrMemoHeader."Bill-to Name"));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, SalesCrMemoHeader."VAT Registration No."));
-        DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
-        InvoiceXMLNode.Add(DestinatariosXMLNode);
+        InsertRecipient(
+            InvoiceXMLNode, SalesCrMemoHeader."Bill-to Name", SalesCrMemoHeader."VAT Registration No.",
+            GetRecipientCountryRegionCode(SalesCrMemoHeader."Alt. VAT Registration No.", SalesCrMemoHeader."VAT Country/Region Code", SalesCrMemoHeader."Bill-to Country/Region Code", SalesCrMemoHeader."Sell-to Country/Region Code"),
+            SalesCrMemoHeader."ID Type");
     end;
 
     local procedure InsertCreditMemoBreakdown(var InvoiceXMLNode: XmlElement; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesCrMemoLine: Record "Sales Cr.Memo Line")
     var
         TempSalesCrMemoLine: Record "Sales Cr.Memo Line" temporary;
-        DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
-        OperationQualification: Text;
+        DesgloseXMLNode: XmlElement;
+        IsIntraCommunity: Boolean;
     begin
         SalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
         SalesCrMemoLine.SetFilter(Type, '<>%1', SalesCrMemoLine.Type::" ");
@@ -625,20 +618,18 @@ codeunit 10778 "Verifactu Export"
             until SalesCrMemoLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(SalesCrMemoHeader."Alt. VAT Registration No.", SalesCrMemoHeader."VAT Country/Region Code", SalesCrMemoHeader."Bill-to Country/Region Code", SalesCrMemoHeader."Sell-to Country/Region Code"));
 
         TempSalesCrMemoLine.Reset();
         TempSalesCrMemoLine.SetRange("Document No.", SalesCrMemoHeader."No.");
         if TempSalesCrMemoLine.FindSet() then
             repeat
-                DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
-                DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(TempSalesCrMemoLine."Special Scheme Code")));
-                OperationQualification := GetOperationQualification(
-                    SalesCrMemoHeader."No.", SalesCrMemoHeader."Posting Date", TempSalesCrMemoLine."VAT Bus. Posting Group",
-                    TempSalesCrMemoLine."VAT Prod. Posting Group", TempSalesCrMemoLine."VAT Identifier", true);
-                AddVATBreakdownNodes(
-                    DetalleIVAXMLNode, OperationQualification, TempSalesCrMemoLine."VAT %", -TempSalesCrMemoLine.Amount,
-                    -(TempSalesCrMemoLine."Amount Including VAT" - TempSalesCrMemoLine.Amount));
-                DesgloseXMLNode.Add(DetalleIVAXMLNode);
+                InsertBreakdownDetail(
+                    DesgloseXMLNode, SalesCrMemoHeader."No.", SalesCrMemoHeader."Posting Date",
+                    GetOptionFirstTwoChars(TempSalesCrMemoLine."Special Scheme Code"), TempSalesCrMemoLine."VAT Bus. Posting Group",
+                    TempSalesCrMemoLine."VAT Prod. Posting Group", TempSalesCrMemoLine."VAT Identifier", TempSalesCrMemoLine."VAT %",
+                    -TempSalesCrMemoLine.Amount, -(TempSalesCrMemoLine."Amount Including VAT" - TempSalesCrMemoLine.Amount),
+                    true, IsIntraCommunity);
             until TempSalesCrMemoLine.Next() = 0;
         TempSalesCrMemoLine.CalcSums(Amount, "Amount Including VAT");
 
@@ -792,7 +783,7 @@ codeunit 10778 "Verifactu Export"
 
     local procedure InsertServiceCreditMemoHeaderData(var InvoiceXMLNode: XmlElement; var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; InvoiceType: Text)
     var
-        IDFacturaXMLNode, DestinatariosXMLNode, IDDestinatarioXMLNode : XmlElement;
+        IDFacturaXMLNode: XmlElement;
     begin
         InvoiceXMLNode.Add(XmlElement.Create('IDVersion', XmlNamespaceSum1, '1.0'));
 
@@ -810,19 +801,17 @@ codeunit 10778 "Verifactu Export"
             ServiceCrMemoHeader."Operation Description" := ServiceCrMemoHeader."No.";
         InvoiceXMLNode.Add(XmlElement.Create('DescripcionOperacion', XmlNamespaceSum1, ServiceCrMemoHeader."Operation Description"));
 
-        DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
-        IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, ServiceCrMemoHeader."Bill-to Name"));
-        IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, ServiceCrMemoHeader."VAT Registration No."));
-        DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
-        InvoiceXMLNode.Add(DestinatariosXMLNode);
+        InsertRecipient(
+            InvoiceXMLNode, ServiceCrMemoHeader."Bill-to Name", ServiceCrMemoHeader."VAT Registration No.",
+            GetRecipientCountryRegionCode(false, ServiceCrMemoHeader."VAT Country/Region Code", ServiceCrMemoHeader."Bill-to Country/Region Code", ServiceCrMemoHeader."Country/Region Code"),
+            ServiceCrMemoHeader."ID Type");
     end;
 
     local procedure InsertServiceCreditMemoBreakdown(var InvoiceXMLNode: XmlElement; var ServiceCrMemoHeader: Record "Service Cr.Memo Header"; var ServiceCrMemoLine: Record "Service Cr.Memo Line")
     var
         TempServiceCrMemoLine: Record "Service Cr.Memo Line" temporary;
-        DesgloseXMLNode, DetalleIVAXMLNode : XmlElement;
-        OperationQualification: Text;
+        DesgloseXMLNode: XmlElement;
+        IsIntraCommunity: Boolean;
     begin
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         ServiceCrMemoLine.SetFilter(Type, '<>%1', ServiceCrMemoLine.Type::" ");
@@ -840,20 +829,18 @@ codeunit 10778 "Verifactu Export"
             until ServiceCrMemoLine.Next() = 0;
 
         DesgloseXMLNode := XmlElement.Create('Desglose', XmlNamespaceSum1);
+        IsIntraCommunity := IsIntraCommunityRecipient(GetRecipientCountryRegionCode(false, ServiceCrMemoHeader."VAT Country/Region Code", ServiceCrMemoHeader."Bill-to Country/Region Code", ServiceCrMemoHeader."Country/Region Code"));
 
         TempServiceCrMemoLine.Reset();
         TempServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         if TempServiceCrMemoLine.FindSet() then
             repeat
-                DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
-                DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, GetOptionFirstTwoChars(TempServiceCrMemoLine."Special Scheme Code")));
-                OperationQualification := GetOperationQualification(
-                    ServiceCrMemoHeader."No.", ServiceCrMemoHeader."Posting Date", TempServiceCrMemoLine."VAT Bus. Posting Group",
-                    TempServiceCrMemoLine."VAT Prod. Posting Group", TempServiceCrMemoLine."VAT Identifier", true);
-                AddVATBreakdownNodes(
-                    DetalleIVAXMLNode, OperationQualification, TempServiceCrMemoLine."VAT %", -TempServiceCrMemoLine.Amount,
-                    -(TempServiceCrMemoLine."Amount Including VAT" - TempServiceCrMemoLine.Amount));
-                DesgloseXMLNode.Add(DetalleIVAXMLNode);
+                InsertBreakdownDetail(
+                    DesgloseXMLNode, ServiceCrMemoHeader."No.", ServiceCrMemoHeader."Posting Date",
+                    GetOptionFirstTwoChars(TempServiceCrMemoLine."Special Scheme Code"), TempServiceCrMemoLine."VAT Bus. Posting Group",
+                    TempServiceCrMemoLine."VAT Prod. Posting Group", TempServiceCrMemoLine."VAT Identifier", TempServiceCrMemoLine."VAT %",
+                    -TempServiceCrMemoLine.Amount, -(TempServiceCrMemoLine."Amount Including VAT" - TempServiceCrMemoLine.Amount),
+                    true, IsIntraCommunity);
             until TempServiceCrMemoLine.Next() = 0;
         TempServiceCrMemoLine.CalcSums(Amount, "Amount Including VAT");
 
@@ -1049,7 +1036,7 @@ codeunit 10778 "Verifactu Export"
         Huella := VerifactuDocument."Verifactu Hash";
     end;
 
-    procedure GetCustomDateTimeFormat(LocalDT: DateTime): Text
+    internal procedure GetCustomDateTimeFormat(LocalDT: DateTime): Text
     var
         TimeZoneCU: Codeunit "Time Zone";
         TimeZoneOffset: Duration;
@@ -1111,14 +1098,194 @@ codeunit 10778 "Verifactu Export"
         exit(Format(Amount, 0, '<Precision,2:2><Standard Format,9>'));
     end;
 
-    local procedure AddVATBreakdownNodes(var DetalleIVAXMLNode: XmlElement; OperationQualification: Text; VATPercentage: Decimal; BaseAmount: Decimal; VATAmount: Decimal)
+    local procedure InsertBreakdownDetail(var DesgloseXMLNode: XmlElement; DocumentNo: Code[20]; PostingDate: Date; SpecialSchemeCode: Text; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATIdentifier: Code[20]; VATPercentage: Decimal; BaseAmount: Decimal; VATAmount: Decimal; IsCreditMemo: Boolean; IsIntraCommunity: Boolean)
+    var
+        DetalleIVAXMLNode: XmlElement;
+        OperationQualification: Text;
+        ExemptionCode: Text;
     begin
+        DetalleIVAXMLNode := XmlElement.Create('DetalleDesglose', XmlNamespaceSum1);
+        DetalleIVAXMLNode.Add(XmlElement.Create('ClaveRegimen', XmlNamespaceSum1, SpecialSchemeCode));
+        GetVATBreakdownQualification(
+            DocumentNo, PostingDate, IsCreditMemo, SpecialSchemeCode, VATBusPostingGroup, VATProdPostingGroup, VATIdentifier,
+            VATPercentage, VATAmount, IsIntraCommunity, OperationQualification, ExemptionCode);
+        AddVATBreakdownNodes(DetalleIVAXMLNode, OperationQualification, ExemptionCode, VATPercentage, BaseAmount, VATAmount);
+        DesgloseXMLNode.Add(DetalleIVAXMLNode);
+    end;
+
+    local procedure GetVATBreakdownQualification(DocumentNo: Code[20]; PostingDate: Date; IsCreditMemo: Boolean; SpecialSchemeCode: Text; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATIdentifier: Code[20]; VATPercentage: Decimal; VATAmount: Decimal; IsIntraCommunity: Boolean; var OperationQualification: Text; var ExemptionCode: Text)
+    begin
+        OperationQualification := GetOperationQualification(DocumentNo, PostingDate, VATBusPostingGroup, VATProdPostingGroup, VATIdentifier, IsCreditMemo);
+        ExemptionCode := '';
+        if OperationQualification = 'S1' then
+            ExemptionCode := GetExemptionCode(VATBusPostingGroup, VATProdPostingGroup, SpecialSchemeCode, VATAmount, IsIntraCommunity);
+        OnAfterGetVATBreakdownQualification(
+            DocumentNo, PostingDate, IsCreditMemo, SpecialSchemeCode, VATBusPostingGroup, VATProdPostingGroup, VATPercentage,
+            OperationQualification, ExemptionCode);
+    end;
+
+    local procedure AddVATBreakdownNodes(var DetalleIVAXMLNode: XmlElement; OperationQualification: Text; ExemptionCode: Text; VATPercentage: Decimal; BaseAmount: Decimal; VATAmount: Decimal)
+    begin
+        if ExemptionCode <> '' then begin
+            DetalleIVAXMLNode.Add(XmlElement.Create('OperacionExenta', XmlNamespaceSum1, ExemptionCode));
+            DetalleIVAXMLNode.Add(XmlElement.Create('BaseImponibleOimporteNoSujeto', XmlNamespaceSum1, Format(BaseAmount, 0, 9)));
+            exit;
+        end;
+
         DetalleIVAXMLNode.Add(XmlElement.Create('CalificacionOperacion', XmlNamespaceSum1, OperationQualification));
         if OperationQualification = 'S1' then
             DetalleIVAXMLNode.Add(XmlElement.Create('TipoImpositivo', XmlNamespaceSum1, Format(VATPercentage, 0, 9)));
         DetalleIVAXMLNode.Add(XmlElement.Create('BaseImponibleOimporteNoSujeto', XmlNamespaceSum1, Format(BaseAmount, 0, 9)));
         if OperationQualification = 'S1' then
             DetalleIVAXMLNode.Add(XmlElement.Create('CuotaRepercutida', XmlNamespaceSum1, Format(VATAmount, 0, 9)));
+    end;
+
+    local procedure GetExemptionCode(VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; SpecialSchemeCode: Text; VATAmount: Decimal; IsIntraCommunity: Boolean): Text
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATClause: Record "VAT Clause";
+        ExportSpecialSchemeCodeTok: Label '02', Locked = true;
+    begin
+        if not VATPostingSetup.Get(VATBusPostingGroup, VATProdPostingGroup) then
+            exit('');
+
+        if VATPostingSetup."VAT Clause Code" <> '' then
+            if VATClause.Get(VATPostingSetup."VAT Clause Code") then
+                case VATClause."SII Exemption Code" of
+                    VATClause."SII Exemption Code"::"E1 Exempt on account of Article 20":
+                        exit('E1');
+                    VATClause."SII Exemption Code"::"E2 Exempt on account of Article 21":
+                        exit('E2');
+                    VATClause."SII Exemption Code"::"E3 Exempt on account of Article 22":
+                        exit('E3');
+                    VATClause."SII Exemption Code"::"E4 Exempt under Articles 23 and 24":
+                        exit('E4');
+                    VATClause."SII Exemption Code"::"E5 Exempt on account of Article 25":
+                        exit('E5');
+                    VATClause."SII Exemption Code"::"E6 Exempt on other grounds":
+                        exit('E6');
+                end;
+
+        // Without an explicit exemption code, untaxed exports and intra-community supplies of goods are exempt under Art. 21 and Art. 25.
+        if VATAmount <> 0 then
+            exit('');
+        if SpecialSchemeCode = ExportSpecialSchemeCodeTok then
+            exit('E2');
+        if IsIntraCommunity and (not VATPostingSetup."EU Service") and
+           (VATPostingSetup."VAT Calculation Type" = VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT")
+        then
+            exit('E5');
+        exit('');
+    end;
+
+    local procedure InsertRecipient(var InvoiceXMLNode: XmlElement; RecipientName: Text; VATRegistrationNo: Text[20]; CountryRegionCode: Code[10]; IDType: Enum "SII ID Type")
+    var
+        DestinatariosXMLNode, IDDestinatarioXMLNode, IDOtroXMLNode : XmlElement;
+        UseNIF: Boolean;
+        CountryCode, IDTypeCode, ID : Text;
+    begin
+        GetRecipientIdentification(CountryRegionCode, VATRegistrationNo, IDType, UseNIF, CountryCode, IDTypeCode, ID);
+
+        DestinatariosXMLNode := XmlElement.Create('Destinatarios', XmlNamespaceSum1);
+        IDDestinatarioXMLNode := XmlElement.Create('IDDestinatario', XmlNamespaceSum1);
+        IDDestinatarioXMLNode.Add(XmlElement.Create('NombreRazon', XmlNamespaceSum1, RecipientName));
+        if UseNIF then
+            IDDestinatarioXMLNode.Add(XmlElement.Create('NIF', XmlNamespaceSum1, ID))
+        else begin
+            IDOtroXMLNode := XmlElement.Create('IDOtro', XmlNamespaceSum1);
+            if CountryCode <> '' then
+                IDOtroXMLNode.Add(XmlElement.Create('CodigoPais', XmlNamespaceSum1, CountryCode));
+            IDOtroXMLNode.Add(XmlElement.Create('IDType', XmlNamespaceSum1, IDTypeCode));
+            IDOtroXMLNode.Add(XmlElement.Create('ID', XmlNamespaceSum1, ID));
+            IDDestinatarioXMLNode.Add(IDOtroXMLNode);
+        end;
+        DestinatariosXMLNode.Add(IDDestinatarioXMLNode);
+        InvoiceXMLNode.Add(DestinatariosXMLNode);
+    end;
+
+    local procedure GetRecipientIdentification(CountryRegionCode: Code[10]; VATRegistrationNo: Text[20]; IDType: Enum "SII ID Type"; var UseNIF: Boolean; var CountryCode: Text; var IDTypeCode: Text; var ID: Text)
+    var
+        CountryRegion: Record "Country/Region";
+        SIIManagement: Codeunit "SII Management";
+        VATRegistrationNoIDTypeTok: Label '02', Locked = true;
+    begin
+        ID := VATRegistrationNo;
+        UseNIF := SIIManagement.CountryAndVATRegNoAreLocal(CountryRegionCode, VATRegistrationNo);
+        if not UseNIF then begin
+            IDTypeCode := GetRecipientIDTypeCode(IDType, SIIManagement.IsIntracommunity(CountryRegionCode));
+            if CountryRegion.Get(CountryRegionCode) and (CountryRegion."ISO Code" <> '') then
+                CountryCode := CountryRegion."ISO Code"
+            else
+                CountryCode := CountryRegionCode;
+            if IDTypeCode = VATRegistrationNoIDTypeTok then begin
+                // CodigoPais is optional for NIF-IVA, and Northern Ireland (XI) is not a valid AEAT country code.
+                if SIIManagement.CountryIsNorthernIreland(CountryRegionCode) then
+                    CountryCode := '';
+                ID := GetVATRegistrationNoWithPrefix(CountryRegion, CountryRegionCode, VATRegistrationNo);
+            end;
+        end;
+        OnAfterGetRecipientIdentification(CountryRegionCode, VATRegistrationNo, IDType, UseNIF, CountryCode, IDTypeCode, ID);
+    end;
+
+    local procedure GetRecipientIDTypeCode(IDType: Enum "SII ID Type"; IsIntraCommunity: Boolean): Text
+    begin
+        case IDType of
+            "SII ID Type"::"02-VAT Registration No.":
+                exit('02');
+            "SII ID Type"::"03-Passport":
+                exit('03');
+            "SII ID Type"::"04-ID Document":
+                exit('04');
+            "SII ID Type"::"05-Certificate Of Residence":
+                exit('05');
+            "SII ID Type"::"06-Other Probative Document":
+                exit('06');
+            "SII ID Type"::"07-Not On The Census":
+                exit('07');
+        end;
+
+        if IsIntraCommunity then
+            exit('02');
+        exit('04');
+    end;
+
+    local procedure GetVATRegistrationNoWithPrefix(CountryRegion: Record "Country/Region"; CountryRegionCode: Code[10]; VATRegistrationNo: Text[20]): Text
+    var
+        Prefix: Text;
+    begin
+        Prefix := CountryRegion."EU Country/Region Code";
+        if Prefix = '' then
+            Prefix := CountryRegion."ISO Code";
+        if Prefix = '' then
+            Prefix := CountryRegionCode;
+        if (Prefix = '') or (VATRegistrationNo = '') or VATRegistrationNo.StartsWith(Prefix) then
+            exit(VATRegistrationNo);
+        // AEAT limits ID to 20 characters; never truncate the identifier.
+        if StrLen(Prefix + VATRegistrationNo) > MaxStrLen(VATRegistrationNo) then
+            exit(VATRegistrationNo);
+        exit(Prefix + VATRegistrationNo);
+    end;
+
+    local procedure GetRecipientCountryRegionCode(AltVATRegistrationNo: Boolean; VATCountryRegionCode: Code[10]; BillToCountryRegionCode: Code[10]; SellToCountryRegionCode: Code[10]): Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        // VAT Country/Region Code follows the ship-to country; it only identifies the recipient when an alternative VAT registration was used.
+        if AltVATRegistrationNo and (VATCountryRegionCode <> '') then
+            exit(VATCountryRegionCode);
+
+        GeneralLedgerSetup.SetLoadFields("Bill-to/Sell-to VAT Calc.");
+        if GeneralLedgerSetup.Get() then
+            if GeneralLedgerSetup."Bill-to/Sell-to VAT Calc." = GeneralLedgerSetup."Bill-to/Sell-to VAT Calc."::"Sell-to/Buy-from No." then
+                exit(SellToCountryRegionCode);
+        exit(BillToCountryRegionCode);
+    end;
+
+    local procedure IsIntraCommunityRecipient(RecipientCountryRegionCode: Code[10]): Boolean
+    var
+        SIIManagement: Codeunit "SII Management";
+    begin
+        exit(SIIManagement.IsIntracommunity(RecipientCountryRegionCode));
     end;
 
     local procedure GetOperationQualification(DocumentNo: Code[20]; PostingDate: Date; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATIdentifier: Code[20]; IsCreditMemo: Boolean): Text
@@ -1178,6 +1345,23 @@ codeunit 10778 "Verifactu Export"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeExport(var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob"; IsBatch: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the operation qualification (CalificacionOperacion) and exemption cause (OperacionExenta) of a VAT breakdown line are determined.
+    /// When ExemptionCode is not empty, the line is exported as OperacionExenta instead of CalificacionOperacion.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetVATBreakdownQualification(DocumentNo: Code[20]; PostingDate: Date; IsCreditMemo: Boolean; SpecialSchemeCode: Text; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; VATPercentage: Decimal; var OperationQualification: Text; var ExemptionCode: Text)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after the recipient identification is determined. When UseNIF is true, ID is exported as NIF; otherwise as IDOtro with CodigoPais, IDType and ID.
+    /// </summary>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecipientIdentification(CountryRegionCode: Code[10]; VATRegistrationNo: Text[20]; IDType: Enum "SII ID Type"; var UseNIF: Boolean; var CountryCode: Text; var IDTypeCode: Text; var ID: Text)
     begin
     end;
 }

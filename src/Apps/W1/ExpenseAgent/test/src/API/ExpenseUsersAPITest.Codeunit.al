@@ -25,6 +25,106 @@ codeunit 148315 "Expense Users API Test"
         IsInitialized: Boolean;
         ServiceNameTok: Label 'expenseUsers', Locked = true;
         EmployeesServiceNameTok: Label 'employees', Locked = true;
+        AvailableApproversServiceNameTok: Label 'availableApprovers', Locked = true;
+
+    [Test]
+    procedure AvailableApproversIncludeParentAndExcludeIneligibleUsers()
+    var
+        ParentExpenseUser: Record "Expense User";
+        ApproverExpenseUser: Record "Expense User";
+        NonApproverExpenseUser: Record "Expense User";
+        UnlinkedApproverExpenseUser: Record "Expense User";
+        Response: JsonObject;
+        Approvers: JsonArray;
+        TargetURL: Text;
+        FilteredURL: Text;
+        ResponseText: Text;
+    begin
+        Initialize();
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ParentExpenseUser, true);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ApproverExpenseUser, true);
+        LibraryExpense.CreateExpenseUser(NonApproverExpenseUser);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(UnlinkedApproverExpenseUser, true);
+        UnlinkedApproverExpenseUser."Employee No." := '';
+        UnlinkedApproverExpenseUser.Modify();
+        Commit();
+
+        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
+            Format(ParentExpenseUser.SystemId), Page::"Expense Users API",
+            ServiceNameTok, AvailableApproversServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
+        Approvers := Response.GetArray('value');
+
+        AssertApproverInCollection(Approvers, ApproverExpenseUser.SystemId, true);
+        AssertApproverInCollection(Approvers, ParentExpenseUser.SystemId, true);
+        AssertApproverInCollection(Approvers, NonApproverExpenseUser.SystemId, false);
+        AssertApproverInCollection(Approvers, UnlinkedApproverExpenseUser.SystemId, false);
+
+        FilteredURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=id eq ' + LibraryGraphMgt.StripBrackets(Format(ParentExpenseUser.SystemId)));
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, FilteredURL, 200);
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
+        Approvers := Response.GetArray('value');
+        Assert.AreEqual(1, Approvers.Count(), 'A caller filter can select the parent expense user when they can approve.');
+        AssertApproverInCollection(Approvers, ParentExpenseUser.SystemId, true);
+
+        FilteredURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(TargetURL, '$filter=canApprove eq false');
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, FilteredURL, 200);
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
+        Approvers := Response.GetArray('value');
+        Assert.AreEqual(0, Approvers.Count(), 'A caller filter must not include users who cannot approve.');
+
+        FilteredURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(TargetURL, '$filter=employeeNumber eq ''''');
+        Clear(ResponseText);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, FilteredURL, 200);
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
+        Approvers := Response.GetArray('value');
+        Assert.AreEqual(0, Approvers.Count(), 'A caller filter must not include users without an employee link.');
+    end;
+
+    [Test]
+    procedure ExpandedAvailableApproversIncludeEachParent()
+    var
+        FirstExpenseUser: Record "Expense User";
+        SecondExpenseUser: Record "Expense User";
+        Response: JsonObject;
+        ExpenseUsers: JsonArray;
+        ExpenseUserToken: JsonToken;
+        ExpenseUserObject: JsonObject;
+        Approvers: JsonArray;
+        TargetURL: Text;
+        ResponseText: Text;
+        FirstUserId: Text;
+        SecondUserId: Text;
+    begin
+        Initialize();
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(FirstExpenseUser, true);
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(SecondExpenseUser, true);
+        Commit();
+
+        FirstUserId := LowerCase(LibraryGraphMgt.StripBrackets(Format(FirstExpenseUser.SystemId)));
+        SecondUserId := LowerCase(LibraryGraphMgt.StripBrackets(Format(SecondExpenseUser.SystemId)));
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Users API", ServiceNameTok);
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$filter=id eq ' + FirstUserId + ' or id eq ' + SecondUserId);
+        TargetURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
+            TargetURL, '$expand=availableApprovers($filter=id eq ' + FirstUserId + ' or id eq ' + SecondUserId + ')');
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+        Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
+        ExpenseUsers := Response.GetArray('value');
+        Assert.AreEqual(2, ExpenseUsers.Count(), 'Both parent expense users must be returned.');
+
+        foreach ExpenseUserToken in ExpenseUsers do begin
+            ExpenseUserObject := ExpenseUserToken.AsObject();
+            Approvers := ExpenseUserObject.GetArray('availableApprovers');
+            Assert.AreEqual(2, Approvers.Count(), 'Each expanded collection must contain both approvers.');
+            AssertApproverInCollection(Approvers, FirstExpenseUser.SystemId, true);
+            AssertApproverInCollection(Approvers, SecondExpenseUser.SystemId, true);
+        end;
+    end;
 
     [Test]
     procedure EmployeesAPICanFilterExpenseUsers()
@@ -116,6 +216,22 @@ codeunit 148315 "Expense Users API Test"
         // [THEN] the unlinked user is absent from the list
         Assert.AreEqual(0, StrPos(ResponseText, UnlinkedUserIdTxt),
             'Unlinked Expense User should not appear in the list response');
+    end;
+
+    local procedure AssertApproverInCollection(Approvers: JsonArray; ExpenseUserSystemId: Guid; ExpectedPresent: Boolean)
+    var
+        ApproverToken: JsonToken;
+        Approver: JsonObject;
+        ExpenseUserId: Text;
+        Found: Boolean;
+    begin
+        ExpenseUserId := LowerCase(LibraryGraphMgt.StripBrackets(Format(ExpenseUserSystemId)));
+        foreach ApproverToken in Approvers do begin
+            Approver := ApproverToken.AsObject();
+            if LowerCase(Approver.GetText('id')) = ExpenseUserId then
+                Found := true;
+        end;
+        Assert.AreEqual(ExpectedPresent, Found, 'Unexpected approver visibility for expense user ' + ExpenseUserId);
     end;
 
     local procedure Initialize()

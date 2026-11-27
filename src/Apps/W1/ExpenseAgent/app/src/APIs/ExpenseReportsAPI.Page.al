@@ -304,6 +304,7 @@ page 6928 "Expense Reports API"
         ReimbursementCurrencyCodeDisplay: Code[10];
         ExpenseUserSystemId: Guid;
         ExpenseReportCreatedLbl: Label 'Expense report created via API.', Locked = true;
+        UnexpectedApprovalStatusErr: Label 'The expense report has an unexpected status after approval: %1.', Comment = '%1 = Expense report status';
 
     trigger OnInit()
     begin
@@ -417,6 +418,17 @@ page 6928 "Expense Reports API"
     end;
 
     [ServiceEnabled]
+    procedure SubmitAndAssignInterimApprover(var ActionContext: WebServiceActionContext; SubmitterExpenseUserNo: Code[20]; SubmissionComment: Text; InterimApproverExpenseUserNo: Code[20])
+    begin
+        Rec.SubmitAndAssignInterimApprover(SubmitterExpenseUserNo, SubmissionComment, InterimApproverExpenseUserNo);
+
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Expense Reports API");
+        ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
     procedure ApprovedExpenseReport(var ActionContext: WebServiceActionContext; ApproverExpenseUserNo: Code[20])
     begin
         Rec.PerformManualApproved(ApproverExpenseUserNo);
@@ -436,6 +448,53 @@ page 6928 "Expense Reports API"
         ActionContext.SetObjectId(Page::"Expense Reports API");
         ActionContext.AddEntityKey(Rec.FieldNo(SystemId), Rec.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Updated);
+    end;
+
+    [ServiceEnabled]
+    procedure ApprovedExpenseReportWithOutcome(ApproverExpenseUserNo: Code[20]): Text
+    begin
+        exit(ApproveExpenseReportWithOutcome(ApproverExpenseUserNo, false));
+    end;
+
+    [ServiceEnabled]
+    procedure ApprovedExpenseReportWithPolicyOverrideAndOutcome(ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean): Text
+    begin
+        exit(ApproveExpenseReportWithOutcome(ApproverExpenseUserNo, SkipPolicyValidation));
+    end;
+
+    local procedure ApproveExpenseReportWithOutcome(ApproverExpenseUserNo: Code[20]; SkipPolicyValidation: Boolean): Text
+    var
+        ApprovalOutcome: JsonObject;
+        NextApprover: JsonValue;
+        OutcomeText: Text;
+        UnexpectedApprovalStatusErrorInfo: ErrorInfo;
+    begin
+        Rec.PerformManualApproved(ApproverExpenseUserNo, SkipPolicyValidation);
+
+        ApprovalOutcome.Add('reportId', Rec.SystemId);
+        case Rec.Status of
+            Rec.Status::"Interim Approved":
+                begin
+                    Rec.TestField("Approver Expense User No.");
+                    ApprovalOutcome.Add('bcStatus', 'Interim_x0020_Approved');
+                    NextApprover.SetValue(Rec."Approver Expense User No.");
+                end;
+            Rec.Status::Approved:
+                begin
+                    ApprovalOutcome.Add('bcStatus', 'Approved');
+                    NextApprover.SetValueToNull();
+                end;
+            else begin
+                UnexpectedApprovalStatusErrorInfo.Message := StrSubstNo(UnexpectedApprovalStatusErr, Rec.Status);
+                UnexpectedApprovalStatusErrorInfo.ErrorType := ErrorType::Internal;
+                UnexpectedApprovalStatusErrorInfo.DataClassification := DataClassification::SystemMetadata;
+                Error(UnexpectedApprovalStatusErrorInfo);
+            end;
+        end;
+        ApprovalOutcome.Add('approvalComplete', Rec.Status = Rec.Status::Approved);
+        ApprovalOutcome.Add('nextApproverExpenseUserNo', NextApprover);
+        ApprovalOutcome.WriteTo(OutcomeText);
+        exit(OutcomeText);
     end;
 
     [ServiceEnabled]

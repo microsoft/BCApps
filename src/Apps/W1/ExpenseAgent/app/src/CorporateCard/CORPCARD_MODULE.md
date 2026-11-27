@@ -177,7 +177,7 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7448 | EA Corp Card Settlement Lines | ListPart | Validated provider statements included in a settlement |
 | 7450 | EA Corp Card Lookup | List | Read-only employee-card selection with provider short name and last four digits |
 | 7451 | Expense Corporate Cards API | API | Read-only, single-expense-user card catalog |
-| 7420 | EA Card Expense Matches API | API | `expenseUsers({id})/cardExpenseMatches`: read-only receipt-to-card-expense matching |
+| 7425 | EA Card Expense Matches API | API | `expenseUsers({id})/cardExpenseMatches`: read-only receipt-to-card-expense matching |
 | 7421 | EA Card Receipt Data API | API | `expenses({id})/cardReceiptData`: stages a receipt and its extracted data and applies them to a card expense waiting for a receipt |
 | 7422 | EA Card Receipt Particip. API | API | `cardReceiptParticipants` subpage of the card receipt data API |
 | 7423 | EA Card Receipt Items API | API | `cardReceiptItems` subpage of the card receipt data API |
@@ -986,7 +986,7 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 **Corporate-card allocation in app.json:** 7420–7459 (40 IDs per object type). The app also declares 6900–6999 and 7073–7147; `EA Corp Card Stats Calculator` uses codeunit 6913.
 
-Corporate-card objects also live outside the CorporateCard folder, including the agent card API (page 7451), the receipt matching API (page 7420, table 7420 under `APIs/CardExpenseMatches`), the card receipt data API (pages 7421–7424, tables 7427 and 7432–7434 under `APIs/CardReceiptData`), setup/upgrade code, and expense/report integration.
+Corporate-card objects also live outside the CorporateCard folder, including the agent card API (page 7451), the receipt matching API (page 7425, table 7420 under `APIs/CardExpenseMatches`), the card receipt data API (pages 7421–7424, tables 7427 and 7432–7434 under `APIs/CardReceiptData`), setup/upgrade code, and expense/report integration.
 
 ---
 

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-page 7420 "EA Card Expense Matches API"
+page 7425 "EA Card Expense Matches API"
 {
     PageType = API;
     APIPublisher = 'microsoft';

@@ -17,6 +17,7 @@ permissionset 6952 "Expense Agent - Objects"
                   page "EA Outbox Email API" = X,
                   page "Expense User Cons. API" = X,
                   page "Approver View API" = X,
+                  page "Available Approvers API" = X,
                   page "Expense Capabilities API" = X,
                   page "Expense Activity Log API" = X,
                   page "Expense Agent Access Ctrl API" = X,
