@@ -19,11 +19,14 @@ Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
     Gets disabled test entries for an app.
 .PARAMETER AppName
     Application name used to locate its DisabledTests folder.
+.PARAMETER Country
+    Country code for entries with an optional country field. Entries without it apply everywhere.
 #>
 function Get-DisabledTestsForApp {
     param(
         [Parameter(Mandatory=$true)]
-        [string]$AppName
+        [string]$AppName,
+        [string]$Country
     )
 
     $appFolderName = $AppName -replace ' ', '_'
@@ -44,7 +47,10 @@ function Get-DisabledTestsForApp {
         }
     }
 
-    return @($disabledTests)
+    return @($disabledTests | Where-Object {
+        -not ($_.PSObject.Properties.Name -contains 'country') -or
+        (-not [string]::IsNullOrWhiteSpace($Country) -and $_.country -eq $Country)
+    })
 }
 
 <#

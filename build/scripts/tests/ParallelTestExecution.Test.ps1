@@ -303,6 +303,39 @@ Describe "ParallelTestExecution transient retry scheduling" {
 }
 
 Describe "ParallelTestExecution disabled-test exclusions" {
+    It "applies only the two AU G/L-entry exclusions while retaining global exclusions" {
+        InModuleScope ParallelTestExecution {
+            $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+            $script:disabledTestRoot = Join-Path $TestDrive 'api-exclusions'
+            $disabledFolder = Join-Path $script:disabledTestRoot 'DisabledTests'
+            $null = New-Item -Path $disabledFolder -ItemType Directory -Force
+            foreach ($app in @('_Exclude_APIV1__Tests', '_Exclude_APIV2__Tests')) {
+                Copy-Item -Path (Join-Path $repoRoot "src\DisabledTests\$app") -Destination $disabledFolder -Recurse
+            }
+            Mock Get-BaseFolder { $script:disabledTestRoot }
+            foreach ($api in @(
+                @{ App = '_Exclude_APIV1_ Tests'; Id = 139730 }
+                @{ App = '_Exclude_APIV2_ Tests'; Id = 139830 }
+            )) {
+                $globalEntries = @(Get-DisabledTestsForApp -AppName $api.App)
+                foreach ($country in @('AU', 'au', 'US', 'NZ', 'W1', '')) {
+                    $entries = @(Get-DisabledTestsForApp -AppName $api.App -Country $country)
+                    $scoped = @($entries | Where-Object { $_.codeunitId -eq $api.Id })
+                    if ($country -eq 'AU') {
+                        $scoped.Count | Should -Be 1
+                        $scoped[0].method | Should -Be 'TestGetGLEntries'
+                        $entries.Count | Should -Be ($globalEntries.Count + 1)
+                    } else {
+                        $scoped.Count | Should -Be 0
+                        $entries.Count | Should -Be $globalEntries.Count
+                    }
+                    @($entries | Where-Object { $_.codeunitId -ne $api.Id } | ConvertTo-Json -Compress) |
+                        Should -Be @($globalEntries | ConvertTo-Json -Compress)
+                }
+            }
+        }
+    }
+
     It "loads all app exclusions without consulting country settings" {
         InModuleScope ParallelTestExecution {
             $script:disabledTestRoot = Join-Path $TestDrive 'exclusions'
@@ -628,6 +661,7 @@ Describe "RunTestsInBcContainer platform-race transcript classification" {
 
 Describe "RunTestsInBcContainer Disabled routing" {
     BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot '..\EnlistmentHelperFunctions.psm1')
         function Run-TestsInBcContainer {
             param($appName, $tenant, $extensionId, $testType, $requiredTestIsolation, $testRunnerCodeunitId, $disabledTests)
             $null = $appName, $tenant, $extensionId, $testType, $requiredTestIsolation, $testRunnerCodeunitId, $disabledTests
@@ -641,6 +675,7 @@ Describe "RunTestsInBcContainer Disabled routing" {
         $env:GITHUB_EVENT_NAME = 'push'
         $script:calls = [System.Collections.Generic.List[object]]::new()
         Mock Import-Module {}
+        Mock Get-ALGoSetting { 'AU' } -ParameterFilter { $Key -eq 'country' }
         Mock Get-DisabledTestsForApp { @(@{ Codeunit = '50000'; Method = 'Excluded' }) }
         Mock Start-Transcript { Set-Content -LiteralPath $Path -Value '' }
         Mock Stop-Transcript {}
@@ -671,6 +706,9 @@ Describe "RunTestsInBcContainer Disabled routing" {
             . $script:runScript -parameters $params -TestType $Lane -SkipAutomaticDisabledPass | Should -BeTrue
         }
         $script:calls.Count | Should -Be 2
+        Should -Invoke Get-DisabledTestsForApp -Times 2 -Exactly -ParameterFilter {
+            $AppName -eq 'Tests' -and $Country -eq 'AU'
+        }
         $script:calls[0].Isolation | Should -BeNullOrEmpty
         $script:calls[1].Isolation | Should -Be 'Disabled'
         $script:calls[1].Runner | Should -Be '130451'

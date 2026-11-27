@@ -106,7 +106,7 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $parameters["appName"])
+$parameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $parameters["appName"] -Country (Get-ALGoSetting -Key 'country'))
 $parameters["renewClientContextBetweenTests"] = $true
 
 # When invoked from the per-project override on the parent process, $AppNamesToTest contains
