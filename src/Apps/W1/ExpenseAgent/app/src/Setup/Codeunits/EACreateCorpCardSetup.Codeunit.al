@@ -306,8 +306,6 @@ codeunit 7442 "EA Create Corp Card Setup"
                 CorpCard, SequenceNo,
                 CorpCardCsvProviderCodeTok, ExpenseUser."No.");
         until (ExpenseUser.Next() = 0) or (SequenceNo = 8);
-
-        RemoveUnusedManagedProviderCards();
     end;
 
     local procedure EnsureDemoCorpCard(var CorpCard: Record "EA Corp Card"; CardSequenceNo: Integer; ProviderCode: Code[20]; ExpenseUserNo: Code[20])
@@ -328,34 +326,6 @@ codeunit 7442 "EA Create Corp Card Setup"
         CorpCard."Masked Card No." := CopyStr('****' + GetCorpCardSampleLastFour(CardSequenceNo), 1, MaxStrLen(CorpCard."Masked Card No."));
         CorpCard."Valid From" := 0D;
         CorpCard.Modify(true);
-    end;
-
-    local procedure RemoveUnusedManagedProviderCards()
-    var
-        CorpCard: Record "EA Corp Card";
-        CorpCardTrans: Record "EA Corp Card Trans";
-    begin
-        CorpCard.SetFilter("Provider Code", '%1|%2', CorpCardCsvProviderCodeTok, CorpCardXmlProviderCodeTok);
-        if CorpCard.FindSet(true) then
-            repeat
-                if IsDemoCorpCardId(CorpCard."Card Id") then
-                    continue;
-
-                CorpCardTrans.SetRange("Card Id", CorpCard."Card Id");
-                if CorpCardTrans.IsEmpty() then
-                    CorpCard.Delete(true);
-            until CorpCard.Next() = 0;
-    end;
-
-    local procedure IsDemoCorpCardId(CardId: Code[50]): Boolean
-    var
-        SequenceNo: Integer;
-    begin
-        for SequenceNo := 1 to 8 do
-            if CardId = BuildProviderSampleCardId(SequenceNo) then
-                exit(true);
-
-        exit(false);
     end;
 
     local procedure PadNumberLeft(Value: Integer; TotalLength: Integer): Text
