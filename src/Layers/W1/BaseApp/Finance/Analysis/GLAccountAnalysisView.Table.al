@@ -410,6 +410,7 @@ table 376 "G/L Account (Analysis View)"
             ToolTip = 'Specifies the item''s product type to link transactions made for this item with the appropriate general ledger account according to the general posting setup.';
             TableRelation = "Gen. Product Posting Group";
         }
+#pragma warning disable AA0232
         /// <summary>
         /// Total debit amounts for the account in the analysis period.
         /// </summary>
@@ -433,6 +434,7 @@ table 376 "G/L Account (Analysis View)"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         /// <summary>
         /// Total credit amounts for the account in the analysis period.
         /// </summary>

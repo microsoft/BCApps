@@ -183,6 +183,7 @@ table 10725 "Hist. G/L Account (An. View)"
             FieldClass = FlowFilter;
             TableRelation = "G/L Budget Name";
         }
+#pragma warning disable AA0232
         field(36; Balance; Decimal)
         {
             AutoFormatType = 0;
@@ -217,6 +218,7 @@ table 10725 "Hist. G/L Account (An. View)"
             Caption = 'Budgeted at Date';
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(40; "Consol. Debit Acc."; Code[20])
         {
             Caption = 'Consol. Debit Acc.';
@@ -247,6 +249,7 @@ table 10725 "Hist. G/L Account (An. View)"
             Caption = 'Gen. Prod. Posting Group';
             TableRelation = "Gen. Product Posting Group";
         }
+#pragma warning disable AA0232
         field(47; "Debit Amount"; Decimal)
         {
             AutoFormatType = 0;
@@ -264,6 +267,7 @@ table 10725 "Hist. G/L Account (An. View)"
             Editable = false;
             FieldClass = FlowField;
         }
+#pragma warning restore AA0232
         field(48; "Credit Amount"; Decimal)
         {
             AutoFormatType = 0;
