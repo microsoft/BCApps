@@ -331,6 +331,7 @@ codeunit 8060 "Create Billing Documents"
             UsageDataBilling.SetRange("Subscription Contract Line No.", CustomerContractLine."Line No.");
             UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
             UsageDataBilling.SetRange("Document No.", '');
+            UsageDataBilling.ExcludeProcessingStatusError();
             if UsageDataBilling.FindSet() then begin
                 BillingLineNoByTempEntryNo.Get(TempBillingLine."Entry No.", BillingLineNo);
                 repeat
@@ -472,6 +473,7 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling.SetRange("Subscription Contract Line No.", ServiceCommitment."Subscription Contract Line No.");
         UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetRange("Document No.", '');
+        UsageDataBilling.ExcludeProcessingStatusError();
         if UsageDataBilling.FindSet() then begin
             BillingLineNoByTempEntryNo.Get(TempBillingLine."Entry No.", BillingLineNo);
             repeat

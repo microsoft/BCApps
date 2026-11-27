@@ -380,6 +380,7 @@ codeunit 8062 "Billing Proposal"
                     UsageDataBilling.Reset();
                     UsageDataBilling.FilterOnServiceCommitment(ServiceCommitment);
                     UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+                    UsageDataBilling.ExcludeProcessingStatusError();
                     OnProcessSubscriptionLineOnAfterFilterUsageDataBilling(UsageDataBilling, ServiceCommitment);
                     SkipServiceCommitment := UsageDataBilling.IsEmpty();
                 end;
@@ -598,6 +599,7 @@ codeunit 8062 "Billing Proposal"
             UsageDataBilling.SetRange("Subscription Line Entry No.", ServiceCommitment."Entry No.");
             UsageDataBilling.SetRange(Partner, ServiceCommitment.Partner);
             UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::None);
+            UsageDataBilling.ExcludeProcessingStatusError();
             if UsageDataBilling.FindFirst() then
                 BillingPeriodStart := UsageDataBilling."Charge Start Date";
             if UsageDataBilling.FindLast() then
