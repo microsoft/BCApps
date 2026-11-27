@@ -28,7 +28,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         ReceiptOnInvoicePostFromMatchedInvoiceErr: Label 'Purchase Order with %1 selected can only be posted from matched purchase invoice', Comment = '%1 = Receipt on Invoice field name';
         WrongQtyReceivedErr: Label 'Wrong Quantity Received on order line %1.', Comment = '%1 = Line No.';
         WrongQtyInvoicedErr: Label 'Wrong Quantity Invoiced on order line %1.', Comment = '%1 = Line No.';
-        ReceiptOnInvoiceLocationErr: Label 'You cannot use %1 with Location %2 on Line %3 because the location requires warehouse handling for receipts.', Comment = '%1 = Receipt on Invoice field name, %2 = Location Code, %3 = Line No.';
+        ReceiptOnInvoiceLocationErr: Label 'You cannot use %1 with Location %2 on Line %3 because the location requires a warehouse receipt.', Comment = '%1 = Receipt on Invoice field name, %2 = Location Code, %3 = Line No.';
 
     // ============================================================================
     // REGION: E2E-1 Standard Invoice Matching Flow (No Receipt on Invoice)
@@ -1464,6 +1464,8 @@ codeunit 134468 "ERM Matched Order Line Tests"
         // [GIVEN] Create Location with Directed Put-away and Pick = TRUE
         LibraryWarehouse.CreateLocation(WMSLocation);
         WMSLocation."Directed Put-away and Pick" := true;
+        // Validating Directed Put-away and Pick sets Require Receive
+        WMSLocation."Require Receive" := true;
         WMSLocation.Modify();
 
         // [GIVEN] Create non-WMS location
@@ -4854,18 +4856,31 @@ codeunit 134468 "ERM Matched Order Line Tests"
 
     [Test]
     [Scope('OnPrem')]
-    procedure ReceiptOnInvoiceDisabledOnLineAtRequirePutAwayLocation()
+    procedure ReceiptOnInvoiceAllowedOnLineAtRequirePutAwayLocation()
     var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: array[2] of Record "Purchase Line";
         Location: Record Location;
+        Item: array[2] of Record Item;
+        Vendor: Record Vendor;
+        Quantity: array[2] of Decimal;
     begin
-        // [SCENARIO 660778] Receipt on Invoice is turned off on an order line moved to a location with Require Put-away
+        // [SCENARIO 660778] Receipt on Invoice stays selected on an order line moved to a location with Require Put-away only
         Initialize();
 
-        // [GIVEN] Location "L" with Require Put-away
+        // [GIVEN] Location "L" with Require Put-away and without Require Receive
         LibraryWarehouse.CreateLocationWMS(Location, false, true, false, false, false);
 
-        // [WHEN] / [THEN] Setting location "L" on an order line with Receipt on Invoice turns Receipt on Invoice off
-        VerifyReceiptOnInvoiceDisabledByLocation(Location.Code);
+        // [GIVEN] Purchase order line "L1" with Receipt on Invoice
+        CreatePurchaseOrderWithTwoItemLines(PurchaseHeaderOrder, PurchaseLineOrder, Item, Vendor, Quantity);
+        PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
+        PurchaseLineOrder[1].Modify(true);
+
+        // [WHEN] Set location "L" on line "L1"
+        PurchaseLineOrder[1].Validate("Location Code", Location.Code);
+
+        // [THEN] Receipt on Invoice is still selected on line "L1"
+        Assert.IsTrue(PurchaseLineOrder[1]."Receipt on Invoice", 'Receipt on Invoice should stay selected on a location that requires put-away only');
     end;
 
     [Test]
@@ -4895,7 +4910,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         Vendor: Record Vendor;
         Quantity: array[2] of Decimal;
     begin
-        // [SCENARIO 660778] Receipt on Invoice cannot be selected on an order that has a line at a location requiring warehouse handling
+        // [SCENARIO 660778] Receipt on Invoice cannot be selected on an order that has a line at a location requiring a warehouse receipt
         Initialize();
 
         // [GIVEN] Location "L" with Require Receive
@@ -4926,7 +4941,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
         Vendor: Record Vendor;
         Quantity: array[2] of Decimal;
     begin
-        // [SCENARIO 660778] A matched invoice does not auto-receive an order line whose location started to require warehouse handling
+        // [SCENARIO 660778] A matched invoice does not auto-receive an order line whose location started to require a warehouse receipt
         Initialize();
 
         // [GIVEN] Location "L" without warehouse handling
@@ -4938,8 +4953,8 @@ codeunit 134468 "ERM Matched Order Line Tests"
         PurchaseLineOrder[1].Validate("Receipt on Invoice", true);
         PurchaseLineOrder[1].Modify(true);
 
-        // [GIVEN] Location "L" is changed to Require Put-away after Receipt on Invoice was selected
-        Location."Require Put-away" := true;
+        // [GIVEN] Location "L" is changed to Require Receive after Receipt on Invoice was selected
+        Location."Require Receive" := true;
         Location.Modify();
 
         // [GIVEN] Purchase invoice matched to line "L1"
@@ -5278,7 +5293,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
 
         PurchaseLineOrder[1].Validate("Location Code", LocationCode);
 
-        Assert.IsFalse(PurchaseLineOrder[1]."Receipt on Invoice", 'Receipt on Invoice should be turned off on a location that requires warehouse handling');
+        Assert.IsFalse(PurchaseLineOrder[1]."Receipt on Invoice", 'Receipt on Invoice should be turned off on a location that requires a warehouse receipt');
     end;
 
     [RequestPageHandler]
