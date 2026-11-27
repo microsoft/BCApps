@@ -415,13 +415,6 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         exit(not SalesServiceCommitment.IsEmpty());
     end;
 
-    internal procedure GetSalesDocumentSign(): Integer
-    begin
-        if Rec."Document Type" = "Sales Document Type"::"Credit Memo" then
-            exit(-1);
-        exit(1);
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetExcludeFromDocTotal(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
