@@ -1,5 +1,6 @@
 ﻿codeunit 134421 "Report Selections Tests"
 {
+    EventSubscriberInstance = Manual;
     Subtype = Test;
     TestPermissions = NonRestrictive;
 
@@ -67,6 +68,31 @@
         LibraryReportDataset.AssertElementWithValueExists(DocumentNoTok, PostedSalesInvoice."No.".Value);
 
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure VendorEmailBodyUsesSubscriberReportSelection()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        ReportSelections: Record "Report Selections";
+        ReportSelectionsTests: Codeunit "Report Selections Tests";
+        EmailBody: Codeunit "Temp Blob";
+        VendorEmailAddress: Text[250];
+    begin
+        Initialize();
+        LibraryPurchase.CreatePurchaseOrder(PurchaseHeader);
+        PurchaseHeader.SetRecFilter();
+        SetupReportSelectionsVendor(true, false);
+
+        Assert.IsFalse(
+          ReportSelections.GetEmailBodyForVend(EmailBody, ReportSelections.Usage::"P.Order", PurchaseHeader, PurchaseHeader."Buy-from Vendor No.", VendorEmailAddress),
+          'No email body should be found without a subscriber.');
+
+        BindSubscription(ReportSelectionsTests);
+        Assert.IsTrue(
+          ReportSelections.GetEmailBodyForVend(EmailBody, ReportSelections.Usage::"P.Order", PurchaseHeader, PurchaseHeader."Buy-from Vendor No.", VendorEmailAddress),
+          'The subscriber supplied an email body report selection.');
+        Assert.IsTrue(EmailBody.HasValue(), 'The subscriber-selected purchase order report should render an email body.');
     end;
 
     [Test]
@@ -3176,6 +3202,18 @@
     begin
         SalesHeader."Your Reference" := YourReference;
         SalesHeader.Modify();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Report Selections", 'OnGetEmailBodyVendorTextOnAfterNotFindEmailBodyUsage', '', false, false)]
+    local procedure SupplyVendorEmailBodySelection(ReportUsage: Integer; var TempBodyReportSelections: Record "Report Selections" temporary; var EmailBodyUsageFound: Boolean)
+    begin
+        TempBodyReportSelections.Init();
+        TempBodyReportSelections.Usage := "Report Selection Usage".FromInteger(ReportUsage);
+        TempBodyReportSelections.Sequence := '1';
+        TempBodyReportSelections."Report ID" := Report::"Standard Purchase - Order";
+        TempBodyReportSelections.Validate("Email Body Layout Name", 'StandardPurchaseOrderEmail.docx');
+        TempBodyReportSelections.Insert();
+        EmailBodyUsageFound := true;
     end;
 
     [RequestPageHandler]
