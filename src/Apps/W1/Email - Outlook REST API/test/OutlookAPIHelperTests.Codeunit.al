@@ -660,6 +660,125 @@ codeunit 139752 "Outlook API Helper Tests"
         LibraryAssert.IsTrue(Body.ToLower().Contains('onerror'), 'Event handler attribute should be preserved when sanitization is bypassed');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsWithRecipientsHandler')]
+    procedure TestRetrieveEmailStoresToAndCcRecipients()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        Recipients: List of [Text];
+    begin
+        // [SCENARIO] The toRecipients and ccRecipients returned by Graph are stored on the retrieved Email Message.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] Default retrieval filters
+        TempFilters.Init();
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+
+        // [WHEN] Emails are retrieved (response contains two To recipients and one Cc recipient)
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] An email inbox record was created
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected an email inbox record to be created');
+
+        // [THEN] The To recipients are stored on the Email Message
+        EmailMessage.Get(EmailInbox."Message Id");
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::"To", Recipients);
+        LibraryAssert.AreEqual(2, Recipients.Count(), 'Expected two To recipients');
+        LibraryAssert.IsTrue(Recipients.Contains('testuser@test.com'), 'Expected testuser@test.com as To recipient');
+        LibraryAssert.IsTrue(Recipients.Contains('second.to@test.com'), 'Expected second.to@test.com as To recipient');
+
+        // [THEN] The Cc recipients are stored on the Email Message
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, Recipients);
+        LibraryAssert.AreEqual(1, Recipients.Count(), 'Expected one Cc recipient');
+        LibraryAssert.IsTrue(Recipients.Contains('cc.recipient@test.com'), 'Expected cc.recipient@test.com as Cc recipient');
+
+        // [THEN] No Bcc recipients are stored
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::Bcc, Recipients);
+        LibraryAssert.AreEqual(0, Recipients.Count(), 'Expected no Bcc recipients');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('GraphRetrieveEmailsWithMixedRecipientsHandler')]
+    procedure TestRetrieveEmailsSkipsInvalidAndEmptyRecipients()
+    var
+        OutlookAccount: Record "Email - Outlook Account";
+        EmailInbox: Record "Email Inbox";
+        TempFilters: Record "Email Retrieval Filters" temporary;
+        SkipTokenRequest: Codeunit "Skip Outlook API Token Request";
+        EmailMessage: Codeunit "Email Message";
+        EmailOutlookAPIHelper: Codeunit "Email - Outlook API Helper";
+        Recipients: List of [Text];
+    begin
+        // [SCENARIO] Recipient entries without a usable address are skipped, and an email without recipients
+        // is still retrieved. Each message keeps only its own valid To and Cc addresses.
+
+        // [GIVEN] An Outlook account exists
+        OutlookAccount.Init();
+        OutlookAccount.Id := CreateGuid();
+        OutlookAccount."Email Address" := 'testuser@test.com';
+        OutlookAccount.Name := 'Test User';
+        OutlookAccount."Outlook API Email Connector" := Enum::"Email Connector"::"Test Outlook REST API";
+        OutlookAccount.Insert();
+
+        // [GIVEN] OAuth token request is skipped
+        BindSubscription(SkipTokenRequest);
+        SkipTokenRequest.SetSkipTokenRequest(true);
+
+        // [GIVEN] Default retrieval filters
+        TempFilters.Init();
+        TempFilters."Max No. of Emails" := 10;
+        TempFilters."Body Type" := TempFilters."Body Type"::HTML;
+
+        // [WHEN] Emails are retrieved (one email with mixed valid, null and incomplete recipients, one email without recipients)
+        EmailInbox.Init();
+        EmailOutlookAPIHelper.RetrieveEmails(OutlookAccount.Id, EmailInbox, TempFilters);
+
+        // [THEN] An email inbox record was created for both emails
+        EmailInbox.MarkedOnly(true);
+        LibraryAssert.AreEqual(2, EmailInbox.Count(), 'Expected an email inbox record for each retrieved email');
+
+        // [THEN] The email with mixed recipients keeps only its valid To and Cc addresses
+        EmailInbox.SetRange("External Message Id", 'test-message-id-mixed-recipients-001');
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected the email with mixed recipients to be retrieved');
+        EmailMessage.Get(EmailInbox."Message Id");
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::"To", Recipients);
+        LibraryAssert.AreEqual(1, Recipients.Count(), 'Expected only the valid To recipient');
+        LibraryAssert.IsTrue(Recipients.Contains('valid.to@test.com'), 'Expected valid.to@test.com as To recipient');
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, Recipients);
+        LibraryAssert.AreEqual(1, Recipients.Count(), 'Expected only the valid Cc recipient');
+        LibraryAssert.IsTrue(Recipients.Contains('valid.cc@test.com'), 'Expected valid.cc@test.com as Cc recipient');
+
+        // [THEN] The email without recipients has no To or Cc recipients
+        EmailInbox.SetRange("External Message Id", 'test-message-id-no-recipients-001');
+        LibraryAssert.IsTrue(EmailInbox.FindFirst(), 'Expected the email without recipients to be retrieved');
+        EmailMessage.Get(EmailInbox."Message Id");
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::"To", Recipients);
+        LibraryAssert.AreEqual(0, Recipients.Count(), 'Expected no To recipients');
+        EmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, Recipients);
+        LibraryAssert.AreEqual(0, Recipients.Count(), 'Expected no Cc recipients');
+    end;
+
     local procedure DeleteAllFromTablePlanAndUserPlan()
     var
         AzureADPlanTestLibraries: Codeunit "Azure AD Plan Test Library";
@@ -745,6 +864,26 @@ codeunit 139752 "Outlook API Helper Tests"
     procedure GraphRetrieveEmailsUnsafeBodyHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     var
         RetrieveEmailFileTok: Label 'RetrieveEmailWithUnsafeBody.txt', Locked = true;
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
+        exit(false);
+    end;
+
+    [HttpClientHandler]
+    procedure GraphRetrieveEmailsWithRecipientsHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RetrieveEmailFileTok: Label 'RetrieveEmailWithRecipients.txt', Locked = true;
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
+        Response.HttpStatusCode := 200;
+        exit(false);
+    end;
+
+    [HttpClientHandler]
+    procedure GraphRetrieveEmailsWithMixedRecipientsHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        RetrieveEmailFileTok: Label 'RetrieveEmailWithMixedRecipients.txt', Locked = true;
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(RetrieveEmailFileTok, TextEncoding::UTF8));
         Response.HttpStatusCode := 200;
