@@ -173,15 +173,9 @@ function Get-AppRerunBudget {
 
 <#
 .SYNOPSIS
-    Returns the cached test-hook result for a container, or $null if no result has finished.
-.DESCRIPTION
-    The first call into Invoke-ParallelTestExecution dispatches every test app in parallel,
-    waits for completion, and persists the final result to a state file in $env:RUNNER_TEMP
-    (cleaned up between jobs by GitHub Actions). A known-empty PR selection also persists a
-    successful completion marker. Subsequent invocations from the per-project override
-    short-circuit using this helper to avoid repeating work.
-.OUTPUTS
-    [bool] cached final result if the hook completed; $null if no result is available yet.
+    Gets the per-container test state file path.
+.PARAMETER ContainerName
+    The BC container name used to scope the state file.
 #>
 function Get-ParallelTestStateFile {
     param(
@@ -193,6 +187,19 @@ function Get-ParallelTestStateFile {
     return Join-Path $tempDir "parallelTests_$ContainerName.json"
 }
 
+<#
+.SYNOPSIS
+    Returns the cached test-hook result for a container, or $null if no result has finished.
+.DESCRIPTION
+    Parallel test execution persists its final result to a state file in $env:RUNNER_TEMP
+    (cleaned up between jobs by GitHub Actions). A known-empty PR selection also persists a
+    successful completion marker. Subsequent invocations from the per-project override
+    short-circuit using this helper to avoid repeating work.
+.PARAMETER ContainerName
+    The BC container name used to scope the state file.
+.OUTPUTS
+    [bool] cached final result if the hook completed; $null if no result is available yet.
+#>
 function Get-CachedTestRunResult {
     param(
         [Parameter(Mandatory=$true)]
@@ -213,6 +220,12 @@ function Get-CachedTestRunResult {
     return $null
 }
 
+<#
+.SYNOPSIS
+    Persists a successful result for a known-empty test selection.
+.PARAMETER ContainerName
+    The BC container name used to scope the state file.
+#>
 function Set-CachedEmptyTestSelectionResult {
     param(
         [Parameter(Mandatory=$true)]
