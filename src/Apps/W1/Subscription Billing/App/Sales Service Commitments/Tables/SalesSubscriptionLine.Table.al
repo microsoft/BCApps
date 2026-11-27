@@ -625,7 +625,8 @@ table 8068 "Sales Subscription Line"
         SalesServiceCommitment.SetRange("Invoicing via", SalesServiceCommitment."Invoicing via"::Contract);
         if SalesServiceCommitment.FindSet() then
             repeat
-                CreateTempSalesServiceCommitmentBuffForSalesServiceCommitment(SalesServiceCommitment, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+                if not IsSalesLineExcludedFromDocumentTotals(SalesServiceCommitment) then
+                    CreateTempSalesServiceCommitmentBuffForSalesServiceCommitment(SalesServiceCommitment, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
             until SalesServiceCommitment.Next() = 0;
 
         if TempSalesServiceCommitmentBuff.Find('-') then
@@ -684,6 +685,15 @@ table 8068 "Sales Subscription Line"
                 end;
                 TempSalesServiceCommitmentBuff.Modify(false);
             until TempSalesServiceCommitmentBuff.Next() = 0;
+    end;
+
+    local procedure IsSalesLineExcludedFromDocumentTotals(SalesSubscriptionLine: Record "Sales Subscription Line"): Boolean
+    var
+        DocumentSalesLine: Record "Sales Line";
+    begin
+        if not DocumentSalesLine.Get(SalesSubscriptionLine."Document Type", SalesSubscriptionLine."Document No.", SalesSubscriptionLine."Document Line No.") then
+            exit(false);
+        exit(DocumentSalesLine.IsExcludedFromDocumentTotals());
     end;
 
     local procedure CreateTempSalesServiceCommitmentBuffForSalesServiceCommitment(SalesServiceCommitment: Record "Sales Subscription Line";

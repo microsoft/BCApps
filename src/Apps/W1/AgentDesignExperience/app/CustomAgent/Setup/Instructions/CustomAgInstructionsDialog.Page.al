@@ -17,7 +17,7 @@ page 4354 "Custom Ag. Instructions Dialog"
     {
         area(Content)
         {
-            part(InstructionsPart; "Custom Agent Instructions Part")
+            part(InstructionsPart; "Custom Agent Markdown Part")
             {
                 ApplicationArea = All;
             }

@@ -154,6 +154,34 @@ codeunit 139933 "MDM Cross-Env Detector Tests"
         CleanUp();
     end;
 
+    [Test]
+    procedure DetectorNudgesTableTheSourceCannotRead()
+    var
+        Mapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        DetectorProbe: Codeunit "MDM Test Detector Probe";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 656413] A table the source's app can't read is nudged, so its sync job runs and logs the
+        //                   "grant read permission" error now, instead of waiting for the job's inactivity timeout.
+        Initialize();
+        // [GIVEN] an enabled Customer mapping with an idle sync job, and a source that reports its app can't read the table
+        CreateMapping(Mapping, Database::Customer, WatermarkDateTime(), true);
+        InsertSynchJob(Mapping, false);
+
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedResponse('{"tables":[{"tableId":18,"tableAvailable":true,"readPermission":false}]}');
+        DetectorProbe.Activate();
+
+        // [WHEN] the change detector runs
+        LibraryMasterDataMgt.RunChangeDetector();
+
+        // [THEN] the table's sync job is woken so it logs the error
+        Assert.IsTrue(DetectorProbe.WasNudged(Database::Customer), 'A table the source cannot read should be nudged so the sync job reports it');
+        CleanUp();
+    end;
+
     local procedure Initialize()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";

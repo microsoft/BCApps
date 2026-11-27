@@ -565,7 +565,7 @@ table 83 "Item Journal Line"
 
             trigger OnValidate()
             begin
-                if ("Order Type" <> GetOrderTypeProduction()) or ("Order No." = '') then
+                if not IsOrderTypeProduction() or ("Order No." = '') then
                     CreateDimFromDefaultDim(rec.FieldNo("Salespers./Purch. Code"));
             end;
         }
@@ -2217,9 +2217,7 @@ table 83 "Item Journal Line"
             OnSetUpNewLineOnAfterFindItemJnlLine(Rec, ItemJnlLine, LastItemJnlLine);
             "Posting Date" := LastItemJnlLine."Posting Date";
             "Document Date" := LastItemJnlLine."Posting Date";
-            if (ItemJnlTemplate.Type in
-                [ItemJnlTemplate.GetConsumptionTemplateType(), ItemJnlTemplate.GetOutputTemplateType()])
-            then begin
+            if ItemJnlTemplate.IsConsumptionTemplateType() or ItemJnlTemplate.IsOutputTemplateType() then begin
                 if not IsDocNoProdOrderNo() then
                     "Document No." := LastItemJnlLine."Document No."
             end else
@@ -2229,8 +2227,7 @@ table 83 "Item Journal Line"
             "Document Date" := WorkDate();
             if ItemJnlBatch."No. Series" <> '' then
                 "Document No." := NoSeries.PeekNextNo(ItemJnlBatch."No. Series", "Posting Date");
-            if (ItemJnlTemplate.Type in
-                [ItemJnlTemplate.GetConsumptionTemplateType(), ItemJnlTemplate.GetOutputTemplateType()]) and
+            if (ItemJnlTemplate.IsConsumptionTemplateType() or ItemJnlTemplate.IsOutputTemplateType()) and
                not IsDocNoProdOrderNo()
             then
                 if ItemJnlBatch."No. Series" <> '' then
@@ -3586,6 +3583,8 @@ table 83 "Item Journal Line"
     /// </summary>
     /// <remarks>
     /// It checks the filters applied to the journal batch name and journal template name fields.
+    /// If no batch filter is applied, the journal batch name and journal template name of the current record are used,
+    /// e.g. when the page is opened from a URL link to a specific journal line.
     /// </remarks>
     /// <returns>True if the current item journal line record was opened from a batch, otherwise false.</returns>
     procedure IsOpenedFromBatch(): Boolean
@@ -3593,17 +3592,27 @@ table 83 "Item Journal Line"
         ItemJournalBatch: Record "Item Journal Batch";
         TemplateFilter: Text;
         BatchFilter: Text;
+        UseCurrentBatch: Boolean;
     begin
         BatchFilter := GetFilter("Journal Batch Name");
-        if BatchFilter <> '' then begin
+        UseCurrentBatch := (BatchFilter = '') and ("Journal Batch Name" <> '');
+
+        if (BatchFilter <> '') or UseCurrentBatch then begin
             TemplateFilter := GetFilter("Journal Template Name");
-            if TemplateFilter <> '' then
-                ItemJournalBatch.SetFilter("Journal Template Name", TemplateFilter);
-            ItemJournalBatch.SetFilter(Name, BatchFilter);
+            if (TemplateFilter = '') and ("Journal Template Name" <> '') then begin
+                SetRange("Journal Template Name", "Journal Template Name");
+                ItemJournalBatch.SetRange("Journal Template Name", "Journal Template Name");
+            end else
+                if TemplateFilter <> '' then
+                    ItemJournalBatch.SetFilter("Journal Template Name", TemplateFilter);
+            if UseCurrentBatch then
+                ItemJournalBatch.SetRange(Name, "Journal Batch Name")
+            else
+                ItemJournalBatch.SetFilter(Name, BatchFilter);
             ItemJournalBatch.FindFirst();
         end;
 
-        exit((("Journal Batch Name" <> '') and ("Journal Template Name" = '')) or (BatchFilter <> ''));
+        exit((("Journal Batch Name" <> '') and ("Journal Template Name" = '')) or (BatchFilter <> '') or UseCurrentBatch);
     end;
 
     /// <summary>
@@ -3753,6 +3762,11 @@ table 83 "Item Journal Line"
     procedure IsEntryTypeProduction() Result: Boolean
     begin
         OnAfterIsEntryTypeProduction(Rec, Result);
+    end;
+
+    procedure IsOrderTypeProduction() Result: Boolean
+    begin
+        OnAfterIsOrderTypeProduction(Rec, Result);
     end;
 
     procedure IsOrderTypeAsmOrProd() Result: Boolean
@@ -5273,6 +5287,11 @@ table 83 "Item Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnGetOrderTypeProduction(var OrderType: Enum "Inventory Order Type")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterIsOrderTypeProduction(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
     begin
     end;
 

@@ -1,5 +1,5 @@
 {
-    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/a946346885b3c762fcbadb265823e70150c3e2f1/Actions/.Modules/settings.schema.json",
+    "$schema":  "https://raw.githubusercontent.com/microsoft/AL-Go/ea8d8a61e8d3968406c09635951edb7f0f95200a/Actions/.Modules/settings.schema.json",
     "projectName":  "Apps IN",
     "country":  "IN",
     "appFolders":  [
@@ -123,6 +123,7 @@
                        "../../../src/Tools/Test Framework/Test Libraries/Any",
                        "../../../src/Tools/Test Framework/Test Libraries/Assert",
                        "../../../src/Tools/Test Framework/Test Libraries/LibraryAgent",
+                       "../../../src/Tools/Test Framework/Test Libraries/LibraryBusinessSkill",
                        "../../../src/Tools/Test Framework/Test Libraries/Permissions Mock",
                        "../../../src/Tools/Test Framework/Test Libraries/Variable Storage",
                        "../../../src/Tools/Test Framework/Test Runner",

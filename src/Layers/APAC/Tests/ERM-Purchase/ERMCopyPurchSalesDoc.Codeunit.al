@@ -7288,6 +7288,72 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
     end;
 
     [Test]
+    procedure SalesOrderQuantityRestoredByCurrentCreditMemoOnRepeatedPartialReturnPosting()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        PostedSalesInvoiceNo: Code[20];
+    begin
+        // [SCENARIO] Repeated unequal partial postings of one return order restore only the quantity of the credit memo posted each time.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+
+        // [GIVEN] Sales order line with Quantity 5, shipped and invoiced 3.
+        CreateAndPostPartialSalesOrder(SalesHeader, SalesLine, PostedSalesInvoiceNo, 5, 3);
+
+        // [GIVEN] Unapplied return order of Quantity 3 copied from the posted invoice.
+        CreateUnappliedSalesReturnOrder(SalesReturnHeader, SalesHeader."Sell-to Customer No.", PostedSalesInvoiceNo, SalesLine."No.", 3);
+
+        // [WHEN] Return order is received and invoiced with Quantity 1.
+        PostSalesReturnOrderPartially(SalesReturnHeader, SalesLine."No.", 1);
+
+        // [THEN] Sales order line is shipped and invoiced 2.
+        VerifySalesOrderLineQuantities(SalesHeader."No.", SalesLine."Line No.", 2, 2, 3, 3);
+
+        // [WHEN] Same return order is received and invoiced with remaining Quantity 2.
+        PostSalesReturnOrderPartially(SalesReturnHeader, SalesLine."No.", 2);
+
+        // [THEN] Sales order line is restored by 2 using the second credit memo, not the first one.
+        VerifySalesOrderLineQuantities(SalesHeader."No.", SalesLine."Line No.", 0, 0, 5, 5);
+    end;
+
+    [Test]
+    procedure SalesOrderQuantityNotRestoredWhenCurrentCreditMemoIsAppliedAfterEarlierUnappliedPosting()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesReturnHeader: Record "Sales Header";
+        PostedSalesInvoiceNo: Code[20];
+    begin
+        // [SCENARIO] A credit memo applied to the invoice does not restore order quantities even if an earlier memo of the same return order was unapplied.
+        Initialize();
+        SetRestoreOrderQtyOnReturn(true);
+
+        // [GIVEN] Sales order line with Quantity 5, shipped and invoiced 2.
+        CreateAndPostPartialSalesOrder(SalesHeader, SalesLine, PostedSalesInvoiceNo, 5, 2);
+
+        // [GIVEN] Unapplied return order of Quantity 2 copied from the posted invoice, received and invoiced with Quantity 1.
+        CreateUnappliedSalesReturnOrder(SalesReturnHeader, SalesHeader."Sell-to Customer No.", PostedSalesInvoiceNo, SalesLine."No.", 2);
+        PostSalesReturnOrderPartially(SalesReturnHeader, SalesLine."No.", 1);
+        VerifySalesOrderLineQuantities(SalesHeader."No.", SalesLine."Line No.", 1, 1, 4, 4);
+
+        // [GIVEN] Return order is applied to the posted invoice.
+        SalesReturnHeader.Find();
+        LibrarySales.ReopenSalesDocument(SalesReturnHeader);
+        SalesReturnHeader.Validate("Applies-to Doc. Type", SalesReturnHeader."Applies-to Doc. Type"::Invoice);
+        SalesReturnHeader.Validate("Applies-to Doc. No.", PostedSalesInvoiceNo);
+        SalesReturnHeader.Modify(true);
+
+        // [WHEN] Remaining Quantity 1 is received and invoiced.
+        PostSalesReturnOrderPartially(SalesReturnHeader, SalesLine."No.", 1);
+
+        // [THEN] Sales order line quantities are not changed by the applied credit memo.
+        VerifySalesOrderLineQuantities(SalesHeader."No.", SalesLine."Line No.", 1, 1, 4, 4);
+    end;
+
+
+    [Test]
     procedure CopyPostedSalesInvWithSpecialOrderToQuote()
     var
         DestinationSalesHeader: Record "Sales Header";
@@ -9363,6 +9429,43 @@ codeunit 134332 "ERM Copy Purch/Sales Doc"
         SalesReturnOrderLine.Validate("Appl.-from Item Entry", ItemLedgerEntry."Entry No.");
         SalesReturnOrderLine.Modify(true);
     end;
+
+    local procedure CreateAndPostPartialSalesOrder(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var PostedSalesInvoiceNo: Code[20]; Quantity: Decimal; QtyToShip: Decimal)
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), Quantity);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 100, 2));
+        SalesLine.Validate("Qty. to Ship", QtyToShip);
+        SalesLine.Modify(true);
+        PostedSalesInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+    end;
+
+    local procedure CreateUnappliedSalesReturnOrder(var SalesReturnHeader: Record "Sales Header"; CustomerNo: Code[20]; PostedSalesInvoiceNo: Code[20]; ItemNo: Code[20]; ReturnQuantity: Decimal)
+    begin
+        CreateSalesReturnOrder(SalesReturnHeader, CustomerNo, PostedSalesInvoiceNo, ItemNo, ReturnQuantity);
+        SalesReturnHeader.Find();
+        SalesReturnHeader.Validate("Applies-to Doc. No.", '');
+        SalesReturnHeader.Validate("Applies-to Doc. Type", SalesReturnHeader."Applies-to Doc. Type"::" ");
+        SalesReturnHeader.Modify(true);
+    end;
+
+    local procedure PostSalesReturnOrderPartially(var SalesReturnHeader: Record "Sales Header"; ItemNo: Code[20]; QtyToReceive: Decimal)
+    var
+        SalesReturnLine: Record "Sales Line";
+    begin
+        SalesReturnLine.SetRange("Document Type", SalesReturnHeader."Document Type");
+        SalesReturnLine.SetRange("Document No.", SalesReturnHeader."No.");
+        SalesReturnLine.SetRange(Type, SalesReturnLine.Type::Item);
+        SalesReturnLine.SetRange("No.", ItemNo);
+        SalesReturnLine.FindFirst();
+        SalesReturnLine.Validate("Return Qty. to Receive", QtyToReceive);
+        SalesReturnLine.Validate("Qty. to Invoice", QtyToReceive);
+        SalesReturnLine.Modify(true);
+
+        SalesReturnHeader.Find();
+        LibrarySales.PostSalesDocument(SalesReturnHeader, true, true);
+    end;
+
 
     local procedure SalesCopyDocument(SalesHeader: Record "Sales Header"; DocumentNo: Code[20]; DocumentType: Enum "Sales Document Type From")
     var

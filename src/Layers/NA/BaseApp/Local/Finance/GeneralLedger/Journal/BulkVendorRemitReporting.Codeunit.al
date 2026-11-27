@@ -508,14 +508,17 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
     var
         PayeeGenJournalLine: Record "Gen. Journal Line";
     begin
-        // The remittance report runs once per payee and the logged error names only the payee's first line,
-        // so an error for any line of the same payee applies to all of the payee's lines.
+        // The remittance report runs once per payee, regardless of the bank account, and the logged error names only
+        // the payee's first line, so an error for any line of the same payee applies to all of the payee's lines.
         PayeeGenJournalLine.SetRange("Journal Template Name", GenJournalLine."Journal Template Name");
         PayeeGenJournalLine.SetRange("Journal Batch Name", GenJournalLine."Journal Batch Name");
-        PayeeGenJournalLine.SetRange("Account Type", GenJournalLine."Account Type");
-        PayeeGenJournalLine.SetRange("Account No.", GenJournalLine."Account No.");
-        PayeeGenJournalLine.SetRange("Bal. Account Type", GenJournalLine."Bal. Account Type");
-        PayeeGenJournalLine.SetRange("Bal. Account No.", GenJournalLine."Bal. Account No.");
+        if IsPayeeOnBalAccount(GenJournalLine) then begin
+            PayeeGenJournalLine.SetRange("Bal. Account Type", GenJournalLine."Bal. Account Type");
+            PayeeGenJournalLine.SetRange("Bal. Account No.", GenJournalLine."Bal. Account No.");
+        end else begin
+            PayeeGenJournalLine.SetRange("Account Type", GenJournalLine."Account Type");
+            PayeeGenJournalLine.SetRange("Account No.", GenJournalLine."Account No.");
+        end;
         if PayeeGenJournalLine.FindSet() then
             repeat
                 if ErrorReferencesLine(PayeeGenJournalLine, TempErrorMessage) then
@@ -526,14 +529,27 @@ codeunit 10250 "Bulk Vendor Remit Reporting"
     end;
 
     local procedure GetPayeeKey(GenJournalLine: Record "Gen. Journal Line"): Text
+    var
+        PayeeKey: Text;
     begin
-        exit(
+        PayeeKey :=
             AddKeyPart(GenJournalLine."Journal Template Name") +
-            AddKeyPart(GenJournalLine."Journal Batch Name") +
+            AddKeyPart(GenJournalLine."Journal Batch Name");
+        if IsPayeeOnBalAccount(GenJournalLine) then
+            exit(
+                PayeeKey +
+                AddKeyPart(Format(GenJournalLine."Bal. Account Type".AsInteger())) +
+                AddKeyPart(GenJournalLine."Bal. Account No."));
+
+        exit(
+            PayeeKey +
             AddKeyPart(Format(GenJournalLine."Account Type".AsInteger())) +
-            AddKeyPart(GenJournalLine."Account No.") +
-            AddKeyPart(Format(GenJournalLine."Bal. Account Type".AsInteger())) +
-            AddKeyPart(GenJournalLine."Bal. Account No."));
+            AddKeyPart(GenJournalLine."Account No."));
+    end;
+
+    local procedure IsPayeeOnBalAccount(GenJournalLine: Record "Gen. Journal Line"): Boolean
+    begin
+        exit(GenJournalLine."Account Type" = GenJournalLine."Account Type"::"Bank Account");
     end;
 
     local procedure AddKeyPart(Value: Text): Text

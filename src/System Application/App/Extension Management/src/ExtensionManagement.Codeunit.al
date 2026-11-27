@@ -53,16 +53,21 @@ codeunit 2504 "Extension Management"
         exit(ExtensionInstallationImpl.UninstallExtension(PackageId, IsUIEnabled, true));
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Uploads an extension, using a File Stream and based on the Locale Identifier.
     /// This method is only applicable in SaaS environment.
     /// </summary>
     /// <param name="FileStream">The File Stream containing the extension to be uploaded.</param>
     /// <param name="lcid">The Locale Identifier.</param>
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure UploadExtension(FileStream: InStream; lcid: Integer)
     begin
+#pragma warning disable AL0432
         ExtensionOperationImpl.UploadExtension(FileStream, lcid);
+#pragma warning restore AL0432
     end;
+#endif
 
     /// <summary>
     /// Deploys an extension, based on its ID and Locale Identifier.
@@ -130,15 +135,21 @@ codeunit 2504 "Extension Management"
         exit(ExtensionInstallationImpl.IsInstalledByAppId(AppId));
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Retrieves a list of all the Deployment Status Entries
     /// </summary>
     /// <param name="TempExtensionDeploymentStatus">Gets the list of all the Deployment Status Entries in a temporary record.</param>
+#pragma warning disable AL0432
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetAllExtensionDeploymentStatusEntries(var TempExtensionDeploymentStatus: Record "Extension Deployment Status" temporary)
     begin
         ExtensionOperationImpl.GetAllExtensionDeploymentStatusEntries(TempExtensionDeploymentStatus);
     end;
+#pragma warning restore AL0432
+#endif
 
+#if not CLEAN30
     /// <summary>
     /// Retrieves the AppName,Version,Schedule,Publisher by the NAVApp Tenant OperationId.
     /// </summary>
@@ -148,19 +159,24 @@ codeunit 2504 "Extension Management"
     /// <param name="Publisher">Gets the Publisher of the NavApp.</param>
     /// <param name="AppName">Gets the AppName of the NavApp.</param>
     /// <param name="Description">The Description of the NavApp; in case no name is provided, the description will replace the AppName.</param>
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetDeployOperationInfo(OperationId: Guid; var Version: Text; var Schedule: Text; var Publisher: Text; var AppName: Text; Description: Text)
     begin
         ExtensionOperationImpl.GetDeployOperationInfo(OperationId, Version, Schedule, Publisher, AppName, Description);
     end;
+#endif
 
+#if not CLEAN30
     /// <summary>
     /// Refreshes the status of the Operation.
     /// </summary>
     /// <param name="OperationId">The Id of the operation to be refreshed.</param>
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure RefreshStatus(OperationId: Guid)
     begin
         ExtensionOperationImpl.RefreshStatus(OperationId);
     end;
+#endif
 
     /// <summary>
     /// Allows or disallows Http Client requests against the specified extension.
@@ -219,6 +235,7 @@ codeunit 2504 "Extension Management"
         ExtensionOperationImpl.GetExtensionLogo(AppId, LogoTempBlob);
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Uploads an extension to current version, next minor or next major, using a File Stream and based on the Locale Identifier.
     /// This method is only applicable in SaaS environment.
@@ -226,6 +243,8 @@ codeunit 2504 "Extension Management"
     /// <param name="FileInStream">The File Stream containing the extension to be uploaded.</param>
     /// <param name="lcid">The Locale Identifier.</param>
     /// <param name="DeployTo">The version that the extension will be deployed to.</param>
+#pragma warning disable AL0432
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure UploadExtensionToVersion(FileInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To")
     begin
         UploadExtensionToVersion(FileInStream, lcid, DeployTo, "Extension Sync Mode"::Add);
@@ -239,10 +258,13 @@ codeunit 2504 "Extension Management"
     /// <param name="lcid">The Locale Identifier.</param>
     /// <param name="DeployTo">The version that the extension will be deployed to.</param>
     /// <param name="SyncMode">The desired sync mode.</param>
+    [Obsolete('Use the Business Central admin center API to upload per-tenant extensions.', '30.0')]
     procedure UploadExtensionToVersion(FileInStream: InStream; lcid: Integer; DeployTo: Enum "Extension Deploy To"; SyncMode: Enum "Extension Sync Mode")
     begin
         ExtensionOperationImpl.DeployAndUploadExtension(FileInStream, lcid, DeployTo, SyncMode);
     end;
+#pragma warning restore AL0432
+#endif
 
     /// <summary>
     /// Installs an extension, based on its extension id.
@@ -263,11 +285,13 @@ codeunit 2504 "Extension Management"
         exit(ExtensionOperationImpl.GetAppName(AppId))
     end;
 
+#if not CLEAN30
     /// <summary>
     /// Returns the detailed message from a deployment operation.
     /// </summary>
     /// <param name="OperationId">The Id of the operation to get the detailed message from.</param>
     /// <returns>The detailed message as text.</returns>
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetDeploymentDetailedStatusMessage(OperationId: Guid): Text
     begin
         exit(ExtensionOperationImpl.GetDeploymentDetailedStatusMessage(OperationId));
@@ -279,9 +303,10 @@ codeunit 2504 "Extension Management"
     /// <param name="OperationId">The Id of the operation to get the detailed message from.</param>
     /// <param name="OutStream">An OutStream to write the message to.</param>
     /// <returns></returns>
+    [Obsolete('Use the Business Central admin center API to monitor per-tenant extension operations.', '30.0')]
     procedure GetDeploymentDetailedStatusMessageAsStream(OperationId: Guid; OutStream: OutStream)
     begin
         ExtensionOperationImpl.GetDeploymentDetailedStatusMessageAsStream(OperationId, OutStream);
     end;
+#endif
 }
-

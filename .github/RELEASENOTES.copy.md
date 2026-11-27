@@ -2,6 +2,8 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+## v10.1
+
 ### Optional draft PR build skipping
 
 The new `skipDraftPullRequests` setting (default `false`) lets PTE and AppSource repositories skip AL-Go's built-in PR build jobs while a pull request is draft and build when it is marked ready for review. Custom jobs remain user-managed and are not modified. Default behavior and merge-queue builds are unchanged. Run **Update AL-Go System Files** after changing the setting. See [skipDraftPullRequests](Scenarios/settings.md#skipDraftPullRequests).
@@ -43,6 +45,10 @@ AL-Go for GitHub is now supported on GitHub Enterprise Edition with data residen
 AL-Go repositories can now opt in to AI-powered review of AL pull requests, with configurable models, target branches, excluded authors, and BCQuality skills and knowledge. See [Enable Copilot code review](Scenarios/Agents/CopilotCodeReview.md) for setup, organization policy requirements, and operational details.
 
 ### Issues
+
+- Issue 2443 - GitHub App token requests are now retried, so a transient error such as a 404 on the installation lookup no longer fails the workflow.
+
+- Issue 2454 - Fix separate test execution on Windows PowerShell 5.1 when an app contains multiple test codeunits, preserving each codeunit's ID and test methods.
 
 - Issue 2417 - Fix workspace compilation with versioning strategy 3 to preserve each app's build number instead of failing with "build ('-1') must be a non-negative value". Explicit build number zero is now applied correctly.
 

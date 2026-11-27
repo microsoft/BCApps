@@ -7,6 +7,9 @@ namespace Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
+/// <summary>
+/// Links spend requests and their detail lines to the posted G/L entries that consumed them.
+/// </summary>
 table 6845 "Spend Request To G/L Link"
 {
     Caption = 'Spend Request To G/L Link';

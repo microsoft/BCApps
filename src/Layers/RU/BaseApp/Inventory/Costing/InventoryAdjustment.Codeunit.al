@@ -2049,7 +2049,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
                             InitAdjmtJnlLine(ItemJnlLine, OrigValueEntry, TempInvtAdjmtBuf."Entry Type", TempInvtAdjmtBuf."Variance Type", 0);
                             PostItemJnlLine(ItemJnlLine, OrigValueEntry, TempInvtAdjmtBuf."Cost Amount (Expected)", TempInvtAdjmtBuf."Cost Amount (Expected) (ACY)");
                         end;
-                        InitAdjmtJnlLine(ItemJnlLine, OrigValueEntry, TempInvtAdjmtBuf."Entry Type", TempInvtAdjmtBuf."Variance Type", OrigValueEntry."Invoiced Quantity");
+                        InitAdjmtJnlLine(ItemJnlLine, OrigValueEntry, TempInvtAdjmtBuf."Entry Type", TempInvtAdjmtBuf."Variance Type", GetActualCostAdjmtInvoicedQty(OrigValueEntry, TempInvtAdjmtBuf."Entry Type"));
                         OnPostAdjmtBufOnBeforePostNewCost(ItemJnlLine, OrigValueEntry, TempInvtAdjmtBuf);
                         PostItemJnlLine(ItemJnlLine, OrigValueEntry, TempInvtAdjmtBuf."Cost Amount (Actual)", TempInvtAdjmtBuf."Cost Amount (Actual) (ACY)");
                         CorrectPostedItemShipment(OrigValueEntry, TempInvtAdjmtBuf."Cost Amount (Actual)", TempInvtAdjmtBuf."Cost Amount (Actual) (ACY)");
@@ -2088,6 +2088,15 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
 
                         InvtShipmentLine.Modify();
                     end;
+    end;
+
+    local procedure GetActualCostAdjmtInvoicedQty(OrigValueEntry: Record "Value Entry"; EntryType: Enum "Cost Entry Type"): Decimal
+    begin
+        // Variance and indirect cost entries do not carry an invoiced quantity. Use the valued quantity instead,
+        // so that the adjustment of these actual cost entries is not posted as expected cost.
+        if (OrigValueEntry."Invoiced Quantity" = 0) and (EntryType in [EntryType::Variance, EntryType::"Indirect Cost"]) then
+            exit(OrigValueEntry."Valued Quantity");
+        exit(OrigValueEntry."Invoiced Quantity");
     end;
 
     local procedure InitAdjmtJnlLine(var ItemJnlLine: Record "Item Journal Line"; OrigValueEntry: Record "Value Entry"; EntryType: Enum "Cost Entry Type"; VarianceType: Enum "Cost Variance Type"; InvoicedQty: Decimal)

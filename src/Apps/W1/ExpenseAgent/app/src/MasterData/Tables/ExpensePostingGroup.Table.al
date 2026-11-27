@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
+/// <summary>
+/// Stores the posting groups that specify the G/L accounts used when posting expenses.
+/// </summary>
 table 6928 "Expense Posting Group"
 {
-    Access = Internal;
     Caption = 'Expense Posting Group';
     LookupPageId = "Expense Posting Groups";
     DataClassification = CustomerContent;
@@ -92,14 +94,20 @@ table 6928 "Expense Posting Group"
 
     var
         YouCannotDeleteErr: Label 'You cannot delete %1 as it is in use in Expense Category %2.', Comment = '%1 = Code, %2 = Expense Category Code';
+        YouCannotDeleteSubcategoryErr: Label 'You cannot delete %1 as it is in use in Expense Subcategory %2 for Expense Category %3.', Comment = '%1 = Posting Group Code, %2 = Expense Subcategory Code, %3 = Expense Category Code';
 
     local procedure CheckGroupUsage()
     var
         ExpenseCategory: Record "Expense Category";
+        ExpenseSubcategory: Record "Expense Subcategory";
     begin
         ExpenseCategory.SetRange("Posting Group", Code);
         if not ExpenseCategory.IsEmpty() then
             Error(YouCannotDeleteErr, Code, ExpenseCategory.Code);
+
+        ExpenseSubcategory.SetRange("Posting Group", Code);
+        if ExpenseSubcategory.FindFirst() then
+            Error(YouCannotDeleteSubcategoryErr, Code, ExpenseSubcategory.Code, ExpenseSubcategory."Expense Category Code");
     end;
 
     local procedure CheckGLAcc(AccNo: Code[20])

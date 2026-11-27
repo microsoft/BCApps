@@ -6,9 +6,11 @@ namespace Microsoft.ExpenseAgent;
 
 using Microsoft.Finance.VAT.Setup;
 
+/// <summary>
+/// Stores the subcategories of an expense category, including their default VAT and posting settings.
+/// </summary>
 table 6929 "Expense Subcategory"
 {
-    Access = Internal;
     Caption = 'Expense Subcategory';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Subcategories";
@@ -48,6 +50,12 @@ table 6929 "Expense Subcategory"
         {
             Caption = 'Expense Description Mandatory';
             ToolTip = 'Specifies whether a description must be entered for expenses using this subcategory before they can be released.';
+        }
+        field(7; "Posting Group"; Code[20])
+        {
+            Caption = 'Posting Group';
+            TableRelation = "Expense Posting Group".Code;
+            ToolTip = 'Specifies the posting group used to select expense accounts for this subcategory. If left blank, the posting group of the expense category is used.';
         }
         field(15; "VAT Prod. Posting Group"; Code[20])
         {
