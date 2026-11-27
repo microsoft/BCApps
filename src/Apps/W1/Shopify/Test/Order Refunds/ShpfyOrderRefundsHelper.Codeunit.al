@@ -462,11 +462,18 @@ codeunit 139564 "Shpfy Order Refunds Helper"
     var
         Item: Record Item;
         OrderLine: Record "Shpfy Order Line";
+        ExistingOrderLine: Record "Shpfy Order Line";
     begin
         Item := GetItem();
         LineNo := LineNo * 100000;
         OrderLine."Shopify Order Id" := OrderId;
         OrderLine."Line Id" := Any.IntegerInRange(LineNo, LineNo + 99999);
+        // Refund FlowFields resolve order lines by their globally unique Shopify ID.
+        ExistingOrderLine.SetRange("Line Id", OrderLine."Line Id");
+        while not ExistingOrderLine.IsEmpty() do begin
+            OrderLine."Line Id" += 1;
+            ExistingOrderLine.SetRange("Line Id", OrderLine."Line Id");
+        end;
         OrderLine.Description := Item.Description;
         OrderLine.Quantity := 1;
         OrderLine."Shopify Product Id" := ProductId;
