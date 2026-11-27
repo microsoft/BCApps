@@ -39,6 +39,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        OfflineResponses: Codeunit "Library - Variable Storage";
         LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryERM: Codeunit "Library - ERM";
@@ -54,6 +55,11 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         NoRecordedCorrectionTxt: Label 'has no recorded IRIS submission to correct', Locked = true;
         PreviousFilingDetailsTxt: Label 'is missing previous IRS filing details required for a correction', Locked = true;
         OfflineRequestPaths: List of [Text];
+        OfflineTokenProbeCount: Integer;
+        OfflineExpectedRequestKinds: Text;
+        OfflineObservedRequestKinds: Text;
+        OfflinePrivacyConsentSaved: Boolean;
+        OfflineOriginalPrivacyConsent: Boolean;
         OfflineSubmissionStatuses: Dictionary of [Text, Text];
         OfflineReceiptID: Text[100];
         OfflineUTID: Text[100];
@@ -63,11 +69,8 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineAcknowledgment: Text;
         OfflinePreReceiptError: Boolean;
         OfflineRecordError: Boolean;
-        OfflineOmitSubmitReceipt: Boolean;
         OfflineSubmitHttpStatus: Integer;
         OfflineStatusHttpStatus: Integer;
-        OfflineSkipHistoryPayload: Boolean;
-        OfflineEditDocumentID: Integer;
         OfflineTransmissionID: Integer;
         SandboxHistoryID: Integer;
         SandboxErrorID: Integer;
@@ -2040,6 +2043,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         MockAzureKeyVaultSecretProvider.AddSecretMapping('IRS1099IRIS-SoftwareID-2027', '27TEST0001');
 
         // [WHEN] Change period override and provider configuration while accepting consent dialog.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
         // [THEN] Current XML and saved history keep schema and Software ID selected before edit.
@@ -2057,6 +2061,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         VerifyMappingConfirmation('2027', '2026', '5.0.7');
 
         // [WHEN] Start another attempt after override was cleared and provider settings changed.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
         // [THEN] New attempt uses new settings, without rewriting earlier XML.
@@ -2099,6 +2104,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Commit();
 
         // [WHEN] Change period to schema 2.0.3 while accepting Open-document warning.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
         // [THEN] Both data validation and XML generation use 2.0.3, where email is optional, and send succeeds without retry.
@@ -2147,6 +2153,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         SetPeriodSchema('2027', "XML Schema Version IRIS"::"2.0.3");
 
         // [WHEN] Retry same transmission and accept its warning.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
         // [THEN] New warning and XML use newly selected schema and year-specific Software ID.
@@ -2304,7 +2311,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
 
         // [THEN] Warning names actual older resource, and XML keeps year 2024 and its matching Software ID.
         VerifyMappingConfirmation('2024', '2024', '5.0.7');
-        VerifyContractManifest(TempBlob, '2024', '24TEST0001', '0');
+        VerifyContractManifest(TempBlob, '2024', '24TEST0001', '1');
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -2587,6 +2594,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         InitializeOfflineTransport(Transmission);
 
         // [WHEN] Send it, change current schema and income, then download its saved request, response and acknowledgment from history.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         FindLastAttempt(Transmission, TransmissionLog);
         PayloadBytes := ReadAttemptContentBytes(TransmissionLog, 20);
@@ -2636,6 +2644,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineRecordError := true;
 
         // [WHEN] Send original transmission.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
         // [THEN] Transmission is Accepted with Errors, document is In Progress, error is linked to correct record, and saved values remain unchanged without resend.
@@ -2672,6 +2681,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         CreateLifecycleTransmission(Transmission, IRS1099FormDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         FindLastAttempt(Transmission, TransmissionLog);
         VerifyAttemptContext(TransmissionLog, 'P', 'Production');
@@ -2682,8 +2692,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
         SetPeriodSchema('2026', "XML Schema Version IRIS"::" ");
         OfflineStatus := 'Not Found';
+        QueueOfflineAcknowledgment();
         LibraryIRS1099IRIS.RequestStatus(TransmissionLog."Receipt ID", TransmissionLog."Unique Transmission ID", StatusText);
         Assert.AreEqual('Not Found', StatusText, 'A not-found response does not trigger a production retry.');
+        QueueOfflineAcknowledgment();
         LibraryIRS1099IRIS.RequestStatus('', TransmissionLog."Unique Transmission ID", StatusText);
 
         // [THEN] All requests use sandbox endpoints, while saved production request bytes and document values remain unchanged.
@@ -2714,6 +2726,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         InitializeOfflineTransport(Transmission);
         OfflineStatus := 'Processing';
         OfflineSubmissionStatuses.Add('1', 'Processing');
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         VerifyLifecycleStatus(Transmission, IRS1099FormDocHeader, "Transmission Status IRIS"::Processing, "IRS 1099 Form Doc. Status"::"In Progress");
         TransmissionPage.OpenEdit();
@@ -2754,6 +2767,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         InitializeOfflineTransport(Transmission);
         OfflinePreReceiptError := true;
         OfflineStatus := 'Rejected';
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         FindLastAttempt(Transmission, TransmissionLog);
         StoredPayload := ReadAttemptContent(TransmissionLog, 20);
@@ -2768,10 +2782,12 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [WHEN] Request status by unique transmission ID and manually assign recovered receipt through transmission page.
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
+        QueueOfflineAcknowledgment();
         TransmissionPage.RequestTransmissionStatusByUTID.Invoke();
         OfflinePreReceiptError := false;
         OfflineStatus := 'Processing';
         TransmissionPage.AssignReceiptIDManually.Invoke();
+        QueueOfflineAcknowledgment();
         TransmissionPage.RequestTransmissionStatusByRID.Invoke();
 
         // [THEN] Recovery uses same request and saved XML without blindly resending original.
@@ -2797,6 +2813,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [GIVEN] Document D was accepted before its selected zero-correction attempt.
 
         // [WHEN] Send zero correction and simulate HTTP 503 Service Unavailable.
+        QueueOfflineSubmission();
         VerifyUnacceptedZeroCorrection(503, 'Accepted');
 
         // [THEN] Old accepted filing does not make failed correction complete or abandon document D.
@@ -2814,6 +2831,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [GIVEN] Document D was accepted before its selected zero-correction attempt.
 
         // [WHEN] Send correction with Processing acknowledgment, then poll status with Accepted acknowledgment.
+        QueueOfflineSend();
         VerifyUnacceptedZeroCorrection(200, 'Processing');
 
         // [THEN] Processing leaves correction pending; later acceptance completes it once.
@@ -2860,11 +2878,12 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [GIVEN] Document D has rejected zero correction and new nonzero retry whose receipt appears only in acknowledgment.
         CreateRejectedZeroCorrection(Transmission, IRS1099FormDocHeader);
         OfflineReceiptID := 'ACCEPTED-NONZERO';
-        OfflineOmitSubmitReceipt := true;
         OfflineStatus := 'Accepted';
         OfflineSubmissionStatuses.Set('1', 'Accepted');
 
         // [WHEN] Send nonzero retry.
+        QueueOfflineSubmissionWithoutReceipt();
+        QueueOfflineAcknowledgment();
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
         // [THEN] Retry's receipt is saved and only that retry completes; document D is not Abandoned as though old zero correction succeeded.
@@ -3003,6 +3022,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineSubmissionStatuses.Add('1', 'Processing');
 
         // [WHEN] Run send operation used by Step 1 and later poll Accepted acknowledgment.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
 
         // [THEN] Document D remains pending while Processing and completes zero correction only after acceptance.
@@ -3029,6 +3049,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [GIVEN] Accepted source document has new box, creating unsent replacement with inherited filing references.
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         SetTransmissionUpdateAdjustment(DocHeader, 'NEC-01', 5000);
         SetTransmissionUpdateAdjustment(DocHeader, 'NEC-03', 7000);
@@ -3153,6 +3174,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [GIVEN] Update Transmission creates unsent replacement from accepted source, retaining source's filing references.
         CreateLifecycleTransmission(Transmission, SourceDocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         SourceDocHeader.Get(SourceDocHeader.ID);
         AcceptedRecordReference := StrSubstNo('%1|%2|%3', SourceDocHeader."IRIS Last Accepted Receipt ID",
@@ -3164,6 +3186,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryIRS1099Document.UpdateTransmission(Transmission);
         FindUnsentReplacement(SourceDocHeader, DocHeader);
         // [WHEN] Send updated return as correction.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
         // [THEN] XML reports new box against accepted source reference rather than sending another original.
@@ -3191,6 +3214,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [GIVEN] Successfully submitted document is missing its saved filing record ID.
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         DocHeader.Get(DocHeader.ID);
         DocHeader."IRIS Record ID" := '';
@@ -3662,6 +3686,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineStatusHttpStatus := 503;
 
         // [WHEN] Send original.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
         // [THEN] Receipt is saved, and another original send is blocked before HTTP.
@@ -3669,7 +3694,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         asserterror LibraryIRS1099IRIS.SendOriginal(Transmission);
         Assert.ExpectedError('The IRS is still processing the transmission.');
         Assert.ExpectedErrorCode('Dialog');
-        Assert.AreEqual(2, OfflineRequestPaths.Count(), 'A duplicate intake must not be sent.');
+        Assert.AreEqual(2, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'A duplicate intake must not be sent.');
 
         // [WHEN] Restore acknowledgment endpoint and request status.
         OfflineStatusHttpStatus := 200;
@@ -3678,7 +3703,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [THEN] Saved attempt becomes Accepted without another submission.
         DocHeader.Get(DocHeader.ID);
         Assert.AreEqual(DocHeader.Status::Submitted, DocHeader.Status, 'The original must complete through polling.');
-        Assert.AreEqual(3, OfflineRequestPaths.Count(), 'Recovery must only request an acknowledgment.');
+        Assert.AreEqual(3, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'Recovery must only request an acknowledgment.');
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -3700,6 +3725,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineStatus := '';
 
         // [WHEN] Send original.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
 
         // [THEN] Parsing error leaves saved receipt and pending state available for status recovery.
@@ -3725,6 +3751,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineStatusHttpStatus := 503;
 
         // [WHEN] Send correction.
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
         // [THEN] Duplicate correction is blocked, and D keeps its original accepted reference.
@@ -3734,7 +3761,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
         Assert.ExpectedError('The IRS is still processing the transmission.');
         Assert.ExpectedErrorCode('Dialog');
-        Assert.AreEqual(2, OfflineRequestPaths.Count(), 'A pending correction must not be resubmitted.');
+        Assert.AreEqual(2, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'A pending correction must not be resubmitted.');
 
         // [WHEN] Successfully poll new receipt.
         OfflineStatusHttpStatus := 200;
@@ -3769,6 +3796,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineSubmitHttpStatus := 400;
 
         // [WHEN] Send two-step zero correction and simulate failure during submission.
+        QueueOfflineSubmission();
         LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
 
         // [THEN] Both documents retain their original selection flags and accepted filing references.
@@ -3777,7 +3805,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.IsTrue(SelectedDocHeader."IRIS Needs Correction", 'Existing selection must remain.');
         Assert.IsFalse(UnselectedDocHeader."IRIS Needs Correction", 'The action-added selection must be restored.');
         Assert.AreEqual('ACCEPTED', Transmission."Receipt ID", 'Failed intake must not replace the accepted receipt.');
-        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Failed intake must not request acknowledgment.');
+        Assert.AreEqual(1, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'Failed intake must not request acknowledgment.');
         VerifySavedSupplementalValues(UnselectedDocHeader, 100, 50, '101', '000');
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -3800,18 +3828,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         OfflineUTID := 'RECOVERED-UTID';
-        OfflineSkipHistoryPayload := true;
 
         // [WHEN] Assign recovered receipt on transmission page and request its status.
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
         TransmissionPage.AssignReceiptIDManually.Invoke();
+        QueueOfflineHistorylessAcknowledgment();
         TransmissionPage.RequestTransmissionStatusByRID.Invoke();
 
         // [THEN] Only transmission becomes Accepted; document D is unchanged and no attempt or document membership is created.
-        VerifyManualReceiptRecovery(Transmission, DocHeader);
         TransmissionLog.SetRange("Transmission Document ID", Transmission."Document ID");
         Assert.RecordIsEmpty(TransmissionLog);
+        VerifyManualReceiptRecovery(Transmission, DocHeader);
         TransmissionPage.Close();
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -3835,18 +3863,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         CreateFilingAttempt(Transmission, "Transmission Type IRIS"::O, 'OLDER-RECEIPT', TransmissionLog);
         InitializeOfflineTransport(Transmission);
         OfflineUTID := 'RECOVERED-UTID';
-        OfflineSkipHistoryPayload := true;
 
         // [WHEN] Assign different recovered receipt and request status.
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
         TransmissionPage.AssignReceiptIDManually.Invoke();
+        QueueOfflineHistorylessAcknowledgment();
         TransmissionPage.RequestTransmissionStatusByRID.Invoke();
 
         // [THEN] Older attempt and its unique transmission ID remain unchanged and are not reused for new receipt.
-        VerifyManualReceiptRecovery(Transmission, DocHeader);
         TransmissionLog.Get(TransmissionLog."Line ID");
         Assert.AreEqual('OLDER-RECEIPT', TransmissionLog."Receipt ID", 'Unrelated history must remain unchanged.');
+        VerifyManualReceiptRecovery(Transmission, DocHeader);
         TransmissionPage.Close();
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -3871,10 +3899,14 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         // [GIVEN] NEC and MISC originals were accepted with schema 2.0.3, then NEC correction was rejected and later MISC correction was accepted.
         CreateLifecycleTransmission(Transmission, NECDocHeader, 2025, 'NEC');
         CreateLifecycleTransmission(OtherTransmission, MISCDocHeader, 2025, 'MISC');
+        NECDocHeader.Get(NECDocHeader.ID);
+        NECDocHeader."IRIS Transmission Document ID" := Transmission."Document ID";
+        NECDocHeader.Modify();
         MISCDocHeader."IRIS Transmission Document ID" := Transmission."Document ID";
         MISCDocHeader.Modify();
         SetPeriodSchema('2025', "XML Schema Version IRIS"::"2.0.3");
         InitializeOfflineTransport(Transmission);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         NECDocHeader.Get(NECDocHeader.ID);
         OriginalRecordReference := StrSubstNo('%1|%2|%3', NECDocHeader."IRIS Last Accepted Receipt ID", NECDocHeader."IRIS Submission ID", NECDocHeader."IRIS Record ID");
@@ -3884,6 +3916,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineStatus := 'Rejected';
         Clear(OfflineSubmissionStatuses);
         OfflineSubmissionStatuses.Add(NECDocHeader."IRIS Submission ID", 'Rejected');
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
         NECDocHeader.Get(NECDocHeader.ID);
         NECDocHeader."IRIS Needs Correction" := false;
@@ -3894,7 +3927,10 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineReceiptID := 'ACCEPTED-MISC-CORRECTION';
         OfflineStatus := 'Accepted';
         Clear(OfflineSubmissionStatuses);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
+        // Preserve the filing history for the correction retry after the expected error.
+        Commit();
 
         // [WHEN] Try replacement while NEC correction is still rejected.
         asserterror LibraryIRS1099IRIS.SendReplacement(Transmission);
@@ -3907,6 +3943,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         NECDocHeader.Modify();
         OfflineReceiptID := 'ACCEPTED-NEC-RETRY';
         Clear(OfflineSubmissionStatuses);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
         FindLastAttempt(Transmission, TransmissionLog);
         WriteTextBlob(Payload, ReadAttemptContent(TransmissionLog, 20));
@@ -3957,6 +3994,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         CreateLifecycleTransmission(Transmission, DocHeader, 2026, 'NEC');
         InitializeOfflineTransport(Transmission);
         OfflineStatusHttpStatus := 503;
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         FindLastAttempt(Transmission, TransmissionLog);
 
@@ -3964,6 +4002,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineStatusHttpStatus := 200;
         OfflinePreReceiptError := true;
         OfflineStatus := 'Rejected';
+        QueueOfflineAcknowledgment();
         LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, Transmission."Receipt ID", TransmissionLog."Unique Transmission ID");
 
         // [THEN] Unusable receipt and temporary Processing state are cleared, restoring earlier state.
@@ -4034,6 +4073,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineSubmitHttpStatus := 503;
 
         // [WHEN] Send Step 1 without receiving a confirmed intake response.
+        QueueOfflineSubmission();
         LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
 
         // [THEN] Correction selection remains pending and another filing is blocked.
@@ -4042,14 +4082,14 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.AreEqual(Transmission.Status::Processing, Transmission.Status, 'Uncertain delivery must block resending.');
         Assert.AreEqual('', Transmission."Receipt ID", 'The old accepted receipt must not identify the uncertain attempt.');
         Assert.AreEqual('ACCEPTED', DocHeader."IRIS Last Accepted Receipt ID", 'Uncertain delivery is not acceptance.');
-        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Uncertain intake must not be submitted again.');
+        Assert.AreEqual(1, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'Uncertain intake must not be submitted again.');
 
         // [WHEN] Poll the recorded UTID and receive an Accepted acknowledgment.
         RequestAcceptedCorrection(Transmission);
 
         // [THEN] The same zero correction completes without another submission.
         VerifyAcceptedZeroCorrection(DocHeader);
-        Assert.AreEqual(2, OfflineRequestPaths.Count(), 'Recovery must only poll the existing attempt.');
+        Assert.AreEqual(2, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'Recovery must only poll the existing attempt.');
         VerifySavedSupplementalValues(DocHeader, 100, 50, '101', '000');
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
@@ -4073,6 +4113,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         InitializeOfflineTransport(Transmission);
         OfflinePreReceiptError := true;
         OfflineStatus := 'Rejected';
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendOriginal(Transmission);
         FindLastAttempt(Transmission, TransmissionLog);
 
@@ -4083,9 +4124,9 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Transmission.Modify();
         OfflineReceiptID := RecoveredReceiptID;
         OfflineUTID := 'RECOVERED-LATER-UTID';
-        OfflineSkipHistoryPayload := true;
         OfflinePreReceiptError := false;
         OfflineStatus := 'Accepted';
+        QueueOfflineHistorylessAcknowledgment();
         LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, RecoveredReceiptID, '');
 
         // [WHEN] Request the old rejected attempt again by its UTID.
@@ -4093,6 +4134,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineUTID := TransmissionLog."Unique Transmission ID";
         OfflinePreReceiptError := true;
         OfflineStatus := 'Rejected';
+        QueueOfflineHistorylessAcknowledgment();
         LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, '', TransmissionLog."Unique Transmission ID");
 
         // [THEN] The recovered identity remains active and original filing remains blocked.
@@ -4103,7 +4145,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         asserterror LibraryIRS1099IRIS.SendOriginal(Transmission);
         Assert.ExpectedError('no matching local submission history');
         Assert.ExpectedErrorCode('Dialog');
-        Assert.AreEqual(4, OfflineRequestPaths.Count(), 'Replaying history must not submit another filing.');
+        Assert.AreEqual(4, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'Replaying history must not submit another filing.');
         FinishOfflineTransport();
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -4123,11 +4165,12 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         CreateAcceptedCorrectionSource(Transmission, DocHeader);
         DocHeader."IRIS Needs Correction" := false;
         DocHeader.Modify();
-        OfflineEditDocumentID := DocHeader.ID;
         OfflinePreReceiptError := true;
         OfflineStatus := 'Rejected';
 
         // [WHEN] Send Step 1 and receive a pre-receipt rejection after the newer edit.
+        QueueOfflineSubmission();
+        QueueOfflineEditedAcknowledgment(DocHeader.ID);
         LibraryIRS1099IRIS.SendTwoStepZeroCorrection(Transmission);
 
         // [THEN] Snapshot restoration does not trigger another rollback of the newer correction selection.
@@ -4149,16 +4192,18 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         LibraryVariableStorage.Clear();
         Clear(LibraryFileMgtHandler);
         LibraryIRS1099IRIS.RestoreOfflineAccessToken();
+        RestoreOfflinePrivacyConsent();
         Clear(OfflineRequestPaths);
+        Clear(OfflineTokenProbeCount);
+        OfflineResponses.Clear();
+        Clear(OfflineExpectedRequestKinds);
+        Clear(OfflineObservedRequestKinds);
         Clear(OfflineSubmissionStatuses);
         Clear(OfflinePayload);
         Clear(OfflinePreReceiptError);
         Clear(OfflineRecordError);
-        Clear(OfflineOmitSubmitReceipt);
         OfflineSubmitHttpStatus := 200;
         OfflineStatusHttpStatus := 200;
-        Clear(OfflineSkipHistoryPayload);
-        Clear(OfflineEditDocumentID);
         Clear(OfflineUTID);
         AzureKeyVaultTestLibrary.ClearSecrets();
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
@@ -4554,6 +4599,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         CreateAcceptedCorrectionSource(Transmission, IRS1099FormDocHeader);
         OfflineStatus := 'Processing';
         OfflineSubmissionStatuses.Add('1', 'Processing');
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, true);
     end;
 
@@ -4563,6 +4609,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineReceiptID := 'REJECTED-ZERO';
         OfflineStatus := 'Rejected';
         OfflineSubmissionStatuses.Add('1', 'Rejected');
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, true);
     end;
 
@@ -4694,8 +4741,11 @@ codeunit 148022 "IRS 1099 IRIS Tests"
 
     local procedure FinishOfflineTransport()
     begin
+        OfflineResponses.AssertEmpty();
+        Assert.AreEqual(OfflineExpectedRequestKinds, OfflineObservedRequestKinds, 'HTTP requests must follow the configured probe, submission and acknowledgment sequence.');
         LibraryIRS1099IRIS.RestoreOfflineAccessToken();
         LibraryIRS1099IRIS.RestoreIRISUserID();
+        RestoreOfflinePrivacyConsent();
         ResetStandardProvider();
     end;
 
@@ -4771,6 +4821,9 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         InitializeOfflineConfiguration();
         LibraryIRS1099IRIS.InitializeIRISUserID();
         LibraryIRS1099IRIS.InitializeOfflineAccessToken();
+        OfflineOriginalPrivacyConsent := LibraryIRS1099IRIS.GetPrivacyConsent();
+        OfflinePrivacyConsentSaved := true;
+        LibraryIRS1099IRIS.SetPrivacyConsent(true);
         OfflineReceiptID := 'SIMULATED-RECEIPT';
         OfflineStatus := 'Accepted';
     end;
@@ -4835,10 +4888,65 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         TransmissionPage.RemoveTransmissionAndResetDocuments.Invoke();
     end;
 
+    local procedure MockOfflineAcknowledgmentResponse(var Response: TestHttpResponseMessage)
+    begin
+        OfflineAcknowledgment := CreateOfflineAcknowledgment();
+        Response.Content.WriteFrom(OfflineAcknowledgment);
+        Response.HttpStatusCode := OfflineStatusHttpStatus;
+    end;
+
     local procedure OpenSandboxTransmission(var TransmissionPage: TestPage "Transmission IRIS")
     begin
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(SandboxTransmission);
+    end;
+
+    local procedure QueueOfflineAcknowledgment()
+    begin
+        QueueOfflineTokenProbe();
+        OfflineResponses.Enqueue('Acknowledgment');
+        OfflineExpectedRequestKinds += '|status';
+    end;
+
+    local procedure QueueOfflineEditedAcknowledgment(DocumentID: Integer)
+    begin
+        QueueOfflineTokenProbe();
+        OfflineResponses.Enqueue('EditedAcknowledgment');
+        OfflineResponses.Enqueue(DocumentID);
+        OfflineExpectedRequestKinds += '|status';
+    end;
+
+    local procedure QueueOfflineHistorylessAcknowledgment()
+    begin
+        QueueOfflineTokenProbe();
+        OfflineResponses.Enqueue('HistorylessAcknowledgment');
+        OfflineExpectedRequestKinds += '|status';
+    end;
+
+    local procedure QueueOfflineSend()
+    begin
+        QueueOfflineSubmission();
+        QueueOfflineAcknowledgment();
+    end;
+
+    local procedure QueueOfflineSubmission()
+    begin
+        QueueOfflineTokenProbe();
+        OfflineResponses.Enqueue('Submission');
+        OfflineExpectedRequestKinds += '|submit';
+    end;
+
+    local procedure QueueOfflineSubmissionWithoutReceipt()
+    begin
+        QueueOfflineTokenProbe();
+        OfflineResponses.Enqueue('SubmissionWithoutReceipt');
+        OfflineExpectedRequestKinds += '|submit';
+    end;
+
+    local procedure QueueOfflineTokenProbe()
+    begin
+        OfflineResponses.Enqueue('TokenProbe');
+        OfflineExpectedRequestKinds += '|status';
     end;
 
     local procedure ReadAttemptContent(var TransmissionLog: Record "Transmission Log IRIS"; FieldNumber: Integer): Text
@@ -4917,8 +5025,17 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineStatus := 'Accepted';
         OfflineSubmissionStatuses.Set('1', 'Accepted');
         FindLastAttempt(Transmission, TransmissionLog);
+        QueueOfflineAcknowledgment();
         LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, Transmission."Receipt ID", TransmissionLog."Unique Transmission ID");
         Transmission.Get(Transmission."Document ID");
+    end;
+
+    local procedure RestoreOfflinePrivacyConsent()
+    begin
+        if not OfflinePrivacyConsentSaved then
+            exit;
+        LibraryIRS1099IRIS.SetPrivacyConsent(OfflineOriginalPrivacyConsent);
+        Clear(OfflinePrivacyConsentSaved);
     end;
 
     local procedure SetCorrectionReference(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
@@ -5140,6 +5257,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Transmission.Modify();
         InitializeOfflineTransport(Transmission);
 
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, false);
 
         FindLastAttempt(Transmission, TransmissionLog);
@@ -5191,6 +5309,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         CreateFilingAttempt(Transmission, "Transmission Type IRIS"::O, 'ACCEPTED', TransmissionLog);
         AddFilingAttemptDocument(TransmissionLog, RejectedIRS1099FormDocHeader, 1);
         AddFilingAttemptDocument(TransmissionLog, OtherIRS1099FormDocHeader, 2);
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendReplacement(Transmission);
 
         FindLastAttempt(Transmission, TransmissionLog);
@@ -5243,6 +5362,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Transmission.Modify();
         InitializeOfflineTransport(Transmission);
 
+        QueueOfflineSend();
         LibraryIRS1099IRIS.SendCorrection(Transmission, true);
 
         FindLastAttempt(Transmission, TransmissionLog);
@@ -5276,6 +5396,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         OfflineReceiptID := 'SIMULATED-STEP2';
         TransmissionPage.OpenEdit();
         TransmissionPage.GoToRecord(Transmission);
+        QueueOfflineSend();
         TransmissionPage.Step2SendCorrectedOriginal.Invoke();
         TransmissionPage.Close();
 
@@ -5430,7 +5551,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
 
     local procedure VerifyOpenDocumentConfirmation()
     begin
-        Assert.IsTrue(LibraryVariableStorage.DequeueText().Contains('opened or/and abandoned'), 'The existing document-selection warning must run before preflight.');
+        Assert.IsTrue(LibraryVariableStorage.DequeueText().Contains('open or abandoned'), 'The existing document-selection warning must run before preflight.');
     end;
 
     local procedure VerifyManualReceiptRecovery(var Transmission: Record "Transmission IRIS"; var DocHeader: Record "IRS 1099 Form Doc. Header")
@@ -5441,11 +5562,11 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         Assert.AreEqual(DocHeader.Status::Released, DocHeader.Status, 'Unproven document membership must not be inferred.');
         Assert.AreEqual('', DocHeader."IRIS Last Accepted Receipt ID", 'Recovery must not invent an accepted document reference.');
         Assert.IsFalse(DocHeader."IRIS Corrected", 'Incomplete history must not complete a correction.');
-        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Recovery must not submit or probe an unrelated attempt.');
+        Assert.AreEqual(1, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'Recovery must not submit or probe an unrelated attempt.');
         asserterror LibraryIRS1099IRIS.SendCorrection(Transmission, false);
         Assert.ExpectedError('no matching local submission history');
         Assert.ExpectedErrorCode('Dialog');
-        Assert.AreEqual(1, OfflineRequestPaths.Count(), 'Incomplete recovered history must block another filing.');
+        Assert.AreEqual(1, OfflineRequestPaths.Count() - OfflineTokenProbeCount, 'Incomplete recovered history must block another filing.');
     end;
 
     local procedure VerifyPagesOpenWithoutSubmitEndpoint()
@@ -5584,6 +5705,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     begin
         OfflineStatus := StatusText;
         OfflineSubmissionStatuses.Set(IRS1099FormDocHeader."IRIS Submission ID", StatusText);
+        QueueOfflineAcknowledgment();
         TransmissionPage.RequestTransmissionStatusByRID.Invoke();
         VerifyLifecycleStatus(Transmission, IRS1099FormDocHeader, Status, DocumentStatus);
     end;
@@ -5684,6 +5806,7 @@ codeunit 148022 "IRS 1099 IRIS Tests"
         if HttpStatus = 200 then begin
             OfflineStatus := 'Accepted';
             OfflineSubmissionStatuses.Set('1', 'Accepted');
+            QueueOfflineAcknowledgment();
             LibraryIRS1099IRIS.RequestAcknowledgementAndUpdateTransmission(Transmission, Transmission."Receipt ID", TransmissionLog."Unique Transmission ID");
             IRS1099FormDocHeader.Get(IRS1099FormDocHeader.ID);
             Assert.AreEqual(IRS1099FormDocHeader.Status::Abandoned, IRS1099FormDocHeader.Status, 'A later terminal accepted acknowledgment completes the pending zero correction.');
@@ -5956,28 +6079,44 @@ codeunit 148022 "IRS 1099 IRIS Tests"
     procedure OfflineHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
         OfflineRequestPaths.Add(Request.Path);
+        OfflineObservedRequestKinds += '|' + Request.Path.Replace('https://test.example/', '').Replace('https://production.example/', '');
         Response.HttpStatusCode := 503;
         Response.Content.WriteFrom('SIMULATED: unexpected request blocked');
         case Request.Path of
-            'https://test.example/submit', 'https://production.example/submit':
-                begin
-                    OfflineResponse := '<IntakeA2AResponse><receiptId>' + OfflineReceiptID + '</receiptId></IntakeA2AResponse>';
-                    if OfflineOmitSubmitReceipt then
-                        OfflineResponse := '<IntakeA2AResponse/>';
-                    Response.Content.WriteFrom(OfflineResponse);
-                    Response.HttpStatusCode := OfflineSubmitHttpStatus;
-                end;
+            'https://test.example/submit', 'https://production.example/submit',
             'https://test.example/status', 'https://production.example/status':
-                begin
-                    if OfflineEditDocumentID <> 0 then begin
-                        SetUnsentCorrectionDuringAcknowledgment(OfflineEditDocumentID);
-                        Clear(OfflineEditDocumentID);
-                    end;
-                    if not OfflineSkipHistoryPayload then
-                        CaptureLatestOfflinePayload();
-                    OfflineAcknowledgment := CreateOfflineAcknowledgment();
-                    Response.Content.WriteFrom(OfflineAcknowledgment);
-                    Response.HttpStatusCode := OfflineStatusHttpStatus;
+                case OfflineResponses.DequeueText() of
+                    'TokenProbe':
+                        begin
+                            OfflineTokenProbeCount += 1;
+                            Response.HttpStatusCode := 200;
+                            Response.Content.WriteFrom('<StatusResponse/>');
+                        end;
+                    'Submission':
+                        begin
+                            OfflineResponse := '<IntakeA2AResponse><receiptId>' + OfflineReceiptID + '</receiptId></IntakeA2AResponse>';
+                            Response.Content.WriteFrom(OfflineResponse);
+                            Response.HttpStatusCode := OfflineSubmitHttpStatus;
+                        end;
+                    'SubmissionWithoutReceipt':
+                        begin
+                            OfflineResponse := '<IntakeA2AResponse/>';
+                            Response.Content.WriteFrom(OfflineResponse);
+                            Response.HttpStatusCode := OfflineSubmitHttpStatus;
+                        end;
+                    'Acknowledgment':
+                        begin
+                            CaptureLatestOfflinePayload();
+                            MockOfflineAcknowledgmentResponse(Response);
+                        end;
+                    'EditedAcknowledgment':
+                        begin
+                            SetUnsentCorrectionDuringAcknowledgment(OfflineResponses.DequeueInteger());
+                            CaptureLatestOfflinePayload();
+                            MockOfflineAcknowledgmentResponse(Response);
+                        end;
+                    'HistorylessAcknowledgment':
+                        MockOfflineAcknowledgmentResponse(Response);
                 end;
         end;
         // Never allow any intercepted request, including unexpected destinations, onto the network.
