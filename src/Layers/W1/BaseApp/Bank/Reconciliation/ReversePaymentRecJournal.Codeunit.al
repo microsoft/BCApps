@@ -40,7 +40,7 @@ codeunit 386 "Reverse Payment Rec. Journal"
         PostedPaymentReconciliationNotSelectedErr: Label 'You must select a journal to reverse.';
         CantFindRelatedEntriesErr: Label 'Related entries not found. To unapply and reverse payments you must do it manually.';
         PaymentRecJournalAlreadyReversedErr: Label 'This payment reconciliation journal has already been reversed.';
-        GLRegisterNo: Integer;
+        GLRegisterNo: BigInteger;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInitGLRegister', '', false, false)]
     local procedure SetGLRegisterNoInPostedPaymentRecHeader(var GLRegister: Record "G/L Register"; var GenJournalLine: Record "Gen. Journal Line")
@@ -451,12 +451,14 @@ codeunit 386 "Reverse Payment Rec. Journal"
         StatementLineNo: Integer;
     begin
         BankAccountLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        BankAccountLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if BankAccountLedgerEntry.FindSet() then
             repeat
                 InsertBankPaymentRecRelatedEntry(BankAccountLedgerEntry, PostedPaymentReconHdr."Statement No.", -1);
             until BankAccountLedgerEntry.Next() = 0;
 
         CustLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        CustLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if CustLedgerEntry.FindSet() then
             repeat
                 StatementLineNo += 10000;
@@ -464,6 +466,7 @@ codeunit 386 "Reverse Payment Rec. Journal"
             until CustLedgerEntry.Next() = 0;
 
         VendorLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        VendorLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if VendorLedgerEntry.FindSet() then
             repeat
                 StatementLineNo += 10000;
@@ -471,6 +474,7 @@ codeunit 386 "Reverse Payment Rec. Journal"
             until VendorLedgerEntry.Next() = 0;
 
         EmployeeLedgerEntry.SetRange("Entry No.", GLRegister."From Entry No.", GLRegister."To Entry No.");
+        EmployeeLedgerEntry.SetFilter("G/L Register No.", '0|%1', GLRegister."No.");
         if EmployeeLedgerEntry.FindSet() then
             repeat
                 StatementLineNo += 10000;
@@ -926,7 +930,7 @@ codeunit 386 "Reverse Payment Rec. Journal"
         );
     end;
 
-    procedure ErrorIfEntryIsNotReversable(Reversed: Boolean; TableCaption: Text; EntryNo: Integer; TransactionNo: Integer; JournalBatchName: Code[10]; DocumentType: Enum "Gen. Journal Document Type"; AmountToApply: Decimal; AppliesToDocNo: Code[20]; AppliesToID: Code[50]; SourceCode: Code[10])
+    procedure ErrorIfEntryIsNotReversable(Reversed: Boolean; TableCaption: Text; EntryNo: BigInteger; TransactionNo: Integer; JournalBatchName: Code[10]; DocumentType: Enum "Gen. Journal Document Type"; AmountToApply: Decimal; AppliesToDocNo: Code[20]; AppliesToID: Code[50]; SourceCode: Code[10])
     var
         ReversalEntry: Record "Reversal Entry";
         IsHandled: Boolean;

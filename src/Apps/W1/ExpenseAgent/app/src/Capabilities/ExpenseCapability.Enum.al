@@ -65,8 +65,8 @@ enum 6984 "Expense Capability"
 
     /// <summary>
     /// The backend supports AI-assisted policy evaluation. Reported
-    /// enabled only when the admin has turned on "Evaluate Policies" in the Expense Agent
-    /// Setup. A backend that predates this feature omits the value entirely, so the frontend
+    /// enabled only when "Evaluate Policies" is enabled in the Expense Agent Setup.
+    /// It's enabled by default for new setups. A backend that predates this feature omits the value entirely, so the frontend
     /// can treat an absent capability as "backend not ready".
     /// </summary>
     value(5; AiAssistedPolicyEvaluation)
@@ -96,5 +96,29 @@ enum 6984 "Expense Capability"
     value(8; TravelRequest)
     {
         Caption = 'Travel Request', Locked = true;
+    }
+
+    /// <summary>
+    /// Credit card feed APIs are supported by this backend, independently of provider setup or mandatory card selection.
+    /// </summary>
+    value(9; CreditCardFeed)
+    {
+        Caption = 'Credit Card Feed', Locked = true;
+    }
+
+    /// <summary>
+    /// No receipt declarations and category thresholds are enabled by company policy.
+    /// </summary>
+    value(10; NoReceipt)
+    {
+        Caption = 'No Receipt', Locked = true;
+    }
+
+    /// <summary>
+    /// Expense reports expose their active approver and can be filtered by that approver.
+    /// </summary>
+    value(11; ActiveApproverRouting)
+    {
+        Caption = 'Active Approver Routing', Locked = true;
     }
 }

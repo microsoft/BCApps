@@ -33,6 +33,7 @@ codeunit 139915 "Sales Service Commitment Test"
     Subtype = Test;
     TestType = Uncategorized;
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         Currency: Record Currency;
@@ -65,6 +66,7 @@ codeunit 139915 "Sales Service Commitment Test"
         SerialNo: array[10] of Code[50];
         AssignSubscriptionLinesOpenedCount: Integer;
         NoOfServiceObjects: Integer;
+        SalesLineNoExcludedFromDocTotals: Integer;
         AssignSubscriptionLinesNotOfferedErr: Label 'The Assign Subscription Lines page must be opened for a Sales Line that is created after Explode BOM.', Locked = true;
         AssignSubscriptionLinesOpenedPerComponentErr: Label 'The Assign Subscription Lines page must be opened exactly once per exploded BOM component.', Locked = true;
         AssignSubscriptionLinesTok: Label 'Assign Subscription Lines', Locked = true;
@@ -194,6 +196,48 @@ codeunit 139915 "Sales Service Commitment Test"
         Assert.AreEqual(
             StrSubstNo(SalesLineCaptionTok, SalesLine."No.", SalesLine.Description),
             SalesServiceCommMgmt.GetAssignSubscriptionLinesCaption(SalesLine, ServiceObject, true), CaptionNotCorrectErr);
+    end;
+
+    [Test]
+    procedure CalcVATAmountLinesSkipsSalesLinesExcludedFromDocumentTotals()
+    var
+        Item2: Record Item;
+        Item3: Record Item;
+        TempSalesServiceCommitmentBuff: Record "Sales Service Commitment Buff." temporary;
+        ExpectedLineAmount: Decimal;
+        ExpectedVATAmount: Decimal;
+        UniqueRhythmDictionary: Dictionary of [Code[20], Text];
+    begin
+        // [SCENARIO 660446] Subscription lines of a sales line that is excluded from document totals (e.g. CH Quote Variant line)
+        // do not contribute to the recurring subtotal and VAT, while all other subscription lines still do.
+        Initialize();
+
+        // [GIVEN] Sales Quote with two sales lines with subscription lines that are included in document totals
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, '');
+        SetupSalesLineForTotalAndVatCalculation(Item, true);
+        SetupSalesLineForTotalAndVatCalculation(Item2, true);
+
+        // [GIVEN] Recurring subtotal and VAT of the two included sales lines
+        SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+        TempSalesServiceCommitmentBuff.CalcSums("Line Amount", "VAT Amount");
+        ExpectedLineAmount := TempSalesServiceCommitmentBuff."Line Amount";
+        ExpectedVATAmount := TempSalesServiceCommitmentBuff."VAT Amount";
+        Assert.AreNotEqual(0, ExpectedLineAmount, 'Setup-Failure: Recurring subtotal of the included sales lines should have a value.');
+
+        // [GIVEN] Third sales line with subscription lines that is excluded from document totals
+        SetupSalesLineForTotalAndVatCalculation(Item3, true);
+        SalesLineNoExcludedFromDocTotals := SalesLine."Line No.";
+
+        // [WHEN] VAT amount lines are calculated for the Sales Quote
+        Clear(UniqueRhythmDictionary);
+        BindSubscription(this);
+        SalesServiceCommitment.CalcVATAmountLines(SalesHeader, TempSalesServiceCommitmentBuff, UniqueRhythmDictionary);
+        UnbindSubscription(this);
+
+        // [THEN] Only the two included sales lines contribute to the recurring subtotal and VAT
+        TempSalesServiceCommitmentBuff.CalcSums("Line Amount", "VAT Amount");
+        Assert.AreEqual(ExpectedLineAmount, TempSalesServiceCommitmentBuff."Line Amount", 'Excluded sales line must not contribute to the recurring subtotal.');
+        Assert.AreEqual(ExpectedVATAmount, TempSalesServiceCommitmentBuff."VAT Amount", 'Excluded sales line must not contribute to the recurring VAT.');
     end;
 
     [Test]
@@ -2020,6 +2064,41 @@ codeunit 139915 "Sales Service Commitment Test"
     end;
 
     [Test]
+    [HandlerFunctions('GetListOfProposedSrvCommitmentsModalPageHandler')]
+    procedure ServiceCommitmentPackageSelectionHidesPriceGroupPackagesForCustomerWithoutPriceGroup()
+    var
+        CustomerPriceGroup: Record "Customer Price Group";
+        SubscriptionPackage: array[2] of Record "Subscription Package";
+    begin
+        // [SCENARIO 655942] A Customer without a Customer Price Group is only offered Subscription Packages without a Price Group
+        Initialize();
+        SubscriptionPackage[1].DeleteAll(false);
+
+        // [GIVEN] Customer without Customer Price Group
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] Item assigned to Package 1 with a Price Group and to Package 2 without a Price Group
+        LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
+        ContractTestLibrary.CreateItemWithServiceCommitmentOption(Item, "Item Service Commitment Type"::"Sales with Service Commitment");
+        ContractTestLibrary.CreateServiceCommitmentTemplate(ServiceCommitmentTemplate, '12M', 100, "Invoicing Via"::Contract, "Calculation Base Type"::"Item Price", false);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, SubscriptionPackage[1]);
+        ContractTestLibrary.CreateServiceCommitmentPackageWithLine(ServiceCommitmentTemplate.Code, SubscriptionPackage[2]);
+        ContractTestLibrary.UpdateServiceCommitmentPackageWithPriceGroup(SubscriptionPackage[1], CustomerPriceGroup.Code);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, SubscriptionPackage[1].Code);
+        ContractTestLibrary.AssignItemToServiceCommitmentPackage(Item, SubscriptionPackage[2].Code);
+
+        // [GIVEN] Sales Quote for the Customer
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Quote, Customer."No.");
+
+        // [WHEN] Sales Line with the Item is created
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", 1); // GetListOfProposedSrvCommitmentsModalPageHandler
+
+        // [THEN] Only the Package without Price Group is offered for selection
+        Assert.AreEqual(SubscriptionPackage[2].Code, LibraryVariableStorage.DequeueText(), 'Subscription Package without Price Group should be available for selection');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('AssignServiceCommitmentsCountingModalPageHandler,StrMenuHandler')]
     procedure SubscriptionPackagesAreOfferedForSalesLineCreatedAfterExplodeBOM()
     var
@@ -3268,6 +3347,17 @@ codeunit 139915 "Sales Service Commitment Test"
         Assert.AreEqual(ServiceCommitmentParam."Unit Cost (LCY)", TempSalesServiceCommitment."Unit Cost (LCY)", StrSubstNo(ValueNotCorrectTok, ServiceCommitmentParam.FieldCaption("Unit Cost (LCY)")));
     end;
     #endregion Procedures
+
+    #region Subscribers
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", OnAfterIsExcludedFromDocumentTotals, '', false, false)]
+    local procedure ExcludeSalesLineOnAfterIsExcludedFromDocumentTotals(SalesLine: Record "Sales Line"; var Result: Boolean)
+    begin
+        if SalesLine."Line No." = SalesLineNoExcludedFromDocTotals then
+            Result := true;
+    end;
+
+    #endregion Subscribers
 
     #region Handlers
 

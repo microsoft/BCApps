@@ -53,7 +53,7 @@ codeunit 99000778 OrderTrackingManagement
         Subtype: Integer;
         ProdOrderLineNo: Integer;
         RefNo: Integer;
-        EntryNo: Integer;
+        EntryNo: BigInteger;
         MultipleSummedUpQty: Decimal;
         SearchUp: Boolean;
         IsPlanning: Boolean;
@@ -724,13 +724,6 @@ codeunit 99000778 OrderTrackingManagement
     begin
     end;
 
-#if not CLEAN27
-    [Obsolete('This event is never raised.', '27.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnSetSourceLine(SourceRecRef: RecordRef; var ReservEntry: Record "Reservation Entry"; var ItemLedgerEntry: Record "Item Ledger Entry")
-    begin
-    end;
-#endif
     [IntegrationEvent(false, false)]
     local procedure OnDerivePlanningFilterOnSetToReservationFilter(var ToReservEntry: Record "Reservation Entry"; FilterPlanningComponent: Record "Planning Component")
     begin
@@ -752,7 +745,7 @@ codeunit 99000778 OrderTrackingManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterDrillOrdersUp(var TempOrderTrackingEntry: Record "Order Tracking Entry" temporary; var ReservationEntry: Record "Reservation Entry"; Level: Integer; var EntryNo: Integer; var SearchUp: Boolean; var SearchUpIsSet: Boolean)
+    local procedure OnAfterDrillOrdersUp(var TempOrderTrackingEntry: Record "Order Tracking Entry" temporary; var ReservationEntry: Record "Reservation Entry"; Level: Integer; var EntryNo: BigInteger; var SearchUp: Boolean; var SearchUpIsSet: Boolean)
     begin
     end;
 

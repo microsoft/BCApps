@@ -8,11 +8,14 @@ namespace System.Test.Apps;
 using System.Apps;
 using System.Environment.Configuration;
 using System.Media;
+using System.Security.AccessControl;
 using System.TestLibraries.Apps;
+using System.TestLibraries.Environment;
 using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
 codeunit 133100 "Extension Management Test"
+// [FEATURE] [Extension Management]
 {
 
     // For the purpose of this test, two sample extensions are pre-published.
@@ -31,9 +34,11 @@ codeunit 133100 "Extension Management Test"
 
     var
         ExtensionManagement: Codeunit "Extension Management";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         ExtensionMgtTestLibrary: Codeunit "Extension Mgt. Test Library";
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         MainAppId: Guid;
         DependingAppId: Guid;
         SettingsAppId: Guid;
@@ -46,6 +51,82 @@ codeunit 133100 "Extension Management Test"
         PackageIdExistsErr: Label 'The returned extension pakage does not exist';
         NullPackageIdErr: Label 'There should not be an extension corresponding to the returned package ID';
         PackageIdExtensionVersionErr: Label 'The package Id does not poin to the correct extension version';
+#if not CLEAN30
+        ExtensionManagementDeprecationMsg: Label 'Uploading and managing per-tenant extensions is moving to the Business Central admin center. This page will remain available for viewing installed extensions.';
+#endif
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ExtensionManagementNotificationHandler')]
+    procedure ExtensionManagementDeprecationNotificationFollowsLifecycleInSaaS()
+    var
+        ExtensionManagementPage: TestPage "Extension Management";
+    begin
+        // [SCENARIO] SaaS users receive the migration notification only while legacy PTE upload is available.
+        // [GIVEN] Extension management permissions and a SaaS environment.
+        SetExtensionManagementPagePermissions();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        LibraryVariableStorage.Clear();
+#if not CLEAN30
+        LibraryVariableStorage.Enqueue(ExtensionManagementDeprecationMsg);
+#endif
+
+        // [WHEN] The Extension Management page is opened.
+        ExtensionManagementPage.OpenView();
+        ExtensionManagementPage.Close();
+
+        // [THEN] The notification was sent exactly once before removal, or not at all after removal.
+        LibraryVariableStorage.AssertEmpty();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ExtensionManagementNotificationHandler')]
+    procedure ExtensionManagementDeprecationNotificationNotShownOnPrem()
+    var
+        ExtensionManagementPage: TestPage "Extension Management";
+    begin
+        // [SCENARIO] On-premises users do not receive the PTE upload migration notification.
+        // [GIVEN] Extension management permissions and an on-premises environment.
+        SetExtensionManagementPagePermissions();
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
+        LibraryVariableStorage.Clear();
+
+        // [WHEN] The Extension Management page is opened.
+        ExtensionManagementPage.OpenView();
+        ExtensionManagementPage.Close();
+
+        // [THEN] No migration notification was sent.
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+#if not CLEAN30
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('AdminCenterDocumentationHyperlinkHandler')]
+    procedure ExtensionManagementDeprecationDocumentationLink()
+    begin
+        // [SCENARIO] The migration documentation callback opens the expected help page.
+        // [GIVEN] The documentation callback for PTE upload migration.
+        // [WHEN] The callback is invoked through the test library.
+        ExtensionMgtTestLibrary.OpenAdminCenterExtensionManagementDocumentation();
+        // [THEN] The hyperlink handler verifies the documentation URL.
+    end;
+#endif
+
+    local procedure SetExtensionManagementPagePermissions()
+    var
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+    begin
+        PermissionsMock.Set('Exten. Mgt. - Admin');
+        PermissionsMock.Assign('Exten. Mgt. UI Test');
+
+        // Base Application page extensions need data permissions only when that application is installed.
+        AggregatePermissionSet.SetRange("Role ID", 'D365 READ');
+        if not AggregatePermissionSet.IsEmpty() then
+            PermissionsMock.Assign('D365 READ');
+    end;
 
     local procedure SetNavAppIds()
     begin
@@ -688,6 +769,27 @@ codeunit 133100 "Extension Management Test"
     procedure MessageHandler(Message: Text[1024])
     begin
     end;
+
+    [SendNotificationHandler(true)]
+    procedure ExtensionManagementNotificationHandler(var Notification: Notification): Boolean
+    var
+        ExpectedNotificationId: Guid;
+    begin
+        Assert.AreEqual(LibraryVariableStorage.DequeueText(), Notification.Message, 'Unexpected Extension Management notification.');
+        ExpectedNotificationId := '3be91c11-8195-4c65-be23-20fddbea9bb7';
+        Assert.IsTrue(ExpectedNotificationId = Notification.Id, 'Unexpected notification ID.');
+        Assert.IsTrue(Notification.Scope = NotificationScope::LocalScope, 'The notification should be local to the page.');
+
+        exit(true);
+    end;
+
+#if not CLEAN30
+    [HyperlinkHandler]
+    procedure AdminCenterDocumentationHyperlinkHandler(Link: Text[1024])
+    begin
+        Assert.AreEqual('https://go.microsoft.com/fwlink/?LinkId=2374621', Link, 'Unexpected deprecation documentation link.');
+    end;
+#endif
 
     [ModalPageHandler]
     procedure ExtensionSettingsModalHandler(var ExtensionSettings: TestPage "Extension Settings")

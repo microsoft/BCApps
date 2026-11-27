@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Test.ExpenseAgent;
 
+using Microsoft.CRM.Team;
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.HumanResources.Employee;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -30,11 +32,11 @@ codeunit 148346 "Expense Interim Approval Test"
         LibraryJobQueue: Codeunit "Library - Job Queue";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibraryDocumentApprovals: Codeunit "Library - Document Approvals";
         ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
         IsInitialized: Boolean;
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
-        InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1.', Comment = '%1 = Pending Approval status caption';
+        InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1 or %2.', Comment = '%1 = Released status caption, %2 = Pending Approval status caption';
+        InterimApproverActorErr: Label 'Only the expense report owner %1 can assign an interim approver.', Comment = '%1 = Expense User No. of the report owner';
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
         InterimApproverConflictErr: Label 'The %1 cannot be the same as the %2 (value: %3).', Comment = '%1 = Interim Approver No. caption, %2 = conflicting field caption, %3 = conflicting field value';
         InterimApproverCannotFinalizeErr: Label '%1 %2 cannot give final approval. Final approval must be completed by a different approver.', Comment = '%1 = Interim Approver No. caption, %2 = Interim Approver No.';
@@ -45,6 +47,7 @@ codeunit 148346 "Expense Interim Approval Test"
         AlternateApproverDateRangeErr: Label '%1 cannot be after %2.', Comment = '%1 = Effective Start Date field caption, %2 = Effective End Date field caption';
         AlternateApproverOverlappingCoverageErr: Label 'Overlapping alternate coverage exists for primary approver %1.', Comment = '%1 = Primary approver number';
         ApproverRequiredErr: Label 'Expense report %1 exceeds the %2 for approver %3. Configure the approver in Expense Approval Setup.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
+        CannotRemovePendingApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is an interim or final approver for expense report %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Expense Report No.';
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         ApproverApprovalLimitErr: Label 'Expense report %1 exceeds the %2 for approver %3.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = Unlimited Approval field caption';
@@ -264,7 +267,40 @@ codeunit 148346 "Expense Interim Approval Test"
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
-    procedure AssignInterimApproverRequiresPendingApproval()
+    procedure AssignInterimApproverBeforeSubmissionKeepsReleasedStatus()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ApproverExpenseUserNoBeforeAssignment: Code[20];
+        ApproverExpenseUserIDBeforeAssignment: Code[50];
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] An interim approver assigned to a released report is configured without submitting the report.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and a released (not submitted) expense report.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ApproverExpenseUserNoBeforeAssignment := ExpenseReportHeader."Approver Expense User No.";
+        ApproverExpenseUserIDBeforeAssignment := ExpenseReportHeader."Approver Expense User ID";
+
+        // [WHEN] An interim approver is assigned before submission.
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [THEN] The interim approver is configured, the report stays Released and is not awaiting any approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Released);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+        ExpenseReportHeader.TestField("Approver Expense User No.", ApproverExpenseUserNoBeforeAssignment);
+        ExpenseReportHeader.TestField("Approver Expense User ID", ApproverExpenseUserIDBeforeAssignment);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitWithPreassignedInterimRoutesToInterimFirst()
     var
         Submitter: Record "Expense User";
         InterimApprover: Record "Expense User";
@@ -272,7 +308,79 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader: Record "Expense Report Header";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 638097] An interim approver can only be assigned while the report is Pending Approval.
+        // [SCENARIO 657870] Submitting a report with a preassigned interim approver routes it directly to the interim approver, then to the final approver.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and a released report with an interim approver assigned before submission.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [WHEN] The report is submitted.
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] The report is Pending Approval with the interim approver as the active approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+
+        // [WHEN] The interim approver approves.
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+
+        // [THEN] The report moves to Interim Approved and is routed to the final approver.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
+
+        // [WHEN] The final approver approves.
+        ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+
+        // [THEN] The report is Approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverOnOpenReportIsBlocked()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] An interim approver cannot be assigned to an open report.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and an open expense report.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateOpenExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] An interim approver is assigned to the open report.
+        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [THEN] The status error is raised and the report stays Open without an interim approver.
+        VerifyInterimApproverStatusError();
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Open);
+        VerifyInterimApprover(ExpenseReportHeader, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverBeforeSubmissionChecksConflictAndActor()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] Assigning an interim approver before submission keeps the conflict and owner checks.
         Initialize();
 
         // [GIVEN] Agent is enabled and a released (not submitted) expense report.
@@ -281,11 +389,69 @@ codeunit 148346 "Expense Interim Approval Test"
         CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
 
-        // [WHEN] An interim approver is assigned before submission.
-        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        // Preserve the report when the expected validation errors roll back their transactions.
+        Commit();
 
-        // [THEN] An error is raised.
-        Assert.ExpectedError(StrSubstNo(InterimApproverStatusErr, Format(ExpenseReportHeader.Status::"Pending Approval")));
+        // [WHEN] The final approver is assigned as interim approver before submission.
+        asserterror ExpenseReportHeader.AssignInterimApprover(FinalApprover."No.", Submitter."No.");
+
+        // [THEN] The conflict error is raised.
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverConflictErr,
+                ExpenseReportHeader.FieldCaption("Interim Approver No."),
+                ExpenseReportHeader.FieldCaption("Final Approver No."),
+                ExpenseReportHeader."Final Approver No."));
+
+        // [WHEN] Someone other than the report owner assigns an interim approver before submission.
+        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", FinalApprover."No.");
+
+        // [THEN] The owner error is raised and no interim approver is configured.
+        Assert.ExpectedError(StrSubstNo(InterimApproverActorErr, Submitter."No."));
+        VerifyInterimApprover(ExpenseReportHeader, '');
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Released);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverBlockedAfterInterimApproval()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        OtherApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 657870] An interim approver cannot be assigned once the report is Interim Approved or Approved.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and a report approved by its interim approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(OtherApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] An interim approver is assigned to the Interim Approved report.
+        asserterror ExpenseReportHeader.AssignInterimApprover(OtherApprover."No.", Submitter."No.");
+
+        // [THEN] The status error is raised.
+        VerifyInterimApproverStatusError();
+
+        // [WHEN] The final approver approves and an interim approver is assigned to the Approved report.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        asserterror ExpenseReportHeader.AssignInterimApprover(OtherApprover."No.", Submitter."No.");
+
+        // [THEN] The status error is raised.
+        VerifyInterimApproverStatusError();
     end;
 
     [Test]
@@ -1202,10 +1368,10 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader: Record "Expense Report Header";
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 640938] Submission fails when escalation resolves back to the current approver.
+        // [SCENARIO 640938] Submission fails when the current approver is configured as their own next approver and no unlimited default approver exists.
         Initialize();
 
-        // [GIVEN] Submitter "S" has approver "A1" with a limit of 100, "A1" is configured as their own next approver, and the released report amount is 200.
+        // [GIVEN] Submitter "S" has approver "A1" with a limit of 100, "A1" is configured as their own next approver, no default approver is configured, and the released report amount is 200.
         CreateApprovalLimitScenario(Submitter, Approver, ExpenseReportHeader, 200, 100);
         LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Approver."No.", Approver."No.");
 
@@ -1926,6 +2092,580 @@ codeunit 148346 "Expense Interim Approval Test"
         WorkDate(OriginalWorkDate);
     end;
 
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure CannotDisableApproverAssignedToPendingExpenseReport()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 652243] An approver assigned to an expense report awaiting approval cannot have approval rights removed.
+        Initialize();
+
+        // [GIVEN] A pending report with both a final approver and an assigned interim approver.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetCurrentUser(Submitter);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [WHEN] Approval rights are removed from either approver.
+        asserterror InterimApprover.Validate("Can Approve", false);
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, InterimApprover."No.", ExpenseReportHeader."No."));
+
+        FinalApprover.Get(FinalApprover."No.");
+        asserterror FinalApprover.Validate("Can Approve", false);
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
+
+        // [WHEN] The report is Interim Approved and assigned to the final approver.
+        ExpenseReportHeader.Status := ExpenseReportHeader.Status::"Interim Approved";
+        ExpenseReportHeader.Modify(false);
+        FinalApprover.Get(FinalApprover."No.");
+        asserterror FinalApprover.Validate("Can Approve", false);
+
+        // [THEN] Approval rights remain protected while the report is Interim Approved.
+        Assert.ExpectedError(StrSubstNo(CannotRemovePendingApproverErr, FinalApprover."No.", ExpenseReportHeader."No."));
+    end;
+
+    [Test]
+    procedure FixtureCreatesIndependentApproversAndCoverage()
+    var
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        Fixture: JsonObject;
+        PrimaryApprover: JsonObject;
+        InterimApprover: JsonObject;
+        AlternateApprover: JsonObject;
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] The fixture creates independently valid approvers and explicit coverage dates.
+        Initialize();
+
+        // [GIVEN] An enabled agent with the standard approval workflow disabled.
+        EnableAgent(true);
+
+        // [WHEN] An interim and alternate approver fixture is created.
+        Fixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate() - 1, WorkDate() + 1));
+
+        // [THEN] All identities are valid, independently bound, and covered by the requested dates.
+        VerifyApproverFixture(Fixture, WorkDate() - 1, WorkDate() + 1);
+        PrimaryApprover := Fixture.GetObject('primaryApprover');
+        InterimApprover := Fixture.GetObject('interimApprover');
+        AlternateApprover := Fixture.GetObject('alternateApprover');
+        Assert.AreNotEqual(GetFixtureGuid(PrimaryApprover, 'userId'), GetFixtureGuid(InterimApprover, 'userId'), 'Primary and interim approvers must have different BC users.');
+        Assert.AreNotEqual(GetFixtureGuid(PrimaryApprover, 'userId'), GetFixtureGuid(AlternateApprover, 'userId'), 'Primary and alternate approvers must have different BC users.');
+        Assert.AreNotEqual(GetFixtureGuid(InterimApprover, 'userId'), GetFixtureGuid(AlternateApprover, 'userId'), 'Interim and alternate approvers must have different BC users.');
+    end;
+
+    [Test]
+    procedure SecondFixturePreservesExistingApprovers()
+    var
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        FirstFixture: JsonObject;
+        SecondFixture: JsonObject;
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] Creating another fixture doesn't invalidate previously configured approvers.
+        Initialize();
+
+        // [GIVEN] An enabled agent and an existing approver fixture.
+        EnableAgent(true);
+        FirstFixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate() - 1, WorkDate() + 1));
+
+        // [WHEN] A second approver fixture with open-ended coverage is created.
+        SecondFixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate(), 0D));
+
+        // [THEN] Both fixtures retain their valid bindings and independent coverage.
+        VerifyApproverFixture(FirstFixture, WorkDate() - 1, WorkDate() + 1);
+        VerifyApproverFixture(SecondFixture, WorkDate(), 0D);
+    end;
+
+    [Test]
+    procedure FixtureCleanupPreservesOtherFixturesAndUsers()
+    var
+        UnrelatedApprover: Record "Expense User";
+        CurrentUser: Record User;
+        UserBeforeCleanup: Record User;
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        FirstFixture: JsonObject;
+        SecondFixture: JsonObject;
+        FirstFixtureText: Text;
+        UnrelatedApprovalUserId: Code[50];
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] Cleanup deletes only the fixture's records, not other fixtures or the caller.
+        Initialize();
+
+        // [GIVEN] Two approver fixtures, an unrelated approver, and the current service user.
+        EnableAgent(true);
+        FirstFixtureText := ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate() - 1, WorkDate() + 1);
+        FirstFixture.ReadFrom(FirstFixtureText);
+        SecondFixture.ReadFrom(ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate(), 0D));
+        CreateApproverExpenseUser(UnrelatedApprover);
+        UnrelatedApprovalUserId := UnrelatedApprover."User Id For Approvals";
+        UserBeforeCleanup.Get(UserSecurityId());
+
+        // [WHEN] The first fixture is deleted.
+        ExpenseTestHandlerAPI.DeleteInterimAndAlternateApproverFixture(FirstFixtureText);
+
+        // [THEN] Its records are removed and the other identities remain unchanged.
+        VerifyApproverFixtureDeleted(FirstFixture);
+        VerifyApproverFixture(SecondFixture, WorkDate(), 0D);
+        UnrelatedApprover.Get(UnrelatedApprover."No.");
+        UnrelatedApprover.TestField("Can Approve", true);
+        UnrelatedApprover.TestField("User Id For Approvals", UnrelatedApprovalUserId);
+        CurrentUser.Get(UserSecurityId());
+        CurrentUser.TestField("User Name", UserBeforeCleanup."User Name");
+        CurrentUser.TestField("Authentication Email", UserBeforeCleanup."Authentication Email");
+    end;
+
+    [Test]
+    procedure FixtureCleanupCanBeRepeated()
+    var
+        ExpenseTestHandlerAPI: Codeunit "Expense Test Handler API";
+        Fixture: JsonObject;
+        FixtureText: Text;
+    begin
+        // [FEATURE] [Approval Fixture]
+        // [SCENARIO] Repeating cleanup for the same fixture succeeds without deleting other records.
+        Initialize();
+
+        // [GIVEN] An approver fixture that has already been deleted.
+        EnableAgent(true);
+        FixtureText := ExpenseTestHandlerAPI.CreateInterimAndAlternateApproverFixture(WorkDate(), 0D);
+        Fixture.ReadFrom(FixtureText);
+        ExpenseTestHandlerAPI.DeleteInterimAndAlternateApproverFixture(FixtureText);
+
+        // [WHEN] The fixture is deleted again.
+        ExpenseTestHandlerAPI.DeleteInterimAndAlternateApproverFixture(FixtureText);
+
+        // [THEN] All fixture records remain absent.
+        VerifyApproverFixtureDeleted(Fixture);
+    end;
+
+    local procedure VerifyApproverFixture(Fixture: JsonObject; StartDate: Date; EndDate: Date)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseAlternateApprover: Record "Expense Alternate Approver";
+        Submitter: JsonObject;
+        PrimaryApprover: JsonObject;
+        AlternateApprover: JsonObject;
+    begin
+        Submitter := Fixture.GetObject('submitter');
+        PrimaryApprover := Fixture.GetObject('primaryApprover');
+        AlternateApprover := Fixture.GetObject('alternateApprover');
+        VerifyApproverFixtureIdentity(Submitter, false);
+        VerifyApproverFixtureIdentity(PrimaryApprover, true);
+        VerifyApproverFixtureIdentity(Fixture.GetObject('interimApprover'), true);
+        VerifyApproverFixtureIdentity(AlternateApprover, true);
+        ExpenseApprovalSetup.Get(Submitter.GetText('number'));
+        ExpenseApprovalSetup.TestField("Approver No.", PrimaryApprover.GetText('number'));
+        ExpenseAlternateApprover.GetBySystemId(GetFixtureGuid(Fixture, 'coverageId'));
+        ExpenseAlternateApprover.TestField("Primary Approver No.", PrimaryApprover.GetText('number'));
+        ExpenseAlternateApprover.TestField("Alternate Approver No.", AlternateApprover.GetText('number'));
+        ExpenseAlternateApprover.TestField("Effective Start Date", StartDate);
+        ExpenseAlternateApprover.TestField("Effective End Date", EndDate);
+        Assert.AreEqual(CompanyName(), Fixture.GetText('companyName'), 'The fixture must identify its company.');
+        Assert.AreEqual(WorkDate(), Fixture.GetDate('workDate'), 'The fixture must return the BC work date.');
+        Assert.AreEqual(StartDate, Fixture.GetDate('coverageStartDate'), 'The fixture must return the requested start date.');
+        Assert.AreEqual(EndDate, Fixture.GetDate('coverageEndDate'), 'The fixture must return the requested end date.');
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.TestField("Enable Agent", true);
+        ExpenseAgentSetup.TestField("Enable Approval Workflow", false);
+    end;
+
+    local procedure VerifyApproverFixtureIdentity(Identity: JsonObject; CanApprove: Boolean)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        User: Record User;
+        UserSetup: Record "User Setup";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        ExpenseUser.GetBySystemId(GetFixtureGuid(Identity, 'id'));
+        ExpenseUser.TestField("No.", Identity.GetText('number'));
+        ExpenseUser.TestField("E-mail", Identity.GetText('email'));
+        ExpenseUser.TestField("Can Approve", CanApprove);
+        Employee.GetBySystemId(GetFixtureGuid(Identity, 'employeeId'));
+        ExpenseUser.TestField("Employee No.", Employee."No.");
+        User.Get(GetFixtureGuid(Identity, 'userId'));
+        User.TestField("Authentication Email", ExpenseUser."E-mail");
+        UserSetup.GetBySystemId(GetFixtureGuid(Identity, 'userSetupId'));
+        UserSetup.TestField("User ID", User."User Name");
+        SalespersonPurchaser.GetBySystemId(GetFixtureGuid(Identity, 'salespersonId'));
+        UserSetup.TestField("Salespers./Purch. Code", SalespersonPurchaser.Code);
+        if CanApprove then begin
+            ExpenseUser.TestField("Unlimited Approval", true);
+            ExpenseUser.TestField("User Id For Approvals", User."User Name");
+        end;
+    end;
+
+    local procedure VerifyApproverFixtureDeleted(Fixture: JsonObject)
+    var
+        ExpenseAlternateApprover: Record "Expense Alternate Approver";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        Submitter: JsonObject;
+    begin
+        Assert.IsFalse(ExpenseAlternateApprover.GetBySystemId(GetFixtureGuid(Fixture, 'coverageId')), 'Fixture coverage must be deleted.');
+        Submitter := Fixture.GetObject('submitter');
+        Assert.IsFalse(ExpenseApprovalSetup.Get(Submitter.GetText('number')), 'The fixture approval setup must be deleted.');
+        VerifyApproverFixtureIdentityDeleted(Submitter);
+        VerifyApproverFixtureIdentityDeleted(Fixture.GetObject('primaryApprover'));
+        VerifyApproverFixtureIdentityDeleted(Fixture.GetObject('interimApprover'));
+        VerifyApproverFixtureIdentityDeleted(Fixture.GetObject('alternateApprover'));
+    end;
+
+    local procedure VerifyApproverFixtureIdentityDeleted(Identity: JsonObject)
+    var
+        ExpenseUser: Record "Expense User";
+        Employee: Record Employee;
+        User: Record User;
+        UserSetup: Record "User Setup";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+    begin
+        Assert.IsFalse(ExpenseUser.GetBySystemId(GetFixtureGuid(Identity, 'id')), 'The fixture expense user must be deleted.');
+        Assert.IsFalse(Employee.GetBySystemId(GetFixtureGuid(Identity, 'employeeId')), 'The fixture employee must be deleted.');
+        Assert.IsFalse(User.Get(GetFixtureGuid(Identity, 'userId')), 'The fixture BC user must be deleted.');
+        Assert.IsFalse(UserSetup.GetBySystemId(GetFixtureGuid(Identity, 'userSetupId')), 'The fixture user setup must be deleted.');
+        Assert.IsFalse(SalespersonPurchaser.GetBySystemId(GetFixtureGuid(Identity, 'salespersonId')), 'The fixture salesperson must be deleted.');
+    end;
+
+    local procedure GetFixtureGuid(Fixture: JsonObject; PropertyName: Text) Value: Guid
+    begin
+        Evaluate(Value, Fixture.GetText(PropertyName));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerCanSelfApproveReportBelowOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An owner configured as their own approver can approve a report below their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver, "B" is the unlimited default approver, and "A" has a released report for 49.99.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 49.99);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve below their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve below their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerCanSelfApproveReportEqualToOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An owner configured as their own approver can approve a report equal to their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver, "B" is the unlimited default approver, and "A" has a released report for 50.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve at their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve at their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure OwnerReportAboveOwnApprovalLimitRoutesToUnlimitedDefaultApprover()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] A report above the self-approving owner's limit is handed off to the unlimited default approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver, "B" is the unlimited default approver, and "A" has a released report for 50.01.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50.01);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "B" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, DefaultApprover, DefaultApprover);
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsFalse(ExpenseReportPage.Approve.Visible(), 'The owner must not see Approve above their approval limit.');
+        ExpenseReportPage.Close();
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] "A" tries to approve the expense report.
+        asserterror ExpenseReportHeader.PerformManualApproved(Owner."No.");
+
+        // [THEN] An error explains that the report exceeds "A"'s approval limit.
+        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", Owner.FieldCaption("Approval Limit (LCY)"), Owner."No."));
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyApprovalRouting(ExpenseReportHeader, DefaultApprover, DefaultApprover);
+
+        // [WHEN] "B" approves the expense report.
+        ExpenseReportHeader.PerformManualApproved(DefaultApprover."No.");
+
+        // [THEN] The report is approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", DefaultApprover."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SelfApprovalSetupRoutesOwnerReportsByAmountWithoutSetupChanges()
+    var
+        Owner: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        WithinLimitExpenseReportHeader: Record "Expense Report Header";
+        AboveLimitExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] One self-approval setup routes reports within the owner's limit to the owner and reports above it to the unlimited default approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is their own approver and "B" is the unlimited default approver.
+        CreateSelfApprovalScenario(Owner, DefaultApprover, 50);
+
+        // [WHEN] "A" submits a report for 50 and then a report for 50.01 without changing the approval setup.
+        CreateAndReleaseExpenseReportWithAmount(Owner, WithinLimitExpenseReportHeader, 50);
+        ExpenseReportApprovalMgmt.Submit(WithinLimitExpenseReportHeader, Owner."No.");
+        CreateAndReleaseExpenseReportWithAmount(Owner, AboveLimitExpenseReportHeader, 50.01);
+        ExpenseReportApprovalMgmt.Submit(AboveLimitExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report for 50 is assigned to "A", the report for 50.01 is assigned to "B", and "A" remains their own approver.
+        VerifyApprovalRouting(WithinLimitExpenseReportHeader, Owner, Owner);
+        VerifyApprovalRouting(AboveLimitExpenseReportHeader, DefaultApprover, DefaultApprover);
+        ExpenseApprovalSetup.Get(Owner."No.");
+        ExpenseApprovalSetup.TestField("Approver No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerMappedToOtherApproverCanSelfApproveReportBelowOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An approver-capable owner mapped to another approver can approve their own report below their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B", and "A" has a released report for 49.99.
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 49.99);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve below their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve below their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved by "A".
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler,ApproveConfirmHandler')]
+    procedure OwnerMappedToOtherApproverCanSelfApproveReportEqualToOwnApprovalLimit()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] An approver-capable owner mapped to another approver can approve their own report equal to their approval limit.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B", and "A" has a released report for 50.
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "A" as both the active and final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, Owner, Owner);
+
+        // [WHEN] "A" approves the expense report from the card.
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsTrue(ExpenseReportPage.Approve.Visible(), 'The owner must see Approve at their approval limit.');
+        Assert.IsTrue(ExpenseReportPage.Approve.Enabled(), 'The owner must be able to approve at their approval limit.');
+        ExpenseReportPage.Approve.Invoke();
+        ExpenseReportPage.Close();
+
+        // [THEN] The report is approved by "A".
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Owner."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure OwnerMappedToOtherApproverReportAboveOwnApprovalLimitRoutesToMappedApprover()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseReportPage: TestPage "Expense Report";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] A report above the owner's approval limit is handed off to the owner's mapped approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B", and "A" has a released report for 50.01.
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+        CreateAndReleaseExpenseReportWithAmount(Owner, ExpenseReportHeader, 50.01);
+
+        // [WHEN] "A" submits the expense report.
+        ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report is pending approval with "B" as both the active and final approver, and "A" does not see Approve.
+        VerifyApprovalRouting(ExpenseReportHeader, Approver, Approver);
+        ExpenseReportPage.OpenView();
+        ExpenseReportPage.GoToRecord(ExpenseReportHeader);
+        Assert.IsFalse(ExpenseReportPage.Approve.Visible(), 'The owner must not see Approve above their approval limit.');
+        ExpenseReportPage.Close();
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] "A" tries to approve the expense report.
+        asserterror ExpenseReportHeader.PerformManualApproved(Owner."No.");
+
+        // [THEN] An error explains that the report exceeds "A"'s approval limit.
+        Assert.ExpectedError(StrSubstNo(ApproverApprovalLimitErr, ExpenseReportHeader."No.", Owner.FieldCaption("Approval Limit (LCY)"), Owner."No."));
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyApprovalRouting(ExpenseReportHeader, Approver, Approver);
+
+        // [WHEN] "B" approves the expense report.
+        ExpenseReportHeader.PerformManualApproved(Approver."No.");
+
+        // [THEN] The report is approved by "B".
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+        ExpenseReportHeader.TestField("Approved/Rejected Exp.User No.", Approver."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure OwnerMappedToOtherApproverRoutesReportsByAmountWithoutSetupChanges()
+    var
+        Owner: Record "Expense User";
+        Approver: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        WithinLimitExpenseReportHeader: Record "Expense Report Header";
+        AboveLimitExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] One A-to-B setup routes reports within the owner's limit to the owner and reports above it to the mapped approver.
+        Initialize();
+
+        // [GIVEN] Owner "A" with an approval limit of 50 is mapped to unlimited approver "B".
+        CreateOwnerMappedToApproverScenario(Owner, Approver, 50);
+
+        // [WHEN] "A" submits a report for 50 and then a report for 50.01 without changing the approval setup.
+        CreateAndReleaseExpenseReportWithAmount(Owner, WithinLimitExpenseReportHeader, 50);
+        ExpenseReportApprovalMgmt.Submit(WithinLimitExpenseReportHeader, Owner."No.");
+        CreateAndReleaseExpenseReportWithAmount(Owner, AboveLimitExpenseReportHeader, 50.01);
+        ExpenseReportApprovalMgmt.Submit(AboveLimitExpenseReportHeader, Owner."No.");
+
+        // [THEN] The report for 50 is assigned to "A", the report for 50.01 is assigned to "B", and "A" remains mapped to "B".
+        VerifyApprovalRouting(WithinLimitExpenseReportHeader, Owner, Owner);
+        VerifyApprovalRouting(AboveLimitExpenseReportHeader, Approver, Approver);
+        ExpenseApprovalSetup.Get(Owner."No.");
+        ExpenseApprovalSetup.TestField("Approver No.", Approver."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmissionExceedingLimitWithCircularApproverChainFails()
+    var
+        Submitter: Record "Expense User";
+        Approver: Record "Expense User";
+        NextApprover: Record "Expense User";
+        DefaultApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 658633] Submission still fails when escalation between different approvers loops back, even with an unlimited default approver.
+        Initialize();
+        EnableAgent(true);
+
+        // [GIVEN] Submitter "S" has approver "A1" with a limit of 100, "A1" escalates to "A2" with a limit of 100, "A2" escalates back to "A1", "B" is the unlimited default approver, and the released report amount is 200.
+        CreateApprovalLimitScenario(Submitter, Approver, ExpenseReportHeader, 200, 100);
+        CreateApproverExpenseUser(NextApprover);
+        SetApprovalLimit(NextApprover, 100);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Approver."No.", NextApprover."No.");
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, NextApprover."No.", Approver."No.");
+        CreateApproverExpenseUser(DefaultApprover);
+        SetDefaultApprover(DefaultApprover."No.");
+
+        // [WHEN] "S" submits the expense report.
+        asserterror ExpenseReportApprovalMgmt.Submit(ExpenseReportHeader, Submitter."No.");
+
+        // [THEN] An error explains that a next approver must be configured for "A2".
+        Assert.ExpectedError(StrSubstNo(ApproverRequiredErr, ExpenseReportHeader."No.", NextApprover.FieldCaption("Approval Limit (LCY)"), NextApprover."No."));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";
@@ -1971,35 +2711,13 @@ codeunit 148346 "Expense Interim Approval Test"
     end;
 
     local procedure CreateSubmitterExpenseUser(var ExpenseUser: Record "Expense User")
-    var
-        UserSetup: Record "User Setup";
-        UserEmail: Text[80];
     begin
-        LibraryDocumentApprovals.CreateMockupUserSetup(UserSetup);
-        UserEmail := GenerateUniqueEmail();
-        CreateAndUpdateUserWithEmail(UserSetup."User ID", UserEmail);
-
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        ExpenseUser.Validate("E-mail", UserEmail);
-        ExpenseUser.Validate("Entra Id", CreateGuid());
-        ExpenseUser.Modify();
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ExpenseUser, false);
     end;
 
     local procedure CreateApproverExpenseUser(var ExpenseUser: Record "Expense User")
-    var
-        UserSetup: Record "User Setup";
-        UserEmail: Text[80];
     begin
-        LibraryDocumentApprovals.CreateMockupUserSetup(UserSetup);
-        UserEmail := GenerateUniqueEmail();
-        CreateAndUpdateUserWithEmail(UserSetup."User ID", UserEmail);
-
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-        ExpenseUser.Validate("E-mail", UserEmail);
-        ExpenseUser.Validate("Can Approve", true);
-        ExpenseUser.Validate("Unlimited Approval", true);
-        ExpenseUser.Validate("Entra Id", CreateGuid());
-        ExpenseUser.Modify();
+        LibraryExpense.CreateExpenseUserWithApprovalIdentity(ExpenseUser, true);
     end;
 
     local procedure CreateSubmittedExpenseReport(Submitter: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header")
@@ -2021,15 +2739,8 @@ codeunit 148346 "Expense Interim Approval Test"
     end;
 
     local procedure CreateAlternateApproverCoverage(PrimaryApproverNo: Code[20]; AlternateApproverNo: Code[20]; StartDate: Date; EndDate: Date)
-    var
-        ExpenseAlternateApprover: Record "Expense Alternate Approver";
     begin
-        ExpenseAlternateApprover.Init();
-        ExpenseAlternateApprover.Validate("Primary Approver No.", PrimaryApproverNo);
-        ExpenseAlternateApprover.Validate("Alternate Approver No.", AlternateApproverNo);
-        ExpenseAlternateApprover.Validate("Effective Start Date", StartDate);
-        ExpenseAlternateApprover.Validate("Effective End Date", EndDate);
-        ExpenseAlternateApprover.Insert(true);
+        LibraryExpense.CreateAlternateApproverCoverage(PrimaryApproverNo, AlternateApproverNo, StartDate, EndDate);
     end;
 
     local procedure RunDelegationReport(ExpenseReportNo: Code[20])
@@ -2107,17 +2818,23 @@ codeunit 148346 "Expense Interim Approval Test"
 
     local procedure CreateAndReleaseExpenseReport(Submitter: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header")
     var
+        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
+    begin
+        CreateOpenExpenseReport(Submitter, ExpenseReportHeader);
+        ReleaseExpenseReportDocument.PerformManualCheckAndRelease(ExpenseReportHeader);
+    end;
+
+    local procedure CreateOpenExpenseReport(Submitter: Record "Expense User"; var ExpenseReportHeader: Record "Expense Report Header")
+    var
         Expense: Record Expense;
         CreateExpenseReport: Codeunit "Create Expense Report";
         ReleaseExpenseDocument: Codeunit "Release Expense Document";
-        ReleaseExpenseReportDocument: Codeunit "Release Exp. Report Document";
     begin
         CreateExpense(Expense, Submitter, LibraryRandom.RandIntInRange(5000, 10000));
         ReleaseExpenseDocument.PerformManualCheckAndRelease(Expense);
 
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Submitter."No.", Expense."Currency Code", Expense."VAT Bus. Posting Group");
         CreateExpenseReport.AddExpensesToReport(ExpenseReportHeader);
-        ReleaseExpenseReportDocument.PerformManualCheckAndRelease(ExpenseReportHeader);
     end;
 
     local procedure CreateExpense(var Expense: Record Expense; ExpenseUser: Record "Expense User"; Amount: Decimal)
@@ -2148,29 +2865,6 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseAgentSetup.Modify(true);
     end;
 
-    local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])
-    var
-        User: Record User;
-    begin
-        User.SetRange("User Name", UserName);
-        if User.FindFirst() then begin
-            User."Authentication Email" := UserEmail;
-            User.Modify();
-        end else begin
-            User.Init();
-            User."User Security ID" := CreateGuid();
-            User."User Name" := UserName;
-            User."Authentication Email" := UserEmail;
-            User.Insert(true);
-        end;
-    end;
-
-    local procedure GenerateUniqueEmail(): Text[80]
-    begin
-        // A globally unique authentication email to avoid duplicate authentication email collisions across tests.
-        exit(CopyStr(DelChr(LowerCase(Format(CreateGuid())), '=', '{}-') + '@test.local', 1, 80));
-    end;
-
     local procedure VerifyStatus(var ExpenseReportHeader: Record "Expense Report Header"; ExpectedStatus: Enum "Expense Report Status")
     begin
         ExpenseReportHeader.Get(ExpenseReportHeader."No.");
@@ -2197,6 +2891,17 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseReportHeader.TestField("Interim Approver No.", ExpectedInterimNo);
     end;
 
+    local procedure VerifyInterimApproverStatusError()
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverStatusErr,
+                Format(ExpenseReportHeader.Status::Released),
+                Format(ExpenseReportHeader.Status::"Pending Approval")));
+    end;
+
     local procedure EnableSaaS(IsSaaS: Boolean)
     var
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
@@ -2204,9 +2909,44 @@ codeunit 148346 "Expense Interim Approval Test"
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(IsSaaS);
     end;
 
+    local procedure CreateSelfApprovalScenario(var Owner: Record "Expense User"; var DefaultApprover: Record "Expense User"; ApprovalLimit: Decimal)
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        EnableAgent(true);
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := 'DKK';
+        GeneralLedgerSetup.Modify(true);
+
+        CreateApproverExpenseUser(Owner);
+        SetApprovalLimit(Owner, ApprovalLimit);
+        SetCurrentUser(Owner);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Owner."No.", Owner."No.");
+        CreateApproverExpenseUser(DefaultApprover);
+        SetDefaultApprover(DefaultApprover."No.");
+    end;
+
+    local procedure CreateOwnerMappedToApproverScenario(var Owner: Record "Expense User"; var Approver: Record "Expense User"; ApprovalLimit: Decimal)
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        CreateSelfApprovalScenario(Owner, Approver, ApprovalLimit);
+        ExpenseApprovalSetup.Get(Owner."No.");
+        ExpenseApprovalSetup.Validate("Approver No.", Approver."No.");
+        ExpenseApprovalSetup.Modify(true);
+    end;
+
     [ModalPageHandler]
     procedure ExpensesModalPageHandler(var Expenses: TestPage Expenses)
     begin
         Expenses.OK().Invoke();
+    end;
+
+    [ConfirmHandler]
+    procedure ApproveConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage('Do you want to approve submitted Expense Report?', Question);
+        Reply := true;
     end;
 }

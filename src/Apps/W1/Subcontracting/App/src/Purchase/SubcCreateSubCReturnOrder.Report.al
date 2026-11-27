@@ -60,7 +60,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         }
     }
 
-#if not CLEAN29
+#if not CLEAN28
     trigger OnInitReport()
     var
 #pragma warning disable AL0432
@@ -99,6 +99,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferHeader.SetRange("Transfer-from Code", TransferFromLocationCode);
         TransferHeader.SetRange("Transfer-to Code", TransferToLocationCode);
         TransferHeader.SetRange("Subc. Return Order", true);
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", "Purchase Header"."No.");
         if not TransferHeader.FindFirst() then begin
             TransferHeader.Init();
             TransferHeader."No." := '';

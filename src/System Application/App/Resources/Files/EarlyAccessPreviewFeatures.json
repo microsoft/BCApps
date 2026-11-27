@@ -1,1 +1,25 @@
-[]
+[
+    {
+        "FeatureName": "Edit with Copilot",
+        "Description": "Delegate real work to Copilot, such as creating or updating records or running actions in Business Central.",
+        "Category": "Other",
+        "HelpURL": "https://aka.ms/editBCwithCopilot",
+        "VideoURL": ""
+    },
+    {
+        "FeatureName": "Add subcontracting suggestions to an existing purchase order",
+        "ReleaseVersion": "30.0",
+        "Description": "You can add new subcontracting worksheet suggestions to a compatible open purchase order for the same vendor, keeping related work on one order.",
+        "GettingStartedSteps": [
+            "Use a company with the Premium experience and the Subcontracting extension installed and set up. Start with a released production order that has subcontracted work that still needs to be ordered.",
+            "Open the Subcontracting Worksheets page and choose the Calculate Subcontracts action. Filter for the relevant production order or operation, then choose OK.",
+            "Select a suggestion whose Action Message field is New. Choose the Assign purchase order action and select a compatible open purchase order for the same vendor.",
+            "Ensure Accept Action Message is selected for this suggestion. Choose the Carry Out Action Message action, then choose OK.",
+            "Open the purchase order you selected and verify the additional subcontracting operation line and its production order and operation links. Supporting component or comment lines can also be present."
+        ],
+        "Category": "Supply chain management",
+        "HelpURL": "https://learn.microsoft.com/dynamics365/business-central/subcontract-order#create-subcontracting-purchase-orders-with-the-worksheet",
+        "VideoURL": "",
+        "ADOSliceIds": [634223]
+    }
+]

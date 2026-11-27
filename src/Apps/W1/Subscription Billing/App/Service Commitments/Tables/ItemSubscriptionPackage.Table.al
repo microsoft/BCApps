@@ -88,12 +88,12 @@ table 8058 "Item Subscription Package"
         PackageFilter := GetPackageFilterForItem(ItemNo, '');
     end;
 
-    internal procedure GetPackageFilterForItem(ItemNo: Code[20]; ServiceObjectNo: Code[20]) PackageFilter: Text
+    procedure GetPackageFilterForItem(ItemNo: Code[20]; ServiceObjectNo: Code[20]) PackageFilter: Text
     begin
         PackageFilter := GetPackageFilterForItem(ItemNo, ServiceObjectNo, false);
     end;
 
-    internal procedure GetPackageFilterForItem(ItemNo: Code[20]; ServiceObjectNo: Code[20]; OnlyNonStandardPackage: Boolean) PackageFilter: Text
+    procedure GetPackageFilterForItem(ItemNo: Code[20]; ServiceObjectNo: Code[20]; OnlyNonStandardPackage: Boolean) PackageFilter: Text
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         TextManagement: Codeunit "Text Management";
@@ -122,7 +122,7 @@ table 8058 "Item Subscription Package"
         exit(not ServiceCommitment.IsEmpty());
     end;
 
-    internal procedure GetPackageFilterForItem(SalesLine: Record "Sales Line"; RemoveExistingPackageFromFilter: Boolean) PackageFilter: Text
+    procedure GetPackageFilterForItem(SalesLine: Record "Sales Line"; RemoveExistingPackageFromFilter: Boolean) PackageFilter: Text
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         TextManagement: Codeunit "Text Management";
@@ -150,7 +150,7 @@ table 8058 "Item Subscription Package"
         exit(not SalesServiceCommitment.IsEmpty());
     end;
 
-    internal procedure GetAllStandardPackageFilterForItem(ItemNo: Code[20]; CustomerPriceGroup: Code[10]) PackageFilter: Text
+    procedure GetAllStandardPackageFilterForItem(ItemNo: Code[20]; CustomerPriceGroup: Code[10]) PackageFilter: Text
     var
         ItemServCommitmentPackage: Record "Item Subscription Package";
         TextManagement: Codeunit "Text Management";

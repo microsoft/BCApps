@@ -25,6 +25,8 @@ codeunit 144018 QuoteManagement
         Initialized: Boolean;
         TotalErr: Label 'Total should be the first word in end-total';
         ExpectRecTxt: Label 'Expect to find a record';
+        LineMustBeIncludedInDocTotalsErr: Label 'Line without quote variant must be included in document totals.';
+        QuoteVariantLineMustBeExcludedFromDocTotalsErr: Label 'Quote variant line must be excluded from document totals.';
 
     [Test]
     [HandlerFunctions('QuoteAnalysisRequestPageHandler,QuoteAnalysisConfirmHandler')]
@@ -370,6 +372,27 @@ codeunit 144018 QuoteManagement
     end;
 
     [Test]
+    procedure QuoteVariantLineIsExcludedFromDocumentTotals()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+    begin
+        // [FEATURE] [Sales] [Quote]
+        // [SCENARIO 656400] Sales line with "Quote Variant" = "Variant" is excluded from document totals, other lines are not.
+        Initialize();
+
+        // [GIVEN] Create Sales Quote with line with "Quote Variant" = " " and line with "Quote Variant" = "Variant".
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, LibrarySales.CreateCustomerNo());
+        CreateSalesLineWithQuoteVariant(SalesLine[1], SalesHeader, SalesLine[1]."Quote Variant"::" ");
+        CreateSalesLineWithQuoteVariant(SalesLine[2], SalesHeader, SalesLine[2]."Quote Variant"::Variant);
+
+        // [WHEN] Checking whether the lines are excluded from document totals.
+        // [THEN] Line with "Quote Variant" = " " is included and line with "Quote Variant" = "Variant" is excluded.
+        Assert.IsFalse(SalesLine[1].IsExcludedFromDocumentTotals(), LineMustBeIncludedInDocTotalsErr);
+        Assert.IsTrue(SalesLine[2].IsExcludedFromDocumentTotals(), QuoteVariantLineMustBeExcludedFromDocTotalsErr);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure SalesQuoteTotalsForQuoteVariantVariant()
     var
@@ -690,4 +713,3 @@ codeunit 144018 QuoteManagement
         Reply := true;
     end;
 }
-

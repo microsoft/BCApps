@@ -46,6 +46,8 @@
         SetIgnoreCommitToFalse: Boolean;
         RaiseErrorAfterCommit: Boolean;
         CommitTestMarkerID: Guid;
+        ClassifyAsProductionOrder: Boolean;
+        ClassifyAsConsumptionTemplate: Boolean;
 
     [Test]
     [Scope('OnPrem')]
@@ -2417,6 +2419,105 @@
     end;
 
     [Test]
+    procedure IsOpenedFromBatchWithRecordWithNoFilters()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [Item Journal] [UT]
+        // [SCENARIO 659621] ItemJournalLine.IsOpenedFromBatch returns TRUE when the record is already selected, e.g. opened from a URL link.
+        Initialize();
+
+        // [GIVEN] Item journal line in batch "B" of template "T".
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        ItemJournalLine.Reset();
+
+        // [WHEN] IsOpenedFromBatch is called on the record with no filters.
+        // [THEN] It returns TRUE and the journal template filter is set to "T".
+        Assert.IsTrue(ItemJournalLine.IsOpenedFromBatch(), 'ItemJournalLine.IsOpenedFromBatch must return TRUE');
+        Assert.AreEqual(ItemJournalTemplate.Name, ItemJournalLine.GetFilter("Journal Template Name"), 'Journal Template Name filter is not set.');
+    end;
+
+    [Test]
+    procedure IsOpenedFromBatchWithRecordInBatchWithFilterSymbolsInName()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [Item Journal] [UT]
+        // [SCENARIO 659621] ItemJournalLine.IsOpenedFromBatch treats the batch name of the current record as a literal value.
+        Initialize();
+
+        // [GIVEN] Item journal line in batch "Z..A" of template "T".
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        ItemJournalBatch.Init();
+        ItemJournalBatch.Validate("Journal Template Name", ItemJournalTemplate.Name);
+        ItemJournalBatch.Validate(Name, 'Z..A');
+        ItemJournalBatch.Insert(true);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        ItemJournalLine.Reset();
+
+        // [WHEN] IsOpenedFromBatch is called on the record with no filters.
+        // [THEN] It returns TRUE without failing to find batch "Z..A".
+        Assert.IsTrue(ItemJournalLine.IsOpenedFromBatch(), 'ItemJournalLine.IsOpenedFromBatch must return TRUE');
+    end;
+
+    [Test]
+    procedure IsOpenedFromBatchWithNoRecordAndNoFilters()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [Item Journal] [UT]
+        // [SCENARIO 659621] ItemJournalLine.IsOpenedFromBatch returns FALSE when there are no filters and no record selected.
+        Initialize();
+
+        Assert.IsFalse(ItemJournalLine.IsOpenedFromBatch(), 'ItemJournalLine.IsOpenedFromBatch must return FALSE');
+    end;
+
+    [Test]
+    procedure ItemJournalOpenedForLineWithoutFiltersShowsLineBatch()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: array[2] of Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournal: TestPage "Item Journal";
+    begin
+        // [FEATURE] [Item Journal] [UI]
+        // [SCENARIO 659621] Item Journal opened for a specific line without filters (e.g. from an approval URL link) opens the batch of that line.
+        Initialize();
+
+        // [GIVEN] Item journal template "T" with batches "B1" and "B2".
+        // [GIVEN] Item journal line in the last batch of the template.
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch[1], ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch[2], ItemJournalTemplate.Name);
+        ItemJournalBatch[2].SetRange("Journal Template Name", ItemJournalTemplate.Name);
+        ItemJournalBatch[2].FindLast();
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch[2]."Journal Template Name", ItemJournalBatch[2].Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        ItemJournalLine.Reset();
+        Commit();
+
+        // [WHEN] Open Item Journal for the line without any filters.
+        ItemJournal.Trap();
+        Page.Run(Page::"Item Journal", ItemJournalLine);
+
+        // [THEN] Item Journal shows the batch of the line and the line can be located.
+        ItemJournal.CurrentJnlBatchName.AssertEquals(ItemJournalBatch[2].Name);
+        Assert.IsTrue(ItemJournal.GoToRecord(ItemJournalLine), 'The requested item journal line cannot be located.');
+        ItemJournal.Close();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure PostItemJnlLineCommitBySubscriberIsSuppressed()
     var
@@ -2591,6 +2692,142 @@
         Assert.RecordCount(ItemLedgerEntry, 1);
     end;
 
+    [Test]
+    procedure SalespersonDimensionsForNonProductionOrder()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DimensionValue: Record "Dimension Value";
+        DimensionSetEntry: Record "Dimension Set Entry";
+    begin
+        // [SCENARIO 629922] A non-production journal line with an order number receives salesperson dimensions.
+        Initialize();
+        CreateSalespersonWithDefaultDimension(SalespersonPurchaser, DimensionValue);
+        ItemJournalLine."Order No." := LibraryUtility.GenerateGUID();
+
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+
+        DimensionSetEntry.Get(ItemJournalLine."Dimension Set ID", DimensionValue."Dimension Code");
+        DimensionSetEntry.TestField("Dimension Value Code", DimensionValue.Code);
+    end;
+
+    [Test]
+    procedure SalespersonDimensionsForProductionOrder()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DimensionValue: Record "Dimension Value";
+        DimensionSetEntry: Record "Dimension Set Entry";
+    begin
+        // [SCENARIO 629922] Salesperson dimensions are skipped only for production lines with an order number.
+        Initialize();
+        CreateSalespersonWithDefaultDimension(SalespersonPurchaser, DimensionValue);
+        ItemJournalLine."Order Type" := ItemJournalLine."Order Type"::Production;
+        ItemJournalLine."Order No." := LibraryUtility.GenerateGUID();
+
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+        ItemJournalLine.TestField("Dimension Set ID", 0);
+
+        ItemJournalLine."Order No." := '';
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+
+        DimensionSetEntry.Get(ItemJournalLine."Dimension Set ID", DimensionValue."Dimension Code");
+        DimensionSetEntry.TestField("Dimension Value Code", DimensionValue.Code);
+    end;
+
+    [Test]
+    procedure SalespersonDimensionsUseProductionOrderPredicate()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        DimensionValue: Record "Dimension Value";
+    begin
+        // [SCENARIO 629922] Dimension handling uses the production predicate rather than an enum getter.
+        Initialize();
+        CreateSalespersonWithDefaultDimension(SalespersonPurchaser, DimensionValue);
+        ItemJournalLine."Order No." := LibraryUtility.GenerateGUID();
+        ClassifyAsProductionOrder := true;
+        BindSubscription(this);
+
+        ItemJournalLine.Validate("Salespers./Purch. Code", SalespersonPurchaser.Code);
+
+        UnbindSubscription(this);
+        ItemJournalLine.TestField("Dimension Set ID", 0);
+    end;
+
+    [Test]
+    procedure NewJournalLineDocumentNoWithProductionNumbering()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        // [SCENARIO 629922] Production order numbering does not prevent ordinary journals from copying document numbers.
+        Initialize();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Doc. No. Is Prod. Order No." := true;
+        ManufacturingSetup.Modify();
+
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Item, true);
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Consumption, false);
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Output, false);
+    end;
+
+    [Test]
+    procedure NewJournalLineUsesConsumptionTemplatePredicate()
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        // [SCENARIO 629922] New line setup uses the consumption predicate rather than an enum getter.
+        Initialize();
+        ManufacturingSetup.Get();
+        ManufacturingSetup."Doc. No. Is Prod. Order No." := true;
+        ManufacturingSetup.Modify();
+        ClassifyAsConsumptionTemplate := true;
+        BindSubscription(this);
+
+        VerifyNewJournalLineDocumentNo("Item Journal Template Type"::Item, false);
+
+        UnbindSubscription(this);
+    end;
+
+    local procedure CreateSalespersonWithDefaultDimension(var SalespersonPurchaser: Record "Salesperson/Purchaser"; var DimensionValue: Record "Dimension Value")
+    var
+        DefaultDimension: Record "Default Dimension";
+        LibraryDimension: Codeunit "Library - Dimension";
+    begin
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        LibraryDimension.CreateDimWithDimValue(DimensionValue);
+        LibraryDimension.CreateDefaultDimension(
+            DefaultDimension, Database::"Salesperson/Purchaser", SalespersonPurchaser.Code,
+            DimensionValue."Dimension Code", DimensionValue.Code);
+    end;
+
+    local procedure VerifyNewJournalLineDocumentNo(TemplateType: Enum "Item Journal Template Type"; CopyDocumentNo: Boolean)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        LastItemJournalLine: Record "Item Journal Line";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalTemplateByType(ItemJournalTemplate, TemplateType);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LastItemJournalLine."Journal Template Name" := ItemJournalTemplate.Name;
+        LastItemJournalLine."Journal Batch Name" := ItemJournalBatch.Name;
+        LastItemJournalLine."Line No." := 10000;
+        LastItemJournalLine."Entry Type" := LastItemJournalLine."Entry Type"::"Positive Adjmt.";
+        LastItemJournalLine."Posting Date" := WorkDate();
+        LastItemJournalLine."Document No." := LibraryUtility.GenerateGUID();
+        LastItemJournalLine.Insert();
+        ItemJournalLine."Journal Template Name" := ItemJournalTemplate.Name;
+        ItemJournalLine."Journal Batch Name" := ItemJournalBatch.Name;
+
+        ItemJournalLine.SetUpNewLine(LastItemJournalLine);
+
+        if CopyDocumentNo then
+            ItemJournalLine.TestField("Document No.", LastItemJournalLine."Document No.")
+        else
+            ItemJournalLine.TestField("Document No.", '');
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2601,6 +2838,8 @@
         SetIgnoreCommitToFalse := false;
         RaiseErrorAfterCommit := false;
         Clear(CommitTestMarkerID);
+        ClassifyAsProductionOrder := false;
+        ClassifyAsConsumptionTemplate := false;
 
         // Lazy Setup.
         if isInitialized then
@@ -3379,6 +3618,20 @@
         ItemList.Last();
         Assert.AreEqual(FirstItemNo, ItemList."No.".Value, '');
         Assert.AreEqual(LibraryVariableStorage.DequeueText(), ItemList."No.".Value, '');
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterIsOrderTypeProduction', '', false, false)]
+    local procedure OnAfterIsOrderTypeProduction(var ItemJournalLine: Record "Item Journal Line"; var Result: Boolean)
+    begin
+        if ClassifyAsProductionOrder and (ItemJournalLine."Order Type" = ItemJournalLine."Order Type"::" ") then
+            Result := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Template", 'OnAfterIsConsumptionTemplateType', '', false, false)]
+    local procedure OnAfterIsConsumptionTemplateType(var ItemJournalTemplate: Record "Item Journal Template"; var Result: Boolean)
+    begin
+        if ClassifyAsConsumptionTemplate and (ItemJournalTemplate.Type = ItemJournalTemplate.Type::Item) then
+            Result := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Batch", 'OnBeforeCode', '', false, false)]

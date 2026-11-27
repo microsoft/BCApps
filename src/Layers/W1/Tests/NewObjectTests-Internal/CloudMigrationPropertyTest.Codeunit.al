@@ -791,6 +791,7 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(1992); // Database::"Checklist Item Role"
         ListOfTablesToMigrate.Add(1993); // Database::"Checklist Item User"
         ListOfTablesToMigrate.Add(9701); // Database::"Cue Setup"
+        ListOfTablesToMigrate.Add(4508); // Database::"Email - Outlook Account"
         ListOfTablesToMigrate.Add(8887); // Database::"Email Connector Logo"
         ListOfTablesToMigrate.Add(8901); // Database::"Email Error"
         ListOfTablesToMigrate.Add(8904); // Database::"Email Message Attachment"
@@ -862,7 +863,11 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Analysis View");
         ListOfTablesToMigrate.Add(Database::"API Data Upgrade");
         ListOfTablesToMigrate.Add(Database::"API Entities Setup");
+#if not CLEAN30
+#pragma warning disable AL0432
         ListOfTablesToMigrate.Add(Database::"API Extension Upload");
+#pragma warning restore AL0432
+#endif
         ListOfTablesToMigrate.Add(Database::"Applied Payment Entry");
         ListOfTablesToMigrate.Add(Database::"Approval Comment Line");
         ListOfTablesToMigrate.Add(Database::"Approval Entry");

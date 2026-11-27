@@ -207,7 +207,7 @@ codeunit 7600 "Calendar Management"
     local procedure AddCustomizedCalendarChanges(NewCustomizedCalendarChange: Record "Customized Calendar Change"; var TempCustomizedCalendarChange: record "Customized Calendar Change" temporary)
     var
         CustomizedCalendarChange: Record "Customized Calendar Change";
-        EntryNo: Integer;
+        EntryNo: BigInteger;
     begin
         OnBeforeAddCustomizedCalendarChanges(CustomizedCalendarChange);
 

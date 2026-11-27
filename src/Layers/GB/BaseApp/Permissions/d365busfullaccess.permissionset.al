@@ -251,7 +251,11 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Analysis Selected Dimension" = RIMD,
                   tabledata "API Data Upgrade" = RIMD,
                   tabledata "API Entities Setup" = RIMD,
+#if not CLEAN30
+#pragma warning disable AL0432
                   tabledata "API Extension Upload" = rimd,
+#pragma warning restore AL0432
+#endif
                   tabledata "Application Area Buffer" = RIMD,
                   tabledata "Application Area Setup" = RIMD,
                   tabledata "Approval Comment Line" = RIMD,
@@ -467,9 +471,6 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Generic Chart Setup" = RIMD,
                   tabledata "Generic Chart Y-Axis" = RIMD,
                   tabledata Geolocation = RIMD,
-#if not CLEAN27
-                  tabledata "GovTalk Setup" = RIMD,
-#endif
                   tabledata "Grounds for Termination" = RIMD,
                   tabledata "HR Confidential Comment Line" = RIMD,
                   tabledata "Human Resource Comment Line" = IM,

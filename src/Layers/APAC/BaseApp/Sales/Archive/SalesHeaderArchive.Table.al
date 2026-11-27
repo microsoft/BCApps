@@ -836,13 +836,7 @@ table 5107 "Sales Header Archive"
         /// <summary>
         /// Specifies the tracking number assigned by the shipping carrier for package tracking purposes.
         /// </summary>
-#if not CLEAN27
-#pragma warning disable AS0086
-#endif
         field(106; "Package Tracking No."; Text[50])
-#if not CLEAN27
-#pragma warning restore AS0086
-#endif
         {
             Caption = 'Package Tracking No.';
             ToolTip = 'Specifies the shipping agent''s package number.';
@@ -1135,7 +1129,7 @@ table 5107 "Sales Header Archive"
         /// <summary>
         /// Specifies the entry number of the incoming document linked to this sales document.
         /// </summary>
-        field(165; "Incoming Document Entry No."; Integer)
+        field(165; "Incoming Document Entry No."; BigInteger)
         {
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";

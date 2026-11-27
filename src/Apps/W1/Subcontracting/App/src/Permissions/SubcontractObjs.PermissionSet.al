@@ -30,6 +30,7 @@ permissionset 20501 "Subcontract. - Objs"
         codeunit "Subc. ProdO. Factbox Mgmt." = X,
         codeunit "Subc. Purch. Factbox Mgmt." = X,
         codeunit "Subc. Routing Factbox Mgmt." = X,
+        codeunit "Subc. Order Summary Mgmt." = X,
         codeunit "Subc. ItemChargeAssPurchExt" = X,
         codeunit "Subc. Item Extension" = X,
         codeunit "Subc. ItemJnlPostLine Ext" = X,
@@ -74,11 +75,12 @@ permissionset 20501 "Subcontract. - Objs"
         codeunit "Subc. WhsePostShipment Ext" = X,
         codeunit "Subc. WIP Item Ledg Find Entry" = X,
         codeunit "Subc. Application Area Mgmt." = X,
-#if not CLEAN29
+#if not CLEAN28
 #pragma warning disable AL0432
         codeunit "Subc. Feature Flag Handler" = X,
 #pragma warning restore AL0432
 #endif
+        codeunit "Subc. Feature Telemetry" = X,
         codeunit "Subc. Upgrade Tag Def. Ext." = X,
         codeunit "Subc. Worksheet Handler" = X,
         codeunit "Subc. Attachment Details Ext." = X,
@@ -92,6 +94,8 @@ permissionset 20501 "Subcontract. - Objs"
         page "Subc. Subcontracting Worksheet" = X,
         page "Subc. Purchase Line Factbox" = X,
         page "Subc. Routing Info Factbox" = X,
+        page "Subc. Order Summary FactBox" = X,
+        page "Subc. Summary Invoice Lines" = X,
         page "Subc. Transfer Line Factbox" = X,
         page "Subcontractor Prices" = X,
         page "Subcontracting Setup Wizard" = X,

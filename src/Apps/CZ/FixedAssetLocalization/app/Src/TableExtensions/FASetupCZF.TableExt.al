@@ -8,6 +8,7 @@ using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.NoSeries;
+using System.Utilities;
 
 tableextension 31249 "FA Setup CZF" extends "FA Setup"
 {
@@ -60,6 +61,24 @@ tableextension 31249 "FA Setup CZF" extends "FA Setup"
         {
             Caption = 'FA Acquisition As Custom 2';
             DataClassification = CustomerContent;
+        }
+        field(31245; "Incl. Ending Book Value CZF"; Boolean)
+        {
+            Caption = 'Include Ending Book Value in Depreciation Base';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the ending book value (residual value) is included in the calculation of the depreciation base. If disabled, depreciation is calculated from the full acquisition cost and stops at the ending book value. If enabled, the ending book value is subtracted from the base before depreciation is calculated. For assets with a tax depreciation group, the ending book value is ignored.';
+
+            trigger OnValidate()
+            var
+                ConfirmManagement: Codeunit "Confirm Management";
+                ChangeCalculationQst: Label 'Changing this setting changes the way new depreciation is calculated. Do you really want to make the change?';
+            begin
+                if Rec."Incl. Ending Book Value CZF" = xRec."Incl. Ending Book Value CZF" then
+                    exit;
+                if GuiAllowed and (CurrFieldNo <> 0) then
+                    if not ConfirmManagement.GetResponseOrDefault(ChangeCalculationQst, false) then
+                        Rec."Incl. Ending Book Value CZF" := xRec."Incl. Ending Book Value CZF";
+            end;
         }
     }
 

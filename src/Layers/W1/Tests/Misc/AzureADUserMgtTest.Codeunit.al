@@ -37,11 +37,11 @@ codeunit 132907 AzureADUserMgtTest
     begin
         // [SCENARIO] When device user signs in and its the first user on the system, an error is thrown
         Initialize();
+        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddSecurity();
 
         // [GIVEN] A user belonging to a device plan
-        CODEUNIT.RUN(CODEUNIT::"Users - Create Super User");
         UserAuthenticationId := LibraryPermissions.CreateAzureActiveDirectoryUser(User, '');
         MockGraphQueryTestLibrary.AddGraphUserWithInDevicesGroup(UserAuthenticationId, User."User Name", '', '');
 
@@ -65,11 +65,11 @@ codeunit 132907 AzureADUserMgtTest
     begin
         // [SCENARIO] When device user signs in, device plan is assigned to the user
         Initialize();
+        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddSecurity();
 
         // [GIVEN] A user belonging to a device plan
-        CODEUNIT.RUN(CODEUNIT::"Users - Create Super User");
         LibraryPermissions.AddUserToPlan(UserSecurityId(), PlanIds.GetEssentialPlanId());
         UserAuthenticationId := LibraryPermissions.CreateAzureActiveDirectoryUser(User, '');
         MockGraphQueryTestLibrary.AddGraphUserWithInDevicesGroup(UserAuthenticationId, User."User Name", '', '');
@@ -96,11 +96,11 @@ codeunit 132907 AzureADUserMgtTest
     begin
         // [SCENARIO] When device user who also happens to have a plan assigned signs in, device plan is not assigned to the user
         Initialize();
+        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddSecurity();
 
         // [GIVEN] A user belonging to a device plan
-        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryPermissions.AddUserToPlan(UserSecurityId(), PlanIds.GetEssentialPlanId());
         UserAuthenticationId := LibraryPermissions.CreateAzureActiveDirectoryUser(User, '');
         MockGraphQueryTestLibrary.AddGraphUserWithoutPlan(UserAuthenticationId, User."Full Name", '', User."Authentication Email");
@@ -129,11 +129,11 @@ codeunit 132907 AzureADUserMgtTest
     begin
         // [SCENARIO] When device user who also happens to have a plan assigned signs in, device plan is not assigned to the user
         Initialize();
+        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddSecurity();
 
         // [GIVEN] A user belonging to a device plan
-        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryPermissions.AddUserToPlan(UserSecurityId(), PlanIds.GetEssentialPlanId());
         UserAuthenticationId := LibraryPermissions.CreateAzureActiveDirectoryUser(User, '');
         MockGraphQueryTestLibrary.AddGraphUserWithoutPlan(UserAuthenticationId, User."Full Name", '', User."Authentication Email");
@@ -162,11 +162,11 @@ codeunit 132907 AzureADUserMgtTest
     begin
         // [SCENARIO] When device user who also happens to have a plan assigned signs in, device plan is not assigned to the user
         Initialize();
+        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddSecurity();
 
         // [GIVEN] A user belonging to a device plan
-        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
         LibraryPermissions.AddUserToPlan(UserSecurityId(), PlanIds.GetEssentialPlanId());
         UserAuthenticationId := LibraryPermissions.CreateAzureActiveDirectoryUser(User, '');
         MockGraphQueryTestLibrary.AddGraphUserWithoutPlan(UserAuthenticationId, User."Full Name", '', User."Authentication Email");

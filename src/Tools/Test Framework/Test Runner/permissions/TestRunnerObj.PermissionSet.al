@@ -30,6 +30,7 @@ permissionset 130452 "Test Runner - Obj."
         codeunit "AL Code Coverage Mgt." = X,
         codeunit "AL Code Coverage Subscribers" = X,
         codeunit "Test Input" = X,
+        codeunit "Test Input Data Tools" = X,
         codeunit "Test Input Json" = X,
         codeunit "Test Inputs Management" = X,
         codeunit "Test Output" = X,

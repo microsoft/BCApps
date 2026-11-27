@@ -399,7 +399,13 @@ codeunit 18466 "Subcontracting Post"
     var
         PurchHeader: Record "Purchase Header";
         PurchPost: Codeunit "Purch.-Post";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforePostPurchOrder(PurchLine, IsHandled);
+        if IsHandled then
+            exit;
+
         if not Confirm(PostConfirmationQst) then
             exit;
 
@@ -1355,6 +1361,7 @@ codeunit 18466 "Subcontracting Post"
                                             ItemLedgerEntry,
                                             TypeQty::Receive);
 
+                                    OnRecieveBackCompOnBeforePostItemJnlLine(ItemJnlLine, AppliedDeliveryChallan, SubOrderCompListVendLocal, ReceiptNo);
                                     PostItemJnlLine(ItemJnlLine);
                                 end;
                             end;
@@ -1638,8 +1645,13 @@ codeunit 18466 "Subcontracting Post"
     var
         PurchHeader: Record "Purchase Header";
         SubconCompListVend: Record "Sub Order Comp. List Vend";
-
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCreatePostedReceipt(PurchLine, IsHandled);
+        if IsHandled then
+            exit;
+
         SubconCompListVend.Reset();
         SubconCompListVend.SetRange("Document No.", PurchLine."Document No.");
         SubconCompListVend.SetRange("Document Line No.", PurchLine."Line No.");
@@ -2078,6 +2090,7 @@ codeunit 18466 "Subcontracting Post"
                 OldReservEntry.TestField("Location Code", TransferLocation);
                 OldReservEntry."New Serial No." := OldReservEntry."Serial No.";
                 OldReservEntry."New Lot No." := OldReservEntry."Lot No.";
+                OldReservEntry."New Package No." := OldReservEntry."Package No.";
 
                 TransferQty := CreateReservEntry.TransferReservEntry(Database::"Item Journal Line",
                     ItemJournalLineEntryTypeEnum2EntryTypeOption(ItemJnlLine."Entry Type"), ItemJnlLine."Journal Template Name",
@@ -2671,6 +2684,21 @@ codeunit 18466 "Subcontracting Post"
             var ItemJrnlLine: Record "Item Journal Line";
             DeliveryChallanHeader: Record "Delivery Challan Header";
             SubOrderCompList: Record "Sub Order Component List"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostPurchOrder(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRecieveBackCompOnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; AppliedDeliveryChallan: Record "Applied Delivery Challan"; SubOrderCompListVend: Record "Sub Order Comp. List Vend"; ReceiptNo: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreatePostedReceipt(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 }

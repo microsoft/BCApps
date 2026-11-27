@@ -77,6 +77,8 @@ codeunit 30178 "Shpfy Product Export"
         SkippedRecord: Codeunit "Shpfy Skipped Record";
         OnlyUpdatePrice: Boolean;
         NullGuid: Guid;
+        Option1NameCacheProductId: BigInteger;
+        Option1NameCache: Text[50];
         BulkOperationInput: TextBuilder;
         GraphQueryList: Dictionary of [BigInteger, TextBuilder];
         JRequestData: JsonArray;
@@ -87,6 +89,7 @@ codeunit 30178 "Shpfy Product Export"
         ItemVariantIsBlockedLbl: Label 'Item variant is blocked or sales blocked.';
         ItemLbl: Label 'item';
         ItemVariantLbl: Label 'item variant';
+        DefaultOption1NameLbl: Label 'Variant', Locked = true;
 
     /// <summary> 
     /// Creates html body for a product from extended text, marketing text and attributes.
@@ -259,7 +262,9 @@ codeunit 30178 "Shpfy Product Export"
         if OnlyUpdatePrice then
             exit;
         Clear(TempShopifyVariant);
-        FillInProductVariantData(TempShopifyVariant, Item, ItemVariant);
+        // Pass ProductId explicitly: the variant record is still blank here and only gets its
+        // Product Id in AddProductVariant, after the option name has been resolved.
+        FillInProductVariantData(TempShopifyVariant, Item, ItemVariant, ProductId);
 
         GetItemAttributeIDsMarkedAsOption(Item, ItemAttributeIds);
         if ItemAttributeIds.Count() > 0 then
@@ -286,7 +291,9 @@ codeunit 30178 "Shpfy Product Export"
         end;
 
         Clear(TempShopifyVariant);
-        FillInProductVariantData(TempShopifyVariant, Item, ItemVariant, ItemUnitofMeasure);
+        // Pass ProductId explicitly: the variant record is still blank here and only gets its
+        // Product Id in AddProductVariant, after the option name has been resolved.
+        FillInProductVariantData(TempShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, ProductId);
         TempShopifyVariant.Insert(false);
         VariantApi.AddProductVariant(TempShopifyVariant, ProductId, "Shpfy Variant Create Strategy"::DEFAULT);
     end;
@@ -391,9 +398,22 @@ codeunit 30178 "Shpfy Product Export"
     /// <param name="Item">Parameter of type Record Item.</param>
     /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
     internal procedure FillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant")
+    begin
+        FillInProductVariantData(ShopifyVariant, Item, ItemVariant, ShopifyVariant."Product Id");
+    end;
+
+    /// <summary>
+    /// Fill In Product Variant Data.
+    /// </summary>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shopify Variant".</param>
+    /// <param name="Item">Parameter of type Record Item.</param>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="TargetProductId">Shopify product the variant belongs to. Callers creating a new variant must pass this, because the variant record does not carry a Product Id yet.</param>
+    internal procedure FillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; TargetProductId: BigInteger)
     var
         Product: Record "Shpfy Product";
         ItemAsVariant: Boolean;
+        Option1NameFromShopify: Boolean;
     begin
         if Shop."Sync Prices" or OnlyUpdatePrice then
             if Item.Blocked or Item."Sales Blocked" then
@@ -436,9 +456,14 @@ codeunit 30178 "Shpfy Product Export"
                 ShopifyVariant."Tariff No." := Item."Tariff No.";
                 ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
             end;
-            if ShopifyVariant."Option 1 Name" = '' then
-                ShopifyVariant."Option 1 Name" := 'Variant';
-            if ShopifyVariant."Option 1 Name" = 'Variant' then
+            if ShopifyVariant."Option 1 Name" = '' then begin
+                ShopifyVariant."Option 1 Name" := ResolveOption1Name(TargetProductId);
+                Option1NameFromShopify := ShopifyVariant."Option 1 Name" <> '';
+                if not Option1NameFromShopify then
+                    ShopifyVariant."Option 1 Name" := DefaultOption1NameLbl;
+            end;
+            // A name taken from Shopify still needs its value filled in, exactly as the default name does.
+            if Option1NameFromShopify or (ShopifyVariant."Option 1 Name" = DefaultOption1NameLbl) then
                 if ItemAsVariant then
                     ShopifyVariant."Option 1 Value" := Item."No."
                 else
@@ -459,6 +484,19 @@ codeunit 30178 "Shpfy Product Export"
     /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
     /// <param name="ItemUnitofMeasure">Parameter of type Record "Item Unit of Measure".</param>
     internal procedure FillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; ItemUnitofMeasure: Record "Item Unit of Measure")
+    begin
+        FillInProductVariantData(ShopifyVariant, Item, ItemVariant, ItemUnitofMeasure, ShopifyVariant."Product Id");
+    end;
+
+    /// <summary>
+    /// Fill In Product Variant Data.
+    /// </summary>
+    /// <param name="ShopifyVariant">Parameter of type Record "Shopify Variant".</param>
+    /// <param name="Item">Parameter of type Record Item.</param>
+    /// <param name="ItemVariant">Parameter of type Record "Item Variant".</param>
+    /// <param name="ItemUnitofMeasure">Parameter of type Record "Item Unit of Measure".</param>
+    /// <param name="TargetProductId">Shopify product the variant belongs to. Callers creating a new variant must pass this, because the variant record does not carry a Product Id yet.</param>
+    internal procedure FillInProductVariantData(var ShopifyVariant: Record "Shpfy Variant"; Item: Record Item; ItemVariant: Record "Item Variant"; ItemUnitofMeasure: Record "Item Unit of Measure"; TargetProductId: BigInteger)
     begin
         if Shop."Sync Prices" or OnlyUpdatePrice then
             if Item.Blocked or Item."Sales Blocked" then
@@ -495,7 +533,9 @@ codeunit 30178 "Shpfy Product Export"
                 ShopifyVariant."Tariff No." := Item."Tariff No.";
                 ShopifyVariant."Country/Region of Origin Code" := GetCountryISOCode(Item."Country/Region of Origin Code");
             end;
-            ShopifyVariant."Option 1 Name" := 'Variant';
+            ShopifyVariant."Option 1 Name" := ResolveOption1Name(TargetProductId);
+            if ShopifyVariant."Option 1 Name" = '' then
+                ShopifyVariant."Option 1 Name" := DefaultOption1NameLbl;
             ShopifyVariant."Option 1 Value" := ItemVariant.Code;
             ShopifyVariant."Option 2 Name" := Shop."Option Name for UoM";
             ShopifyVariant."Option 2 Value" := ItemUnitofMeasure.Code;
@@ -598,6 +638,8 @@ codeunit 30178 "Shpfy Product Export"
     internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
     begin
         Shop := ShopifyShop;
+        Clear(Option1NameCacheProductId);
+        Clear(Option1NameCache);
         ProductApi.SetShop(Shop);
         VariantApi.SetShop(Shop);
         ProductPriceCalc.SetShop(Shop);
@@ -882,6 +924,40 @@ codeunit 30178 "Shpfy Product Export"
                 TempCurrVariant := ShopifyVariant;
                 TempCurrVariant.Insert();
             end;
+    end;
+
+    /// <summary>
+    /// Returns the option name Shopify already uses for the given product, or an empty string when
+    /// the product carries no Shopify option metadata and the default name should be used instead.
+    /// </summary>
+    /// <param name="ProductId">Shopify product to inspect. Zero when the product is not known yet.</param>
+    /// <returns>The product's existing Option 1 Name, or an empty string.</returns>
+    local procedure ResolveOption1Name(ProductId: BigInteger) Option1Name: Text[50]
+    var
+        ShpfyVariant: Record "Shpfy Variant";
+    begin
+        if ProductId = 0 then
+            exit('');
+        if ProductId = Option1NameCacheProductId then
+            exit(Option1NameCache);
+
+        // Names BC generates itself carry no Shopify option metadata, so they are not candidates.
+        ShpfyVariant.SetRange("Shop Code", Shop.Code);
+        ShpfyVariant.SetRange("Product Id", ProductId);
+        ShpfyVariant.SetFilter("Option 1 Name", '<>%1&<>%2&<>%3', '', DefaultOption1NameLbl, Shop."Option Name for UoM");
+        ShpfyVariant.SetLoadFields("Option 1 Name");
+        if ShpfyVariant.FindSet() then begin
+            Option1Name := ShpfyVariant."Option 1 Name";
+            // A Shopify product has one name per option slot. Anything else is ambiguous, so fall back.
+            while ShpfyVariant.Next() <> 0 do
+                if ShpfyVariant."Option 1 Name" <> Option1Name then begin
+                    Option1Name := '';
+                    break;
+                end;
+        end;
+
+        Option1NameCacheProductId := ProductId;
+        Option1NameCache := Option1Name;
     end;
 
     local procedure RevertVariantChanges(VariantId: BigInteger)

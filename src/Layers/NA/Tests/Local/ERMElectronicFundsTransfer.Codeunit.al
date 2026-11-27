@@ -49,6 +49,7 @@
         DocumentNoBlankErr: Label 'Document No. must be blank.';
         AppliedIsTrueErr: Label 'Applied(Yes/No) must be Yes.';
         VendorLedgLedgerErr: Label '%1 must be exist.', Comment = '%=1 Table Caption';
+        TargetEmailAddressNotSpecifiedErr: Label 'The target email address has not been specified on the document layout for %1', Comment = '%1 - Source Data RecordID';
         IsInitialized: Boolean;
 
     [Test]
@@ -3098,6 +3099,7 @@
         BankAccount: Record "Bank Account";
         GenJournalLine: Record "Gen. Journal Line";
         EFTExport: Record "EFT Export";
+        ObjectOptions: Record "Object Options";
         ERMElectronicFundsTransfer: Codeunit "ERM Electronic Funds Transfer";
         TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
         BulkVendorRemitReporting: Codeunit "Bulk Vendor Remit Reporting";
@@ -3105,6 +3107,11 @@
     begin
         // [SCENARIO 654023] Exporting payment journal lines sorted by "Document No." assigns one remittance advice no. per line
         Initialize();
+
+        // [GIVEN] Object options for the report are cleared.
+        ObjectOptions.SetRange("Object Type", ObjectOptions."Object Type"::Report);
+        ObjectOptions.SetRange("Object ID", Report::"ExportElecPayments - Word");
+        ObjectOptions.DeleteAll();
 
         // [GIVEN] The test client type is set to Web and subscriptions are bound.
         TestClientTypeSubscriber.SetClientType(CLIENTTYPE::Web);
@@ -3139,6 +3146,168 @@
         // [THEN] "Last Remittance Advice No." is incremented once per line
         BankAccount.Get(BankAccount."No.");
         BankAccount.TestField("Last Remittance Advice No.", IncStr(IncStr(LastRemittanceAdviceNo)));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExportElectronicPaymentsEmailRequestPageHandler')]
+    procedure ExportByEmailMissingEmailForOneVendorDoesNotRollbackOtherVendorWithOverlappingLineNo()
+    var
+        BankAccount: Record "Bank Account";
+        CheckLedgerEntry: Record "Check Ledger Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Vendor: array[3] of Record Vendor;
+        VendorBankAccount: array[3] of Record "Vendor Bank Account";
+        ERMElectronicFundsTransfer: Codeunit "ERM Electronic Funds Transfer";
+        LibraryEmail: Codeunit "Library - Email";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        ErrorMessages: TestPage "Error Messages";
+        PaymentJournal: TestPage "Payment Journal";
+        i: Integer;
+    begin
+        // [SCENARIO 656030] Export Electronic Payments by email: a vendor without email must not roll back
+        // the Document No. of another vendor whose line number is a prefix of the failed line number.
+        Initialize();
+        TestClientTypeSubscriber.SetClientType(ClientType::Web);
+        BindSubscription(TestClientTypeSubscriber);
+        BindSubscription(ERMElectronicFundsTransfer);
+        LibraryEmail.SetUpEmailAccount();
+        CreateExportReportSelection(Layout::RDLC);
+
+        // [GIVEN] Bank account set up for US electronic payments and a payment batch that allows payment export.
+        CreateElectronicExportBankAccount(BankAccount);
+        CreateDataExchDefWithPaymentExportFormatCode(BankAccount);
+        CreateGeneralJournalBatchPayment(GenJournalBatch, BankAccount."No.");
+        GenJournalBatch."Allow Payment Export" := true;
+        GenJournalBatch.Modify();
+
+        // [GIVEN] Vendors "V1" and "V2" with a remittance email address on Document Layouts, vendor "V3" without any email.
+        for i := 1 to 3 do
+            CreateVendorWithBankAccount(Vendor[i], VendorBankAccount[i]);
+        InsertVendorRemittanceCustomReportSelection(Vendor[1]."No.");
+        InsertVendorRemittanceCustomReportSelection(Vendor[2]."No.");
+
+        // [GIVEN] Payment lines: 10000 for "V1", 20000 for "V2", 100000 and 110000 for "V3".
+        CreateElectronicPaymentLineWithLineNo(GenJournalBatch, Vendor[1]."No.", VendorBankAccount[1].Code, BankAccount."No.", 10000);
+        CreateElectronicPaymentLineWithLineNo(GenJournalBatch, Vendor[2]."No.", VendorBankAccount[2].Code, BankAccount."No.", 20000);
+        CreateElectronicPaymentLineWithLineNo(GenJournalBatch, Vendor[3]."No.", VendorBankAccount[3].Code, BankAccount."No.", 100000);
+        CreateElectronicPaymentLineWithLineNo(GenJournalBatch, Vendor[3]."No.", VendorBankAccount[3].Code, BankAccount."No.", 110000);
+
+        // [WHEN] Export the payment journal with Output Method = Email.
+        PaymentJournal.OpenEdit();
+        PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalBatch.Name);
+        ErrorMessages.Trap();
+        InvokeExportPaymentJournalAction(PaymentJournal, GenJournalBatch, BankAccount."No.");
+
+        // [THEN] The Error Messages page shows only the missing email address error for line 100000 of "V3".
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 100000);
+        Assert.ExpectedMessage(StrSubstNo(TargetEmailAddressNotSpecifiedErr, GenJournalLine.RecordId), ErrorMessages.Description.Value);
+        Assert.IsFalse(ErrorMessages.Next(), 'Only one error is expected on the Error Messages page.');
+        ErrorMessages.Close();
+        PaymentJournal.Close();
+
+        // [THEN] Lines of "V1" and "V2" keep their remittance advice number and are marked as exported.
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 10000);
+        GenJournalLine.TestField("Check Exported", true);
+        GenJournalLine.TestField("Document No.");
+        CheckLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
+        CheckLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.RecordIsNotEmpty(CheckLedgerEntry);
+
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 20000);
+        GenJournalLine.TestField("Check Exported", true);
+        GenJournalLine.TestField("Document No.");
+
+        // [THEN] No line of "V3" is marked as exported, and their remittance advice numbers and check ledger entries are rolled back.
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 100000);
+        GenJournalLine.TestField("Check Exported", false);
+        GenJournalLine.TestField("Document No.", '');
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 110000);
+        GenJournalLine.TestField("Check Exported", false);
+        GenJournalLine.TestField("Document No.", '');
+        CheckLedgerEntry.Reset();
+        CheckLedgerEntry.SetRange("Bank Account No.", BankAccount."No.");
+        CheckLedgerEntry.SetRange("Bal. Account No.", Vendor[3]."No.");
+        Assert.RecordIsEmpty(CheckLedgerEntry);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExportElectronicPaymentsEmailRequestPageHandler')]
+    procedure ExportByEmailMissingEmailRollsBackVendorLinesWhenFirstLineUsesOtherBankAccount()
+    var
+        CheckLedgerEntry: Record "Check Ledger Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        ExportedBankAccount: Record "Bank Account";
+        OtherBankAccount: Record "Bank Account";
+        Vendor: array[2] of Record Vendor;
+        VendorBankAccount: array[2] of Record "Vendor Bank Account";
+        ERMElectronicFundsTransfer: Codeunit "ERM Electronic Funds Transfer";
+        LibraryEmail: Codeunit "Library - Email";
+        TestClientTypeSubscriber: Codeunit "Test Client Type Subscriber";
+        ErrorMessages: TestPage "Error Messages";
+        PaymentJournal: TestPage "Payment Journal";
+        i: Integer;
+    begin
+        // [SCENARIO 656030] Export Electronic Payments by email: when a vendor without email has its first line on another
+        // bank account, the vendor's lines on the exported bank account must be rolled back and must not be marked as exported.
+        Initialize();
+        TestClientTypeSubscriber.SetClientType(ClientType::Web);
+        BindSubscription(TestClientTypeSubscriber);
+        BindSubscription(ERMElectronicFundsTransfer);
+        LibraryEmail.SetUpEmailAccount();
+        CreateExportReportSelection(Layout::RDLC);
+
+        // [GIVEN] Bank accounts "A" and "B" set up for US electronic payments and a payment batch for bank account "B" that allows payment export.
+        CreateElectronicExportBankAccount(OtherBankAccount);
+        CreateElectronicExportBankAccount(ExportedBankAccount);
+        CreateDataExchDefWithPaymentExportFormatCode(ExportedBankAccount);
+        CreateGeneralJournalBatchPayment(GenJournalBatch, ExportedBankAccount."No.");
+        GenJournalBatch."Allow Payment Export" := true;
+        GenJournalBatch.Modify();
+
+        // [GIVEN] Vendor "V1" without any email, vendor "V2" with a remittance email address on Document Layouts.
+        for i := 1 to 2 do
+            CreateVendorWithBankAccount(Vendor[i], VendorBankAccount[i]);
+        InsertVendorRemittanceCustomReportSelection(Vendor[2]."No.");
+
+        // [GIVEN] Payment lines: 10000 for "V1" on bank account "A", 20000 for "V1" and 30000 for "V2" on bank account "B".
+        CreateElectronicPaymentLineWithLineNo(GenJournalBatch, Vendor[1]."No.", VendorBankAccount[1].Code, OtherBankAccount."No.", 10000);
+        CreateElectronicPaymentLineWithLineNo(GenJournalBatch, Vendor[1]."No.", VendorBankAccount[1].Code, ExportedBankAccount."No.", 20000);
+        CreateElectronicPaymentLineWithLineNo(GenJournalBatch, Vendor[2]."No.", VendorBankAccount[2].Code, ExportedBankAccount."No.", 30000);
+
+        // [WHEN] Export the payment journal for bank account "B" with Output Method = Email.
+        PaymentJournal.OpenEdit();
+        PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalBatch.Name);
+        ErrorMessages.Trap();
+        InvokeExportPaymentJournalAction(PaymentJournal, GenJournalBatch, ExportedBankAccount."No.");
+
+        // [THEN] The Error Messages page shows only the missing email address error, which names line 10000 on bank account "A".
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 10000);
+        Assert.ExpectedMessage(StrSubstNo(TargetEmailAddressNotSpecifiedErr, GenJournalLine.RecordId), ErrorMessages.Description.Value);
+        Assert.IsFalse(ErrorMessages.Next(), 'Only one error is expected on the Error Messages page.');
+        ErrorMessages.Close();
+        PaymentJournal.Close();
+
+        // [THEN] Line 20000 of "V1" on bank account "B" is not marked as exported, and its remittance advice number and check ledger entry are rolled back.
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 20000);
+        GenJournalLine.TestField("Check Exported", false);
+        GenJournalLine.TestField("Document No.", '');
+        CheckLedgerEntry.SetRange("Bank Account No.", ExportedBankAccount."No.");
+        CheckLedgerEntry.SetRange("Bal. Account No.", Vendor[1]."No.");
+        Assert.RecordIsEmpty(CheckLedgerEntry);
+
+        // [THEN] Line 30000 of "V2" keeps its remittance advice number and is marked as exported.
+        GenJournalLine.Get(GenJournalBatch."Journal Template Name", GenJournalBatch.Name, 30000);
+        GenJournalLine.TestField("Check Exported", true);
+        GenJournalLine.TestField("Document No.");
+        CheckLedgerEntry.SetRange("Bal. Account No.", Vendor[2]."No.");
+        CheckLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        Assert.RecordIsNotEmpty(CheckLedgerEntry);
+
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -4970,6 +5139,18 @@
     end;
 
     [RequestPageHandler]
+    procedure ExportElectronicPaymentsEmailRequestPageHandler(var ExportElectronicPayments: TestRequestPage "Export Electronic Payments")
+    var
+        SupportedOutputMethod: Option Print,Preview,PDF,Email,Excel,XML;
+    begin
+        ExportElectronicPayments.BankAccountNo.SetValue(LibraryVariableStorage.DequeueText());
+        ExportElectronicPayments."Gen. Journal Line".SetFilter("Journal Template Name", LibraryVariableStorage.DequeueText());
+        ExportElectronicPayments."Gen. Journal Line".SetFilter("Journal Batch Name", LibraryVariableStorage.DequeueText());
+        ExportElectronicPayments.OutputMethod.SetValue(SupportedOutputMethod::Email);
+        ExportElectronicPayments.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
     [Scope('OnPrem')]
     procedure ExportElectronicPaymentsWordLayoutRequestPageHandler(var ExportElecPaymentsWord: TestRequestPage "ExportElecPayments - Word")
     var
@@ -5467,6 +5648,43 @@
 
         BankAccount."Payment Export Format" := BankExportImportSetup.Code;
         BankAccount.Modify(true);
+    end;
+
+    local procedure CreateDataExchDefWithPaymentExportFormatCode(BankAccount: Record "Bank Account")
+    var
+        BankExportImportSetup: Record "Bank Export/Import Setup";
+        DataExchDef: Record "Data Exch. Def";
+    begin
+        // As in the standard US EFT DEFAULT setup, the Payment Export Format code also exists as a Data Exch. Def code.
+        BankExportImportSetup.Get(BankAccount."Payment Export Format");
+        DataExchDef.Get(BankExportImportSetup."Data Exch. Def. Code");
+        DataExchDef.Code := BankExportImportSetup.Code;
+        DataExchDef.Insert();
+    end;
+
+    local procedure CreateElectronicPaymentLineWithLineNo(var GenJournalBatch: Record "Gen. Journal Batch"; VendorNo: Code[20]; VendorBankAccountCode: Code[20]; BankAccountNo: Code[20]; LineNo: Integer)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        CreatePaymentGLLine(
+          GenJournalLine, GenJournalBatch, GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, VendorNo,
+          GenJournalLine."Applies-to Doc. Type"::" ", '', GenJournalLine."Bal. Account Type"::"Bank Account", BankAccountNo,
+          LibraryRandom.RandDecInRange(100, 200, 2), VendorBankAccountCode);
+        if GenJournalLine."Line No." <> LineNo then
+            GenJournalLine.Rename(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", LineNo);
+    end;
+
+    local procedure InsertVendorRemittanceCustomReportSelection(VendorNo: Code[20])
+    var
+        CustomReportSelection: Record "Custom Report Selection";
+    begin
+        CustomReportSelection.Validate("Source Type", Database::Vendor);
+        CustomReportSelection.Validate("Source No.", VendorNo);
+        CustomReportSelection.Validate(Usage, CustomReportSelection.Usage::"V.Remittance");
+        CustomReportSelection.Validate(Sequence, CustomReportSelection.Count + 1);
+        CustomReportSelection.Validate("Report ID", Report::"Export Electronic Payments");
+        CustomReportSelection.Validate("Send To Email", LibraryUtility.GenerateRandomEmail());
+        CustomReportSelection.Insert();
     end;
 
     local procedure CreateBankAccountPayment(var BankAccount: Record "Bank Account"; TransitNo: Code[20]; ExportFormat: Option)
