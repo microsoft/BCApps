@@ -5241,7 +5241,7 @@ codeunit 134468 "ERM Matched Order Line Tests"
     var
         MatchedOrderLine: Record "Matched Order Line";
     begin
-        PurchaseLineOrder.Find();
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
         LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, VendorNo);
         LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, PurchaseLineOrder."No.", Quantity);
         PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder."Direct Unit Cost");
