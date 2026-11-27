@@ -121,6 +121,7 @@ codeunit 90 "Purch.-Post"
         SavedSuppressCommit: Boolean;
         SavedCalledBy: Integer;
         SavedHideProgressWindow: Boolean;
+        SavedPostReceiptOnInvoice: Boolean;
         IsHandled: Boolean;
     begin
         SequenceNoMgt.SetPreviewMode(PreviewMode);
@@ -141,12 +142,14 @@ codeunit 90 "Purch.-Post"
         SavedSuppressCommit := SuppressCommit;
         SavedHideProgressWindow := HideProgressWindow;
         SavedCalledBy := CalledBy;
+        SavedPostReceiptOnInvoice := PostReceiptOnInvoice;
         ClearAllVariables();
         PreviewMode := SavedPreviewMode;
         IndirectCall := SavedIndirectCall;
         SuppressCommit := SavedSuppressCommit;
         HideProgressWindow := SavedHideProgressWindow;
         CalledBy := SavedCalledBy;
+        PostReceiptOnInvoice := SavedPostReceiptOnInvoice;
 
         GetGLSetup();
         GetPurchSetup();
@@ -157,6 +160,8 @@ codeunit 90 "Purch.-Post"
         OnRunOnBeforeFillTempLines(PreviewMode, GenJnlLineDocNo);
         FillTempLines(PurchHeader, TempPurchLineGlobal);
         OnRunOnAfterFillTempLines(PurchHeader);
+        if PostReceiptOnInvoice then
+            MatchedOrderLineMgmt.ExcludeUnmatchedOrderLinesFromReceipt(TempPurchLineGlobal);
 
         // Header
         CheckAndUpdate(PurchHeader);
@@ -255,6 +260,8 @@ codeunit 90 "Purch.-Post"
         ErrorMessageMgt.PushContext(ErrorContextElementProcessLines, ZeroPurchLineRecID, 0, PostDocumentLinesMsg);
         OnBeforePostLines(TempPurchLineGlobal, PurchHeader, PreviewMode, SuppressCommit, TempPurchLineGlobal, TempWhseShptHeader, TempWhseRcptHeader);
 
+        if PostReceiptOnInvoice then
+            MatchedOrderLineMgmt.ExcludeUnmatchedOrderLinesFromReceipt(TempPurchLineGlobal);
         MatchedOrderLineMgmt.ProcessMatchedReceiptOnInvoice(TempPurchLineGlobal);
 
         LineCount := 0;
@@ -520,6 +527,7 @@ codeunit 90 "Purch.-Post"
         CheckPurchLineMsg: Label 'Check purchase document line.';
         HideProgressWindow: Boolean;
         DateOrderSeriesUsed: Boolean;
+        PostReceiptOnInvoice: Boolean;
         SuppressCommitErr: Label 'Commit is blocked when %1 %2 is used.', Comment = '%1 = Date Order, %2 = Number Series';
         OverReceiptApprovalErr: Label 'There are lines with over-receipt required for approval.';
         PostDocumentLinesMsg: Label 'Post document lines.';
@@ -9296,6 +9304,15 @@ codeunit 90 "Purch.-Post"
     procedure SetSuppressCommit(NewSuppressCommit: Boolean)
     begin
         SuppressCommit := NewSuppressCommit;
+    end;
+
+    /// <summary>
+    /// Set global variable PostReceiptOnInvoice
+    /// </summary>
+    /// <param name="NewPostReceiptOnInvoice">New value to post receipt on invoice</param>
+    internal procedure SetPostReceiptOnInvoice(NewPostReceiptOnInvoice: Boolean)
+    begin
+        PostReceiptOnInvoice := NewPostReceiptOnInvoice;
     end;
 
     local procedure CheckOverReceipt(PurchaseHeader: Record "Purchase Header")
