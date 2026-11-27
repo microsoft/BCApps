@@ -12,7 +12,7 @@ using System.AI;
 using System.Reflection;
 using System.Security.AccessControl;
 
-codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentExperimental
+codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentManualTaskCreation, IAgentExperimental
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -87,6 +87,30 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
         // Not providing any default access controls, they must be set by users.
     end;
 
+    procedure IsManualAgentTaskCreationEnabled(AgentUserId: Guid; ManualTaskType: Enum "Manual Agent Task Creation Type"): Boolean
+    begin
+        // Reading the Agent virtual table here would recursively invoke this callback.
+        exit(ManualTaskType = ManualTaskType::Default);
+    end;
+
+    procedure IsMultipleFileUploadAllowed(AgentUserId: Guid): Boolean
+    begin
+        exit(false);
+    end;
+
+    procedure CreateManualAgentTask(AgentUserId: Guid; Files: List of [FileUpload])
+    begin
+        if not GuiAllowed() then
+            exit;
+
+        case StrMenu(TaskCreationOptionsQst, 2, TaskCreationInstructionQst) of
+            1:
+                CustomAgentSetup.OpenCreateTaskPage(AgentUserId);
+            2:
+                CustomAgentSetup.OpenEditInstructionsPage(AgentUserId);
+        end;
+    end;
+
     procedure GetPageScripts(AgentUserId: Guid; var AgentTaskPageScript: Record "Agent Task Page Script")
     begin
     end;
@@ -106,4 +130,6 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
     var
         CustomAgentSetup: Codeunit "Custom Agent Setup";
         CustomAgentInitialLbl: Label 'A', MaxLength = 4;
+        TaskCreationOptionsQst: Label 'Create task,Create in Test Agent page', Comment = 'Comma-separated options for creating a task or opening the test agent page. Preserve the order and do not add commas within an option.';
+        TaskCreationInstructionQst: Label 'Choose how to create a task for this agent.';
 }

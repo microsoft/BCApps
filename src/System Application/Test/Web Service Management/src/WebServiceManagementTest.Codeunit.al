@@ -8,17 +8,16 @@ namespace System.Test.Integration;
 using System.Environment.Configuration;
 using System.Integration;
 using System.TestLibraries.Integration;
-using System.TestLibraries.Security.AccessControl;
 using System.TestLibraries.Utilities;
 
 codeunit 139043 "Web Service Management Test"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     var
         WebServiceManagement: Codeunit "Web Service Management";
         Assert: Codeunit "Library Assert";
-        PermissionsMock: Codeunit "Permissions Mock";
         ClientType: Enum "Client Type";
         Initialized: Boolean;
         PageServiceTxt: Label 'PageService';
@@ -40,7 +39,6 @@ codeunit 139043 "Web Service Management Test"
         WebService: Record "Web Service";
         WebServiceAggregate: Record "Web Service Aggregate";
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageServiceTxt, true);
         WebServiceManagement.CreateWebService(WebService."Object Type"::Codeunit, Codeunit::"Dummy Codeunit", CodeunitServiceTxt, true);
@@ -79,7 +77,6 @@ codeunit 139043 "Web Service Management Test"
         WebService: Record "Web Service";
         WebServiceAggregate: Record "Web Service Aggregate";
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageServiceTxt, true);
         WebServiceManagement.LoadRecords(WebServiceAggregate);
@@ -97,7 +94,6 @@ codeunit 139043 "Web Service Management Test"
         WebService: Record "Web Service";
         WebServiceAggregate: Record "Web Service Aggregate";
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageATxt, true);
         WebServiceManagement.CreateTenantWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageATxt, true);
@@ -117,7 +113,6 @@ codeunit 139043 "Web Service Management Test"
         WebService: Record "Web Service";
         WebServiceAggregate: Record "Web Service Aggregate";
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageATxt, true);
         WebServiceManagement.CreateTenantWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageBTxt, true);
@@ -145,7 +140,6 @@ codeunit 139043 "Web Service Management Test"
         WebService: Record "Web Service";
         WebServiceAggregate: Record "Web Service Aggregate";
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageATxt, true);
         WebServiceManagement.CreateTenantWebService(WebService."Object Type"::Page, Page::"Dummy Page", PageBTxt, false);
@@ -176,7 +170,6 @@ codeunit 139043 "Web Service Management Test"
         Any: Codeunit Any;
         AutoServiceName: Text[240];
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         // Test that inserting a record for all tenants correctly writes a system record.
         AutoServiceName := Any.GuidValue();
@@ -212,7 +205,6 @@ codeunit 139043 "Web Service Management Test"
         Any: Codeunit Any;
         AutoServiceName: Text[240];
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         // Test that inserting a record for a single tenant correctly writes a tenant record.
         AutoServiceName := Any.GuidValue();
@@ -244,7 +236,6 @@ codeunit 139043 "Web Service Management Test"
         TempWebServiceAggregate: Record "Web Service Aggregate" temporary;
         Any: Codeunit Any;
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         // Test that adding a new tenant web service for an object (type and ID) that has an unpublished
         // system record will give an error.
@@ -297,7 +288,6 @@ codeunit 139043 "Web Service Management Test"
         AutoServiceName: Text[240];
         AutoServiceName2: Text[240];
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         // Test that changing the Object Type, Object ID, Service Name, and Publish fields
         // of a system record will change the value of the system record.
@@ -370,7 +360,6 @@ codeunit 139043 "Web Service Management Test"
         AutoServiceName: Text[240];
         AutoServiceName2: Text[240];
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebService.DeleteAll();
         // Test that changing the Object Type, Object ID, Service Name, and Publish fields
@@ -478,7 +467,6 @@ codeunit 139043 "Web Service Management Test"
         Any: Codeunit Any;
         AutoServiceName: Text[240];
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         // Deleting a system record will delete the system record
         AutoServiceName := Any.GuidValue();
@@ -516,7 +504,6 @@ codeunit 139043 "Web Service Management Test"
         Any: Codeunit Any;
         AutoServiceName: Text[240];
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         // Deleting a tenant record will delete the tenant record
         // Deleting a system record will delete the system record
@@ -552,7 +539,6 @@ codeunit 139043 "Web Service Management Test"
         WebService: Record "Web Service";
         ObjectNameLbl: Label 'TestWebService';
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateTenantWebService(WebService."Object Type"::Page, Page::"Dummy Page", ObjectNameLbl, true);
 
@@ -567,7 +553,6 @@ codeunit 139043 "Web Service Management Test"
         TenantWebService: Record "Tenant Web Service";
         ObjectNameLbl: Label 'TestTenantWebService';
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Page, Page::"Dummy Page", ObjectNameLbl, true);
 
@@ -583,7 +568,6 @@ codeunit 139043 "Web Service Management Test"
         WebServiceAggregate: Record "Web Service Aggregate";
         ObjectNameLbl: Label 'TestTenantWebService';
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Page, Page::"Dummy Page", ObjectNameLbl, true);
 
@@ -609,7 +593,6 @@ codeunit 139043 "Web Service Management Test"
         WebServiceAggregate: Record "Web Service Aggregate";
         ObjectNameLbl: Label 'TestWebService';
     begin
-        PermissionsMock.Set('Web Service Admin');
         Initialize();
         WebServiceManagement.CreateTenantWebService(WebService."Object Type"::Page, Page::"Dummy Page", ObjectNameLbl, true);
 

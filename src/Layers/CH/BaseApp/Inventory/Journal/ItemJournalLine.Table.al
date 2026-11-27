@@ -3615,6 +3615,8 @@ table 83 "Item Journal Line"
     /// </summary>
     /// <remarks>
     /// It checks the filters applied to the journal batch name and journal template name fields.
+    /// If no batch filter is applied, the journal batch name and journal template name of the current record are used,
+    /// e.g. when the page is opened from a URL link to a specific journal line.
     /// </remarks>
     /// <returns>True if the current item journal line record was opened from a batch, otherwise false.</returns>
     procedure IsOpenedFromBatch(): Boolean
@@ -3622,17 +3624,27 @@ table 83 "Item Journal Line"
         ItemJournalBatch: Record "Item Journal Batch";
         TemplateFilter: Text;
         BatchFilter: Text;
+        UseCurrentBatch: Boolean;
     begin
         BatchFilter := GetFilter("Journal Batch Name");
-        if BatchFilter <> '' then begin
+        UseCurrentBatch := (BatchFilter = '') and ("Journal Batch Name" <> '');
+
+        if (BatchFilter <> '') or UseCurrentBatch then begin
             TemplateFilter := GetFilter("Journal Template Name");
-            if TemplateFilter <> '' then
-                ItemJournalBatch.SetFilter("Journal Template Name", TemplateFilter);
-            ItemJournalBatch.SetFilter(Name, BatchFilter);
+            if (TemplateFilter = '') and ("Journal Template Name" <> '') then begin
+                SetRange("Journal Template Name", "Journal Template Name");
+                ItemJournalBatch.SetRange("Journal Template Name", "Journal Template Name");
+            end else
+                if TemplateFilter <> '' then
+                    ItemJournalBatch.SetFilter("Journal Template Name", TemplateFilter);
+            if UseCurrentBatch then
+                ItemJournalBatch.SetRange(Name, "Journal Batch Name")
+            else
+                ItemJournalBatch.SetFilter(Name, BatchFilter);
             ItemJournalBatch.FindFirst();
         end;
 
-        exit((("Journal Batch Name" <> '') and ("Journal Template Name" = '')) or (BatchFilter <> ''));
+        exit((("Journal Batch Name" <> '') and ("Journal Template Name" = '')) or (BatchFilter <> '') or UseCurrentBatch);
     end;
 
     /// <summary>
