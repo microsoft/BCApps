@@ -1,0 +1,1080 @@
+tests:
+- name: SIMILARITY_CAPTION_01
+  description: Similarity of customers to Sales & Receivables Setup Customer Nos. when comparing Field Caption.
+  question: customers
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_02
+  description: Similarity of clients to Sales & Receivables Setup Customer Nos. when comparing Field Caption.
+  question: clients
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_03
+  description: Similarity of buyers to Sales & Receivables Setup Customer Nos. when comparing Field Caption.
+  question: buyers
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_04
+  description: Similarity of vendors to Purchases & Payables Setup Vendor Nos. when comparing Field Caption.
+  question: vendors
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Vendor Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_05
+  description: Similarity of suppliers to Purchases & Payables Setup Vendor Nos. when comparing Field Caption.
+  question: suppliers
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Vendor Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_06
+  description: Similarity of items to Inventory Setup Item Nos. when comparing Field Caption.
+  question: items
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_07
+  description: Similarity of products to Inventory Setup Item Nos. when comparing Field Caption.
+  question: products
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_08
+  description: Similarity of goods to Inventory Setup Item Nos. when comparing Field Caption.
+  question: goods
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_09
+  description: Similarity of articles to Inventory Setup Item Nos. when comparing Field Caption.
+  question: articles
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_10
+  description: Similarity of catalog items to Inventory Setup Nonstock Item Nos. when comparing Field Caption.
+  question: catalog items
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Nonstock Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_11
+  description: Similarity of employees to Human Resources Setup Employee Nos. when comparing Field Caption.
+  question: employees
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_12
+  description: Similarity of staff to Human Resources Setup Employee Nos. when comparing Field Caption.
+  question: staff
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_13
+  description: Similarity of workers to Human Resources Setup Employee Nos. when comparing Field Caption.
+  question: workers
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_14
+  description: Similarity of fixed assets to FA Setup Fixed Asset Nos. when comparing Field Caption.
+  question: fixed assets
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: FA Setup
+      field_name: Fixed Asset Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_15
+  description: Similarity of equipment to FA Setup Fixed Asset Nos. when comparing Field Caption.
+  question: equipment
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: FA Setup
+      field_name: Fixed Asset Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_16
+  description: Similarity of projects to Jobs Setup Job Nos. when comparing Field Caption.
+  question: projects
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Jobs Setup
+      field_name: Job Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_18
+  description: Similarity of resources to Resources Setup Resource Nos. when comparing Field Caption.
+  question: resources
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Resources Setup
+      field_name: Resource Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_19
+  description: Similarity of contacts to Marketing Setup Contact Nos. when comparing Field Caption.
+  question: contacts
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Contact Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_20
+  description: Similarity of opportunities to Marketing Setup Opportunity Nos. when comparing Field Caption.
+  question: opportunities
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Opportunity Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_21
+  description: Similarity of campaigns to Marketing Setup Campaign Nos. when comparing Field Caption.
+  question: campaigns
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Campaign Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_22
+  description: Similarity of bank accounts to General Ledger Setup Bank Account Nos. when comparing Field Caption.
+  question: bank accounts
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: General Ledger Setup
+      field_name: Bank Account Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_23
+  description: Similarity of machine centers to Manufacturing Setup Machine Center Nos. when comparing Field Caption.
+  question: machine centers
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Machine Center Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_24
+  description: Similarity of work centers to Manufacturing Setup Work Center Nos. when comparing Field Caption.
+  question: work centers
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Work Center Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_25
+  description: Similarity of service items to Service Mgt. Setup Service Item Nos. when comparing Field Caption.
+  question: service items
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Service Mgt. Setup
+      field_name: Service Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_26
+  description: Similarity of sales quotes to Sales & Receivables Setup Quote Nos. when comparing Field Caption.
+  question: sales quotes
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Quote Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_29
+  description: Similarity of sales credit memos to Sales & Receivables Setup Credit Memo Nos. when comparing Field Caption.
+  question: sales credit memos
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Credit Memo Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_30
+  description: Similarity of sales return orders to Sales & Receivables Setup Return Order Nos. when comparing Field Caption.
+  question: sales return orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Return Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_31
+  description: Similarity of blanket sales orders to Sales & Receivables Setup Blanket Order Nos. when comparing Field Caption.
+  question: blanket sales orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Blanket Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_32
+  description: Similarity of posted sales invoices to Sales & Receivables Setup Posted Invoice Nos. when comparing Field Caption.
+  question: posted sales invoices
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Posted Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_35
+  description: Similarity of customer returns to Sales & Receivables Setup Return Order Nos. when comparing Field Caption.
+  question: customer returns
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Return Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_37
+  description: Similarity of purchase quotes to Purchases & Payables Setup Quote Nos. when comparing Field Caption.
+  question: purchase quotes
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Quote Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_40
+  description: Similarity of purchase credit memos to Purchases & Payables Setup Credit Memo Nos. when comparing Field Caption.
+  question: purchase credit memos
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Credit Memo Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_41
+  description: Similarity of purchase return orders to Purchases & Payables Setup Return Order Nos. when comparing Field Caption.
+  question: purchase return orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Return Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_42
+  description: Similarity of posted purchase invoices to Purchases & Payables Setup Posted Invoice Nos. when comparing Field Caption.
+  question: posted purchase invoices
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Posted Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_45
+  description: Similarity of transfer orders to Inventory Setup Transfer Order Nos. when comparing Field Caption.
+  question: transfer orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Transfer Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_46
+  description: Similarity of assembly orders to Assembly Setup Assembly Order Nos. when comparing Field Caption.
+  question: assembly orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Assembly Setup
+      field_name: Assembly Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_47
+  description: Similarity of production orders to Manufacturing Setup Released Order Nos. when comparing Field Caption.
+  question: production orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Released Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_48
+  description: Similarity of service orders to Service Mgt. Setup Service Order Nos. when comparing Field Caption.
+  question: service orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Service Mgt. Setup
+      field_name: Service Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_50
+  description: Similarity of warehouse receipts to Warehouse Setup Whse. Receipt Nos. when comparing Field Caption.
+  question: warehouse receipts
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Warehouse Setup
+      field_name: Whse. Receipt Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_51
+  description: Similarity of reminders to Sales & Receivables Setup Reminder Nos. when comparing Field Caption.
+  question: reminders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Reminder Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_52
+  description: Similarity of finance charge memos to Sales & Receivables Setup Fin. Chrg. Memo Nos. when comparing Field Caption.
+  question: finance charge memos
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Fin. Chrg. Memo Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_53
+  description: Similarity of time sheets to Resources Setup Time Sheet Nos. when comparing Field Caption.
+  question: time sheets
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Resources Setup
+      field_name: Time Sheet Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_54
+  description: Similarity of physical inventory orders to Inventory Setup Phys. Invt. Order Nos. when comparing Field Caption.
+  question: physical inventory orders
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Phys. Invt. Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_55
+  description: Similarity of bank deposits to Sales & Receivables Setup Bank Deposit Nos. when comparing Field Caption.
+  question: bank deposits
+  compared_fields: Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Bank Deposit Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_56
+  description: Similarity of the unrelated word xylophone when comparing Field Caption.
+  question: xylophone
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_57
+  description: Similarity of the unrelated word banana when comparing Field Caption.
+  question: banana
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_58
+  description: Similarity of the unrelated word weather when comparing Field Caption.
+  question: weather
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_59
+  description: Similarity of the unrelated word football when comparing Field Caption.
+  question: football
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_60
+  description: Similarity of the unrelated word guitar when comparing Field Caption.
+  question: guitar
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_61
+  description: Similarity of the unrelated word holiday when comparing Field Caption.
+  question: holiday
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_62
+  description: Similarity of the unrelated word pizza when comparing Field Caption.
+  question: pizza
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_63
+  description: Similarity of the unrelated word music when comparing Field Caption.
+  question: music
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_64
+  description: Similarity of the unrelated word dog when comparing Field Caption.
+  question: dog
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_CAPTION_65
+  description: Similarity of the unrelated word mountain when comparing Field Caption.
+  question: mountain
+  compared_fields: Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_66
+  description: Similarity of customers to Sales & Receivables Setup Customer Nos. when comparing TableName,FieldName,Field Caption.
+  question: customers
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_67
+  description: Similarity of clients to Sales & Receivables Setup Customer Nos. when comparing TableName,FieldName,Field Caption.
+  question: clients
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_69
+  description: Similarity of vendors to Purchases & Payables Setup Vendor Nos. when comparing TableName,FieldName,Field Caption.
+  question: vendors
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Vendor Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_70
+  description: Similarity of suppliers to Purchases & Payables Setup Vendor Nos. when comparing TableName,FieldName,Field Caption.
+  question: suppliers
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Vendor Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_71
+  description: Similarity of items to Inventory Setup Item Nos. when comparing TableName,FieldName,Field Caption.
+  question: items
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_73
+  description: Similarity of goods to Inventory Setup Item Nos. when comparing TableName,FieldName,Field Caption.
+  question: goods
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_75
+  description: Similarity of catalog items to Inventory Setup Nonstock Item Nos. when comparing TableName,FieldName,Field Caption.
+  question: catalog items
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Nonstock Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_76
+  description: Similarity of employees to Human Resources Setup Employee Nos. when comparing TableName,FieldName,Field Caption.
+  question: employees
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_77
+  description: Similarity of staff to Human Resources Setup Employee Nos. when comparing TableName,FieldName,Field Caption.
+  question: staff
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_79
+  description: Similarity of fixed assets to FA Setup Fixed Asset Nos. when comparing TableName,FieldName,Field Caption.
+  question: fixed assets
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: FA Setup
+      field_name: Fixed Asset Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_81
+  description: Similarity of projects to Jobs Setup Job Nos. when comparing TableName,FieldName,Field Caption.
+  question: projects
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Jobs Setup
+      field_name: Job Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_82
+  description: Similarity of jobs to Jobs Setup Job Nos. when comparing TableName,FieldName,Field Caption.
+  question: jobs
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Jobs Setup
+      field_name: Job Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_83
+  description: Similarity of resources to Resources Setup Resource Nos. when comparing TableName,FieldName,Field Caption.
+  question: resources
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Resources Setup
+      field_name: Resource Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_84
+  description: Similarity of contacts to Marketing Setup Contact Nos. when comparing TableName,FieldName,Field Caption.
+  question: contacts
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Contact Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_85
+  description: Similarity of opportunities to Marketing Setup Opportunity Nos. when comparing TableName,FieldName,Field Caption.
+  question: opportunities
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Opportunity Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_86
+  description: Similarity of campaigns to Marketing Setup Campaign Nos. when comparing TableName,FieldName,Field Caption.
+  question: campaigns
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Campaign Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_87
+  description: Similarity of bank accounts to General Ledger Setup Bank Account Nos. when comparing TableName,FieldName,Field Caption.
+  question: bank accounts
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: General Ledger Setup
+      field_name: Bank Account Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_88
+  description: Similarity of machine centers to Manufacturing Setup Machine Center Nos. when comparing TableName,FieldName,Field Caption.
+  question: machine centers
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Machine Center Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_89
+  description: Similarity of work centers to Manufacturing Setup Work Center Nos. when comparing TableName,FieldName,Field Caption.
+  question: work centers
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Work Center Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_90
+  description: Similarity of service items to Service Mgt. Setup Service Item Nos. when comparing TableName,FieldName,Field Caption.
+  question: service items
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Service Mgt. Setup
+      field_name: Service Item Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_91
+  description: Similarity of sales quotes to Sales & Receivables Setup Quote Nos. when comparing TableName,FieldName,Field Caption.
+  question: sales quotes
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Quote Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_92
+  description: Similarity of sales orders to Sales & Receivables Setup Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: sales orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_93
+  description: Similarity of sales invoices to Sales & Receivables Setup Invoice Nos. when comparing TableName,FieldName,Field Caption.
+  question: sales invoices
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_94
+  description: Similarity of sales credit memos to Sales & Receivables Setup Credit Memo Nos. when comparing TableName,FieldName,Field Caption.
+  question: sales credit memos
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Credit Memo Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_95
+  description: Similarity of sales return orders to Sales & Receivables Setup Return Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: sales return orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Return Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_96
+  description: Similarity of blanket sales orders to Sales & Receivables Setup Blanket Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: blanket sales orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Blanket Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_97
+  description: Similarity of posted sales invoices to Sales & Receivables Setup Posted Invoice Nos. when comparing TableName,FieldName,Field Caption.
+  question: posted sales invoices
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Posted Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_98
+  description: Similarity of customer invoices to Sales & Receivables Setup Invoice Nos. when comparing TableName,FieldName,Field Caption.
+  question: customer invoices
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_99
+  description: Similarity of customer orders to Sales & Receivables Setup Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: customer orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_100
+  description: Similarity of customer returns to Sales & Receivables Setup Return Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: customer returns
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Return Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_101
+  description: Similarity of sales offers to Sales & Receivables Setup Quote Nos. when comparing TableName,FieldName,Field Caption.
+  question: sales offers
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Quote Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_102
+  description: Similarity of purchase quotes to Purchases & Payables Setup Quote Nos. when comparing TableName,FieldName,Field Caption.
+  question: purchase quotes
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Quote Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_103
+  description: Similarity of purchase orders to Purchases & Payables Setup Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: purchase orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_104
+  description: Similarity of purchase invoices to Purchases & Payables Setup Invoice Nos. when comparing TableName,FieldName,Field Caption.
+  question: purchase invoices
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_105
+  description: Similarity of purchase credit memos to Purchases & Payables Setup Credit Memo Nos. when comparing TableName,FieldName,Field Caption.
+  question: purchase credit memos
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Credit Memo Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_106
+  description: Similarity of purchase return orders to Purchases & Payables Setup Return Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: purchase return orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Return Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_107
+  description: Similarity of posted purchase invoices to Purchases & Payables Setup Posted Invoice Nos. when comparing TableName,FieldName,Field Caption.
+  question: posted purchase invoices
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Posted Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_108
+  description: Similarity of supplier invoices to Purchases & Payables Setup Invoice Nos. when comparing TableName,FieldName,Field Caption.
+  question: supplier invoices
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Invoice Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_109
+  description: Similarity of supplier orders to Purchases & Payables Setup Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: supplier orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_110
+  description: Similarity of transfer orders to Inventory Setup Transfer Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: transfer orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Transfer Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_111
+  description: Similarity of assembly orders to Assembly Setup Assembly Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: assembly orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Assembly Setup
+      field_name: Assembly Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_112
+  description: Similarity of production orders to Manufacturing Setup Released Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: production orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Released Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_113
+  description: Similarity of service orders to Service Mgt. Setup Service Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: service orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Service Mgt. Setup
+      field_name: Service Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_114
+  description: Similarity of warehouse picks to Warehouse Setup Whse. Pick Nos. when comparing TableName,FieldName,Field Caption.
+  question: warehouse picks
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Warehouse Setup
+      field_name: Whse. Pick Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_115
+  description: Similarity of warehouse receipts to Warehouse Setup Whse. Receipt Nos. when comparing TableName,FieldName,Field Caption.
+  question: warehouse receipts
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Warehouse Setup
+      field_name: Whse. Receipt Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_116
+  description: Similarity of reminders to Sales & Receivables Setup Reminder Nos. when comparing TableName,FieldName,Field Caption.
+  question: reminders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Reminder Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_117
+  description: Similarity of finance charge memos to Sales & Receivables Setup Fin. Chrg. Memo Nos. when comparing TableName,FieldName,Field Caption.
+  question: finance charge memos
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Fin. Chrg. Memo Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_118
+  description: Similarity of time sheets to Resources Setup Time Sheet Nos. when comparing TableName,FieldName,Field Caption.
+  question: time sheets
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Resources Setup
+      field_name: Time Sheet Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_119
+  description: Similarity of physical inventory orders to Inventory Setup Phys. Invt. Order Nos. when comparing TableName,FieldName,Field Caption.
+  question: physical inventory orders
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Phys. Invt. Order Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_120
+  description: Similarity of bank deposits to Sales & Receivables Setup Bank Deposit Nos. when comparing TableName,FieldName,Field Caption.
+  question: bank deposits
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Bank Deposit Nos.
+      max_rank: 5
+      min_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_121
+  description: Similarity of the unrelated word xylophone when comparing TableName,FieldName,Field Caption.
+  question: xylophone
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_122
+  description: Similarity of the unrelated word banana when comparing TableName,FieldName,Field Caption.
+  question: banana
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_123
+  description: Similarity of the unrelated word weather when comparing TableName,FieldName,Field Caption.
+  question: weather
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_124
+  description: Similarity of the unrelated word football when comparing TableName,FieldName,Field Caption.
+  question: football
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_125
+  description: Similarity of the unrelated word guitar when comparing TableName,FieldName,Field Caption.
+  question: guitar
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_126
+  description: Similarity of the unrelated word holiday when comparing TableName,FieldName,Field Caption.
+  question: holiday
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_127
+  description: Similarity of the unrelated word pizza when comparing TableName,FieldName,Field Caption.
+  question: pizza
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_128
+  description: Similarity of the unrelated word music when comparing TableName,FieldName,Field Caption.
+  question: music
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_129
+  description: Similarity of the unrelated word dog when comparing TableName,FieldName,Field Caption.
+  question: dog
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28
+
+- name: SIMILARITY_QUALIFIED_130
+  description: Similarity of the unrelated word mountain when comparing TableName,FieldName,Field Caption.
+  question: mountain
+  compared_fields: TableName,FieldName,Field Caption
+  expected_data:
+    - max_similarity: 0.28

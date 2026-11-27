@@ -100,26 +100,17 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     local procedure ListOnlySpecifiedTables(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; Entities: List of [Text])
     var
         TempTableMetadata: Record "Table Metadata" temporary;
+        TempRelevantField: Record "Field" temporary;
     begin
-        // Looping through all Setup tables
         ToolsImpl.RetrieveSetupTables(TempTableMetadata);
-        if TempTableMetadata.FindSet() then
-            repeat
-                ListOnlyRelevantNoSeriesFields(TempSetupTable, TempNoSeriesField, TempTableMetadata, Entities);
-            until TempTableMetadata.Next() = 0;
-    end;
+        ToolsImpl.RetrieveNoSeriesFields(TempTableMetadata, TempRelevantField);
+        ToolsImpl.SearchAndKeepOnlyRelevantFields(Entities, TempRelevantField);
 
-    local procedure ListOnlyRelevantNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var TempTableMetadata: Record "Table Metadata" temporary; Entities: List of [Text])
-    var
-        Field: Record "Field";
-    begin
-        // Looping through all No. Series fields
-        ToolsImpl.SetFilterOnNoSeriesFields(TempTableMetadata, Field);
-        if Field.FindSet() then
+        if TempRelevantField.FindSet() then
             repeat
-                if ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities) then
-                    AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TempTableMetadata, Field);
-            until Field.Next() = 0;
+                TempTableMetadata.Get(TempRelevantField.TableNo);
+                AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TempTableMetadata, TempRelevantField);
+            until TempRelevantField.Next() = 0;
     end;
 
     local procedure ListAllTablesWithNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)

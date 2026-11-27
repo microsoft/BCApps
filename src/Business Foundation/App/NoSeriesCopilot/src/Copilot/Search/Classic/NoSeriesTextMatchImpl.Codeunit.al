@@ -12,15 +12,19 @@ codeunit 337 "No. Series Text Match Impl."
     InherentEntitlements = X;
 
     procedure IsRelevant(FirstString: Text; SecondString: Text): Boolean
-    var
-        Score: Decimal;
+    begin
+        exit(GetNearness(FirstString, SecondString) >= RequiredNearness());
+    end;
+
+    /// <summary>
+    /// Returns how much of the shorter string is found in the other one, from 0 to 1. Words shorter than 3 characters are ignored.
+    /// </summary>
+    procedure GetNearness(FirstString: Text; SecondString: Text): Decimal
     begin
         FirstString := RemoveShortWords(FirstString);
         SecondString := RemoveShortWords(SecondString);
 
-        Score := CalculateStringNearness(FirstString, SecondString, GetMatchLengthTreshold(), 100) / 100;
-
-        exit(Score >= RequiredNearness());
+        exit(CalculateStringNearness(FirstString, SecondString, GetMatchLengthTreshold(), 100) / 100);
     end;
 
     /// <summary>
@@ -130,7 +134,7 @@ codeunit 337 "No. Series Text Match Impl."
         exit(2);
     end;
 
-    local procedure RequiredNearness(): Decimal
+    procedure RequiredNearness(): Decimal
     begin
         exit(0.9)
     end;

@@ -1,0 +1,435 @@
+tests:
+- name: SEARCH_01
+  description: Search finds the master data number series for customers.
+  question: customers
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+
+- name: SEARCH_02
+  description: Search finds the master data number series for clients.
+  question: clients
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+
+- name: SEARCH_03
+  description: Search finds the master data number series for buyers.
+  question: buyers
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Customer Nos.
+
+- name: SEARCH_04
+  description: Search finds the master data number series for vendors.
+  question: vendors
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Vendor Nos.
+
+- name: SEARCH_05
+  description: Search finds the master data number series for suppliers.
+  question: suppliers
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Vendor Nos.
+
+- name: SEARCH_06
+  description: Search finds the master data number series for items.
+  question: items
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+
+- name: SEARCH_07
+  description: Search finds the master data number series for products.
+  question: products
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+
+- name: SEARCH_08
+  description: Search finds the master data number series for goods.
+  question: goods
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+
+- name: SEARCH_09
+  description: Search finds the master data number series for articles.
+  question: articles
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Item Nos.
+
+- name: SEARCH_10
+  description: Search finds the master data number series for catalog items.
+  question: catalog items
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Nonstock Item Nos.
+
+- name: SEARCH_11
+  description: Search finds the master data number series for employees.
+  question: employees
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+
+- name: SEARCH_12
+  description: Search finds the master data number series for staff.
+  question: staff
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+
+- name: SEARCH_13
+  description: Search finds the master data number series for workers.
+  question: workers
+  expected_data:
+    - table_name: Human Resources Setup
+      field_name: Employee Nos.
+
+- name: SEARCH_14
+  description: Search finds the master data number series for fixed assets.
+  question: fixed assets
+  expected_data:
+    - table_name: FA Setup
+      field_name: Fixed Asset Nos.
+
+- name: SEARCH_15
+  description: Search finds the master data number series for equipment.
+  question: equipment
+  expected_data:
+    - table_name: FA Setup
+      field_name: Fixed Asset Nos.
+
+- name: SEARCH_16
+  description: Search finds the master data number series for projects.
+  question: projects
+  expected_data:
+    - table_name: Jobs Setup
+      field_name: Job Nos.
+
+- name: SEARCH_17
+  description: Search finds the master data number series for jobs.
+  question: jobs
+  expected_data:
+    - table_name: Jobs Setup
+      field_name: Job Nos.
+
+- name: SEARCH_18
+  description: Search finds the master data number series for resources.
+  question: resources
+  expected_data:
+    - table_name: Resources Setup
+      field_name: Resource Nos.
+
+- name: SEARCH_19
+  description: Search finds the master data number series for contacts.
+  question: contacts
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Contact Nos.
+
+- name: SEARCH_20
+  description: Search finds the master data number series for opportunities.
+  question: opportunities
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Opportunity Nos.
+
+- name: SEARCH_21
+  description: Search finds the master data number series for campaigns.
+  question: campaigns
+  expected_data:
+    - table_name: Marketing Setup
+      field_name: Campaign Nos.
+
+- name: SEARCH_22
+  description: Search finds the master data number series for bank accounts.
+  question: bank accounts
+  expected_data:
+    - table_name: General Ledger Setup
+      field_name: Bank Account Nos.
+
+- name: SEARCH_23
+  description: Search finds the master data number series for machine centers.
+  question: machine centers
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Machine Center Nos.
+
+- name: SEARCH_24
+  description: Search finds the master data number series for work centers.
+  question: work centers
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Work Center Nos.
+
+- name: SEARCH_25
+  description: Search finds the master data number series for service items.
+  question: service items
+  expected_data:
+    - table_name: Service Mgt. Setup
+      field_name: Service Item Nos.
+
+- name: SEARCH_26
+  description: Search finds the document number series for sales quotes.
+  question: sales quotes
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Quote Nos.
+
+- name: SEARCH_27
+  description: Search finds the document number series for sales orders.
+  question: sales orders
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Order Nos.
+
+- name: SEARCH_28
+  description: Search finds the document number series for sales invoices.
+  question: sales invoices
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Invoice Nos.
+
+- name: SEARCH_29
+  description: Search finds the document number series for sales credit memos.
+  question: sales credit memos
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Credit Memo Nos.
+
+- name: SEARCH_30
+  description: Search finds the document number series for sales return orders.
+  question: sales return orders
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Return Order Nos.
+
+- name: SEARCH_31
+  description: Search finds the document number series for blanket sales orders.
+  question: blanket sales orders
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Blanket Order Nos.
+
+- name: SEARCH_32
+  description: Search finds the document number series for posted sales invoices.
+  question: posted sales invoices
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Posted Invoice Nos.
+
+- name: SEARCH_33
+  description: Search finds the document number series for customer invoices.
+  question: customer invoices
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Invoice Nos.
+
+- name: SEARCH_34
+  description: Search finds the document number series for customer orders.
+  question: customer orders
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Order Nos.
+
+- name: SEARCH_35
+  description: Search finds the document number series for customer returns.
+  question: customer returns
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Return Order Nos.
+
+- name: SEARCH_36
+  description: Search finds the document number series for sales offers.
+  question: sales offers
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Quote Nos.
+
+- name: SEARCH_37
+  description: Search finds the document number series for purchase quotes.
+  question: purchase quotes
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Quote Nos.
+
+- name: SEARCH_38
+  description: Search finds the document number series for purchase orders.
+  question: purchase orders
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Order Nos.
+
+- name: SEARCH_39
+  description: Search finds the document number series for purchase invoices.
+  question: purchase invoices
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Invoice Nos.
+
+- name: SEARCH_40
+  description: Search finds the document number series for purchase credit memos.
+  question: purchase credit memos
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Credit Memo Nos.
+
+- name: SEARCH_41
+  description: Search finds the document number series for purchase return orders.
+  question: purchase return orders
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Return Order Nos.
+
+- name: SEARCH_42
+  description: Search finds the document number series for posted purchase invoices.
+  question: posted purchase invoices
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Posted Invoice Nos.
+
+- name: SEARCH_43
+  description: Search finds the document number series for supplier invoices.
+  question: supplier invoices
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Invoice Nos.
+
+- name: SEARCH_44
+  description: Search finds the document number series for supplier orders.
+  question: supplier orders
+  expected_data:
+    - table_name: Purchases & Payables Setup
+      field_name: Order Nos.
+
+- name: SEARCH_45
+  description: Search finds the document number series for transfer orders.
+  question: transfer orders
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Transfer Order Nos.
+
+- name: SEARCH_46
+  description: Search finds the document number series for assembly orders.
+  question: assembly orders
+  expected_data:
+    - table_name: Assembly Setup
+      field_name: Assembly Order Nos.
+
+- name: SEARCH_47
+  description: Search finds the document number series for production orders.
+  question: production orders
+  expected_data:
+    - table_name: Manufacturing Setup
+      field_name: Released Order Nos.
+
+- name: SEARCH_48
+  description: Search finds the document number series for service orders.
+  question: service orders
+  expected_data:
+    - table_name: Service Mgt. Setup
+      field_name: Service Order Nos.
+
+- name: SEARCH_49
+  description: Search finds the document number series for warehouse picks.
+  question: warehouse picks
+  expected_data:
+    - table_name: Warehouse Setup
+      field_name: Whse. Pick Nos.
+
+- name: SEARCH_50
+  description: Search finds the document number series for warehouse receipts.
+  question: warehouse receipts
+  expected_data:
+    - table_name: Warehouse Setup
+      field_name: Whse. Receipt Nos.
+
+- name: SEARCH_51
+  description: Search finds the document number series for reminders.
+  question: reminders
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Reminder Nos.
+
+- name: SEARCH_52
+  description: Search finds the document number series for finance charge memos.
+  question: finance charge memos
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Fin. Chrg. Memo Nos.
+
+- name: SEARCH_53
+  description: Search finds the document number series for time sheets.
+  question: time sheets
+  expected_data:
+    - table_name: Resources Setup
+      field_name: Time Sheet Nos.
+
+- name: SEARCH_54
+  description: Search finds the document number series for physical inventory orders.
+  question: physical inventory orders
+  expected_data:
+    - table_name: Inventory Setup
+      field_name: Phys. Invt. Order Nos.
+
+- name: SEARCH_55
+  description: Search finds the document number series for bank deposits.
+  question: bank deposits
+  expected_data:
+    - table_name: Sales & Receivables Setup
+      field_name: Bank Deposit Nos.
+
+- name: SEARCH_56
+  description: Search finds no number series for the unrelated word xylophone.
+  question: xylophone
+  expected_data: []
+
+- name: SEARCH_57
+  description: Search finds no number series for the unrelated word banana.
+  question: banana
+  expected_data: []
+
+- name: SEARCH_58
+  description: Search finds no number series for the unrelated word weather.
+  question: weather
+  expected_data: []
+
+- name: SEARCH_59
+  description: Search finds no number series for the unrelated word football.
+  question: football
+  expected_data: []
+
+- name: SEARCH_60
+  description: Search finds no number series for the unrelated word guitar.
+  question: guitar
+  expected_data: []
+
+- name: SEARCH_61
+  description: Search finds no number series for the unrelated word holiday.
+  question: holiday
+  expected_data: []
+
+- name: SEARCH_62
+  description: Search finds no number series for the unrelated word pizza.
+  question: pizza
+  expected_data: []
+
+- name: SEARCH_63
+  description: Search finds no number series for the unrelated word music.
+  question: music
+  expected_data: []
+
+- name: SEARCH_64
+  description: Search finds no number series for the unrelated word dog.
+  question: dog
+  expected_data: []
+
+- name: SEARCH_65
+  description: Search finds no number series for the unrelated word mountain.
+  question: mountain
+  expected_data: []
