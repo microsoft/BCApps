@@ -51,6 +51,7 @@ page 7233 "Master Data Synch. Tables"
                         IntegrationFieldMapping: Record "Integration Field Mapping";
                         AllObjWithCaption: Record AllObjWithCaption;
                         TableMetadata: Record "Table Metadata";
+                        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
                         RecRef: RecordRef;
                         ExistingSynchTableNos: List of [Integer];
                         RelatedTablesToAdd: List of [Integer];
@@ -61,13 +62,12 @@ page 7233 "Master Data Synch. Tables"
                         if Rec."Table ID" <> 0 then
                             exit;
 
+                        // System tables can't be synchronized, so they aren't offered.
+                        TableFilterTxt := '<' + Format(MasterDataMgtSetupDefault.FirstSystemTableID());
                         IntegrationTableMapping.SetRange(Type, IntegrationTableMapping.Type::"Master Data Management");
                         if IntegrationTableMapping.FindSet() then
                             repeat
-                                if TableFilterTxt = '' then
-                                    TableFilterTxt := '<>' + Format(IntegrationTableMapping."Table ID")
-                                else
-                                    TableFilterTxt += '&<>' + Format(IntegrationTableMapping."Table ID");
+                                TableFilterTxt += '&<>' + Format(IntegrationTableMapping."Table ID");
                                 ExistingSynchTableNos.Add(IntegrationTableMapping."Table ID");
                             until IntegrationTableMapping.Next() = 0;
 
@@ -76,14 +76,7 @@ page 7233 "Master Data Synch. Tables"
                         if Page.RunModal(Page::"Table Objects", AllObjWithCaption) <> Action::LookupOK then
                             exit;
 
-                        if not TableMetadata.Get(AllObjWithCaption."Object ID") then
-                            Error(TableMetadataNotFoundErr, AllObjWithCaption."Object ID");
-
-                        if not TableMetadata.DataPerCompany then
-                            Error(TableNotPerCompanyErr, AllObjWithCaption."Object Caption");
-
-                        if TableMetadata.TableType <> TableMetadata.TableType::Normal then
-                            Error(TableNotOfTypeNormalErr, AllObjWithCaption."Object Caption");
+                        MasterDataMgtSetupDefault.CheckTableCanBeSynchronized(AllObjWithCaption."Object ID");
 
                         RecRef.Open(AllObjWithCaption."Object ID");
                         if not RecRef.WritePermission() then
@@ -99,12 +92,12 @@ page 7233 "Master Data Synch. Tables"
                                 IntegrationTableMapping.Validate(Status, IntegrationTableMapping.Status::Disabled);
                                 IntegrationTableMapping.Modify();
                                 foreach RelatedTableNo in RelatedTablesToAdd do
-                                    if TableMetadata.Get(RelatedTableNo) then
-                                        if (TableMetadata.TableType = TableMetadata.TableType::Normal) and TableMetadata.DataPerCompany then begin
-                                            AddTable(IntegrationTableMapping, TableMetadata.TableName, RelatedTableNo);
-                                            IntegrationTableMapping.Validate(Status, IntegrationTableMapping.Status::Disabled);
-                                            IntegrationTableMapping.Modify();
-                                        end;
+                                    if MasterDataMgtSetupDefault.CanTableBeSynchronized(RelatedTableNo) then begin
+                                        TableMetadata.Get(RelatedTableNo);
+                                        AddTable(IntegrationTableMapping, TableMetadata.TableName, RelatedTableNo);
+                                        IntegrationTableMapping.Validate(Status, IntegrationTableMapping.Status::Disabled);
+                                        IntegrationTableMapping.Modify();
+                                    end;
                                 Message(RelatedTablesAddedMsg, AllObjWithCaption."Object Caption", RelatedTablesToAddText);
                                 exit;
                             end;
@@ -523,7 +516,7 @@ page 7233 "Master Data Synch. Tables"
     local procedure FindRelatedTables(var ExistingSynchTableNos: List of [Integer]; var RelatedTablesToAdd: List of [Integer]; var RelatedTablesToAddText: Text; TableId: Integer; TopLevelTableId: Integer)
     var
         Field: Record Field;
-        TableMetadata: Record "Table Metadata";
+        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
         RecRef: RecordRef;
     begin
         if TableId = 0 then
@@ -537,19 +530,18 @@ page 7233 "Master Data Synch. Tables"
 
         repeat
             if not ((Field.RelationTableNo = TopLevelTableId) or ExistingSynchTableNos.Contains(Field.RelationTableNo) or RelatedTablesToAdd.Contains(Field.RelationTableNo)) then
-                if TableMetadata.Get(Field.RelationTableNo) then
-                    if (TableMetadata.TableType = TableMetadata.TableType::Normal) and TableMetadata.DataPerCompany then begin
-                        RecRef.Open(Field.RelationTableNo);
-                        if RecRef.WritePermission() then begin
-                            RelatedTablesToAdd.Add(Field.RelationTableNo);
-                            if RelatedTablesToAddText = '' then
-                                RelatedTablesToAddText := RecRef.Caption()
-                            else
-                                RelatedTablesToAddText += ', ' + RecRef.Caption();
-                            FindRelatedTables(ExistingSynchTableNos, RelatedTablesToAdd, RelatedTablesToAddText, Field.RelationTableNo, TopLevelTableId);
-                        end;
-                        RecRef.Close();
+                if MasterDataMgtSetupDefault.CanTableBeSynchronized(Field.RelationTableNo) then begin
+                    RecRef.Open(Field.RelationTableNo);
+                    if RecRef.WritePermission() then begin
+                        RelatedTablesToAdd.Add(Field.RelationTableNo);
+                        if RelatedTablesToAddText = '' then
+                            RelatedTablesToAddText := RecRef.Caption()
+                        else
+                            RelatedTablesToAddText += ', ' + RecRef.Caption();
+                        FindRelatedTables(ExistingSynchTableNos, RelatedTablesToAdd, RelatedTablesToAddText, Field.RelationTableNo, TopLevelTableId);
                     end;
+                    RecRef.Close();
+                end;
         until Field.Next() = 0;
     end;
 
@@ -657,9 +649,6 @@ page 7233 "Master Data Synch. Tables"
         NoCoupledRecordsMsg: label 'No records of this table are currently coupled to records from the source company. \\Choose the action Run Full Synchronization.';
         RelatedTablesQst: label 'The chosen table has a relation to the following tables that are currently not included in the synchronization: %1. \\Do you want to synchronize these tables too?', Comment = '%1 - comma-separated list of table captions';
         RelatedTablesAddedMsg: label 'Table %1 and related tables: %2 are added to the synchronization with state set to Disabled. \\Open Synchronization Tables page, choose synchronization fields for each of the added tables and then set their status to Enabled.', Comment = '%1 - a table caption, %2 - comma-separated list of table captions';
-        TableMetadataNotFoundErr: label 'Metadata for table %1 cannot be loaded. Choose another table.', Comment = '%1 - a table name';
-        TableNotPerCompanyErr: label 'Table %1 is shared across all companies of this environment. Choose another table.', Comment = '%1 - a table name';
-        TableNotOfTypeNormalErr: label 'Table %1 is either declared as temporary, a query or as an interface for accessing an external entity. Choose another table.', Comment = '%1 - a table name';
         TablePermissionMissingErr: label 'Your license doesn''t grant you permissions for writing into table %1. Choose another table.', Comment = '%1 - a table name';
         SkippedRecordsNotificationMsg: label 'Synchronization of some records of this table was paused due to repetitive errors. Choose ''Run Full Synchronization'' to rerun the synchronization on them and examine the errors.';
         HasRecords: Boolean;
