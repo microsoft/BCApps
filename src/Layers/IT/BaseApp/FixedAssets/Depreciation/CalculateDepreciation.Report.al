@@ -164,6 +164,9 @@ report 5692 "Calculate Depreciation"
             var
                 NeedCommit: Boolean;
             begin
+#if not CLEAN30
+                SyncObsoletePostingDescription();
+#endif
                 if TempFAJnlLine.Find('-') then begin
                     NeedCommit := true;
                     FAJnlLine.LockTable();
@@ -379,6 +382,13 @@ report 5692 "Calculate Depreciation"
                             ApplicationArea = FixedAssets;
                             Caption = 'Posting Description';
                             ToolTip = 'Specifies the posting date to be used by the batch job as a filter.';
+#if not CLEAN30
+
+                            trigger OnValidate()
+                            begin
+                                SyncObsoletePostingDescription();
+                            end;
+#endif
                         }
                     }
                     group("Anticipated Depreciation")
@@ -550,6 +560,9 @@ report 5692 "Calculate Depreciation"
               DeprBook.Code);
         if GuiAllowed() then
             Window.Open(Text003 + Text004 + Text005);
+#if not CLEAN30
+        SyncObsoletePostingDescription();
+#endif
     end;
 
     var
@@ -623,6 +636,9 @@ report 5692 "Calculate Depreciation"
 #pragma warning restore AA0074
         FADeprBookBonusDepreciationApplied: Dictionary of [RecordId, Boolean];
         FADeprBookBonusDepreciationAmount: Dictionary of [RecordId, Decimal];
+#if not CLEAN30
+        LastSyncedPostingDescription: Text[100];
+#endif
 
     protected var
         DeprBookCode: Code[10];
@@ -650,7 +666,25 @@ report 5692 "Calculate Depreciation"
         DocumentNo := DocumentNoFrom;
         PostingDescription := PostingDescriptionFrom;
         BalAccount := BalAccountFrom;
+#if not CLEAN30
+        SyncObsoletePostingDescription();
+#endif
     end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    local procedure SyncObsoletePostingDescription()
+    begin
+        // Keeps the obsolete PostingDescriptionTxt in sync with PostingDescription, so that extensions using either name keep working.
+        if PostingDescription <> LastSyncedPostingDescription then
+            PostingDescriptionTxt := PostingDescription
+        else
+            if PostingDescriptionTxt <> LastSyncedPostingDescription then
+                PostingDescription := PostingDescriptionTxt;
+        LastSyncedPostingDescription := PostingDescription;
+    end;
+#pragma warning restore AL0432
+#endif
 
     local procedure ActivateErrorMessageHandling(var FixedAsset: Record "Fixed Asset")
     var
