@@ -1016,6 +1016,8 @@ codeunit 5826 "Matched Order Line Mgmt."
                     PurchaseLineInvoice.Validate(Type, PurchaseLineOrder.Type);
                     PurchaseLineInvoice.Validate("No.", PurchaseLineOrder."No.");
                     PurchaseLineInvoice.Validate("Unit of Measure Code", PurchaseLineOrder."Unit of Measure Code");
+                    if (PurchaseLineOrder.Type <> PurchaseLineOrder.Type::" ") and (PurchaseLineInvoice."VAT Prod. Posting Group" <> PurchaseLineOrder."VAT Prod. Posting Group") then
+                        PurchaseLineInvoice.Validate("VAT Prod. Posting Group", PurchaseLineOrder."VAT Prod. Posting Group");
                     PurchaseLineInvoice.Validate(Description, PurchaseLineOrder.Description);
                     PurchaseLineInvoice."Description 2" := PurchaseLineOrder."Description 2";
                     PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder."Direct Unit Cost");
