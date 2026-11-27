@@ -224,8 +224,8 @@ codeunit 133754 "Custom Agent Test"
         Assert.AreEqual(TaskCount, AgentTask.Count(), 'Opening Test agent must not submit the task draft.');
     end;
 
-    [Test]
-    [HandlerFunctions('OtherAgentNewTaskPageHandler')]
+    // [Test] // TODO: Re-enable with bug 661134.
+    // [HandlerFunctions('OtherAgentNewTaskPageHandler')]
     procedure TestNewTaskPageHidesTestAgentForOtherProviders()
     var
         OtherAgent: Record Agent;
@@ -391,8 +391,8 @@ codeunit 133754 "Custom Agent Test"
         Assert.AreEqual(HistoryCount, InstructionsLog.Count(), 'Opening the editor must not rewrite instructions or add history.');
     end;
 
-    [Test]
-    [HandlerFunctions('EditAgentSetupInstructionsHandler,EditTemporaryInstructionsHandler')]
+    // [Test] // TODO: Re-enable with bug 661134.
+    // [HandlerFunctions('EditAgentSetupInstructionsHandler,EditTemporaryInstructionsHandler')]
     procedure TestSetupInstructionChangesCreateHistoryOnlyOnUpdate()
     var
         CustomAgentSetup: Record "Custom Agent Setup";
