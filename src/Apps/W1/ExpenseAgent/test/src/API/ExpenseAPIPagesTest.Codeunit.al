@@ -1466,8 +1466,9 @@ codeunit 148370 "Expense API Pages Test"
         LibraryExpense.CreateExpenseReport(ExpenseReportHeader, ExpenseUser."No.", '', '');
         LibraryExpense.CreateExpenseReportLine(ExpenseReportLine, ExpenseReportHeader, ExpenseUser."No.", ExpenseCategory.Code, ExpensePaymentMethod.Code, true, '', LibraryRandom.RandInt(100));
 
+        // Posting requires the financial itemization total to match the expense report line amount.
         LibraryExpense.CreateExpenseReportLineItemization(
-            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubcategory.Code, WorkDate(), LibraryRandom.RandInt(50), 1);
+            ExpenseReportLineItem, ExpenseReportLine, ExpenseCategory.Code, ExpenseSubcategory.Code, WorkDate(), ExpenseReportLine.Amount, 1);
 
         if AttachToLineBeforePosting then begin
             RecRef.GetTable(ExpenseReportLine);
