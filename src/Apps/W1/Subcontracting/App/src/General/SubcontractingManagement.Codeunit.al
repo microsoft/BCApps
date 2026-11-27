@@ -820,6 +820,41 @@ codeunit 20505 "Subcontracting Management"
         end;
     end;
 
+    internal procedure UpdateOperationConsignmentLocations(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; VendorLocationCode: Code[10])
+    var
+        ProductionLine: Record "Prod. Order Line";
+        Component: Record "Prod. Order Component";
+        OriginalLocationCode: Code[10];
+        OriginalBinCode: Code[20];
+    begin
+        if ProdOrderRoutingLine."Routing Link Code" = '' then
+            exit;
+
+        ProductionLine.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProductionLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProductionLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
+        ProductionLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        if ProductionLine.FindSet() then
+            repeat
+                Component.SetRange(Status, ProductionLine.Status);
+                Component.SetRange("Prod. Order No.", ProductionLine."Prod. Order No.");
+                Component.SetRange("Prod. Order Line No.", ProductionLine."Line No.");
+                Component.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+                Component.SetRange("Component Supply Method", Component."Component Supply Method"::"Consignment at Vendor");
+                Component.SetFilter("Location Code", '<>%1', VendorLocationCode);
+                if Component.FindSet(true) then
+                    repeat
+                        OriginalLocationCode := Component."Subc. Original Location Code";
+                        OriginalBinCode := Component."Subc. Orig. Bin Code";
+                        ValidateProdOrderCompLocationPreservingFlushingMethod(Component, VendorLocationCode);
+                        // Keep the shop-floor origin, not the previous subcontractor's location.
+                        Component."Subc. Original Location Code" := OriginalLocationCode;
+                        Component."Subc. Orig. Bin Code" := OriginalBinCode;
+                        Component.Modify(true);
+                    until Component.Next() = 0;
+            until ProductionLine.Next() = 0;
+    end;
+
     procedure UpdLinkedComponents(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ShowMsg: Boolean)
     var
         ProdOrderComponent: Record "Prod. Order Component";

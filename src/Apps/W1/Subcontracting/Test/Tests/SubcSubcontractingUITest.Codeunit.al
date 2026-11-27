@@ -41,6 +41,88 @@ codeunit 139990 "Subc. Subcontracting UI Test"
 
     [Test]
     [HandlerFunctions('VendorRoutingConfirmHandler')]
+    procedure AcceptedVendorUpdatesPreconfiguredConsignment()
+    var
+        Component: Record "Prod. Order Component";
+        BeforeComponent: Record "Prod. Order Component";
+        OrdinaryComponent: Record "Prod. Order Component";
+        BeforeOrdinaryComponent: Record "Prod. Order Component";
+        OtherComponent: Record "Prod. Order Component";
+        BeforeOtherComponent: Record "Prod. Order Component";
+        BeforeArtifacts: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 654802] Accepting V2 updates existing consignment without changing ordinary or independent components.
+        Initialize();
+
+        // [GIVEN] C is already at V1, and an ordinary sibling remains at MAIN.
+        CreateVendorRoutingFixture(0, 12);
+        CreatePreconfiguredConsignmentComponent(Component);
+        BeforeComponent := Component;
+        FilterVendorRoutingComponents(OrdinaryComponent);
+        OrdinaryComponent.FindFirst();
+        BeforeOrdinaryComponent := OrdinaryComponent;
+        OtherComponent.SetRange(Status, VROtherOrder.Status);
+        OtherComponent.SetRange("Prod. Order No.", VROtherOrder."No.");
+        OtherComponent.SetRange("Item No.", Component."Item No.");
+        OtherComponent.FindFirst();
+        OtherComponent.Validate("Component Supply Method", OtherComponent."Component Supply Method"::"Consignment at Vendor");
+        OtherComponent.Modify(true);
+        OtherComponent.Get(OtherComponent.Status, OtherComponent."Prod. Order No.", OtherComponent."Prod. Order Line No.", OtherComponent."Line No.");
+        BeforeOtherComponent := OtherComponent;
+        BeforeArtifacts := VendorRoutingPurchaseState() + VendorRoutingArtifactState();
+
+        // [WHEN] The worksheet accepts V2 for the selected operation.
+        ChangeWorksheetVendor(VRVendor[2]."No.", true, true);
+
+        // [THEN] Only C follows V2; its original location, demand and flushing remain intact.
+        VerifyPreconfiguredConsignmentComponent(Component, BeforeComponent, VRVendor[2]."Subc. Location Code");
+        OrdinaryComponent.Get(BeforeOrdinaryComponent.Status, BeforeOrdinaryComponent."Prod. Order No.", BeforeOrdinaryComponent."Prod. Order Line No.", BeforeOrdinaryComponent."Line No.");
+        OtherComponent.Get(BeforeOtherComponent.Status, BeforeOtherComponent."Prod. Order No.", BeforeOtherComponent."Prod. Order Line No.", BeforeOtherComponent."Line No.");
+        Assert.AreEqual(BeforeOrdinaryComponent.SystemRowVersion, OrdinaryComponent.SystemRowVersion, 'The ordinary sibling must not be written.');
+        Assert.AreEqual(BeforeOtherComponent.SystemRowVersion, OtherComponent.SystemRowVersion, 'Another order sharing the work center and routing link must not be written.');
+        Assert.AreEqual(BeforeArtifacts, VendorRoutingPurchaseState() + VendorRoutingArtifactState(), 'Accepting a vendor must not create purchases, transfer documents or posted stock.');
+        VerifyWorksheetVendor(VRVendor[2]."No.", VRMain.Code);
+        VerifyEffectiveVendor(VRRouting[1], VRVendor[2]."No.");
+        VerifyVendorRoutingMasters();
+        FinishVendorRoutingFixture();
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorRoutingConfirmHandler')]
+    procedure DeclinedVendorPreservesPreconfiguredConsignment()
+    var
+        Component: Record "Prod. Order Component";
+        BeforeComponent: Record "Prod. Order Component";
+        BeforeBusiness: Text;
+        BeforeVersions: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO 654802] Declining V2 retains existing consignment at V1 without writing routing or components.
+        Initialize();
+
+        // [GIVEN] C is configured for consignment at V1 before the vendor choice.
+        CreateVendorRoutingFixture(0, 12);
+        CreatePreconfiguredConsignmentComponent(Component);
+        BeforeComponent := Component;
+        BeforeBusiness := VendorRoutingBusinessState();
+        BeforeVersions := VendorRoutingRowVersions();
+
+        // [WHEN] The worksheet selects V2 but declines the routing update.
+        ChangeWorksheetVendor(VRVendor[2]."No.", false, true);
+
+        // [THEN] C, its siblings and routing retain their original state.
+        VerifyPreconfiguredConsignmentComponent(Component, BeforeComponent, VRVendor[1]."Subc. Location Code");
+        Assert.AreEqual(BeforeBusiness, VendorRoutingBusinessState(), 'Declining must preserve all production and component business state.');
+        Assert.AreEqual(BeforeVersions, VendorRoutingRowVersions(), 'Declining must not write routing or components on either order.');
+        VerifyWorksheetVendor(VRVendor[2]."No.", VRMain.Code);
+        VerifyEffectiveVendor(VRRouting[1], VRVendor[1]."No.");
+        VerifyVendorRoutingMasters();
+        FinishVendorRoutingFixture();
+    end;
+
+    [Test]
+    [HandlerFunctions('VendorRoutingConfirmHandler')]
     procedure PreconfiguredVendorSupplyRefusesReverseChoiceFlow()
     var
         Component: Record "Prod. Order Component";
@@ -3390,6 +3472,30 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Factbox.GoToRecord(Routing);
         Factbox.ShowSubcontractor.AssertEquals(ExpectedVendor);
         Factbox.Close();
+    end;
+
+    local procedure CreatePreconfiguredConsignmentComponent(var Component: Record "Prod. Order Component")
+    begin
+        FilterVendorRoutingComponents(Component);
+        Component.FindLast();
+        Component.Validate("Component Supply Method", Component."Component Supply Method"::"Consignment at Vendor");
+        Component.Modify(true);
+        Component.Get(Component.Status, Component."Prod. Order No.", Component."Prod. Order Line No.", Component."Line No.");
+        Assert.AreEqual(VRVendor[1]."Subc. Location Code", Component."Location Code", 'Native supply validation must put the preconfigured component at V1.');
+        Assert.AreEqual(VRMain.Code, Component."Subc. Original Location Code", 'The preconfigured component must retain its genuine shop-floor origin.');
+    end;
+
+    local procedure VerifyPreconfiguredConsignmentComponent(var Component: Record "Prod. Order Component"; BeforeComponent: Record "Prod. Order Component"; ExpectedLocation: Code[10])
+    begin
+        Component.Get(BeforeComponent.Status, BeforeComponent."Prod. Order No.", BeforeComponent."Prod. Order Line No.", BeforeComponent."Line No.");
+        Assert.AreEqual(ExpectedLocation, Component."Location Code", 'Consignment location must follow the accepted operation vendor only.');
+        Assert.AreEqual(BeforeComponent."Subc. Original Location Code", Component."Subc. Original Location Code", 'Changing subcontractor must retain the shop-floor origin.');
+        Assert.AreEqual(BeforeComponent."Subc. Orig. Bin Code", Component."Subc. Orig. Bin Code", 'Changing subcontractor must retain the original bin.');
+        Assert.AreEqual(BeforeComponent."Flushing Method", Component."Flushing Method", 'Changing subcontractor must preserve flushing.');
+        Assert.AreEqual(BeforeComponent."Component Supply Method", Component."Component Supply Method", 'Changing subcontractor must preserve supply method.');
+        Assert.AreEqual(BeforeComponent."Quantity per", Component."Quantity per", 'Changing subcontractor must preserve BOM demand.');
+        Assert.AreEqual(BeforeComponent."Expected Qty. (Base)", Component."Expected Qty. (Base)", 'Changing subcontractor must preserve expected base quantity.');
+        Assert.AreEqual(BeforeComponent."Remaining Qty. (Base)", Component."Remaining Qty. (Base)", 'Changing subcontractor must preserve remaining base quantity.');
     end;
 
     local procedure FilterVendorRoutingComponents(var Component: Record "Prod. Order Component")

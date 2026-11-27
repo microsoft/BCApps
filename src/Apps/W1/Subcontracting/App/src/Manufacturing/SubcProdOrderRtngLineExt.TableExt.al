@@ -196,6 +196,7 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
         SubcProdOrderRtngExt.CheckOperationSubcontractorChange(Rec, Vendor);
         Validate("Subc. Subcontractor No.", VendorNo);
         Modify(true);
+        SubcontractingManagement.UpdateOperationConsignmentLocations(Rec, Vendor."Subc. Location Code");
     end;
 
     var
