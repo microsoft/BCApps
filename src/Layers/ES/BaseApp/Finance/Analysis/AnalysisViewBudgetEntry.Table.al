@@ -157,6 +157,10 @@ table 366 "Analysis View Budget Entry"
         {
             Clustered = true;
         }
+        key(Key2; "Analysis View Code", "Business Unit Code", "Budget Name", "G/L Account No.", "Posting Date", "Dimension 1 Value Code", "Dimension 2 Value Code", "Dimension 3 Value Code", "Dimension 4 Value Code")
+        {
+            SumIndexFields = Amount;
+        }
     }
 
     fieldgroups
