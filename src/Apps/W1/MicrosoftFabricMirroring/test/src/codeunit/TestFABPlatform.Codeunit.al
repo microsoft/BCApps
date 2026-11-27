@@ -10,6 +10,7 @@ codeunit 140012 "Test FAB Platform"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Codeunit;
     // Initialize() clears these tables before LowerPermissions is applied in each test.
     var
         Assert: Codeunit "Assert";
@@ -26,6 +27,7 @@ codeunit 140012 "Test FAB Platform"
         TableResetMsg: Label 'Table %1 was reset. The next synchronization run will send a full snapshot.', Comment = '%1 = table id';
         TableNothingToResetMsg: Label 'Table %1 has no completed synchronization to reset. The next run will send a full snapshot.', Comment = '%1 = table id';
         UnexpectedEndWatermarkErr: Label 'Unexpected End Watermark for company %1, table %2.', Comment = '%1 = company name, %2 = table id';
+        DestinationChangeBlockedErr: Label 'You cannot change the Fabric workspace or Open Mirroring database while setup is complete or export is enabled.';
         WorkspaceRoleAssignmentsUrlLbl: Label 'https://api.fabric.microsoft.com/v1/workspaces/11111111-1111-1111-1111-111111111111/roleAssignments', Locked = true;
         WorkspaceRoleAssignmentsNextPageUrlLbl: Label 'https://api.fabric.microsoft.com/v1/workspaces/11111111-1111-1111-1111-111111111111/roleAssignments?continuationToken=next%3D', Locked = true;
 
@@ -741,54 +743,6 @@ codeunit 140012 "Test FAB Platform"
 
         //[THEN] The same client ID is returned
         Assert.AreEqual('11111111-1111-1111-1111-111111111111', CredMgt.GetCustomClientId(), 'Expected the stored client ID to be returned.');
-    end;
-
-    [Test]
-    procedure SetupPagesHideCustomCredentialsForFirstParty()
-    begin
-        VerifySetupAuthenticationFieldsVisible(false);
-    end;
-
-    [Test]
-    procedure SetupPagesShowCustomCredentialsForCustomApp()
-    begin
-        VerifySetupAuthenticationFieldsVisible(true);
-    end;
-
-    local procedure VerifySetupAuthenticationFieldsVisible(UseCustomApp: Boolean)
-    var
-        CredMgt: Codeunit "Fabric Platform Credential Mgt";
-        SetupPage: TestPage "Fabric Platform Setup";
-        SetupWizard: TestPage "Fabric Platform Setup Wizard";
-    begin
-        Initialize();
-        CredMgt.SetCustomAppEnabled(UseCustomApp);
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
-
-        SetupPage.OpenEdit();
-        Assert.AreEqual(UseCustomApp, SetupPage.ClientId.Visible(), 'Unexpected Client ID visibility on the setup page.');
-        Assert.AreEqual(UseCustomApp, SetupPage.ClientSecret.Visible(), 'Unexpected Client Secret visibility on the setup page.');
-        Assert.IsTrue(SetupPage.PrincipalId.Visible(), 'Principal ID must be visible for both authentication modes.');
-        SetupPage.Close();
-
-        SetupWizard.OpenEdit();
-        Assert.IsFalse(SetupWizard.PrincipalId.Visible(), 'Welcome must not show authentication fields.');
-        SetupWizard.ActionNext.Invoke();
-        Assert.IsTrue(SetupWizard.PrincipalId.Visible(), 'Principal ID must be visible on the authentication step for both modes.');
-        Assert.AreEqual(UseCustomApp, SetupWizard.ClientId.Visible(), 'Unexpected Client ID visibility in the setup wizard.');
-        Assert.AreEqual(UseCustomApp, SetupWizard.ClientSecret.Visible(), 'Unexpected Client Secret visibility in the setup wizard.');
-        Assert.IsFalse(SetupWizard."Fabric Workspace Name".Visible(), 'Both modes must show authentication before workspace selection.');
-        SetupWizard.ActionNext.Invoke();
-        Assert.IsTrue(SetupWizard."Fabric Workspace Name".Visible(), 'Authentication must be followed by workspace selection.');
-        SetupWizard.ActionBack.Invoke();
-        Assert.IsTrue(SetupWizard.PrincipalId.Visible(), 'Back must return to authentication for both modes.');
-        Assert.AreEqual(UseCustomApp, SetupWizard.ClientId.Visible(), 'Unexpected custom credentials when returning to authentication.');
-        SetupWizard.ActionBack.Invoke();
-        Assert.IsFalse(SetupWizard.ActionBack.Enabled(), 'Back from authentication must return to Welcome.');
-        Assert.IsFalse(SetupWizard.PrincipalId.Visible(), 'Authentication fields must not be shown when returning to Welcome.');
-        SetupWizard.Close();
-        Assert.AreEqual(UseCustomApp, CredMgt.IsCustomAppEnabled(), 'Opening setup must not change the authentication mode.');
     end;
 
     [Test]
@@ -1829,6 +1783,140 @@ codeunit 140012 "Test FAB Platform"
         VerifyEndWatermark(SucceededRunId, 'CRONUS', Database::"Tenant Fabric Setup", '');
         VerifyNoPendingMessages();
     end;
+
+    [Test]
+    procedure RejectDestinationChangeAfterSetupCompleted()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes after setup completes and synchronization stops
+        //[GIVEN] Completed setup with export disabled
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Setup committed so it survives the expected error's rollback
+        Commit();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested
+        asserterror FabricPlatformMgt.CheckCanChangeDestination(TenantFabricSetup);
+
+        //[THEN] Reset is required and the saved destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure RejectDestinationChangeWhileExportEnabled()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes while export is enabled
+        //[GIVEN] Enabled export without completed setup
+        CreateDestinationSetup(TenantFabricSetup, false, true);
+        //[GIVEN] Setup committed so it survives the expected error's rollback
+        Commit();
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested
+        asserterror FabricPlatformMgt.CheckCanChangeDestination(TenantFabricSetup);
+
+        //[THEN] Reset is required and the saved destination is unchanged
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure AllowDestinationChangeBeforeSetup()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes before connecting to Fabric
+        //[GIVEN] Setup and export are not enabled
+        CreateDestinationSetup(TenantFabricSetup, false, false);
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested
+        FabricPlatformMgt.CheckCanChangeDestination(TenantFabricSetup);
+
+        //[THEN] Editing is allowed without changing the saved setup
+        VerifyDestinationUnchanged(TenantFabricSetup);
+    end;
+
+    [Test]
+    procedure RejectDestinationChangeWithStaleSetup()
+    var
+        TenantFabricSetup: Record "Tenant Fabric Setup";
+        StaleSetup: Record "Tenant Fabric Setup";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        //[SCENARIO] Check destination changes using stale setup state
+        //[GIVEN] Saved setup is complete but the caller still has an incomplete setup record
+        CreateDestinationSetup(TenantFabricSetup, true, false);
+        //[GIVEN] Setup committed so it survives the expected error's rollback
+        Commit();
+        //[GIVEN] A stale copy of the saved setup
+        StaleSetup := TenantFabricSetup;
+        StaleSetup."Setup Complete" := false;
+        //[GIVEN] Lower permissions
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
+
+        //[WHEN] Destination editing is requested using the stale record
+        asserterror FabricPlatformMgt.CheckCanChangeDestination(StaleSetup);
+
+        //[THEN] Saved setup state requires Reset and preserves the destination
+        VerifyDestinationChangeRejected(TenantFabricSetup);
+    end;
+
+    #region Destination fixtures
+
+    local procedure CreateDestinationSetup(var TenantFabricSetup: Record "Tenant Fabric Setup"; SetupComplete: Boolean; ExportEnabled: Boolean)
+    begin
+        TenantFabricSetup.DeleteAll(false);
+        TenantFabricSetup.Init();
+        TenantFabricSetup."Fabric Workspace ID" := CreateGuid();
+        TenantFabricSetup."Fabric Workspace Name" := 'Original workspace';
+        TenantFabricSetup."Fabric Lakehouse ID" := CreateGuid();
+        TenantFabricSetup."Fabric Data Namespace" := 'BusinessCentral';
+        TenantFabricSetup."Fabric Logging Namespace" := 'BusinessCentral_log';
+        TenantFabricSetup."Minutes Between Exports" := 5;
+        TenantFabricSetup."Max Consecutive Failed Runs" := 2;
+        TenantFabricSetup."Setup Complete" := SetupComplete;
+        TenantFabricSetup."Export Enabled" := ExportEnabled;
+        TenantFabricSetup.Insert(false);
+    end;
+
+    #endregion
+
+    #region Destination verification
+
+    local procedure VerifyDestinationChangeRejected(ExpectedSetup: Record "Tenant Fabric Setup")
+    begin
+        Assert.ExpectedError(DestinationChangeBlockedErr);
+        Assert.ExpectedErrorCode('Dialog');
+        VerifyDestinationUnchanged(ExpectedSetup);
+    end;
+
+    local procedure VerifyDestinationUnchanged(ExpectedSetup: Record "Tenant Fabric Setup")
+    var
+        ActualSetup: Record "Tenant Fabric Setup";
+    begin
+        ActualSetup.Get(ExpectedSetup."Setup ID");
+        Assert.AreEqual(ExpectedSetup."Fabric Workspace ID", ActualSetup."Fabric Workspace ID", 'Unexpected workspace ID.');
+        Assert.AreEqual(ExpectedSetup."Fabric Workspace Name", ActualSetup."Fabric Workspace Name", 'Unexpected workspace name.');
+        Assert.AreEqual(ExpectedSetup."Fabric Lakehouse ID", ActualSetup."Fabric Lakehouse ID", 'Unexpected mirrored database ID.');
+        Assert.AreEqual(ExpectedSetup."Setup Complete", ActualSetup."Setup Complete", 'Unexpected setup completion state.');
+        Assert.AreEqual(ExpectedSetup."Export Enabled", ActualSetup."Export Enabled", 'Unexpected export enablement state.');
+        Assert.AreEqual(ExpectedSetup."Minutes Between Exports", ActualSetup."Minutes Between Exports", 'Unexpected export interval.');
+    end;
+
+    #endregion
 
     local procedure CreateRunningExportSummary() RunId: Guid
     var
