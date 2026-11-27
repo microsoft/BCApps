@@ -249,7 +249,7 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
             AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Supplier Registration No."));
             AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Supplier Reg. Country/Region"));
             AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Supplier Reg. Scheme"));
-            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Receiving Company Reg. No."));
+            AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Receiving Registration Number"));
             AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Receiving Reg. Country/Region"));
             AddFieldToFieldBuffer(TempFieldBuffer, EDocument.FieldNo("Receiving Reg. Scheme"));
         end;

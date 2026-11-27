@@ -1834,7 +1834,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CompanyRegistrationNo := PadStr('POSTED COMPANY /- ', 50, 'c');
         BillToRegistrationNo := PadStr('POSTED BILL-TO /- ', 50, 'b');
         CompanyInfo.Get();
-        CompanyInfo."Registration No." := CompanyRegistrationNo;
+        CompanyInfo."Registration Number" := CompanyRegistrationNo;
         CompanyInfo."VAT Registration No." := 'DK12345678';
         CompanyInfo."Use GLN in Electronic Document" := false;
         CompanyInfo.Modify();
@@ -1873,7 +1873,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             Document.Modify();
         end;
         CompanyInfo.Get();
-        CompanyInfo."Registration No." := 'TODAYS COMPANY';
+        CompanyInfo."Registration Number" := 'TODAYS COMPANY';
         CompanyInfo.Modify();
         BillToCustomer."Registration Number" := 'TODAYS BILL-TO';
         BillToCustomer.Modify();
@@ -1941,7 +1941,7 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CompanyRegistrationNo := PadStr('POSTED BUYER /- ', 50, 'c');
         VendorRegistrationNo := PadStr('POSTED SELLER /- ', 50, 'v');
         CompanyInfo.Get();
-        CompanyInfo."Registration No." := CompanyRegistrationNo;
+        CompanyInfo."Registration Number" := CompanyRegistrationNo;
         CompanyInfo."VAT Registration No." := 'DK12345678';
         CompanyInfo."Use GLN in Electronic Document" := false;
         CompanyInfo.Modify();
@@ -1970,12 +1970,12 @@ codeunit 139236 "PEPPOL BIS BillingTests"
             Document.GetTable(PurchInvHeader);
         end;
         if MissingSnapshots then begin
-            Document.Field(PurchInvHeader.FieldNo("Registration No.")).Value := '';
+            Document.Field(PurchInvHeader.FieldNo("Registration Number")).Value := '';
             Document.Field(PurchInvHeader.FieldNo("Company Registration No.")).Value := '';
             Document.Modify();
         end;
         CompanyInfo.Get();
-        CompanyInfo."Registration No." := 'TODAYS COMPANY';
+        CompanyInfo."Registration Number" := 'TODAYS COMPANY';
         CompanyInfo.Modify();
         Vendor."Registration Number" := 'TODAYS VENDOR';
         Vendor.Modify();

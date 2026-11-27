@@ -41,9 +41,9 @@ duplicate fields.
 | Area | Existing implementation | Required direction |
 |---|---|---|
 | Customer, Vendor, Contact | Field 25, `Registration Number`, Text[50], with a W1 validation limit of 20 characters | Reuse existing fields and remove the artificial global limit |
-| Company Information | Field 20, `Registration No.`, Text[20] | Widen the existing field and audit dependent paths |
+| Company Information | Field 20, `Registration No.`, Text[20] | Preserve the legacy field and add field 7407, `Registration Number`, Text[50] |
 | Sales documents | Sales Header and posted sales invoice/credit-memo headers have Text[50] registration fields | Reuse existing snapshots and close agreed lifecycle gaps |
-| DACH | Active purchase-document and vendor-template fields use ID 11000 and Text[20] | Consolidate only where semantics match, preserving IDs where applicable |
+| DACH | Active purchase-document and vendor-template fields use ID 11000 and Text[20] | Preserve legacy fields locally; use separate W1 purchase-document fields |
 | CZ | Uses W1 master fields but retains local Text[20] helpers, logs, document fields, and services | Separate reusable behavior from local services and remove unsafe truncation |
 | Integration | Narrow E-Document contracts and a Code[20] payment-recipient field remain | Provide compatible, explicit boundaries |
 
@@ -52,8 +52,9 @@ duplicate fields.
 ### DATA-01: Primary registration number
 
 Each supported entity must expose one primary legal registration number as
-Text[50]. Existing W1 field IDs and AL names must be retained where those fields
-already represent this concept.
+Text[50]. Reuse existing Text[50] W1 fields. Existing Text[20] fields must retain
+their IDs, AL names, lengths, and legacy behavior; add separate Text[50] fields
+instead of widening or promoting localized fields.
 
 Captions and tooltips must use consistent terminology and must not describe a
 20-character restriction.
@@ -233,8 +234,9 @@ detection tied to actual fields. Formatting remains a separate operation.
   Service, reminder, finance-charge, inventory, and compensation documents are
   separate document families outside this slice.
 - Reuse sales field 72, `Registration Number`, throughout the sales lifecycle.
-  Reuse DACH purchase field 11000, `Registration No.`, throughout the purchase
-  lifecycle, widening it to Text[50] without changing its ID or AL name.
+  Add W1 purchase field 7407, `Registration Number`, Text[50], throughout the
+  purchase lifecycle, including posted and archived headers. Leave DACH field
+  11000, `Registration No.`, Text[20], local and unchanged.
   Do not consolidate the DACH Vendor registration field.
 - Store counterparty country in field 7404, `Registration Country/Region`.
   Posted and archived headers also store company registration in field 7402,
@@ -268,11 +270,17 @@ column before activation.
   Each company must complete its update before the new readers, format
   validation, duplicate notifications, resolver hooks, and format-setup UI are
   enabled. Merely enabling the environment key is insufficient.
-- Field additions and width increases are unconditional. Capture company
+- New Text[50] fields are unconditional; existing field lengths do not change. Capture company
   snapshots during posting and archiving even before activation. Do not copy
   current master values into historical documents during migration.
-- DACH purchase field 11000 retains its identity and existing data, requiring no
-  data-copy migration. The removed DACH Vendor field remains local and untouched.
+- DACH purchase field 11000 retains its identity, Text[20] length, legacy behavior,
+  and existing data. The separate W1 field 7407 stores new global snapshots;
+  historical documents are not backfilled. The DACH Vendor field remains local
+  and untouched.
+- Company Information field 20 remains Text[20]. Its nonblank value is offered
+  for explicit migration to field 7407, `Registration Number`, unless a local
+  migration adapter already supplies a company candidate. The company accessor
+  and UI switch to the new field only after activation.
 - BE supplies migration candidates for Customer, Vendor, Contact, and Company
   Information where a nonblank `Enterprise No.` differs from the W1 registration
   field. No country-based or tax-derived mapping is inferred automatically.

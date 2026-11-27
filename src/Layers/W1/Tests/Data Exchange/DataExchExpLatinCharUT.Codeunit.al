@@ -264,7 +264,7 @@ codeunit 132557 "Data Exch. Exp. Latin Char UT"
         Initialize();
         SetRegistrationFeatureEnabled(true);
         CompanyInformation.Get();
-        CompanyInformation."Registration No." := 'LEGAL&001';
+        CompanyInformation."Registration Number" := 'LEGAL&001';
         CompanyInformation.Modify();
         CreateVendLedgEntryPaymentWithNonLatinCharsDoNotPreserve(VendorLedgerEntry);
 
@@ -284,7 +284,7 @@ codeunit 132557 "Data Exch. Exp. Latin Char UT"
         Initialize();
         SetRegistrationFeatureEnabled(true);
         CompanyInformation.Get();
-        CompanyInformation."Registration No." := 'LEGAL_001';
+        CompanyInformation."Registration Number" := 'LEGAL_001';
         CompanyInformation.Modify();
         CreateCustLedgEntryPaymentWithNonLatinCharsDoNotPreserve(CustLedgerEntry);
 
@@ -309,7 +309,7 @@ codeunit 132557 "Data Exch. Exp. Latin Char UT"
         NonLatinCharacter := 233;
         RegistrationNo := PadStr('Ab-& /' + Format(NonLatinCharacter), 50, 'x');
         CompanyInformation.Get();
-        CompanyInformation."Registration No." := RegistrationNo;
+        CompanyInformation."Registration Number" := RegistrationNo;
         CompanyInformation.Modify();
         CreateVendLedgEntryPaymentWithNonLatinCharsPreserve(VendorLedgerEntry);
         VendorBankAccount.Get(VendorLedgerEntry."Vendor No.", VendorLedgerEntry."Recipient Bank Account");

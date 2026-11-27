@@ -742,7 +742,11 @@ table 122 "Purch. Inv. Header"
             Editable = false;
             TableRelation = "Country/Region";
         }
-        field(11000; "Registration No."; Text[50])
+        field(7407; "Registration Number"; Text[50])
+        {
+            Caption = 'Registration Number';
+        }
+        field(11000; "Registration No."; Text[20])
         {
             Caption = 'Registration No.';
         }
@@ -834,7 +838,7 @@ table 122 "Purch. Inv. Header"
     /// </summary>
     procedure GetRegistrationNumber(): Text[50]
     begin
-        exit("Registration No.");
+        exit("Registration Number");
     end;
 
     procedure GetRegistrationCountryCode(): Code[10]

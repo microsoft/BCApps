@@ -458,13 +458,13 @@ codeunit 139799 "E-Doc. Helper Test"
     begin
         SetRegistrationFeatureEnabled(true);
         CompanyInformation.Get();
-        CompanyInformation."Registration No." := PadStr('Company 0012-/ ', 50, 'c');
+        CompanyInformation."Registration Number" := PadStr('Company 0012-/ ', 50, 'c');
         CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation."Country/Region Code" := 'NL';
         CompanyInformation."VAT Registration No." := 'NL123456789B01';
         CompanyInformation.Modify();
         LibraryEDoc.CreateTestReceiveServiceForEDoc(Service, Enum::"Service Integration"::"Mock");
-        EDocument."Receiving Company Reg. No." := CompanyInformation."Registration No.";
+        EDocument."Receiving Registration Number" := CompanyInformation."Registration Number";
         EDocument."Receiving Reg. Country/Region" := 'NL';
         EDocument."Receiving Company VAT Reg. No." := CompanyInformation."VAT Registration No.";
         EDocument."Receiving Company Id" := '0208:COMPANY';
@@ -533,6 +533,7 @@ codeunit 139799 "E-Doc. Helper Test"
         LibraryEDoc.CreateTestReceiveServiceForEDoc(Service, Enum::"Service Integration"::"Mock");
         EDocument.Service := Service.Code;
         EDocument.Direction := EDocument.Direction::Incoming;
+        EDocument."Receiving Company Reg. No." := 'LEGACY RECEIVER';
         EDocument.Insert(true);
         Blob.CreateOutStream(Stream, TextEncoding::UTF8);
         Stream.WriteText(LegalPartyXML(CreditNote, Vendor."Registration Number"));
@@ -541,7 +542,8 @@ codeunit 139799 "E-Doc. Helper Test"
         Assert.AreEqual(Vendor."No.", EDocument."Bill-to/Pay-to No.", 'The legacy parser must resolve the supplier by its legal identity.');
         Assert.AreEqual(Vendor."Registration Number", EDocument."Supplier Registration No.", 'The legacy parser must retain all 50 characters.');
         Assert.AreEqual('0208', EDocument."Supplier Reg. Scheme", 'The legal identifier scheme must be retained.');
-        Assert.AreEqual('Customer legal 0012-/ ', EDocument."Receiving Company Reg. No.", 'The customer legal identifier must be stored separately.');
+        Assert.AreEqual('Customer legal 0012-/ ', EDocument."Receiving Registration Number", 'The customer legal identifier must be stored separately.');
+        EDocument.TestField("Receiving Company Reg. No.", 'LEGACY RECEIVER');
         Assert.AreEqual('NL987654321B01', EDocument."Receiving Company VAT Reg. No.", 'Legal and endpoint identifiers must not overwrite VAT.');
 
         StructuredImport.ReadIntoDraft(EDocument, Blob);

@@ -134,7 +134,8 @@ table 38 "Purchase Header"
                 "Tax Liable" := Vend."Tax Liable";
                 "VAT Country/Region Code" := Vend."Country/Region Code";
                 "VAT Registration No." := Vend."VAT Registration No.";
-                "Registration No." := Vend.GetRegistrationNumber();
+                "Registration No." := CopyStr(Vend."Registration Number", 1, MaxStrLen("Registration No."));
+                "Registration Number" := Vend.GetRegistrationNumber();
                 "Registration Country/Region" := Vend."Country/Region Code";
                 Validate("Lead Time Calculation", Vend."Lead Time Calculation");
                 "Shipment Method Code" := Vend."Shipment Method Code";
@@ -1631,7 +1632,8 @@ table 38 "Purchase Header"
                         "Buy-from Vendor Name" := Vend.Name;
                         "Buy-from Vendor Name 2" := Vend."Name 2";
                         CopyBuyFromVendorAddressFieldsFromVendor(Vend, true);
-                        "Registration No." := Vend.GetRegistrationNumber();
+                        "Registration No." := CopyStr(Vend."Registration Number", 1, MaxStrLen("Registration No."));
+                        "Registration Number" := Vend.GetRegistrationNumber();
                         "Registration Country/Region" := Vend."Country/Region Code";
                     end;
 
@@ -2880,7 +2882,11 @@ table 38 "Purchase Header"
             Editable = false;
             TableRelation = "Country/Region";
         }
-        field(11000; "Registration No."; Text[50])
+        field(7407; "Registration Number"; Text[50])
+        {
+            Caption = 'Registration Number';
+        }
+        field(11000; "Registration No."; Text[20])
         {
             Caption = 'Registration No.';
         }
@@ -3209,7 +3215,7 @@ table 38 "Purchase Header"
     /// </summary>
     procedure GetRegistrationNumber(): Text[50]
     begin
-        exit("Registration No.");
+        exit("Registration Number");
     end;
 
     procedure GetRegistrationCountryCode(): Code[10]

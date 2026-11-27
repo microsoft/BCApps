@@ -273,7 +273,7 @@ codeunit 6109 "E-Document Import Helper"
         // First, check if the Receiving Company Id matches a Company Service Participant
         if MatchCompanyByServiceParticipant(EDocument, EDocService) then begin
             if RegistrationNoFeature.IsEnabled() then
-                if (EDocument."Receiving Company Reg. No." <> '') or
+                if (EDocument."Receiving Registration Number" <> '') or
                    (EDocument."Receiving Company GLN" <> '') or (EDocument."Receiving Company VAT Reg. No." <> '')
                 then
                     ValidateReceivingCompanyInfo(EDocument);
@@ -340,14 +340,14 @@ codeunit 6109 "E-Document Import Helper"
         CompanyInformation: Record "Company Information";
     begin
         CompanyInformation.Get();
-        if (EDocument."Receiving Company Reg. No." = '') or not CompanyInformation."Use Reg. No. in E-Document" then
+        if (EDocument."Receiving Registration Number" = '') or not CompanyInformation."Use Reg. No. in E-Document" then
             exit(false);
 
-        if (CompanyInformation.GetRegistrationNumber() <> EDocument."Receiving Company Reg. No.") or
+        if (CompanyInformation.GetRegistrationNumber() <> EDocument."Receiving Registration Number") or
            not RegistrationCountryMatches(EDocument."Receiving Reg. Country/Region", CompanyInformation."Country/Region Code")
         then
             EDocErrorHelper.LogErrorMessage(
-                EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration No."), InvalidCompanyInfoRegistrationNoErr);
+                EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration Number"), InvalidCompanyInfoRegistrationNoErr);
         exit(true);
     end;
 
@@ -375,7 +375,7 @@ codeunit 6109 "E-Document Import Helper"
         EDocument."Supplier Registration No." := Header."Vendor Registration No.";
         EDocument."Supplier Reg. Country/Region" := Header."Vendor Reg. Country/Region";
         EDocument."Supplier Reg. Scheme" := Header."Vendor Reg. Scheme";
-        EDocument."Receiving Company Reg. No." := Header."Customer Registration No.";
+        EDocument."Receiving Registration Number" := Header."Customer Registration No.";
         EDocument."Receiving Reg. Country/Region" := Header."Customer Reg. Country/Region";
         EDocument."Receiving Reg. Scheme" := Header."Customer Reg. Scheme";
     end;
@@ -387,7 +387,7 @@ codeunit 6109 "E-Document Import Helper"
     begin
         case TableNo of
             Database::"E-Document":
-                exit(FieldNo in [EDocument.FieldNo("Receiving Company Reg. No."), EDocument.FieldNo("Supplier Registration No."),
+                exit(FieldNo in [EDocument.FieldNo("Receiving Registration Number"), EDocument.FieldNo("Supplier Registration No."),
                     EDocument.FieldNo("Supplier Reg. Country/Region"), EDocument.FieldNo("Supplier Reg. Scheme"),
                     EDocument.FieldNo("Receiving Reg. Country/Region"), EDocument.FieldNo("Receiving Reg. Scheme")]);
             Database::"E-Document Purchase Header":

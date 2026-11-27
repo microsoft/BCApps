@@ -36,6 +36,6 @@ codeunit 11312 "Registration No. Migration BE"
                 RegistrationNoFeature.AddMigrationCandidate(TempMigration, Contact, Contact.FieldNo("Enterprise No."), Contact.FieldNo("Registration Number"), Contact.FieldNo("Country/Region Code"));
             until Contact.Next() = 0;
         if CompanyInformation.Get() then
-            RegistrationNoFeature.AddMigrationCandidate(TempMigration, CompanyInformation, CompanyInformation.FieldNo("Enterprise No."), CompanyInformation.FieldNo("Registration No."), CompanyInformation.FieldNo("Country/Region Code"));
+            RegistrationNoFeature.AddMigrationCandidate(TempMigration, CompanyInformation, CompanyInformation.FieldNo("Enterprise No."), CompanyInformation.FieldNo("Registration Number"), CompanyInformation.FieldNo("Country/Region Code"));
     end;
 }

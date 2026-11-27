@@ -572,9 +572,9 @@ table 6650 "Return Shipment Header"
             Editable = false;
             TableRelation = "Country/Region";
         }
-        field(11000; "Registration No."; Text[50])
+        field(7407; "Registration Number"; Text[50])
         {
-            Caption = 'Registration No.';
+            Caption = 'Registration Number';
         }
         field(12490; "Agreement No."; Code[20])
         {
@@ -638,7 +638,7 @@ table 6650 "Return Shipment Header"
 
     procedure GetRegistrationNumber(): Text[50]
     begin
-        exit("Registration No.");
+        exit("Registration Number");
     end;
 
     procedure GetRegistrationCountryCode(): Code[10]

@@ -489,7 +489,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
         SetupDataExchangeService();
         LibraryEDoc.SetRegistrationFeatureEnabled(true);
         CompanyInformation.Get();
-        CompanyInformation."Registration No." := 'A DIFFERENT RECEIVER';
+        CompanyInformation."Registration Number" := 'A DIFFERENT RECEIVER';
         CompanyInformation."Use Reg. No. in E-Document" := true;
         CompanyInformation."Country/Region Code" := 'SE';
         CompanyInformation."VAT Registration No." := 'SE4598375937';
@@ -502,7 +502,7 @@ codeunit 139897 "E-Doc Data Exch Tests"
 
         Assert.IsFalse(Import.ProcessIncomingEDocument(EDocument, Parameters), 'A receiver conflict must stop automatic processing.');
         EDocument.Get(EDocument."Entry No");
-        Assert.AreEqual('39937423947', EDocument."Receiving Company Reg. No.", 'The failed receiver identity must remain available for review.');
+        Assert.AreEqual('39937423947', EDocument."Receiving Registration Number", 'The failed receiver identity must remain available for review.');
         EDocument.CalcFields("Import Processing Status");
         Assert.AreEqual("Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'The document must not advance past the failed step.');
         Assert.IsTrue(ErrorHelper.HasErrors(EDocument), 'The receiver conflict must remain available for review.');

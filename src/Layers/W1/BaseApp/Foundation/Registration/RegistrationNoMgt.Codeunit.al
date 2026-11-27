@@ -253,7 +253,7 @@ codeunit 7402 "Registration No. Mgt."
         end;
         if CompanyInformation.ReadPermission() then begin
             CompanyInformation.SetRange("Country/Region Code", CountryCode);
-            CompanyInformation.SetRange("Registration No.", RegistrationNo);
+            CompanyInformation.SetRange("Registration Number", RegistrationNo);
             if CompanyInformation.FindSet() then
                 repeat
                     AddDuplicate(CompanyInformation.RecordId, SourceRecordId, ContactNos, Duplicates);

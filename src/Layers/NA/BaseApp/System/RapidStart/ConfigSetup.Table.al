@@ -107,7 +107,7 @@ table 8627 "Config. Setup"
         {
             Caption = 'VAT Registration No.';
         }
-        field(20; "Registration No."; Text[50])
+        field(20; "Registration No."; Text[20])
         {
             Caption = 'Registration No.';
         }

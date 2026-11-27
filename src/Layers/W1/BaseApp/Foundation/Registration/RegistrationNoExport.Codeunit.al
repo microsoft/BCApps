@@ -91,7 +91,7 @@ codeunit 7405 "Registration No. Export"
                 case Document.Number of
                     Database::"Purchase Header", Database::"Purch. Inv. Header", Database::"Purch. Cr. Memo Hdr.",
                     Database::"Purch. Rcpt. Header", Database::"Return Shipment Header", Database::"Purchase Header Archive":
-                        ReadSnapshotFields(Document, PurchaseHeader.FieldNo("Registration No."),
+                        ReadSnapshotFields(Document, PurchaseHeader.FieldNo("Registration Number"),
                             PurchaseHeader.FieldNo("Registration Country/Region"), RegistrationNo, CountryCode);
                 end;
         end;

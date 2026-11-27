@@ -281,7 +281,7 @@ table 6121 "E-Document"
             Caption = 'Structured Data Process';
             ToolTip = 'Specifies the implementation to use for processing the draft received.';
         }
-        field(45; "Receiving Company Reg. No."; Text[50])
+        field(45; "Receiving Company Reg. No."; Text[20])
         {
             Caption = 'Receiving Company Registration No.';
         }
@@ -304,6 +304,10 @@ table 6121 "E-Document"
         field(50; "Receiving Reg. Scheme"; Text[50])
         {
             Caption = 'Receiving Registration Scheme';
+        }
+        field(51; "Receiving Registration Number"; Text[50])
+        {
+            Caption = 'Receiving Registration Number';
         }
         #endregion
 

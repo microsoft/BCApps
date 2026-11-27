@@ -51,15 +51,71 @@ codeunit 139935 "Registration No. Foundation"
         Customer.Validate("Registration Number", RegistrationNo);
         Vendor.Validate("Registration Number", RegistrationNo);
         Contact.Validate("Registration Number", RegistrationNo);
-        CompanyInformation.Validate("Registration No.", RegistrationNo);
+        CompanyInformation.Validate("Registration Number", RegistrationNo);
 
         Assert.AreEqual(RegistrationNo, Customer."Registration Number", 'Customer registration number was changed.');
         Assert.AreEqual(RegistrationNo, Vendor."Registration Number", 'Vendor registration number was changed.');
         Assert.AreEqual(RegistrationNo, Contact."Registration Number", 'Contact registration number was changed.');
-        Assert.AreEqual(RegistrationNo, CompanyInformation."Registration No.", 'Company registration number was changed.');
+        Assert.AreEqual(RegistrationNo, CompanyInformation."Registration Number", 'Company registration number was changed.');
         Assert.AreEqual(RegistrationNo, Customer.GetRegistrationNumber(), 'The customer getter must preserve the current value.');
         Assert.AreEqual(RegistrationNo, Vendor.GetRegistrationNumber(), 'The vendor getter must preserve the current value.');
         Assert.AreEqual(RegistrationNo, Contact.GetRegistrationNumber(), 'The contact getter must preserve the current value.');
+    end;
+
+    [Test]
+    procedure CompanyRegistrationFieldsRemainIndependent()
+    var
+        CompanyInformation: Record "Company Information" temporary;
+        LegacyRegistrationNo: Text;
+        RegistrationNo: Text[50];
+    begin
+        SetFeatureEnabled(false);
+        CompanyInformation."Registration No." := 'LEGACY 0012-/';
+        LegacyRegistrationNo := CompanyInformation.GetRegistrationNumber();
+        RegistrationNo := PadStr('Global 0012-/ ', 50, 'x');
+
+        CompanyInformation.Validate("Registration Number", RegistrationNo);
+
+        CompanyInformation.TestField("Registration No.", 'LEGACY 0012-/');
+        CompanyInformation.TestField("Registration Number", RegistrationNo);
+        Assert.AreEqual(LegacyRegistrationNo, CompanyInformation.GetRegistrationNumber(), 'The disabled feature must retain the legacy company identity.');
+
+        SetFeatureEnabled(true);
+
+        Assert.AreEqual(RegistrationNo, CompanyInformation.GetRegistrationNumber(), 'The enabled feature must use the separate 50-character company field.');
+        CompanyInformation.TestField("Registration No.", 'LEGACY 0012-/');
+    end;
+
+    [Test]
+    procedure CompanyLegacyRegistrationRequiresExplicitMigration()
+    var
+        CompanyInformation: Record "Company Information";
+        Migration: Record "Registration No. Migration";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
+    begin
+        SetFeatureEnabled(false);
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := 'LEGACY 0012-/';
+        CompanyInformation."Registration Number" := '';
+        CompanyInformation.Modify(false);
+
+        RegistrationNoFeature.RefreshMigration();
+
+        Migration.Get(CompanyInformation.RecordId);
+        Assert.AreEqual(Migration.Resolution::Pending, Migration.Resolution, 'A legacy company number must require an explicit migration decision.');
+        Migration.ModifyAll(Resolution, Migration.Resolution::"Keep W1");
+        Migration.Get(CompanyInformation.RecordId);
+        Migration.Resolution := Migration.Resolution::"Use Local";
+        Migration.Modify();
+        FeatureDataUpdateStatus."Feature Key" := RegistrationNoFeature.GetFeatureKey();
+        FeatureDataUpdateStatus."Task Id" := CreateGuid();
+
+        RegistrationNoFeature.UpdateData(FeatureDataUpdateStatus);
+
+        CompanyInformation.Get();
+        CompanyInformation.TestField("Registration Number", Migration."Local Registration No.");
+        CompanyInformation.TestField("Registration No.", 'LEGACY 0012-/');
     end;
 
     [Test]
@@ -83,7 +139,7 @@ codeunit 139935 "Registration No. Foundation"
         Vendor."Country/Region Code" := 'ZZ';
         Contact."Registration Number" := StoredRegistrationNo;
         Contact."Country/Region Code" := 'ZZ';
-        CompanyInformation."Registration No." := StoredRegistrationNo;
+        CompanyInformation."Registration Number" := StoredRegistrationNo;
         CompanyInformation."Country/Region Code" := 'ZZ';
         RegistrationNoFoundation.SetAppendLegacyCompanySuffix(true);
         BindSubscription(RegistrationNoFoundation);
@@ -102,7 +158,7 @@ codeunit 139935 "Registration No. Foundation"
         Assert.AreEqual(StoredRegistrationNo, Customer."Registration Number", 'Resolving must not change customer storage.');
         Assert.AreEqual(StoredRegistrationNo, Vendor."Registration Number", 'Resolving must not change vendor storage.');
         Assert.AreEqual(StoredRegistrationNo, Contact."Registration Number", 'Resolving must not change contact storage.');
-        Assert.AreEqual(StoredRegistrationNo, CompanyInformation."Registration No.", 'Resolving must not change company storage.');
+        Assert.AreEqual(StoredRegistrationNo, CompanyInformation."Registration Number", 'Resolving must not change company storage.');
 
         UnbindSubscription(RegistrationNoFoundation);
     end;
@@ -177,7 +233,7 @@ codeunit 139935 "Registration No. Foundation"
         CompanyInformation.Modify(false);
         SalesHeader."Registration Number" := PadStr('Counterparty 0012-/ ', 50, 'n');
         SalesHeader."Registration Country/Region" := 'AA';
-        PurchaseHeader."Registration No." := SalesHeader."Registration Number";
+        PurchaseHeader."Registration Number" := SalesHeader."Registration Number";
         PurchaseHeader."Registration Country/Region" := SalesHeader."Registration Country/Region";
         BindSubscription(RegistrationNoFoundation);
 
@@ -202,13 +258,13 @@ codeunit 139935 "Registration No. Foundation"
         AssertPostedRegistrationSnapshot(SalesCrMemoHeader, SalesCrMemoHeader.FieldNo("Registration Number"));
         AssertPostedRegistrationSnapshot(SalesShipmentHeader, SalesShipmentHeader.FieldNo("Registration Number"));
         AssertPostedRegistrationSnapshot(ReturnReceiptHeader, ReturnReceiptHeader.FieldNo("Registration Number"));
-        AssertPostedRegistrationSnapshot(PurchInvHeader, PurchInvHeader.FieldNo("Registration No."));
-        AssertPostedRegistrationSnapshot(PurchCrMemoHeader, PurchCrMemoHeader.FieldNo("Registration No."));
-        AssertPostedRegistrationSnapshot(PurchRcptHeader, PurchRcptHeader.FieldNo("Registration No."));
-        AssertPostedRegistrationSnapshot(ReturnShipmentHeader, ReturnShipmentHeader.FieldNo("Registration No."));
+        AssertPostedRegistrationSnapshot(PurchInvHeader, PurchInvHeader.FieldNo("Registration Number"));
+        AssertPostedRegistrationSnapshot(PurchCrMemoHeader, PurchCrMemoHeader.FieldNo("Registration Number"));
+        AssertPostedRegistrationSnapshot(PurchRcptHeader, PurchRcptHeader.FieldNo("Registration Number"));
+        AssertPostedRegistrationSnapshot(ReturnShipmentHeader, ReturnShipmentHeader.FieldNo("Registration Number"));
         UnbindSubscription(RegistrationNoFoundation);
 
-        CompanyInformation."Registration No." := 'Changed after posting';
+        CompanyInformation."Registration Number" := 'Changed after posting';
         CompanyInformation."Country/Region Code" := 'YY';
         CompanyInformation.Modify(false);
         Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), SalesInvoiceHeader.GetCompanyRegistrationNumber(), 'The invoice must not reread company data.');
@@ -241,7 +297,7 @@ codeunit 139935 "Registration No. Foundation"
         SalesHeader.Insert(false);
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Order;
         PurchaseHeader."No." := LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("No."), Database::"Purchase Header");
-        PurchaseHeader."Registration No." := SalesHeader."Registration Number";
+        PurchaseHeader."Registration Number" := SalesHeader."Registration Number";
         PurchaseHeader."Registration Country/Region" := SalesHeader."Registration Country/Region";
         PurchaseHeader.Insert(false);
         BindSubscription(RegistrationNoFoundation);
@@ -256,7 +312,7 @@ codeunit 139935 "Registration No. Foundation"
         PurchaseHeaderArchive.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseHeaderArchive.SetRange("No.", PurchaseHeader."No.");
         PurchaseHeaderArchive.FindFirst();
-        CompanyInformation."Registration No." := 'Changed after archiving';
+        CompanyInformation."Registration Number" := 'Changed after archiving';
         CompanyInformation."Country/Region Code" := 'YY';
         CompanyInformation.Modify(false);
 
@@ -264,7 +320,7 @@ codeunit 139935 "Registration No. Foundation"
         Assert.AreEqual('AA', SalesHeaderArchive.GetRegistrationCountryCode(), 'The archived customer country must remain frozen.');
         Assert.AreEqual(SalesHeader."Bill-to Registration No.", SalesHeaderArchive."Bill-to Registration No.", 'Archiving must retain the separate bill-to legal number.');
         Assert.AreEqual('BB', SalesHeaderArchive."Bill-to Reg. Country/Region", 'Archiving must retain the bill-to country.');
-        Assert.AreEqual(PurchaseHeader."Registration No.", PurchaseHeaderArchive.GetRegistrationNumber(), 'Archiving must retain all 50 vendor characters.');
+        Assert.AreEqual(PurchaseHeader."Registration Number", PurchaseHeaderArchive.GetRegistrationNumber(), 'Archiving must retain all 50 vendor characters.');
         Assert.AreEqual('AA', PurchaseHeaderArchive.GetRegistrationCountryCode(), 'The archived vendor country must remain frozen.');
         Assert.AreEqual(PadStr('Resolved 0012-/ ', 50, 'r'), SalesHeaderArchive.GetCompanyRegistrationNumber(), 'The sales archive must use its company snapshot.');
         Assert.AreEqual('ZZ', SalesHeaderArchive.GetCompanyRegistrationCountryCode(), 'The sales archive company country must remain frozen.');
@@ -325,11 +381,11 @@ codeunit 139935 "Registration No. Foundation"
         RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::Company, '', Identifier, SchemeID);
         Assert.AreEqual(SalesInvoiceHeader."Company Registration No.", Identifier, 'BT-30 must use the original company snapshot.');
 
-        PurchInvHeader."Registration No." := PadStr('BUY-FROM /- ', 50, 'v');
+        PurchInvHeader."Registration Number" := PadStr('BUY-FROM /- ', 50, 'v');
         PurchInvHeader."Company Registration No." := 'PURCHASE COMPANY SNAPSHOT';
         Document.GetTable(PurchInvHeader);
         RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::"Purchase Buy-from", '', Identifier, SchemeID);
-        Assert.AreEqual(PurchInvHeader."Registration No.", Identifier, 'A self-billed seller is buy-from, not the company or pay-to.');
+        Assert.AreEqual(PurchInvHeader."Registration Number", Identifier, 'A self-billed seller is buy-from, not the company or pay-to.');
         RegistrationNoExport.ApplyLegalIdentity(Document, "Registration No. Party Role"::Company, '', Identifier, SchemeID);
         Assert.AreEqual(PurchInvHeader."Company Registration No.", Identifier, 'A self-billed buyer is the company.');
     end;
@@ -347,7 +403,7 @@ codeunit 139935 "Registration No. Foundation"
     begin
         SetFeatureEnabled(true);
         CompanyInformation.Get();
-        CompanyInformation."Registration No." := 'TODAYS COMPANY';
+        CompanyInformation."Registration Number" := 'TODAYS COMPANY';
         CompanyInformation.Modify();
         SalesInvoiceHeader."Registration Number" := 'HISTORICAL SELL-TO';
         Document.GetTable(SalesInvoiceHeader);

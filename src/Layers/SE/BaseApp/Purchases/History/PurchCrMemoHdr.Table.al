@@ -689,11 +689,10 @@ table 124 "Purch. Cr. Memo Hdr."
             Editable = false;
             TableRelation = "Country/Region";
         }
-        field(11000; "Registration No."; Text[50])
+        field(7407; "Registration Number"; Text[50])
         {
-            Caption = 'Registration No.';
+            Caption = 'Registration Number';
         }
-#if not CLEANSCHEMA26
         field(11200; "EU 3-Party Trade"; Boolean)
         {
             Caption = 'EU 3-Party Trade';
@@ -771,7 +770,7 @@ table 124 "Purch. Cr. Memo Hdr."
     /// </summary>
     procedure GetRegistrationNumber(): Text[50]
     begin
-        exit("Registration No.");
+        exit("Registration Number");
     end;
 
     procedure GetRegistrationCountryCode(): Code[10]

@@ -213,7 +213,7 @@ codeunit 6161 "E-Document Install"
             AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegistrationNo', SupplierPath + '/cac:PartyLegalEntity/cbc:CompanyID', Database::"E-Document", EDocument.FieldNo("Supplier Registration No."));
             AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegCountry', SupplierPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode', Database::"E-Document", EDocument.FieldNo("Supplier Reg. Country/Region"));
             AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegScheme', SupplierPath + '/cac:PartyLegalEntity/cbc:CompanyID/@schemeID', Database::"E-Document", EDocument.FieldNo("Supplier Reg. Scheme"));
-            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegistrationNo', CustomerPath + '/cac:PartyLegalEntity/cbc:CompanyID', Database::"E-Document", EDocument.FieldNo("Receiving Company Reg. No."));
+            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegistrationNo', CustomerPath + '/cac:PartyLegalEntity/cbc:CompanyID', Database::"E-Document", EDocument.FieldNo("Receiving Registration Number"));
             AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegCountry', CustomerPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode', Database::"E-Document", EDocument.FieldNo("Receiving Reg. Country/Region"));
             AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegScheme', CustomerPath + '/cac:PartyLegalEntity/cbc:CompanyID/@schemeID', Database::"E-Document", EDocument.FieldNo("Receiving Reg. Scheme"));
         end;

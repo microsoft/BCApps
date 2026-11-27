@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Registration;
 
+using Microsoft.Foundation.Company;
 using System.Environment.Configuration;
 
 codeunit 7403 "Registration No. Feature" implements "Feature Data Update"
@@ -81,7 +82,7 @@ codeunit 7403 "Registration No. Feature" implements "Feature Data Update"
         Migration.SetRange(Resolution, Migration.Resolution::Pending);
         if Migration.FindFirst() then
             Error(PendingReviewErr, Migration."Record ID");
-        OnCollectMigrationCandidates(TempCurrentMigration);
+        CollectMigrationCandidates(TempCurrentMigration);
         Migration.Reset();
         if Migration.FindSet(true) then
             repeat
@@ -95,7 +96,7 @@ codeunit 7403 "Registration No. Feature" implements "Feature Data Update"
         Migration: Record "Registration No. Migration";
         TempMigration: Record "Registration No. Migration" temporary;
     begin
-        OnCollectMigrationCandidates(TempMigration);
+        CollectMigrationCandidates(TempMigration);
         Migration.LockTable();
         if Migration.FindSet(true) then
             repeat
@@ -115,6 +116,18 @@ codeunit 7403 "Registration No. Feature" implements "Feature Data Update"
                     Migration.Insert();
                 end;
             until TempMigration.Next() = 0;
+    end;
+
+    local procedure CollectMigrationCandidates(var TempMigration: Record "Registration No. Migration" temporary)
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        OnCollectMigrationCandidates(TempMigration);
+        if CompanyInformation.Get() then
+            if not TempMigration.Get(CompanyInformation.RecordId) then
+                AddMigrationCandidate(
+                    TempMigration, CompanyInformation, CompanyInformation.FieldNo("Registration No."),
+                    CompanyInformation.FieldNo("Registration Number"), CompanyInformation.FieldNo("Country/Region Code"));
     end;
 
     procedure AddMigrationCandidate(var TempMigration: Record "Registration No. Migration" temporary; SourceRecord: Variant; LocalFieldNo: Integer; RegistrationFieldNo: Integer; CountryFieldNo: Integer)

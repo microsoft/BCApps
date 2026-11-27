@@ -164,19 +164,10 @@ table 79 "Company Information"
                 end;
             end;
         }
-        field(20; "Registration No."; Text[50])
+        field(20; "Registration No."; Text[20])
         {
             Caption = 'Registration No.';
-            ToolTip = 'Specifies the company''s legal registration number, including any leading zeros, spaces, and separators. You can enter up to 50 characters.';
-
-            trigger OnValidate()
-            var
-                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
-            begin
-                RegistrationNoMgt.ValidateRegistrationNo("Registration No.", "Country/Region Code", RecordId);
-                if CurrFieldNo <> 0 then
-                    RegistrationNoMgt.NotifyDuplicates("Registration No.", "Country/Region Code", RecordId);
-            end;
+            ToolTip = 'Specifies the company''s registration number. You can enter a maximum of 20 characters, both numbers and letters.';
         }
         field(21; "Telex Answer Back"; Text[20])
         {
@@ -335,9 +326,9 @@ table 79 "Company Information"
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
                 if "Country/Region Code" <> xRec."Country/Region Code" then begin
-                    RegistrationNoMgt.ValidateRegistrationNo("Registration No.", "Country/Region Code", RecordId);
+                    RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
                     if CurrFieldNo <> 0 then
-                        RegistrationNoMgt.NotifyDuplicates("Registration No.", "Country/Region Code", RecordId);
+                        RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
                 end;
             end;
         }
@@ -500,6 +491,20 @@ table 79 "Company Information"
             AccessByPermission = TableData Item = R;
             Caption = 'Check-Avail. Time Bucket';
             ToolTip = 'Specifies how frequently the system checks supply-demand events to discover if the item on the demand line is available on its shipment date.';
+        }
+        field(7407; "Registration Number"; Text[50])
+        {
+            Caption = 'Registration Number';
+            ToolTip = 'Specifies the company''s legal registration number, including any leading zeros, spaces, and separators. You can enter up to 50 characters.';
+
+            trigger OnValidate()
+            var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+            begin
+                RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
+                if CurrFieldNo <> 0 then
+                    RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
+            end;
         }
         field(7600; "Base Calendar Code"; Code[10])
         {
@@ -764,14 +769,23 @@ table 79 "Company Information"
     procedure GetRegistrationNumber() Result: Text
     var
         RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
     begin
-        Result := RegistrationNoMgt.GetRegistrationNo("Registration No.", "Country/Region Code", RecordId);
+        if RegistrationNoFeature.IsEnabled() then
+            Result := RegistrationNoMgt.GetRegistrationNo("Registration Number", "Country/Region Code", RecordId)
+        else
+            Result := "Registration No.";
         OnAfterGetRegistrationNumber(Result);
     end;
 
     procedure GetRegistrationNumberLbl() Result: Text
+    var
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
     begin
-        Result := FieldCaption("Registration No.");
+        if RegistrationNoFeature.IsEnabled() then
+            Result := FieldCaption("Registration Number")
+        else
+            Result := FieldCaption("Registration No.");
         OnAfterGetRegistrationNumberLbl(Result);
     end;
 
