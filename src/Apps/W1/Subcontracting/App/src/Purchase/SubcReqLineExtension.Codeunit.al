@@ -49,6 +49,35 @@ codeunit 20513 "Subc. Req.Line Extension"
         RestoreSubcontractingDescriptions(Rec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnBeforeValidateStartingTime, '', false, false)]
+    local procedure OnBeforeValidateStartingTime(var RequisitionLine: Record "Requisition Line"; var ShouldSetDueDate: Boolean; var IsHandled: Boolean; CallingFieldNo: Integer; CurrentFieldNo: Integer; xRequisitionLine: Record "Requisition Line")
+    begin
+        if IsVendorChangeOnProdOrderLinkedLine(RequisitionLine, CallingFieldNo) then
+            IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Requisition Line", OnBeforeValidateEndingTime, '', false, false)]
+    local procedure OnBeforeValidateEndingTime(var RequisitionLine: Record "Requisition Line"; var ShouldSetDueDate: Boolean; var IsHandled: Boolean; CallingFieldNo: Integer; CurrentFieldNo: Integer)
+    begin
+        if IsVendorChangeOnProdOrderLinkedLine(RequisitionLine, CallingFieldNo) then
+            IsHandled := true;
+    end;
+
+    // Validating Vendor No. revalidates Quantity, which reschedules the line and would overwrite the operation-based Due Date.
+    local procedure IsVendorChangeOnProdOrderLinkedLine(RequisitionLine: Record "Requisition Line"; CallingFieldNo: Integer): Boolean
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit(false);
+#endif
+        exit(
+            (CallingFieldNo = RequisitionLine.FieldNo("Vendor No.")) and
+            (RequisitionLine."Prod. Order No." <> '') and
+            (RequisitionLine."Work Center No." <> ''));
+    end;
+
     local procedure RestoreSubcontractingDescriptions(var RequisitionLine: Record "Requisition Line")
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
