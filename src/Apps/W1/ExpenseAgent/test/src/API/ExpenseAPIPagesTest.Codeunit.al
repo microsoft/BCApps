@@ -44,8 +44,8 @@ codeunit 148369 "Expense API Pages Test"
         ActionMoveExpenseReportLineTok: Label 'Microsoft.NAV.MoveExpenseReportLine', Locked = true;
         ActionValidateExpenseReportRuleTok: Label 'Microsoft.NAV.ValidateExpenseReportRule', Locked = true;
         ActionApplyExpenseReportRuleTok: Label 'Microsoft.NAV.ApplyExpenseReportRule', Locked = true;
-        ActionLogAIConsumptionTok: Label 'Microsoft.NAV.LogAIConsumption', Locked = true;
-        ActionCanConsumeTok: Label 'Microsoft.NAV.CanConsume', Locked = true;
+        ActionLogAIConsumptionV2Tok: Label 'Microsoft.NAV.LogAIConsumptionV2', Locked = true;
+        InvalidConsumptionRequestErr: Label 'AI Consumption Request must be a valid JSON containing all required fields.', Locked = true;
 
     [Test]
     procedure ExpenseRuleViolationIsCreatedAndClearedForItemizationMismatch()
@@ -1254,48 +1254,22 @@ codeunit 148369 "Expense API Pages Test"
     end;
 
     [Test]
-    procedure CanConsumeActionReturnsResult()
+    procedure LogAIConsumptionV2ActionRejectsInvalidRequest()
     var
         ExpenseUser: Record "Expense User";
-        ResponseText: Text;
-        TargetURL: Text;
-    begin
-        // [FEATURE] [AI test 0.4]
-        // [SCENARIO 637260] Verify that the CanConsume action can be invoked via the API.
-        Initialize();
-
-        // [GIVEN] Create Expense User.
-        LibraryExpense.CreateExpenseUser(ExpenseUser);
-
-        // [GIVEN] Commit to save the transaction.
-        Commit();
-
-        // [GIVEN] Select the latest version.
-        SelectLatestVersion();
-
-        // [WHEN] The CanConsume action is called via the API.
-        TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            Format(ExpenseUser.SystemId), Page::"Expense User Cons. API", UserConsumptionsServiceNameTok, ActionCanConsumeTok);
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, '', ResponseText, 200);
-
-        // [THEN] The action returns a response.
-        Assert.AreNotEqual('', ResponseText, 'CanConsume should return a response');
-    end;
-
-    [Test]
-    procedure LogAIConsumptionActionSucceeds()
-    var
-        ExpenseUser: Record "Expense User";
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        ConsumptionSourceSystemId: Guid;
         ResponseText: Text;
         TargetURL: Text;
         JSONBody: Text;
     begin
         // [FEATURE] [AI test 0.4]
-        // [SCENARIO 637260] Verify that the LogAIConsumption action can be invoked via the API.
+        // [SCENARIO 637260] Verify that the LogAIConsumptionV2 action is exposed via the API and rejects an invalid consumption request before any quota is logged.
         Initialize();
 
         // [GIVEN] Create Expense User.
         LibraryExpense.CreateExpenseUser(ExpenseUser);
+        ConsumptionSourceSystemId := CreateGuid();
 
         // [GIVEN] Commit to save the transaction.
         Commit();
@@ -1303,20 +1277,26 @@ codeunit 148369 "Expense API Pages Test"
         // [GIVEN] Select the latest version.
         SelectLatestVersion();
 
-        // [WHEN] The LogAIConsumption action is called via the API with required parameters.
+        // [WHEN] The LogAIConsumptionV2 action is called via the API with a consumption request that is not valid JSON.
         TargetURL := LibraryGraphMgt.CreateTargetURLWithSubpage(
-            Format(ExpenseUser.SystemId), Page::"Expense User Cons. API", UserConsumptionsServiceNameTok, ActionLogAIConsumptionTok);
-        JSONBody := LibraryGraphMgt.AddPropertytoJSON('', 'copilotQuotaUsageAmount', '100');
-        JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'copilotQuotaUsageType', '0');
+            Format(ExpenseUser.SystemId), Page::"Expense User Cons. API", UserConsumptionsServiceNameTok, ActionLogAIConsumptionV2Tok);
+        JSONBody := LibraryGraphMgt.AddPropertytoJSON('', 'aiConsumptionRequest', 'not a valid consumption request');
+        JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'agentConversationSessionId', LibraryGraphMgt.StripBrackets(Format(CreateGuid())));
+        JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'agentTurnInteractionId', LibraryGraphMgt.StripBrackets(Format(CreateGuid())));
         JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'actionsSummary', 'Test action summary');
-        JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'actionsDescription', 'Test action description');
+        JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'expenseUserEntraId', LibraryGraphMgt.StripBrackets(Format(CreateGuid())));
         JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'consumptionSourceType', '1');
-        JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'consumptionSourceSystemId', LibraryGraphMgt.StripBrackets(Format(CreateGuid())));
+        JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'consumptionSourceSystemId', LibraryGraphMgt.StripBrackets(Format(ConsumptionSourceSystemId)));
         JSONBody := LibraryGraphMgt.AddPropertytoJSON(JSONBody, 'consumptionSourceOperationName', 'TestOp');
-        LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, JSONBody, ResponseText, 200);
+        asserterror LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(TargetURL, JSONBody, ResponseText, 400);
 
-        // [THEN] The action returns a response.
-        Assert.AreNotEqual('', ResponseText, 'LogAIConsumption should return a response');
+        // [THEN] The request is rejected with a validation error.
+        Assert.ExpectedError('Response code is 400 (BadRequest)');
+        Assert.ExpectedError(InvalidConsumptionRequestErr);
+
+        // [THEN] No consumption is recorded for the source.
+        ExpenseAgentEnvConsumption.SetRange("Consumption Source System ID", ConsumptionSourceSystemId);
+        Assert.RecordIsEmpty(ExpenseAgentEnvConsumption);
     end;
 
     local procedure CreateExpenseReportHeaderWithLine(var ExpenseReportHeader: Record "Expense Report Header"; var ExpenseReportLine: Record "Expense Report Line")
