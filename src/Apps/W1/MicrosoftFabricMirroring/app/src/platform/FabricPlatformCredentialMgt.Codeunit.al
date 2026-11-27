@@ -180,11 +180,8 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         LookupState.ClearFabricApiToken();
     end;
 
-    /// <summary>
-    /// Acquires a delegated Fabric API token via On-Behalf-Of for the first-party app.
-    /// </summary>
     [NonDebuggable]
-    procedure AcquireFabricApiTokenDelegated(): SecretText
+    procedure AcquireFabricApiTokenDelegated(RequireWriteAccess: Boolean): SecretText
     var
         OAuth2: Codeunit OAuth2;
         LookupState: Codeunit "Fabric Platform Lookup State";
@@ -192,17 +189,26 @@ codeunit 48524 "Fabric Platform Credential Mgt"
         RedirectUrl: Text;
         Scopes: List of [Text];
     begin
-        // Test-injection seam: unit tests pre-seed a token to bypass the platform flow.
         if LookupState.HasFabricApiToken() then
             exit(LookupState.GetFabricApiToken());
 
         if IsCustomAppEnabled() then
             exit(AcquireFabricApiTokenWithCustomApp());
 
-        Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
         OAuth2.GetDefaultRedirectUrl(RedirectUrl);
-        OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken);
-        if AccessToken.IsEmpty() then
+        if not RequireWriteAccess then begin
+            Scopes.Add('https://api.fabric.microsoft.com/Workspace.Read.All');
+            if OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken) then
+                if not AccessToken.IsEmpty() then
+                    exit(AccessToken);
+
+            Clear(Scopes);
+            Clear(AccessToken);
+            ClearLastError();
+        end;
+
+        Scopes.Add('https://api.fabric.microsoft.com/Workspace.ReadWrite.All');
+        if (not OAuth2.AcquireOnBehalfOfToken(RedirectUrl, Scopes, AccessToken)) or AccessToken.IsEmpty() then
             Error(FabricApiTokenErr);
         exit(AccessToken);
     end;

@@ -135,6 +135,9 @@ report 713 "Inventory - Customer Sales"
 
                     if not ReportHasData then
                         ReportHasData := true;
+
+                    if TempValueEntryBuf.IsEmpty() then
+                        CurrReport.Skip();
                 end;
 
                 trigger OnPreDataItem()

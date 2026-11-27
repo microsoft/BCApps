@@ -93,11 +93,11 @@ page 6991 "Expense Agent Setup Wizard"
 
                     group(WebAppAccessSection)
                     {
-                        Caption = 'Enable access via web';
+                        Caption = 'Enable access via web and mobile app';
                         field(EnableWebAppAccess; true)
                         {
                             ShowCaption = false;
-                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense app.';
+                            ToolTip = 'Specifies whether registered users can submit and review expenses through the Expense web app and the Expense mobile app.';
                             Editable = false;
                         }
                         field(ExpenseDashboardLink; ExpenseDashboardLinkTxt)
@@ -933,6 +933,14 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                 }
             }
+            group(receipts)
+            {
+                Caption = 'Receipts';
+
+                field(NoReceipt; Rec."Allow No Receipt")
+                {
+                }
+            }
             group(CanaryGroup)
             {
                 Caption = 'Canary (allowlisted tenants)';
@@ -1331,7 +1339,10 @@ page 6991 "Expense Agent Setup Wizard"
         if not ExpenseAgentSetup.Get() then
             exit;
         if ApplyNoSeries and not NoSeriesLocked then
-            ExpenseAgentSetup.CreateNoSeriesDefaults();
+            ExpenseAgentSetup.CreateNoSeriesDefaults()
+        else
+            if ExpenseAgentSetup."No. Series Applied" then
+                ExpenseAgentSetup.EnsureExpenseVendorNoSeries();
         if ApplyPaymentMethods and not PaymentMethodsLocked then
             ExpenseAgentSetup.CreatePaymentMethodsDefaults();
         if ApplyPostingGroups and not PostingGroupsLocked then
@@ -1363,6 +1374,7 @@ page 6991 "Expense Agent Setup Wizard"
         Rec."Partial Day Rules" := TempExpenseAgentSetup."Partial Day Rules";
         Rec."Min Hours for Partial Per Diem" := TempExpenseAgentSetup."Min Hours for Partial Per Diem";
         Rec."Percentage For Partial Day" := TempExpenseAgentSetup."Percentage For Partial Day";
+        Rec."Partial Day Rounding Precision" := TempExpenseAgentSetup."Partial Day Rounding Precision";
         Rec."Reduction for Breakfast %" := TempExpenseAgentSetup."Reduction for Breakfast %";
         Rec."Reduction for Lunch %" := TempExpenseAgentSetup."Reduction for Lunch %";
         Rec."Reduction for Dinner %" := TempExpenseAgentSetup."Reduction for Dinner %";

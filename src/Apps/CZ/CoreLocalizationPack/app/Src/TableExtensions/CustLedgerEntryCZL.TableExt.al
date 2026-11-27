@@ -38,7 +38,8 @@ tableextension 11720 "Cust. Ledger Entry CZL" extends "Cust. Ledger Entry"
         field(11720; "Bank Account Code CZL"; Code[20])
         {
             Caption = 'Bank Account Code';
-            TableRelation = if ("Document Type" = filter(Refund | Invoice | "Finance Charge Memo" | Reminder)) "Bank Account" else
+            TableRelation =
+            if ("Document Type" = filter(Refund | Invoice | "Finance Charge Memo" | Reminder)) "Bank Account" else
             if ("Document Type" = filter("Credit Memo" | Payment)) "Customer Bank Account".Code where("Customer No." = field("Customer No."));
             DataClassification = CustomerContent;
 
@@ -101,6 +102,7 @@ tableextension 11720 "Cust. Ledger Entry CZL" extends "Cust. Ledger Entry"
             Editable = false;
             TableRelation = "SWIFT Code";
             DataClassification = CustomerContent;
+            ValidateTableRelation = false;
         }
         field(11780; "VAT Date CZL"; Date)
         {

@@ -127,11 +127,16 @@ page 48515 "Fabric Config Packages"
                     trigger OnAction()
                     var
                         FabricConfigPkgMgt: Codeunit "Fabric Config Package Mgt";
+                        TempBlob: Codeunit "Temp Blob";
+                        OutStream: OutStream;
                         InStream: InStream;
                         FileName: Text;
                     begin
                         if not UploadIntoStream('', '', '', FileName, InStream) then
                             exit;
+                        TempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
+                        CopyStream(OutStream, InStream);
+                        TempBlob.CreateInStream(InStream, TextEncoding::UTF8);
                         FabricConfigPkgMgt.ImportPackageFromStream(InStream);
                         CurrPage.Update(false);
                     end;

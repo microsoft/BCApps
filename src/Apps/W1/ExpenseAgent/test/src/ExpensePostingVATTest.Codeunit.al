@@ -39,6 +39,69 @@ codeunit 148330 "Expense Posting VAT Test"
         RoundingDifferenceTooLargeErr: Label 'exceeds the currency rounding precision';
 
     [Test]
+    procedure ExpenseCategoryCardCanEditVATDefaultsWhenReclaimEnabled()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCategory: Record "Expense Category";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        ExpenseCategoryCard: TestPage "Expense Category Card";
+    begin
+        // [SCENARIO] Category VAT defaults can be maintained on the card when VAT reclaim is enabled.
+        Initialize();
+
+        // [GIVEN] VAT reclaim is enabled and a category has no VAT defaults.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Allow VAT Reclaim", true);
+        ExpenseAgentSetup.Modify(true);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+
+        // [WHEN] The category VAT defaults are edited on the card.
+        ExpenseCategoryCard.OpenEdit();
+        ExpenseCategoryCard.GoToRecord(ExpenseCategory);
+        Assert.IsTrue(ExpenseCategoryCard."VAT Prod. Posting Group".Visible(), 'The category VAT posting group must be visible.');
+        Assert.IsTrue(ExpenseCategoryCard."Default VAT %".Visible(), 'The default VAT percentage must be visible.');
+        Assert.IsTrue(ExpenseCategoryCard."Default VAT Reclaim %".Visible(), 'The default VAT reclaim percentage must be visible.');
+        ExpenseCategoryCard."VAT Prod. Posting Group".SetValue(VATProductPostingGroup.Code);
+        ExpenseCategoryCard."Default VAT %".SetValue(20);
+        ExpenseCategoryCard."Default VAT Reclaim %".SetValue(50);
+        ExpenseCategoryCard.Close();
+
+        // [THEN] All three VAT defaults are saved on the category.
+        ExpenseCategory.Get(ExpenseCategory.Code);
+        ExpenseCategory.TestField("VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        ExpenseCategory.TestField("Default VAT %", 20);
+        ExpenseCategory.TestField("Default VAT Reclaim %", 50);
+    end;
+
+    [Test]
+    procedure ExpenseCategoryCardHidesVATDefaultsWhenReclaimDisabled()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseCategory: Record "Expense Category";
+        ExpenseCategoryCard: TestPage "Expense Category Card";
+    begin
+        // [SCENARIO] Category VAT defaults are hidden when VAT reclaim is disabled.
+        Initialize();
+
+        // [GIVEN] VAT reclaim is disabled.
+        ExpenseAgentSetup.Get();
+        ExpenseAgentSetup.Validate("Allow VAT Reclaim", false);
+        ExpenseAgentSetup.Modify(true);
+        LibraryExpense.CreateExpenseCategory(ExpenseCategory, ExpenseCategory."Reimbursement Type"::"Employee Paid", ExpenseCategory."Expense Detail Required"::" ");
+
+        // [WHEN] The expense category card is opened.
+        ExpenseCategoryCard.OpenEdit();
+        ExpenseCategoryCard.GoToRecord(ExpenseCategory);
+
+        // [THEN] None of the VAT defaults are shown.
+        Assert.IsFalse(ExpenseCategoryCard."VAT Prod. Posting Group".Visible(), 'The category VAT posting group must be hidden.');
+        Assert.IsFalse(ExpenseCategoryCard."Default VAT %".Visible(), 'The default VAT percentage must be hidden.');
+        Assert.IsFalse(ExpenseCategoryCard."Default VAT Reclaim %".Visible(), 'The default VAT reclaim percentage must be hidden.');
+        ExpenseCategoryCard.Close();
+    end;
+
+    [Test]
     [HandlerFunctions('ExpensesModalPageHandler,ConfirmHandler')]
     procedure HotelMultiSubcatDiffVAT()
     var
@@ -1222,8 +1285,6 @@ codeunit 148330 "Expense Posting VAT Test"
 
     local procedure Initialize()
     var
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        VATBusinessPostingGroup: Record "VAT Business Posting Group";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryVariableStorage.Clear();
@@ -1235,10 +1296,7 @@ codeunit 148330 "Expense Posting VAT Test"
 
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Expense Posting VAT Test");
 
-        ExpenseAgentSetup.Get();
-        LibraryERM.CreateVATBusinessPostingGroup(VATBusinessPostingGroup);
-        ExpenseAgentSetup.Validate("Default VAT Bus. Posting Group", VATBusinessPostingGroup.Code);
-        ExpenseAgentSetup.Modify(true);
+        LibraryExpense.UpdateVATBusinessPostingGroupInAgentSetup();
 
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
         LibraryERMCountryData.UpdateLocalData();

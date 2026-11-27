@@ -110,6 +110,7 @@ codeunit 137069 "SCM Production Orders"
         LotNoErr: Label 'You must assign a lot number for item %1.', Comment = '%1 - Item No.';
         MalformedRecLinkErr: Label 'Wrong data in record link found';
         MatrixRowLimitMsg: Label 'Maximum number of rows to be loaded';
+        NetInvoicedOutputQtyErr: Label 'Net invoiced output quantity must be zero after the output is reversed.';
         NonEditableErr: Label 'The value must be editable.';
         NothingToPlanMsg: Label 'There is nothing to plan';
         NumberOfLineEqualErr: Label 'Number of Lines must be same.';
@@ -1010,7 +1011,7 @@ codeunit 137069 "SCM Production Orders"
         LibraryVariableStorage.Enqueue(Item1."No.");
         DemandForecastCard."Item Filter".Drilldown();
 
-        // [GIVEN] Quantity is entered for the Item and Date 01-Jan-yyyy. 
+        // [GIVEN] Quantity is entered for the Item and Date 01-Jan-yyyy.
         DemandForecastCard.Matrix.First();
         DemandForecastCard.Matrix.Field1.SetValue(LibraryRandom.RandInt(1000));
 
@@ -1079,7 +1080,7 @@ codeunit 137069 "SCM Production Orders"
         LibraryVariableStorage.Enqueue(Item1."No.");
         DemandForecastCard."Item Filter".Drilldown();
 
-        // [WHEN] Quantity is entered for different combinations of Item, Location and Variants 
+        // [WHEN] Quantity is entered for different combinations of Item, Location and Variants
         DemandForecastCard.Matrix.First();
         DemandForecastCard.Matrix.Field1.SetValue(QuantityToEnter[1]);
         DemandForecastCard.Matrix.Field2.SetValue(QuantityToEnter[2]);
@@ -2772,11 +2773,36 @@ codeunit 137069 "SCM Production Orders"
         ProdOrderComponent: Record "Prod. Order Component";
     begin
         // [FEATURE] [UT] [Production Order Component]
-        // [SCENARIO 375248] Field "Completely Picked" of Production Order table should not be calculated for supplied Components
+        // [SCENARIO 651757] Field "Completely Picked" of Production Order table should be calculated for supplied Components
 
         // [GIVEN] Production Order with Supplied Completely Picked Component
         CreateRelProdOrder(ProductionOrder);
         CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", LibraryRandom.RandInt(9), true);
+
+        // [WHEN] CALCFIELDS for "Completely Picked" of Production Order
+        ProductionOrder.CalcFields("Completely Picked");
+
+        // [THEN] "Completely Picked" of Production Order is "TRUE"
+        ProductionOrder.TestField("Completely Picked", true);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ProdOrderNotCompletelyPickedWithUnpickedSuppliedComponent()
+    var
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // [FEATURE] [UT] [Production Order Component]
+        // [SCENARIO 651757] An unpicked supplied component makes the Production Order not completely picked
+
+        // [GIVEN] Production Order with a completely picked ordinary component
+        CreateRelProdOrder(ProductionOrder);
+        CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", 0, true);
+
+        // [GIVEN] The Production Order also has an unpicked supplied component
+        ProdOrderComponent."Line No." := 10000;
+        CreateProdOrderComp(ProdOrderComponent, ProductionOrder."No.", LibraryRandom.RandInt(9), false);
 
         // [WHEN] CALCFIELDS for "Completely Picked" of Production Order
         ProductionOrder.CalcFields("Completely Picked");
@@ -4503,7 +4529,7 @@ codeunit 137069 "SCM Production Orders"
         UpdateVariantCodeOnProdOrderComponent(ProdOrderComponent, ItemVariant.Code);
         ExpectedQty := ProdOrderComponent."Remaining Quantity" + Qty;
 
-        // [THEN] Create new Prod. Order Component for same Item with first Variant 
+        // [THEN] Create new Prod. Order Component for same Item with first Variant
         CreateProdOrderComponentWithDifferentVariant(ProdOrderComponent, ItemVariant.Code);
 
         // [WHEN] Post component consumption with Variant
@@ -4539,7 +4565,7 @@ codeunit 137069 "SCM Production Orders"
         ProductionForecastName."Date Filter" := InvalidDateFilterTxt;
         ProductionForecastName.Modify();
 
-        // [GIVEN] Enqueue the confirmation message 
+        // [GIVEN] Enqueue the confirmation message
         LibraryVariableStorage.Enqueue(DateFilterErrMsg);
 
         // [WHEN] Run to check the date filter is valid or not.
@@ -5144,7 +5170,7 @@ codeunit 137069 "SCM Production Orders"
         // [SCENARIO 638315] Refreshing a Released Production Order for an Item with a non-certified Routing throws an actionable Status TestField error.
         Initialize();
 
-        // [GIVEN] Create a new Routing Header. 
+        // [GIVEN] Create a new Routing Header.
         LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
 
         // [GIVEN] Create a new Work Center and Routing Line.
@@ -5162,7 +5188,7 @@ codeunit 137069 "SCM Production Orders"
         Assert.ExpectedTestFieldError(RoutingHeader.FieldCaption(Status), Format(RoutingHeader.Status::Certified));
     end;
 
-  [Test]
+    [Test]
     [Scope('OnPrem')]
     procedure ReopenRefinishDoesNotRepostSetupTimeForBackwardFlushedProdOrder()
     var
@@ -5195,6 +5221,78 @@ codeunit 137069 "SCM Production Orders"
         // [THEN] The total setup time on the capacity ledger entries is not doubled.
         Assert.AreEqual(SetupTimeAfterFirstFinish, GetTotalSetupTimeOnCapacityLedgerEntries(ProductionOrder."No."),
           'Setup time must not be reposted when reopening and re-finishing the production order.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandlerTRUE')]
+    [Scope('OnPrem')]
+    procedure ReversedOutputIsInvoicedWhenReopenedProdOrderIsFinishedAgain()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        LibraryCosting: Codeunit "Library - Costing";
+        ProdOrderStatusMgt: Codeunit "Prod. Order Status Management";
+        UndoProdPostingMgmt: Codeunit "Undo Prod. Posting Mgmt.";
+        Qty: Decimal;
+    begin
+        // [FEATURE] [Reopen] [Reverse Production Entry] [Adjust Cost Item Entries]
+        // [SCENARIO 658720] Output reversed after reopening a finished production order is invoiced when the order is finished again.
+        Initialize();
+        Qty := LibraryRandom.RandIntInRange(10, 50);
+
+        // [GIVEN] Create Component item in stock and production item with a production BOM consuming the component.
+        CreateItem(CompItem, CompItem."Replenishment System"::Purchase);
+        LibraryInventory.PostPositiveAdjustment(CompItem, '', '', '', Qty, WorkDate(), LibraryRandom.RandDec(100, 2));
+        CreateItem(ProdItem, ProdItem."Replenishment System"::"Prod. Order");
+        UpdateRoutingAndBOMOnItem(ProdItem, LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, CompItem."No.", 1), '');
+
+        // [GIVEN] Create Released production order for the production item with posted consumption and output.
+        CreateAndRefreshReleasedProductionOrder(ProductionOrder, ProdItem."No.", Qty);
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        LibraryManufacturing.PostConsumption(ProdOrderLine, CompItem, '', '', Qty, WorkDate(), 0);
+        LibraryManufacturing.PostOutput(ProdOrderLine, Qty, WorkDate(), 0);
+
+        // [GIVEN] The production order is finished and costs are adjusted, so the output is invoiced.
+        LibraryManufacturing.ChangeStatusReleasedToFinished(ProductionOrder."No.");
+        LibraryCosting.AdjustCostItemEntries(ProdItem."No." + '|' + CompItem."No.", '');
+
+        // [GIVEN] The finished production order is reopened, and its consumption and output are reversed.
+        ProductionOrder.Get(ProductionOrder.Status::Finished, ProductionOrder."No.");
+        ProdOrderStatusMgt.ProcessProdOrderForReopen(ProductionOrder);
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.FindLast();
+        ItemLedgerEntry.SetRange("Entry No.", 0, ItemLedgerEntry."Entry No.");
+        UndoProdPostingMgmt.SetHideDialog(true);
+        UndoProdPostingMgmt.ReverseProdItemLedgerEntry(ItemLedgerEntry);
+
+        // [WHEN] The production order is finished again and costs are adjusted.
+        ProductionOrder.Get(ProductionOrder.Status::Released, ProductionOrder."No.");
+        Clear(ProdOrderStatusMgt);
+        ProdOrderStatusMgt.SetFinishOrderWithoutOutput(true);
+        ProdOrderStatusMgt.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), false);
+        LibraryCosting.AdjustCostItemEntries(ProdItem."No." + '|' + CompItem."No.", '');
+
+        // [THEN] The reversal output entry is completely invoiced.
+        ItemLedgerEntry.Reset();
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProductionOrder."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.SetRange(Positive, false);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Invoiced Quantity", -Qty);
+        ItemLedgerEntry.TestField("Completely Invoiced", true);
+
+        // [THEN] The net invoiced output quantity of the production order is zero.
+        ItemLedgerEntry.SetRange(Positive);
+        ItemLedgerEntry.CalcSums("Invoiced Quantity");
+        Assert.AreEqual(0, ItemLedgerEntry."Invoiced Quantity", NetInvoicedOutputQtyErr);
     end;
 
     local procedure Initialize()
@@ -7538,4 +7636,3 @@ codeunit 137069 "SCM Production Orders"
         SalesOrderPlanning."&Create Prod. Order".Invoke();
     end;
 }
-

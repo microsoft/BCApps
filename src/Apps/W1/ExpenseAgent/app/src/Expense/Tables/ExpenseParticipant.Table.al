@@ -8,9 +8,11 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
 
+/// <summary>
+/// Stores the employees and external persons who participated in an expense, such as a business meal.
+/// </summary>
 table 6904 "Expense Participant"
 {
-    Access = Internal;
     Caption = 'Expense Participants';
     DataClassification = CustomerContent;
     LookupPageId = "Expense Participants";

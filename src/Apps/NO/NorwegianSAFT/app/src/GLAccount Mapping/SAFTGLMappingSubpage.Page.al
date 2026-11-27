@@ -35,6 +35,17 @@ page 10677 "SAF-T G/L Mapping Subpage"
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the category of the SAF-T standard account or grouping code that is used for mapping.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.CalcFields("Category Extended No.");
+                        CurrPage.Update();
+                    end;
+                }
+                field(CategoryExtendedNo; Rec."Category Extended No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the original category identifier from the imported mapping source file, including its letter casing.';
                 }
                 field(No; "No.")
                 {
