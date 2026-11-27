@@ -7,6 +7,22 @@
         "VideoURL": ""
     },
     {
+        "FeatureName": "Business skills",
+        "Description": "Instructions that guide Copilot and agents towards better outcomes, by describing how work should be done in Business Central and beyond.",
+        "Category": "Copilot, agents, business process",
+        "HelpURL": "https://go.microsoft.com/fwlink/?LinkId=2388559",
+        "VideoURL": "",
+        "ReleaseVersion": "30.0",
+        "GettingStartedSteps": [
+            "Use a US, GB, or DE Business Central online early access preview sandbox on version 30.0.58740.0 or later with a Partner Sandbox license and evaluation data only.",
+            "Ensure your tenant has an eligible Microsoft 365 subscription, Microsoft Copilot is enabled in Business Central, and you have a Business Central Essentials or Premium license. A Microsoft Copilot license is not required, but is highly recommended.",
+            "To get started, go to the business skills page, and create your first skill. You can include specific instructions, provide tips, explain concepts, or even describe work that happens outside Business Central, such as reading a specific Word document from SharePoint, checking your inbox, generating a slide deck, or searching the web.",
+            "Once you've activated your skill, open the Copilot pane and ask Copilot to perform a task related to that skill. Copilot automatically finds and applies the instructions from matching skills.",
+            "Use Send feedback in the Chat menu or the thumbs-up or thumbs-down controls to share feedback.",
+            "To use business skills with custom agents, sign into a Sandbox environment, open the custom agent avatar on the top-right of your Business Central role center homepage, and fill in the information. In the agent configuration window, select the Use Business skills field to connect your agent to the same catalog of skills in Business Central."
+        ]
+    },
+    {
         "FeatureName": "Add subcontracting suggestions to an existing purchase order",
         "ReleaseVersion": "30.0",
         "Description": "You can add new subcontracting worksheet suggestions to a compatible open purchase order for the same vendor, keeping related work on one order.",
