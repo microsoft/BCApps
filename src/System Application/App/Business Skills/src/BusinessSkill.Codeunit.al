@@ -35,7 +35,7 @@ codeunit 4160 "Business Skill"
     end;
 
     /// <summary>
-    /// Activates a skill after validating its title and content.
+    /// Activates a skill after validating its name and content.
     /// </summary>
     procedure Activate(SkillId: BigInteger)
     var
@@ -104,16 +104,16 @@ codeunit 4160 "Business Skill"
     end;
 
     /// <summary>
-    /// Updates the calling app's skill display name and description without changing its content, version, history, status or lock.
+    /// Updates the calling app's skill name and description without changing its content, version, history, status or lock.
     /// Normal table and management permissions apply. Identical metadata does not write.
     /// </summary>
     [CommitBehavior(CommitBehavior::Ignore)]
-    procedure UpdateMetadata(SkillCode: Code[100]; DisplayName: Text[250]; Description: Text[2048])
+    procedure UpdateMetadata(SkillCode: Code[100]; Name: Text[250]; Description: Text[2048])
     var
         BusinessSkillImpl: Codeunit "Business Skill Impl.";
         CallerModule: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModule);
-        BusinessSkillImpl.UpdateMetadata(CallerModule.Id, SkillCode, DisplayName, Description);
+        BusinessSkillImpl.UpdateMetadata(CallerModule.Id, SkillCode, Name, Description);
     end;
 }

@@ -17,14 +17,14 @@ codeunit 4161 "Business Skill Builder"
     InherentPermissions = X;
 
     /// <summary>
-    /// Supplies the skill code, display name and content. New app-owned skills default to inactive with locked content and version v1.0.
+    /// Supplies the skill code, name and content. New app-owned skills default to inactive with locked content and version v1.0.
     /// </summary>
-    procedure Initialize(SkillCode: Code[100]; DisplayName: Text[250]; Content: SecretText): Codeunit "Business Skill Builder"
+    procedure Initialize(SkillCode: Code[100]; Name: Text[250]; Content: SecretText): Codeunit "Business Skill Builder"
     var
         CallerModule: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModule);
-        BuilderImpl.Initialize(CallerModule.Id, SkillCode, DisplayName, Content);
+        BuilderImpl.Initialize(CallerModule.Id, SkillCode, Name, Content);
         exit(this);
     end;
 
@@ -57,11 +57,11 @@ codeunit 4161 "Business Skill Builder"
     end;
 
     /// <summary>
-    /// Sets the skill display name.
+    /// Sets the skill name.
     /// </summary>
-    procedure SetDisplayName(DisplayName: Text[250]): Codeunit "Business Skill Builder"
+    procedure SetName(Name: Text[250]): Codeunit "Business Skill Builder"
     begin
-        BuilderImpl.SetDisplayName(DisplayName);
+        BuilderImpl.SetName(Name);
         exit(this);
     end;
 

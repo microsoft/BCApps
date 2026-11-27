@@ -922,9 +922,9 @@ codeunit 133754 "Custom Agent Test"
         Assert.AreEqual(OriginalInstructions, CustomAgentSetup.GetInstructions(TestAgentId1), 'Accepting the instruction dialog must not save before setup is updated.');
         Assert.AreEqual(HistoryCount, InstructionsLog.Count(), 'Accepting the instruction dialog must not create history before setup is updated.');
         if LibraryVariableStorage.DequeueBoolean() then
-            SetupPage.OK().Invoke()
+            SetupPage.OK.Invoke()
         else
-            SetupPage.Cancel().Invoke();
+            SetupPage.Cancel.Invoke();
     end;
 
     [ModalPageHandler]
