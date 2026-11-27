@@ -4739,6 +4739,184 @@ codeunit 134468 "ERM Matched Order Line Tests"
 
     [Test]
     [Scope('OnPrem')]
+    [HandlerFunctions('PurchaseOrderLinesLookupHandler')]
+    procedure GetOrderLinesCopiesVATGroupFromReceivedOrder()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+    begin
+        // [SCENARIO 659469] Get Order Lines uses the VAT product posting group from the received order, not the item default.
+        Initialize();
+
+        // [GIVEN] Two units at 100 excluding VAT, received but not invoiced, at the overridden 25% VAT rate (item default 10%).
+        CreateOrderWithOverriddenVAT(PurchaseHeaderOrder, PurchaseLineOrder, false);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
+        PurchaseLineOrder.TestField("Qty. Rcd. Not Invoiced", 2);
+        CreatePurchaseHeaderWithoutVATBaseDiscount(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, PurchaseLineOrder."Buy-from Vendor No.");
+
+        // [WHEN] Getting the received order line on a new purchase invoice.
+        GetOrderLineOnPurchaseInvoice(PurchaseHeaderInvoice, PurchaseLineOrder."Document No.");
+
+        // [THEN] The new invoice line retains the override and has 50 VAT on a 200 base.
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        PurchaseLineInvoice.SetRange(Type, PurchaseLineInvoice.Type::Item);
+        PurchaseLineInvoice.FindFirst();
+        PurchaseLineInvoice.TestField(Quantity, 2);
+        PurchaseLineInvoice.TestField("Direct Unit Cost", 100);
+        PurchaseLineInvoice.TestField("VAT Prod. Posting Group", PurchaseLineOrder."VAT Prod. Posting Group");
+        PurchaseLineInvoice.TestField("VAT %", 25);
+        PurchaseLineInvoice.TestField("VAT Base Amount", 200);
+        PurchaseLineInvoice.TestField("Amount Including VAT", 250);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('PurchaseOrderLinesLookupHandler')]
+    procedure GetOrderLinesAppendsVATInclusiveOrderLine()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        ExistingPurchaseLine: Record "Purchase Line";
+        NewPurchaseLine: Record "Purchase Line";
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        ExistingVATGroup: Code[20];
+    begin
+        // [SCENARIO 659469] Appending an unreceived order preserves both the source VAT-inclusive cost and the existing invoice line.
+        Initialize();
+
+        // [GIVEN] Two unreceived units at 125 including 25% VAT, and an invoice with an existing line using the item default of 10%.
+        CreateOrderWithOverriddenVAT(PurchaseHeaderOrder, PurchaseLineOrder, true);
+        CreatePurchaseHeaderWithoutVATBaseDiscount(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, PurchaseLineOrder."Buy-from Vendor No.");
+        PurchaseHeaderInvoice.TestField("Prices Including VAT", true);
+        LibraryPurchase.CreatePurchaseLine(ExistingPurchaseLine, PurchaseHeaderInvoice, ExistingPurchaseLine.Type::Item, PurchaseLineOrder."No.", 1);
+        ExistingPurchaseLine.Validate("Direct Unit Cost", 110);
+        ExistingPurchaseLine.Modify(true);
+        ExistingVATGroup := ExistingPurchaseLine."VAT Prod. Posting Group";
+
+        // [WHEN] Getting the outstanding order line on the populated purchase invoice.
+        GetOrderLineOnPurchaseInvoice(PurchaseHeaderInvoice, PurchaseLineOrder."Document No.");
+
+        // [THEN] Only the appended line uses 25% VAT, with the original gross unit cost and the correct VAT base.
+        NewPurchaseLine.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        NewPurchaseLine.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        Assert.RecordCount(NewPurchaseLine, 2);
+        NewPurchaseLine.FindLast();
+        NewPurchaseLine.TestField(Quantity, 2);
+        NewPurchaseLine.TestField("VAT Prod. Posting Group", PurchaseLineOrder."VAT Prod. Posting Group");
+        NewPurchaseLine.TestField("VAT %", 25);
+        NewPurchaseLine.TestField("Direct Unit Cost", 125);
+        NewPurchaseLine.TestField("VAT Base Amount", 200);
+        NewPurchaseLine.TestField("Amount Including VAT", 250);
+        if NonDeductibleVAT.IsNonDeductibleVATEnabled() then begin
+            NewPurchaseLine.TestField("Non-Deductible VAT %", 50);
+            NewPurchaseLine.TestField("Non-Deductible VAT Base", 100);
+            NewPurchaseLine.TestField("Non-Deductible VAT Amount", 25);
+        end;
+        ExistingPurchaseLine.Get(ExistingPurchaseLine."Document Type", ExistingPurchaseLine."Document No.", ExistingPurchaseLine."Line No.");
+        ExistingPurchaseLine.TestField("VAT Prod. Posting Group", ExistingVATGroup);
+        ExistingPurchaseLine.TestField("VAT %", 10);
+        ExistingPurchaseLine.TestField("Amount Including VAT", 110);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('PurchaseOrderLinesLookupHandler')]
+    procedure GetOrderLinesRejectsMissingInvoiceVATSetup()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+        Item: Record Item;
+        InvoiceVATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATPostingSetup: Record "VAT Posting Setup";
+        MatchedOrderLine: Record "Matched Order Line";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+    begin
+        // [SCENARIO 659469] Get Order Lines fails if the invoice VAT business group isn't configured for the order VAT product group.
+        Initialize();
+
+        // [GIVEN] A purchase invoice for the same vendor whose VAT business group only supports the item default.
+        CreateOrderWithOverriddenVAT(PurchaseHeaderOrder, PurchaseLineOrder, false);
+        Item.Get(PurchaseLineOrder."No.");
+        LibraryERM.CreateVATBusinessPostingGroup(InvoiceVATBusinessPostingGroup);
+        CreateOrderLineVATPostingSetup(VATPostingSetup, InvoiceVATBusinessPostingGroup.Code, Item."VAT Prod. Posting Group", 10);
+        CreatePurchaseHeaderWithoutVATBaseDiscount(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, PurchaseLineOrder."Buy-from Vendor No.");
+        PurchaseHeaderInvoice.Validate("VAT Bus. Posting Group", InvoiceVATBusinessPostingGroup.Code);
+        PurchaseHeaderInvoice.Modify(true);
+        // Preserve the fixture across asserterror. The default test runner rolls it back after the codeunit.
+        Commit();
+
+        // [WHEN] Trying to get that order line on the invoice.
+        LibraryVariableStorage.Enqueue(PurchaseLineOrder."Document No.");
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.GoToRecord(PurchaseHeaderInvoice);
+        asserterror PurchaseInvoicePage.PurchLines.GetOrderLines.Invoke();
+
+        // [THEN] The missing VAT setup is reported, and no invoice line or match is created.
+        Assert.ExpectedError(VATPostingSetup.TableCaption());
+        Assert.ExpectedError(InvoiceVATBusinessPostingGroup.Code);
+        Assert.ExpectedError(PurchaseLineOrder."VAT Prod. Posting Group");
+        PurchaseHeaderInvoice.Get(PurchaseHeaderInvoice."Document Type", PurchaseHeaderInvoice."No.");
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
+        PurchaseLineInvoice.SetRange("Document Type", PurchaseHeaderInvoice."Document Type");
+        PurchaseLineInvoice.SetRange("Document No.", PurchaseHeaderInvoice."No.");
+        Assert.RecordIsEmpty(PurchaseLineInvoice);
+        MatchedOrderLine.SetRange("Matched Order Line SystemId", PurchaseLineOrder.SystemId);
+        Assert.RecordIsEmpty(MatchedOrderLine);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('MatchedOrderLinesModalHandler,PurchaseOrderLinesLookupHandler')]
+    procedure MatchingOrderLinesDoesNotRewriteInvoiceVAT()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        InvoiceVATGroup: Code[20];
+    begin
+        // [SCENARIO 659469] Matching an order to an existing invoice line does not change the invoice line's VAT.
+        Initialize();
+
+        // [GIVEN] A received order with the overridden VAT group and an invoice line with the item default.
+        CreateOrderWithOverriddenVAT(PurchaseHeaderOrder, PurchaseLineOrder, false);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+        CreatePurchaseHeaderWithoutVATBaseDiscount(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, PurchaseLineOrder."Buy-from Vendor No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, PurchaseLineOrder."No.", 2);
+        PurchaseLineInvoice.Validate("Direct Unit Cost", 100);
+        PurchaseLineInvoice.Modify(true);
+        InvoiceVATGroup := PurchaseLineInvoice."VAT Prod. Posting Group";
+        Assert.AreNotEqual(PurchaseLineOrder."VAT Prod. Posting Group", InvoiceVATGroup, 'The fixture must use different order and invoice VAT groups.');
+
+        // [WHEN] Matching the existing line to the order via Matched Order Lines.
+        LibraryVariableStorage.Enqueue(PurchaseLineOrder."Document No.");
+        LibraryVariableStorage.Enqueue(0);
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.GoToRecord(PurchaseHeaderInvoice);
+        PurchaseInvoicePage.PurchLines.First();
+        PurchaseInvoicePage.PurchLines.MatchedOrdLines.Invoke();
+        PurchaseInvoicePage.Close();
+
+        // [THEN] A match is recorded without changing the existing line's VAT group or amount.
+        PurchaseLineInvoice.Get(PurchaseLineInvoice."Document Type", PurchaseLineInvoice."Document No.", PurchaseLineInvoice."Line No.");
+        PurchaseLineInvoice.CalcFields("Matched Order Lines");
+        PurchaseLineInvoice.TestField("Matched Order Lines", 1);
+        PurchaseLineInvoice.TestField("VAT Prod. Posting Group", InvoiceVATGroup);
+        PurchaseLineInvoice.TestField("Amount Including VAT", 220);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure MatchingRejectedForInvoiceLineCreatedByGetReceiptLines()
     var
         PurchaseHeaderOrder: Record "Purchase Header";
@@ -4842,6 +5020,75 @@ codeunit 134468 "ERM Matched Order Line Tests"
     // ============================================================================
     // REGION: Local Helper Functions
     // ============================================================================
+
+    local procedure CreateOrderWithOverriddenVAT(var PurchaseHeaderOrder: Record "Purchase Header"; var PurchaseLineOrder: Record "Purchase Line"; PricesIncludingVAT: Boolean)
+    var
+        DefaultVATPostingSetup: Record "VAT Posting Setup";
+        OverrideVATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+    begin
+        LibraryERM.CreateVATPostingSetupWithAccounts(DefaultVATPostingSetup, DefaultVATPostingSetup."VAT Calculation Type"::"Normal VAT", 10);
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        CreateOrderLineVATPostingSetup(OverrideVATPostingSetup, DefaultVATPostingSetup."VAT Bus. Posting Group", VATProductPostingGroup.Code, 25);
+        if PricesIncludingVAT and NonDeductibleVAT.IsNonDeductibleVATEnabled() then begin
+            OverrideVATPostingSetup.Validate("Allow Non-Deductible VAT", OverrideVATPostingSetup."Allow Non-Deductible VAT"::Allow);
+            OverrideVATPostingSetup.Validate("Non-Deductible VAT %", 50);
+            OverrideVATPostingSetup.Modify(true);
+        end;
+
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", DefaultVATPostingSetup."VAT Bus. Posting Group");
+        Vendor.Validate("Prices Including VAT", PricesIncludingVAT);
+        Vendor.Modify(true);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", DefaultVATPostingSetup."VAT Prod. Posting Group");
+        Item.Modify(true);
+
+        CreatePurchaseHeaderWithoutVATBaseDiscount(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        PurchaseHeaderOrder.TestField("Prices Including VAT", PricesIncludingVAT);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", 2);
+        PurchaseLineOrder.TestField("VAT %", 10);
+        PurchaseLineOrder.Validate("VAT Prod. Posting Group", OverrideVATPostingSetup."VAT Prod. Posting Group");
+        if PricesIncludingVAT then
+            PurchaseLineOrder.Validate("Direct Unit Cost", 125)
+        else
+            PurchaseLineOrder.Validate("Direct Unit Cost", 100);
+        PurchaseLineOrder.Modify(true);
+    end;
+
+    local procedure CreateOrderLineVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusinessPostingGroupCode: Code[20]; VATProductPostingGroupCode: Code[20]; VATPercent: Decimal)
+    begin
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, VATBusinessPostingGroupCode, VATProductPostingGroupCode);
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", VATPercent);
+        VATPostingSetup.Validate("VAT Identifier", CopyStr(LibraryERM.CreateRandomVATIdentifierAndGetCode(), 1, MaxStrLen(VATPostingSetup."VAT Identifier")));
+        VATPostingSetup.Validate("Purchase VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup.Modify(true);
+    end;
+
+    local procedure CreatePurchaseHeaderWithoutVATBaseDiscount(var PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Purchase Document Type"; VendorNo: Code[20])
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
+        if PurchaseHeader."VAT Base Discount %" <> 0 then begin
+            PurchaseHeader.Validate("VAT Base Discount %", 0);
+            PurchaseHeader.Modify(true);
+        end;
+    end;
+
+    local procedure GetOrderLineOnPurchaseInvoice(PurchaseHeaderInvoice: Record "Purchase Header"; OrderNo: Code[20])
+    var
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+    begin
+        LibraryVariableStorage.Enqueue(OrderNo);
+        PurchaseInvoicePage.OpenEdit();
+        PurchaseInvoicePage.GoToRecord(PurchaseHeaderInvoice);
+        PurchaseInvoicePage.PurchLines.GetOrderLines.Invoke();
+        PurchaseInvoicePage.Close();
+        LibraryVariableStorage.AssertEmpty();
+    end;
 
     local procedure Initialize()
     var
