@@ -1334,7 +1334,6 @@ codeunit 134663 "RC Page Job Queue Failed Test"
     procedure Scenario2_AdminJobFailedTest04()
     var
         JobQueueEntry: Record "Job Queue Entry";
-        JobQueueLogEntry: Record "Job Queue Log Entry";
         JobQueueAdmin: Record "Job Queue Notified Admin";
         TestPageJobQueueTask: TestPage "Job Queue Tasks Activities";
     begin
@@ -1342,8 +1341,7 @@ codeunit 134663 "RC Page Job Queue Failed Test"
         // The Job Notification should show the detail of the failed job. The cues should show the count of the failed, in process and in queue jobs with 1,1,2 respectively.
 
         // [GIVEN] Init User, Job Queue Entry
-        JobQueueEntry.DeleteAll();
-        JobQueueLogEntry.DeleteAll();
+        Initialize();
         PrepareJobQueueNotificationSetupScenario2();
         JobQueueAdmin."User Name" := UserId();
         JobQueueAdmin.Insert(true);
@@ -1718,7 +1716,6 @@ codeunit 134663 "RC Page Job Queue Failed Test"
     procedure Scenario3_AdminJobFailedTest04()
     var
         JobQueueEntry: Record "Job Queue Entry";
-        JobQueueLogEntry: Record "Job Queue Log Entry";
         JobQueueAdmin: Record "Job Queue Notified Admin";
         TestPageJobQueueTask: TestPage "Job Queue Tasks Activities";
     begin
@@ -1726,8 +1723,7 @@ codeunit 134663 "RC Page Job Queue Failed Test"
         // The Job Notification should show the detail of the failed job. The cues should show the count of the failed, in process and in queue jobs with 1,1,2 respectively.
 
         // [GIVEN] Init User, Job Queue Entry
-        JobQueueEntry.DeleteAll();
-        JobQueueLogEntry.DeleteAll();
+        Initialize();
         PrepareJobQueueNotificationSetupScenario2();
         JobQueueAdmin."User Name" := UserId();
         JobQueueAdmin.Insert(true);
@@ -2361,6 +2357,8 @@ codeunit 134663 "RC Page Job Queue Failed Test"
         JobQueueAdminList: Record "Job Queue Notified Admin";
         User: Record User;
     begin
+        CODEUNIT.Run(CODEUNIT::"Users - Create Super User");
+
         JobQueueEntry.DeleteAll();
         JobQueueLogEntry.DeleteAll();
         JobQueueNotificationSetup.DeleteAll();

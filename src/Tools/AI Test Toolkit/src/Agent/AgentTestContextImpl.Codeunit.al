@@ -21,6 +21,15 @@ codeunit 149049 "Agent Test Context Impl."
         AgentUserSecurityID := GlobalAgentUserSecurityID;
     end;
 
+    procedure GetAgentModelId(var ModelId: Code[30])
+    var
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestContext: Codeunit "AIT Test Context";
+    begin
+        AITTestContext.GetAITTestSuite(AITTestSuite);
+        ModelId := AITTestSuite."Agent Model ID";
+    end;
+
     procedure AddTaskToLog(AgentTaskId: BigInteger)
     begin
         if not AgentTaskList.Contains(AgentTaskId) then

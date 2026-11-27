@@ -31,23 +31,23 @@ codeunit 4165 "Business Skill Test Impl."
     /// <summary>
     /// Creates an active manual skill with a description and initial content history.
     /// </summary>
-    procedure CreateSkill(Title: Text[250]; Description: Text[2048]; SkillContent: SecretText): BigInteger
+    procedure CreateSkill(Name: Text[250]; Description: Text[2048]; SkillContent: SecretText): BigInteger
     var
         BusinessSkillBuilder: Codeunit "Business Skill Builder";
     begin
-        exit(BusinessSkillBuilder.Initialize('', Title, SkillContent).SetManual(true).SetDescription(Description).SetActive(true).Create());
+        exit(BusinessSkillBuilder.Initialize('', Name, SkillContent).SetManual(true).SetDescription(Description).SetActive(true).Create());
     end;
 
     /// <summary>
     /// Creates an inactive app-owned skill for the calling test library, with initial content history.
     /// </summary>
-    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Title: Text[250]; SkillContent: SecretText): BigInteger
+    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Name: Text[250]; SkillContent: SecretText): BigInteger
     var
         BusinessSkillBuilderImpl: Codeunit "Business Skill Builder Impl.";
         CallerModule: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModule);
-        BusinessSkillBuilderImpl.Initialize(CallerModule.Id, SkillCode, Title, SkillContent);
+        BusinessSkillBuilderImpl.Initialize(CallerModule.Id, SkillCode, Name, SkillContent);
         exit(BusinessSkillBuilderImpl.Create());
     end;
 

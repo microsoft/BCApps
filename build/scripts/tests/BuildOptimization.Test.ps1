@@ -2,8 +2,11 @@ Describe "BuildOptimization" {
     BeforeAll {
         Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -Force
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
-        $baseFolder = Get-BaseFolder
-        $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
+        Import-Module "$PSScriptRoot\..\ALAppBuild.psm1"
+        $script:baseFolder = Get-BaseFolder
+        $appJsonPaths = @(Get-ApplicationGroup -GroupName All -SkipCountryCheck -SkipLanguagePacks |
+            Select-Object -ExpandProperty AppJsonPath -Unique)
+        $script:graph = Get-AppDependencyGraph -AppJsonPaths $appJsonPaths
     }
 
     Context "Get-AppDependencyGraph" {
@@ -34,23 +37,23 @@ Describe "BuildOptimization" {
 
     Context "Get-AppForFile" {
         It "maps E-Document Core file" {
-            $result = Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/src/SomeFile.al' -BaseFolder $baseFolder
+            $result = Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/src/SomeFile.al' -BaseFolder $baseFolder -Graph $graph
             $result | Should -Be 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
         }
 
-        It "maps Email module file" {
-            $result = Get-AppForFile -FilePath 'src/System Application/App/Email/src/SomeFile.al' -BaseFolder $baseFolder
-            $result | Should -Be '9c4a2cf2-be3a-4aa3-833b-99a5ffd11f25'
+        It "maps Email module files to the registered System Application root" {
+            $result = Get-AppForFile -FilePath 'src/System Application/App/Email/src/SomeFile.al' -BaseFolder $baseFolder -Graph $graph
+            $result | Should -Be '63ca2fa4-4f03-4f2b-a480-172fef340d3f'
         }
 
         It "returns null for non-app file" {
-            $result = Get-AppForFile -FilePath 'build/scripts/BuildOptimization.psm1' -BaseFolder $baseFolder
+            $result = Get-AppForFile -FilePath 'build/scripts/BuildOptimization.psm1' -BaseFolder $baseFolder -Graph $graph
             $result | Should -BeNullOrEmpty
         }
 
         It "handles absolute paths" {
             $absPath = Join-Path $baseFolder 'src/Apps/W1/EDocument/App/src/SomeFile.al'
-            $result = Get-AppForFile -FilePath $absPath -BaseFolder $baseFolder
+            $result = Get-AppForFile -FilePath $absPath -BaseFolder $baseFolder -Graph $graph
             $result | Should -Be 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
         }
     }
@@ -111,6 +114,154 @@ Describe "BuildOptimization" {
             $affectedNames = $affected | ForEach-Object { $graph[$_].Name }
             $affectedNames | Should -Contain 'E-Document Core'
             $affectedNames | Should -Contain 'E-Document Core Tests'
+        }
+    }
+
+    Context "Compiled app ownership" {
+        BeforeAll {
+            $script:compiledManifests = @(
+                'src\System Application\App', 'src\System Application\Test',
+                'src\Apps\W1\EDocument\App', 'src\Apps\W1\EDocument\Test'
+            ) | ForEach-Object { Join-Path $baseFolder "$_\app.json" }
+            $script:compiledGraph = Get-AppDependencyGraph -AppJsonPaths $script:compiledManifests
+        }
+
+        It "keeps all-country registered roots without duplicate ID loss, including GDL source overrides" {
+            $apps = @(ALAppBuild\Get-ApplicationGroup -GroupName All -SkipCountryCheck -SkipLanguagePacks)
+            $countryGraph = Get-AppDependencyGraph -AppJsonPaths $apps.AppJsonPath
+            $countryGraph.Count | Should -Be $apps.Count
+            $countryGraph['0d60b215-6ee1-4789-8e53-866cfa50c23c'].AppFolder |
+                Should -Be (Join-Path $baseFolder 'src\System Application\Test')
+            $gdl = $apps | Where-Object { $_.IsGDLProject } | Select-Object -First 1
+            $manifest = Get-Content $gdl.AppJsonPath -Raw | ConvertFrom-Json
+            $countryGraph[$manifest.id].Name | Should -Be $manifest.name
+            $countryGraph[$manifest.id].AppFolder | Should -Be (Split-Path $gdl.AppJsonPath -Parent)
+        }
+
+        It "maps an Email test change to the compiled aggregate, not its nested component manifest" {
+            $id = Get-AppForFile -FilePath 'src/System Application/Test/Email/Changed.al' -BaseFolder $baseFolder -Graph $script:compiledGraph
+            $script:compiledGraph[$id].Name | Should -Be 'System Application Test'
+        }
+
+        It "includes compiled dependents of a component app change" {
+            $affected = Get-AffectedApps -ChangedFiles @('src/System Application/App/Email/Changed.al') `
+                -BaseFolder $baseFolder -Graph $script:compiledGraph
+            $names = @($affected | ForEach-Object { $script:compiledGraph[$_].Name })
+            $names | Should -Contain 'System Application'
+            $names | Should -Contain 'System Application Test'
+        }
+
+        It "keeps ordinary extension ownership and observes root path boundaries" {
+            Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/src/Changed.al' -BaseFolder $baseFolder -Graph $script:compiledGraph |
+                Should -Be 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
+            Get-AppForFile -FilePath 'src/System Application/Application/Changed.al' -BaseFolder $baseFolder -Graph $script:compiledGraph |
+                Should -BeNullOrEmpty
+        }
+
+        It "uses a component root only when it is declared in the compilation graph" {
+            $moduleGraph = Get-AppDependencyGraph -AppJsonPaths @(
+                $script:compiledManifests + (Join-Path $baseFolder 'src\System Application\App\Email\app.json')
+            )
+            Get-AppForFile -FilePath 'src/System Application/App/Email/Changed.al' -BaseFolder $baseFolder -Graph $moduleGraph |
+                Should -Be '9c4a2cf2-be3a-4aa3-833b-99a5ffd11f25'
+        }
+
+        It "does not silently overwrite duplicate compiled app identities" {
+            { Get-AppDependencyGraph -AppJsonPaths @($script:compiledManifests[0], $script:compiledManifests[0]) } |
+                Should -Throw '*Compiled app ID*occurs in both*'
+        }
+
+        It "uses registered source manifests without a country filter in the churn proposal" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/System Application/Test/Email/Changed.al') }
+            Mock -ModuleName BuildOptimization Get-ApplicationGroup {
+                $script:compiledManifests | ForEach-Object {
+                    [PSCustomObject]@{ AppJsonPath = $_; ProjectFolder = 'unused'; ApplicationName = 'registry key' }
+                }
+            }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Contain 'System Application Test'
+                $result.AppNames | Should -Not -Contain 'Email Test'
+                Should -Invoke -ModuleName BuildOptimization Get-ApplicationGroup -Times 1 -ParameterFilter {
+                    $SkipCountryCheck -and $GroupName -eq 'All' -and $SkipLanguagePacks -and -not $SkipTests
+                }
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+            }
+        }
+
+        It "selects localized owners and dependents without forcing RunAll" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/DE/EDocumentDE/app/Changed.al') }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Contain 'E-Document for Germany'
+                $result.AppNames | Should -Contain 'E-Document for Germany Tests'
+
+                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/W1/EDocument/App/Changed.al') }
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Contain 'E-Document for Germany Tests'
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
+            }
+        }
+
+        It "initializes ALAppBuild prerequisites when imported alone in a fresh process" {
+            $output = & (Get-Process -Id $PID).Path -NoProfile -Command {
+                param($root)
+                $ErrorActionPreference = 'Stop'
+                $env:INETROOT = $null
+                $env:GITHUB_WORKSPACE = $root
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:BUILD_OPTIMIZATION_DISABLED = $null
+                Import-Module (Join-Path $root 'build\scripts\BuildOptimization.psm1')
+                if ($env:INETROOT -ne $root -or -not (Get-Command Write-Log)) { throw 'Prerequisites missing' }
+                & (Get-Module BuildOptimization) {
+                    function script:Get-ChangedFilesForCI { @('src/System Application/Test/Email/Changed.al') }
+                }
+                $result = Get-AffectedAppNames -BaseFolder $root
+                if ($result.RunAll -or $result.AppNames -notcontains 'System Application Test') { throw 'Standalone selection failed' }
+            } -args $baseFolder
+            $LASTEXITCODE | Should -Be 0 -Because ($output -join "`n")
+        }
+    }
+
+    Context "Initialize-GitCommit" {
+        It "returns only a boolean when fetch exits with <ExitCode> and writes stdout" -ForEach @(
+            @{ ExitCode = 0; Expected = $true }
+            @{ ExitCode = 128; Expected = $false }
+        ) {
+            InModuleScope BuildOptimization -Parameters @{ ExitCode = $ExitCode; Expected = $Expected } {
+                Mock git {
+                    $global:LASTEXITCODE = 128
+                    if ($args -contains 'fetch') {
+                        $global:LASTEXITCODE = $ExitCode
+                        'fetch output'
+                    }
+                }
+                $result = Initialize-GitCommit -CommitSha ('a' * 40)
+                $result | Should -BeOfType [bool]
+                $result | Should -Be $Expected
+            }
         }
     }
 
@@ -199,7 +350,7 @@ Describe "BuildOptimization" {
                 } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
                 $env:GITHUB_EVENT_PATH = $tempFile
 
-                $result = Get-ChangedFilesForCI
+                $result = @(Get-ChangedFilesForCI)
                 $result | Should -Not -BeNullOrEmpty
                 $result.Count | Should -BeGreaterOrEqual 1
             } finally {
@@ -233,7 +384,7 @@ Describe "BuildOptimization" {
                 } | ConvertTo-Json -Depth 5 | Set-Content $tempFile
                 $env:GITHUB_EVENT_PATH = $tempFile
 
-                $result = Get-ChangedFilesForCI
+                $result = @(Get-ChangedFilesForCI)
                 $result | Should -Not -BeNullOrEmpty
                 $result.Count | Should -BeGreaterOrEqual 1
             } finally {
@@ -241,6 +392,264 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = $savedEvent
                 $env:GITHUB_EVENT_PATH = $savedEventPath
                 if ($tempFile) { Remove-Item $tempFile -ErrorAction SilentlyContinue }
+            }
+        }
+
+        It "compares a depth-one PR merge checkout with merge comparison <UseMerge>" -ForEach @(
+            @{ UseMerge = $false }, @{ UseMerge = $true }
+        ) {
+            $source = Join-Path $TestDrive "merge-source-$UseMerge"
+            $checkout = Join-Path $TestDrive "merge-checkout-$UseMerge"
+            git init --quiet $source
+            git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet --allow-empty -m initial
+            git -C $source checkout --quiet -b feature
+            Set-Content (Join-Path $source 'feature.txt') 'feature change'
+            git -C $source add .
+            git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet -m feature
+            $headSha = git -C $source rev-parse HEAD
+            git -C $source checkout --quiet -b target HEAD~1
+            Set-Content (Join-Path $source 'target.txt') 'target change'
+            git -C $source add .
+            git -C $source -c user.name=Test -c user.email=test@example.com commit --quiet -m target
+            $baseSha = git -C $source rev-parse HEAD
+            git -C $source -c user.name=Test -c user.email=test@example.com merge --quiet --no-ff feature -m merge
+            $mergeSha = git -C $source rev-parse HEAD
+            git clone --quiet --depth=1 ([uri]$source).AbsoluteUri $checkout
+            $LASTEXITCODE | Should -Be 0
+            git -C $checkout rev-parse --is-shallow-repository | Should -Be 'true'
+            git -C $checkout cat-file -e "$headSha^{commit}" 2>$null
+            $LASTEXITCODE | Should -Not -Be 0
+
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $savedSha = $env:GITHUB_SHA
+            $eventFile = Join-Path $TestDrive 'merge-event.json'
+            $eventBase = if ($UseMerge) { git -C $source rev-parse "$baseSha~1" } else { $baseSha }
+            @{ pull_request = @{ base = @{ sha = $eventBase }; head = @{ sha = $headSha } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            New-Item -ItemType Directory -Path (Join-Path $checkout 'build') | Out-Null
+            Push-Location (Join-Path $checkout 'build')
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                $env:GITHUB_SHA = $mergeSha
+                $result = @(Get-ChangedFilesForCI -CompareWithPullRequestMerge:$UseMerge)
+                $result | Should -Contain 'feature.txt'
+                if ($UseMerge) {
+                    $result | Should -Not -Contain 'target.txt'
+                    $result.Count | Should -Be 1
+                    git cat-file -e "$baseSha^{commit}"
+                    $LASTEXITCODE | Should -Be 0
+                    git cat-file -e "$headSha^{commit}" 2>$null
+                    $LASTEXITCODE | Should -Not -Be 0
+                } else {
+                    $result | Should -Contain 'target.txt'
+                    $result.Count | Should -Be 2
+                }
+            } finally {
+                Pop-Location
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                $env:GITHUB_SHA = $savedSha
+            }
+        }
+
+        It "includes both rename owners and a moved-out full-build path only for impact analysis" {
+            $repo = Join-Path $TestDrive 'renames'
+            git init --quiet $repo
+            git -C $repo config diff.renames true
+            foreach ($folder in @('src\First', 'src\Second', '.github', 'docs')) {
+                New-Item -ItemType Directory -Path (Join-Path $repo $folder) -Force | Out-Null
+            }
+            foreach ($name in @('First', 'Second')) {
+                @{ id = $name; name = $name; dependencies = @() } | ConvertTo-Json |
+                    Set-Content (Join-Path $repo "src\$name\app.json")
+            }
+            Set-Content (Join-Path $repo 'src\First\Code.al') 'unchanged AL content'
+            Set-Content (Join-Path $repo '.github\config.json') '{"unchanged":true}'
+            git -C $repo add .
+            git -C $repo -c user.name=Test -c user.email=test@example.com commit --quiet -m initial
+            $baseSha = git -C $repo rev-parse HEAD
+            git -C $repo mv src/First/Code.al src/Second/Code.al
+            git -C $repo mv .github/config.json docs/config.json
+            Set-Content (Join-Path $repo 'src\Second\New.al') 'new AL content'
+            git -C $repo add .
+            git -C $repo -c user.name=Test -c user.email=test@example.com commit --quiet -m rename
+            $headSha = git -C $repo rev-parse HEAD
+            $eventFile = Join-Path $TestDrive 'rename-event.json'
+            @{ before = $baseSha; after = $headSha } | ConvertTo-Json | Set-Content $eventFile
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            Push-Location $repo
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'push'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                $files = @(Get-ChangedFilesForCI -CompareWithPullRequestMerge)
+                $files | Should -Contain 'src/First/Code.al'
+                $files | Should -Contain 'src/Second/Code.al'
+                $files | Should -Contain '.github/config.json'
+                Test-FullBuildPatternsMatch -ChangedFiles $files -BaseFolder $baseFolder | Should -BeTrue
+                $renameGraph = Get-AppDependencyGraph -AppJsonPaths @(
+                    (Join-Path $repo 'src\First\app.json'), (Join-Path $repo 'src\Second\app.json')
+                )
+                $affected = @(Get-AffectedApps -ChangedFiles $files -BaseFolder $repo -Graph $renameGraph)
+                $affected | Should -Contain 'first'
+                $affected | Should -Contain 'second'
+                @(Get-ChangedFilesForCI -DiffFilter A -CompareFromMergeBase -RequireChangeDetection) |
+                    Should -Be @('src/Second/New.al')
+            } finally {
+                Pop-Location
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
+        It "rejects an unverified tested merge: <Case>" -ForEach @(
+            @{ Case = 'missing workflow SHA'; WorkflowSha = ''; Parents = @('a', 'b') }
+            @{ Case = 'checkout mismatch'; WorkflowSha = 'd' * 40; Parents = @('a', 'b') }
+            @{ Case = 'non-merge'; WorkflowSha = 'c' * 40; Parents = @('a') }
+            @{ Case = 'wrong PR head'; WorkflowSha = 'c' * 40; Parents = @('a', 'd') }
+            @{ Case = 'more than two parents'; WorkflowSha = 'c' * 40; Parents = @('a', 'b', 'd') }
+        ) {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $savedSha = $env:GITHUB_SHA
+            $eventFile = Join-Path $TestDrive 'invalid-merge-event.json'
+            @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git -MockWith ({
+                $global:LASTEXITCODE = 0
+                if ($args -contains 'rev-parse') { return 'c' * 40 }
+                if ($args -contains '-p') {
+                    foreach ($parent in $Parents) { "parent $($parent * 40)" }
+                    ''
+                    "parent $('b' * 40)"
+                }
+            }.GetNewClosure())
+            Mock -ModuleName BuildOptimization Write-Host { }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                $env:GITHUB_SHA = $WorkflowSha
+                Get-ChangedFilesForCI -CompareWithPullRequestMerge | Should -BeNullOrEmpty
+                Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -ParameterFilter {
+                    $Object -like '*Could not verify the checked-out PR merge*'
+                }
+                { Get-ChangedFilesForCI -CompareWithPullRequestMerge -RequireChangeDetection } |
+                    Should -Throw '*Could not verify the checked-out PR merge*'
+                Should -Invoke -ModuleName BuildOptimization git -Times 0 -ParameterFilter {
+                    $args -contains 'diff' -or $args -contains 'fetch'
+                }
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+                $env:GITHUB_SHA = $savedSha
+            }
+        }
+
+        It "preserves event endpoints for <EventName> when merge comparison is requested" -ForEach @(
+            @{ EventName = 'push' }, @{ EventName = 'merge_group' }, @{ EventName = 'pull_request_target' }
+        ) {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $eventFile = Join-Path $TestDrive 'other-event.json'
+            @{
+                before = 'a' * 40; after = 'b' * 40
+                merge_group = @{ base_sha = 'a' * 40; head_sha = 'b' * 40 }
+                pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } }
+            } | ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git {
+                $global:LASTEXITCODE = 0
+                if ($args -contains 'diff') { 'changed.al' }
+            }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = $EventName
+                $env:GITHUB_EVENT_PATH = $eventFile
+                @(Get-ChangedFilesForCI -CompareWithPullRequestMerge) | Should -Be @('changed.al')
+                Should -Invoke -ModuleName BuildOptimization git -Times 1 -ParameterFilter {
+                    $args -contains 'diff' -and $args -contains ('a' * 40) -and $args -contains ('b' * 40)
+                }
+                Should -Invoke -ModuleName BuildOptimization git -Times 0 -ParameterFilter { $args -contains 'rev-parse' }
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
+        It "rejects combining merge comparison modes" {
+            { Get-ChangedFilesForCI -CompareWithPullRequestMerge -CompareFromMergeBase } |
+                Should -Throw '*cannot be combined*'
+        }
+
+        It "reports <Failure> failure without returning diagnostic text as changed files" -ForEach @(
+            @{ Failure = 'fetch'; ExpectedMessage = '*Could not fetch commit*exitCode=128*' }
+            @{ Failure = 'diff'; ExpectedMessage = '*Git diff failed*exitCode=128*fatal: bad object*' }
+        ) {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $eventFile = Join-Path $TestDrive 'failed-git-event.json'
+            @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git -MockWith ({
+                $global:LASTEXITCODE = 0
+                if ($Failure -eq 'fetch' -or $args -contains 'diff') {
+                    $global:LASTEXITCODE = 128
+                    if ($args -contains 'diff') { Write-Error 'fatal: bad object' -ErrorAction Continue }
+                }
+            }.GetNewClosure())
+            Mock -ModuleName BuildOptimization Write-Host { }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                Get-ChangedFilesForCI | Should -BeNullOrEmpty
+                Should -Invoke -ModuleName BuildOptimization Write-Host -Times 1 -ParameterFilter {
+                    $Object -like $ExpectedMessage
+                }
+                { Get-ChangedFilesForCI -RequireChangeDetection } | Should -Throw $ExpectedMessage
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
+            }
+        }
+
+        It "returns only paths when a successful diff writes a diagnostic to stderr" {
+            $savedActions = $env:GITHUB_ACTIONS
+            $savedEvent = $env:GITHUB_EVENT_NAME
+            $savedEventPath = $env:GITHUB_EVENT_PATH
+            $eventFile = Join-Path $TestDrive 'git-warning-event.json'
+            @{ pull_request = @{ base = @{ sha = 'a' * 40 }; head = @{ sha = 'b' * 40 } } } |
+                ConvertTo-Json -Depth 5 | Set-Content $eventFile
+            Mock -ModuleName BuildOptimization git {
+                $global:LASTEXITCODE = 0
+                if ($args -contains 'diff') {
+                    Write-Error 'warning: exhaustive rename detection was skipped' -ErrorAction Continue
+                    'src/Apps/Example/Changed.al'
+                }
+            }
+            try {
+                $env:GITHUB_ACTIONS = 'true'
+                $env:GITHUB_EVENT_NAME = 'pull_request'
+                $env:GITHUB_EVENT_PATH = $eventFile
+                @(Get-ChangedFilesForCI) | Should -Be @('src/Apps/Example/Changed.al')
+            } finally {
+                $env:GITHUB_ACTIONS = $savedActions
+                $env:GITHUB_EVENT_NAME = $savedEvent
+                $env:GITHUB_EVENT_PATH = $savedEventPath
             }
         }
 
@@ -283,6 +692,23 @@ Describe "BuildOptimization" {
     }
 
     Context "Test-FullBuildPatternsMatch" {
+        It "uses AL-Go's built-in JSON guard without configured patterns for <Path>" -ForEach @(
+            @{ Path = '.github/AL-Go-Settings.json' }
+            @{ Path = '.github/actions/example/config.json' }
+            @{ Path = '.github\actions\example\config.json' }
+        ) {
+            Test-FullBuildPatternsMatch -ChangedFiles @($Path) -BaseFolder $TestDrive | Should -BeTrue
+        }
+
+        It "does not broadly match GitHub non-JSON files: <Path>" -ForEach @(
+            @{ Path = '.github/actions/example/action.yaml' }
+            @{ Path = '.github/workflows/CI.yaml' }
+            @{ Path = '.github/scripts/example.ps1' }
+            @{ Path = '.github/README.md' }
+        ) {
+            Test-FullBuildPatternsMatch -ChangedFiles @($Path) -BaseFolder $baseFolder | Should -BeFalse
+        }
+
         It "returns true when a changed file matches build/* pattern" {
             $result = Test-FullBuildPatternsMatch -ChangedFiles @('build/scripts/RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
             $result | Should -BeTrue
@@ -328,30 +754,23 @@ Describe "BuildOptimization" {
     }
 
     Context "BaseFolder must be repo root, not build/" {
-        It "graph is empty when BaseFolder points to build/ instead of repo root" {
-            # The old RunTestsInBcContainer.ps1 code computed BaseFolder as:
-            #   Join-Path $PSScriptRoot "../../.." from .AL-Go/ → resolves to build/
-            # This is wrong because app.json files live under src/ at the repo root.
-            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
-            $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
-            $wrongGraph.Count | Should -Be 0 -Because 'build/ contains no app.json files; BaseFolder must be the repo root'
+        It "builds an empty graph from an explicit empty manifest list" {
+            $emptyGraph = Get-AppDependencyGraph -AppJsonPaths @()
+            $emptyGraph.Count | Should -Be 0
         }
 
-        It "affected apps returns empty array with wrong BaseFolder, causing silent full-build" {
-            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
-            $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
+        It "uses an explicit empty graph without discovering apps" {
+            Mock -ModuleName BuildOptimization Get-AppDependencyGraph { throw 'Graph must be supplied by the caller.' }
+            $affected = @(Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/Changed.al') `
+                -BaseFolder $baseFolder -Graph @{})
+            $affected.Count | Should -Be 0
+            Should -Invoke -ModuleName BuildOptimization Get-AppDependencyGraph -Times 0
+        }
 
-            $changedFiles = @(
-                'src/Apps/W1/EDocument/App/src/Processing/Import/FinishDraft/EDocCreatePurchaseInvoice.Codeunit.al'
-            )
-            $affected = Get-AffectedApps -ChangedFiles $changedFiles -BaseFolder $buildFolder -Graph $wrongGraph
-
-            # With wrong BaseFolder: graph is empty, unmapped src/ file returns @($Graph.Keys) = @()
-            # PowerShell unwraps empty arrays to $null through the pipeline, so wrap in @()
-            # Then 0 >= 0 is true, so Get-AffectedAppNames treats this as "full build"
-            # even though zero apps were actually identified
-            @($affected).Count | Should -Be 0 -Because 'empty graph means no apps can be found'
-            @($affected).Count -ge @($wrongGraph.Keys).Count | Should -BeTrue -Because 'this is the condition that triggers the false full-build (0 >= 0)'
+        It "does not map repository-relative files against the build directory" {
+            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path
+            Get-AppForFile -FilePath 'src/Apps/W1/EDocument/App/Changed.al' -BaseFolder $buildFolder -Graph $graph |
+                Should -BeNullOrEmpty
         }
 
         It "correct BaseFolder (repo root) finds apps for the same changed files" {
@@ -380,56 +799,93 @@ Describe "BuildOptimization" {
         }
     }
 
-    Context "Test-ShouldSkipTestApp" {
-        BeforeAll {
-            $cacheFile = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Test_$([System.Guid]::NewGuid()).json"
-        }
+    Context "Mandatory NewObjects test selection" {
         BeforeEach {
-            Remove-Item $cacheFile -ErrorAction SilentlyContinue
-            # Tests drive change detection through Get-ChangedFilesForCI; do not read the real PR when running in a PR build
-            Mock -ModuleName BuildOptimization Get-PullRequestMergeChangedFiles { return $null }
-        }
-        AfterAll {
-            Remove-Item $cacheFile -ErrorAction SilentlyContinue
+            $script:savedActions = $env:GITHUB_ACTIONS
+            $script:savedEvent = $env:GITHUB_EVENT_NAME
+            $script:savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
+            $env:GITHUB_ACTIONS = 'true'
+            $env:GITHUB_EVENT_NAME = 'pull_request'
+            $env:BUILD_OPTIMIZATION_DISABLED = $null
+            Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { @('src/Apps/Example/code.al') }
+            Mock -ModuleName BuildOptimization Get-AppDependencyGraph {
+                @{
+                    unrelated = [PSCustomObject]@{ Name = 'Unrelated App' }
+                    newobjects = [PSCustomObject]@{ Name = 'Tests-NewObjects-Internal' }
+                    unaffected = [PSCustomObject]@{ Name = 'Unaffected Tests' }
+                }
+            }
+            Mock -ModuleName BuildOptimization Get-AffectedApps { @('unrelated') }
         }
 
-        It "returns false when not in CI" {
+        AfterEach {
+            $env:GITHUB_ACTIONS = $script:savedActions
+            $env:GITHUB_EVENT_NAME = $script:savedEvent
+            $env:BUILD_OPTIMIZATION_DISABLED = $script:savedDisabled
+        }
+
+        It "retains NewObjects for an unrelated app change without selecting other unaffected tests" {
+            $result = Get-AffectedAppNames -BaseFolder $baseFolder
+            $result.RunAll | Should -BeFalse
+            $result.AppNames.Count | Should -Be 2
+            $result.AppNames | Should -Contain 'Unrelated App'
+            $result.AppNames | Should -Contain 'Tests-NewObjects-Internal'
+            $result.AppNames | Should -Not -Contain 'Unaffected Tests'
+        }
+
+        It "does not duplicate NewObjects when already affected" {
+            Mock -ModuleName BuildOptimization Get-AffectedApps { @('unrelated', 'newobjects') }
+            $result = Get-AffectedAppNames -BaseFolder $baseFolder
+            $result.RunAll | Should -BeFalse
+            @($result.AppNames | Where-Object { $_ -eq 'Tests-NewObjects-Internal' }).Count | Should -Be 1
+        }
+
+        It "retains mandatory NewObjects when applying the affected-app proposal" {
+            $selected = @(Get-SelectedTestApps -AppNamesToTest @('Unaffected Tests', 'Tests-NewObjects-Internal') `
+                -BaseFolder $baseFolder -ChurnEnabled $true -Country 'w1' -TestType 'IntegrationTest' `
+                -BucketNumber 0 -ApplySelection)
+            $selected | Should -Be @('Tests-NewObjects-Internal')
+        }
+    }
+
+    Context "Get-AffectedAppNames fallbacks" {
+        It "runs all apps when not in CI" {
             $saved = $env:GITHUB_ACTIONS
             try {
                 $env:GITHUB_ACTIONS = $null
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:GITHUB_ACTIONS = $saved
             }
         }
 
-        It "returns false for workflow_dispatch" {
+        It "runs all apps for workflow_dispatch" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             try {
                 $env:GITHUB_ACTIONS = 'true'
                 $env:GITHUB_EVENT_NAME = 'workflow_dispatch'
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
             }
         }
 
-        It "returns false when BUILD_OPTIMIZATION_DISABLED is true" {
+        It "runs all apps when BUILD_OPTIMIZATION_DISABLED is true" {
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
             $savedActions = $env:GITHUB_ACTIONS
             try {
                 $env:BUILD_OPTIMIZATION_DISABLED = 'true'
                 $env:GITHUB_ACTIONS = 'true'
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
                 $env:GITHUB_ACTIONS = $savedActions
             }
         }
 
-        It "returns false when changed files match fullBuildPatterns" {
+        It "runs all apps when changed files match fullBuildPatterns" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
@@ -438,7 +894,7 @@ Describe "BuildOptimization" {
                 $env:GITHUB_EVENT_NAME = 'pull_request'
                 $env:BUILD_OPTIMIZATION_DISABLED = $null
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { return @('build/scripts/SomeScript.ps1') }
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
+                (Get-AffectedAppNames -BaseFolder $baseFolder).RunAll | Should -BeTrue
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -446,7 +902,7 @@ Describe "BuildOptimization" {
             }
         }
 
-        It "returns true (skip) when changed files affect only E-Document and AppName is Shopify" {
+        It "proposes E-Document but not Shopify for an E-Document change" {
             $savedActions = $env:GITHUB_ACTIONS
             $savedEvent = $env:GITHUB_EVENT_NAME
             $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
@@ -457,7 +913,10 @@ Describe "BuildOptimization" {
                 Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
                     return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
                 }
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeTrue
+                $result = Get-AffectedAppNames -BaseFolder $baseFolder
+                $result.RunAll | Should -BeFalse
+                $result.AppNames | Should -Not -Contain 'Shopify'
+                $result.AppNames | Should -Contain 'E-Document Core'
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions
                 $env:GITHUB_EVENT_NAME = $savedEvent
@@ -465,122 +924,6 @@ Describe "BuildOptimization" {
             }
         }
 
-        It "reads from cache file on second call without recomputing" {
-            $savedActions = $env:GITHUB_ACTIONS
-            $savedEvent = $env:GITHUB_EVENT_NAME
-            $savedDisabled = $env:BUILD_OPTIMIZATION_DISABLED
-            try {
-                $env:GITHUB_ACTIONS = 'true'
-                $env:GITHUB_EVENT_NAME = 'pull_request'
-                $env:BUILD_OPTIMIZATION_DISABLED = $null
-                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI {
-                    return @('src/Apps/W1/EDocument/App/src/SomeFile.al')
-                }
-                # First call computes and writes cache file
-                Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeTrue
-                Test-Path $cacheFile | Should -BeTrue
-                # Second call reads from cache — Get-ChangedFilesForCI not called again
-                Test-ShouldSkipTestApp -AppName 'E-Document Core' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
-                Should -Invoke -ModuleName BuildOptimization Get-ChangedFilesForCI -Times 1 -Exactly
-            } finally {
-                $env:GITHUB_ACTIONS = $savedActions
-                $env:GITHUB_EVENT_NAME = $savedEvent
-                $env:BUILD_OPTIMIZATION_DISABLED = $savedDisabled
-            }
-        }
     }
 
-    Context "Get-PullRequestMergeChangedFiles" {
-        BeforeAll {
-            $repo = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Merge_$([System.Guid]::NewGuid())"
-            New-Item -ItemType Directory -Path $repo | Out-Null
-            Push-Location $repo
-            try {
-                git init -q -b main
-                git config user.email 'ci@example.com'
-                git config user.name 'ci'
-                Set-Content -Path 'shared.txt' -Value 'base'
-                git add -A; git commit -q -m base
-                git checkout -q -b feature
-                Set-Content -Path 'feature.txt' -Value 'pr change'
-                git add -A; git commit -q -m feature
-                $script:prHead = (git rev-parse HEAD)
-                git checkout -q main
-                Set-Content -Path 'main-only.txt' -Value 'base branch change'
-                git add -A; git commit -q -m main
-                git merge -q --no-ff feature -m merge
-            } finally {
-                Pop-Location
-            }
-            $eventFile = Join-Path $repo 'event.json'
-            @{ pull_request = @{ head = @{ sha = $script:prHead } } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
-        }
-        AfterAll {
-            Remove-Item $repo -Recurse -Force -ErrorAction SilentlyContinue
-        }
-
-        It "returns only the pull request's changes, not base-branch changes missing from the PR branch" {
-            $saved = @($env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH)
-            Push-Location $repo
-            try {
-                $env:GITHUB_EVENT_NAME = 'pull_request'
-                $env:GITHUB_EVENT_PATH = $eventFile
-                Get-PullRequestMergeChangedFiles | Should -Be @('feature.txt')
-            } finally {
-                Pop-Location
-                $env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH = $saved
-            }
-        }
-
-        It "returns null when HEAD is not the pull request merge commit" {
-            $saved = @($env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH)
-            Push-Location $repo
-            try {
-                $env:GITHUB_EVENT_NAME = 'pull_request'
-                $env:GITHUB_EVENT_PATH = $eventFile
-                git checkout -q HEAD~1
-                Get-PullRequestMergeChangedFiles | Should -BeNullOrEmpty
-            } finally {
-                git checkout -q main
-                Pop-Location
-                $env:GITHUB_EVENT_NAME, $env:GITHUB_EVENT_PATH = $saved
-            }
-        }
-    }
-
-    Context "Select-TestAppsToRun" {
-        BeforeAll {
-            $selectCache = Join-Path ([System.IO.Path]::GetTempPath()) "BuildOptimization_Select_$([System.Guid]::NewGuid()).json"
-        }
-        BeforeEach {
-            Remove-Item $selectCache -ErrorAction SilentlyContinue
-        }
-        AfterAll {
-            Remove-Item $selectCache -ErrorAction SilentlyContinue
-        }
-
-        It "runs every test app outside pull request builds" {
-            $saved = $env:GITHUB_EVENT_NAME
-            try {
-                $env:GITHUB_EVENT_NAME = 'merge_group'
-                Mock -ModuleName BuildOptimization Test-ShouldSkipTestApp { return $true }
-                Select-TestAppsToRun -AppNames @('Shopify', 'E-Document Core') -BaseFolder $baseFolder -CacheFile $selectCache | Should -Be @('Shopify', 'E-Document Core')
-            } finally {
-                $env:GITHUB_EVENT_NAME = $saved
-            }
-        }
-
-        It "runs only affected test apps in pull request builds" {
-            $saved = @($env:GITHUB_ACTIONS, $env:GITHUB_EVENT_NAME, $env:BUILD_OPTIMIZATION_DISABLED)
-            try {
-                $env:GITHUB_ACTIONS = 'true'
-                $env:GITHUB_EVENT_NAME = 'pull_request'
-                $env:BUILD_OPTIMIZATION_DISABLED = $null
-                Mock -ModuleName BuildOptimization Get-PullRequestMergeChangedFiles { return @('src/Apps/W1/EDocument/App/src/SomeFile.al') }
-                Select-TestAppsToRun -AppNames @('Shopify', 'E-Document Core') -BaseFolder $baseFolder -CacheFile $selectCache | Should -Be @('E-Document Core')
-            } finally {
-                $env:GITHUB_ACTIONS, $env:GITHUB_EVENT_NAME, $env:BUILD_OPTIMIZATION_DISABLED = $saved
-            }
-        }
-    }
 }

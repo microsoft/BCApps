@@ -1,19 +1,7 @@
 Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1" -Resolve)
-
-# ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
-# internally. Set both up before importing so its functions work in CI runners that don't
-# have the full NAV build environment configured.
-if ([string]::IsNullOrEmpty($env:INETROOT)) {
-    $env:INETROOT = Get-BaseFolder
-}
-if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
-    function global:Write-Log {
-        param([Parameter(Position = 0)][string]$Message, [string]$ForegroundColor)
-        Write-Host $Message
-    }
-}
-Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
+
+Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
 <#
 .SYNOPSIS
@@ -1538,6 +1526,8 @@ function Invoke-ParallelTestExecution {
     call computes the bucket's app list and dispatches them all in parallel; subsequent calls in
     the same job short-circuit on the cached final result. Returns the cached result if there
     are no apps to run for the project's testType.
+    enableChurnBasedTesting in .github/AL-Go-Settings.json enables affected-app selection on PRs
+    and proposal logging only on other events. False or absent bypasses analysis and runs all apps.
 .PARAMETER parameters
     The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
 .OUTPUTS
@@ -1558,13 +1548,20 @@ function Invoke-PerProjectTestRun {
 
     $installed = Get-InstalledTestAppNames -ContainerName $parameters.containerName -Tenant $parameters.tenant -Country $country
     $appNamesToTest = Get-AppNamesForBucket -InstalledTestAppNames $installed -TestType $testType -BucketNumber $bucketNumber
-    $appNamesToTest = @(Select-TestAppsToRun -AppNames $appNamesToTest -BaseFolder (Get-BaseFolder))
 
     if ($appNamesToTest.Count -eq 0) {
         Write-Host "No test apps to run for testType '$testType' in this project."
         return $true
     }
 
+    $appNamesToTest = @(Get-SelectedTestApps -AppNamesToTest $appNamesToTest -BaseFolder (Get-BaseFolder) `
+        -ChurnEnabled ((Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) `
+        -Country $country -TestType $testType -BucketNumber $bucketNumber `
+        -ApplySelection:($env:GITHUB_EVENT_NAME -eq 'pull_request'))
+    if ($appNamesToTest.Count -eq 0) {
+        Write-Host "No affected test apps to run for testType '$testType' in this project."
+        return $true
+    }
     Write-Host "Test apps to dispatch ($($appNamesToTest.Count)): $($appNamesToTest -join ', ')"
 
     $parameters["returnTrueIfAllPassed"] = $true

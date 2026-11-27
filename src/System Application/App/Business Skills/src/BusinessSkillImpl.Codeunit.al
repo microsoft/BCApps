@@ -368,12 +368,12 @@ codeunit 4163 "Business Skill Impl."
     /// <summary>
     /// Updates only the calling app's skill metadata through the existing validation and write path.
     /// </summary>
-    procedure UpdateMetadata(CallerAppId: Guid; SkillCode: Code[100]; DisplayName: Text[250]; Description: Text[2048])
+    procedure UpdateMetadata(CallerAppId: Guid; SkillCode: Code[100]; Name: Text[250]; Description: Text[2048])
     var
         BusinessSkill: Record "Business Skill";
     begin
         GetAppOwnedSkill(CallerAppId, SkillCode, BusinessSkill);
-        UpdateSkill(BusinessSkill, DisplayName, Description, GetContent(BusinessSkill));
+        UpdateSkill(BusinessSkill, Name, Description, GetContent(BusinessSkill));
     end;
 
     local procedure GetAppOwnedSkill(CallerAppId: Guid; SkillCode: Code[100]; var Skill: Record "Business Skill")
