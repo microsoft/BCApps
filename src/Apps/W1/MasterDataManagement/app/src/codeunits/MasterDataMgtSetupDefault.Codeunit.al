@@ -56,6 +56,10 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         PersonTok: Label 'Person', Comment = 'Non-localized option name for Contact Type Person.', Locked = true;
         CustomerConfigTemplateDescTxt: Label 'New customers were created during synch.', Comment = 'Max. length 50.';
         VendorConfigTemplateDescTxt: Label 'New vendors were created during synch.', Comment = 'Max. length 50.';
+        SystemTableErr: Label 'Table %1 is a system table. System tables can''t be synchronized. Choose another table.', Comment = '%1 - a table name';
+        TableMetadataNotFoundErr: Label 'Metadata for table %1 cannot be loaded. Choose another table.', Comment = '%1 - a table name';
+        TableNotPerCompanyErr: Label 'Table %1 is shared across all companies of this environment. Choose another table.', Comment = '%1 - a table name';
+        TableNotOfTypeNormalErr: Label 'Table %1 is either declared as temporary, a query or as an interface for accessing an external entity. Choose another table.', Comment = '%1 - a table name';
 
     internal procedure ResetConfiguration(var MasterDataManagementSetup: Record "Master Data Management Setup")
     var
@@ -1296,6 +1300,7 @@ codeunit 7230 "Master Data Mgt. Setup Default"
         TableField: Record Field;
         LocalRecordRef: RecordRef;
     begin
+        CheckNotSystemTable(TableID);
         LocalRecordRef.Open(TableID);
         InsertIntegrationTableMapping(IntegrationTableMapping, IntegrationTableMappingName, TableID, TableID, LocalRecordRef.SystemIdNo(), LocalRecordRef.SystemModifiedAtNo(), ConfigTemplateCode, '', SynchOnlyCoupledRecords);
         TableField.SetRange(TableNo, TableID);
@@ -1359,6 +1364,50 @@ codeunit 7230 "Master Data Mgt. Setup Default"
             exit('');
 
         exit(ObjectTranslation.TranslateObject(ObjectTranslation."Object Type"::Table, TableID));
+    end;
+
+    // Add Table offers only per-company tables of type Normal, and never system tables (ID 2000000000 and above).
+    internal procedure CheckTableCanBeSynchronized(TableID: Integer)
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        CheckNotSystemTable(TableID);
+        if not TableMetadata.Get(TableID) then
+            Error(TableMetadataNotFoundErr, TableID);
+        if not TableMetadata.DataPerCompany then
+            Error(TableNotPerCompanyErr, GetTableCaption(TableID));
+        if TableMetadata.TableType <> TableMetadata.TableType::Normal then
+            Error(TableNotOfTypeNormalErr, GetTableCaption(TableID));
+    end;
+
+    // System tables can never be synchronized, whichever path adds the synchronization table: Add Table, Import Setup,
+    // or GenerateIntegrationTableMapping. Import Setup checks only this, because an exported setup can contain tables that
+    // Add Table doesn't offer, such as a default table that is shared across companies in some localizations.
+    internal procedure CheckNotSystemTable(TableID: Integer)
+    begin
+        if IsSystemTable(TableID) then
+            Error(SystemTableErr, GetTableCaption(TableID));
+    end;
+
+    internal procedure CanTableBeSynchronized(TableID: Integer): Boolean
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        if IsSystemTable(TableID) then
+            exit(false);
+        if not TableMetadata.Get(TableID) then
+            exit(false);
+        exit(TableMetadata.DataPerCompany and (TableMetadata.TableType = TableMetadata.TableType::Normal));
+    end;
+
+    internal procedure IsSystemTable(TableID: Integer): Boolean
+    begin
+        exit(TableID >= FirstSystemTableID());
+    end;
+
+    internal procedure FirstSystemTableID(): Integer
+    begin
+        exit(2000000000);
     end;
 
     local procedure SetIntegrationFieldMappingClearValueOnFailedSync(var IntegrationTableMapping: Record "Integration Table Mapping"; FieldNo: Integer)
