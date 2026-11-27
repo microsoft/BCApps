@@ -30,7 +30,7 @@ codeunit 147561 "SII Third Party Info"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Bill-To Customer" of Sales Invoice exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Bill-to/Pay-to No."
@@ -63,7 +63,7 @@ codeunit 147561 "SII Third Party Info"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Sell-To Customer" of Sales Invoice exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Sell-to/Buy-from No"
@@ -96,7 +96,7 @@ codeunit 147561 "SII Third Party Info"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Bill-To Customer" of Sales Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Bill-to/Pay-to No."
@@ -129,7 +129,7 @@ codeunit 147561 "SII Third Party Info"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Sell-To Customer" of Sales Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Sell-to/Buy-from No"
@@ -162,7 +162,7 @@ codeunit 147561 "SII Third Party Info"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Bill-To Customer" of Removal Sales Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Bill-to/Pay-to No."
@@ -197,7 +197,7 @@ codeunit 147561 "SII Third Party Info"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         Customer: Record Customer;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Sell-To Customer" of Removal Sales Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Sell-to/Buy-from No"
@@ -231,7 +231,7 @@ codeunit 147561 "SII Third Party Info"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Bill-To Customer" of Purchase Invoice exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Bill-to/Pay-to No."
@@ -264,7 +264,7 @@ codeunit 147561 "SII Third Party Info"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Sell-To Vendor" of Purchase Invoice exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Sell-to/Buy-from No"
@@ -297,7 +297,7 @@ codeunit 147561 "SII Third Party Info"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Bill-To Vendor" of Purchase Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Bill-to/Pay-to No."
@@ -330,7 +330,7 @@ codeunit 147561 "SII Third Party Info"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Sell-To Vendor" of Purchase Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Sell-to/Buy-from No"
@@ -363,7 +363,7 @@ codeunit 147561 "SII Third Party Info"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Bill-To Vendor" of Removal Purchase Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Bill-to/Pay-to No."
@@ -398,7 +398,7 @@ codeunit 147561 "SII Third Party Info"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         Vendor: Record Vendor;
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [SCENARIO 327263] The information about "Sell-To Vendor" of Removal Purchase Credit Memo exports to SII XML file
         // [SCENARIO 327263] when "Bill-to/Sell-to VAT Calc." field of General Ledger Setup has value "Sell-to/Buy-from No"

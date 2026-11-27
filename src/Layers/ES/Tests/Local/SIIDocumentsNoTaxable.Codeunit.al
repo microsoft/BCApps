@@ -41,7 +41,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure SalesWithNoTaxableLineXml()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 221621] XML has node for non taxable amount when multiple lines with Normal VAT and No Taxable VAT exists in Sales Invoice
@@ -66,7 +66,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 223695] XML has node "Entrega" for non taxable amount if only line with No Taxable VAT exists in Sales Invoice
@@ -92,7 +92,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure PurchWithOnlyNoTaxableLineXml()
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 223695] XML has node for non taxable amount if only line with No Taxable VAT exists in Purchase Invoice
@@ -115,7 +115,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure SalesFCYNoTaxableNodeDoesNotExist()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CurrencyCode: Code[10];
         ExchangeRateAmount: Decimal;
     begin
@@ -143,7 +143,7 @@ codeunit 147524 "SII Documents No Taxable"
         ServiceHeader: Record "Service Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CurrencyCode: Code[10];
         ExchangeRateAmount: Decimal;
     begin
@@ -177,7 +177,7 @@ codeunit 147524 "SII Documents No Taxable"
         PurchaseLine: Record "Purchase Line";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
         NormalAmount: Decimal;
@@ -241,7 +241,7 @@ codeunit 147524 "SII Documents No Taxable"
         PurchaseLine: Record "Purchase Line";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
         NormalAmount: Decimal;
@@ -302,7 +302,7 @@ codeunit 147524 "SII Documents No Taxable"
         PurchaseHeader: Record "Purchase Header";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
         VendNo: Code[20];
@@ -347,7 +347,7 @@ codeunit 147524 "SII Documents No Taxable"
         PurchaseLine: Record "Purchase Line";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
         VendNo: Code[20];
@@ -391,7 +391,7 @@ codeunit 147524 "SII Documents No Taxable"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
         NormalAmount: Decimal;
@@ -449,7 +449,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
     begin
         // [FEATURE] [Sales] [Invoice]
@@ -489,7 +489,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
     begin
         // [FEATURE] [Sales] [Invoice]
@@ -532,7 +532,7 @@ codeunit 147524 "SII Documents No Taxable"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
         NormalAmount: Decimal;
@@ -588,7 +588,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
     begin
         // [FEATURE] [Sales] [Credit Memo]
@@ -628,7 +628,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
     begin
         // [FEATURE] [Sales] [Credit Memo]
@@ -670,7 +670,7 @@ codeunit 147524 "SII Documents No Taxable"
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
     begin
@@ -710,7 +710,7 @@ codeunit 147524 "SII Documents No Taxable"
         Customer: Record Customer;
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NonTaxableAmount: Decimal;
     begin
@@ -1225,7 +1225,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 231012] XML has node "ImportePorArticulos7_14_Otros" for non taxable amount when post Sales Invoice with "Non Taxable Type" is "Non Taxable Art 7-14 and others"
@@ -1253,7 +1253,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 231012] XML has node "ImportePorArticulos7_14_Otros" for non taxable amount when post Sales Credit Memo with "Non Taxable Type" is "Non Taxable Art 7-14 and others"
@@ -1281,7 +1281,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 231012] XML has node "ImportePorArticulos7_14_Otros" for non taxable amount when post Service Invoice with "Non Taxable Type" is "Non Taxable Art 7-14 and others"
@@ -1310,7 +1310,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 231012] XML has node "ImportePorArticulos7_14_Otros" for non taxable amount when post Service Credit Memo with "Non Taxable Type" is "Non Taxable Art 7-14 and others"
@@ -1339,7 +1339,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 231012] XML has node "ImporteTAIReglasLocalizacion" for non taxable amount when post Sales Invoice with "Non Taxable Type" is "Non Taxable Due To Localization Rules"
@@ -1367,7 +1367,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 231012] XML has node "ImporteTAIReglasLocalizacion" for non taxable amount when post Sales Credit Memo with "Non Taxable Type" is "Non Taxable Due To Localization Rules"
@@ -1395,7 +1395,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 231012] XML has node "ImporteTAIReglasLocalizacion" for non taxable amount when post Service Invoice with "Non Taxable Type" is "Non Taxable Due To Localization Rules"
@@ -1424,7 +1424,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 231012] XML has node "ImporteTAIReglasLocalizacion" for non taxable amount when post Service Credit Memo with "Non Taxable Type" is "Non Taxable Due To Localization Rules"
@@ -1454,7 +1454,7 @@ codeunit 147524 "SII Documents No Taxable"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         NormalVATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [EU Service] [No Tax] [Exemption]
         // [SCENARIO 310154] XML file structure is correct when export sales invoice with mix of EU Service, Non-EU Service, Normal, VAT Exemption and No Taxable VAT
@@ -1500,7 +1500,7 @@ codeunit 147524 "SII Documents No Taxable"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         NormalVATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [EU Service] [No Tax] [Exemption]
         // [SCENARIO 310154] XML file structure is correct when export sales credit memo with mix of EU Service, Non-EU Service, Normal, VAT Exemption and No Taxable VAT
@@ -1546,7 +1546,7 @@ codeunit 147524 "SII Documents No Taxable"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         NormalVATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [EU Service] [No Tax] [Exemption]
         // [SCENARIO 310154] XML file structure is correct when export sales invoice with EU Service, Normal and No Taxable VAT
@@ -1583,7 +1583,7 @@ codeunit 147524 "SII Documents No Taxable"
         CustLedgerEntry: Record "Cust. Ledger Entry";
         NormalVATPostingSetup: Record "VAT Posting Setup";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [EU Service] [No Tax] [Exemption]
         // [SCENARIO 310154] XML file structure is correct when export sales credit memo with EU Service, Normal and No Taxable VAT
@@ -1618,7 +1618,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 234078] Sales Invoice Lines with G/L Accounts where "Ignore in 357 Report" is set ignores in Non Taxable VAT Amount calculation
@@ -1640,7 +1640,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo[
         // [SCENARIO 234078] Sales Credit Memo Lines with G/L Accounts where "Ignore in 357 Report" is set ignores in Non Taxable VAT Amount calculation
@@ -1662,7 +1662,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 234078] Purchase Invoice Lines with G/L Accounts where "Ignore in 357 Report" is set ignores in Non Taxable VAT Amount calculation
@@ -1684,7 +1684,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 234078] Purchase Credit Memo Lines with G/L Accounts where "Ignore in 357 Report" is set ignores in Non Taxable VAT Amount calculation
@@ -1706,7 +1706,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 234078] Service Invoice Lines with G/L Accounts where "Ignore in 357 Report" is set ignores in Non Taxable VAT Amount calculation
@@ -1730,7 +1730,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo[
         // [SCENARIO 234078] Service Credit Memo Lines with G/L Accounts where "Ignore in 357 Report" is set ignores in Non Taxable VAT Amount calculation
@@ -1754,7 +1754,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 263409] XML has node for non taxable amount when No Taxable VAT line with 100% discount exists in Sales Invoice
@@ -1777,7 +1777,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 263409] XML has node for non taxable amount when No Taxable VAT line with 100% discount exists in Sales Credit Memo
@@ -1800,7 +1800,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice]
         // [SCENARIO 263409] XML has node for non taxable amount when No Taxable VAT line with 100% discount exists in Service Invoice
@@ -1825,7 +1825,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo]
         // [SCENARIO 263409] XML has node for non taxable amount when No Taxable VAT line with 100% discount exists in Service Credit Memo
@@ -1851,7 +1851,7 @@ codeunit 147524 "SII Documents No Taxable"
         GenJournalLine: Record "Gen. Journal Line";
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [EU Service]
         // [SCENARIO 267012] XML has node "PrestacionServicios" for non taxable amount and EU service when post sales invoice from journal
@@ -1883,7 +1883,7 @@ codeunit 147524 "SII Documents No Taxable"
         GenJournalLine: Record "Gen. Journal Line";
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 267012] XML has node "PrestacionServicios" for non taxable amount when post sales invoice from journal
@@ -1915,7 +1915,7 @@ codeunit 147524 "SII Documents No Taxable"
         GenJournalLine: Record "Gen. Journal Line";
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [EU Service]
         // [SCENARIO 267012] XML has node "PrestacionServicios" for non taxable amount and EU service when post sales credit memo from journal
@@ -1947,7 +1947,7 @@ codeunit 147524 "SII Documents No Taxable"
         GenJournalLine: Record "Gen. Journal Line";
         Customer: Record Customer;
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 267012] XML has node "PrestacionServicios" for non taxable amount when post sales credit memo from journal
@@ -1979,7 +1979,7 @@ codeunit 147524 "SII Documents No Taxable"
         GenJournalLine: Record "Gen. Journal Line";
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 267012] XML has node "BaseImponible" with non taxable amount when post purchase invoice from journal
@@ -2009,7 +2009,7 @@ codeunit 147524 "SII Documents No Taxable"
         GenJournalLine: Record "Gen. Journal Line";
         Vendor: Record Vendor;
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 267012] XML has node "BaseImponible" with non taxable amount when post purchase credit memo from journal
@@ -2040,7 +2040,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [No Taxable Type]
         // [SCENARIO 466990] XML has node sii:NoSujeta with child node sii:ImporteTAIReglasLocalizacion
@@ -2072,7 +2072,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         Amount: Decimal;
     begin
         // [FEATURE] [Service] [No Taxable Type]
@@ -2105,7 +2105,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATPostingSetup: Record "VAT Posting Setup";
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [No Taxable Type]
         // [SCENARIO 466990] XML has node sii:BaseImponible
@@ -2136,7 +2136,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice] [FCY]
         // [SCENARIO 298931] No Taxable node has value in local currency when export sales invoice
@@ -2163,7 +2163,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo] [FCY]
         // [SCENARIO 298931] No Taxable node has value in local currency when export sales credit memo
@@ -2190,7 +2190,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Invoice] [FCY]
         // [SCENARIO 298931] No Taxable node has value in local currency when export service invoice
@@ -2217,7 +2217,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         ServiceHeader: Record "Service Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Service] [Credit Memo] [FCY]
         // [SCENARIO 298931] No Taxable node has value in local currency when export service credit memo
@@ -2246,7 +2246,7 @@ codeunit 147524 "SII Documents No Taxable"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         InvNo: Code[20];
         InvNonTaxableAmount: Decimal;
@@ -2297,7 +2297,7 @@ codeunit 147524 "SII Documents No Taxable"
         PurchaseLine: Record "Purchase Line";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NormalAmount: Decimal;
         VATRate: Decimal;
@@ -2352,7 +2352,7 @@ codeunit 147524 "SII Documents No Taxable"
         PurchaseLine: Record "Purchase Line";
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
         NormalAmount: Decimal;
         VATRate: Decimal;
@@ -2402,7 +2402,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         PurchaseHeader: Record "Purchase Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 381227] XML request does not have TipoImpositivo and CuotaSoportada nodes for Purchase Invoice with no taxable VAT and "Special Scheme Code" = "08  IPSI / IGIC"
@@ -2431,7 +2431,7 @@ codeunit 147524 "SII Documents No Taxable"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         VATPostingSetup: Record "VAT Posting Setup";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         NoTaxType: Integer;
     begin
         // [FEATURE] [EU Service] [No Tax]
@@ -2469,7 +2469,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 231012] XML has node "ImporteTAIReglasLocalizacion" for non taxable amount when post Sales Invoice with "Non Taxable Type" is blank and "Special Scheme Code" = "08  IPSI / IGIC"
@@ -2492,7 +2492,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure SalesInvoiceWithOneStopShopOption()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 504302] A sales invoice with One Stop Shop option is correctly reported to the SII
@@ -2515,7 +2515,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure SalesCrMemoWithOneStopShopOption()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 504302] A sales credit memo with One Stop Shop option is correctly reported to the SII
@@ -2539,7 +2539,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 504302] A replacement sales credit memo with One Stop Shop option is correctly reported to the SII
@@ -2564,7 +2564,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure CorrectiveSalesCrMemoWithOneStopShopHasNegativeAmount()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 639647] A corrective (R5) sales credit memo with One Stop Shop option has negative ImporteTAIReglasLocalizacion in SII XML
@@ -2586,7 +2586,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure SalesInvoiceWithMixedOneStopShopOptions()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 504302] A sales invoice with several lines and different One Stop Shop option is correctly reported to the SII
@@ -2609,7 +2609,7 @@ codeunit 147524 "SII Documents No Taxable"
     procedure SalesCrMemoWithMixedOneStopShopOptions()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 504302] A sales credit memo with several lines and different One Stop Shop option is correctly reported to the SII
@@ -2633,7 +2633,7 @@ codeunit 147524 "SII Documents No Taxable"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales]
         // [SCENARIO 504302] A replacement sales credit memo with several lines and different One Stop Shop option is correctly reported to the SII
@@ -2664,7 +2664,7 @@ codeunit 147524 "SII Documents No Taxable"
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
         VATPostingSetup: Record "VAT Posting Setup";
         VATProductPostingGroup: Record "VAT Product Posting Group";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         GLAccountNo: Code[20];
     begin
         // [FEATURE] [Sales] [One Stop Shop]
@@ -2719,7 +2719,7 @@ codeunit 147524 "SII Documents No Taxable"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         ItemNo: Code[20];
     begin
         // [SCENARIO 535796] "Cuando el importe total está cumplimentado, debe ser igual a la suma de las bases imponibles más las cuotas..."

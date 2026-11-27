@@ -40,7 +40,7 @@ codeunit 147529 "SII Payments"
         GenJournalLine: Record "Gen. Journal Line";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
     begin
@@ -92,7 +92,7 @@ codeunit 147529 "SII Payments"
         Vendor: Record Vendor;
         GenJournalLine: Record "Gen. Journal Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
         ExtDocumentNo: Code[20];
@@ -146,7 +146,7 @@ codeunit 147529 "SII Payments"
         Customer: Record Customer;
         GenJournalLine: Record "Gen. Journal Line";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
     begin
@@ -191,7 +191,7 @@ codeunit 147529 "SII Payments"
         VATPostingSetup: Record "VAT Posting Setup";
         Vendor: Record Vendor;
         GenJournalLine: Record "Gen. Journal Line";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
         ExtDocumentNo: Code[20];
@@ -378,7 +378,7 @@ codeunit 147529 "SII Payments"
         Customer: Record Customer;
         GenJournalLine: Record "Gen. Journal Line";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
     begin
@@ -423,7 +423,7 @@ codeunit 147529 "SII Payments"
         VATPostingSetup: Record "VAT Posting Setup";
         Vendor: Record Vendor;
         GenJournalLine: Record "Gen. Journal Line";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
         ExtDocumentNo: Code[20];
@@ -466,7 +466,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: Code[20];
@@ -504,7 +504,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendorNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: Code[20];
@@ -893,7 +893,7 @@ codeunit 147529 "SII Payments"
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
         GenJournalLine: Record "Gen. Journal Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         DocumentNo: Code[20];
         Amount: Decimal;
@@ -927,7 +927,7 @@ codeunit 147529 "SII Payments"
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
         GenJournalLine: Record "Gen. Journal Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendorNo: Code[20];
         DocumentNo: Code[20];
         ExtDocumentNo: Code[20];
@@ -962,7 +962,7 @@ codeunit 147529 "SII Payments"
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
         GenJournalLine: Record "Gen. Journal Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         DocumentNo: Code[20];
         Amount: Decimal;
@@ -996,7 +996,7 @@ codeunit 147529 "SII Payments"
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
         GenJournalLine: Record "Gen. Journal Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendorNo: Code[20];
         DocumentNo: Code[20];
         ExtDocumentNo: Code[20];
@@ -1030,7 +1030,7 @@ codeunit 147529 "SII Payments"
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
         GenJournalLine: Record "Gen. Journal Line";
-        XMLDoc: array[2] of DotNet XmlDocument;
+        XMLDoc: array[2] of XmlDocument;
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[2] of Code[20];
@@ -1068,7 +1068,7 @@ codeunit 147529 "SII Payments"
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
         GenJournalLine: Record "Gen. Journal Line";
-        XMLDoc: array[2] of DotNet XmlDocument;
+        XMLDoc: array[2] of XmlDocument;
         VendorNo: Code[20];
         InvDocumentNo: Code[20];
         PmtDocumentNo: array[2] of Code[20];
@@ -1106,7 +1106,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: Code[20];
@@ -1141,7 +1141,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         VendorNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: Code[20];
@@ -1177,7 +1177,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: array[2] of DotNet XmlDocument;
+        XMLDoc: array[2] of XmlDocument;
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[2] of Code[20];
@@ -1216,7 +1216,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
-        XMLDoc: array[2] of DotNet XmlDocument;
+        XMLDoc: array[2] of XmlDocument;
         VendorNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[2] of Code[20];
@@ -1256,7 +1256,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: array[2] of DotNet XmlDocument;
+        XMLDoc: array[2] of XmlDocument;
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[2] of Code[20];
@@ -1294,7 +1294,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
-        XMLDoc: array[2] of DotNet XmlDocument;
+        XMLDoc: array[2] of XmlDocument;
         VendorNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[2] of Code[20];
@@ -1333,7 +1333,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: array[3] of DotNet XmlDocument;
+        XMLDoc: array[3] of XmlDocument;
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[3] of Code[20];
@@ -1375,7 +1375,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
-        XMLDoc: array[3] of DotNet XmlDocument;
+        XMLDoc: array[3] of XmlDocument;
         VendorNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[3] of Code[20];
@@ -1418,7 +1418,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry";
-        XMLDoc: array[4] of DotNet XmlDocument;
+        XMLDoc: array[4] of XmlDocument;
         CustomerNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[4] of Code[20];
@@ -1462,7 +1462,7 @@ codeunit 147529 "SII Payments"
     var
         VATPostingSetup: Record "VAT Posting Setup";
         DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry";
-        XMLDoc: array[4] of DotNet XmlDocument;
+        XMLDoc: array[4] of XmlDocument;
         VendorNo: Code[20];
         InvoiceNo: Code[20];
         PaymentNo: array[4] of Code[20];
@@ -1544,7 +1544,7 @@ codeunit 147529 "SII Payments"
         GenJournalLine: Record "Gen. Journal Line";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
     begin
@@ -1588,7 +1588,7 @@ codeunit 147529 "SII Payments"
         Vendor: Record Vendor;
         GenJournalLine: Record "Gen. Journal Line";
         SIIDocUploadState: Record "SII Doc. Upload State";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         DocumentNo: Code[20];
         Amount: Decimal;
         ExtDocumentNo: Code[20];
@@ -2012,7 +2012,7 @@ codeunit 147529 "SII Payments"
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
     end;
 
-    local procedure GenerateXmlForDetailedVendorLedgerEntry(var XMLDoc: DotNet XmlDocument; var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; DocumentNo: Code[20])
+    local procedure GenerateXmlForDetailedVendorLedgerEntry(var XMLDoc: XmlDocument; var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; DocumentNo: Code[20])
     var
         SIIXMLCreator: Codeunit "SII XML Creator";
     begin
@@ -2020,7 +2020,7 @@ codeunit 147529 "SII Payments"
         Assert.IsTrue(SIIXMLCreator.GenerateXml(DetailedVendorLedgEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
     end;
 
-    local procedure GenerateXmlForDetailedCustomerLedgerEntry(var XMLDoc: DotNet XmlDocument; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DocumentNo: Code[20])
+    local procedure GenerateXmlForDetailedCustomerLedgerEntry(var XMLDoc: XmlDocument; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DocumentNo: Code[20])
     var
         SIIXMLCreator: Codeunit "SII XML Creator";
     begin
@@ -2221,7 +2221,7 @@ codeunit 147529 "SII Payments"
         VerifySIIHistoryCount(SIIDocUploadState.Id, 1);
     end;
 
-    local procedure VerifyXMLSeveralSalesPayments(XMLDoc: DotNet XmlDocument; DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry"; ExpectedNodeCount: Integer)
+    local procedure VerifyXMLSeveralSalesPayments(XMLDoc: XmlDocument; DetailedCustLedgEntry: array[4] of Record "Detailed Cust. Ledg. Entry"; ExpectedNodeCount: Integer)
     var
         i: Integer;
     begin
@@ -2231,7 +2231,7 @@ codeunit 147529 "SII Payments"
               XMLDoc, 'sii:Importe', SIIXMLCreator.FormatNumber(Abs(DetailedCustLedgEntry[i].Amount)), i - 1);
     end;
 
-    local procedure VerifyXMLSeveralPurchPayments(XMLDoc: DotNet XmlDocument; DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry"; ExpectedNodeCount: Integer)
+    local procedure VerifyXMLSeveralPurchPayments(XMLDoc: XmlDocument; DetailedVendorLedgEntry: array[4] of Record "Detailed Vendor Ledg. Entry"; ExpectedNodeCount: Integer)
     var
         i: Integer;
     begin

@@ -32,7 +32,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 394230] Negative line exports to the SII file for the sales invoice when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -60,7 +60,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line exports to the SII file for the sales credit memo when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -88,7 +88,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line exports to the SII file for the replacement sales credit memo when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -117,7 +117,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 394230] Negative line exports to the SII file for the purchase invoice when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -145,7 +145,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 394230] Negative line exports to the SII file for the purchase credit memo when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -174,7 +174,7 @@ codeunit 147563 "SII Negative Lines"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         TotalVATAmount: Decimal;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
@@ -217,7 +217,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 394230] Negative line does not export to the SII file for the sales invoice when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -249,7 +249,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line does not export to the SII file for the sales credit memo when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -281,7 +281,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line does not export to the SII file for the sales credit memo when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -314,7 +314,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 394230] Negative line does not export to the SII file for the purchase invoice when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -346,7 +346,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 394230] Negative line does not export to the SII file for the purchase credit memo when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -378,7 +378,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 394230] Negative line does not export to the SII file for the purchase credit memo when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -411,7 +411,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 394230] Negative line exports to the SII file for the sales invoice with no taxable VAT when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -442,7 +442,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line exports to the SII file for the sales credit memo with no taxable VAT when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -473,7 +473,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line exports to the SII file for the replacement sales credit memo with no taxable VAT when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -505,7 +505,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 394230] Negative line does not export to the SII file for the sales invoice with no taxable VAT when "Do Not Report Negative Lines" option enabled in the SII Setup
@@ -536,7 +536,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line does not export to the SII file for the sales credit memo with no taxable VAT when "Do Not Report Negative Lines" option enabled in the SII Setup
@@ -567,7 +567,7 @@ codeunit 147563 "SII Negative Lines"
         PositiveSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 394230] Negative line does not export to the SII file for the replacement sales credit memo with no taxable VAT when "Do Not Report Negative Lines" option enabled in the SII Setup
@@ -599,7 +599,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 394230] Negative line exports to the SII file for the purchase invoice with no taxable VAT when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -628,7 +628,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 394230] Negative line exports to the SII file for the purchase credit memo with no taxable VAT when "Do Not Report Negative Lines" option disabled in the SII Setup
@@ -657,7 +657,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice]
         // [SCENARIO 394230] Negative line does not export to the SII file for the purchase invoice with no taxable VAT when "Do Not Report Negative Lines" option enabled in the SII Setup
@@ -686,7 +686,7 @@ codeunit 147563 "SII Negative Lines"
         PositivePurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 394230] Negative line does not export to the SII file for the purchase credit memo with no taxable VAT when "Do Not Report Negative Lines" option enabled in the SII Setup

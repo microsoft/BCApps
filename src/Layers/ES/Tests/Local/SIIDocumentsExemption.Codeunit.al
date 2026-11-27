@@ -31,7 +31,7 @@ codeunit 147525 "SII Documents Exemption"
     procedure SalesInvWithExemptEntries()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 222174] XML file has nodes with VAT exemption details for Sales Invoice with VAT Clause
@@ -60,7 +60,7 @@ codeunit 147525 "SII Documents Exemption"
     procedure NormalSalesCrMemoWithExemptEntries()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 222174] XML file has nodes with VAT exemption details for Sales Credit Memo with VAT Clause
@@ -91,7 +91,7 @@ codeunit 147525 "SII Documents Exemption"
     var
         SalesHeader: Record "Sales Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 222174] XML file has nodes with VAT exemption details for Sales Credit Memo with "Correction Type" = Replacement and VAT Clause
@@ -124,7 +124,7 @@ codeunit 147525 "SII Documents Exemption"
         VATPostingSetup: Record "VAT Posting Setup";
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice] [Normal VAT]
         // [SCENARIO 222174] XML file has nodes with VAT exemption details for Purchase Invoice with VAT Clause
@@ -163,7 +163,7 @@ codeunit 147525 "SII Documents Exemption"
         VATPostingSetup: Record "VAT Posting Setup";
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo]
         // [SCENARIO 222174] XML file has nodes with VAT exemption details for Purchase Credit Memo with VAT Clause
@@ -202,7 +202,7 @@ codeunit 147525 "SII Documents Exemption"
         VATPostingSetup: Record "VAT Posting Setup";
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo] [Normal VAT]
         // [SCENARIO 222174] XML file has nodes with VAT exemption details for Purchase Credit Memo with "Correction Type" = Replacement and VAT Clause
@@ -244,7 +244,7 @@ codeunit 147525 "SII Documents Exemption"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice] [Reverse Charge VAT] [E5]
         // [SCENARIO 278726] XML file has "CuotaDeducible" node with VAT Amount
@@ -284,7 +284,7 @@ codeunit 147525 "SII Documents Exemption"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo] [Reverse Charge VAT] [E5]
         // [SCENARIO 278726] XML file has "CuotaDeducible" node with VAT Amount
@@ -324,7 +324,7 @@ codeunit 147525 "SII Documents Exemption"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Invoice] [Reverse Charge VAT] [E5]
         // [SCENARIO 278726] XML file has "CuotaDeducible" node with <zero> value
@@ -364,7 +364,7 @@ codeunit 147525 "SII Documents Exemption"
         PurchaseHeader: Record "Purchase Header";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         VATEntry: Record "VAT Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase] [Credit Memo] [Reverse Charge VAT] [E5]
         // [SCENARIO 278726] XML file has "CuotaDeducible" node with <zero> value
@@ -404,7 +404,7 @@ codeunit 147525 "SII Documents Exemption"
         ExemptSalesLine: Record "Sales Line";
         NormalSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 303472] XML nodes of normal and exempt entries of Sales Invoice both located under correct parent node "Sujeta"
@@ -438,7 +438,7 @@ codeunit 147525 "SII Documents Exemption"
         ExemptSalesLine: Record "Sales Line";
         NormalSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 303472] XML nodes of normal and exempt entries of Sales Credit Memo both located under correct parent node "Sujeta"
@@ -473,7 +473,7 @@ codeunit 147525 "SII Documents Exemption"
         ExemptSalesLine: Record "Sales Line";
         NormalSalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 303472] XML nodes of normal and exempt entries of Replacement Sales Credit Memo both located under correct parent node "Sujeta"
@@ -508,7 +508,7 @@ codeunit 147525 "SII Documents Exemption"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 331968] XML nodes of normal zero VAT and exempt entries of Sales Invoice both located under correct parent node "Sujeta"
@@ -535,7 +535,7 @@ codeunit 147525 "SII Documents Exemption"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 330227] XML nodes of normal zero VAT and exempt entries of Sales Credit Memo both located under correct parent node "Sujeta"
@@ -563,7 +563,7 @@ codeunit 147525 "SII Documents Exemption"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Credit Memo]
         // [SCENARIO 330227] XML nodes of normal zero VAT and exempt entries of Replacement Sales Credit Memo both located under correct parent node "Sujeta"
@@ -590,7 +590,7 @@ codeunit 147525 "SII Documents Exemption"
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SalesHeader: Record "Sales Header";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Sales] [Invoice]
         // [SCENARIO 391064] Multiple "DetalleExenta" xml nodes exist under the single "Exente" xml node for the sales invoice with multiple exemption codes

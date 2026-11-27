@@ -29,7 +29,7 @@ codeunit 147545 "SII Non-Deductible VAT Tests"
         PurchaseLine: Record "Purchase Line";
         VendLedgEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 483627] SII functionality considers Non-Deductible VAT for Purchase invoices
@@ -59,7 +59,7 @@ codeunit 147545 "SII Non-Deductible VAT Tests"
         PurchaseLine: Record "Purchase Line";
         VendLedgEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 483627] SII functionality considers Non-Deductible VAT for Purchase credit memos
@@ -90,7 +90,7 @@ codeunit 147545 "SII Non-Deductible VAT Tests"
         PurchaseLine: Record "Purchase Line";
         VendLedgEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
     begin
         // [FEATURE] [Purchase]
         // [SCENARIO 483627] SII functionality considers Non-Deductible VAT for Purchase replacement credit memos

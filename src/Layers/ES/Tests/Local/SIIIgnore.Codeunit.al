@@ -27,7 +27,7 @@ codeunit 147547 "SII Ignore"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a normal VAT sales invoice with the G/L account that will be excluded from the SII reporting
@@ -64,7 +64,7 @@ codeunit 147547 "SII Ignore"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a normal VAT sales invoice with the G/L account that will be excluded from the SII reporting
@@ -99,7 +99,7 @@ codeunit 147547 "SII Ignore"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a normal VAT replacement sales credit memo with the G/L account that will be excluded from the SII reporting
@@ -136,7 +136,7 @@ codeunit 147547 "SII Ignore"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a no taxable VAT sales invoice with the G/L account that will be excluded from the SII reporting
@@ -173,7 +173,7 @@ codeunit 147547 "SII Ignore"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a no taxable VAT sales credit memo with the G/L account that will be excluded from the SII reporting
@@ -209,7 +209,7 @@ codeunit 147547 "SII Ignore"
         SalesLine: Record "Sales Line";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a no taxable VAT replacement sales credit memo with the G/L account that will be excluded from the SII reporting
@@ -247,7 +247,7 @@ codeunit 147547 "SII Ignore"
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a normal VAT purchase invoice with the G/L account that will be excluded from the SII reporting
@@ -286,7 +286,7 @@ codeunit 147547 "SII Ignore"
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a normal VAT purchase credit memo with the G/L account that will be excluded from the SII reporting
@@ -323,7 +323,7 @@ codeunit 147547 "SII Ignore"
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a normal VAT replacement purchase credit memo with the G/L account that will be excluded from the SII reporting
@@ -362,7 +362,7 @@ codeunit 147547 "SII Ignore"
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a no taxable VAT purchase invoice with the G/L account that will be excluded from the SII reporting
@@ -398,7 +398,7 @@ codeunit 147547 "SII Ignore"
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a no taxable VAT purchase credit memo with the G/L account that will be excluded from the SII reporting
@@ -433,7 +433,7 @@ codeunit 147547 "SII Ignore"
         PurchaseLine: Record "Purchase Line";
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         SIIXMLCreator: Codeunit "SII XML Creator";
-        XMLDoc: DotNet XmlDocument;
+        XMLDoc: XmlDocument;
         IgnoreInSII: Boolean;
     begin
         // [SCENARIO 498726] Stan can post a no taxable VAT purchase replacement credit memo with the G/L account that will be excluded from the SII reporting
