@@ -39,14 +39,14 @@ page 4161 "Business Skill Card"
                 group(NameAndDescription)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'Copilot and agents automatically search for matching skills based on the name and description.';
+                    InstructionalText = 'Copilot and agents use the name and description to find matching skills.';
 
                     field("Title"; Rec."Title")
                     {
                         Caption = 'Name';
                         Editable = CanMaintainSkill;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the name shown when Copilot or an agent uses this skill.';
+                        ToolTip = 'Specifies a clear, descriptive name for the skill.';
 
                         trigger OnValidate()
                         begin
@@ -58,7 +58,7 @@ page 4161 "Business Skill Card"
                         MultiLine = true;
                         Editable = CanMaintainSkill;
                         ShowMandatory = true;
-                        ToolTip = 'Specifies the purpose of this skill and when it is relevant to apply to Copilot and agent tasks.';
+                        ToolTip = 'Specifies what the skill does and when to use it.';
 
                         trigger OnValidate()
                         begin
@@ -106,7 +106,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Set the skill to Active, making it visible to the Business Skill Service.';
                 Image = Approve;
                 Enabled = CanMaintainSkill;
-                Visible = IsInactive;
+                Visible = HasSavedSkill and IsInactive;
 
                 trigger OnAction()
                 begin
