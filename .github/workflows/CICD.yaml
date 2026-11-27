@@ -1,4 +1,7 @@
 name: ' CI/CD'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.ref || github.run_id }}
+  cancel-in-progress: false
 
 on:
   workflow_dispatch:
