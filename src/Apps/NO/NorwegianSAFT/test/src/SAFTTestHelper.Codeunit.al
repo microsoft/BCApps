@@ -519,8 +519,13 @@ codeunit 148099 "SAF-T Test Helper"
         Employee: Record Employee;
         CompanyInformation: Record "Company Information";
         GeneralLedgerSetup: Record "General Ledger Setup";
+        HumanResourcesSetup: Record "Human Resources Setup";
         PostCode: Record "Post Code";
     begin
+        HumanResourcesSetup.Get();
+        HumanResourcesSetup.Validate("Employee Nos.", LibraryUtility.GetGlobalNoSeriesCode());
+        HumanResourcesSetup.Modify(true);
+
         LibraryHumanResource.CreateEmployee(Employee);
         Employee.Validate("First Name", LibraryUtility.GenerateGUID());
         Employee.Validate("Last Name", LibraryUtility.GenerateGUID());
