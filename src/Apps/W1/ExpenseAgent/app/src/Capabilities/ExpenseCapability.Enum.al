@@ -97,11 +97,20 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
     /// <summary>
     /// Credit card feed APIs are supported by this backend, independently of provider setup or mandatory card selection.
     /// </summary>
     value(9; CreditCardFeed)
     {
         Caption = 'Credit Card Feed', Locked = true;
+    }
+
+    /// <summary>
+    /// No receipt declarations and category thresholds are enabled by company policy.
+    /// </summary>
+    value(10; NoReceipt)
+    {
+        Caption = 'No Receipt', Locked = true;
     }
 }

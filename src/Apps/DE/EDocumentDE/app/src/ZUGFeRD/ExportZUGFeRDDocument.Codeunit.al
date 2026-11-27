@@ -1129,6 +1129,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             if SalesInvoiceLine."Item Reference No." <> '' then
                 SpecifiedTradeProductElement.Add(XmlElement.Create('BuyerAssignedID', XmlNamespaceRAM, SalesInvoiceLine."Item Reference No."));
             SpecifiedTradeProductElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesInvoiceLine.Description));
+            if SalesInvoiceLine."Description 2" <> '' then
+                SpecifiedTradeProductElement.Add(XmlElement.Create('Description', XmlNamespaceRAM, SalesInvoiceLine."Description 2"));
             InvoiceLineElement.Add(SpecifiedTradeProductElement);
 
             SpecifiedLineTradeAgreementElement := XmlElement.Create('SpecifiedLineTradeAgreement', XmlNamespaceRAM);
@@ -1220,6 +1222,8 @@ codeunit 13917 "Export ZUGFeRD Document"
             if SalesCrMemoLine."Item Reference No." <> '' then
                 SpecifiedTradeProductElement.Add(XmlElement.Create('BuyerAssignedID', XmlNamespaceRAM, SalesCrMemoLine."Item Reference No."));
             SpecifiedTradeProductElement.Add(XmlElement.Create('Name', XmlNamespaceRAM, SalesCrMemoLine.Description));
+            if SalesCrMemoLine."Description 2" <> '' then
+                SpecifiedTradeProductElement.Add(XmlElement.Create('Description', XmlNamespaceRAM, SalesCrMemoLine."Description 2"));
             CrMemoLineElement.Add(SpecifiedTradeProductElement);
 
             SpecifiedLineTradeAgreementElement := XmlElement.Create('SpecifiedLineTradeAgreement', XmlNamespaceRAM);
