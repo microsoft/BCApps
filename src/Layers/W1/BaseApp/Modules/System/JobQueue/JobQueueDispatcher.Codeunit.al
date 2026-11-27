@@ -326,7 +326,7 @@ codeunit 448 "Job Queue Dispatcher"
         Clear(JobQueueEntry."System Task ID"); // to avoid canceling this task, which has already been executed
         JobQueueEntry."Earliest Start Date/Time" := CalcInitialRunTime(JobQueueEntry, CurrentDateTime());
         OnRescheduleOnBeforeJobQueueEnqueue(JobQueueEntry);
-        JobQueueEntry."System Task ID" := TASKSCHEDULER.CreateTask(CODEUNIT::"Job Queue Dispatcher", CODEUNIT::"Job Queue Error Handler", true, JobQueueEntry.CurrentCompany(), JobQueueEntry."Earliest Start Date/Time", JobQueueEntry.RecordId());
+        JobQueueEntry."System Task ID" := TASKSCHEDULER.CreateTask(CODEUNIT::"Job Queue Dispatcher", CODEUNIT::"Job Queue Error Handler", true, JobQueueEntry.CurrentCompany(), JobQueueEntry."Earliest Start Date/Time", JobQueueEntry.RecordId(), JobQueueEntry.GetJobTimeout());
         JobQueueEntry.Status := JobQueueEntry.Status::Ready;
         JobQueueEntry.Modify();
     end;
@@ -335,7 +335,7 @@ codeunit 448 "Job Queue Dispatcher"
     begin
         Clear(JobQueueEntry."System Task ID"); // to avoid canceling this task, which has already been executed
         OnRescheduleOnBeforeJobQueueEnqueueAsWaiting(JobQueueEntry);
-        JobQueueEntry."System Task ID" := TASKSCHEDULER.CreateTask(CODEUNIT::"Job Queue Dispatcher", CODEUNIT::"Job Queue Error Handler", false, JobQueueEntry.CurrentCompany(), JobQueueEntry."Earliest Start Date/Time", JobQueueEntry.RecordId());
+        JobQueueEntry."System Task ID" := TASKSCHEDULER.CreateTask(CODEUNIT::"Job Queue Dispatcher", CODEUNIT::"Job Queue Error Handler", false, JobQueueEntry.CurrentCompany(), JobQueueEntry."Earliest Start Date/Time", JobQueueEntry.RecordId(), JobQueueEntry.GetJobTimeout());
         JobQueueEntry.Status := JobQueueEntry.Status::Waiting;
         JobQueueEntry.Modify();
     end;
