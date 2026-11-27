@@ -35,6 +35,7 @@ codeunit 1173 "Document Attachment Mgmt"
     var
         ConfirmManagement: Codeunit "Confirm Management";
         PendingUnfilteredDeleteIds: List of [Guid];
+        LastConfirmedDeleteId: Guid;
         PrintedToAttachmentTxt: Label 'The document has been printed to attachments.';
         NoSaveToPDFReportTxt: Label 'There are no reports which could be saved to PDF for this document.';
         ShowAttachmentsTxt: Label 'Show Attachments';
@@ -104,7 +105,8 @@ codeunit 1173 "Document Attachment Mgmt"
         HasFilters: Boolean;
     begin
         CurrentFilterGroup := DocumentAttachment.FilterGroup;
-        FilterGroupNo := 0;
+        // Filter group -1 holds the cross-column search filters.
+        FilterGroupNo := -1;
         repeat
             DocumentAttachment.FilterGroup := FilterGroupNo;
             HasFilters := DocumentAttachment.GetFilters() <> '';
@@ -114,14 +116,22 @@ codeunit 1173 "Document Attachment Mgmt"
         exit(not HasFilters);
     end;
 
-    internal procedure ConfirmDeleteFromUnfilteredList(var DocumentAttachment: Record "Document Attachment"; SelectedDocumentAttachment: Record "Document Attachment")
+    internal procedure ConfirmDeleteFromUnfilteredList(var DocumentAttachment: Record "Document Attachment"; var SelectedDocumentAttachment: Record "Document Attachment")
     begin
         // A page runs OnDeleteRecord once per selected record. The user is asked for the first record only; the other
         // selected records are remembered as confirmed, so they are deleted without asking again. Declining raises an
         // error, which cancels the whole delete operation, so a declined delete leaves nothing behind for the next one.
-        if PendingUnfilteredDeleteIds.Remove(DocumentAttachment.SystemId) then
-            exit;
+        // The page deletes each record before running OnDeleteRecord for the next one. If the previously confirmed record
+        // still exists, the confirmed delete operation was interrupted, so its remembered records must be confirmed again.
+        // SelectedDocumentAttachment is passed by var, because CurrPage.SetSelectionFilter selects the records with marks.
+        if PendingUnfilteredDeleteIds.Contains(DocumentAttachment.SystemId) then
+            if not DocumentAttachmentExists(LastConfirmedDeleteId) then begin
+                PendingUnfilteredDeleteIds.Remove(DocumentAttachment.SystemId);
+                LastConfirmedDeleteId := DocumentAttachment.SystemId;
+                exit;
+            end;
         Clear(PendingUnfilteredDeleteIds);
+        Clear(LastConfirmedDeleteId);
 
         if not IsDocumentAttachmentListUnfiltered(DocumentAttachment) then
             exit;
@@ -129,12 +139,21 @@ codeunit 1173 "Document Attachment Mgmt"
         if not ConfirmManagement.GetResponse(DeleteFromUnfilteredListQst, false) then
             Error('');
 
+        LastConfirmedDeleteId := DocumentAttachment.SystemId;
         SelectedDocumentAttachment.SetLoadFields(SystemId);
         if SelectedDocumentAttachment.FindSet() then
             repeat
                 if SelectedDocumentAttachment.SystemId <> DocumentAttachment.SystemId then
                     PendingUnfilteredDeleteIds.Add(SelectedDocumentAttachment.SystemId);
             until SelectedDocumentAttachment.Next() = 0;
+    end;
+
+    local procedure DocumentAttachmentExists(DocumentAttachmentSystemId: Guid): Boolean
+    var
+        DocumentAttachment: Record "Document Attachment";
+    begin
+        DocumentAttachment.SetRange(SystemId, DocumentAttachmentSystemId);
+        exit(not DocumentAttachment.IsEmpty());
     end;
 
     procedure GetRefTable(var RecRef: RecordRef; DocumentAttachment: Record "Document Attachment"): Boolean
