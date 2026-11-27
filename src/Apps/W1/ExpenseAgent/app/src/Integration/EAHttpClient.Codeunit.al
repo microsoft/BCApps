@@ -10,6 +10,7 @@ using System.Apps;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
 using System.Environment;
+using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.Authentication;
 using System.Security.Encryption;
@@ -710,6 +711,7 @@ codeunit 6941 "EA Http Client"
     var
         TempBlob: Codeunit "Temp Blob";
         CryptographyManagement: Codeunit "Cryptography Management";
+        TypeHelper: Codeunit "Type Helper";
         HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
         NameBytes: List of [Integer];
         ByteValue: Byte;
@@ -737,9 +739,9 @@ codeunit 6941 "EA Http Client"
 
         // Set the version (5) and the RFC 4122 variant bits.
         Hash := CopyStr(Hash, 1, 12) +
-            IntegerToHex((HexToInteger(CopyStr(Hash, 13, 2)) mod 16) + 80) +
+            LowerCase(TypeHelper.IntToHex((HexToInteger(CopyStr(Hash, 13, 2)) mod 16) + 80)) +
             CopyStr(Hash, 15, 2) +
-            IntegerToHex((HexToInteger(CopyStr(Hash, 17, 2)) mod 64) + 128) +
+            LowerCase(TypeHelper.IntToHex((HexToInteger(CopyStr(Hash, 17, 2)) mod 64) + 128)) +
             CopyStr(Hash, 19);
 
         exit(FormatHyphenatedUuid(Hash));
@@ -809,13 +811,6 @@ codeunit 6941 "EA Http Client"
         for Index := 1 to StrLen(HexText) do
             Result := Result * 16 + StrPos('0123456789abcdef', LowerCase(CopyStr(HexText, Index, 1))) - 1;
         exit(Result);
-    end;
-
-    local procedure IntegerToHex(Value: Integer): Text
-    var
-        HexDigitsTok: Label '0123456789abcdef', Locked = true;
-    begin
-        exit(CopyStr(HexDigitsTok, Value div 16 + 1, 1) + CopyStr(HexDigitsTok, Value mod 16 + 1, 1));
     end;
 
     local procedure FormatHyphenatedUuid(HexDigits: Text): Text
