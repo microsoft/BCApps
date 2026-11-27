@@ -63,6 +63,7 @@ codeunit 148315 "Expense Users API Test"
 
         FilteredURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(
             TargetURL, '$filter=id eq ' + LibraryGraphMgt.StripBrackets(Format(ParentExpenseUser.SystemId)));
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, FilteredURL, 200);
         Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
         Approvers := Response.GetArray('value');
@@ -70,12 +71,14 @@ codeunit 148315 "Expense Users API Test"
         AssertApproverInCollection(Approvers, ParentExpenseUser.SystemId, true);
 
         FilteredURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(TargetURL, '$filter=canApprove eq false');
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, FilteredURL, 200);
         Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
         Approvers := Response.GetArray('value');
         Assert.AreEqual(0, Approvers.Count(), 'A caller filter must not include users who cannot approve.');
 
         FilteredURL := LibraryGraphMgt.AppendQueryParameterToTargetURL(TargetURL, '$filter=employeeNumber eq ''''');
+        Clear(ResponseText);
         LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, FilteredURL, 200);
         Assert.IsTrue(Response.ReadFrom(ResponseText), 'The response must be valid JSON.');
         Approvers := Response.GetArray('value');
