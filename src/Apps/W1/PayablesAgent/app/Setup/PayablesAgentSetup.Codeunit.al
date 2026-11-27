@@ -363,7 +363,6 @@ codeunit 3307 "Payables Agent Setup"
     internal procedure CanShowAgentActions(): Boolean
     var
         Agent: Record Agent;
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         AgentUtilities: Codeunit "Agent Utilities";
         CopilotCapability: Codeunit "Copilot Capability";
     begin
@@ -373,7 +372,7 @@ codeunit 3307 "Payables Agent Setup"
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
 
-        if not PayablesAgentSetup.GetAgent(Agent) then
+        if not TryGetStoredAgent(Agent) then
             exit(AllowCreateNewAgent());
 
         // Payables Agent is created. It has to be enabled and user has to have permissions to use it in order to show the agent actions.
@@ -415,7 +414,6 @@ codeunit 3307 "Payables Agent Setup"
     internal procedure AllowCreateNewAgent(): Boolean
     var
         Agent: Record Agent;
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         AgentUtilities: Codeunit "Agent Utilities";
         CopilotCapability: Codeunit "Copilot Capability";
@@ -426,7 +424,7 @@ codeunit 3307 "Payables Agent Setup"
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
 
-        if PayablesAgentSetup.GetAgent(Agent, false) then
+        if TryGetStoredAgent(Agent) then
             exit(false);
 
         // No payables agent exists
@@ -437,6 +435,16 @@ codeunit 3307 "Payables Agent Setup"
             exit(false);
 
         exit(HasUserCreatedPostedPurchInvoice());
+    end;
+
+    local procedure TryGetStoredAgent(var Agent: Record Agent): Boolean
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        Clear(Agent);
+        if not PayablesAgentSetup.GetSetup(false) then
+            exit(false);
+        exit(Agent.Get(PayablesAgentSetup."User Security Id"));
     end;
 
     internal procedure AgentUserName(): Code[50]
