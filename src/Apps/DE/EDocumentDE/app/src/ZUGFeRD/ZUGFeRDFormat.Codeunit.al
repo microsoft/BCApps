@@ -37,10 +37,15 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
         CheckCompanyInfoMandatory(CompanyInformation);
         EDocumentDEHelper.CheckSellerContactMandatory(SourceDocumentHeader);
         CheckBankAccountIBANMandatory(SourceDocumentHeader, CompanyInformation);
-        EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
+        // The ZUGFeRD XML declares the XRechnung guideline (xrechnung_3.0) and is embedded as xrechnung.xml,
+        // so recipients validate it against the XRechnung rules: BT-10 (BR-DE-15) and BT-49 (PEPPOL-EN16931-R010) are required.
+        EDocumentDEHelper.CheckBuyerReferenceMandatory(SourceDocumentHeader);
+        EDocumentDEHelper.CheckBuyerElectronicAddressMandatory(EDocumentService, SourceDocumentHeader);
         DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
         DEContext.Start();
         DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
+        // The buyer contact e-mail (BT-58) is optional. The buyer electronic address (BT-49) is checked above.
+        DEContext.SetSkipSellToEMailCheck(true);
         EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
         DEContext.Stop();
         OnAfterCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);

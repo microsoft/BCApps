@@ -37,10 +37,14 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         CheckCompanyInfoMandatory(CompanyInformation);
         EDocumentDEHelper.CheckSellerContactMandatory(SourceDocumentHeader);
         CheckBankAccountIBANMandatory(SourceDocumentHeader, CompanyInformation);
-        EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
+        // XRechnung always requires the buyer reference (BT-10, BR-DE-15), regardless of the service setting.
+        EDocumentDEHelper.CheckBuyerReferenceMandatory(SourceDocumentHeader);
+        // XRechnung requires the buyer electronic address (BT-49, PEPPOL-EN16931-R010). It replaces the Sell-to E-Mail check.
+        EDocumentDEHelper.CheckBuyerElectronicAddressMandatory(EDocumentService, SourceDocumentHeader);
         DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
         DEContext.Start();
         DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
+        DEContext.SetSkipSellToEMailCheck(true);
         EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
         DEContext.Stop();
         OnAfterCheck(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);

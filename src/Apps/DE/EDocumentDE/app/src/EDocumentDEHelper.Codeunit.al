@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -44,6 +45,18 @@ codeunit 11038 "E-Document DE Helper"
     /// <param name="SourceDocumentHeader">A RecordRef pointing to a supported document header (Sales Header, Sales Invoice Header, Sales Cr.Memo Header, Service Header, Service Invoice Header, or Service Cr.Memo Header).</param>
     /// <returns>True if a routing number is found on the document or on the bill-to customer; otherwise, false.</returns>
     procedure HasRoutingNo(SourceDocumentHeader: RecordRef): Boolean
+    begin
+        exit(GetBuyerRoutingNo(SourceDocumentHeader) <> '');
+    end;
+
+    /// <summary>
+    /// Gets the routing number (Leitweg-ID) of the buyer.
+    /// Uses the document's Buyer Reference when it is a structurally valid routing number,
+    /// otherwise the bill-to customer's E-Invoice Routing No.
+    /// </summary>
+    /// <param name="SourceDocumentHeader">A RecordRef pointing to a supported document header.</param>
+    /// <returns>The routing number, or empty text if neither the document nor the bill-to customer has one.</returns>
+    internal procedure GetBuyerRoutingNo(SourceDocumentHeader: RecordRef): Text
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         Customer: Record Customer;
@@ -52,21 +65,216 @@ codeunit 11038 "E-Document DE Helper"
         BuyerReferenceValue: Text;
     begin
         if not IsSupportedDocumentType(SourceDocumentHeader) then
-            exit(false);
+            exit('');
 
         BuyerReferenceFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Buyer Reference"));
         BuyerReferenceValue := BuyerReferenceFieldRef.Value();
         if (BuyerReferenceValue <> '') and (StrLen(BuyerReferenceValue) <= 50) then
             if IsValidRoutingNo(CopyStr(BuyerReferenceValue, 1, 50)) then
-                exit(true);
+                exit(BuyerReferenceValue);
 
         CustomerNoFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Bill-to Customer No."));
         Customer.SetLoadFields("E-Invoice Routing No.");
         if Customer.Get(Format(CustomerNoFieldRef.Value)) then
-            if Customer."E-Invoice Routing No." <> '' then
-                exit(true);
+            exit(Customer."E-Invoice Routing No.");
 
-        exit(false);
+        exit('');
+    end;
+
+    /// <summary>
+    /// Gets the e-mail address of the buyer. The XRechnung and ZUGFeRD exports write it as buyer contact e-mail (BT-58),
+    /// and it is one of the sources for the buyer electronic address (BT-49).
+    /// The address is resolved the same way as when the document is e-mailed to the bill-to customer:
+    /// e-mail parameters of the document, the "Send To Email" of the bill-to customer's document layouts
+    /// (only when an e-mail body layout is set up for the usage), the document's Sell-to E-Mail and the bill-to customer's E-Mail.
+    /// </summary>
+    /// <param name="RecordVariant">A supported document header record, or a RecordRef pointing to one.</param>
+    /// <returns>The e-mail address, or empty text if none of the sources yield a value.</returns>
+    internal procedure GetBuyerEMail(RecordVariant: Variant): Text[250]
+    var
+        TempBodyReportSelections: Record "Report Selections" temporary;
+        ReportSelections: Record "Report Selections";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        DataTypeManagement: Codeunit "Data Type Management";
+        SourceDocumentHeader: RecordRef;
+        DocumentRecordVariant: Variant;
+        ReportUsage: Enum "Report Selection Usage";
+        BillToCustomerNo: Code[20];
+    begin
+        if not DataTypeManagement.GetRecordRef(RecordVariant, SourceDocumentHeader) then
+            exit('');
+        if not IsSupportedDocumentType(SourceDocumentHeader) then
+            exit('');
+
+        BillToCustomerNo := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Bill-to Customer No.")).Value();
+        ReportUsage := GetBuyerEMailReportUsage(SourceDocumentHeader);
+        if RecordVariant.IsRecordRef() then
+            GetDocumentRecordVariant(SourceDocumentHeader, DocumentRecordVariant)
+        else
+            DocumentRecordVariant := RecordVariant;
+
+        ReportSelections.FindEmailBodyUsageForCust(ReportUsage, BillToCustomerNo, TempBodyReportSelections);
+        exit(ReportSelections.GetEmailAddressExt(ReportUsage.AsInteger(), DocumentRecordVariant, BillToCustomerNo, TempBodyReportSelections));
+    end;
+
+    /// <summary>
+    /// Gets the buyer electronic address (BT-49) and its scheme identifier (BT-49-1).
+    /// Sources in this order: the buyer e-mail (scheme EM), the routing number (Leitweg-ID, scheme 0204),
+    /// and the bill-to customer's GLN (scheme 0088) when the customer uses GLN in electronic documents.
+    /// Subscribers to OnAfterGetBuyerElectronicAddress can provide a different address or scheme.
+    /// </summary>
+    /// <param name="RecordVariant">A supported document header record, or a RecordRef pointing to one.</param>
+    /// <param name="EDocumentService">The E-Document Service that is used for the export. Passed on to OnAfterGetBuyerElectronicAddress.</param>
+    /// <param name="EndpointID">Returns the buyer electronic address.</param>
+    /// <param name="SchemeID">Returns the scheme identifier of the buyer electronic address.</param>
+    /// <returns>True if a buyer electronic address was found; otherwise, false.</returns>
+    internal procedure GetBuyerElectronicAddress(RecordVariant: Variant; EDocumentService: Record "E-Document Service"; var EndpointID: Text; var SchemeID: Text): Boolean
+    var
+        Customer: Record Customer;
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        DataTypeManagement: Codeunit "Data Type Management";
+        SourceDocumentHeader: RecordRef;
+        BuyerEMail: Text;
+        RoutingNo: Text;
+    begin
+        Clear(EndpointID);
+        Clear(SchemeID);
+        if not DataTypeManagement.GetRecordRef(RecordVariant, SourceDocumentHeader) then
+            exit(false);
+        if not IsSupportedDocumentType(SourceDocumentHeader) then
+            exit(false);
+
+        BuyerEMail := GetBuyerEMail(RecordVariant);
+        RoutingNo := GetBuyerRoutingNo(SourceDocumentHeader);
+        if not SetElectronicAddress(BuyerEMail, EMailSchemeIDTok, EndpointID, SchemeID) then
+            SetElectronicAddress(RoutingNo, RoutingNoSchemeIDTok, EndpointID, SchemeID);
+
+        if EndpointID = '' then begin
+            Customer.SetLoadFields(GLN, "Use GLN in Electronic Document");
+            if Customer.Get(Format(SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Bill-to Customer No.")).Value())) then
+                if Customer."Use GLN in Electronic Document" then
+                    SetElectronicAddress(Customer.GLN, GLNSchemeIDTok, EndpointID, SchemeID);
+        end;
+
+        OnAfterGetBuyerElectronicAddress(SourceDocumentHeader, EDocumentService, EndpointID, SchemeID);
+        exit(EndpointID <> '');
+    end;
+
+    /// <summary>
+    /// Checks that a buyer electronic address (BT-49) can be resolved for the given document and raises an error if not.
+    /// XRechnung requires the buyer electronic address (PEPPOL-EN16931-R010). Uses GetBuyerElectronicAddress,
+    /// so the check resolves the address the same way as the export.
+    /// </summary>
+    /// <param name="EDocumentService">The E-Document Service that is used for the export.</param>
+    /// <param name="SourceDocumentHeader">A RecordRef pointing to a supported document header.</param>
+    internal procedure CheckBuyerElectronicAddressMandatory(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef)
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        RecordVariant: Variant;
+        EndpointID: Text;
+        SchemeID: Text;
+    begin
+        if not IsSupportedDocumentType(SourceDocumentHeader) then
+            exit;
+
+        RecordVariant := SourceDocumentHeader;
+        if GetBuyerElectronicAddress(RecordVariant, EDocumentService, EndpointID, SchemeID) then
+            exit;
+
+        Error(
+            MissingBuyerElectronicAddressErr,
+            SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("No.")).Value(),
+            SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Bill-to Customer No.")).Value());
+    end;
+
+    local procedure SetElectronicAddress(Value: Text; ValueSchemeID: Text; var EndpointID: Text; var SchemeID: Text): Boolean
+    begin
+        if Value = '' then
+            exit(false);
+        EndpointID := Value;
+        SchemeID := ValueSchemeID;
+        exit(true);
+    end;
+
+    local procedure GetBuyerEMailReportUsage(SourceDocumentHeader: RecordRef): Enum "Report Selection Usage"
+    var
+        SalesHeader: Record "Sales Header";
+        ServiceHeader: Record "Service Header";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Sales Cr.Memo Header",
+            Database::"Service Cr.Memo Header":
+                exit("Report Selection Usage"::"S.Cr.Memo");
+            Database::"Sales Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesHeader);
+                    if SalesHeader."Document Type" in [SalesHeader."Document Type"::"Credit Memo", SalesHeader."Document Type"::"Return Order"] then
+                        exit("Report Selection Usage"::"S.Cr.Memo");
+                end;
+            Database::"Service Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceHeader);
+                    if ServiceHeader."Document Type" = ServiceHeader."Document Type"::"Credit Memo" then
+                        exit("Report Selection Usage"::"S.Cr.Memo");
+                end;
+        end;
+        exit("Report Selection Usage"::"S.Invoice");
+    end;
+
+    local procedure GetDocumentRecordVariant(SourceDocumentHeader: RecordRef; var DocumentRecordVariant: Variant)
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        ServiceHeader: Record "Service Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+    begin
+        case SourceDocumentHeader.Number() of
+            Database::"Sales Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesHeader);
+                    DocumentRecordVariant := SalesHeader;
+                end;
+            Database::"Sales Invoice Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesInvoiceHeader);
+                    DocumentRecordVariant := SalesInvoiceHeader;
+                end;
+            Database::"Sales Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(SalesCrMemoHeader);
+                    DocumentRecordVariant := SalesCrMemoHeader;
+                end;
+            Database::"Service Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceHeader);
+                    DocumentRecordVariant := ServiceHeader;
+                end;
+            Database::"Service Invoice Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceInvoiceHeader);
+                    DocumentRecordVariant := ServiceInvoiceHeader;
+                end;
+            Database::"Service Cr.Memo Header":
+                begin
+                    SourceDocumentHeader.SetTable(ServiceCrMemoHeader);
+                    DocumentRecordVariant := ServiceCrMemoHeader;
+                end;
+        end;
+    end;
+
+    /// <summary>
+    /// Raised after the buyer electronic address (BT-49) has been resolved. Use it to provide a different
+    /// buyer electronic address, for example a Peppol participant identifier with another scheme.
+    /// </summary>
+    /// <param name="SourceDocumentHeader">The document header the address is resolved for.</param>
+    /// <param name="EDocumentService">The E-Document Service that is used for the export.</param>
+    /// <param name="EndpointID">The resolved buyer electronic address. Can be changed.</param>
+    /// <param name="SchemeID">The scheme identifier of the buyer electronic address. Can be changed.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetBuyerElectronicAddress(SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; var EndpointID: Text; var SchemeID: Text)
+    begin
     end;
 
     /// <summary>
@@ -261,6 +469,18 @@ codeunit 11038 "E-Document DE Helper"
     /// <param name="EDocumentService">The E-Document Service record. Must have "Buyer Reference Mandatory" set to true for the check to run.</param>
     /// <param name="SourceDocumentHeader">A RecordRef pointing to a supported document header.</param>
     internal procedure CheckBuyerReferenceMandatory(EDocumentService: Record "E-Document Service"; SourceDocumentHeader: RecordRef)
+    begin
+        if not EDocumentService."Buyer Reference Mandatory" then
+            exit;
+        CheckBuyerReferenceMandatory(SourceDocumentHeader);
+    end;
+
+    /// <summary>
+    /// Checks whether a Buyer Reference (BT-10) can be resolved for the given document and raises an error if not,
+    /// regardless of the E-Document Service setting. XRechnung always requires the Buyer Reference (BR-DE-15).
+    /// </summary>
+    /// <param name="SourceDocumentHeader">A RecordRef pointing to a supported document header.</param>
+    internal procedure CheckBuyerReferenceMandatory(SourceDocumentHeader: RecordRef)
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         BuyerReferenceFieldRef: FieldRef;
@@ -273,8 +493,6 @@ codeunit 11038 "E-Document DE Helper"
         BuyerReferenceValue: Text;
         MissingBuyerReferenceErr: Label 'Buyer Reference is mandatory for document %1.', Comment = '%1 = Document No.';
     begin
-        if not EDocumentService."Buyer Reference Mandatory" then
-            exit;
         if not IsSupportedDocumentType(SourceDocumentHeader) then
             exit;
         BuyerReferenceFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Buyer Reference"));
@@ -386,4 +604,8 @@ codeunit 11038 "E-Document DE Helper"
         CheckDigitFormatErr: Label 'The check digit must be exactly 2 digits. Found: "%1".', Comment = '%1 = check digit value';
         CheckDigitVerifyErr: Label 'The check digit verification failed (Mod 97-10). The E-Invoice Routing No. may contain a typo.';
         SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document';
+        MissingBuyerElectronicAddressErr: Label 'The buyer electronic address (BT-49) is missing for document %1. Specify an e-mail address for the document or for bill-to customer %2, or specify an E-Invoice Routing No. (Leitweg-ID) for the customer.', Comment = '%1 = Document No., %2 = Bill-to Customer No.';
+        EMailSchemeIDTok: Label 'EM', Locked = true;
+        RoutingNoSchemeIDTok: Label '0204', Locked = true;
+        GLNSchemeIDTok: Label '0088', Locked = true;
 }
