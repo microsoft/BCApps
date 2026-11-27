@@ -403,5 +403,6 @@
   "Tests\\VAT\\NonDeductibleUT.Codeunit.al",
   "Tests\\VAT\\NonDeductibleVATPostBasic.Codeunit.al",
   "Tests\\VAT\\NonDeductibleVATStatistics.Codeunit.al",
-  "Tests\\VAT\\NonDeductibleVATJournal.Codeunit.al"
+  "Tests\\VAT\\NonDeductibleVATJournal.Codeunit.al",
+  "Tests\\Job\\JobPosting.Codeunit.al"
 ]
