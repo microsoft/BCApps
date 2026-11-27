@@ -874,6 +874,7 @@ codeunit 133625 "End-to-End Tests"
         KeyGuid: Guid;
     begin
         LibraryPermission.SetOutsideO365Scope();
+        LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
 
         GeneralLedgerSetup.Get();
         PrevVATReportingDateValue := GeneralLedgerSetup."VAT Reporting Date Usage";
