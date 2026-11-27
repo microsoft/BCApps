@@ -223,21 +223,91 @@ codeunit 336 "No. Series Cop. Tools Impl."
         Field.SetRange(RelationTableNo, Database::"No. Series");
     end;
 
-    procedure IsRelevant(TableMetadata: Record "Table Metadata"; Field: Record "Field"; Entities: List of [Text]): Boolean
+    procedure RetrieveNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)
     var
-        TextMatchImpl: Codeunit "No. Series Text Match Impl.";
-        Entity: Text[250];
-        String1: Text[250];
-        String2: Text[250];
+        Field: Record "Field";
     begin
-        foreach Entity in Entities do begin
-            String1 := RemoveTextPart(TableMetadata.Name, '& ') + ' ' + Field.FieldName;
-            String2 := Entity;
+        if TempSetupTable.FindSet() then
+            repeat
+                SetFilterOnNoSeriesFields(TempSetupTable, Field);
+                if Field.FindSet() then
+                    repeat
+                        TempNoSeriesField := Field;
+                        TempNoSeriesField.Insert();
+                    until Field.Next() = 0;
+            until TempSetupTable.Next() = 0;
+    end;
 
-            if TextMatchImpl.IsRelevant(String1, String2) then
-                exit(true);
+    /// <summary>
+    /// Keeps only the number series fields that any search method finds relevant to the entities.
+    /// </summary>
+    procedure SearchAndKeepOnlyRelevantFields(Entities: List of [Text]; var TempNoSeriesField: Record "Field" temporary)
+    var
+        TempSearchResult: Record "No. Series Cop. Search Result" temporary;
+    begin
+        SearchRelevantFields(Entities, TempNoSeriesField, TempSearchResult);
+        RemoveNotRelevantFields(TempNoSeriesField, TempSearchResult);
+    end;
+
+    local procedure RemoveNotRelevantFields(var TempNoSeriesField: Record "Field" temporary; var TempSearchResult: Record "No. Series Cop. Search Result" temporary)
+    begin
+        MarkNotRelevantFields(TempNoSeriesField, TempSearchResult);
+        DeleteMarkedFields(TempNoSeriesField);
+    end;
+
+    local procedure MarkNotRelevantFields(var TempNoSeriesField: Record "Field" temporary; var TempSearchResult: Record "No. Series Cop. Search Result" temporary)
+    begin
+        if TempNoSeriesField.FindSet() then
+            repeat
+                TempNoSeriesField.Mark(not TempSearchResult.Get(TempNoSeriesField.TableNo, TempNoSeriesField."No."));
+            until TempNoSeriesField.Next() = 0;
+    end;
+
+    local procedure DeleteMarkedFields(var TempNoSeriesField: Record "Field" temporary)
+    begin
+        TempNoSeriesField.MarkedOnly(true);
+        TempNoSeriesField.DeleteAll();
+        TempNoSeriesField.MarkedOnly(false);
+    end;
+
+    /// <summary>
+    /// Runs every search method for each entity, keeps the fields close to the best result of that entity, and collects the union, each field once.
+    /// </summary>
+    procedure SearchRelevantFields(Entities: List of [Text]; var TempSetupNoSeriesField: Record "Field" temporary; var TempSearchResult: Record "No. Series Cop. Search Result" temporary)
+    var
+        Entity: Text;
+    begin
+        foreach Entity in Entities do
+            SearchRelevantFieldsForEntity(Entity, TempSetupNoSeriesField, TempSearchResult);
+    end;
+
+    local procedure SearchRelevantFieldsForEntity(Entity: Text; var TempSetupNoSeriesField: Record "Field" temporary; var TempSearchResult: Record "No. Series Cop. Search Result" temporary)
+    var
+        TempEntitySearchResult: Record "No. Series Cop. Search Result" temporary;
+    begin
+        SearchWithAllMethods(Entity, TempSetupNoSeriesField, TempEntitySearchResult);
+        TempEntitySearchResult.KeepBestMatches(MaxDistanceFromBestSimilarity());
+        TempSearchResult.AddFields(TempEntitySearchResult);
+    end;
+
+    local procedure SearchWithAllMethods(Entity: Text; var TempSetupNoSeriesField: Record "Field" temporary; var TempEntitySearchResult: Record "No. Series Cop. Search Result" temporary)
+    var
+        SearchMethod: Enum "No. Series Cop. Search Method";
+        FieldSearch: Interface "No. Series Cop. Field Search";
+        Entities: List of [Text];
+        Ordinal: Integer;
+    begin
+        Entities.Add(Entity);
+        foreach Ordinal in Enum::"No. Series Cop. Search Method".Ordinals() do begin
+            SearchMethod := Enum::"No. Series Cop. Search Method".FromInteger(Ordinal);
+            FieldSearch := SearchMethod;
+            FieldSearch.Search(Entities, TempSetupNoSeriesField, TempEntitySearchResult);
         end;
-        exit(false);
+    end;
+
+    local procedure MaxDistanceFromBestSimilarity(): Decimal
+    begin
+        exit(0.3);
     end;
 
     procedure GenerateChunkedTablesListInYamlFormat(var TablesYamlList: List of [Text]; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var NumberOfAddedTables: Integer)

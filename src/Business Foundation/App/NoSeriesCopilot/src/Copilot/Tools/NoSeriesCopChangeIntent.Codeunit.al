@@ -126,26 +126,18 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     local procedure ListOnlySpecifiedTablesWithExistingNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; Entities: List of [Text])
     var
         TempTableMetadata: Record "Table Metadata" temporary;
+        TempRelevantField: Record "Field" temporary;
     begin
-        // Looping through all Setup tables
         ToolsImpl.RetrieveSetupTables(TempTableMetadata);
-        if TempTableMetadata.FindSet() then
-            repeat
-                ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TempTableMetadata, Entities);
-            until TempTableMetadata.Next() = 0;
-    end;
+        ToolsImpl.RetrieveNoSeriesFields(TempTableMetadata, TempRelevantField);
+        if not UpdateForNextYear then
+            ToolsImpl.SearchAndKeepOnlyRelevantFields(Entities, TempRelevantField);
 
-    local procedure ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; var TempTableMetadata: Record "Table Metadata" temporary; Entities: List of [Text])
-    var
-        Field: Record "Field";
-    begin
-        // Looping through all No. Series fields
-        ToolsImpl.SetFilterOnNoSeriesFields(TempTableMetadata, Field);
-        if Field.FindSet() then
+        if TempRelevantField.FindSet() then
             repeat
-                if (ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities)) or UpdateForNextYear then
-                    AddChangeNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TempTableMetadata, Field);
-            until Field.Next() = 0;
+                TempTableMetadata.Get(TempRelevantField.TableNo);
+                AddChangeNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TempTableMetadata, TempRelevantField);
+            until TempRelevantField.Next() = 0;
     end;
 
     local procedure AddChangeNoSeriesFieldToTablesList(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; TempTableMetadata: Record "Table Metadata" temporary; Field: Record "Field")
