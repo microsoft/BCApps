@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Purchases.Vendor;
+using System.Utilities;
 
 table 10036 "IRS 1099 Form Doc. Line"
 {
@@ -110,23 +111,42 @@ table 10036 "IRS 1099 Form Doc. Line"
     var
         CannotChangeFormBoxWithCalculatedAmountErr: Label 'You cannot change the Form Box No. for the line with calculated amount.';
         CreateCreateFormDocLineSameFormBoxErr: Label 'You cannot create two form document lines with the same form box.';
+        LinkedSupplementalErr: Label 'You cannot change form box %1 because it has linked supplemental lines. Remove those lines in Supplemental Lines before changing the form box.', Comment = '%1 = form box';
+        DeleteSupplementalQst: Label 'Deleting the document line for form box %1 will also delete its linked supplemental lines. Do you want to continue?', Comment = '%1 = form box';
 
     trigger OnDelete()
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRS1099FormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail";
+        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
+        ConfirmMgt: Codeunit "Confirm Management";
     begin
         if IRS1099FormDocHeader.Get("Document ID") then
             IRS1099FormDocHeader.TestField(Status, IRS1099FormDocHeader.Status::Open);
+        SupplLine.SetRange("Document ID", "Document ID");
+        SupplLine.SetRange("Parent Form Box No.", "Form Box No.");
+        if not SupplLine.IsEmpty() then begin
+            if not ConfirmMgt.GetResponseOrDefault(StrSubstNo(DeleteSupplementalQst, "Form Box No."), false) then
+                Error('');
+            SupplLine.DeleteAll(true);
+        end;
         IRS1099FormDocLineDetail.SetRange("Document ID", "Document ID");
         IRS1099FormDocLineDetail.SetRange("Line No.", "Line No.");
         IRS1099FormDocLineDetail.DeleteAll(true);
     end;
 
     local procedure CheckFormBoxCanBeChanged()
+    var
+        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
     begin
         if xRec."Form Box No." = '' then
             exit;
+        if xRec."Form Box No." = "Form Box No." then
+            exit;
+        SupplLine.SetRange("Document ID", "Document ID");
+        SupplLine.SetRange("Parent Form Box No.", xRec."Form Box No.");
+        if not SupplLine.IsEmpty() then
+            Error(LinkedSupplementalErr, xRec."Form Box No.");
         if "Calculated Amount" <> 0 then
             Error(CannotChangeFormBoxWithCalculatedAmountErr);
         Amount := 0;

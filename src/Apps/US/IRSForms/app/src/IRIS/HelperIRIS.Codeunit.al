@@ -7,6 +7,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Foundation.Address;
 using Microsoft.Purchases.Vendor;
 using System.Reflection;
+using System.Telemetry;
 using System.Utilities;
 using System.Xml;
 
@@ -20,6 +21,7 @@ codeunit 10035 "Helper IRIS"
         IRSFormsFacade: Codeunit "IRS Forms Facade";
         XMLDOMManagement: Codeunit "XML DOM Management";
         TypeHelper: Codeunit "Type Helper";
+        Supplemental: Codeunit "IRS 1099 Supplemental";
         XMLDoc: XmlDocument;
         CurrXMLElement: array[100] of XmlElement;
         Depth: Integer;
@@ -37,7 +39,22 @@ codeunit 10035 "Helper IRIS"
         NotPossibleToInsertErr: label 'Not possible to insert element %1', Comment = '%1 - node text';
         AmountXmlElementsFileNameTxt: Label 'AmountXmlElementsIRIS%1.json', Comment = '%1 - period year, e.g. 2024', Locked = true;
         ResourceFileNotFoundErr: Label 'The resource file for the period %1 is not found.', Comment = '%1 - period year, e.g. 2024';
-        PeriodNoIncorrectFormatErr: Label 'Period number must be in the format YYYY, e.g. 2024';
+        UnsupportedSchemaErr: Label 'The IRIS XML schema version is not supported. Select 2.0.3 or 5.0.7, or clear the reporting-period override to use the configured environment setting.';
+        SoftwareIdFormatErr: Label 'The IRIS Software ID for tax year %1 must start with %2 and contain 3 to 10 letters or digits. Configure the IRS-approved Software ID for this tax year before filing.', Comment = '%1 - requested tax year, %2 - required two-digit prefix';
+        TaxYearFormatErr: Label 'The IRIS tax year %1 must contain four digits and be between 2000 and 3000.', Comment = '%1 - requested tax year';
+        SchemaFailureTxt: Label 'The selected IRIS schema configuration is unsupported or empty.', Locked = true;
+        UnverifiedYearQst: Label 'Tax year %1 has not been verified for IRIS XML schema %3. This operation will use the form box mappings for tax year %2. IRS acceptance does not guarantee that the reported information is correct. Check the reporting requirements before continuing. Do you want to use these mappings for this operation only?', Comment = '%1 - requested tax year, %2 - actual mapping resource year, %3 - exact XML schema version';
+        YearConfirmationRequiredErr: Label 'Using tax year %2 form box mappings for unverified tax year %1 with IRIS XML schema %3 requires confirmation. Run the operation interactively and review the warning before continuing.', Comment = '%1 - requested tax year, %2 - actual mapping resource year, %3 - exact XML schema version';
+        TestDestinationTxt: Label 'Test';
+        ProductionDestinationTxt: Label 'Production';
+
+    #region Transmission Identity
+    internal procedure GetDestinationName(IsTestDestination: Boolean): Text
+    begin
+        if IsTestDestination then
+            exit(TestDestinationTxt);
+        exit(ProductionDestinationTxt);
+    end;
 
     procedure GetIRISFeatureName(): Text
     begin
@@ -51,8 +68,13 @@ codeunit 10035 "Helper IRIS"
 
     procedure CreateUniqueTransmissionIdentifier(): Text[100]
     begin
+        exit(CreateUniqueTransmissionIdentifier(IRSFormsFacade.GetTCC()));
+    end;
+
+    internal procedure CreateUniqueTransmissionIdentifier(TCC: Text): Text[100]
+    begin
         // example of UTID: da20a4de-1357-11ed-861d-0242ac120002:IRIS:00000::A
-        exit(StrSubstNo(UTIDTxt, CreateUUID(), GetApplicationID(), IRSFormsFacade.GetTCC(), GetRequestType()));
+        exit(StrSubstNo(UTIDTxt, CreateUUID(), GetApplicationID(), TCC, GetRequestType()));
     end;
 
     procedure CreateUUID(): Text[36]
@@ -64,7 +86,9 @@ codeunit 10035 "Helper IRIS"
     begin
         exit('IRIS');
     end;
+    #endregion Transmission Identity
 
+    #region XML Construction
     procedure Initialize(RootNodeName: Text)
     begin
         Clear(XMLDoc);
@@ -217,7 +241,9 @@ codeunit 10035 "Helper IRIS"
         BlobOutStream.WriteText(XMLDocText);
         Clear(XMLDoc);
     end;
+    #endregion XML Construction
 
+    #region Blob and Transmission Utilities
     procedure WriteTextToTempBlob(var TempBlob: Codeunit "Temp Blob"; TextToWrite: Text)
     var
         BlobOutStream: OutStream;
@@ -254,12 +280,132 @@ codeunit 10035 "Helper IRIS"
     begin
         exit(TransmissionType.Names.Get(TransmissionType.Ordinals.IndexOf(TransmissionType.AsInteger())));
     end;
+    #endregion Blob and Transmission Utilities
 
+    #region Reporting Configuration
+    #region XML Schema
+    internal procedure GetXmlSchemaVersion(PeriodNo: Code[20]): Enum "XML Schema Version IRIS"
+    var
+        Source: Text;
+    begin
+        exit(GetXmlSchemaVersion(PeriodNo, Source));
+    end;
+
+    internal procedure GetXmlSchemaVersion(PeriodNo: Code[20]; var Source: Text): Enum "XML Schema Version IRIS"
+    var
+        ReportingPeriod: Record "IRS Reporting Period";
+        KeyVaultClient: Codeunit "Key Vault Client IRIS";
+        SchemaVersion: Enum "XML Schema Version IRIS";
+    begin
+        ReportingPeriod.Get(PeriodNo);
+        SchemaVersion := ReportingPeriod.GetSchemaOverride(IRSFormsFacade.TestMode());
+        if SchemaVersion <> SchemaVersion::" " then begin
+            CheckSchemaVersionSupported(SchemaVersion);
+            Source := 'ReportingPeriod';
+            exit(SchemaVersion);
+        end;
+
+        Source := 'KeyVault';
+        exit(ParseSchemaVersion(KeyVaultClient.GetXmlSchemaVersion()));
+    end;
+
+    internal procedure ParseSchemaVersion(Version: Text): Enum "XML Schema Version IRIS"
+    begin
+        case Version of
+            '2.0.3':
+                exit("XML Schema Version IRIS"::"2.0.3");
+            '5.0.7':
+                exit("XML Schema Version IRIS"::"5.0.7");
+            else
+                UnsupportedSchema();
+        end;
+    end;
+
+    internal procedure GetSchemaVersionText(SchemaVersion: Enum "XML Schema Version IRIS"): Text
+    var
+        Schema: Interface "IRIS XML Schema";
+    begin
+        Schema := SchemaVersion;
+        exit(Schema.GetVersionText());
+    end;
+
+    internal procedure CheckSchemaVersionSupported(SchemaVersion: Enum "XML Schema Version IRIS")
+    begin
+        GetSchemaVersionText(SchemaVersion);
+    end;
+
+    internal procedure ConfirmTaxYearMapping(VersionText: Text; TaxYear: Text; VerifiedTaxYear: Boolean)
+    var
+        ConfirmMgt: Codeunit "Confirm Management";
+        MappingYear: Text;
+    begin
+        ValidateTaxYear(TaxYear);
+        GetAmtXmlElementsFileContent(TaxYear, MappingYear);
+        if VerifiedTaxYear then
+            exit;
+        if not GuiAllowed() then
+            Error(YearConfirmationRequiredErr, TaxYear, MappingYear, VersionText);
+        if not ConfirmMgt.GetResponse(StrSubstNo(UnverifiedYearQst, TaxYear, MappingYear, VersionText), false) then
+            Error('');
+    end;
+
+    internal procedure UnsupportedSchema()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        FeatureTelemetry.LogError('0000WUO', GetIRISFeatureName(), 'SchemaConfiguration', SchemaFailureTxt);
+        Error(UnsupportedSchemaErr);
+    end;
+    #endregion XML Schema
+
+    internal procedure GetSoftwareId(TaxYear: Text): Text
+    var
+        IRSFormsSetup: Record "IRS Forms Setup";
+        KeyVaultClient: Codeunit "Key Vault Client IRIS";
+        SoftwareId: Text;
+    begin
+        ValidateTaxYear(TaxYear);
+        IRSFormsSetup.InitSetup();
+        if IRSFormsSetup.Implementation = IRSFormsSetup.Implementation::Standard then
+            SoftwareId := KeyVaultClient.GetSoftwareId(TaxYear)
+        else
+            SoftwareId := IRSFormsFacade.GetSoftwareId();
+        ValidateSoftwareId(TaxYear, SoftwareId);
+        exit(SoftwareId);
+    end;
+
+    internal procedure ValidateSoftwareId(TaxYear: Text; SoftwareId: Text)
+    begin
+        ValidateTaxYear(TaxYear);
+        if (StrLen(SoftwareId) < 3) or (StrLen(SoftwareId) > 10) or
+           (CopyStr(SoftwareId, 1, 2) <> CopyStr(TaxYear, 3, 2)) or
+           (DelChr(SoftwareId, '=', '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz') <> '')
+        then
+            Error(SoftwareIdFormatErr, TaxYear, CopyStr(TaxYear, 3, 2));
+    end;
+
+    [TryFunction]
+    internal procedure ValidateTaxYear(TaxYear: Text)
+    var
+        TaxYearNumber: Integer;
+    begin
+        if (StrLen(TaxYear) <> 4) or (DelChr(TaxYear, '=', '0123456789') <> '') then
+            Error(TaxYearFormatErr, TaxYear);
+
+        Evaluate(TaxYearNumber, TaxYear);
+        if not (TaxYearNumber in [2000 .. 3000]) then
+            Error(TaxYearFormatErr, TaxYear);
+    end;
+    #endregion Reporting Configuration
+
+    #region Document Navigation
     internal procedure ShowIRS1099FormDocuments(ErrorInfo: ErrorInfo)
     begin
         Page.Run(Page::"IRS 1099 Form Documents");
     end;
+    #endregion Document Navigation
 
+    #region Tax-Year Resources and Form Mappings
     local procedure TryGetAmtXmlElementsFileName(PeriodNo: Text; var ResourceFileName: Text): Boolean
     var
         FileName: Text;
@@ -282,26 +428,44 @@ codeunit 10035 "Helper IRIS"
 
     internal procedure GetAmtXmlElementsFileContent(PeriodNo: Text) FileContentObject: JsonObject
     var
-        OriginalPeriodNo: Text;
+        MappingResourceYear: Text;
+    begin
+        exit(GetAmtXmlElementsFileContent(PeriodNo, MappingResourceYear));
+    end;
+
+    internal procedure GetAmtXmlElementsFileContent(PeriodNo: Text; var MappingResourceYear: Text) FileContentObject: JsonObject
+    var
         ResourceFileName: Text;
         PeriodNoInt: Integer;
         ResourceStream: InStream;
     begin
-        if not Evaluate(PeriodNoInt, PeriodNo) then
-            Error(PeriodNoIncorrectFormatErr);
+        ValidateTaxYear(PeriodNo);
+        Evaluate(PeriodNoInt, PeriodNo);
 
-        OriginalPeriodNo := PeriodNo;
-
-        // try to get the file for the selected period, and if not found, try to get it for the previous period
-        while not TryGetAmtXmlElementsFileName(PeriodNo, ResourceFileName) and (PeriodNo <> '2020') do
-            if Evaluate(PeriodNoInt, PeriodNo) then
-                PeriodNo := Format(PeriodNoInt - 1);
-
+        Clear(MappingResourceYear);
+        while PeriodNoInt >= 2020 do begin
+            MappingResourceYear := Format(PeriodNoInt, 0, 9);
+            if TryGetAmtXmlElementsFileName(MappingResourceYear, ResourceFileName) then
+                break;
+            PeriodNoInt -= 1;
+        end;
         if ResourceFileName = '' then
-            Error(ResourceFileNotFoundErr, OriginalPeriodNo);
+            Error(ResourceFileNotFoundErr, PeriodNo);
 
         NavApp.GetResource(ResourceFileName, ResourceStream);
         FileContentObject.ReadFrom(ResourceStream);
+    end;
+
+    internal procedure GetOccupationCodes(TaxYear: Text) OccupationCodes: List of [Text]
+    var
+        FileContent: JsonObject;
+        OccupationCodesToken: JsonToken;
+        OccupationCodeToken: JsonToken;
+    begin
+        FileContent := GetAmtXmlElementsFileContent(TaxYear);
+        FileContent.Get('OccupationCodes', OccupationCodesToken);
+        foreach OccupationCodeToken in OccupationCodesToken.AsArray() do
+            OccupationCodes.Add(OccupationCodeToken.AsValue().AsText());
     end;
 
     /// <summary>
@@ -401,7 +565,36 @@ codeunit 10035 "Helper IRIS"
     begin
         AmountXmlElementNames := GetAmountXmlElementList(PeriodNo, Format(FormType), ElementOrderDetailsTok);
     end;
+    #endregion Tax-Year Resources and Form Mappings
 
+    #region Supplemental Reporting
+    /// <summary>
+    /// Gets the standard parent box, XML element and value type for a supplemental box using the tax-year resource.
+    /// </summary>
+    /// <returns>True if the supplemental box has a standard XML mapping.</returns>
+    procedure GetMapping(TaxYear: Text; FormNo: Code[20]; BoxNo: Code[20]; var ParentBoxNo: Code[20]; var ElementName: Text[100]; var ValueType: Enum "IRS 1099 Supplemental Type"): Boolean
+    begin
+        exit(Supplemental.GetMapping(TaxYear, FormNo, BoxNo, ParentBoxNo, ElementName, ValueType));
+    end;
+
+    /// <summary>
+    /// Checks whether a supplemental line is reportable based on its parent income and saved tips.
+    /// </summary>
+    procedure IsReportable(var SupplLine: Record "IRS 1099 Doc. Suppl. Line"): Boolean
+    begin
+        exit(Supplemental.IsReportable(SupplLine));
+    end;
+
+    /// <summary>
+    /// Rounds a supplemental amount to two decimal places for output.
+    /// </summary>
+    procedure RoundAmountForOutput(Amount: Decimal): Decimal
+    begin
+        exit(Supplemental.RoundAmount(Amount));
+    end;
+    #endregion Supplemental Reporting
+
+    #region Additional Form XML
     internal procedure AddOtherForm1099DetailsPart(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary)
     var
         XmlNodesNameValue: Dictionary of [Text, Text];
@@ -415,7 +608,9 @@ codeunit 10035 "Helper IRIS"
         foreach NodeName in XmlNodesNameValue.Keys() do
             AppendXmlNode(NodeName, XmlNodesNameValue.Get(NodeName));
     end;
+    #endregion Additional Form XML
 
+    #region Data Formatting and Normalization
     procedure IsForeignCountryRegion(CountryRegionCode: Code[10]): Boolean
     var
         CountryRegion: Record "Country/Region";
@@ -931,7 +1126,9 @@ codeunit 10035 "Helper IRIS"
     begin
         exit(30);
     end;
+    #endregion Data Formatting and Normalization
 
+    #region Integration Events
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetFormBoxAmountXmlElementNames(PeriodNo: Text; FormType: Text; var FormAmountXmlElementNames: Dictionary of [Text, Text])
     begin
@@ -951,4 +1148,5 @@ codeunit 10035 "Helper IRIS"
     local procedure OnBeforeAddOtherForm1099DetailsPart(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var XmlNodesNameValue: Dictionary of [Text, Text])
     begin
     end;
+    #endregion Integration Events
 }

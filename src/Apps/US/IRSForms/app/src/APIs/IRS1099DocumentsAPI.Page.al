@@ -70,6 +70,13 @@ page 10062 "IRS 1099 Documents API"
                     EntitySetName = 'irs1099formreports';
                     Caption = 'IRS 1099 Form Reports';
                 }
+                part(irs1099documentsupplementallines; "IRS 1099 Doc. Suppl. API")
+                {
+                    SubPageLink = "Document ID" = field(ID);
+                    EntityName = 'irs1099documentsupplementalline';
+                    EntitySetName = 'irs1099documentsupplementallines';
+                    Caption = 'IRS 1099 Document Supplemental Lines';
+                }
             }
         }
     }

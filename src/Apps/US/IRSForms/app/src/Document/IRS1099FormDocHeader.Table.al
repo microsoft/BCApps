@@ -215,7 +215,10 @@ table 10035 "IRS 1099 Form Doc. Header"
     var
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
         IRS1099FormReport: Record "IRS 1099 Form Report";
+        SupplLine: Record "IRS 1099 Doc. Suppl. Line";
     begin
+        SupplLine.SetRange("Document ID", Rec.ID);
+        SupplLine.DeleteAll(true);
         IRS1099FormDocLine.SetRange("Period No.", Rec."Period No.");
         IRS1099FormDocLine.SetRange("Vendor No.", Rec."Vendor No.");
         IRS1099FormDocLine.SetRange("Form No.", Rec."Form No.");
