@@ -14,6 +14,7 @@ report 5601 "Fixed Asset - List"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Fixed Asset List';
+    ToolTip = 'View the list of fixed assets that exist in the system .';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
