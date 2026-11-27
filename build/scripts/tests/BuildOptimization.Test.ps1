@@ -840,6 +840,12 @@ Describe "BuildOptimization" {
             @($result.AppNames | Where-Object { $_ -eq 'Tests-NewObjects-Internal' }).Count | Should -Be 1
         }
 
+        It "retains mandatory NewObjects when applying the affected-app proposal" {
+            $selected = @(Get-SelectedTestApps -AppNamesToTest @('Unaffected Tests', 'Tests-NewObjects-Internal') `
+                -BaseFolder $baseFolder -ChurnEnabled $true -Country 'w1' -TestType 'IntegrationTest' `
+                -BucketNumber 0 -ApplySelection)
+            $selected | Should -Be @('Tests-NewObjects-Internal')
+        }
     }
 
     Context "Get-AffectedAppNames fallbacks" {
@@ -919,4 +925,5 @@ Describe "BuildOptimization" {
         }
 
     }
+
 }

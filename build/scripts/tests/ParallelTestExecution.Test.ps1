@@ -51,7 +51,7 @@ Describe "ParallelTestExecution churn selection" {
             $script:selectionEnvironment[$name] = [Environment]::GetEnvironmentVariable($name)
         }
         $env:GITHUB_ACTIONS = 'true'
-        $env:GITHUB_EVENT_NAME = 'pull_request'
+        $env:GITHUB_EVENT_NAME = 'push'
         $env:RUNNER_TEMP = Join-Path $TestDrive ([guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $env:RUNNER_TEMP | Out-Null
         $env:BUILD_OPTIMIZATION_DISABLED = $null
@@ -150,6 +150,60 @@ Describe "ParallelTestExecution churn selection" {
         }
     }
 
+    It "applies the proposal on PRs through discovery, warmup and dispatch in candidate order" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests B' } |
+            Should -BeTrue
+
+        Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 1 -Exactly -ParameterFilter {
+            ($AppNamesToTest -join ',') -eq 'Tests C,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Invoke-WarmupDispatch -Times 1 -Exactly -ParameterFilter {
+            ($Pending -join ',') -eq 'Tests C,Tests A' -and ($CleanTenantAppNames -join ',') -eq 'Tests C,Tests A'
+        }
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 2 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly -ParameterFilter {
+            $AppName -eq 'Tests B'
+        }
+        $script:selectionLog | Should -Contain 'Affected-app selection applied: 2 of 3 test apps will run.'
+        $script:selectionLog | Should -Not -Contain 'Logging only: full bucket will run (3 test apps).'
+    }
+
+    It "caches an empty PR proposal so later hooks skip discovery and dispatch" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Mock -ModuleName BuildOptimization Get-AffectedAppNames {
+            [PSCustomObject]@{ RunAll = $false; AppNames = @('Unrelated Tests') }
+        } -ParameterFilter { $true }
+        $parameters = @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' }
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+
+        Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-InstalledTestAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
+        $state = Get-Content (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') -Raw | ConvertFrom-Json
+        $state.completed | Should -BeTrue
+        $state.finalResult | Should -BeTrue
+        $state.selectionSkipped | Should -BeTrue
+        $script:selectionLog | Should -Contain 'Affected-app selection applied: 0 of 3 test apps will run.'
+    }
+
+    It "runs the full PR bucket when impact analysis requires all apps" {
+        $env:GITHUB_EVENT_NAME = 'pull_request'
+        Mock -ModuleName BuildOptimization Get-AffectedAppNames {
+            [PSCustomObject]@{ RunAll = $true; AppNames = @() }
+        } -ParameterFilter { $true }
+        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
+            Should -BeTrue
+
+        Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 3 -Exactly
+        $script:selectionLog | Should -Contain 'Churn-based testing: Enabled; full bucket (RunAll)'
+        $script:selectionLog | Should -Contain 'Affected-app selection applied: 3 of 3 test apps will run.'
+    }
+
     It "includes the legacy bucket number in the selection log" {
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting { 'Legacy' } -ParameterFilter { $Key -eq 'testType' }
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting { 2 } -ParameterFilter { $Key -eq 'bucketNumber' }
@@ -160,9 +214,13 @@ Describe "ParallelTestExecution churn selection" {
         $script:selectionLog | Should -Contain 'Country: w1 | Test type: Legacy | Bucket: 2'
     }
 
-    It "runs the full bucket without computing or using affected apps when the setting is <Setting>" -ForEach @(
-        @{ Setting = 'false'; Enabled = $false }, @{ Setting = 'absent'; Enabled = $null }
+    It "runs the full bucket without impact analysis on <Event> when the setting is <Setting>" -ForEach @(
+        @{ Setting = 'false'; Enabled = $false; Event = 'push' }
+        @{ Setting = 'absent'; Enabled = $null; Event = 'push' }
+        @{ Setting = 'false'; Enabled = $false; Event = 'pull_request' }
+        @{ Setting = 'absent'; Enabled = $null; Event = 'pull_request' }
     ) {
+        $env:GITHUB_EVENT_NAME = $Event
         Mock -ModuleName ParallelTestExecution Get-ALGoSetting -MockWith ({ $Enabled }.GetNewClosure()) -ParameterFilter {
             $Key -eq 'enableChurnBasedTesting'
         }

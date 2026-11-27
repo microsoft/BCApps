@@ -173,14 +173,32 @@ function Get-AppRerunBudget {
 
 <#
 .SYNOPSIS
-    Returns the cached parallel-test-run result for a container, or $null if no run has finished.
+    Gets the per-container test state file path.
+.PARAMETER ContainerName
+    The BC container name used to scope the state file.
+#>
+function Get-ParallelTestStateFile {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
+    return Join-Path $tempDir "parallelTests_$ContainerName.json"
+}
+
+<#
+.SYNOPSIS
+    Returns the cached test-hook result for a container, or $null if no result has finished.
 .DESCRIPTION
-    The first call into Invoke-ParallelTestExecution dispatches every test app in parallel,
-    waits for completion, and persists the final result to a state file in $env:RUNNER_TEMP
-    (cleaned up between jobs by GitHub Actions). Subsequent invocations from the per-project
-    override should short-circuit using this helper to avoid redoing the work.
+    Parallel test execution persists its final result to a state file in $env:RUNNER_TEMP
+    (cleaned up between jobs by GitHub Actions). A known-empty PR selection also persists a
+    successful completion marker. Subsequent invocations from the per-project override
+    short-circuit using this helper to avoid repeating work.
+.PARAMETER ContainerName
+    The BC container name used to scope the state file.
 .OUTPUTS
-    [bool] cached final result if dispatch completed; $null if no state file or not yet finished.
+    [bool] cached final result if the hook completed; $null if no result is available yet.
 #>
 function Get-CachedTestRunResult {
     param(
@@ -188,8 +206,7 @@ function Get-CachedTestRunResult {
         [string]$ContainerName
     )
 
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    $stateFile = Join-Path $tempDir "parallelTests_$ContainerName.json"
+    $stateFile = Get-ParallelTestStateFile -ContainerName $ContainerName
     if (-not (Test-Path $stateFile)) { return $null }
 
     try {
@@ -201,6 +218,26 @@ function Get-CachedTestRunResult {
         Write-Host "WARNING: Failed to parse state file '$stateFile' ($($_.Exception.Message))."
     }
     return $null
+}
+
+<#
+.SYNOPSIS
+    Persists a successful result for a known-empty test selection.
+.PARAMETER ContainerName
+    The BC container name used to scope the state file.
+#>
+function Set-CachedEmptyTestSelectionResult {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName
+    )
+
+    $state = [PSCustomObject]@{
+        completed = $true
+        finalResult = $true
+        selectionSkipped = $true
+    }
+    $state | ConvertTo-Json -Depth 5 | Set-Content (Get-ParallelTestStateFile -ContainerName $ContainerName) -Force
 }
 
 <#
@@ -1295,11 +1332,7 @@ function Invoke-ParallelTestExecution {
         [string[]]$appNamesToTest
     )
 
-    # GitHub Actions provides a per-job temp directory ($RUNNER_TEMP) that is cleaned up between
-    # jobs, so a stale state file from a previous run cannot corrupt the current run. Fall back
-    # to the local temp directory outside of CI.
-    $tempDir = if ($env:RUNNER_TEMP) { $env:RUNNER_TEMP } elseif ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-    $stateFile = Join-Path $tempDir "parallelTests_$($parameters.containerName).json"
+    $stateFile = Get-ParallelTestStateFile -ContainerName $parameters.containerName
 
     # Short-circuit ONLY when a previous call ran to completion (wait+merge done). The
     # 'dispatched' flag is set before the foreach starts; if the call crashed mid-flight we must
@@ -1526,8 +1559,8 @@ function Invoke-ParallelTestExecution {
     call computes the bucket's app list and dispatches them all in parallel; subsequent calls in
     the same job short-circuit on the cached final result. Returns the cached result if there
     are no apps to run for the project's testType.
-    enableChurnBasedTesting in .github/AL-Go-Settings.json enables proposal logging only;
-    false or absent bypasses analysis. All bucket tests still run.
+    enableChurnBasedTesting in .github/AL-Go-Settings.json enables affected-app selection on PRs
+    and proposal logging only on other events. False or absent bypasses analysis and runs all apps.
 .PARAMETER parameters
     The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
 .OUTPUTS
@@ -1556,7 +1589,13 @@ function Invoke-PerProjectTestRun {
 
     $appNamesToTest = @(Get-SelectedTestApps -AppNamesToTest $appNamesToTest -BaseFolder (Get-BaseFolder) `
         -ChurnEnabled ((Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) `
-        -Country $country -TestType $testType -BucketNumber $bucketNumber)
+        -Country $country -TestType $testType -BucketNumber $bucketNumber `
+        -ApplySelection:($env:GITHUB_EVENT_NAME -eq 'pull_request'))
+    if ($appNamesToTest.Count -eq 0) {
+        Write-Host "No affected test apps to run for testType '$testType' in this project."
+        Set-CachedEmptyTestSelectionResult -ContainerName $parameters.containerName
+        return $true
+    }
     Write-Host "Test apps to dispatch ($($appNamesToTest.Count)): $($appNamesToTest -join ', ')"
 
     $parameters["returnTrueIfAllPassed"] = $true

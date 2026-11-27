@@ -556,7 +556,7 @@ function Get-AffectedAppNames {
 
 <#
 .SYNOPSIS
-    Logs the churn-based test proposal and returns all candidate apps unchanged.
+    Logs the churn-based test proposal and optionally applies it.
 .PARAMETER AppNamesToTest
     Candidate test app names in dispatch order; returned unchanged in logging-only mode.
 .PARAMETER BaseFolder
@@ -569,6 +569,8 @@ function Get-AffectedAppNames {
     Project test type shown in the selection log.
 .PARAMETER BucketNumber
     Legacy test bucket shown in the log; ignored for other test types.
+.PARAMETER ApplySelection
+    Applies the proposal when churn analysis is enabled. PR builds opt in; other events log only.
 #>
 function Get-SelectedTestApps {
     [OutputType([string[]])]
@@ -578,7 +580,8 @@ function Get-SelectedTestApps {
         [bool] $ChurnEnabled,
         [string] $Country,
         [string] $TestType,
-        [int] $BucketNumber
+        [int] $BucketNumber,
+        [switch] $ApplySelection
     )
 
     $candidateCount = $AppNamesToTest.Count
@@ -597,7 +600,11 @@ function Get-SelectedTestApps {
     Write-Host "Test app selection"
     Write-Host "Country: $Country | Test type: $TestType | Bucket: $bucketLabel"
     Write-Host "Churn-based testing: $selectionMode"
-    Write-Host "Logging only: full bucket will run ($candidateCount test apps)."
+    if ($ApplySelection -and $ChurnEnabled) {
+        Write-Host "Affected-app selection applied: $($proposedAppNames.Count) of $candidateCount test apps will run."
+    } else {
+        Write-Host "Logging only: full bucket will run ($candidateCount test apps)."
+    }
     Write-Host "Candidates: $candidateCount | Would run: $($proposedAppNames.Count) | Would skip: $($candidateCount - $proposedAppNames.Count)"
     Write-Host "Proposed test apps (candidate order):"
     foreach ($appName in $proposedAppNames) {
@@ -607,6 +614,9 @@ function Get-SelectedTestApps {
         Write-Host "  No test apps proposed."
     }
 
+    if ($ApplySelection -and $ChurnEnabled) {
+        return $proposedAppNames
+    }
     return $AppNamesToTest
 }
 
