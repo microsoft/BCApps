@@ -6,7 +6,6 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
@@ -21,13 +20,11 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
 
 #endif
     /// <summary>
-    /// Returns the subcontractor vendor number for the work center on the given production order routing line.
+    /// Returns the effective subcontractor vendor number for the production operation.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">The production order routing line to retrieve the subcontractor for.</param>
     /// <returns>The subcontractor vendor number, or an empty string if the line is a machine center type.</returns>
     procedure GetSubcontractorNo(ProdOrderRoutingLine: Record "Prod. Order Routing Line"): Code[20]
-    var
-        WorkCenter: Record "Work Center";
     begin
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -36,21 +33,16 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
             exit('');
 
 #endif
-        if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Machine Center" then
-            exit('');
-        WorkCenter.SetLoadFields("Subcontractor No.");
-        if WorkCenter.Get(ProdOrderRoutingLine."Work Center No.") then
-            exit(WorkCenter."Subcontractor No.");
+        exit(ProdOrderRoutingLine.GetEffectiveSubcontractorNo());
     end;
 
     /// <summary>
-    /// Opens the Vendor Card for the subcontractor assigned to the work center on the given production order routing line.
+    /// Opens the Vendor Card for the effective subcontractor of the production operation.
     /// </summary>
     /// <param name="ProdOrderRoutingLine">The production order routing line whose work center subcontractor to show.</param>
     procedure ShowSubcontractor(ProdOrderRoutingLine: Record "Prod. Order Routing Line")
     var
         Vendor: Record Vendor;
-        WorkCenter: Record "Work Center";
     begin
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -58,11 +50,8 @@ codeunit 20561 "Subc. Routing Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then begin
-            WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
-            if Vendor.Get(WorkCenter."Subcontractor No.") then
-                Page.Run(Page::"Vendor Card", Vendor);
-        end;
+        if Vendor.Get(GetSubcontractorNo(ProdOrderRoutingLine)) then
+            Page.Run(Page::"Vendor Card", Vendor);
     end;
 
     /// <summary>

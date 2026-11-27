@@ -29,7 +29,13 @@ report 20502 "Subc. Create SubCReturnOrder"
                 trigger OnAfterGetRecord()
                 var
                     QtyToPost: Decimal;
+                    SubcontractingManagement: Codeunit "Subcontracting Management";
                 begin
+                    if not TempSelectedPurchaseLine.Get("Document Type", "Document No.", "Line No.") then begin
+                        CurrReport.Skip();
+                        exit;
+                    end;
+                    SubcontractingManagement.CheckWIPSelection("Purchase Line", TempSelectedPurchaseLine, TempProductionLine, TempRouting, SourceVersions);
                     HandleComponentReturnForPurchLine("Purchase Line", true, QtyToPost);
                     HandleWIPReturnForPurchLine("Purchase Line", true);
                 end;
@@ -40,7 +46,7 @@ report 20502 "Subc. Create SubCReturnOrder"
                 if not "Subc. Order" then
                     Error(OrderNoIsNotSubcontractorErr, PurchOrderNo);
 
-                if not CheckTransferToCreate() then
+                if not CanCreateHeaders.Get("No.") then
                     Error(NothingToCreateErr);
 
                 Vendor.Get("Purchase Header"."Buy-from Vendor No.");
@@ -56,6 +62,7 @@ report 20502 "Subc. Create SubCReturnOrder"
                 PurchOrderNo := CopyStr("Purchase Header".GetFilter("No."), 1, MaxStrLen(PurchOrderNo));
                 if PurchOrderNo = '' then
                     Error(WarningToSpecifyPurchOrderErr);
+                CheckTransferToCreate();
             end;
         }
     }
@@ -78,6 +85,14 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         Vendor: Record Vendor;
+        TempSelectedPurchaseLine: Record "Purchase Line" temporary;
+        TempProductionLine: Record "Prod. Order Line" temporary;
+        TempRouting: Record "Prod. Order Routing Line" temporary;
+        TempWIPPlan: Record "Transfer Line" temporary;
+        SourceVersions: Dictionary of [Text, BigInteger];
+        SelectionViews: List of [Text];
+        CanCreateHeaders: Dictionary of [Code[20], Boolean];
+        WIPPlanLineNo: Integer;
         PurchOrderNo: Code[20];
         LineNo: Integer;
         NothingToCreateErr: Label 'Nothing to create. No components or WIP items to return for the specified subcontracting order.';
@@ -85,6 +100,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
         SubcLocationCodeMissingErr: Label 'The Subc. Location Code must be specified on Vendor %1 or the Subcontracting Purchase Order to create return orders.', Comment = '%1=Vendor No.';
         WarningToSpecifyPurchOrderErr: Label 'Warning. Specify a Purchase Order No. for the Subcontractor work.';
+        WIPSourceEvidenceErr: Label 'Cannot verify WIP availability for operation %1 of production order %2 at location %3, document %4. Retain the source documents and reconcile the WIP evidence before creating another transfer.', Comment = '%1 = source operation, %2 = production order, %3 = source location, %4 = evidence document';
 
     local procedure InsertTransferHeader(TransferFromLocationCode: Code[10]; TransferToLocationCode: Code[10])
     var
@@ -141,22 +157,61 @@ report 20502 "Subc. Create SubCReturnOrder"
     local procedure CheckTransferToCreate(): Boolean
     var
         PurchaseLine: Record "Purchase Line";
+        SelectedHeader: Record "Purchase Header";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         QtyToPost: Decimal;
+        CanCreate: Boolean;
     begin
-        PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
-        PurchaseLine.SetRange("Document No.", PurchOrderNo);
-        PurchaseLine.SetFilter("Prod. Order No.", '<>''''');
-        PurchaseLine.SetFilter("Prod. Order Line No.", '<>0');
-        PurchaseLine.SetFilter("Operation No.", '<>0');
-        if PurchaseLine.FindSet() then
+        TempSelectedPurchaseLine.Reset();
+        TempSelectedPurchaseLine.DeleteAll();
+        TempWIPPlan.Reset();
+        TempWIPPlan.DeleteAll();
+        WIPPlanLineNo := 0;
+        Clear(CanCreateHeaders);
+        Clear(SourceVersions);
+        Clear(SelectionViews);
+        SelectedHeader.CopyFilters("Purchase Header");
+        SelectedHeader.ReadIsolation := IsolationLevel::ReadCommitted;
+        if SelectedHeader.FindSet() then
             repeat
-                if HandleComponentReturnForPurchLine(PurchaseLine, false, QtyToPost) then
-                    exit(true);
-                if HandleWIPReturnForPurchLine(PurchaseLine, false) then
-                    exit(true);
-            until PurchaseLine.Next() = 0;
-
-        exit(false);
+                SelectedHeader.CalcFields("Subc. Order");
+                if not SelectedHeader."Subc. Order" then
+                    Error(OrderNoIsNotSubcontractorErr, SelectedHeader."No.");
+                CanCreateHeaders.Add(SelectedHeader."No.", false);
+                SourceVersions.Add(Format(SelectedHeader.RecordId), SelectedHeader.SystemRowVersion);
+                PurchaseLine.Reset();
+                PurchaseLine.CopyFilters("Purchase Line");
+                PurchaseLine.ReadIsolation := IsolationLevel::ReadCommitted;
+                PurchaseLine.SetCurrentKey("Document Type", Type, "Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
+                PurchaseLine.SetRange("Document Type", SelectedHeader."Document Type");
+                PurchaseLine.SetRange("Document No.", SelectedHeader."No.");
+                PurchaseLine.SetFilter("Prod. Order No.", '<>''''');
+                PurchaseLine.SetFilter("Prod. Order Line No.", '<>0');
+                PurchaseLine.SetFilter("Operation No.", '<>0');
+                SelectionViews.Add(PurchaseLine.GetView(false));
+                if PurchaseLine.FindSet() then
+                    repeat
+                        SubcontractingManagement.RememberWIPSelection(PurchaseLine, TempSelectedPurchaseLine, SourceVersions);
+                    until PurchaseLine.Next() = 0;
+            until SelectedHeader.Next() = 0;
+        SubcontractingManagement.ProtectWIPSelection(TempSelectedPurchaseLine, TempProductionLine, TempRouting, SourceVersions);
+        SubcontractingManagement.CheckWIPSelectedKeys(TempSelectedPurchaseLine, SelectionViews, SourceVersions);
+        // WIP for the entire selection must be safe before even the component availability check can exit early.
+        if TempSelectedPurchaseLine.FindSet() then
+            repeat
+                if PlanWIPReturn(TempSelectedPurchaseLine) then begin
+                    CanCreate := true;
+                    CanCreateHeaders.Set(TempSelectedPurchaseLine."Document No.", true);
+                end;
+            until TempSelectedPurchaseLine.Next() = 0;
+        if TempSelectedPurchaseLine.FindSet() then
+            repeat
+                if HandleComponentReturnForPurchLine(TempSelectedPurchaseLine, false, QtyToPost) then begin
+                    CanCreate := true;
+                    CanCreateHeaders.Set(TempSelectedPurchaseLine."Document No.", true);
+                end;
+            until TempSelectedPurchaseLine.Next() = 0;
+        exit(CanCreate);
     end;
 
     local procedure HandleComponentReturnForPurchLine(PurchaseLine: Record "Purchase Line"; InsertLine: Boolean; var QtyToPost: Decimal): Boolean
@@ -165,6 +220,8 @@ report 20502 "Subc. Create SubCReturnOrder"
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseVendor: Record Vendor;
         MfgCostCalculationMgt: Codeunit "Mfg. Cost Calculation Mgt.";
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
         SubcontractingManagement: Codeunit "Subcontracting Management";
@@ -196,7 +253,17 @@ report 20502 "Subc. Create SubCReturnOrder"
         ProdOrderComponent.SetRange("Subc. Purchase Order Filter", PurchaseLine."Document No.");
         ProdOrderComponent.SetRange("Component Supply Method", ProdOrderComponent."Component Supply Method"::"Transfer to Vendor");
         if ProdOrderComponent.FindSet() then begin
-            GetTransferFromLocationCode(SubcFromLocationCode);
+            PurchaseHeader.ReadIsolation := IsolationLevel::UpdLock;
+            PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+            if PurchaseHeader.SystemRowVersion <> SourceVersions.Get(Format(PurchaseHeader.RecordId)) then
+                Error(WIPSourceEvidenceErr, ProdOrderRoutingLine."Operation No.", ProdOrderLine."Prod. Order No.", '', PurchaseHeader."No.");
+            SubcFromLocationCode := PurchaseHeader."Subc. Location Code";
+            if SubcFromLocationCode = '' then begin
+                PurchaseVendor.Get(PurchaseHeader."Buy-from Vendor No.");
+                SubcFromLocationCode := PurchaseVendor."Subc. Location Code";
+                if SubcFromLocationCode = '' then
+                    Error(SubcLocationCodeMissingErr, PurchaseVendor."No.");
+            end;
             repeat
                 Item.Get(ProdOrderComponent."Item No.");
                 QtyToPost := MfgCostCalculationMgt.CalcActNeededQtyBase(ProdOrderLine, ProdOrderComponent,
@@ -279,6 +346,7 @@ report 20502 "Subc. Create SubCReturnOrder"
     var
         TransferLine2: Record "Transfer Line";
     begin
+        TransferLine2.ReadIsolation := IsolationLevel::UpdLock;
         if PurchaseLine."Document No." = '' then
             exit(false);
         TransferLine2.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
@@ -302,84 +370,127 @@ report 20502 "Subc. Create SubCReturnOrder"
 
     local procedure HandleWIPReturnForPurchLine(PurchaseLine: Record "Purchase Line"; InsertLine: Boolean): Boolean
     var
-        Item: Record Item;
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        UOMManagement: Codeunit "Unit of Measure Management";
-        CompanyWHLocationCode: Code[10];
-        TransferFromLoc: Code[10];
-        WIPQtyBase: Decimal;
-        WIPQtyInUOM: Decimal;
-        WIPSourceQtyDict: Dictionary of [Code[10], Decimal];
-        WIPSourceLocationList: List of [Code[10]];
+        SubcontractingManagement: Codeunit "Subcontracting Management";
     begin
         if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
-
         if not ProdOrderRoutingLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.",
                 PurchaseLine."Routing Reference No.", PurchaseLine."Routing No.", PurchaseLine."Operation No.")
         then
             exit(false);
-
-        if not ProdOrderRoutingLine."Transfer WIP Item" then
-            exit(false);
-
-        if WIPReturnTransferLineAlreadyExists(PurchaseLine) then
-            exit(false);
-
-        CompanyWHLocationCode := ProdOrderLine."Location Code";
-        GetWIPReturnFromLocations(ProdOrderLine, ProdOrderRoutingLine, WIPSourceLocationList, WIPSourceQtyDict);
-
-        if WIPSourceLocationList.Count() = 0 then
-            exit(false);
-
+        TempWIPPlan.Reset();
+        TempWIPPlan.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        TempWIPPlan.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
         if not InsertLine then
-            exit(true);
-
-        Item.SetLoadFields("Base Unit of Measure", "Rounding Precision", Description, "Description 2");
-        Item.Get(ProdOrderLine."Item No.");
-
-        foreach TransferFromLoc in WIPSourceLocationList do begin
-            WIPQtyBase := WIPSourceQtyDict.Get(TransferFromLoc);
-            if ProdOrderLine."Qty. per Unit of Measure" <> 0 then
-                WIPQtyInUOM := Round(WIPQtyBase / ProdOrderLine."Qty. per Unit of Measure", UOMManagement.QtyRndPrecision())
-            else
-                WIPQtyInUOM := Round(WIPQtyBase, UOMManagement.QtyRndPrecision());
-            if WIPQtyInUOM > 0 then begin
-                InsertTransferHeader(TransferFromLoc, CompanyWHLocationCode);
-                InsertWIPReturnTransferLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine, WIPQtyInUOM);
-            end;
-        end;
-
+            exit(not TempWIPPlan.IsEmpty());
+        if TempWIPPlan.FindSet() then
+            repeat
+                SubcontractingManagement.CheckWIPSelection(PurchaseLine, TempSelectedPurchaseLine, TempProductionLine, TempRouting, SourceVersions);
+                TempWIPPlan.TestField("Transfer-to Code", ProdOrderLine."Location Code");
+                TempWIPPlan.TestField("Item No.", ProdOrderLine."Item No.");
+                TempWIPPlan.TestField("Variant Code", ProdOrderLine."Variant Code");
+                TempWIPPlan.TestField("Unit of Measure Code", ProdOrderLine."Unit of Measure Code");
+                if SubcontractingManagement.WIPQuantityBase(ProdOrderLine, TempWIPPlan."Unit of Measure Code", TempWIPPlan.Quantity) <> TempWIPPlan."Quantity (Base)" then
+                    Error(WIPSourceEvidenceErr, ProdOrderRoutingLine."Operation No.", ProdOrderLine."Prod. Order No.", TempWIPPlan."Transfer-from Code", '');
+                InsertTransferHeader(TempWIPPlan."Transfer-from Code", TempWIPPlan."Transfer-to Code");
+                InsertWIPReturnTransferLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine, TempWIPPlan.Quantity, TempWIPPlan."Quantity (Base)");
+            until TempWIPPlan.Next() = 0;
         exit(false);
     end;
 
-    local procedure GetWIPReturnFromLocations(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var WIPSourceLocationList: List of [Code[10]]; var WIPSourceQtyList: Dictionary of [Code[10], Decimal])
+    local procedure PlanWIPReturn(PurchaseLine: Record "Purchase Line"): Boolean
     var
-        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        ProductionLine: Record "Prod. Order Line";
+        Routing: Record "Prod. Order Routing Line";
+        Header: Record "Purchase Header";
+        PurchaseVendor: Record Vendor;
+        Entry, LocationEntry: Record "Subcontractor WIP Ledger Entry";
+        PlannedLine: Record "Transfer Line" temporary;
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+        Locations: List of [Code[10]];
         LocationCode: Code[10];
+        Available, ActualBase, DocumentQuantity: Decimal;
+        Planned: Boolean;
     begin
-        WIPLedgerEntry.SetRange("Prod. Order Status", "Production Order Status"::Released);
-        WIPLedgerEntry.SetRange("Prod. Order No.", ProdOrderLine."Prod. Order No.");
-        WIPLedgerEntry.SetRange("Prod. Order Line No.", ProdOrderLine."Line No.");
-        WIPLedgerEntry.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
-        WIPLedgerEntry.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        WIPLedgerEntry.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
-        WIPLedgerEntry.SetRange("In Transit", false);
-        if WIPLedgerEntry.FindSet() then
+        if not ProductionLine.Get(ProductionLine.Status::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
+            exit(false);
+        if not Routing.Get(Routing.Status::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Routing Reference No.", PurchaseLine."Routing No.", PurchaseLine."Operation No.") then
+            exit(false);
+        if not Routing."Transfer WIP Item" or WIPReturnTransferLineAlreadyExists(PurchaseLine) then
+            exit(false);
+        Header.ReadIsolation := IsolationLevel::UpdLock;
+        Header.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        if Header.SystemRowVersion <> SourceVersions.Get(Format(Header.RecordId)) then
+            Error(WIPSourceEvidenceErr, Routing."Operation No.", ProductionLine."Prod. Order No.", '', Header."No.");
+        PurchaseVendor.ReadIsolation := IsolationLevel::UpdLock;
+        PurchaseVendor.Get(Header."Buy-from Vendor No.");
+        SubcontractingManagement.FilterWIPSourceIdentity(Entry, ProductionLine, Routing);
+        Entry.SetRange("In Transit", false);
+        if Entry.FindSet() then
             repeat
-                LocationCode := WIPLedgerEntry."Location Code";
-                if WIPSourceQtyList.ContainsKey(LocationCode) then
-                    WIPSourceQtyList.Set(LocationCode, WIPSourceQtyList.Get(LocationCode) + WIPLedgerEntry."Quantity (Base)")
-                else begin
-                    WIPSourceLocationList.Add(LocationCode);
-                    WIPSourceQtyList.Add(LocationCode, WIPLedgerEntry."Quantity (Base)");
+                LocationCode := Entry."Location Code";
+                if not Locations.Contains(LocationCode) then begin
+                    Locations.Add(LocationCode);
+                    LocationEntry.CopyFilters(Entry);
+                    LocationEntry.ReadIsolation := IsolationLevel::UpdLock;
+                    LocationEntry.SetRange("Location Code", LocationCode);
+                    LocationEntry.CalcSums("Quantity (Base)");
+                    Available := LocationEntry."Quantity (Base)";
+                    if Available > 0 then begin
+                        Available -= SubcontractingManagement.CheckWIPSourceEvidence(ProductionLine, Routing, Routing."Operation No.", LocationCode);
+                        // Return spends current-operation stock and includes every forward writer, including the same order.
+                        Available -= SubcontractingManagement.GetWIPSourceCommitment(ProductionLine, Routing, Routing."Operation No.", LocationCode, PurchaseLine, false);
+                        PlannedLine.Copy(TempWIPPlan, true);
+                        PlannedLine.Reset();
+                        PlannedLine.SetRange("Subc. Prod. Order No.", ProductionLine."Prod. Order No.");
+                        PlannedLine.SetRange("Subc. Prod. Order Line No.", ProductionLine."Line No.");
+                        PlannedLine.SetRange("Subc. Routing No.", Routing."Routing No.");
+                        PlannedLine.SetRange("Subc. Routing Reference No.", Routing."Routing Reference No.");
+                        PlannedLine.SetRange("Subc. Operation No.", Routing."Operation No.");
+                        PlannedLine.SetRange("Item No.", ProductionLine."Item No.");
+                        PlannedLine.SetRange("Variant Code", ProductionLine."Variant Code");
+                        PlannedLine.SetRange("Transfer-from Code", LocationCode);
+                        PlannedLine.CalcSums("Quantity (Base)");
+                        Available -= PlannedLine."Quantity (Base)";
+                        if Available > 0 then begin
+                            DocumentQuantity := SubcontractingManagement.RoundWIPPlanQuantity(ProductionLine, ProductionLine."Unit of Measure Code", Available, Available, Routing."Operation No.", LocationCode, ActualBase);
+                            if DocumentQuantity > 0 then begin
+                                WIPPlanLineNo += 1;
+                                TempWIPPlan.Reset();
+                                TempWIPPlan.Init();
+                                TempWIPPlan."Line No." := WIPPlanLineNo;
+                                TempWIPPlan."Subc. Purch. Order No." := PurchaseLine."Document No.";
+                                TempWIPPlan."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
+                                TempWIPPlan."Subc. Prod. Order No." := ProductionLine."Prod. Order No.";
+                                TempWIPPlan."Subc. Prod. Order Line No." := ProductionLine."Line No.";
+                                TempWIPPlan."Subc. Routing No." := Routing."Routing No.";
+                                TempWIPPlan."Subc. Routing Reference No." := Routing."Routing Reference No.";
+                                TempWIPPlan."Subc. Operation No." := Routing."Operation No.";
+                                TempWIPPlan."Subc. Work Center No." := Routing."Work Center No.";
+                                TempWIPPlan."Item No." := ProductionLine."Item No.";
+                                TempWIPPlan."Variant Code" := ProductionLine."Variant Code";
+                                TempWIPPlan."Unit of Measure Code" := ProductionLine."Unit of Measure Code";
+                                TempWIPPlan."Transfer-from Code" := LocationCode;
+                                TempWIPPlan."Transfer-to Code" := ProductionLine."Location Code";
+                                TempWIPPlan."Subc. Return Order" := true;
+                                TempWIPPlan.Quantity := DocumentQuantity;
+                                TempWIPPlan."Quantity (Base)" := ActualBase;
+                                TempWIPPlan.Insert();
+                                Planned := true;
+                            end;
+                        end;
+                    end;
                 end;
-            until WIPLedgerEntry.Next() = 0;
+            until Entry.Next() = 0;
+        exit(Planned);
     end;
 
-    local procedure InsertWIPReturnTransferLine(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; WIPQty: Decimal)
+    local procedure InsertWIPReturnTransferLine(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; WIPQty: Decimal; PlannedBase: Decimal)
     begin
+        TransferHeader.TestField("Transfer-from Code", TempWIPPlan."Transfer-from Code");
+        TransferHeader.TestField("Transfer-to Code", TempWIPPlan."Transfer-to Code");
         LineNo := LineNo + 10000;
 
         TransferLine.Init();
@@ -391,6 +502,9 @@ report 20502 "Subc. Create SubCReturnOrder"
         TransferLine.Validate("Unit of Measure Code", ProdOrderLine."Unit of Measure Code");
         TransferLine.Validate("Transfer WIP Item", true);
         TransferLine.Validate(Quantity, WIPQty);
+        TransferLine.TestField(Quantity, WIPQty);
+        if TransferLine.CalcBaseQty(TransferLine.Quantity) <> PlannedBase then
+            Error(WIPSourceEvidenceErr, ProdOrderRoutingLine."Operation No.", ProdOrderLine."Prod. Order No.", TransferHeader."Transfer-from Code", '');
 
         if ProdOrderRoutingLine."Transfer Description" <> '' then
             TransferLine.Description := ProdOrderRoutingLine."Transfer Description";
@@ -415,10 +529,15 @@ report 20502 "Subc. Create SubCReturnOrder"
     var
         TransferLineToCheck: Record "Transfer Line";
     begin
+        TransferLineToCheck.ReadIsolation := IsolationLevel::UpdLock;
         TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
         TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
         TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLineToCheck.SetRange("Subc. Routing No.", PurchaseLine."Routing No.");
+        TransferLineToCheck.SetRange("Subc. Routing Reference No.", PurchaseLine."Routing Reference No.");
         TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
+        TransferLineToCheck.SetRange("Item No.", PurchaseLine."No.");
+        TransferLineToCheck.SetRange("Variant Code", PurchaseLine."Variant Code");
         TransferLineToCheck.SetRange("Derived From Line No.", 0);
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
         TransferLineToCheck.SetRange("Subc. Return Order", true);

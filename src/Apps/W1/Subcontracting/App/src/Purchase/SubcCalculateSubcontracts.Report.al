@@ -47,7 +47,19 @@ report 20505 "Subc. Calculate Subcontracts"
                 end;
 
                 trigger OnAfterGetRecord()
+                var
+                    FilteredVendor: Record "Work Center" temporary;
                 begin
+                    if SubcontractorFilter <> '' then begin
+                        FilteredVendor."No." := "Work Center"."No.";
+                        FilteredVendor."Subcontractor No." := "Prod. Order Routing Line".GetEffectiveSubcontractorNo();
+                        FilteredVendor.Insert();
+                        FilteredVendor.SetFilter("Subcontractor No.", SubcontractorFilter);
+                        if FilteredVendor.IsEmpty() then begin
+                            CurrReport.Skip();
+                            exit;
+                        end;
+                    end;
                     TempProdOrderRoutingLine.Init();
                     TempProdOrderRoutingLine := "Prod. Order Routing Line";
                     TempProdOrderRoutingLine.Insert();
@@ -64,6 +76,8 @@ report 20505 "Subc. Calculate Subcontracts"
 
             trigger OnPreDataItem()
             begin
+                SubcontractorFilter := GetFilter("Subcontractor No.");
+                SetRange("Subcontractor No.");
                 TempProdOrderRoutingLine.DeleteAll();
                 ReqLine.SetRange("Worksheet Template Name", ReqLine."Worksheet Template Name");
                 ReqLine.SetRange("Journal Batch Name", ReqLine."Journal Batch Name");
@@ -154,6 +168,7 @@ report 20505 "Subc. Calculate Subcontracts"
         QtyToPurch: Decimal;
         GLSetupRead: Boolean;
         IsReadinessGateOn: Boolean;
+        SubcontractorFilter: Text;
 
         ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
         ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
@@ -239,7 +254,7 @@ report 20505 "Subc. Calculate Subcontracts"
         ReqLine."Routing No." := ProdOrderRoutingLine."Routing No.";
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
-        ReqLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        ReqLine.Validate("Vendor No.", ProdOrderRoutingLine.GetEffectiveSubcontractorNo());
         SubcontractingManagement.SetSubcontractingOrderDate(ReqLine, ProdOrderRoutingLine."Starting Date");
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";

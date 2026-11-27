@@ -8,8 +8,11 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using System.Security.User;
+using System.Utilities;
 
 page 20504 "Subc. Subcontracting Worksheet"
 {
@@ -152,6 +155,7 @@ page 20504 "Subc. Subcontracting Worksheet"
 
                     trigger OnValidate()
                     begin
+                        OfferOperationSubcontractorChange();
                         ReqJnlManagement.GetDescriptionAndRcptName(Rec, Description2, BuyFromVendorName);
                     end;
                 }
@@ -478,10 +482,87 @@ page 20504 "Subc. Subcontracting Worksheet"
         OpenedFromBatch: Boolean;
         VariantCodeMandatory: Boolean;
         CanShowPurchaseOrder: Boolean;
+        UpdateSubcontractorQst: Label 'Do you want to update the subcontractor on operation %1 of production order %2 from %3 to %4?', Comment = '%1 = operation number, %2 = production order number, %3 = current operation subcontractor, %4 = replacement vendor number';
+        OperationChangedErr: Label 'Operation %1 of production order %2 has changed. Reopen the worksheet and try again.', Comment = '%1 = operation number, %2 = production order number';
 
     protected var
         Description2: Text[100];
         BuyFromVendorName: Text[100];
+
+    local procedure OfferOperationSubcontractorChange()
+    var
+        Routing, Snapshot: Record "Prod. Order Routing Line";
+        ProductionLine, LineSnapshot: Record "Prod. Order Line";
+        WorkCenter: Record "Work Center";
+        ReqLineExtension: Codeunit "Subc. Req.Line Extension";
+        ConfirmManagement: Codeunit "Confirm Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+#if not CLEAN28
+#pragma warning disable AL0432
+        FeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        CurrentVendor: Code[20];
+        WorkCenterRowVersion: BigInteger;
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not FeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if (Rec."Vendor No." = '') or (xRec."Vendor No." = '') or
+           (Rec."Vendor No." = xRec."Vendor No.") or not ReqLineExtension.IsProductionSuggestion(Rec)
+        then
+            exit;
+        if not GetLinkedOperation(Routing, ProductionLine) then
+            exit;
+        CurrentVendor := Routing.GetEffectiveSubcontractorNo();
+        if (CurrentVendor = '') or (CurrentVendor = Rec."Vendor No.") then
+            exit;
+        WorkCenter.Get(Routing."No.");
+        WorkCenterRowVersion := WorkCenter.SystemRowVersion;
+        Snapshot := Routing;
+        LineSnapshot := ProductionLine;
+        if not ConfirmManagement.GetResponseOrDefault(
+             StrSubstNo(UpdateSubcontractorQst, Routing."Operation No.", Routing."Prod. Order No.", CurrentVendor, Rec."Vendor No."), false)
+        then
+            exit;
+
+        SubcontractingManagement.ProtectOperationChange(Routing);
+        ProductionLine.ReadIsolation := IsolationLevel::UpdLock;
+        Routing.ReadIsolation := IsolationLevel::UpdLock;
+        WorkCenter.ReadIsolation := IsolationLevel::UpdLock;
+        if not GetLinkedOperation(Routing, ProductionLine) then
+            Error(OperationChangedErr, Snapshot."Operation No.", Snapshot."Prod. Order No.");
+        WorkCenter.Get(Routing."No.");
+        if (Routing.SystemRowVersion <> Snapshot.SystemRowVersion) or
+           (ProductionLine.SystemRowVersion <> LineSnapshot.SystemRowVersion) or
+           (WorkCenter.SystemRowVersion <> WorkCenterRowVersion) or
+           (Routing.GetEffectiveSubcontractorNo() <> CurrentVendor)
+        then
+            Error(OperationChangedErr, Snapshot."Operation No.", Snapshot."Prod. Order No.");
+        Routing.SetOperationSubcontractor(Rec."Vendor No.");
+    end;
+
+    local procedure GetLinkedOperation(var Routing: Record "Prod. Order Routing Line"; var ProductionLine: Record "Prod. Order Line"): Boolean
+    begin
+        if (Rec."Ref. Order Type" = Rec."Ref. Order Type"::"Prod. Order") and
+           ((Rec."Ref. Order Status" <> Rec."Ref. Order Status"::Released) or
+            (Rec."Ref. Order No." <> Rec."Prod. Order No."))
+        then
+            exit(false);
+        if not ProductionLine.Get(ProductionLine.Status::Released, Rec."Prod. Order No.", Rec."Prod. Order Line No.") then
+            exit(false);
+        if (ProductionLine."Routing No." <> Rec."Routing No.") or
+           (ProductionLine."Routing Reference No." <> Rec."Routing Reference No.")
+        then
+            exit(false);
+        if not Routing.Get(Routing.Status::Released, Rec."Prod. Order No.", Rec."Routing Reference No.", Rec."Routing No.", Rec."Operation No.") then
+            exit(false);
+        exit((Routing.Type = Routing.Type::"Work Center") and (Routing."Routing Status" < Routing."Routing Status"::Finished) and
+             (Routing."No." = Rec."Work Center No.") and (Routing."Work Center No." = Rec."Work Center No."));
+    end;
 
     local procedure UpdateCanShowPurchaseOrder()
     begin

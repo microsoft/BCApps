@@ -253,10 +253,10 @@ codeunit 20508 "Subc. Price Management"
 
         WorkCenter.Get(ProdOrderRoutingLine."No.");
 
-        if (WorkCenter."Subcontractor No." = '') and (ProdOrderRoutingLine."Vendor No. Subc. Price" = '') then
+        if (ProdOrderRoutingLine.GetEffectiveSubcontractorNo() = '') and (ProdOrderRoutingLine."Vendor No. Subc. Price" = '') then
             exit;
 
-        VendorNo := WorkCenter."Subcontractor No.";
+        VendorNo := ProdOrderRoutingLine.GetEffectiveSubcontractorNo();
         if ProdOrderRoutingLine."Vendor No. Subc. Price" <> '' then
             VendorNo := ProdOrderRoutingLine."Vendor No. Subc. Price";
 

@@ -63,6 +63,15 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
             FieldClass = FlowField;
             ToolTip = 'Specifies whether the Work Center Group is set up with a Vendor for Subcontracting.';
         }
+        field(20552; "Subc. Subcontractor No."; Code[20])
+        {
+            AllowInCustomizations = AsReadOnly;
+            Caption = 'Operation Subcontractor No.';
+            DataClassification = CustomerContent;
+            Editable = false;
+            TableRelation = Vendor;
+            ToolTip = 'Specifies the subcontractor selected for this production operation while the work center is configured for subcontracting. If empty, the work center subcontractor is used. The selection is retained when subcontracting is disabled.';
+        }
         field(20560; "Transfer WIP Item"; Boolean)
         {
             AllowInCustomizations = AsReadWrite;
@@ -144,6 +153,49 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
     trigger OnBeforeDelete()
     begin
         CheckForSubcontractingPurchaseLineTypeMismatchOnDeleteLine();
+    end;
+
+    internal procedure GetEffectiveSubcontractorNo(): Code[20]
+    var
+        WorkCenter: Record "Work Center";
+    begin
+        if (Type <> Type::"Work Center") or ("No." = '') or ("Work Center No." <> "No.") then
+            exit('');
+        if not WorkCenter.Get("No.") then
+            exit('');
+        if WorkCenter."Subcontractor No." = '' then
+            exit('');
+        if "Subc. Subcontractor No." <> '' then
+            exit("Subc. Subcontractor No.");
+        exit(WorkCenter."Subcontractor No.");
+    end;
+
+    internal procedure SetOperationSubcontractor(VendorNo: Code[20])
+    var
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcProdOrderRtngExt: Codeunit "Subc. Prod. Order Rtng. Ext.";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+    begin
+        SubcontractingManagement.ProtectOperationChange(Rec);
+        TestField(Status, Status::Released);
+        TestField(Type, Type::"Work Center");
+        TestField("Work Center No.", "No.");
+        TestField("No.");
+        if "Routing Status" >= "Routing Status"::Finished then
+            FieldError("Routing Status");
+        WorkCenter.ReadIsolation := IsolationLevel::UpdLock;
+        WorkCenter.Get("No.");
+        WorkCenter.TestField("Subcontractor No.");
+        Vendor.ReadIsolation := IsolationLevel::UpdLock;
+        Vendor.Get(VendorNo);
+        if Vendor.Blocked = Vendor.Blocked::All then
+            Vendor.VendBlockedErrorMessage(Vendor, false);
+        Vendor.TestField("Privacy Blocked", false);
+        Vendor.TestField("Subc. Location Code");
+        SubcProdOrderRtngExt.CheckOperationSubcontractorChange(Rec, Vendor);
+        Validate("Subc. Subcontractor No.", VendorNo);
+        Modify(true);
     end;
 
     var

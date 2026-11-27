@@ -229,6 +229,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
 #pragma warning restore AL0432
             exit;
 #endif
+        SubcontractingManagement.CheckNewSubcontractingPurchase(RequisitionLine);
         GetManufacturingSetup();
         ProdOrderRoutingLine.SetLoadFields("Work Center No.", Status, "Prod. Order No.", "Routing Link Code");
         if ProdOrderRoutingLine.Get("Production Order Status"::Released, RequisitionLine."Prod. Order No.", RequisitionLine."Routing Reference No.", RequisitionLine."Routing No.", RequisitionLine."Operation No.") then begin
@@ -409,7 +410,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
 
         Vendor.SetLoadFields("Subc. Location Code");
-        if not Vendor.Get(WorkCenter."Subcontractor No.") then
+        if not Vendor.Get(ProdOrderRoutingLine.GetEffectiveSubcontractorNo()) then
             exit(true);
 
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
@@ -713,7 +714,7 @@ codeunit 20557 "Subc. Purchase Order Creator"
         RequisitionLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
         RequisitionLine."Variant Code" := ProdOrderLine."Variant Code";
 
-        RequisitionLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
+        RequisitionLine.Validate("Vendor No.", ProdOrderRoutingLine.GetEffectiveSubcontractorNo());
         SubcontractingManagement.SetSubcontractingOrderDate(RequisitionLine, ProdOrderRoutingLine."Starting Date");
 
         RequisitionLine.Description := ProdOrderRoutingLine.Description;
