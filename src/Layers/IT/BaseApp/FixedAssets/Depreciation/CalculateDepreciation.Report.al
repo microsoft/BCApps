@@ -164,6 +164,9 @@ report 5692 "Calculate Depreciation"
             var
                 NeedCommit: Boolean;
             begin
+#if not CLEAN30
+                SyncObsoletePostingDescription();
+#endif
                 if TempFAJnlLine.Find('-') then begin
                     NeedCommit := true;
                     FAJnlLine.LockTable();
@@ -199,7 +202,7 @@ report 5692 "Calculate Depreciation"
                         else
                             FAJnlLine."Document No." := TempFAJnlLine."Document No.";
                         FAJnlLine."Posting No. Series" := NoSeries;
-                        FAJnlLine.Description := PostingDescriptionTxt;
+                        FAJnlLine.Description := PostingDescription;
                         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 1" then
                             FAJnlLine.Description := PostingDescriptionTxt2;
                         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 2" then
@@ -246,7 +249,7 @@ report 5692 "Calculate Depreciation"
                         GenJnlLine."FA Posting Type" := TempGenJnlLine."FA Posting Type";
                         GenJnlLine."Account Type" := GenJnlLine."Account Type"::"Fixed Asset";
                         GenJnlLine.Validate("Account No.", TempGenJnlLine."Account No.");
-                        GenJnlLine.Description := PostingDescriptionTxt;
+                        GenJnlLine.Description := PostingDescription;
                         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 1" then
                             GenJnlLine.Description := PostingDescriptionTxt2;
                         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 2" then
@@ -374,11 +377,18 @@ report 5692 "Calculate Depreciation"
                             Caption = 'Document No.';
                             ToolTip = 'Specifies, if you leave the field empty, the next available number on the resulting journal line. If a number series is not set up, enter the document number that you want assigned to the resulting journal line.';
                         }
-                        field(PostingDescription; PostingDescriptionTxt)
+                        field(PostingDescription; PostingDescription)
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Posting Description';
                             ToolTip = 'Specifies the posting date to be used by the batch job as a filter.';
+#if not CLEAN30
+
+                            trigger OnValidate()
+                            begin
+                                SyncObsoletePostingDescription();
+                            end;
+#endif
                         }
                     }
                     group("Anticipated Depreciation")
@@ -550,6 +560,9 @@ report 5692 "Calculate Depreciation"
               DeprBook.Code);
         if GuiAllowed() then
             Window.Open(Text003 + Text004 + Text005);
+#if not CLEAN30
+        SyncObsoletePostingDescription();
+#endif
     end;
 
     var
@@ -623,6 +636,9 @@ report 5692 "Calculate Depreciation"
 #pragma warning restore AA0074
         FADeprBookBonusDepreciationApplied: Dictionary of [RecordId, Boolean];
         FADeprBookBonusDepreciationAmount: Dictionary of [RecordId, Decimal];
+#if not CLEAN30
+        LastSyncedPostingDescription: Text[100];
+#endif
 
     protected var
         DeprBookCode: Code[10];
@@ -632,7 +648,11 @@ report 5692 "Calculate Depreciation"
         PostingDate: Date;
 #pragma warning disable AS0108
         DocumentNo: Code[20];
+        PostingDescription: Text[100];
+#if not CLEAN30
+        [Obsolete('Use PostingDescription instead.', '30.0')]
         PostingDescriptionTxt: Text[100];
+#endif
 #pragma warning restore AS0108
         BalAccount: Boolean;
 
@@ -644,9 +664,27 @@ report 5692 "Calculate Depreciation"
         DaysInPeriod := DaysInPeriodFrom;
         PostingDate := PostingDateFrom;
         DocumentNo := DocumentNoFrom;
-        PostingDescriptionTxt := PostingDescriptionFrom;
+        PostingDescription := PostingDescriptionFrom;
         BalAccount := BalAccountFrom;
+#if not CLEAN30
+        SyncObsoletePostingDescription();
+#endif
     end;
+
+#if not CLEAN30
+#pragma warning disable AL0432
+    local procedure SyncObsoletePostingDescription()
+    begin
+        // Keeps the obsolete PostingDescriptionTxt in sync with PostingDescription, so that extensions using either name keep working.
+        if PostingDescription <> LastSyncedPostingDescription then
+            PostingDescriptionTxt := PostingDescription
+        else
+            if PostingDescriptionTxt <> LastSyncedPostingDescription then
+                PostingDescription := PostingDescriptionTxt;
+        LastSyncedPostingDescription := PostingDescription;
+    end;
+#pragma warning restore AL0432
+#endif
 
     local procedure ActivateErrorMessageHandling(var FixedAsset: Record "Fixed Asset")
     var
@@ -737,7 +775,7 @@ report 5692 "Calculate Depreciation"
         else
             FAJnlLine."Document No." := TempFAJnlLine."Document No.";
         FAJnlLine."Posting No. Series" := NoSeries;
-        FAJnlLine.Description := PostingDescriptionTxt;
+        FAJnlLine.Description := PostingDescription;
         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 1" then
             FAJnlLine.Description := PostingDescriptionTxt2;
         if FAJnlLine."FA Posting Type" = FAJnlLine."FA Posting Type"::"Custom 2" then
@@ -813,7 +851,7 @@ report 5692 "Calculate Depreciation"
         GenJnlLine."Account Type" := GenJnlLine."Account Type"::"Fixed Asset";
         GenJnlLine.Validate("Account No.", TempGenJnlLine."Account No.");
         GenJnlLine."Posting No. Series" := NoSeries;
-        GenJnlLine.Description := PostingDescriptionTxt;
+        GenJnlLine.Description := PostingDescription;
         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 1" then
             GenJnlLine.Description := PostingDescriptionTxt2;
         if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::"Custom 2" then
