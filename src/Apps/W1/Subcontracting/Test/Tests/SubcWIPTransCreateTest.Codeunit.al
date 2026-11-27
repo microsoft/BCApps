@@ -4,8 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Transfer;
@@ -2126,11 +2129,11 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseLine: Record "Purchase Line";
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
-        ReusedReturnNo: Code[20];
+        OtherReturnNo: Code[20];
         PurchaseOrder: TestPage "Purchase Order";
     begin
         // [FEATURE] [AI test 0.3] [Subcontracting] [WIP Return]
-        // [SCENARIO] A return originating from another purchase order is included through current-order lines.
+        // [SCENARIO 653930] Returns from another purchase order remain excluded from current-order navigation.
         Initialize();
         LibraryVariableStorage.Clear();
 
@@ -2150,24 +2153,152 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         TransferLine.SetRange("Subc. Purch. Order No.", OtherPurchaseHeader."No.");
         TransferLine.SetRange("Subc. Return Order", true);
         TransferLine.FindFirst();
-        ReusedReturnNo := TransferLine."Document No.";
+        OtherReturnNo := TransferLine."Document No.";
         CreateOutboundNavigationDecoy(PurchaseHeader);
 
-        // [WHEN] "P1" creates its returns, reusing the existing open header.
+        // [WHEN] "P1" creates its returns while "P2" has a matching open header.
         PurchaseOrder.GoToRecord(PurchaseHeader);
         PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
 
-        // [THEN] The reused header keeps "P2" as its origin but has a return line linked to "P1".
-        TransferHeader.Get(ReusedReturnNo);
-        Assert.AreEqual(OtherPurchaseHeader."No.", TransferHeader."Subcontr. Purch. Order No.", 'The reused header must retain its original purchase order.');
+        // [THEN] "P1" does not reuse the "P2" header.
         TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader."No.");
-        TransferLine.SetRange("Document No.", ReusedReturnNo);
-        Assert.RecordCount(TransferLine, 1);
+        TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.FindSet();
+        repeat
+            Assert.AreNotEqual(OtherReturnNo, TransferLine."Document No.", 'The current purchase order must not reuse another purchase order''s return header.');
+            TransferHeader.Get(TransferLine."Document No.");
+            Assert.AreEqual(PurchaseHeader."No.", TransferHeader."Subcontr. Purch. Order No.", 'The return header must belong to the current purchase order.');
+        until TransferLine.Next() = 0;
 
-        // [THEN] Both distinct return numbers appear in the list, excluding the outbound order.
+        // [THEN] Only the two current-order return numbers appear in the list, excluding outbound and "P2" orders.
         VerifyReturnNavigation(PurchaseHeader, 2, 'List');
         PurchaseOrder.Close();
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleTransferOrder')]
+    procedure ReturnFromDistinctProductionOrdersKeepsComponentAndWIPIsolation()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: array[2] of Record "Production Order";
+        PurchaseHeader: array[2] of Record "Purchase Header";
+        TransferHeader: array[2] of Record "Transfer Header";
+        ReturnHeader: array[2] of Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        ComponentLineCount: array[2] of Integer;
+        ComponentQuantity: array[2] of Decimal;
+        OtherReturnLineCount: Integer;
+        OtherReturnQuantity: Decimal;
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        // [FEATURE] [Subcontracting] [WIP Return]
+        // [SCENARIO 653930] Distinct production orders retain their component and WIP return quantities and references.
+        Initialize();
+
+        // [GIVEN] Two distinct production orders use the same subcontractor and transfer locations, with quantities 10 and 15.
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        CreateAndUpdateTransferRoute(Location.Code, Vendor."Subc. Location Code");
+
+        CreateAndPostReturnTransferSource(
+            Item, WorkCenter[2], Location, 10, ProductionOrder[1], PurchaseHeader[1], TransferHeader[1],
+            ComponentLineCount[1], ComponentQuantity[1]);
+        CreateAndPostReturnTransferSource(
+            Item, WorkCenter[2], Location, 15, ProductionOrder[2], PurchaseHeader[2], TransferHeader[2],
+            ComponentLineCount[2], ComponentQuantity[2]);
+        Assert.AreNotEqual(ProductionOrder[1]."No.", ProductionOrder[2]."No.", 'The regression must use distinct production orders.');
+        Assert.AreNotEqual(PurchaseHeader[1]."No.", PurchaseHeader[2]."No.", 'The regression must use distinct purchase orders.');
+        Assert.IsTrue(ComponentLineCount[2] > 0, 'The selected order must contain transferred components.');
+        Assert.IsTrue(ComponentQuantity[2] > 0, 'The selected order must contain a positive component quantity.');
+
+        // [WHEN] PO-A creates its return while PO-B has not created one yet.
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader[1]);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        ReturnHeader[1].SetRange("Subcontr. Purch. Order No.", PurchaseHeader[1]."No.");
+        ReturnHeader[1].SetRange("Subc. Return Order", true);
+        ReturnHeader[1].FindFirst();
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader[1]."No.");
+        TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.SetRange("Derived From Line No.", 0);
+        Assert.RecordCount(TransferLine, ComponentLineCount[1] + 1);
+        if TransferLine.FindSet() then
+            repeat
+                Assert.AreEqual(ProductionOrder[1]."No.", TransferLine."Subc. Prod. Order No.", 'PO-A return line must reference PO-A''s production order.');
+            until TransferLine.Next() = 0;
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", false);
+#pragma warning restore AA0210
+        TransferLine.CalcSums(Quantity);
+        Assert.AreEqual(ComponentQuantity[1], TransferLine.Quantity, 'PO-A component return quantity must match its posted outbound components.');
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        TransferLine.FindFirst();
+        Assert.AreEqual(10, TransferLine.Quantity, 'PO-A WIP return quantity must match PO-A.');
+
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item");
+#pragma warning restore AA0210
+        OtherReturnLineCount := TransferLine.Count();
+        TransferLine.CalcSums(Quantity);
+        OtherReturnQuantity := TransferLine.Quantity;
+
+        // [WHEN] PO-B creates its return with PO-A's matching open return still available.
+        PurchaseOrder.GoToRecord(PurchaseHeader[2]);
+        PurchaseOrder.CreateReturnFromSubcontractor.Invoke();
+        ReturnHeader[2].SetRange("Subcontr. Purch. Order No.", PurchaseHeader[2]."No.");
+        ReturnHeader[2].SetRange("Subc. Return Order", true);
+        ReturnHeader[2].FindFirst();
+
+        // [THEN] PO-B contains only its own component and WIP lines with the posted quantities.
+        Assert.AreNotEqual(ReturnHeader[1]."No.", ReturnHeader[2]."No.", 'Distinct purchase orders must use distinct return headers.');
+        TransferLine.Reset();
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader[2]."No.");
+        TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.SetRange("Derived From Line No.", 0);
+        Assert.RecordCount(TransferLine, ComponentLineCount[2] + 1);
+        if TransferLine.FindSet() then
+            repeat
+                Assert.AreEqual(ProductionOrder[2]."No.", TransferLine."Subc. Prod. Order No.", 'Return line must reference PO-B''s production order.');
+                Assert.AreEqual(PurchaseHeader[2]."No.", TransferLine."Subc. Purch. Order No.", 'Return line must reference PO-B.');
+            until TransferLine.Next() = 0;
+
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", false);
+#pragma warning restore AA0210
+        Assert.RecordCount(TransferLine, ComponentLineCount[2]);
+        TransferLine.CalcSums(Quantity);
+        Assert.AreEqual(ComponentQuantity[2], TransferLine.Quantity, 'PO-B component return quantity must match its posted outbound components.');
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        Assert.RecordCount(TransferLine, 1);
+        TransferLine.FindFirst();
+        Assert.AreEqual(15, TransferLine.Quantity, 'PO-B WIP return quantity must match PO-B.');
+
+        // [THEN] PO-A's return remains unchanged and contains no PO-B lines.
+        TransferLine.Reset();
+        TransferLine.SetRange("Document No.", ReturnHeader[1]."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        Assert.RecordCount(TransferLine, OtherReturnLineCount);
+        TransferLine.CalcSums(Quantity);
+        Assert.AreEqual(OtherReturnQuantity, TransferLine.Quantity, 'Creating PO-B''s return must not change PO-A''s return quantity.');
+        TransferLine.SetRange("Subc. Purch. Order No.", PurchaseHeader[2]."No.");
+        Assert.RecordIsEmpty(TransferLine);
+
+        PurchaseOrder.Close();
     end;
 
     [Test]
@@ -2326,6 +2457,96 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     begin
         ManufacturingSetup.Get();
         exit(ManufacturingSetup."Components at Location");
+    end;
+
+    local procedure CreateAndPostReturnTransferSource(
+        Item: Record Item;
+        WorkCenter: Record "Work Center";
+        Location: Record Location;
+        Quantity: Decimal;
+        var ProductionOrder: Record "Production Order";
+        var PurchaseHeader: Record "Purchase Header";
+        var TransferHeader: Record "Transfer Header";
+        var ComponentLineCount: Integer;
+        var ComponentQuantity: Decimal)
+    var
+        Component: Record "Prod. Order Component";
+        ComponentItem: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        PurchaseOrder: TestPage "Purchase Order";
+    begin
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+
+        Component.SetRange(Status, ProductionOrder.Status);
+        Component.SetRange("Prod. Order No.", ProductionOrder."No.");
+#pragma warning disable AA0210
+        Component.SetRange("Component Supply Method", Component."Component Supply Method"::"Transfer to Vendor");
+#pragma warning restore AA0210
+        if Component.FindSet(true) then
+            repeat
+                Component.Validate("Location Code", Location.Code);
+                Component.Modify(true);
+            until Component.Next() = 0;
+
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(
+            Item."Routing No.", WorkCenter."No.", ProductionOrder."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        PurchaseOrder.OpenView();
+        PurchaseOrder.GoToRecord(PurchaseHeader);
+        PurchaseOrder.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseOrder.Close();
+
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.SetRange("Subc. Return Order", false);
+        TransferHeader.FindFirst();
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        TransferLine.SetRange("Derived From Line No.", 0);
+        TransferLine.FindSet();
+        repeat
+            if not TransferLine."Transfer WIP Item" then begin
+                ComponentItem.Get(TransferLine."Item No.");
+                LibraryInventory.CreateItemJournalLineInItemTemplate(
+                    ItemJournalLine, ComponentItem."No.", Location.Code, '', TransferLine.Quantity);
+                EnsureComponentPostingAccountsExist(ItemJournalLine, ComponentItem, Location);
+                LibraryInventory.PostItemJournalLine(
+                    ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+                ComponentLineCount += 1;
+                ComponentQuantity += TransferLine.Quantity;
+            end;
+        until TransferLine.Next() = 0;
+
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+    end;
+
+    local procedure EnsureComponentPostingAccountsExist(ItemJournalLine: Record "Item Journal Line"; ComponentItem: Record Item; Location: Record Location)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        GLAccount: Record "G/L Account";
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+    begin
+        GeneralPostingSetup.Get(ItemJournalLine."Gen. Bus. Posting Group", ItemJournalLine."Gen. Prod. Posting Group");
+        EnsureGLAccountExists(GeneralPostingSetup."Inventory Adjmt. Account", GLAccount);
+        if InventoryPostingSetup.Get(Location.Code, ComponentItem."Inventory Posting Group") then begin
+            EnsureGLAccountExists(InventoryPostingSetup."Inventory Account", GLAccount);
+            EnsureGLAccountExists(InventoryPostingSetup."Inventory Account (Interim)", GLAccount);
+        end;
+    end;
+
+    local procedure EnsureGLAccountExists(AccountNo: Code[20]; var GLAccount: Record "G/L Account")
+    begin
+        if (AccountNo = '') or GLAccount.Get(AccountNo) then
+            exit;
+
+        GLAccount.Init();
+        GLAccount.Validate("No.", AccountNo);
+        GLAccount.Validate(Name, AccountNo);
+        GLAccount.Validate("Account Type", GLAccount."Account Type"::Posting);
+        GLAccount.Insert(true);
     end;
 
     local procedure CreateReturnNavigationPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; NumberOfLines: Integer)
