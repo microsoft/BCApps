@@ -6,9 +6,9 @@ namespace Microsoft.Purchases.Document;
 
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Tracking;
