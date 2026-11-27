@@ -56,39 +56,44 @@ page 4163 "Business Skill Content Part"
     {
         area(Processing)
         {
-            action(ViewHistory)
+            group(ContentActions)
             {
-                ApplicationArea = All;
-                Caption = 'View history';
-                ToolTip = 'View earlier versions of the skill content and restore one if needed.';
-                Image = History;
-                Visible = IsManualSkill;
+                Caption = 'Actions';
 
-                trigger OnAction()
-                var
-                    BusSkillContentVersions: Page "Bus Skill Content Versions";
-                begin
-                    BusSkillContentVersions.SetSkillId(SkillId);
-                    Commit();
-                    BusSkillContentVersions.RunModal();
-                    if BusSkillContentVersions.GetRestored() then begin
-                        LoadSkillSnapshot();
-                        CurrPage.Update(false);
+                action(ViewHistory)
+                {
+                    ApplicationArea = All;
+                    Caption = 'View history';
+                    ToolTip = 'View earlier versions of the skill content and restore one if needed.';
+                    Image = History;
+                    Visible = IsManualSkill;
+
+                    trigger OnAction()
+                    var
+                        BusSkillContentVersions: Page "Bus Skill Content Versions";
+                    begin
+                        BusSkillContentVersions.SetSkillId(SkillId);
+                        Commit();
+                        BusSkillContentVersions.RunModal();
+                        if BusSkillContentVersions.GetRestored() then begin
+                            LoadSkillSnapshot();
+                            CurrPage.Update(false);
+                        end;
                     end;
-                end;
-            }
-            action(DownloadContent)
-            {
-                ApplicationArea = All;
-                Caption = 'Download content';
-                ToolTip = 'Download the current skill content to a text file.';
-                Image = Export;
-                Visible = SkillId <> 0;
+                }
+                action(DownloadContent)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Download content';
+                    ToolTip = 'Download the current skill content to a text file.';
+                    Image = Export;
+                    Visible = SkillId <> 0;
 
-                trigger OnAction()
-                begin
-                    BusinessSkillImpl.DownloadContent(SkillId);
-                end;
+                    trigger OnAction()
+                    begin
+                        BusinessSkillImpl.DownloadContent(SkillId);
+                    end;
+                }
             }
         }
     }
