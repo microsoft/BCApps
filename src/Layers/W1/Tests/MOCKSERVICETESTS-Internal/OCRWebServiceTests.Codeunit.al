@@ -5,6 +5,7 @@ codeunit 135095 "OCR Web Service Tests"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = AllowOutboundFromHandler;
 
     trigger OnRun()
     begin
@@ -20,6 +21,7 @@ codeunit 135095 "OCR Web Service Tests"
         VendorNameErr: Label 'Vendor Name must have a value in Incoming Document';
         ExternalDocumentReferenceLbl: Label '68f89f3f4eb7436daa20d960c311b01e';
         TestSupplierTxt: Label 'TestSupplier';
+        OCRMockServiceUrlTxt: Label 'https://localhost:8080/OCR/', Locked = true;
 
     local procedure Initialize()
     begin
@@ -27,7 +29,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure OCRSetupTestConnection()
     var
@@ -79,7 +81,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure E2ECreditMemo()
     var
@@ -170,7 +172,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure E2E()
     var
@@ -272,7 +274,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure ReceiveDocumentsDocumentJobPendingWithPaging()
     var
@@ -303,7 +305,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure ReceiveSingleDocumentFailed()
     var
@@ -341,6 +343,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
+    [HandlerFunctions('OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure ReceiveDocumentsInvalidIdentifier()
     var
@@ -357,7 +360,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure ResetOriginalOCRData()
     var
@@ -390,7 +393,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure CorrectOCRDataFile()
     var
@@ -437,7 +440,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure CorrectOCRDataFileNoVendorName()
     var
@@ -457,7 +460,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure UndoSetReadyForOCRNewDocument()
     begin
@@ -465,7 +468,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure UndoSetReadyForOCRApprovedDocument()
     begin
@@ -615,6 +618,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
+    [HandlerFunctions('OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestAuthenticateSuccessful()
     var
@@ -626,6 +630,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
+    [HandlerFunctions('OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure TestGetStatusUrl()
     var
@@ -667,7 +672,7 @@ codeunit 135095 "OCR Web Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('MsgHandler')]
+    [HandlerFunctions('MsgHandler,OCRMockServiceHandler')]
     [Scope('OnPrem')]
     procedure SendOCRDataWithFeedBackAndCreateDocument()
     var
@@ -907,6 +912,13 @@ codeunit 135095 "OCR Web Service Tests"
     procedure ConfirmHandler(Question: Text; var Answer: Boolean)
     begin
         Answer := false;
+    end;
+
+    [HttpClientHandler]
+    procedure OCRMockServiceHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        // Only requests to the local OCR mock service may leave the test; any other outbound request stays blocked.
+        exit(Request.Path.StartsWith(OCRMockServiceUrlTxt));
     end;
 }
 
