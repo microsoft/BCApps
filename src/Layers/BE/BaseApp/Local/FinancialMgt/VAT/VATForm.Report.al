@@ -7,11 +7,9 @@ namespace Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Company;
-using System;
 using System.IO;
 using System.Telemetry;
 using System.Utilities;
-using System.Xml;
 
 report 11307 "VAT - Form"
 {
@@ -328,7 +326,6 @@ report 11307 "VAT - Form"
         GLSetup: Record "General Ledger Setup";
         Representative: Record Representative;
         INTERVATHelper: Codeunit "INTERVAT Helper";
-        XMLDOMMgt: Codeunit "XML DOM Management";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         IncludeVatEntries: Enum "VAT Statement Report Selection";
         IsCorrection: Boolean;
@@ -385,51 +382,42 @@ report 11307 "VAT - Form"
     local procedure CreateInterVatXml() ReturnValue: Boolean
     var
         FileManagement: Codeunit "File Management";
-        XMLDocOut: DotNet XmlDocument;
-        XMLCurrNode: DotNet XmlNode;
-        XMLFirstNode: DotNet XmlNode;
+        TempBlob: Codeunit "Temp Blob";
+        XMLDocOut: XmlDocument;
+        RootElement: XmlElement;
+        VATDeclarationElement: XmlElement;
+        XmlOutStream: OutStream;
         ServerFileName: Text;
     begin
         ReturnValue := false;
         RefreshSequenceNumber := true;
 
-        XMLDOMMgt.LoadXMLDocumentFromText('<VATConsignment/>', XMLDocOut);
+        CreateDocument(XMLDocOut);
+        XMLDocOut.GetRoot(RootElement);
 
-        XMLCurrNode := XMLDocOut.DocumentElement;
-        XMLFirstNode := XMLCurrNode;
+        if AddRepresentative then
+            Representative.AddRepresentativeElement(RootElement, DocNameSpace, GetSequenceNumber());
 
-        INTERVATHelper.AddProcessingInstruction(XMLDocOut, XMLFirstNode);
-        AddHeader(XMLCurrNode);
-        XMLFirstNode := XMLCurrNode;
-
-        if AddRepresentative then begin
-            Representative.AddRepresentativeElement(XMLCurrNode, DocNameSpace, GetSequenceNumber());
-            XMLCurrNode := XMLFirstNode;
-        end;
-
-        AddElementVatDeclaration(XMLCurrNode);
-        XMLFirstNode := XMLCurrNode;
+        VATDeclarationElement := AddElementVatDeclaration(RootElement);
 
         if IsCorrection then
-            AddElementReplacedVATDeclaration(XMLCurrNode);
+            AddElementReplacedVATDeclaration(VATDeclarationElement);
 
-        INTERVATHelper.AddElementDeclarant(XMLCurrNode, GetSequenceNumber(), '');
-        XMLCurrNode := XMLFirstNode;
+        INTERVATHelper.AddElementDeclarant(VATDeclarationElement, GetSequenceNumber(), '');
 
-        INTERVATHelper.AddElementPeriod(XMLCurrNode, ChoicePeriodType, Vperiod, Vyear, '');
-        XMLCurrNode := XMLFirstNode;
+        INTERVATHelper.AddElementPeriod(VATDeclarationElement, ChoicePeriodType, Vperiod, Vyear, '');
 
-        AddElementData(XMLCurrNode);
-        XMLCurrNode := XMLFirstNode;
+        AddElementData(VATDeclarationElement);
 
-        AddElementClientListingNihil(XMLFirstNode);
-        AddElementAsk(XMLFirstNode);
+        AddElementClientListingNihil(VATDeclarationElement);
+        AddElementAsk(VATDeclarationElement);
 
-        AddElementComment(XMLFirstNode);
-        XMLCurrNode := XMLFirstNode;
+        AddElementComment(VATDeclarationElement);
 
+        TempBlob.CreateOutStream(XmlOutStream);
+        INTERVATHelper.WriteDocument(XMLDocOut, XmlOutStream);
         ServerFileName := FileManagement.ServerTempFileName('.xml');
-        XMLDocOut.Save(ServerFileName);
+        FileManagement.BLOBExportToServerFile(TempBlob, ServerFileName);
         if FileName = '' then
             FileManagement.DownloadHandler(ServerFileName, '', '', FileManagement.GetToFilterText('', ServerFileName), ClientFileNameTxt)
         else
@@ -439,98 +427,87 @@ report 11307 "VAT - Form"
         ReturnValue := true;
     end;
 
-    local procedure CreateDataElement(XMLCurrNode: DotNet XmlNode; Amount: Decimal; ExternalRowNo: Integer)
-    var
-        XMLNewChild: DotNet XmlNode;
+    local procedure AddChildElement(ParentElement: XmlElement; LocalName: Text; Value: Text) ChildElement: XmlElement
     begin
-        XMLDOMMgt.AddElement(
-          XMLCurrNode, 'Amount', INTERVATHelper.GetXMLAmountRepresentation(Amount), DocNameSpace, XMLNewChild);
-
-        XMLDOMMgt.AddAttribute(XMLNewChild, 'GridNumber', Format(ExternalRowNo));
+        ChildElement := XmlElement.Create(LocalName, DocNameSpace);
+        if Value <> '' then
+            ChildElement.Add(XmlText.Create(Value));
+        ParentElement.Add(ChildElement);
     end;
 
-    local procedure AddElementAsk(XMLCurrNode: DotNet XmlNode)
+    local procedure CreateDataElement(DataElement: XmlElement; Amount: Decimal; ExternalRowNo: Integer)
     var
-        XMLNewChild: DotNet XmlNode;
+        AmountElement: XmlElement;
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Ask', '', DocNameSpace, XMLNewChild);
-        XMLDOMMgt.AddAttribute(XMLNewChild, 'Restitution', YesNo(Reimbursement));
-        XMLDOMMgt.AddAttribute(XMLNewChild, 'Payment', YesNo(PaymForms));
+        AmountElement := AddChildElement(DataElement, 'Amount', INTERVATHelper.GetXMLAmountRepresentation(Amount));
+
+        AmountElement.SetAttribute('GridNumber', Format(ExternalRowNo));
     end;
 
-    local procedure AddElementComment(XMLCurrNode: DotNet XmlNode)
+    local procedure AddElementAsk(VATDeclarationElement: XmlElement)
     var
-        XMLNewChild: DotNet XmlNode;
+        AskElement: XmlElement;
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Comment', Comment, DocNameSpace, XMLNewChild);
+        AskElement := AddChildElement(VATDeclarationElement, 'Ask', '');
+        AskElement.SetAttribute('Restitution', YesNo(Reimbursement));
+        AskElement.SetAttribute('Payment', YesNo(PaymForms));
     end;
 
-    local procedure AddElementClientListingNihil(XMLCurrNode: DotNet XmlNode)
-    var
-        XMLNewChild: DotNet XmlNode;
+    local procedure AddElementComment(VATDeclarationElement: XmlElement)
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'ClientListingNihil', YesNo(Annuallist), DocNameSpace, XMLNewChild);
+        AddChildElement(VATDeclarationElement, 'Comment', Comment);
     end;
 
-    local procedure AddElementData(XMLCurrNode: DotNet XmlNode)
+    local procedure AddElementClientListingNihil(VATDeclarationElement: XmlElement)
+    begin
+        AddChildElement(VATDeclarationElement, 'ClientListingNihil', YesNo(Annuallist));
+    end;
+
+    local procedure AddElementData(VATDeclarationElement: XmlElement)
     var
-        XMLNewChild: DotNet XmlNode;
+        DataElement: XmlElement;
         i: Integer;
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'Data', '', DocNameSpace, XMLNewChild);
+        DataElement := AddChildElement(VATDeclarationElement, 'Data', '');
 
-        XMLCurrNode := XMLNewChild;
         // case 0, internally saved as 99
         if Row[99] > 0 then
-            CreateDataElement(XMLCurrNode, Row[99], 0);
+            CreateDataElement(DataElement, Row[99], 0);
 
         // other cases
         for i := 1 to 98 do
             if i <> 91 then begin
                 if Row[i] > 0 then
-                    CreateDataElement(XMLCurrNode, Row[i], i);
+                    CreateDataElement(DataElement, Row[i], i);
                 if (i = 72) and (Row[71] = 0) and (Row[72] = 0) then
-                    CreateDataElement(XMLCurrNode, 0.0, 71);
+                    CreateDataElement(DataElement, 0.0, 71);
             end else // case 91 not mentioned (must be blank)
                 case PrintPrepayment of
                     PrintPrepayment::Amount:
-                        CreateDataElement(XMLCurrNode, Row[91], i);
+                        CreateDataElement(DataElement, Row[91], i);
                     PrintPrepayment::Zero:
-                        CreateDataElement(XMLCurrNode, Row[91], i);
+                        CreateDataElement(DataElement, Row[91], i);
                 end;
     end;
 
-    local procedure AddElementReplacedVATDeclaration(var XMLCurrNode: DotNet XmlNode)
-    var
-        XMLNewChild: DotNet XmlNode;
+    local procedure AddElementReplacedVATDeclaration(VATDeclarationElement: XmlElement)
     begin
-        XMLDOMMgt.AddElement(
-          XMLCurrNode, 'ReplacedVATDeclaration', INTERVATHelper.GetReplacedVATDeclaration(PrevSequenceNo, VPeriod, VYear), DocNameSpace, XMLNewChild);
+        AddChildElement(
+          VATDeclarationElement, 'ReplacedVATDeclaration', INTERVATHelper.GetReplacedVATDeclaration(PrevSequenceNo, VPeriod, VYear));
     end;
 
-    local procedure AddElementVatDeclaration(var XMLCurrNode: DotNet XmlNode)
-    var
-        XMLNewChild: DotNet XmlNode;
+    local procedure AddElementVatDeclaration(RootElement: XmlElement) VATDeclarationElement: XmlElement
     begin
-        XMLDOMMgt.AddElement(XMLCurrNode, 'VATDeclaration', '', DocNameSpace, XMLNewChild);
-
-        XMLCurrNode := XMLNewChild;
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'SequenceNumber', '1');
+        VATDeclarationElement := AddChildElement(RootElement, 'VATDeclaration', '');
+        VATDeclarationElement.SetAttribute('SequenceNumber', '1');
     end;
 
-    local procedure AddHeader(XMLCurrNode: DotNet XmlNode)
+    local procedure CreateDocument(var XMLDocOut: XmlDocument)
+    var
+        DocumentTxt: Label '<?xml version="1.0" encoding="UTF-8"?><VATConsignment VATDeclarationsNbr="1" xmlns="%1" xmlns:common="http://www.minfin.fgov.be/InputCommon" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="%1 NewTVA-in_v0_9.xsd" />', Locked = true;
     begin
         DocNameSpace := 'http://www.minfin.fgov.be/VATConsignment';
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'VATDeclarationsNbr', '1');
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns', DocNameSpace);
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns:common', 'http://www.minfin.fgov.be/InputCommon');
-        XMLDOMMgt.AddAttribute(XMLCurrNode, 'xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-
-        XMLDOMMgt.AddNameSpacePrefixedAttribute(
-          XMLCurrNode.OwnerDocument, XMLCurrNode,
-          'http://www.w3.org/2001/XMLSchema-instance',
-          'schemaLocation',
-          DocNameSpace + ' NewTVA-in_v0_9.xsd');
+        XmlDocument.ReadFrom(StrSubstNo(DocumentTxt, DocNameSpace), XMLDocOut);
     end;
 
     [Scope('OnPrem')]
