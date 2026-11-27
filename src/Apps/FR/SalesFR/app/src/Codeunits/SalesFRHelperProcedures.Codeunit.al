@@ -27,13 +27,33 @@ codeunit 10807 "Sales FR Helper Procedures"
 
     local procedure TransferFields(TableId: Integer; SourceFieldNo: Integer; TargetFieldNo: Integer; DefaultValue: Variant)
     var
+#if CLEAN30
         DataTransfer: DataTransfer;
+#else
+        RecRef: RecordRef;
+        SourceFieldRef: FieldRef;
+        TargetFieldRef: FieldRef;
+#endif
     begin
+#if CLEAN30
         DataTransfer.SetTables(TableId, TableId);
         DataTransfer.AddSourceFilter(SourceFieldNo, '<>%1', DefaultValue);
         DataTransfer.AddFieldValue(SourceFieldNo, TargetFieldNo);
         DataTransfer.UpdateAuditFields := false;
         DataTransfer.CopyFields();
+#else
+        // Feature activation runs outside the install/upgrade scope required by DataTransfer.
+        RecRef.Open(TableId);
+        SourceFieldRef := RecRef.Field(SourceFieldNo);
+        SourceFieldRef.SetFilter('<>%1', DefaultValue);
+        TargetFieldRef := RecRef.Field(TargetFieldNo);
+        if RecRef.FindSet(true) then
+            repeat
+                TargetFieldRef.Value := SourceFieldRef.Value;
+                RecRef.Modify(false);
+            until RecRef.Next() = 0;
+        RecRef.Close();
+#endif
     end;
 
     [EventSubscriber(ObjectType::Table, Database::Contact, 'OnCreateCustomerFromTemplateOnBeforeCustomerInsert', '', false, false)]
