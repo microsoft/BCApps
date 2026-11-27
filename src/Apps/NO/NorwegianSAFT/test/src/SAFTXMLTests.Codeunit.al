@@ -1964,6 +1964,8 @@ codeunit 148103 "SAF-T XML Tests"
         ClosingBalance: Decimal;
         OpeningBalanceNode: Text;
         ClosingBalanceNode: Text;
+        AccountCountMismatchErr: Label 'Exported G/L account count differs from mapped account count for mapping range %1.', Comment = '%1 - mapping range code';
+
     begin
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:MasterFiles');
         SAFTTestHelper.AssertElementName(TempXMLBuffer, 'n1:GeneralLedgerAccounts');
@@ -1976,7 +1978,7 @@ codeunit 148103 "SAF-T XML Tests"
             'No G/L accounts exported.');
         Assert.AreEqual(
             SAFTGLAccountMapping.Count(), TempAccountXMLBuffer.Count(),
-            StrSubstNo('Exported G/L account count differs from mapped account count for mapping range %1.', MappingRangeCode));
+            StrSubstNo(AccountCountMismatchErr, MappingRangeCode));
         SAFTGLAccountMapping.FindSet();
         repeat
             GLAccount.Get(SAFTGLAccountMapping."G/L Account No.");
