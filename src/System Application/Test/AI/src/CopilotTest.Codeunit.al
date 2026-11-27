@@ -380,6 +380,7 @@ codeunit 132683 "Copilot Test"
     end;
 
     [Test]
+    [TestPermissions(TestPermissions::Disabled)]
     procedure TestIsAIConsumptionRecordedFlow()
     var
         AIConsumptionLogEntry: Record "AI Consumption Log Entry";

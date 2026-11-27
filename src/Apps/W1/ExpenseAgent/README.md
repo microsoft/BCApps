@@ -62,6 +62,8 @@ V2 consumption principal's display name.
 V2 Actions stays empty. List rendering doesn't load description blobs from
 either ledger. Description drilldown looks up the current V2 entry, or the V1
 entry when no V2 entry exists, and loads the full text on demand.
+The lookup reads the description while its ledger record is in scope and
+returns text with message line separators.
 Missing expense sources display "Deleted expense or invalid receipt".
 
 The companion table's V1 lookup FlowFields are obsolete as of 30.0.

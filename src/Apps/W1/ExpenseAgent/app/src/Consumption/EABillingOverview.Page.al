@@ -60,17 +60,9 @@ page 7079 "EA Billing Overview"
                     ToolTip = 'Specifies the full description of the operation. Click to view details.';
                     trigger OnDrillDown()
                     var
-                        DescriptionInStream: InStream;
                         FullDescription: Text;
-                        TextLine: Text;
                     begin
-                        if Rec.GetBillingDescription(DescriptionInStream) then
-                            while not DescriptionInStream.EOS() do begin
-                                DescriptionInStream.ReadText(TextLine);
-                                if FullDescription <> '' then
-                                    FullDescription += '\';
-                                FullDescription += TextLine;
-                            end;
+                        FullDescription := Rec.GetBillingDescription();
                         if FullDescription <> '' then
                             Message(FullDescription)
                         else

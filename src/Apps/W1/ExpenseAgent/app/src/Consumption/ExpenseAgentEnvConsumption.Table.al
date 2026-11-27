@@ -292,28 +292,34 @@ table 6969 "Expense Agent Env. Consumption"
     end;
 
     [NonDebuggable]
-    procedure GetBillingDescription(var DescriptionInStream: InStream): Boolean
+    procedure GetBillingDescription() FullDescription: Text
     var
         UserAIConsumptionData: Record "User AI Consumption Data";
         AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+        DescriptionInStream: InStream;
+        TextLine: Text;
     begin
-        Clear(DescriptionInStream);
         if not AIConsumptionLogEntry.ReadPermission() then
-            exit(false);
+            exit('');
 
         if AIConsumptionLogEntry.GetBySystemId(Rec.SystemId) then begin
             AIConsumptionLogEntry.CalcFields(Description);
             AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
-            exit(true);
+        end else begin
+            UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
+            if not UserAIConsumptionData.FindFirst() then
+                exit('');
+
+            UserAIConsumptionData.CalcFields(Description);
+            UserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
         end;
 
-        UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
-        if not UserAIConsumptionData.FindFirst() then
-            exit(false);
-
-        UserAIConsumptionData.CalcFields(Description);
-        UserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
-        exit(true);
+        while not DescriptionInStream.EOS() do begin
+            DescriptionInStream.ReadText(TextLine);
+            if FullDescription <> '' then
+                FullDescription += '\';
+            FullDescription += TextLine;
+        end;
     end;
 
     local procedure GetTaskDisplayNameForExpense(DestinationCompany: Text[30]; SourceSystemId: Guid): Text

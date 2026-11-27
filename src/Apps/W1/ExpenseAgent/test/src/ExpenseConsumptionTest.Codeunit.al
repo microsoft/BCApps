@@ -740,7 +740,6 @@ codeunit 148299 "Expense Consumption Test"
     var
         ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
         TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
-        DescriptionInStream: InStream;
     begin
         // [SCENARIO] A companion without a platform entry has no billing details yet
         Initialize();
@@ -756,7 +755,7 @@ codeunit 148299 "Expense Consumption Test"
         Assert.AreEqual(0, TempUserAIConsumptionData."Copilot Credits", 'Pending consumption must not retain a previous row''s credits.');
         Assert.IsFalse(TempUserAIConsumptionData."Processed For Billing", 'Pending consumption must not appear processed.');
         Assert.AreEqual(CompanyName(), TempUserAIConsumptionData."Company Name", 'Pending consumption must retain the source company.');
-        Assert.IsFalse(ExpenseAgentEnvConsumption.GetBillingDescription(DescriptionInStream), 'Neither ledger means no description is available.');
+        Assert.AreEqual('', ExpenseAgentEnvConsumption.GetBillingDescription(), 'Neither ledger means no description is available.');
     end;
 
     [Test]
@@ -892,6 +891,30 @@ codeunit 148299 "Expense Consumption Test"
 
         // [WHEN] [THEN] Drilldown loads the latest description without truncation
         VerifyBillingDescription(ExpenseAgentEnvConsumption, Description);
+    end;
+
+    [Test]
+    procedure BillingDescriptionPreservesMessageLineSeparators()
+    var
+        ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption";
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+        DescriptionOutStream: OutStream;
+    begin
+        // [SCENARIO] Multiline billing descriptions retain the overview's message separators
+        Initialize();
+
+        // [GIVEN] A V2 description with two lines
+        CreateBillingCompanion(ExpenseAgentEnvConsumption);
+        AIConsumptionLogEntry.SystemId := ExpenseAgentEnvConsumption.SystemId;
+        AIConsumptionLogEntry.Description.CreateOutStream(DescriptionOutStream, TextEncoding::UTF8);
+        DescriptionOutStream.WriteText('First line');
+        DescriptionOutStream.WriteText();
+        DescriptionOutStream.WriteText('Second line');
+        Clear(DescriptionOutStream);
+        AIConsumptionLogEntry.Insert(false, true);
+
+        // [WHEN] [THEN] The returned text retains message line separators
+        VerifyBillingDescription(ExpenseAgentEnvConsumption, 'First line\Second line');
     end;
 
     [Test]
@@ -1422,11 +1445,9 @@ codeunit 148299 "Expense Consumption Test"
 
     local procedure VerifyBillingDescription(ExpenseAgentEnvConsumption: Record "Expense Agent Env. Consumption"; ExpectedDescription: Text)
     var
-        DescriptionInStream: InStream;
         Description: Text;
     begin
-        Assert.IsTrue(ExpenseAgentEnvConsumption.GetBillingDescription(DescriptionInStream), 'The billing description must be available on demand.');
-        DescriptionInStream.ReadText(Description);
+        Description := ExpenseAgentEnvConsumption.GetBillingDescription();
         Assert.AreEqual(ExpectedDescription, Description, 'The full billing description must remain available.');
     end;
 
