@@ -38,6 +38,17 @@ page 10031 "IRS Reporting Periods"
                 {
                     ToolTip = 'Specifies a description of the reporting period.';
                 }
+                field(IRISXmlSchemaVersion; ActiveSchemaOverride)
+                {
+                    Caption = 'IRIS XML Schema Version';
+                    ToolTip = 'Specifies the XML schema override for new transmissions in the current environment only: TEST in a sandbox, production otherwise. Leave empty to use the configured version. This does not change IRS destinations.';
+                    Visible = false;
+
+                    trigger OnValidate()
+                    begin
+                        Rec.SetSchemaOverride(IRSFormsFacade.TestMode(), ActiveSchemaOverride);
+                    end;
+                }
                 field("Forms In Period"; Rec."Forms In Period")
                 {
                     ToolTip = 'Specifies a number of forms in the reporting period.';
@@ -164,6 +175,15 @@ page 10031 "IRS Reporting Periods"
             }
         }
     }
+
+    var
+        IRSFormsFacade: Codeunit "IRS Forms Facade";
+        ActiveSchemaOverride: Enum "XML Schema Version IRIS";
+
+    trigger OnAfterGetRecord()
+    begin
+        ActiveSchemaOverride := Rec.GetSchemaOverride(IRSFormsFacade.TestMode());
+    end;
 
     trigger OnOpenPage()
     var
