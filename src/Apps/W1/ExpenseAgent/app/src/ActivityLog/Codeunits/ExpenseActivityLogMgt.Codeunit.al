@@ -202,6 +202,40 @@ codeunit 6926 "Expense Activity Log Mgt."
     end;
 
     /// <summary>
+    /// Appends a Canceled entry, performed by the current Business Central user, to a posted report's history.
+    /// The entry keeps the subject of the report's existing history, so it continues the original report timeline.
+    /// Like posting, nothing is logged for a report without activity history.
+    /// </summary>
+    internal procedure LogPostedExpenseReportCanceledEvent(PostedExpenseReportHeader: Record "Posted Expense Report Header"): BigInteger
+    var
+        SubjectEntry: Record "Expense Activity Log Entry";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+    begin
+        SubjectEntry.SetCurrentKey("Source Table ID", "Source Record System ID", "Occurred At", "Entry No.");
+        SubjectEntry.SetRange("Source Table ID", Database::"Posted Expense Report Header");
+        SubjectEntry.SetRange("Source Record System ID", PostedExpenseReportHeader.SystemId);
+        SubjectEntry.SetRange("Subject Table ID", Database::"Expense Report Header");
+        SubjectEntry.SetLoadFields("Subject Table ID", "Subject System ID", "Document No.", "Document Description");
+        if not SubjectEntry.FindLast() then
+            exit(0);
+
+        ExpenseActivityLogEntry.Init();
+        ExpenseActivityLogEntry."Source Table ID" := Database::"Posted Expense Report Header";
+        ExpenseActivityLogEntry."Source Record System ID" := PostedExpenseReportHeader.SystemId;
+        ExpenseActivityLogEntry."Subject Table ID" := SubjectEntry."Subject Table ID";
+        ExpenseActivityLogEntry."Subject System ID" := SubjectEntry."Subject System ID";
+        ExpenseActivityLogEntry."Document No." := SubjectEntry."Document No.";
+        ExpenseActivityLogEntry."Document Description" := SubjectEntry."Document Description";
+        ExpenseActivityLogEntry."Event Type" := Enum::"Expense Activity Event Type"::Canceled;
+        ExpenseActivityLogEntry."Occurred At" := CurrentDateTime();
+        ExpenseActivityLogEntry."Initiated By" := Enum::"Expense Activity Initiator"::User;
+        ExpenseActivityLogEntry."Actor Role" := Enum::"Expense Activity Actor Role"::" ";
+        SetBCUserActor(ExpenseActivityLogEntry, UserSecurityId());
+        ExpenseActivityLogEntry.Insert();
+        exit(ExpenseActivityLogEntry."Entry No.");
+    end;
+
+    /// <summary>
     /// Deletes activity entries sourced from the specified record.
     /// </summary>
     internal procedure DeleteEntriesForSource(SourceTableID: Integer; SourceRecordSystemID: Guid)
