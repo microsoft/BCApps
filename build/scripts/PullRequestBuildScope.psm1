@@ -6,6 +6,7 @@
     W1 change rebuilds and retests all countries. Pull request builds instead run W1 plus the
     countries whose own code the pull request changes. Full country coverage is provided by the
     merge queue (all-country compilation) and scheduled full-matrix runs on official branches.
+    Test Apps projects are omitted from PRs only when change detection is safe and no app is affected.
     Runs in the Initialization job before AL-Go reads settings, and only rewrites files in that
     job's workspace.
 #>
@@ -153,7 +154,8 @@ function Remove-PullRequestCleanBuildMode {
     Rewrites the Pull Request Build settings in the current workspace to scope a pull request build.
 .DESCRIPTION
     No-op for other events, when the pull request has the full-country-matrix label, or when the
-    pull request's changes cannot be determined (AL-Go then builds as before).
+    pull request's changes cannot be determined (AL-Go then builds as before). Test Apps projects
+    are also omitted when the diff is known to affect no apps, except for build-settings changes.
 .PARAMETER BaseFolder
     Root of the repository checkout.
 #>
@@ -193,8 +195,12 @@ function Set-PullRequestBuildScope {
     $countries = @($projectNames | Where-Object { $_ -match '^Apps ([A-Z]{2})$' -and $Matches[1] -ne 'W1' } | ForEach-Object { $_.Substring(5) })
 
     $scope = Get-PullRequestCountries -ChangedFiles $changedFiles -Countries $countries
+    $affected = Get-AffectedAppNames -BaseFolder $BaseFolder
+    $skipTestProjects = (-not $affected.RunAll) -and (@($affected.AppNames).Count -eq 0) -and (-not $buildSettingsChanged)
     $projects = @($projectNames | Where-Object {
-        -not ($_ -match '^(Test )?Apps ([A-Z]{2})$' -and $Matches[2] -ne 'W1' -and $scope.Countries -notcontains $Matches[2])
+        $countryIsExcluded = $_ -match '^(Test )?Apps ([A-Z]{2})$' -and $Matches[2] -ne 'W1' -and $scope.Countries -notcontains $Matches[2]
+        $testProjectIsUnneeded = $skipTestProjects -and $_ -like 'Test Apps *'
+        -not $countryIsExcluded -and -not $testProjectIsUnneeded
     } | ForEach-Object { Join-Path 'build' (Join-Path 'projects' $_) })
 
     $settingsFile = Join-Path $BaseFolder '.github/Pull Request Build.settings.json'
@@ -204,7 +210,6 @@ function Set-PullRequestBuildScope {
     $settings.conditionalSettings = $conditional
     $settings | ConvertTo-Json -Depth 10 | Set-Content -Path $settingsFile -Encoding UTF8
 
-    $affected = Get-AffectedAppNames -BaseFolder $BaseFolder
     $testConfig = Get-Content (Join-Path $BaseFolder 'build/scripts/TestConfiguration.json') -Raw | ConvertFrom-Json
     $legacyApps = @($testConfig.PSObject.Properties | Where-Object { $_.Name -like 'LegacyTests-*' } | ForEach-Object { $_.Value })
     $droppedModes = @()
@@ -222,10 +227,12 @@ function Set-PullRequestBuildScope {
 
     $countryText = if ($scope.Countries.Count) { $scope.Countries -join ', ' } else { 'none' }
     $modeText = if ($droppedModes.Count) { ($droppedModes | Select-Object -Unique) -join ', ' } else { 'none' }
+    $testProjectText = if ($skipTestProjects) { 'omitted (no affected apps)' } else { 'included' }
     $summary = @(
         "### Pull request build scope",
         "",
         "- Countries built besides W1: $countryText",
+        "- Test Apps projects: $testProjectText",
         "- Test modes skipped (no affected legacy test app): $modeText",
         $(if ($buildSettingsChanged) { "- Clean app compilation kept for build-settings changes." } else { "- Clean app compilation deferred to post-merge validation." }),
         "- Add the ``$($script:FullMatrixLabel)`` label and re-run to build every country.",

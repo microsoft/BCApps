@@ -120,6 +120,19 @@ Describe "PullRequestBuildScope" {
             (Get-Content (Join-Path $root 'build/projects/Apps W1/.AL-Go/settings.json') -Raw | ConvertFrom-Json).ConditionalSettings | Should -BeNullOrEmpty
         }
 
+        It "omits Test Apps projects when a known PR diff affects no apps" {
+            @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
+            Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('.github/actions/Example/action.yml') }
+            Mock -ModuleName PullRequestBuildScope Get-AffectedAppNames { return [PSCustomObject]@{ RunAll = $false; AppNames = @() } }
+
+            Set-PullRequestBuildScope -BaseFolder $root
+
+            $projects = @( (Get-Content (Join-Path $root '.github/Pull Request Build.settings.json') -Raw | ConvertFrom-Json).conditionalSettings |
+                Where-Object { $_.triggers -contains 'pull_request' } |
+                ForEach-Object { $_.settings.projects | ForEach-Object { $_.Replace('\', '/') } })
+            $projects | Sort-Object | Should -Be @('build/projects/Apps DE', 'build/projects/Apps W1', 'build/projects/System Application Modules')
+        }
+
         It "leaves settings untouched when the full-country-matrix label is present" {
             @{ pull_request = @{ labels = @(@{ name = 'full-country-matrix' }) } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
             $before = Get-Content (Join-Path $root '.github/Pull Request Build.settings.json') -Raw
@@ -131,8 +144,26 @@ Describe "PullRequestBuildScope" {
         It "keeps Clean app compilation when build settings change" {
             @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
             Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('.github/AL-Go-Settings.json') }
+            Mock -ModuleName PullRequestBuildScope Get-AffectedAppNames { return [PSCustomObject]@{ RunAll = $false; AppNames = @() } }
             Set-PullRequestBuildScope -BaseFolder $root
             (Get-Content (Join-Path $root 'build/projects/Apps W1/.AL-Go/settings.json') -Raw | ConvertFrom-Json).ConditionalSettings[0].settings.buildModes | Should -Be @('Clean')
+            $projects = @( (Get-Content (Join-Path $root '.github/Pull Request Build.settings.json') -Raw | ConvertFrom-Json).conditionalSettings |
+                Where-Object { $_.triggers -contains 'pull_request' } |
+                ForEach-Object { $_.settings.projects })
+            $projects | Should -Contain 'build/projects/Test Apps DE'
+        }
+
+        It "keeps Test Apps projects when a full build fallback is required" {
+            @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
+            Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('build/scripts/RunTests.ps1') }
+            Mock -ModuleName PullRequestBuildScope Get-AffectedAppNames { return [PSCustomObject]@{ RunAll = $true; AppNames = @() } }
+
+            Set-PullRequestBuildScope -BaseFolder $root
+
+            $projects = @( (Get-Content (Join-Path $root '.github/Pull Request Build.settings.json') -Raw | ConvertFrom-Json).conditionalSettings |
+                Where-Object { $_.triggers -contains 'pull_request' } |
+                ForEach-Object { $_.settings.projects })
+            $projects | Should -Contain 'build/projects/Test Apps DE'
         }
     }
 }
