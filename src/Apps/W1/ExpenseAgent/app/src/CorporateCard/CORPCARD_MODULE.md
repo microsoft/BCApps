@@ -178,6 +178,10 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7450 | EA Corp Card Lookup | List | Read-only employee-card selection with provider short name and last four digits |
 | 7451 | Expense Corporate Cards API | API | Read-only, single-expense-user card catalog |
 | 7420 | EA Card Expense Matches API | API | `expenseUsers({id})/cardExpenseMatches`: read-only receipt-to-card-expense matching |
+| 7421 | EA Card Receipt Data API | API | `expenses({id})/cardReceiptData`: stages a receipt and its extracted data and applies them to a card expense waiting for a receipt |
+| 7422 | EA Card Receipt Particip. API | API | `cardReceiptParticipants` subpage of the card receipt data API |
+| 7423 | EA Card Receipt Items API | API | `cardReceiptItems` subpage of the card receipt data API |
+| 7424 | EA Card Receipt VAT Spec. API | API | `cardReceiptVATSpecifications` subpage of the card receipt data API |
 | 7452 | EA Card Liability Transfer | StandardDialog | Posting-date selection for a manual liability transfer |
 | 7440 | EA Payment Rec. Journal | Page extension | Shows corporate card transaction and posted expense report references |
 | 7441 | EA Bank Account Stmt. Lines | Page extension | Shows durable corporate card and posted expense report references |
@@ -204,6 +208,8 @@ The module retains its existing Expense Agent records and models provider statem
 - **Bank Account Ledger Entry** (table extension 7442) - Durable transaction link on the bank entry
 - **Gen. Journal Line** (table extension 7443) - Carries the transaction reference through standard posting
 - **EA Card Expense Match Buffer** (table 7420) - Temporary request/response buffer for the card expense matches API
+- **EA Card Receipt Data** (table 7427) - Staged receipt file and extracted values for the card receipt data API; deleted once applied
+- **EA Card Receipt Participant** (table 7432), **EA Card Receipt Item** (table 7433) and **EA Card Receipt VAT Spec.** (table 7434) - Staged participants, itemization and VAT specification lines of the receipt data
 
 ---
 
@@ -551,10 +557,9 @@ The `expenses` API exposes a read-only, filterable `cardExpenseAwaitingReport` F
 
 ```http
 GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/expenses?$filter=cardExpenseAwaitingReport eq true
-GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=cardExpenseAwaitingReport eq false;$orderby=systemCreatedAt desc;$top=50)
 ```
 
-Clients can detect support by checking for the `cardExpenseAwaitingReport` property on the `expense` entity in `$metadata`. It replaces `pendingCardExpense`.
+Clients can detect support by checking for the `cardExpenseAwaitingReport` property on the `expense` entity in `$metadata`.
 
 ### Adding a Card Expense Before Its Category Is Known
 
@@ -578,25 +583,22 @@ POST .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expense
 
 Candidates are the user's card expenses that are still waiting for a receipt: open or released card expenses that are not on an expense report (for example after they were removed from a report), and card expenses on an open expense report whose line has no receipt and no lost-receipt declaration. They must have the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. When the optional `cardLast4` is exactly four digits, candidates must also be paid with one of the user's cards whose **Masked Card No.** ends in those digits; other values are ignored. Without valid card digits nothing proves the receipt was paid by card, so a candidate must also have a similar merchant name: a similarity of at least 0.6 (Levenshtein), where the shorter name is also compared with the start of the longer one, so "Fourth Coffee" fits "FOURTH COFFEE CANARY WHARF". A receipt without a merchant name and card digits therefore matches nothing. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
 
-Recommended client flow for a matched open expense that is not on a report:
+For a matched open expense that is not on a report:
 
-1. Store the returned `expenseId` immediately, so a resumed run does not create a duplicate expense.
-2. Upload the receipt through `expenses({id})/attachments` **before** release; attachments cannot be changed once the expense is no longer open.
-3. Set `expenseCategory` if it is blank (drafts get a category only for mapped MCCs); release requires it.
-4. Call `releaseExpense`, then add the expense to a report using the expense's `expenseDate` (the transaction date), not the receipt date.
-
-When there is no match, the client creates the expense as usual.
+- The receipt is uploaded through `expenses({id})/attachments` while the expense is **Open**; attachments cannot be changed once the expense is no longer open.
+- Release requires an `expenseCategory`. Drafts get a category only for mapped MCCs.
+- A report line for the expense uses the expense's `expenseDate` (the transaction date), not the receipt date.
 
 For a matched released expense or an expense already on an open report, use the **Card Receipt Data API** below. Do not reopen it or use the ordinary attachments API to bypass its status or report restrictions.
 
-When the user picks an off-report card expense (`cardExpenseAwaitingReport eq true`) that still needs a receipt, the client can check that the extracted receipt fits that expense by posting the same data with its `expenseId`:
+To check whether a receipt fits one specific off-report card expense (`cardExpenseAwaitingReport eq true`) that still needs a receipt, post the same data with its `expenseId`:
 
 ```http
 POST .../expenseUsers({expenseUserId})/cardExpenseMatches
 { "expenseId": "{expenseId}", "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR" }
 ```
 
-Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent. The merchant name is not checked, because the user picked the expense. The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
+Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent. The merchant name is not checked, because the expense was chosen explicitly. The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit, the requirements above apply to that expense.
 
 ### Applying a Receipt to a Card Expense (Card Receipt Data API)
 
@@ -984,7 +986,7 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 **Corporate-card allocation in app.json:** 7420–7459 (40 IDs per object type). The app also declares 6900–6999 and 7073–7147; `EA Corp Card Stats Calculator` uses codeunit 6913.
 
-Corporate-card objects also live outside the CorporateCard folder, including the agent card API (page 7451), the receipt matching APIs (pages 7420–7421, table 7420 under `APIs/CardExpenseMatches`), setup/upgrade code, and expense/report integration.
+Corporate-card objects also live outside the CorporateCard folder, including the agent card API (page 7451), the receipt matching API (page 7420, table 7420 under `APIs/CardExpenseMatches`), the card receipt data API (pages 7421–7424, tables 7427 and 7432–7434 under `APIs/CardReceiptData`), setup/upgrade code, and expense/report integration.
 
 ---
 

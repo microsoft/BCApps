@@ -358,15 +358,30 @@ table 6918 "Expense VAT Specification"
     local procedure ValidateAmount()
     begin
         InitializeCurrency();
-        if Expense."Currency Code" = '' then
-            "Amount (LCY)" := Amount
-        else
-            "Amount (LCY)" := Round(
-                CurrExchRate.ExchangeAmtFCYToLCY(Expense."Expense Date", Expense."Currency Code", Amount, Expense."Currency Factor"));
+        "Amount (LCY)" := CalcAmountLCY();
 
         Amount := Round(Amount, Currency."Amount Rounding Precision");
 
         Validate("VAT %");
+    end;
+
+    local procedure CalcAmountLCY(): Decimal
+    begin
+        GetExpense();
+        if Expense."Currency Code" = '' then
+            exit(Amount);
+        exit(Round(CurrExchRate.ExchangeAmtFCYToLCY(Expense."Expense Date", Expense."Currency Code", Amount, Expense."Currency Factor")));
+    end;
+
+    /// <summary>
+    /// Calculates the LCY amounts from the amount, VAT % and VAT amount the same way as for a manually entered line,
+    /// without recalculating the VAT amount. Used for lines created by the agent.
+    /// </summary>
+    internal procedure UpdateAmountsLCY()
+    begin
+        "Amount (LCY)" := CalcAmountLCY();
+        "VAT Amount (LCY)" := CalcVATAmountLCY();
+        "VAT Base Amount (LCY)" := "Amount (LCY)" - "VAT Amount (LCY)";
     end;
 
     /// <summary>

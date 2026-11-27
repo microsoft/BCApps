@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Attachment;
 using System.IO;
 
@@ -65,6 +64,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
         OriginalStatus: Enum "Expense Status";
         OnReport: Boolean;
     begin
+        Expense.ReadIsolation := IsolationLevel::UpdLock;
         GetCardExpense(CardReceiptData."Expense SystemId", Expense);
         CardReceiptData.CalcFields("Attachment Content");
         if (CardReceiptData."File Name" = '') or (not CardReceiptData."Attachment Content".HasValue()) then
@@ -406,6 +406,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
         CardReceiptVATSpec.SetRange("Receipt Data Id", CardReceiptData.Id);
         if not CardReceiptVATSpec.FindSet() then
             exit;
+        CheckCurrencyFactor(Expense."Currency Code", Expense."Currency Factor");
         repeat
             ExpenseVATSpecification.Init();
             ExpenseVATSpecification."Expense No." := Expense."No.";
@@ -417,9 +418,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseVATSpecification."VAT Base Amount" := CardReceiptVATSpec."VAT Base Amount";
             ExpenseVATSpecification."VAT Amount" := CardReceiptVATSpec."VAT Amount";
             ExpenseVATSpecification.Amount := CardReceiptVATSpec.Amount;
-            GetVATAmountsLCY(
-                CardReceiptVATSpec, Expense."Expense Date", Expense."Currency Code", Expense."Currency Factor",
-                ExpenseVATSpecification."Amount (LCY)", ExpenseVATSpecification."VAT Amount (LCY)", ExpenseVATSpecification."VAT Base Amount (LCY)");
+            ExpenseVATSpecification.UpdateAmountsLCY();
             ExpenseVATSpecification.Insert(true);
             ExpenseVATLineNos.Add(CardReceiptVATSpec."Line No.", ExpenseVATSpecification."Line No.");
         until CardReceiptVATSpec.Next() = 0;
@@ -442,6 +441,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
         CardReceiptVATSpec.SetRange("Receipt Data Id", CardReceiptData.Id);
         if not CardReceiptVATSpec.FindSet() then
             exit;
+        CheckCurrencyFactor(ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor");
         repeat
             LineNo += 1;
             SourceLineNo := 0;
@@ -458,9 +458,7 @@ codeunit 7450 "EA Card Receipt Data Apply"
             ExpenseReportLineVATSpec.Amount := CardReceiptVATSpec.Amount;
             ExpenseReportLineVATSpec."Currency Code" := ExpenseReportLine."Expense Currency Code";
             ExpenseReportLineVATSpec."Currency Factor" := ExpenseReportLine."Expense Currency Factor";
-            GetVATAmountsLCY(
-                CardReceiptVATSpec, ExpenseReportLine."Expense Date", ExpenseReportLine."Expense Currency Code", ExpenseReportLine."Expense Currency Factor",
-                ExpenseReportLineVATSpec."Amount (LCY)", ExpenseReportLineVATSpec."VAT Amount (LCY)", ExpenseReportLineVATSpec."VAT Base Amount (LCY)");
+            ExpenseReportLineVATSpec.UpdateAmountsLCY();
             ExpenseReportLineVATSpec.Source := ExpenseReportLineVATSpec.Source::Agent;
             ExpenseReportLineVATSpec."Source Spec Line No." := SourceLineNo;
             if ExpenseSubcategory.Get(ExpenseReportLine."Expense Category", ExpenseReportLine."Expense Subcategory Code") then
@@ -479,27 +477,10 @@ codeunit 7450 "EA Card Receipt Data Apply"
         end;
     end;
 
-    // Rounds like Expense VAT Specification: the VAT amount uses the LCY VAT rounding direction, and the VAT base is the
-    // rest of the amount, so the LCY amounts always add up.
-    local procedure GetVATAmountsLCY(CardReceiptVATSpec: Record "EA Card Receipt VAT Spec."; ExpenseDate: Date; CurrencyCode: Code[10]; CurrencyFactor: Decimal; var AmountLCY: Decimal; var VATAmountLCY: Decimal; var VATBaseAmountLCY: Decimal)
-    var
-        LCYCurrency: Record Currency;
-        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    // Without a currency factor the LCY amounts would be zero.
+    local procedure CheckCurrencyFactor(CurrencyCode: Code[10]; CurrencyFactor: Decimal)
     begin
-        if CurrencyCode = '' then begin
-            AmountLCY := CardReceiptVATSpec.Amount;
-            VATAmountLCY := CardReceiptVATSpec."VAT Amount";
-        end else begin
-            if CurrencyFactor = 0 then
-                Error(CurrencyFactorRequiredErr, CurrencyCode);
-            LCYCurrency.InitRoundingPrecision();
-            AmountLCY := Round(
-                CurrencyExchangeRate.ExchangeAmtFCYToLCY(ExpenseDate, CurrencyCode, CardReceiptVATSpec.Amount, CurrencyFactor),
-                LCYCurrency."Amount Rounding Precision");
-            VATAmountLCY := Round(
-                CurrencyExchangeRate.ExchangeAmtFCYToLCY(ExpenseDate, CurrencyCode, CardReceiptVATSpec."VAT Amount", CurrencyFactor),
-                LCYCurrency."Amount Rounding Precision", LCYCurrency.VATRoundingDirection());
-        end;
-        VATBaseAmountLCY := AmountLCY - VATAmountLCY;
+        if (CurrencyCode <> '') and (CurrencyFactor = 0) then
+            Error(CurrencyFactorRequiredErr, CurrencyCode);
     end;
 }

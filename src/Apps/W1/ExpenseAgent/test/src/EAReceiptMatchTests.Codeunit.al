@@ -957,8 +957,9 @@ codeunit 148370 EAReceiptMatchTests
         ExpenseReportLine.TestField("Expense Currency Factor", Expense."Currency Factor");
         CreateCardReceiptData(CardReceiptData, Expense);
         AddCardReceiptVATSpec(CardReceiptData, 1, 19, 16.81, 3.19);
+        // The VAT amount equals the calculated VAT, so the LCY VAT amount is calculated from the LCY amount, as on a manually entered line.
         AmountLCY := Round(20 / Expense."Currency Factor");
-        VATAmountLCY := Round(3.19 / Expense."Currency Factor");
+        VATAmountLCY := Round(AmountLCY * 19 / (100 + 19));
 
         // [WHEN] The receipt data is applied.
         CardReceiptDataApply.Apply(CardReceiptData);
