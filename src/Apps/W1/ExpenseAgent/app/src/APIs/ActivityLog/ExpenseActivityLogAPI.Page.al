@@ -244,18 +244,15 @@ page 7122 "Expense Activity Log API"
         if HistoryActorRoleFilter = '' then
             HistoryActorRoleFilter := Rec.GetFilter("History Actor Role Filter");
         Rec.FilterGroup(0);
+        // Keep the default ascending primary-key order: changing the key or direction here breaks
+        // resuming from an @odata.nextLink skiptoken, which silently truncates paged collections.
         if HasHistoryActorFilters then begin
-            if HistoryActorRoleFilter <> '' then begin
-                Rec.SetCurrentKey("Occurred At", "Entry No.");
-                Rec.Ascending(false);
+            if HistoryActorRoleFilter <> '' then
                 Rec.SetRange("History Subject Match", true)
-            end else
+            else
                 Error(HistoryActorRoleRequiredErr);
         end else
-            if HasSourceFilters then begin
-                Rec.SetCurrentKey("Source Table ID", "Source Record System ID", "Occurred At", "Entry No.");
-                Rec.Ascending(false);
-            end else
+            if not HasSourceFilters then
                 Error(ActivityScopeRequiredErr);
         Rec.FilterGroup(OriginalFilterGroup);
         HistoryScopeApplied := true;
