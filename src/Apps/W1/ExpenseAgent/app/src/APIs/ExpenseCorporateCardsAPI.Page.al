@@ -54,13 +54,8 @@ page 7451 "Expense Corporate Cards API"
     var
         ExpenseUserNo: Code[20];
     begin
-        if not GetLinkedExpenseUserNo(ExpenseUserNo) then begin
-            if Rec.GetFilter("Expense User No.") = '' then
-                Error(GetExpenseUserFilterRequiredError());
-            ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
-            if (ExpenseUserNo = '') or (ExpenseUserNo <> Rec.GetRangeMax("Expense User No.")) then
-                Error(GetExpenseUserFilterRequiredError());
-        end;
+        if not GetLinkedExpenseUserNo(ExpenseUserNo) then
+            Error(GetExpenseUserFilterRequiredError());
         Rec.FilterGroup(2);
         Rec.SetRange("Expense User No.", ExpenseUserNo);
         Rec.SetRange(Blocked, false);
@@ -86,7 +81,6 @@ page 7451 "Expense Corporate Cards API"
     begin
         ExpenseUserFilterError.Title := ExpenseUserFilterRequiredTitleErr;
         ExpenseUserFilterError.Message := ExpenseUserFilterRequiredErr;
-        ExpenseUserFilterError.DetailedMessage := ExpenseUserFilterRequiredDetailsErr;
         ExpenseUserFilterError.ErrorType := ErrorType::Client;
         ExpenseUserFilterError.DataClassification := DataClassification::SystemMetadata;
         exit(ExpenseUserFilterError);
@@ -94,6 +88,5 @@ page 7451 "Expense Corporate Cards API"
 
     var
         ExpenseUserFilterRequiredTitleErr: Label 'Expense user filter required';
-        ExpenseUserFilterRequiredErr: Label 'Read corporate cards through a single expense user. Retry the request with expenseUsers(<expense-user-id>)/corporateCards.', Comment = 'expenseUsers and corporateCards are OData API identifiers; <expense-user-id> is a placeholder for an expense user ID.';
-        ExpenseUserFilterRequiredDetailsErr: Label 'The deprecated $filter=expenseUserNumber eq ''<expense-user-number>'' route still works with one non-empty expense user number. Ranges and filters selecting multiple expense users are not supported.', Comment = '$filter and expenseUserNumber are OData API identifiers; <expense-user-number> is a placeholder for an expense user number.';
+        ExpenseUserFilterRequiredErr: Label 'Read corporate cards through a single expense user. Retry the request with expenseUsers(<expense-user-id>)/corporateCards.', Comment = 'expenseUsers and corporateCards are OData API identifiers; <expense-user-id> is a placeholder for an expense user ID.';
 }

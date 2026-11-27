@@ -80,12 +80,12 @@ codeunit 148372 "EA Corporate Cards API Tests"
     end;
 
     [Test]
-    procedure CorporateCardsAPIFilteredOnExpenseUserNumberReturnsCardsOfThatExpenseUser()
+    procedure CorporateCardsAPIFilteredOnExpenseUserNumberReturnsError()
     var
         FirstCard: Record "EA Corp Card";
-        CardIds: List of [Guid];
+        ResponseText: Text;
     begin
-        // [SCENARIO] The deprecated corporateCards route filtered on expenseUserNumber still returns the cards of that expense user.
+        // [SCENARIO] corporateCards filtered on expenseUserNumber is rejected, so cards are read only through the expense user.
         Initialize();
 
         // [GIVEN] An expense user with a card.
@@ -93,16 +93,16 @@ codeunit 148372 "EA Corporate Cards API Tests"
         Commit();
 
         // [WHEN] The corporate cards are read with a filter on the expense user number.
-        GetCardIds(
+        asserterror LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(
+            ResponseText,
             LibraryGraphMgt.AppendQueryParameterToTargetURL(
                 LibraryGraphMgt.CreateTargetURL('', Page::"Expense Corporate Cards API", CorporateCardsServiceNameTok),
                 StrSubstNo(ExpenseUserNumberFilterTok, FirstCard."Expense User No.")),
-            CardIds);
+            400);
 
-        // [THEN] Only the card of that expense user is returned.
-        Assert.AreEqual(1, CardIds.Count(), 'Only the card of the expense user must be returned.');
-        Assert.IsTrue(CardIds.Contains(FirstCard.SystemId), 'The card of the expense user must be returned.');
-        CompleteTest();
+        // [THEN] The request fails because cards must be read through the expense user.
+        Assert.ExpectedError('Response code is 400 (BadRequest)');
+        Assert.ExpectedError('Read corporate cards through a single expense user.');
     end;
 
     [Test]
