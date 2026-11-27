@@ -3,7 +3,6 @@ namespace Microsoft.FabricExport;
 using System.Environment.Configuration;
 using System.Fabric;
 using System.Media;
-using System.Upgrade;
 
 codeunit 48522 "Fabric Install"
 {
