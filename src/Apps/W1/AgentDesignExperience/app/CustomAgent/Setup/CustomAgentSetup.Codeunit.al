@@ -132,25 +132,46 @@ codeunit 4350 "Custom Agent Setup"
         CustomAgentSetup.SetInstructions(Instructions);
     end;
 
+    internal procedure OpenCreateTaskPage(AgentSecurityId: Guid)
+    var
+        AgentTask: Record "Agent Task";
+        AgentNewTaskMessage: Page "Agent New Task Message";
+    begin
+        if not ConfirmOpenAgentPage(AgentSecurityId) then
+            exit;
+
+        AgentTask."Agent User Security ID" := AgentSecurityId;
+        AgentNewTaskMessage.SetAgentTask(AgentTask, true);
+        AgentNewTaskMessage.LookupMode(true);
+        AgentNewTaskMessage.RunModal();
+    end;
+
     procedure OpenEditInstructionsPage(AgentSecurityId: Guid)
     var
-        AgentCodeunit: Codeunit Agent;
         AgentEditInstructionsPage: Page "Agent Instruction Editor";
     begin
-        // The test agent page is an authoring surface. Everything it displays is also
-        // available read-only on the agent card and the agent task pages, so archived
-        // agents are blocked here rather than opening a page that can do nothing.
-        if AgentCodeunit.IsArchived(AgentSecurityId) then
-            AgentEditInstructionsPage.ThrowArchivedAgentCannotBeTestedError(AgentSecurityId);
-
-        if not ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId) then
+        if not ConfirmOpenAgentPage(AgentSecurityId) then
             exit;
 
         AgentEditInstructionsPage.SetUserSecurityId(AgentSecurityId);
         AgentEditInstructionsPage.Run();
     end;
 
-    local procedure ConfirmOpenEditInstructionsPageForInactiveAgent(AgentSecurityId: Guid): Boolean
+    local procedure ConfirmOpenAgentPage(AgentSecurityId: Guid): Boolean
+    var
+        AgentCodeunit: Codeunit Agent;
+        AgentDesignerPermissions: Codeunit "Agent Designer Permissions";
+        AgentEditInstructionsPage: Page "Agent Instruction Editor";
+    begin
+        // Archived agents remain available for auditing from the agent card.
+        if AgentCodeunit.IsArchived(AgentSecurityId) then
+            AgentEditInstructionsPage.ThrowArchivedAgentCannotBeTestedError(AgentSecurityId);
+
+        AgentDesignerPermissions.VerifyCurrentUserCanConfigureCustomAgent(AgentSecurityId);
+        exit(ConfirmOpenPageForInactiveAgent(AgentSecurityId));
+    end;
+
+    local procedure ConfirmOpenPageForInactiveAgent(AgentSecurityId: Guid): Boolean
     begin
         if not GuiAllowed() then
             exit(false);

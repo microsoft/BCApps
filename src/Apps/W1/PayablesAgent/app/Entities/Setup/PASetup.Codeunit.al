@@ -7,6 +7,8 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
 using System.Email;
+using System.Environment;
+using System.Environment.Configuration;
 
 // Applies configuration and version-specific mailbox monitoring together; editable proposals may be invalid until applied.
 codeunit 3343 "PA Setup"
@@ -66,7 +68,22 @@ codeunit 3343 "PA Setup"
         if TryGetStoredAgent(Agent) then
             exit(true);
         Agent.SetRange("User Name", AgentUserName());
-        exit(Agent.FindFirst());
+        if not Agent.FindFirst() then
+            exit(false);
+        if CanAgentAccessCurrentCompany(Agent."User Security ID") then
+            exit(true);
+        Clear(Agent);
+        exit(false);
+    end;
+
+    local procedure CanAgentAccessCurrentCompany(AgentUserSecurityId: Guid): Boolean
+    var
+        TempCompany: Record Company temporary;
+        UserSettings: Codeunit "User Settings";
+    begin
+        UserSettings.GetAllowedCompaniesForUser(AgentUserSecurityId, TempCompany);
+        TempCompany.SetRange(Name, CompanyName());
+        exit(not TempCompany.IsEmpty());
     end;
 
     internal procedure TryGetStoredAgent(var Agent: Record Agent): Boolean
