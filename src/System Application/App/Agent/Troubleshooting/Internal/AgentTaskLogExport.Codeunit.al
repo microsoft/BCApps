@@ -416,6 +416,9 @@ codeunit 4313 "Agent Task Log Export"
             TaskContextJson.Add(TaskTitleLbl, AgentTask.Title);
         if AgentTask."Company Name" <> '' then
             TaskContextJson.Add(CompanyNameLbl, AgentTask."Company Name");
+        AgentTask.CalcFields("Model Name");
+        if AgentTask."Model Name" <> '' then
+            TaskContextJson.Add(ModelNameLbl, AgentTask."Model Name");
         exit(TaskContextJson);
     end;
 
@@ -648,6 +651,7 @@ codeunit 4313 "Agent Task Log Export"
         MemorizedDataLbl: Label 'memorizedData', Locked = true;
         TaskTitleLbl: Label 'taskTitle', Locked = true;
         CompanyNameLbl: Label 'companyName', Locked = true;
+        ModelNameLbl: Label 'modelName', Locked = true;
         InputMessagesLbl: Label 'inputMessages', Locked = true;
         OutputMessagesLbl: Label 'outputMessages', Locked = true;
         EarlierMessagesLbl: Label 'earlierMessages', Locked = true;

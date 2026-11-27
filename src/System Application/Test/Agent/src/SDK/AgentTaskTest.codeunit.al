@@ -40,6 +40,28 @@ codeunit 133960 "Agent Task Test"
     end;
 
     [Test]
+    procedure GetTaskLogEntryDetailsIncludesModelName()
+    var
+        AgentTaskRecord: Record "Agent Task";
+        TaskContextJson: JsonObject;
+        ModelName: Text[70];
+    begin
+        // [SCENARIO] The task context in the export reports the model resolved for the task
+        // [GIVEN] A task without steps
+        AgentTaskRecord := CreateTaskWithoutSteps();
+        ModelName := AgentTask.GetModelName(AgentTaskRecord.ID);
+
+        // [WHEN] The task details are exported
+        TaskContextJson := AgentTask.GetTaskLogEntryDetails(AgentTaskRecord.ID).GetObject('taskContext');
+
+        // [THEN] modelName matches the task model name, and is omitted when no model can be resolved
+        if ModelName = '' then
+            Assert.IsFalse(TaskContextJson.Contains('modelName'), 'modelName should be omitted when the task has no resolvable model.')
+        else
+            Assert.AreEqual(ModelName, TaskContextJson.GetText('modelName'), 'The export should include the task model name.');
+    end;
+
+    [Test]
     procedure GetTaskLogEntryDetailsRejectsMissingTask()
     begin
         asserterror AgentTask.GetTaskLogEntryDetails(-1);

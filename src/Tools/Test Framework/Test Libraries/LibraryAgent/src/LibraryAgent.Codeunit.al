@@ -347,6 +347,16 @@ codeunit 130560 "Library - Agent"
     end;
 
     /// <summary>
+    /// Gets the model override that is used by the test suite.
+    /// CreateTaskAndWait applies this model to new tasks, overriding the model set on the task builder.
+    /// </summary>
+    /// <param name="ModelId">The model ID set on the test suite. If no model is set, a blank value is returned.</param>
+    procedure GetModelUnderTest(var ModelId: Code[30])
+    begin
+        LibraryAgentImpl.GetModelUnderTest(ModelId);
+    end;
+
+    /// <summary>
     /// Ensures the agent is active. If the agent is not active, it will be activated.
     /// </summary>
     /// <param name="AgentUserSecurityID">The user security ID of the agent to activate.</param>
