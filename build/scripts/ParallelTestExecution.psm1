@@ -3,6 +3,9 @@ Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
 
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
+$testWorkerTimingPath = Join-Path $PSScriptRoot 'TestWorkerTiming.ps1'
+. $testWorkerTimingPath
+
 <#
 .SYNOPSIS
     Gets disabled test entries for an app.
@@ -587,9 +590,9 @@ function Test-TransientTestFailure {
 .SYNOPSIS
     Receives a finished job's output, classifies the outcome, and removes the job.
 .DESCRIPTION
-    Outcome is 'Passed', 'Transient' (platform race + first failure), or 'Failed'. Output
-    is captured into a StringBuilder inside the pipeline so it survives any terminating
-    exception that Receive-Job rethrows from the background job.
+    Outcome is 'Passed', 'Transient' (platform race + first failure), or 'Failed'. Timing
+    records are read separately so they cannot influence classification or be lost if
+    Receive-Job rethrows before it finishes replaying the other output.
 .PARAMETER Entry
     Job descriptor from $state.jobs with .appName and .tenant.
 .PARAMETER Job
@@ -608,9 +611,30 @@ function Receive-TestJobResult {
         [Hashtable]$Retried
     )
 
+    if ($Entry -is [System.Collections.IDictionary]) {
+        $timing = $Entry['timing']
+    } else {
+        $property = $Entry.PSObject.Properties['timing']
+        $timing = if ($property) { $property.Value }
+    }
+
+    $workerTimings = @()
+    if ($timing) {
+        Write-TestWorkerTiming -Timing $timing -Event collection-start
+    }
+    $collectionClock = [System.Diagnostics.Stopwatch]::StartNew()
+    if ($timing) {
+        $workerTimings = @($Job.ChildJobs | ForEach-Object { $_.Information } | Where-Object { $_.Tags -contains $testWorkerTimingTag })
+    }
+
     $sb = New-Object System.Text.StringBuilder
     try {
-        Receive-Job -Job $Job *>&1 | ForEach-Object { Write-Host $_; [void]$sb.AppendLine("$_") }
+        Receive-Job -Job $Job *>&1 | ForEach-Object {
+            if ($_ -isnot [System.Management.Automation.InformationRecord] -or $_.Tags -notcontains $testWorkerTimingTag) {
+                Write-Host $_
+                [void]$sb.AppendLine("$_")
+            }
+        }
     } catch {
         Write-Host "  (job emitted terminating error: $($_.Exception.Message))"
         # Capture the full ErrorRecord text (message + script stack trace + position info)
@@ -619,6 +643,9 @@ function Receive-TestJobResult {
         $errText = ($_ | Out-String).TrimEnd()
         if ([string]::IsNullOrWhiteSpace($errText)) { $errText = $_.Exception.Message }
         [void]$sb.AppendLine($errText)
+    }
+    foreach ($workerTiming in $workerTimings) {
+        Write-Host $workerTiming.MessageData
     }
     $output = $sb.ToString()
 
@@ -632,6 +659,10 @@ function Receive-TestJobResult {
     }
 
     Remove-Job -Job $Job -Force
+
+    if ($timing) {
+        Write-TestWorkerTiming -Timing $timing -Event collected -Clock $collectionClock -Outcome $outcome.ToLowerInvariant() -JobState $Job.State
+    }
 
     return [PSCustomObject]@{
         Outcome  = $outcome
@@ -665,6 +696,8 @@ function Receive-TestJobResult {
 .PARAMETER FileSuffix
     Suffix for the per-job result file. Defaults to the tenant id; a rerun passes its own suffix so
     its results land in a separate file that replaces the failed run's during the merge.
+.PARAMETER Timing
+    Per-dispatch correlation fields, created before the scheduler wait when there is one.
 #>
 function Start-TestAppDispatch {
     param(
@@ -677,7 +710,8 @@ function Start-TestAppDispatch {
         $State,
         [switch]$SkipAutomaticDisabledPass,
         [string]$Verb = 'Dispatching',
-        [string]$FileSuffix
+        [string]$FileSuffix,
+        [hashtable]$Timing = (New-TestWorkerTiming -AppName $AppName -ItemType app -DispatchKind normal)
     )
 
     Write-Host "$Verb '$AppName' (extensionId $AppId) on tenant '$Tenant' in background"
@@ -688,8 +722,8 @@ function Start-TestAppDispatch {
     $appParams.Remove('ReRun') | Out-Null
 
     $job = Start-TestJob -parameters $appParams -tenant $Tenant -scriptPath $ScriptPath -testType $TestType `
-        -skipAutomaticDisabledPass:$SkipAutomaticDisabledPass -fileSuffix $FileSuffix
-    $State.jobs = @($State.jobs) + @([PSCustomObject]@{ jobId = $job.Id; tenant = $Tenant; appName = $AppName })
+        -skipAutomaticDisabledPass:$SkipAutomaticDisabledPass -fileSuffix $FileSuffix -Timing $Timing
+    $State.jobs = @($State.jobs) + @([PSCustomObject]@{ jobId = $job.Id; tenant = $Tenant; appName = $AppName; timing = $Timing })
 
     Start-Sleep -Seconds 5
 }
@@ -729,13 +763,16 @@ function Start-RequiredDisabledDispatch {
         }
     }
 
+    $dispatchKind = if ($Verb -eq 'Re-dispatching') { 'transient-retry' } else { 'normal' }
+    $timing = New-TestWorkerTiming -AppName $WorkItem.AppName -ItemType clean-codeunit -DispatchKind $dispatchKind
     $job = Start-TestJob -parameters $codeunitParameters -tenant $TenantInfo.Id -scriptPath $ScriptPath `
-        -testType $TestType -skipAutomaticDisabledPass
+        -testType $TestType -skipAutomaticDisabledPass -Timing $timing
     $State.jobs = @($State.jobs) + @(
         [PSCustomObject]@{
             jobId = $job.Id
             tenant = $TenantInfo.Id
             appName = $WorkItem.Key
+            timing = $timing
         }
     )
     Start-Sleep -Seconds 1
@@ -981,6 +1018,41 @@ function Wait-ForSpecificTenant {
     throw "Wait-ForSpecificTenant: timed out after $timeoutSeconds seconds waiting for tenant '$tenant'."
 }
 
+function New-TestWorkerTiming {
+    param(
+        [string]$AppName,
+        [string]$ItemType,
+        [string]$DispatchKind
+    )
+
+    return @{
+        dispatchId = [guid]::NewGuid().ToString('N')
+        app = $AppName
+        tenant = $null
+        itemType = $ItemType
+        dispatchKind = $DispatchKind
+    }
+}
+
+function Wait-ForTestDispatchTenant {
+    param(
+        $State,
+        $Tenants,
+        [hashtable]$Timing,
+        [string]$SpecificTenant,
+        [string]$ExcludeTenant
+    )
+
+    $clock = [System.Diagnostics.Stopwatch]::StartNew()
+    $Timing.tenant = if ($PSBoundParameters.ContainsKey('SpecificTenant')) {
+        Wait-ForSpecificTenant -state $State -tenants $Tenants -tenant $SpecificTenant
+    } else {
+        Wait-ForFreeTenant -state $State -tenants $Tenants -excludeTenant $ExcludeTenant
+    }
+    Write-TestWorkerTiming -Timing $Timing -Event tenant-wait -Clock $clock -Outcome ready
+    return $Timing.tenant
+}
+
 <#
 .SYNOPSIS
     Starts a background job to run tests for a single app on a specific tenant.
@@ -994,6 +1066,8 @@ function Wait-ForSpecificTenant {
     The test type (Legacy, UnitTest, etc.)
 .PARAMETER fileSuffix
     Suffix used for this job's result file. Defaults to the tenant id.
+.PARAMETER Timing
+    Per-dispatch correlation fields. The selected tenant is recorded before launching the job.
 .OUTPUTS
     [System.Management.Automation.Job] The background job object.
 #>
@@ -1004,7 +1078,8 @@ function Start-TestJob {
         [string]$scriptPath,
         [string]$testType,
         [switch]$skipAutomaticDisabledPass,
-        [string]$fileSuffix
+        [string]$fileSuffix,
+        [hashtable]$Timing
     )
 
     $jobParams = $parameters.Clone()
@@ -1028,18 +1103,36 @@ function Start-TestJob {
     $bchModulePath = if ($bchModule) { $bchModule.Path } else { "BcContainerHelper" }
 
     $jobScript = {
-        param($params, $scriptPath, $testType, $bchPath, $skipDisabledPass)
+        param($params, $scriptPath, $testType, $bchPath, $skipDisabledPass, $timing, $timingPath)
+        $workerStart = [datetime]::UtcNow
+        $timing.workerClock = [System.Diagnostics.Stopwatch]::StartNew()
+        . $timingPath
+        Write-TestWorkerTiming -Timing $timing -Event worker-start -Utc $workerStart
+
+        $helperImportClock = [System.Diagnostics.Stopwatch]::StartNew()
         Import-Module $bchPath
-        # Background jobs run a single app sequentially. Pass an empty $AppNamesToTest so the
-        # shared script skips the parallel dispatch branch and falls through to running this
-        # one app's tests directly.
+        $helperImportOutcome = if ($?) { 'completed' } else { 'error' }
+        Write-TestWorkerTiming -Timing $timing -Event worker-helper-import -Clock $helperImportClock -Outcome $helperImportOutcome
+
+        # Do not wrap the dot-source in try/finally: it changes whether statement errors
+        # stop the wrapper and can skip the explicit pass/fail check.
         $passed = . $scriptPath -parameters $params -TestType $testType -AppNamesToTest @() `
-            -SkipAutomaticDisabledPass:$skipDisabledPass
+            -SkipAutomaticDisabledPass:$skipDisabledPass -Timing $timing
+        if (-not $timing.workerFinishEmitted) {
+            $workerOutcome = if ($passed) { 'passed' } else { 'failed' }
+            Write-TestWorkerTiming -Timing $timing -Event worker-finish -Clock $timing.workerClock -Outcome $workerOutcome
+        }
         if (-not $passed) { throw "Test execution failed" }
     }
 
-    return Start-Job -ScriptBlock $jobScript -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, `
-        $skipAutomaticDisabledPass.IsPresent
+    $Timing.tenant = $tenant
+    Write-TestWorkerTiming -Timing $Timing -Event dispatch
+    $launchClock = [System.Diagnostics.Stopwatch]::StartNew()
+    $job = Start-Job -ScriptBlock $jobScript -ArgumentList $jobParams, $scriptPath, $testType, $bchModulePath, `
+        $skipAutomaticDisabledPass.IsPresent, $Timing, $testWorkerTimingPath
+    $launchOutcome = if ($job) { 'started' } else { 'error' }
+    Write-TestWorkerTiming -Timing $Timing -Event job-launch -Clock $launchClock -Outcome $launchOutcome
+    return $job
 }
 
 <#
@@ -1213,8 +1306,9 @@ function Invoke-WarmupDispatch {
     }
 
     Write-Host "Warming up: dispatching first app '$warmupApp' on '$($Tenants[0])' alone and awaiting completion before parallel fan-out."
+    $timing = New-TestWorkerTiming -AppName $warmupApp -ItemType app -DispatchKind warmup
     Start-TestAppDispatch -Parameters $Parameters -AppName $warmupApp -AppId $warmupAppId -Tenant $Tenants[0] `
-        -ScriptPath $ScriptPath -TestType $TestType -State $State -Verb 'Dispatching' `
+        -ScriptPath $ScriptPath -TestType $TestType -State $State -Verb 'Dispatching' -Timing $timing `
         -SkipAutomaticDisabledPass:($warmupApp -in $CleanTenantAppNames)
 
     # Await the single job so the process is warm before anything runs in parallel. A transient
@@ -1460,10 +1554,11 @@ function Invoke-ParallelTestExecution {
 
             # Never reuse the tenant the app just failed on: tests are not guaranteed to clean up,
             # so its residue could re-trigger the same failure and make the rerun meaningless.
-            $tenant = Wait-ForFreeTenant -state $state -tenants $tenants -excludeTenant $rerunItem.excludeTenant
+            $timing = New-TestWorkerTiming -AppName $rerunItem.appName -ItemType app -DispatchKind rerun
+            $tenant = Wait-ForTestDispatchTenant -State $state -Tenants $tenants -Timing $timing -ExcludeTenant $rerunItem.excludeTenant
             Start-TestAppDispatch -Parameters $parameters -AppName $rerunItem.appName -AppId $appIdByName[$rerunItem.appName] `
                 -Tenant $tenant -ScriptPath $scriptPath -TestType $testType -State $state `
-                -Verb 'Re-running' -FileSuffix $rerunItem.suffix `
+                -Verb 'Re-running' -FileSuffix $rerunItem.suffix -Timing $timing `
                 -SkipAutomaticDisabledPass:$cleanCodeunitExecution
             continue
         }
@@ -1478,14 +1573,17 @@ function Invoke-ParallelTestExecution {
                 continue
             }
 
-            $verb = if ($state.retried.ContainsKey($appName)) { 'Re-dispatching' } else { 'Dispatching' }
+            $isRetry = $state.retried.ContainsKey($appName)
+            $verb = if ($isRetry) { 'Re-dispatching' } else { 'Dispatching' }
+            $dispatchKind = if ($isRetry) { 'transient-retry' } else { 'normal' }
+            $timing = New-TestWorkerTiming -AppName $appName -ItemType app -DispatchKind $dispatchKind
             $tenant = if ($state.retryTenant.ContainsKey($appName)) {
-                Wait-ForSpecificTenant -state $state -tenants $tenants -tenant $state.retryTenant[$appName]
+                Wait-ForTestDispatchTenant -State $state -Tenants $tenants -Timing $timing -SpecificTenant $state.retryTenant[$appName]
             } else {
-                Wait-ForFreeTenant -state $state -tenants $tenants
+                Wait-ForTestDispatchTenant -State $state -Tenants $tenants -Timing $timing
             }
             Start-TestAppDispatch -Parameters $parameters -AppName $appName -AppId $appId -Tenant $tenant `
-                -ScriptPath $scriptPath -TestType $testType -State $state `
+                -ScriptPath $scriptPath -TestType $testType -State $state -Timing $timing `
                 -SkipAutomaticDisabledPass:$cleanCodeunitExecution -Verb $verb
         } else {
             # Nothing left to dispatch; drain any still-running jobs. New transient failures and
