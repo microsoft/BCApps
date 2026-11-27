@@ -27,6 +27,14 @@ codeunit 130561 "Library - Agent Impl."
         AgentTestContext.GetAgentUserSecurityID(AgentUserSecurityID);
     end;
 
+    procedure GetModelUnderTest(var ModelId: Code[30])
+    var
+        AgentTestContext: Codeunit "Agent Test Context";
+    begin
+        EnsureIsTest();
+        AgentTestContext.GetAgentModelId(ModelId);
+    end;
+
     procedure EnsureAgentIsActive(AgentUserSecurityID: Guid)
     var
         Agent: Codeunit Agent;
@@ -44,8 +52,12 @@ codeunit 130561 "Library - Agent Impl."
     procedure CreateTaskAndWait(var AgentTaskBuilder: Codeunit "Agent Task Builder"; var AgentTask: Record "Agent Task"; Timeout: Duration): Boolean
     var
         AgentTestContext: Codeunit "Agent Test Context";
+        SuiteModelId: Code[30];
     begin
         EnsureIsTest();
+        GetModelUnderTest(SuiteModelId);
+        if SuiteModelId <> '' then
+            AgentTaskBuilder.SetModelId(SuiteModelId);
         AgentTask := AgentTaskBuilder.Create(true, false); // Test tasks do not require message.
         AgentTestContext.AddTaskToLog(AgentTask.ID);
         Commit();

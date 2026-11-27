@@ -24,6 +24,15 @@ codeunit 149048 "Agent Test Context"
     end;
 
     /// <summary>
+    /// Gets the model override that is used by the test suite.
+    /// </summary>
+    /// <param name="ModelId">The model ID set on the test suite. If no model is set, a blank value is returned.</param>
+    procedure GetAgentModelId(var ModelId: Code[30])
+    begin
+        AgentTestContextImpl.GetAgentModelId(ModelId);
+    end;
+
+    /// <summary>
     /// Adds agent task to be reported as used by the test
     /// </summary>
     /// <param name="AgentTaskId">The id of the agent task to be added to the log.</param>

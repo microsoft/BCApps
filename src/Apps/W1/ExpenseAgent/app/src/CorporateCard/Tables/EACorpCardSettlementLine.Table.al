@@ -39,7 +39,6 @@ table 7431 "EA Corp Card Settlement Line"
             var
                 CorpCardSettlement: Record "EA Corp Card Settlement";
                 CorpCardStatement: Record "EA Corp Card Statement";
-                OtherSettlementLine: Record "EA Corp Card Settlement Line";
             begin
                 CorpCardSettlement.Get("Settlement Entry No.");
                 CorpCardSettlement.EnsureOpen();
@@ -54,15 +53,8 @@ table 7431 "EA Corp Card Settlement Line"
                 if CorpCardStatement."Provider Code" <> CorpCardSettlement."Provider Code" then
                     Error(StatementProviderMismatchErr, CorpCardStatement."Statement No.", CorpCardStatement."Provider Code", CorpCardSettlement."Provider Code");
 
-                OtherSettlementLine.SetRange("Statement Entry No.", "Statement Entry No.");
-                OtherSettlementLine.SetRange(Inactive, false);
-                if OtherSettlementLine.FindSet() then
-                    repeat
-                        if (OtherSettlementLine."Settlement Entry No." <> "Settlement Entry No.") or
-                           (OtherSettlementLine."Line No." <> "Line No.")
-                        then
-                            Error(StatementAlreadySettledErr, CorpCardStatement."Statement No.", OtherSettlementLine."Settlement Entry No.");
-                    until OtherSettlementLine.Next() = 0;
+                // Saving repeats this check under the statement lock; validation alone does not reserve it.
+                CheckStatementOwnership(CorpCardStatement);
 
                 "Statement No." := CorpCardStatement."Statement No.";
                 "Statement Date" := CorpCardStatement."Statement Date";
@@ -123,28 +115,88 @@ table 7431 "EA Corp Card Settlement Line"
         key(Statement; "Statement Entry No.")
         {
         }
+        key(SettlementStatement; "Settlement Entry No.", "Statement Entry No.")
+        {
+        }
     }
 
     trigger OnInsert()
     begin
         CheckSettlementOpen();
         TestField("Statement Entry No.");
+        CheckStatementForSave(0);
     end;
 
     trigger OnModify()
+    var
+        StoredSettlementLine: Record "EA Corp Card Settlement Line";
     begin
         CheckSettlementOpen();
+        StoredSettlementLine.Get("Settlement Entry No.", "Line No.");
+        CheckStatementForSave(StoredSettlementLine."Statement Entry No.");
     end;
 
     trigger OnDelete()
+    var
+        StoredSettlementLine: Record "EA Corp Card Settlement Line";
     begin
         CheckSettlementOpen();
+        StoredSettlementLine.Get("Settlement Entry No.", "Line No.");
+        StoredSettlementLine.LockStatements(0);
+    end;
+
+    trigger OnRename()
+    var
+        StoredSettlementLine: Record "EA Corp Card Settlement Line";
+    begin
+        TestField("Settlement Entry No.", xRec."Settlement Entry No.");
+        CheckSettlementOpen();
+        StoredSettlementLine.Get(xRec."Settlement Entry No.", xRec."Line No.");
+        StoredSettlementLine.LockStatements(0);
+    end;
+
+    internal procedure LockStatements(PreviousStatementEntryNo: Integer)
+    var
+        CorpCardStatement: Record "EA Corp Card Statement";
+    begin
+        CorpCardStatement.ReadIsolation := IsolationLevel::UpdLock;
+        // Every membership writer locks the existing statement, even when no line exists yet.
+        if (PreviousStatementEntryNo <> 0) and (PreviousStatementEntryNo < "Statement Entry No.") then
+            CorpCardStatement.Get(PreviousStatementEntryNo);
+        if "Statement Entry No." <> 0 then
+            CorpCardStatement.Get("Statement Entry No.");
+        if PreviousStatementEntryNo > "Statement Entry No." then
+            CorpCardStatement.Get(PreviousStatementEntryNo);
+    end;
+
+    internal procedure CheckStatementOwnership(CorpCardStatement: Record "EA Corp Card Statement")
+    var
+        OtherSettlementLine: Record "EA Corp Card Settlement Line";
+    begin
+        OtherSettlementLine.ReadIsolation := IsolationLevel::ReadCommitted;
+        OtherSettlementLine.SetRange("Statement Entry No.", "Statement Entry No.");
+        OtherSettlementLine.SetRange(Inactive, false);
+        if OtherSettlementLine.FindSet() then
+            repeat
+                if (OtherSettlementLine."Settlement Entry No." <> "Settlement Entry No.") or
+                   (OtherSettlementLine."Line No." <> "Line No.")
+                then
+                    Error(StatementAlreadySettledErr, CorpCardStatement."Statement No.", OtherSettlementLine."Settlement Entry No.");
+            until OtherSettlementLine.Next() = 0;
+    end;
+
+    local procedure CheckStatementForSave(PreviousStatementEntryNo: Integer)
+    begin
+        LockStatements(PreviousStatementEntryNo);
+        if not Inactive then
+            Validate("Statement Entry No.");
     end;
 
     local procedure CheckSettlementOpen()
     var
         CorpCardSettlement: Record "EA Corp Card Settlement";
     begin
+        CorpCardSettlement.ReadIsolation := IsolationLevel::UpdLock;
         CorpCardSettlement.Get("Settlement Entry No.");
         CorpCardSettlement.EnsureOpen();
     end;

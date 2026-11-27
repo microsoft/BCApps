@@ -13,6 +13,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Reversal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.HumanResources.Employee;
@@ -552,15 +553,21 @@ codeunit 148363 EACorpCardLiabilityTests
     var
         BankAccountLedgerEntry: Record "Bank Account Ledger Entry";
         CorpCardTrans: Record "EA Corp Card Trans";
+        GeneralLedgerSetup: Record "General Ledger Setup";
         PostedExpenseReportLine: Record "Posted Expense Report Line";
         LiabilityMgt: Codeunit "EA Corp Card Liability Mgt";
     begin
         // [FEATURE] [Expense Agent] [Corporate Card] [Liability]
         // [SCENARIO] A foreign-currency liability can be transferred to an LCY bank using its historical LCY amount.
         Initialize();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Amount Rounding Precision" := 0.01;
+        GeneralLedgerSetup.Modify(true);
 
-        // [GIVEN] A posted USD manual expense linked to an LCY provider bank.
+        // [GIVEN] A posted USD manual expense linked to an LCY provider bank, with an unrounded historical feed amount.
         PostManualExpenseAndLinkFeed(CorpCardTrans, PostedExpenseReportLine, 'USD', '');
+        CorpCardTrans."Amount (LCY)" += 0.0025;
+        CorpCardTrans.Modify(true);
 
         // [WHEN] The liability transfer is requested.
         LiabilityMgt.TransferLiability(CorpCardTrans, WorkDate());
