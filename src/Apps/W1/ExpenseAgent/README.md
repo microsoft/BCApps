@@ -111,6 +111,109 @@ setting in both states.
 
 These AL tests require the existing Business Central test environment.
 
+# Interim approval controls
+
+## Available approvers
+
+Use `GET expenseUsers({id})/availableApprovers` to list expense users with
+`canApprove: true` and an employee link. The parent expense user is included
+if they meet these conditions. The collection is read-only and supports standard OData
+filtering, paging, and `$expand=availableApprovers`.
+
+Each entry exposes the same scalar fields as `expenseUsers`: `id`, `number`,
+`employeeNumber`, `name`, `eMail`, `jobTitle`, `canApprove`, `employeeStatus`,
+`approvalLimitLCY`, and `unlimitedApproval`. Caller filters can't override
+the approval or employee-link constraints.
+
+This is a company-wide lookup, not a report-specific eligibility check.
+It doesn't filter by report amount, final approver, or alternate coverage,
+and it isn't gated by **Allow Interim Approvers**. Assignment and submission
+continue to enforce their existing validation.
+
+The top-level `availableApprovers` collection returns the same approver list.
+`Expense Users API Test` covers nested navigation, conflicting caller
+filters, and parent inclusion when expanding multiple expense users.
+
+## Assignment setting
+
+**Configure Expense Agent / Allow Interim Approvers** controls new interim
+approver assignments. It's enabled by default for new and upgraded setups.
+The `expenseCapabilities` entry `interimApprover` uses capability ordinal 12
+and reports this setting.
+
+When assignment is blocked, authorized agent administrators can open
+**Configure Expense Agent** from the error. Other users receive the same
+validation message without navigation. The action doesn't enable the setting.
+
+Assignments are allowed while a report is Released or Pending Approval.
+`submitAndAssignInterimApprover` releases the report, assigns the selected
+interim approver, and then submits in one transaction. Submission routes
+directly to the interim approver or their active alternate.
+Disabling the setting preserves existing approvals and alternate coverage.
+Resubmitting a report while the setting is disabled clears stale interim
+assignments.
+
+## Approval action outcomes
+
+Use these additive bound actions when the caller needs the approval result:
+
+- `Microsoft.NAV.approvedExpenseReportWithOutcome`, with `approverExpenseUserNo`.
+- `Microsoft.NAV.approvedExpenseReportWithPolicyOverrideAndOutcome`, with
+  `approverExpenseUserNo` and `skipPolicyValidation`.
+
+Before calling either action, query `expenseCapabilities` and check that
+`ApprovalsWithOutcome` is present with `isEnabled: true`. This capability
+always reports true when the outcome actions are supported, independently
+of the **Allow Interim Approvers** setting. If it's absent or false, use the
+existing actions without an outcome; don't infer completion from a later 404.
+
+`InterimApprover` remains tied to **Allow Interim Approvers** and controls
+new interim assignments, not whether outcome actions are available. Compare
+capability names case-insensitively because they're stored as BC Code values.
+
+POST the action under `expenseReports({reportId})` using the existing
+`microsoft/expense/beta` API. The existing actions without an outcome remain
+unchanged. The new actions use the same approval permissions, active-approver
+checks, and policy validation. Only the explicit override can skip policy
+validation.
+
+The AL action returns JSON text as an OData scalar with HTTP 200. Read the
+response's `value` string and parse it as JSON:
+
+```json
+{
+  "reportId": "00000000-0000-0000-0000-000000000001",
+  "bcStatus": "Interim_x0020_Approved",
+  "approvalComplete": false,
+  "nextApproverExpenseUserNo": "APPROVER-002"
+}
+```
+
+Full approval returns `bcStatus: "Approved"`, `approvalComplete: true`, and
+`nextApproverExpenseUserNo: null`. The outcome is captured from the updated
+report in the action, not from a later GET. It identifies the active next
+approver, including alternate coverage.
+
+An interim-approved report is still awaiting approval. Keep it pending in
+the caller's public model, notify the returned next approver, and send a
+completion email only when `approvalComplete` is true. Callers must deduplicate
+notifications for the same approval attempt.
+
+The acting approver's report navigation can stop returning the report after
+either a handoff or full approval. Don't interpret a 404 as an approval
+outcome or broaden that view's filter. Errors from approval are propagated
+instead of returning a success-shaped outcome.
+
+An unexpected post-approval status raises an internal error. BC retains the
+diagnostic status in telemetry rather than exposing it as a client error.
+Approval may already be committed when this error occurs; don't assume
+failure means the report is unchanged or retry without reconciling its state.
+
+`Expense Reports API Test` covers the OData scalar response, handoff through
+the approver view, final and single-stage approval, active final alternates,
+policy override, and rejection of inactive approvers. These tests require
+the existing Business Central test environment.
+
 # Reserved codeunit IDs
 
 Do not use codeunit IDs 6913-6921 or 6977 in the Expense Agent apps. They belong to the

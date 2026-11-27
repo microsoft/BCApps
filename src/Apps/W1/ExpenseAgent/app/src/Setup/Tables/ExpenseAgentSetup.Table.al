@@ -798,6 +798,13 @@ table 6930 "Expense Agent Setup"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether a corporate card must be selected for credit-card expenses before release or posting. This also applies to existing unposted expenses and expense reports.';
         }
+        field(129; "Allow Interim Approvers"; Boolean)
+        {
+            Caption = 'Allow interim approvers';
+            DataClassification = SystemMetadata;
+            InitValue = true;
+            ToolTip = 'Specifies whether expense submitters can assign interim approvers to expense reports.';
+        }
         field(150; "Use Canary Endpoint"; Boolean)
         {
             Access = Internal;

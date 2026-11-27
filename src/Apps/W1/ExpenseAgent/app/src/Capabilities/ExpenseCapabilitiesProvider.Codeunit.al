@@ -34,6 +34,8 @@ codeunit 6906 "Expense Capabilities Provider"
                 exit(IsVATSpecificationsEnabled());
             Capability::AiAssistedPolicyEvaluation:
                 exit(IsAiAssistedPolicyEvaluationEnabled());
+            Capability::InterimApprover:
+                exit(IsInterimApproverEnabled());
             Capability::NoReceipt:
                 exit(IsNoReceiptEnabled());
             Capability::ActivityLog,
@@ -41,7 +43,8 @@ codeunit 6906 "Expense Capabilities Provider"
             Capability::ApprovalConversation,
             Capability::TravelRequest,
             Capability::CreditCardFeed,
-            Capability::ActiveApproverRouting:
+            Capability::ActiveApproverRouting,
+            Capability::ApprovalsWithOutcome:
                 exit(true);
         end;
         exit(false);
@@ -90,6 +93,14 @@ codeunit 6906 "Expense Capabilities Provider"
     begin
         ExpenseAgentSetup.GetRecordOnce();
         exit(ExpenseAgentSetup."Evaluate Policies");
+    end;
+
+    local procedure IsInterimApproverEnabled(): Boolean
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        exit(ExpenseAgentSetup."Allow Interim Approvers");
     end;
 
     /// <summary>
