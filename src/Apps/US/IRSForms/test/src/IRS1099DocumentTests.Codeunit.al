@@ -2386,7 +2386,7 @@ codeunit 148010 "IRS 1099 Document Tests"
         asserterror LibraryIRS1099Document.UpdateTransmission(Transmission);
 
         // [THEN] Validation fails, and neither document is linked.
-        Assert.ExpectedError('supplemental box NEC-01B');
+        Assert.ExpectedError('Supplemental box NEC-01B');
         Assert.ExpectedError('must be between zero and the amount');
         Assert.ExpectedErrorCode('Dialog');
         VerifyDocumentLink(IRS1099FormDocHeader.ID, 0);

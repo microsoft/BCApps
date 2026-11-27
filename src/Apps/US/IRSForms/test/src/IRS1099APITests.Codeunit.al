@@ -11,6 +11,7 @@ codeunit 148018 "IRS 1099 API Tests"
     Subtype = Test;
     TestType = Uncategorized;
     TestPermissions = Disabled;
+    RequiredTestIsolation = Disabled;
 
     var
         TempOwnedDocHeader: Record "IRS 1099 Form Doc. Header" temporary;
