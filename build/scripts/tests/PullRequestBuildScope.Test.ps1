@@ -100,7 +100,7 @@ Describe "PullRequestBuildScope" {
             $env:GITHUB_EVENT_NAME = 'pull_request'
             $env:GITHUB_EVENT_PATH = $eventFile
             $env:GITHUB_STEP_SUMMARY = $null
-            Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('src/Apps/CZ/Foo/app/x.al') }
+            Mock -ModuleName PullRequestBuildScope Get-ChangedFilesForCI { return @('src/Apps/CZ/Foo/app/x.al') }
             Mock -ModuleName PullRequestBuildScope Get-AffectedAppNames { return [PSCustomObject]@{ RunAll = $false; AppNames = @('Foo CZ') } }
         }
         AfterEach {
@@ -112,6 +112,9 @@ Describe "PullRequestBuildScope" {
             @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
             Set-PullRequestBuildScope -BaseFolder $root
 
+            Should -Invoke -ModuleName PullRequestBuildScope Get-ChangedFilesForCI -Times 1 -Exactly -ParameterFilter {
+                $CompareWithPullRequestMerge
+            }
             $settings = Get-Content (Join-Path $root '.github/Pull Request Build.settings.json') -Raw | ConvertFrom-Json
             ($settings.conditionalSettings | Where-Object { $_.triggers -contains 'merge_group' }).settings.projects | Should -Be @('build/projects/Apps W1')
             $projects = @(($settings.conditionalSettings | Where-Object { $_.triggers -contains 'pull_request' }).settings.projects | ForEach-Object { $_.Replace('\', '/') })
@@ -122,7 +125,7 @@ Describe "PullRequestBuildScope" {
 
         It "omits Test Apps projects when a known PR diff affects no apps" {
             @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
-            Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('.github/actions/Example/action.yml') }
+            Mock -ModuleName PullRequestBuildScope Get-ChangedFilesForCI { return @('.github/actions/Example/action.yml') }
             Mock -ModuleName PullRequestBuildScope Get-AffectedAppNames { return [PSCustomObject]@{ RunAll = $false; AppNames = @() } }
 
             Set-PullRequestBuildScope -BaseFolder $root
@@ -143,7 +146,7 @@ Describe "PullRequestBuildScope" {
 
         It "keeps Clean app compilation when build settings change" {
             @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
-            Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('.github/AL-Go-Settings.json') }
+            Mock -ModuleName PullRequestBuildScope Get-ChangedFilesForCI { return @('.github/AL-Go-Settings.json') }
             Mock -ModuleName PullRequestBuildScope Get-AffectedAppNames { return [PSCustomObject]@{ RunAll = $false; AppNames = @() } }
             Set-PullRequestBuildScope -BaseFolder $root
             (Get-Content (Join-Path $root 'build/projects/Apps W1/.AL-Go/settings.json') -Raw | ConvertFrom-Json).ConditionalSettings[0].settings.buildModes | Should -Be @('Clean')
@@ -155,7 +158,7 @@ Describe "PullRequestBuildScope" {
 
         It "keeps Test Apps projects when a full build fallback is required" {
             @{ pull_request = @{ labels = @() } } | ConvertTo-Json -Depth 4 | Set-Content $eventFile
-            Mock -ModuleName PullRequestBuildScope Get-PullRequestMergeChangedFiles { return @('build/scripts/RunTests.ps1') }
+            Mock -ModuleName PullRequestBuildScope Get-ChangedFilesForCI { return @('build/scripts/RunTests.ps1') }
             Mock -ModuleName PullRequestBuildScope Get-AffectedAppNames { return [PSCustomObject]@{ RunAll = $true; AppNames = @() } }
 
             Set-PullRequestBuildScope -BaseFolder $root

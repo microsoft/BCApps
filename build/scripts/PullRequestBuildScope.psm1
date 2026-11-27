@@ -174,7 +174,7 @@ function Set-PullRequestBuildScope {
         return
     }
 
-    $changedFiles = Get-PullRequestMergeChangedFiles
+    $changedFiles = Get-ChangedFilesForCI -CompareWithPullRequestMerge
     if (-not $changedFiles) {
         Write-Host "PR BUILD SCOPE: Could not determine pull request changes - building every country"
         return
