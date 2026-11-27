@@ -9,7 +9,7 @@ using Microsoft.Foundation.Attachment;
 using Microsoft.HumanResources.Employee;
 using System.Utilities;
 
-codeunit 148369 "Expense API Pages Test"
+codeunit 148370 "Expense API Pages Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
