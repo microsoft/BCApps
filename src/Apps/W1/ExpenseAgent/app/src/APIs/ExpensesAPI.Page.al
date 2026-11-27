@@ -126,6 +126,11 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Receipt Attached';
                 }
+                field(cardExpenseAwaitingReport; Rec."Card Expense Awaiting Report")
+                {
+                    Caption = 'Card Expense Awaiting Report';
+                    Editable = false;
+                }
                 field(receiptEntry; Rec."Receipt Entry")
                 {
                     Caption = 'Receipt Entry';
@@ -371,6 +376,13 @@ page 6927 "Expenses API"
                     EntityName = 'expenseRuleViolation';
                     EntitySetName = 'expenseRuleViolations';
                     SubPageLink = "Expense No." = field("No.");
+                }
+                part(cardReceiptData; "EA Card Receipt Data API")
+                {
+                    Caption = 'Card Receipt Data';
+                    EntityName = 'cardReceiptData';
+                    EntitySetName = 'cardReceiptData';
+                    SubPageLink = "Expense SystemId" = field(SystemId);
                 }
             }
         }

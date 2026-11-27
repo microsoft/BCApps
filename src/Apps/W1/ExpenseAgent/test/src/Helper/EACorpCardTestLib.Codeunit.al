@@ -31,6 +31,9 @@ codeunit 148357 EACorpCardTestLib
         CorpCardXmlSampleCardIdTok: Label 'XML-CARD-SAMPLE', Locked = true;
         CorpCardCsvSampleFileNameTok: Label 'CorpCard-Sample-60.csv', Locked = true;
         CorpCardXmlSampleFileNameTok: Label 'CorpCard-Sample-60.xml', Locked = true;
+        CsvHeaderTok: Label 'ProviderTransId,CardLast4,TransDate,PostingDate,Amount,CurrencyCode,MerchantRaw,MCC,Country,Notes', Locked = true;
+        CsvTransactionLineTok: Label '%1,%2,%3,%3,%4,%5,%6,%7,US,E2E transaction', Comment = '%1 = provider transaction ID, %2 = card last four digits, %3 = transaction date, %4 = amount, %5 = currency code, %6 = merchant name, %7 = MCC', Locked = true;
+        CsvFileNameTok: Label '%1.csv', Comment = '%1 = provider transaction ID', Locked = true;
 
     internal procedure InitializeCorpCardData()
     var
@@ -178,6 +181,19 @@ codeunit 148357 EACorpCardTestLib
         CorpCardTrans."Trans Date" := WorkDate();
         CorpCardTrans.Amount := 20;
         CorpCardTrans.Insert(true);
+    end;
+
+    // Creates another card for the expense user of the given card and returns its card ID.
+    internal procedure CreateAdditionalCard(CorpCard: Record "EA Corp Card"; MaskedCardNo: Text[30]): Code[50]
+    var
+        AdditionalCorpCard: Record "EA Corp Card";
+    begin
+        AdditionalCorpCard := CorpCard;
+        AdditionalCorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(AdditionalCorpCard."Card Id"));
+        AdditionalCorpCard."External Card Ref" := '';
+        AdditionalCorpCard."Masked Card No." := MaskedCardNo;
+        AdditionalCorpCard.Insert(true);
+        exit(AdditionalCorpCard."Card Id");
     end;
 
     local procedure InitializeCorpCardSetup()
@@ -574,5 +590,37 @@ codeunit 148357 EACorpCardTestLib
         CurrencyExchangeRate.DeleteAll();
 
         LibraryERM.CreateExchangeRate(CurrencyCode, DMY2Date(1, 1, 2000), 1, 1);
+    end;
+
+    /// <summary>
+    /// Prepares the corporate card setup, MCC mappings and the CSV provider without deleting any data.
+    /// Used by the E2E test handler, which runs against a shared company.
+    /// </summary>
+    internal procedure EnsureCorpCardSetupForE2E()
+    begin
+        InitializeCorpCardSetup();
+        InitializeCorpCardProvider(CorpCardCsvProviderCodeTok, Enum::"EA Corp Card Feed Type"::CSV);
+    end;
+
+    internal procedure GetCsvProviderCode(): Code[20]
+    begin
+        exit(CorpCardCsvProviderCodeTok);
+    end;
+
+    /// <summary>
+    /// Imports a single transaction through the CSV provider, so post-import processing links an existing expense
+    /// or creates a draft exactly as it does in production.
+    /// </summary>
+    internal procedure ImportCsvTransaction(ProviderTransId: Code[100]; CardLast4: Text[4]; TransDate: Date; Amount: Decimal; CurrencyCode: Code[10]; MerchantName: Text; MCC: Code[4])
+    var
+        CsvPayloadBuilder: TextBuilder;
+    begin
+        CsvPayloadBuilder.AppendLine(CsvHeaderTok);
+        CsvPayloadBuilder.AppendLine(
+            StrSubstNo(
+                CsvTransactionLineTok, ProviderTransId, CardLast4, Format(TransDate, 0, 9), Format(Amount, 0, 9), CurrencyCode,
+                DelChr(MerchantName, '=', ','), MCC));
+        SetProviderSourcePayload(CorpCardCsvProviderCodeTok, CsvPayloadBuilder.ToText(), CopyStr(StrSubstNo(CsvFileNameTok, ProviderTransId), 1, 250));
+        RunFileImport(CorpCardCsvProviderCodeTok);
     end;
 }

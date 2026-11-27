@@ -6,6 +6,7 @@ namespace Microsoft.Test.ExpenseAgent;
 
 using Microsoft.CRM.Team;
 using Microsoft.ExpenseAgent;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
@@ -26,9 +27,223 @@ codeunit 148307 "Expense Test Handler API"
     procedure Initialize(): Text[30]
     var
         LibraryExpense: Codeunit "Library - Expense";
+        CorpCardTestLib: Codeunit EACorpCardTestLib;
     begin
+        // Card transactions reference expenses, so they are removed first to avoid links to deleted expenses.
+        CorpCardTestLib.DeleteCorpCardTransactionalData();
         LibraryExpense.CleanTransactionalData();
         exit('Initialize completed');
+    end;
+
+    /// <summary>
+    /// Deletes corporate card transactions, statements, settlements and exceptions. Cards and providers are kept.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_CleanupCorporateCards?company=..." -d "{}"
+    /// </summary>
+    [ServiceEnabled]
+    procedure CleanupCorporateCards(): Text[50]
+    var
+        CorpCardTestLib: Codeunit EACorpCardTestLib;
+    begin
+        CorpCardTestLib.DeleteCorpCardTransactionalData();
+        exit('Corporate card cleanup completed');
+    end;
+
+    /// <summary>
+    /// Prepares the corporate card setup (AutoDraft, date window, MCC mappings, card payment method) and the CSV provider.
+    /// Does not delete any data, so it can run before every test.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_ConfigureCorporateCards?company=..." -d "{}"
+    /// </summary>
+    [ServiceEnabled]
+    procedure ConfigureCorporateCards(): Text[50]
+    var
+        CorpCardTestLib: Codeunit EACorpCardTestLib;
+    begin
+        CorpCardTestLib.EnsureCorpCardSetupForE2E();
+        exit('Corporate card configuration completed');
+    end;
+
+    /// <summary>
+    /// Returns the corporate card of the expense user that ends in the given digits, creating it on the CSV provider when needed.
+    /// When lastFourDigits is blank, a card with unused digits is created.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_EnsureCorporateCard?company=..." -d "{\"expenseUserId\": \"...\", \"lastFourDigits\": \"4321\"}"
+    /// </summary>
+    /// <returns>JSON with cardId, lastFourDigits and providerCode.</returns>
+    [ServiceEnabled]
+    procedure EnsureCorporateCard(expenseUserId: Guid; lastFourDigits: Text[4]): Text
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        FindOrCreateCorporateCard(expenseUserId, lastFourDigits, CorpCard);
+        exit(GetCorporateCardJson(CorpCard));
+    end;
+
+    /// <summary>
+    /// Imports one corporate card transaction through the CSV provider for the expense user's card. Post-import processing
+    /// then links a matching existing expense or creates a draft card expense, as in production.
+    /// A blank currencyCode uses the local currency code; a blank providerTransactionId gets a unique one.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_CreateCorporateCardTransaction?company=..." -d "{\"expenseUserId\": \"...\", \"lastFourDigits\": \"4321\", \"transactionDate\": \"2026-06-02\", \"amount\": 42.5, \"currencyCode\": \"\", \"merchantName\": \"Contoso Coffee\", \"mcc\": \"5812\", \"providerTransactionId\": \"\"}"
+    /// </summary>
+    /// <returns>
+    /// JSON with transactionEntryNo, providerTransactionId, status, matchType, cardId, expenseNo, expenseId (empty when no expense
+    /// was linked or created) and exceptionMessage (the latest exception of the transaction, if any).
+    /// </returns>
+    [ServiceEnabled]
+    procedure CreateCorporateCardTransaction(expenseUserId: Guid; lastFourDigits: Text[4]; transactionDate: Date; amount: Decimal; currencyCode: Code[10]; merchantName: Text[100]; mcc: Code[4]; providerTransactionId: Text[100]): Text
+    var
+        CorpCard: Record "EA Corp Card";
+        CorpCardTrans: Record "EA Corp Card Trans";
+        CorpCardTestLib: Codeunit EACorpCardTestLib;
+        ProviderTransId: Code[100];
+    begin
+        CorpCardTestLib.EnsureCorpCardSetupForE2E();
+        FindOrCreateCorporateCard(expenseUserId, lastFourDigits, CorpCard);
+
+        ProviderTransId := CopyStr(UpperCase(providerTransactionId), 1, MaxStrLen(ProviderTransId));
+        if ProviderTransId = '' then
+            ProviderTransId := CopyStr('E2E-' + DelChr(Format(CreateGuid()), '=', '{}-'), 1, MaxStrLen(ProviderTransId));
+        if transactionDate = 0D then
+            transactionDate := WorkDate();
+        if currencyCode = '' then
+            currencyCode := GetLocalCurrencyCode();
+
+        CorpCardTestLib.ImportCsvTransaction(
+            ProviderTransId, CorpCard.GetLastFourDigits(), transactionDate, amount, currencyCode, merchantName, mcc);
+
+        CorpCardTrans.SetRange("Provider Code", CorpCard."Provider Code");
+        CorpCardTrans.SetRange("Provider Trans Id", ProviderTransId);
+        if not CorpCardTrans.FindLast() then
+            Error(CorporateCardTransactionNotImportedErr, ProviderTransId);
+        exit(GetCorporateCardTransactionJson(CorpCardTrans));
+    end;
+
+    /// <summary>
+    /// Blocks or unblocks a corporate card, so tests can make adding its expenses to a report fail and then retry.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_SetCorporateCardBlocked?company=..." -d "{\"cardId\": \"E2E-EU0001-4321\", \"blocked\": true}"
+    /// </summary>
+    [ServiceEnabled]
+    procedure SetCorporateCardBlocked(cardId: Code[50]; blocked: Boolean): Text[50]
+    var
+        CorpCard: Record "EA Corp Card";
+    begin
+        CorpCard.Get(cardId);
+        CorpCard.Validate(Blocked, blocked);
+        CorpCard.Modify(true);
+        exit('Corporate card updated');
+    end;
+
+    /// <summary>
+    /// Reopens a released expense that is not on a report, so tests can edit an expense created through POST /expenses,
+    /// which releases it.
+    /// Example: curl.exe -X POST ".../ExpenseTestHandler_ReopenExpense?company=..." -d "{\"expenseId\": \"...\"}"
+    /// </summary>
+    [ServiceEnabled]
+    procedure ReopenExpense(expenseId: Guid): Text[50]
+    var
+        Expense: Record Expense;
+        ReleaseExpenseDocument: Codeunit "Release Expense Document";
+    begin
+        Expense.GetBySystemId(expenseId);
+        ReleaseExpenseDocument.PerformManualReopen(Expense);
+        exit('Expense reopened');
+    end;
+
+    local procedure FindOrCreateCorporateCard(ExpenseUserId: Guid; LastFourDigits: Text[4]; var CorpCard: Record "EA Corp Card")
+    var
+        ExpenseUser: Record "Expense User";
+        CorpCardTestLib: Codeunit EACorpCardTestLib;
+        ProviderCode: Code[20];
+    begin
+        CorpCardTestLib.EnsureCorpCardSetupForE2E();
+        ProviderCode := CorpCardTestLib.GetCsvProviderCode();
+        if not ExpenseUser.GetBySystemId(ExpenseUserId) then
+            Error(ExpenseUserNotFoundErr, ExpenseUserId);
+
+        if LastFourDigits = '' then
+            LastFourDigits := GetUnusedLastFourDigits(ProviderCode)
+        else
+            if (StrLen(LastFourDigits) <> 4) or (DelChr(LastFourDigits, '=', '0123456789') <> '') then
+                Error(InvalidLastFourDigitsErr, LastFourDigits);
+
+        CorpCard.SetRange("Provider Code", ProviderCode);
+        CorpCard.SetFilter("Masked Card No.", '%1', '*' + LastFourDigits);
+        if CorpCard.FindFirst() then begin
+            if CorpCard."Expense User No." <> ExpenseUser."No." then
+                Error(CardDigitsUsedByOtherUserErr, LastFourDigits, CorpCard."Expense User No.");
+            if CorpCard.Blocked then begin
+                CorpCard.Blocked := false;
+                CorpCard.Modify(true);
+            end;
+            exit;
+        end;
+
+        CorpCard.Init();
+        CorpCard."Card Id" := CopyStr('E2E-' + ExpenseUser."No." + '-' + LastFourDigits, 1, MaxStrLen(CorpCard."Card Id"));
+        CorpCard."Provider Code" := ProviderCode;
+        CorpCard."Expense User No." := ExpenseUser."No.";
+        CorpCard."Masked Card No." := CopyStr('****' + LastFourDigits, 1, MaxStrLen(CorpCard."Masked Card No."));
+        CorpCard.Insert(true);
+    end;
+
+    local procedure GetUnusedLastFourDigits(ProviderCode: Code[20]): Text[4]
+    var
+        CorpCard: Record "EA Corp Card";
+        LastFourDigits: Text[4];
+        Attempt: Integer;
+    begin
+        CorpCard.SetRange("Provider Code", ProviderCode);
+        for Attempt := 1 to 100 do begin
+            LastFourDigits := CopyStr(Format(1000 + Random(8999)), 1, 4);
+            CorpCard.SetFilter("Masked Card No.", '%1', '*' + LastFourDigits);
+            if CorpCard.IsEmpty() then
+                exit(LastFourDigits);
+        end;
+        Error(NoUnusedCardDigitsErr);
+    end;
+
+    local procedure GetLocalCurrencyCode(): Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        exit(GeneralLedgerSetup."LCY Code");
+    end;
+
+    local procedure GetCorporateCardJson(CorpCard: Record "EA Corp Card") Result: Text
+    var
+        CardJson: JsonObject;
+    begin
+        CardJson.Add('cardId', CorpCard."Card Id");
+        CardJson.Add('lastFourDigits', CorpCard.GetLastFourDigits());
+        CardJson.Add('providerCode', CorpCard."Provider Code");
+        CardJson.WriteTo(Result);
+    end;
+
+    local procedure GetCorporateCardTransactionJson(CorpCardTrans: Record "EA Corp Card Trans") Result: Text
+    var
+        Expense: Record Expense;
+        CorpCardException: Record "EA Corp Card Exception";
+        TransactionJson: JsonObject;
+        ExpenseId: Text;
+        ExceptionMessage: Text;
+    begin
+        if CorpCardTrans."Expense No." <> '' then
+            if Expense.Get(CorpCardTrans."Expense No.") then
+                ExpenseId := LowerCase(DelChr(Format(Expense.SystemId), '=', '{}'));
+
+        CorpCardException.SetRange("Trans Entry No.", CorpCardTrans."Entry No.");
+        if CorpCardException.FindLast() then
+            ExceptionMessage := CorpCardException.Message;
+
+        TransactionJson.Add('transactionEntryNo', CorpCardTrans."Entry No.");
+        TransactionJson.Add('providerTransactionId', CorpCardTrans."Provider Trans Id");
+        TransactionJson.Add('status', Format(CorpCardTrans.Status));
+        TransactionJson.Add('matchType', Format(CorpCardTrans."Match Type"));
+        TransactionJson.Add('cardId', CorpCardTrans."Card Id");
+        TransactionJson.Add('lastFourDigits', CorpCardTrans."Card Last 4");
+        TransactionJson.Add('expenseNo', CorpCardTrans."Expense No.");
+        TransactionJson.Add('expenseId', ExpenseId);
+        TransactionJson.Add('exceptionMessage', ExceptionMessage);
+        TransactionJson.WriteTo(Result);
     end;
 
     /// <summary>
@@ -684,4 +899,9 @@ codeunit 148307 "Expense Test Handler API"
         FixtureCompanyMismatchErr: Label 'Delete the approver fixture in the company where it was created.';
         CannotDeleteFixtureCallerErr: Label 'The current Business Central user cannot be deleted as part of an approver fixture.';
         FixtureIdentifierRequiredErr: Label 'The approver fixture must contain a non-empty %1 identifier.', Comment = '%1 = JSON property name';
+        ExpenseUserNotFoundErr: Label 'The Expense User with SystemId %1 does not exist.', Comment = '%1 = Expense User SystemId';
+        InvalidLastFourDigitsErr: Label 'The last four card digits must be exactly four digits, but %1 was specified.', Comment = '%1 = specified digits';
+        CardDigitsUsedByOtherUserErr: Label 'A corporate card ending in %1 already belongs to Expense User %2.', Comment = '%1 = last four digits, %2 = Expense User No.';
+        NoUnusedCardDigitsErr: Label 'No unused last four card digits were found for the corporate card provider.';
+        CorporateCardTransactionNotImportedErr: Label 'The corporate card transaction %1 was not imported.', Comment = '%1 = provider transaction ID';
 }

@@ -68,6 +68,7 @@ page 6961 "Expense Billing Information"
                 field("Merchant Name"; Rec."Merchant Name")
                 {
                     ApplicationArea = Basic, Suite;
+                    Editable = MerchantEditable;
                     ToolTip = 'Specifies the merchant name associated with the expense report.';
                 }
                 field("Merchant Registration No."; Rec."Merchant Registration No.")
@@ -93,4 +94,12 @@ page 6961 "Expense Billing Information"
             }
         }
     }
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        MerchantEditable := not Rec.IsLinkedToCardTransaction() or (Rec."Merchant Name" = '');
+    end;
+
+    var
+        MerchantEditable: Boolean;
 }

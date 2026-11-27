@@ -126,6 +126,7 @@ table 6907 "Expense Report Line"
             begin
                 if "Expense Date" <> xRec."Expense Date" then begin
                     TestStatusOpen();
+                    CheckCorporateCardSourceFields();
                     ClearRuleId();
                     UpdateAmounts();
                     ApplyRule();
@@ -140,6 +141,7 @@ table 6907 "Expense Report Line"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 GetExpenseReportHeader();
                 UpdateAmounts();
                 ApplyRule();
@@ -155,6 +157,7 @@ table 6907 "Expense Report Line"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
 
                 UpdateAmounts();
                 ApplyRule();
@@ -289,6 +292,7 @@ table 6907 "Expense Report Line"
             begin
                 if xRec."Merchant Name" <> Rec."Merchant Name" then begin
                     TestStatusOpen();
+                    CheckCorporateCardSourceFields();
                     ApplyRule(false, true);
                 end;
             end;
@@ -421,6 +425,7 @@ table 6907 "Expense Report Line"
                 ExpensePaymentMethod: Record "Expense Payment Method";
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
 
                 if xRec."Payment Method Code" <> Rec."Payment Method Code" then begin
                     Rec.Validate("Reimbursement Type", Rec."Reimbursement Type"::" ");
@@ -877,6 +882,7 @@ table 6907 "Expense Report Line"
                 CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
             begin
                 TestStatusOpen();
+                CheckCorporateCardSourceFields();
                 CorpCardSelectionMgt.ValidateReportLine(Rec, false);
             end;
 
@@ -1234,6 +1240,7 @@ table 6907 "Expense Report Line"
         // Read the persisted before-image once; xRec can already contain the new values.
         if not Rec.IsTemporary() then
             StoredExpenseReportLine.Get("Document No.", "Line No.");
+        CheckCorporateCardSourceFields(StoredExpenseReportLine);
         if ("Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id") or
            ("Expense User No." <> StoredExpenseReportLine."Expense User No.") or
            ("Expense Date" <> StoredExpenseReportLine."Expense Date") or
@@ -1313,6 +1320,49 @@ table 6907 "Expense Report Line"
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
+        CardLineSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense report line linked to a corporate card transaction.', Comment = '%1 = field caption';
+
+    local procedure CheckCorporateCardSourceFields()
+    var
+        StoredExpenseReportLine: Record "Expense Report Line";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        if not StoredExpenseReportLine.Get(Rec."Document No.", Rec."Line No.") then
+            exit;
+        CheckCorporateCardSourceFields(StoredExpenseReportLine);
+    end;
+
+    local procedure CheckCorporateCardSourceFields(StoredExpenseReportLine: Record "Expense Report Line")
+    begin
+        if Rec.IsTemporary() then
+            exit;
+        if not StoredExpenseReportLine.IsLinkedToCardTransaction() then
+            exit;
+
+        if Rec.Amount <> StoredExpenseReportLine.Amount then
+            Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption(Amount));
+        if Rec."Expense Currency Code" <> StoredExpenseReportLine."Expense Currency Code" then
+            Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Currency Code"));
+        if Rec."Expense Date" <> StoredExpenseReportLine."Expense Date" then
+            Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Expense Date"));
+        // A merchant the card feed left blank can be filled in by the user; a merchant from the feed is kept.
+        if (StoredExpenseReportLine."Merchant Name" <> '') and (Rec."Merchant Name" <> StoredExpenseReportLine."Merchant Name") then
+            Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Merchant Name"));
+        if Rec."Payment Method Code" <> StoredExpenseReportLine."Payment Method Code" then
+            Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Payment Method Code"));
+        if Rec."Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id" then
+            Error(CardLineSourceFieldCannotChangeErr, Rec.FieldCaption("Corporate Card Id"));
+    end;
+
+    /// <summary>
+    /// A line linked to a corporate card transaction keeps the transaction's amount, currency, date, merchant, payment method
+    /// and card.
+    /// </summary>
+    internal procedure IsLinkedToCardTransaction(): Boolean
+    begin
+        exit(Rec."Credit Card Feed No." <> 0);
+    end;
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin
@@ -2006,6 +2056,27 @@ table 6907 "Expense Report Line"
 
         if ("Spend Request No." <> '') and Rec.Refundable then
             CheckSpendRequestAmount();
+
+        UpdateNoReceiptType();
+    end;
+
+    // Mirrors Expense.UpdateNoReceiptType, except that a lost-receipt declaration is never changed on the line.
+    local procedure UpdateNoReceiptType()
+    var
+        ExpenseCategory: Record "Expense Category";
+    begin
+        if Rec."No Receipt Type" = Rec."No Receipt Type"::"Lost Receipt" then
+            exit;
+
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Allow No Receipt" then
+            if ExpenseCategory.Get(Rec."Expense Category") then
+                if Rec."Amount (LCY)" < ExpenseCategory."Amount Limit for No Receipt" then begin
+                    Rec."No Receipt Type" := Rec."No Receipt Type"::"Receipt not needed";
+                    exit;
+                end;
+
+        Clear(Rec."No Receipt Type");
     end;
 
     local procedure CheckSpendRequestAmount()
@@ -2429,7 +2500,14 @@ table 6907 "Expense Report Line"
     local procedure UpdateFromExpenseCategory()
     var
         ExpenseCategory: Record "Expense Category";
+        CardDescription: Text[100];
+        IsCardLine: Boolean;
     begin
+        // Amount, currency, payment and merchant description of a card line come from the card transaction
+        // and must survive a category change.
+        IsCardLine := Rec."Credit Card Feed No." <> 0;
+        if IsCardLine then
+            CardDescription := Rec.Description;
         Rec.Description := '';
         Rec."Expense Detail Required" := Rec."Expense Detail Required"::" ";
         Rec."Spend Request No." := '';
@@ -2438,7 +2516,10 @@ table 6907 "Expense Report Line"
         if Rec."Expense Category" = '' then begin
             Rec.Validate("Expense Location", '');
             Rec."Unit of Measure Code" := '';
-            Rec.Amount := 0;
+            if IsCardLine then
+                Rec.Description := CardDescription
+            else
+                Rec.Amount := 0;
             Rec.UpdateAmounts();
             exit;
         end;
@@ -2454,10 +2535,15 @@ table 6907 "Expense Report Line"
             Rec.Validate("Expense Location", '');
 
         Rec.Validate(Refundable, ExpenseCategory.Refundable);
-        Rec.Validate(Description, ExpenseCategory."Posting Description");
-        Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
-        if ExpenseCategory."Default Payment Method" <> '' then
-            Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
+        if IsCardLine and (CardDescription <> '') then
+            Rec.Validate(Description, CardDescription)
+        else
+            Rec.Validate(Description, ExpenseCategory."Posting Description");
+        if not IsCardLine then begin
+            Rec.Validate("Reimbursement Type", ExpenseCategory."Reimbursement Type");
+            if ExpenseCategory."Default Payment Method" <> '' then
+                Rec.Validate("Payment Method Code", ExpenseCategory."Default Payment Method");
+        end;
 
         ExpenseAgentSetup.GetRecordOnce();
         if Rec."Expense Detail Required" = Rec."Expense Detail Required"::Mileage then begin
@@ -2465,10 +2551,11 @@ table 6907 "Expense Report Line"
             Rec.Validate("Unit of Measure Code", ExpenseAgentSetup."Default Mileage UOM");
         end;
 
-        if Rec."Expense No." = '' then
-            Rec.Validate("Expense Currency Code", '');
-
-        Rec.Amount := 0;
+        if not IsCardLine then begin
+            if Rec."Expense No." = '' then
+                Rec.Validate("Expense Currency Code", '');
+            Rec.Amount := 0;
+        end;
         Rec.UpdateAmounts();
     end;
 

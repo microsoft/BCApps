@@ -135,6 +135,20 @@ page 6918 "Expense Users API"
                     EntitySetName = 'expenseProjects';
                     SubPageLink = "Expense User SystemId" = field(SystemId);
                 }
+
+                part(cardExpenseMatches; "EA Card Expense Matches API")
+                {
+                    EntityName = 'cardExpenseMatch';
+                    EntitySetName = 'cardExpenseMatches';
+                    SubPageLink = "Expense User SystemId" = field(SystemId);
+                }
+
+                part(corporateCards; "Expense Corporate Cards API")
+                {
+                    EntityName = 'corporateCard';
+                    EntitySetName = 'corporateCards';
+                    SubPageLink = "Expense User No." = field("No.");
+                }
             }
         }
     }

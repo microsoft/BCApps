@@ -14,6 +14,7 @@ codeunit 6902 "Expense Rule Validation"
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseAutoPopulation: Codeunit "Expense Auto Population";
+        CardDuplicateFilterTok: Label '%1|%2', Locked = true, Comment = '%1 = 0 (expenses not from a credit card feed), %2 = current credit card feed number';
         JustificationRequiredErr: Label 'Justification is required for this expense based on your organization''s rule.';
         ItemizationRequiredErr: Label 'Itemization is required for this expense based on your organization''s rule.';
         MissingExpenseSubCategoryErr: Label 'Expense Subcategories is required in order to add Itemization detail(s) for expense category code %1.', Comment = '%1 = Expense Category Code';
@@ -56,19 +57,26 @@ codeunit 6902 "Expense Rule Validation"
         ExpenseSubCategoryMustBeRequiredInExpenseErr: Label '%1 must be required in Expense No.=%2, Line No.=%3.', Comment = '%1 = Field Caption, %2 = Expense No., %3 = Line No.';
         ExpenseSubCategoryMustBeRequiredInExpenseReportErr: Label '%1 must be required in Expense Report No.=%2, Expense Report Line No.=%3, Line No.=%4.', Comment = '%1 = Field Caption, %2 = Expense Report No., %3 = Expense Report Line No., %4 = Line No.';
 
+    /// <summary>
+    /// Validates the expense against the rules. While a card expense waits for its receipt, the receipt number, the category's
+    /// detail requirement, the itemization total and the justification are not checked, because the receipt brings them.
+    /// </summary>
     procedure ValidateExpenseAgainstRule(var Expense: Record Expense)
     var
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseRuleViolation: Record "Expense Rule Violation";
+        WaitingForReceipt: Boolean;
     begin
         ExpenseRuleViolation.ClearRuleViolations(Expense."No.");
-        InitialExpenseValidation(Expense);
+        WaitingForReceipt := IsCardExpenseWaitingForReceipt(Expense);
+        InitialExpenseValidation(Expense, WaitingForReceipt);
         if not ShouldApplyRule(Expense."Expense Detail Required") then
             exit;
         if not ExpenseRuleHeader.FindApplicableRule(Expense) then
             exit;
 
-        ValidateJustificationRequirement(Expense, ExpenseRuleHeader);
+        if not WaitingForReceipt then
+            ValidateJustificationRequirement(Expense, ExpenseRuleHeader);
         ValidateAmountsByDetailType(Expense, ExpenseRuleHeader);
         ValidateRuleFields(Expense, ExpenseRuleHeader);
     end;
@@ -81,11 +89,36 @@ codeunit 6902 "Expense Rule Validation"
         exit(not (ExpenseDetailRequired in [ExpenseDetailRequired::Mileage, ExpenseDetailRequired::"Per Diem"]));
     end;
 
+    /// <summary>
+    /// A card expense waits for its receipt while it is linked to a card transaction, has no receipt and no no-receipt reason.
+    /// </summary>
+    procedure IsCardExpenseWaitingForReceipt(Expense: Record Expense): Boolean
+    begin
+        exit((Expense."Credit Card Feed No." <> 0) and not Expense."Receipt Attached" and (Expense."No Receipt Type" = Expense."No Receipt Type"::" "));
+    end;
+
+    /// <summary>
+    /// A card report line waits for its receipt while it is linked to a card transaction, has no receipt and no no-receipt reason.
+    /// </summary>
+    procedure IsCardLineWaitingForReceipt(ExpenseReportLine: Record "Expense Report Line"): Boolean
+    begin
+        exit((ExpenseReportLine."Credit Card Feed No." <> 0) and not ExpenseReportLine."Receipt Attached" and (ExpenseReportLine."No Receipt Type" = ExpenseReportLine."No Receipt Type"::" "));
+    end;
+
     procedure ShouldApplyRule(ExpenseDetailRequired: Enum "Expense Detail Needed"): Boolean
     begin
         ExpenseAgentSetup.GetRecordOnce();
 
         exit(ExpenseAgentSetup."Use Rules" or (ExpenseDetailRequired = ExpenseDetailRequired::"Per Diem"));
+    end;
+
+    /// <summary>
+    /// The amount of a card transaction is locked, so the user cannot fix a fixed, minimum or maximum amount condition.
+    /// A justification on the card expense or line accepts the amount instead.
+    /// </summary>
+    local procedure IsJustifiedCardAmount(CreditCardFeedNo: Integer; Justification: Text[100]): Boolean
+    begin
+        exit((CreditCardFeedNo <> 0) and (Justification <> ''));
     end;
 
     procedure ValidateItemizationAmount(ExpenseNo: Code[20]; JustWarning: Boolean)
@@ -118,7 +151,7 @@ codeunit 6902 "Expense Rule Validation"
         end;
     end;
 
-    local procedure InitialExpenseValidation(var Expense: Record Expense)
+    local procedure InitialExpenseValidation(var Expense: Record Expense; WaitingForReceipt: Boolean)
     var
         ExpenseRuleViolation: Record "Expense Rule Violation";
     begin
@@ -127,18 +160,19 @@ codeunit 6902 "Expense Rule Validation"
         CheckAttachmentsOnExpense(Expense);
         CheckForDuplicateExpense(Expense);
         CheckEmployeePostingGroupOnExpense(Expense);
-        if ExpenseAgentSetup."Receipt No. Mandatory" then
+        if ExpenseAgentSetup."Receipt No. Mandatory" and not WaitingForReceipt then
             if (Expense."Expense Ext. Doc. No." = '') and IsMerchantReceiptRequirementApplicable(Expense."Expense Detail Required") then
                 ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(ReceiptNoMandatoryOnExpenseErr, Expense."No."));
         if ExpenseAgentSetup."Merchant Name Mandatory" then
             if (Expense."Merchant Name" = '') and IsMerchantReceiptRequirementApplicable(Expense."Expense Detail Required") then
                 ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(MerchantNameMandatoryOnExpenseErr, Expense."No."));
 
-        ValidateExpenseDetailRequirement(Expense);
-        ValidateAmountsByDetailType(Expense);
+        ValidateExpenseDetailRequirement(Expense, WaitingForReceipt);
+        if not WaitingForReceipt then
+            ValidateAmountsByDetailType(Expense);
     end;
 
-    local procedure InitialExpenseReportLineValidation(var ExpenseReportLine: Record "Expense Report Line")
+    local procedure InitialExpenseReportLineValidation(var ExpenseReportLine: Record "Expense Report Line"; WaitingForReceipt: Boolean)
     var
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
     begin
@@ -147,15 +181,16 @@ codeunit 6902 "Expense Rule Validation"
         CheckAttachmentsOnExpenseReportLine(ExpenseReportLine);
         CheckForDuplicateExpenseReportLine(ExpenseReportLine);
         CheckEmployeePostingGroupOnExpenseReport(ExpenseReportLine);
-        if ExpenseAgentSetup."Receipt No. Mandatory" then
+        if ExpenseAgentSetup."Receipt No. Mandatory" and not WaitingForReceipt then
             if (ExpenseReportLine."Expense Ext. Doc. No." = '') and IsMerchantReceiptRequirementApplicable(ExpenseReportLine."Expense Detail Required") then
                 ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(ReceiptNoMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No."));
         if ExpenseAgentSetup."Merchant Name Mandatory" then
             if (ExpenseReportLine."Merchant Name" = '') and IsMerchantReceiptRequirementApplicable(ExpenseReportLine."Expense Detail Required") then
                 ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", StrSubstNo(MerchantNameMandatoryOnReportLineErr, ExpenseReportLine."Document No.", ExpenseReportLine."Line No."));
 
-        ValidateExpenseDetailRequirementForReportLine(ExpenseReportLine);
-        ValidateAmountsByDetailTypeForReportLine(ExpenseReportLine);
+        ValidateExpenseDetailRequirementForReportLine(ExpenseReportLine, WaitingForReceipt);
+        if not WaitingForReceipt then
+            ValidateAmountsByDetailTypeForReportLine(ExpenseReportLine);
     end;
 
     local procedure ValidateJustificationRequirement(Expense: Record Expense; ExpenseRuleHeader: Record "Expense Rule Header")
@@ -368,6 +403,8 @@ codeunit 6902 "Expense Rule Validation"
         DuplicateExpense.SetRange("Merchant Name", Expense."Merchant Name");
         DuplicateExpense.SetRange(Amount, Expense.Amount);
         DuplicateExpense.SetFilter("No.", '<>%1', Expense."No.");
+        if Expense."Credit Card Feed No." <> 0 then
+            DuplicateExpense.SetFilter("Credit Card Feed No.", CardDuplicateFilterTok, 0, Expense."Credit Card Feed No.");
         if not DuplicateExpense.IsEmpty() then
             ExpenseRuleViolation.AddRuleViolation(Expense."No.", StrSubstNo(ExpenseAlreadyExistErr, Expense."Expense Ext. Doc. No.", Expense."Expense Date", Expense."Merchant Name", Expense.Amount));
     end;
@@ -405,6 +442,8 @@ codeunit 6902 "Expense Rule Validation"
         DuplicateExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         DuplicateExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
         DuplicateExpenseReportLine.SetFilter(SystemId, '<>%1', ExpenseReportLine.SystemId); // Exclude current record to not consider it as duplicate of itself.
+        if ExpenseReportLine."Credit Card Feed No." <> 0 then
+            DuplicateExpenseReportLine.SetFilter("Credit Card Feed No.", CardDuplicateFilterTok, 0, ExpenseReportLine."Credit Card Feed No.");
         TravelRequestNo := GetPerDiemTravelRequestNo(ExpenseReportLine);
         if TravelRequestNo = '' then
             exit(not DuplicateExpenseReportLine.IsEmpty());
@@ -505,6 +544,8 @@ codeunit 6902 "Expense Rule Validation"
 
         PostedExpenseReportLine.SetRange("Merchant Name", ExpenseReportLine."Merchant Name");
         PostedExpenseReportLine.SetRange(Amount, ExpenseReportLine.Amount);
+        if ExpenseReportLine."Credit Card Feed No." <> 0 then
+            PostedExpenseReportLine.SetFilter("Credit Card Feed No.", CardDuplicateFilterTok, 0, ExpenseReportLine."Credit Card Feed No.");
         TravelRequestNo := GetPerDiemTravelRequestNo(ExpenseReportLine);
         if TravelRequestNo = '' then
             exit(not PostedExpenseReportLine.IsEmpty());
@@ -543,19 +584,21 @@ codeunit 6902 "Expense Rule Validation"
         AttachmentMissingNotification.Send();
     end;
 
-    local procedure ValidateExpenseDetailRequirement(Expense: Record Expense)
+    local procedure ValidateExpenseDetailRequirement(Expense: Record Expense; WaitingForReceipt: Boolean)
     begin
-        case Expense."Expense Detail Required" of
-            Expense."Expense Detail Required"::Participants:
-                ValidateParticipantsRequired(Expense);
-            Expense."Expense Detail Required"::"Per Diem":
-                ValidatePerDiemRequired(Expense);
-            Expense."Expense Detail Required"::Mileage:
-                ValidateMileageRequired(Expense);
-        end;
+        if not WaitingForReceipt then begin
+            case Expense."Expense Detail Required" of
+                Expense."Expense Detail Required"::Participants:
+                    ValidateParticipantsRequired(Expense);
+                Expense."Expense Detail Required"::"Per Diem":
+                    ValidatePerDiemRequired(Expense);
+                Expense."Expense Detail Required"::Mileage:
+                    ValidateMileageRequired(Expense);
+            end;
 
-        if Expense.IsItemizationRequired() then
-            ValidateItemizationRequired(Expense);
+            if Expense.IsItemizationRequired() then
+                ValidateItemizationRequired(Expense);
+        end;
 
         ValidateRuleRestriction(Expense);
     end;
@@ -697,6 +740,8 @@ codeunit 6902 "Expense Rule Validation"
 
     local procedure ValidateAmountsByDetailType(Expense: Record Expense; ExpenseRuleHeader: Record "Expense Rule Header")
     begin
+        if IsJustifiedCardAmount(Expense."Credit Card Feed No.", Expense.Justification) then
+            exit;
         case Expense."Expense Detail Required" of
             Expense."Expense Detail Required"::Itemize:
                 ValidateItemizationAmounts(Expense, ExpenseRuleHeader);
@@ -835,19 +880,26 @@ codeunit 6902 "Expense Rule Validation"
         exit(ExtraItems);
     end;
 
+    /// <summary>
+    /// Validates the report line against the rules. While a card line waits for its receipt, the receipt number, the category's
+    /// detail requirement, the itemization total and the justification are not checked, because the receipt brings them.
+    /// </summary>
     procedure ValidateExpenseReportLineAgainstRule(var ExpenseReportLine: Record "Expense Report Line")
     var
         ExpenseRuleHeader: Record "Expense Rule Header";
         ExpenseReportRuleViolation: Record "Expense Report Rule Violation";
+        WaitingForReceipt: Boolean;
     begin
         ExpenseReportRuleViolation.ClearRuleViolations(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
-        InitialExpenseReportLineValidation(ExpenseReportLine);
+        WaitingForReceipt := IsCardLineWaitingForReceipt(ExpenseReportLine);
+        InitialExpenseReportLineValidation(ExpenseReportLine, WaitingForReceipt);
         if not ShouldApplyRule(ExpenseReportLine."Expense Detail Required") then
             exit;
         if not ExpenseRuleHeader.FindApplicableRule(ExpenseReportLine) then
             exit;
 
-        ValidateJustificationRequirementForReportLine(ExpenseReportLine, ExpenseRuleHeader);
+        if not WaitingForReceipt then
+            ValidateJustificationRequirementForReportLine(ExpenseReportLine, ExpenseRuleHeader);
         ValidateAmountsByDetailTypeForReportLine(ExpenseReportLine, ExpenseRuleHeader);
         ValidateRuleFieldsForReportLine(ExpenseReportLine, ExpenseRuleHeader);
     end;
@@ -901,19 +953,21 @@ codeunit 6902 "Expense Rule Validation"
             ExpenseReportRuleViolation.AddRuleViolation(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.", JustificationRequiredErr);
     end;
 
-    local procedure ValidateExpenseDetailRequirementForReportLine(ExpenseReportLine: Record "Expense Report Line")
+    local procedure ValidateExpenseDetailRequirementForReportLine(ExpenseReportLine: Record "Expense Report Line"; WaitingForReceipt: Boolean)
     begin
-        case ExpenseReportLine."Expense Detail Required" of
-            ExpenseReportLine."Expense Detail Required"::Participants:
-                ValidateParticipantsRequiredForReportLine(ExpenseReportLine);
-            ExpenseReportLine."Expense Detail Required"::"Per Diem":
-                ValidatePerDiemRequiredForReportLine(ExpenseReportLine);
-            ExpenseReportLine."Expense Detail Required"::Mileage:
-                ValidateMileageRequiredForReportLine(ExpenseReportLine);
-        end;
+        if not WaitingForReceipt then begin
+            case ExpenseReportLine."Expense Detail Required" of
+                ExpenseReportLine."Expense Detail Required"::Participants:
+                    ValidateParticipantsRequiredForReportLine(ExpenseReportLine);
+                ExpenseReportLine."Expense Detail Required"::"Per Diem":
+                    ValidatePerDiemRequiredForReportLine(ExpenseReportLine);
+                ExpenseReportLine."Expense Detail Required"::Mileage:
+                    ValidateMileageRequiredForReportLine(ExpenseReportLine);
+            end;
 
-        if ExpenseReportLine.IsItemizationRequired() then
-            ValidateItemizationRequiredForReportLine(ExpenseReportLine);
+            if ExpenseReportLine.IsItemizationRequired() then
+                ValidateItemizationRequiredForReportLine(ExpenseReportLine);
+        end;
 
         ValidateRuleRestrictionForReportLine(ExpenseReportLine);
     end;
@@ -1195,6 +1249,8 @@ codeunit 6902 "Expense Rule Validation"
         AmountLCY: Decimal;
         CurrencyFactor: Decimal;
     begin
+        if IsJustifiedCardAmount(ExpenseReportLine."Credit Card Feed No.", ExpenseReportLine.Justification) then
+            exit;
         Amount := ExpenseReportLine.Amount - ExpenseReportLine."Non-Refundable Amount";
         AmountLCY := ExpenseReportLine."Amount (LCY)" - ExpenseReportLine."Non-Refundable Amount (LCY)";
         if ExpenseReportLine."Expense Currency Code" <> ExpenseRuleHeader."Currency Code" then
