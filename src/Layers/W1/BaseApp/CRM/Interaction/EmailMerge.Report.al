@@ -84,17 +84,31 @@ report 5084 "Email Merge"
             Caption = 'EMail Merge (RDLC)';
             Summary = 'The EMail Merge (RDLC) provides a detailed layout.';
         }
+#if not CLEAN30
         layout("DefaultEmailMergeDoc.docx")
         {
             Type = Word;
             LayoutFile = './CRM/DefaultEmailMergeDoc.docx';
             Caption = 'EMail Merge (Word)';
             Summary = 'The EMail Merge (Word) provides a basic layout.';
+            ObsoleteState = Pending;
+            ObsoleteReason = 'This Word layout will be replaced by the Document Report Experience. Use the corresponding composite (body) layout instead. It will be removed in a future release.';
+            ObsoleteTag = '30.0';
+        }
+#endif
+        layout("DefaultEmailMergeDocBody.docx")
+        {
+            Type = Word;
+            Subtype = Body;
+            LayoutFile = './CRM/Interaction/DefaultEmailMergeDocBody.docx';
+            Caption = 'Body-only: EMail Merge (Word)';
+            Summary = 'Portrait orientated. Shows a salutation, free-text body content, and a closing signature with the salesperson''s name and job title. Use it for mail merge letters to contacts.';
         }
     }
 
     labels
     {
+        ClosingLbl = 'Sincerely,';
     }
 
     protected var
