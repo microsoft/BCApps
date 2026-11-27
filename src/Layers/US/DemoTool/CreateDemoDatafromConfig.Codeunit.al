@@ -135,23 +135,27 @@ codeunit 101899 "Create Demo Data from Config"
         ValueEntry: Record "Value Entry";
         DetailedCustledgEntry: Record "Detailed Cust. Ledg. Entry";
         DetailedVendledgEntry: Record "Detailed Vendor Ledg. Entry";
-        Seed: BigInteger;
     begin
-        Seed := 5000000000000L;
-        GLEntry."Entry No." := Seed;
+        InitEntryTableValues(GLEntry."Entry No.", GLEntry."Posting Date");
         if GLEntry.Insert() then;
-        VATEntry."Entry No." := Seed;
+        InitEntryTableValues(VATEntry."Entry No.", VATEntry."Posting Date");
         VATEntry."VAT Bus. Posting Group" := CopyStr(Format(CreateGuid(), 2), 1, MaxStrLen(VATEntry."VAT Bus. Posting Group")); // to avoid the 'isempty' check in VATPosting Setup
         VATEntry."VAT Prod. Posting Group" := CopyStr(Format(CreateGuid(), 2), 1, MaxStrLen(VATEntry."VAT Bus. Posting Group"));
         if VATEntry.Insert() then;
-        ItemLedgerEntry."Entry No." := Seed;
+        InitEntryTableValues(ItemLedgerEntry."Entry No.", ItemLedgerEntry."Posting Date");
         if ItemLedgerEntry.Insert() then;
-        ValueEntry."Entry No." := Seed;
+        InitEntryTableValues(ValueEntry."Entry No.", ValueEntry."Posting Date");
         if ValueEntry.Insert() then;
-        DetailedCustledgEntry."Entry No." := Seed;
+        InitEntryTableValues(DetailedCustledgEntry."Entry No.", DetailedCustledgEntry."Posting Date");
         if DetailedCustledgEntry.Insert() then;
-        DetailedVendledgEntry."Entry No." := Seed;
+        InitEntryTableValues(DetailedVendledgEntry."Entry No.", DetailedVendledgEntry."Posting Date");
         if DetailedVendledgEntry.Insert() then;
+    end;
+
+    local procedure InitEntryTableValues(var EntryNo: BigInteger; var PostingDate: Date)
+    begin
+        EntryNo := 5000000000000L;
+        PostingDate := Today();
     end;
 
     local procedure UnSeedEntryTables()
