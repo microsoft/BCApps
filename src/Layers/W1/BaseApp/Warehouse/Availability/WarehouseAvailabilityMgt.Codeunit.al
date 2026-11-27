@@ -1150,7 +1150,9 @@ codeunit 7314 "Warehouse Availability Mgt."
     local procedure HasReservationOnInventory(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer): Boolean
     var
         ReservationEntry: Record "Reservation Entry";
+        PositiveReservationEntry: Record "Reservation Entry";
     begin
+        // Tracking is held by the inventory side of the reservation pair, as in CalcReservQtyOnPicksShipsWithItemTracking.
         ReservationEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
         ReservationEntry.SetLoadFields("Entry No.");
         ReservationEntry.SetSourceFilter(SourceType, SourceSubType, SourceID, SourceRefNo, true);
@@ -1159,8 +1161,18 @@ codeunit 7314 "Warehouse Availability Mgt."
         ReservationEntry.SetRange("Variant Code", VariantCode);
         ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
         ReservationEntry.SetRange(Positive, false);
-        ReservationEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
-        exit(not ReservationEntry.IsEmpty());
+        if ReservationEntry.FindSet() then
+            repeat
+                PositiveReservationEntry.Reset();
+                PositiveReservationEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+                PositiveReservationEntry.SetRange("Entry No.", ReservationEntry."Entry No.");
+                PositiveReservationEntry.SetRange(Positive, true);
+                PositiveReservationEntry.SetRange("Source Type", Database::"Item Ledger Entry");
+                PositiveReservationEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+                if not PositiveReservationEntry.IsEmpty() then
+                    exit(true);
+            until ReservationEntry.Next() = 0;
+        exit(false);
     end;
 
     local procedure CalcOtherOpenShipmentsQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: Integer) QtyInBin: Decimal
