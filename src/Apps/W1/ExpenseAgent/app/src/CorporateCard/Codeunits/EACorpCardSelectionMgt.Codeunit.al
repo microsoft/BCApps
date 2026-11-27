@@ -77,6 +77,11 @@ codeunit 7447 "EA Corp Card Selection Mgt"
     end;
 
     internal procedure ValidateReportLine(ExpenseReportLine: Record "Expense Report Line"; RequireCard: Boolean)
+    begin
+        ValidateReportLine(ExpenseReportLine, RequireCard, false);
+    end;
+
+    internal procedure ValidateReportLine(ExpenseReportLine: Record "Expense Report Line"; RequireCard: Boolean; AllowExpenseCardChange: Boolean)
     var
         Expense: Record Expense;
         CorpCardTrans: Record "EA Corp Card Trans";
@@ -97,10 +102,55 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         end;
         if ExpenseReportLine."Expense No." <> '' then begin
             Expense.Get(ExpenseReportLine."Expense No.");
-            ExpenseReportLine.TestField("Corporate Card Id", Expense."Corporate Card Id");
+            if AllowExpenseCardChange and not RequireCard and (ExpenseReportLine."Corporate Card Id" <> Expense."Corporate Card Id") then
+                SetExpenseCardFromReportLine(ExpenseReportLine, Expense)
+            else
+                ExpenseReportLine.TestField("Corporate Card Id", Expense."Corporate Card Id");
         end;
         SourceRecord.GetTable(ExpenseReportLine);
         ValidateCard(ExpenseReportLine."Corporate Card Id", ExpenseReportLine."Expense User No.", ExpenseReportLine."Expense Date", ExpenseReportLine."Reimbursement Type", SourceRecord);
+    end;
+
+    // Pass by reference to preserve the caller's temporary-table identity.
+#pragma warning disable AA0150
+    internal procedure UpdateExpenseCard(var ExpenseReportLine: Record "Expense Report Line")
+#pragma warning restore AA0150
+    var
+        Expense: Record Expense;
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        if ExpenseReportLine.IsTemporary() or (ExpenseReportLine."Expense No." = '') then
+            exit;
+
+        // Lock the report before the expense so release cannot race the card change.
+        ExpenseReportHeader.ReadIsolation := IsolationLevel::UpdLock;
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        Expense.ReadIsolation := IsolationLevel::UpdLock;
+        Expense.Get(ExpenseReportLine."Expense No.");
+        if Expense."Corporate Card Id" = ExpenseReportLine."Corporate Card Id" then
+            exit;
+
+        ValidateReportLine(ExpenseReportLine, false, true);
+        SetExpenseCardFromReportLine(ExpenseReportLine, Expense);
+        Expense.Modify(true);
+    end;
+
+    local procedure SetExpenseCardFromReportLine(ExpenseReportLine: Record "Expense Report Line"; var Expense: Record Expense)
+    var
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        ExpenseReportHeader.Get(ExpenseReportLine."Document No.");
+        ExpenseReportHeader.TestField(Status, ExpenseReportHeader.Status::Open);
+        ExpenseReportLine.TestField("Credit Card Feed No.", 0);
+        Expense.TestField("Credit Card Feed No.", 0);
+        Expense.TestField("Expense Report No.", ExpenseReportLine."Document No.");
+        Expense.TestField("Expense User No.", ExpenseReportLine."Expense User No.");
+        Expense.TestField("Posted Expense Report No.", '');
+        Expense.TestField(Status, Expense.Status::Submitted);
+
+        // Change only the card while the source expense remains submitted.
+        Expense."Corporate Card Id" := ExpenseReportLine."Corporate Card Id";
+        ValidateExpenseCard(Expense, false);
     end;
 
     local procedure IsCorporateCardRequired(): Boolean
@@ -180,7 +230,6 @@ codeunit 7447 "EA Corp Card Selection Mgt"
         ExpenseReportLine: Record "Expense Report Line";
     begin
         ExpenseReportLine.GetBySystemId(CardLookupError.SystemId);
-        ExpenseReportLine.TestField("Expense No.", '');
         if LookupReportLineCard(ExpenseReportLine) then
             ExpenseReportLine.Modify(true);
     end;

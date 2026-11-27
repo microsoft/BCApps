@@ -62,6 +62,10 @@ page 6942 "Expense Agent Setup API"
                 {
                     Caption = 'Allow Grouping of Transactions in Report';
                 }
+                field(allowAmountChangesInExpenseReports; Rec."Allow Amount Changes in ER")
+                {
+                    Caption = 'Allow Amount Changes in Expense Reports';
+                }
 #if not CLEAN29
                 field(expReportRoundingPrecision; Rec."Exp. Report Rounding Precision")
                 {

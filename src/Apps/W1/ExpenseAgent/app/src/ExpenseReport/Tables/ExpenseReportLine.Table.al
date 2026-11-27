@@ -877,7 +877,7 @@ table 6907 "Expense Report Line"
                 CorpCardSelectionMgt: Codeunit "EA Corp Card Selection Mgt";
             begin
                 TestStatusOpen();
-                CorpCardSelectionMgt.ValidateReportLine(Rec, false);
+                CorpCardSelectionMgt.ValidateReportLine(Rec, false, true);
             end;
 
             trigger OnLookup()
@@ -1234,6 +1234,8 @@ table 6907 "Expense Report Line"
         // Read the persisted before-image once; xRec can already contain the new values.
         if not Rec.IsTemporary() then
             StoredExpenseReportLine.Get("Document No.", "Line No.");
+        if "Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id" then
+            CorpCardSelectionMgt.UpdateExpenseCard(Rec);
         if ("Corporate Card Id" <> StoredExpenseReportLine."Corporate Card Id") or
            ("Expense User No." <> StoredExpenseReportLine."Expense User No.") or
            ("Expense Date" <> StoredExpenseReportLine."Expense Date") or
@@ -1313,6 +1315,25 @@ table 6907 "Expense Report Line"
         ExpenseUserNotTravelerErr: Label 'Expense User %1 is not a traveler on Travel Request %2.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         BillableCustomerAndProjectErr: Label 'You cannot use both %1 and %2 at the same time.', Comment = '%1 = Billable to Customer field caption, %2 = Project No. field caption';
         ReceiptDatedBeforeExchRateErr: Label 'You cannot upload a receipt dated before %1 for currency %2. Please update the Currency Exchange Rates setup or contact your administrator before proceeding.', Comment = '%1 = Currency Date, %2 = Currency Code';
+        OriginalExpenseAmountErr: Label 'Amount on expense report %1, line %2 must equal the original amount %3 on expense %4. To allow differences, turn on %5 in %6.', Comment = '%1 = Expense Report No., %2 = Line No., %3 = Original Expense Amount, %4 = Expense No., %5 = Allow Amount Changes in Expense Reports field caption, %6 = Expense Agent Setup table caption';
+
+    internal procedure CheckOriginalExpenseAmount()
+    var
+        SourceExpense: Record Expense;
+        CurrentExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if Rec.IsTemporary() or ("Expense No." = '') then
+            exit;
+
+        CurrentExpenseAgentSetup.Get();
+        if CurrentExpenseAgentSetup."Allow Amount Changes in ER" then
+            exit;
+
+        SourceExpense.Get("Expense No.");
+        if Amount <> SourceExpense.Amount then
+            Error(OriginalExpenseAmountErr, "Document No.", "Line No.", SourceExpense.Amount, SourceExpense."No.",
+                CurrentExpenseAgentSetup.FieldCaption("Allow Amount Changes in ER"), CurrentExpenseAgentSetup.TableCaption());
+    end;
 
     internal procedure CopyFromVATPostingSetup(var VATPostingSetupFrom: Record "VAT Posting Setup")
     begin

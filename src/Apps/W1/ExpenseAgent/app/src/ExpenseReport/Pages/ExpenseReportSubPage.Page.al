@@ -120,8 +120,8 @@ page 6999 "Expense Report SubPage"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Corporate Card';
-                    ToolTip = 'Specifies the provider short name and last four card digits. Expenses copied to a report retain the card selected on the expense.';
-                    Editable = (Rec."Credit Card Feed No." = 0) and (Rec."Expense No." = '');
+                    ToolTip = 'Specifies the provider short name and last four card digits. Changing the card also updates the source expense if no card transaction is linked.';
+                    Editable = Rec."Credit Card Feed No." = 0;
                     ShowMandatory = CorporateCardMandatory;
 
                     trigger OnLookup(var Text: Text): Boolean

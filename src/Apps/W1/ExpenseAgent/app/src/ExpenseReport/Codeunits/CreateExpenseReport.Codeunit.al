@@ -144,6 +144,7 @@ codeunit 6983 "Create Expense Report"
         ExpenseReportLine."Document No." := ExpenseReportHeader."No.";
         ExpenseReportLine."Line No." := ExpenseReportLineNo;
         ExpenseReportLine."Expense No." := Expense."No.";
+        ExpenseReportLine.Amount := Expense.Amount;
         ExpenseReportLine.SetSkipRuleApplication(true);
         ExpenseReportLine.Insert(true);
 

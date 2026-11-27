@@ -798,6 +798,12 @@ table 6930 "Expense Agent Setup"
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether a corporate card must be selected for credit-card expenses before release or posting. This also applies to existing unposted expenses and expense reports.';
         }
+        field(129; "Allow Amount Changes in ER"; Boolean)
+        {
+            Caption = 'Allow Amount Changes in Expense Reports';
+            DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether expense report line amounts can differ from their source expenses. When turned off, differences, including recalculated amounts, prevent saving, releasing, and posting. Source expense amounts are not changed. Corporate card transaction checks still apply.';
+        }
         field(150; "Use Canary Endpoint"; Boolean)
         {
             Access = Internal;

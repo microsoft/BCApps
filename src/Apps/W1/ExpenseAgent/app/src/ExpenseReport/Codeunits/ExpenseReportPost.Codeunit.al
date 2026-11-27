@@ -319,6 +319,7 @@ codeunit 6987 "Expense Report-Post"
         ExpenseReportLine.SetRange("Document No.", ExpenseReportHeader."No.");
         if ExpenseReportLine.FindSet() then
             repeat
+                ExpenseReportLine.CheckOriginalExpenseAmount();
                 CheckMandatoryFields(ExpenseReportLine);
                 CorpCardSelectionMgt.ValidateReportLine(ExpenseReportLine, true);
                 ValidateFinancialItemizationsForPosting(ExpenseReportLine);
