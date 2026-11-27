@@ -17,7 +17,8 @@ page 7079 "EA Billing Overview"
     Caption = 'Expense Agent - Billing Overview';
     Editable = false;
     Permissions = tabledata "Expense Agent Env. Consumption" = r,
-                  tabledata "User AI Consumption Data" = r;
+                  tabledata "User AI Consumption Data" = r,
+                  tabledata "AI Consumption Log Entry" = r;
 
     layout
     {
@@ -25,8 +26,9 @@ page 7079 "EA Billing Overview"
         {
             repeater(GroupName)
             {
-                field(ConsumptionDateTime; Rec."Consumption DateTime")
+                field(ConsumptionDateTime; TempUserAIConsumptionData."Consumption DateTime")
                 {
+                    Caption = 'Consumption DateTime';
                     ToolTip = 'Specifies the date and time when the consumption occurred.';
                 }
                 field(ExpenseUserNo; Rec."Expense User No.")
@@ -47,7 +49,7 @@ page 7079 "EA Billing Overview"
                 {
                     ToolTip = 'Specifies the operation that triggered the consumption, such as creating, updating, or processing an expense.';
                 }
-                field(ActionsField; Rec."Actions")
+                field(ActionsField; TempUserAIConsumptionData.Actions)
                 {
                     Caption = 'Actions';
                     ToolTip = 'Specifies the actions performed during this consumption entry.';
@@ -58,23 +60,9 @@ page 7079 "EA Billing Overview"
                     ToolTip = 'Specifies the full description of the operation. Click to view details.';
                     trigger OnDrillDown()
                     var
-                        UserAIConsumptionData: Record "User AI Consumption Data";
-                        DescriptionInStream: InStream;
                         FullDescription: Text;
-                        TextLine: Text;
                     begin
-                        UserAIConsumptionData.SetCurrentKey("Unique Id");
-                        UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
-                        if UserAIConsumptionData.FindFirst() then begin
-                            UserAIConsumptionData.CalcFields(Description);
-                            UserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
-                            while not DescriptionInStream.EOS() do begin
-                                DescriptionInStream.ReadText(TextLine);
-                                if FullDescription <> '' then
-                                    FullDescription += '\';
-                                FullDescription += TextLine;
-                            end;
-                        end;
+                        FullDescription := Rec.GetBillingDescription();
                         if FullDescription <> '' then
                             Message(FullDescription)
                         else
@@ -86,45 +74,63 @@ page 7079 "EA Billing Overview"
                     Caption = 'Is Feature Trial';
                     ToolTip = 'Specifies whether this consumption entry was part of a feature trial.';
                 }
-                field(Credits; Rec."Copilot Credits")
+                field(Credits; TempUserAIConsumptionData."Copilot Credits")
                 {
+                    Caption = 'Credits';
                     AutoFormatType = 0;
-                    ToolTip = 'Specifies the number of Copilot credits consumed by this entry.';
+                    ToolTip = 'Specifies the number of credits consumed by this entry.';
                 }
-                field(CSFeatureDisplayName; Rec."CS Feature Display Name")
+                field(CSFeatureDisplayName; TempUserAIConsumptionData."Copilot Studio Feature Display Name")
                 {
                     Caption = 'Copilot Studio Feature Display Name';
                     ToolTip = 'Specifies the display name of the Copilot Studio feature used.';
                 }
-                field(CSFeatureQuantity; Rec."CS Feature Quantity")
+                field(CSFeatureQuantity; CSFeatureQuantityTxt)
                 {
                     Caption = 'Copilot Studio Feature Quantity';
                     ToolTip = 'Specifies the quantity of Copilot Studio feature units consumed.';
                 }
-                field(ProcessedForBilling; Rec."Processed For Billing")
+                field(ProcessedForBilling; TempUserAIConsumptionData."Processed For Billing")
                 {
+                    Caption = 'Processed For Billing';
                     ToolTip = 'Specifies whether this consumption entry has been processed for billing.';
                 }
-                field(CompanyName; Rec."Company Name")
+                field(CompanyName; TempUserAIConsumptionData."Company Name")
                 {
+                    Caption = 'Company Name';
                     ToolTip = 'Specifies the company in which this consumption entry was recorded.';
                 }
             }
         }
     }
 
+    trigger OnOpenPage()
+    var
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+    begin
+        if not AIConsumptionLogEntry.ReadPermission() then
+            Message(BillingDetailsUnavailableLbl);
+    end;
+
     trigger OnAfterGetRecord()
     var
         TaskShortName: Text[30];
         TaskLongName: Text;
     begin
+        Rec.GetBillingDetails(TempUserAIConsumptionData);
+        CSFeatureQuantityTxt := '';
+        if TempUserAIConsumptionData."Copilot Studio Feature" <> '' then
+            CSFeatureQuantityTxt := Format(TempUserAIConsumptionData."Copilot Studio Feature Quantity");
         SourceDisplayTxt := '';
-        Rec.GetTaskDisplayName(TaskShortName, TaskLongName);
+        Rec.GetTaskDisplayName(TempUserAIConsumptionData."Company Name", TaskShortName, TaskLongName);
         SourceDisplayTxt := TaskLongName;
     end;
 
     var
+        TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
         ViewDescriptionLbl: Label 'View full description';
         NoDescriptionAvailableLbl: Label 'No description available.';
+        BillingDetailsUnavailableLbl: Label 'Billing details are unavailable because you do not have permission to read AI consumption log entries.';
         SourceDisplayTxt: Text;
+        CSFeatureQuantityTxt: Text;
 }

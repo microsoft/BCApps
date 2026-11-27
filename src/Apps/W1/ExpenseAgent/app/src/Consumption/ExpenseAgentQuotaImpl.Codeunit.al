@@ -35,9 +35,25 @@ codeunit 6923 "Expense Agent Quota Impl." implements "Expense Agent Quota"
         exit(CopilotQuota.CanConsume());
     end;
 
+    procedure IsV2ConsumptionActive(): Boolean
+    begin
+        exit(CopilotQuota.IsV2ConsumptionActive());
+    end;
+
+    [NonDebuggable]
+    procedure CanConsumePaidQuota(ConsumptionEntraPrincipalId: Guid): Boolean
+    begin
+        exit(CopilotQuota.CanConsume(ConsumptionEntraPrincipalId));
+    end;
+
     procedure IsConsumptionLogged(UniqueId: Text[1024]): Boolean
     begin
         exit(CopilotQuota.IsAgentUserAIConsumptionLogged(UniqueId));
+    end;
+
+    procedure IsV2ConsumptionRecorded(ConsumptionId: Guid): Boolean
+    begin
+        exit(CopilotQuota.IsAIConsumptionRecorded(ConsumptionId));
     end;
 
     procedure ReportTrialConsumption(ConsumptionId: Guid; Quota: Integer)
@@ -46,7 +62,8 @@ codeunit 6923 "Expense Agent Quota Impl." implements "Expense Agent Quota"
             Quota, Quota, Quota, Quota, '');
     end;
 
-    procedure LogPaidConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024])
+    [NonDebuggable]
+    procedure LogConsumption(Usage: Integer; CopilotQuotaUsageType: Enum "Copilot Quota Usage Type"; ActionsSummary: Text[1024]; ActionsDescription: Text; UniqueId: Text[1024]; ExcludeFromBilling: Boolean)
     begin
         CopilotQuota.LogAgentUserAIConsumption(
             Enum::"Copilot Capability"::"Expense Agent",
@@ -55,6 +72,25 @@ codeunit 6923 "Expense Agent Quota Impl." implements "Expense Agent Quota"
             0, // We have no Agent Task ID
             ActionsSummary,
             ActionsDescription,
-            UniqueId);
+            UniqueId,
+            ExcludeFromBilling);
+    end;
+
+    [NonDebuggable]
+    procedure RecordConsumption(ConsumptionId: Guid; ConsumptionSessionId: Guid; InteractionId: Guid; ConsumptionUsagePayload: Text; ConsumptionEntraPrincipalId: Guid; ConsumptionEntraPrincipalDisplayName: Text; Description: Text; IsFeatureTrial: Boolean)
+    begin
+        CopilotQuota.RecordAIConsumption(
+            Enum::"Copilot Capability"::"Expense Agent",
+            ConsumptionId,
+            ConsumptionSessionId,
+            InteractionId,
+            ConsumptionId,
+            ConsumptionUsagePayload,
+            ConsumptionEntraPrincipalId,
+            ConsumptionEntraPrincipalDisplayName,
+            0,
+            '',
+            Description,
+            IsFeatureTrial);
     end;
 }

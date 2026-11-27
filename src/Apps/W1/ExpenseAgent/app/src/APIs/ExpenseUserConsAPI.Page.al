@@ -59,7 +59,7 @@ page 6968 "Expense User Cons. API"
         ExpenseAuditSubscribers: Codeunit "Expense Audit Subscribers";
         ExpenseConsumptionHandler: Codeunit "Expense Consumption Handler";
         ExpenseAgentAPIValidation: Codeunit "Expense Agent API Validation";
-        MismatchingEntraIdsTelemetryErr: Label 'The Expense User has an Entra Id saved in the database, but it''s different from the ID used for consumption reporting.', Locked = true;
+        MismatchingEntraIdsTelemetryErr: Label 'The stored Expense User Entra ID differs from the ID supplied for consumption reporting. Submitting on behalf of another user is not supported, but consumption reporting continues using the supplied Entra ID.', Locked = true;
         LogV2QuotaStartedTelemetryMsg: Label 'Started logging AI quota usage for Expense Agent.', Locked = true;
         ConsumptionSourceTypeErr: Label 'Consumption Source Type must be provided and valid.';
         AgentConversationSessionIdOrTurnInteractionIdErr: Label 'Agent Session ID and Interaction ID must be provided.';
@@ -112,6 +112,7 @@ page 6968 "Expense User Cons. API"
 #endif
 
     [ServiceEnabled]
+    [NonDebuggable]
     procedure LogAIConsumptionV2(
         AiConsumptionRequest: Text;
         AgentConversationSessionId: Guid;
@@ -145,9 +146,10 @@ page 6968 "Expense User Cons. API"
             Error(ExpenseEmployeeCodeErr);
         if ConsumptionSourceOperationName = '' then
             Error(EmptyConsumptionOperationErr);
+        Rec.TestField(Name);
         if not IsNullGuid(Rec."Entra Id") then
             if Rec."Entra Id" <> ExpenseUserEntraId then
-                Session.LogMessage('0000W40', MismatchingEntraIdsTelemetryErr, Verbosity::Warning, DataClassification::SystemMetadata,
+                Session.LogMessage('0000W40', MismatchingEntraIdsTelemetryErr, Verbosity::Error, DataClassification::SystemMetadata,
                     TelemetryScope::ExtensionPublisher, 'Category', ExpenseAuditSubscribers.TelemetryCategory());
 
         ModelJson := AiConsumptionRequestJson.GetObject('model');
@@ -161,15 +163,27 @@ page 6968 "Expense User Cons. API"
         Session.LogMessage('0000W41', LogV2QuotaStartedTelemetryMsg,
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
 
-        exit(ExpenseConsumptionHandler.LogAIConsumption(AiConsumptionRequestJson,
-            ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
+        exit(ExpenseConsumptionHandler.LogAIConsumptionV2(AiConsumptionRequestJson,
+            ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No.",
+            AgentConversationSessionId, AgentTurnInteractionId, ExpenseUserEntraId, Rec.Name));
     end;
 
     [ServiceEnabled]
+    [NonDebuggable]
     procedure CanConsume(): Boolean
     begin
         ExpenseAgentAPIValidation.VerifyAgentAccess();
         exit(ExpenseConsumptionHandler.CanConsume());
+    end;
+
+    [ServiceEnabled]
+    [NonDebuggable]
+    procedure CanConsumeV2(ExpenseUserEntraId: Guid): Boolean
+    begin
+        ExpenseAgentAPIValidation.VerifyAgentAccess();
+        if IsNullGuid(ExpenseUserEntraId) then
+            Error(ExpenseUserEntraIdErr);
+        exit(ExpenseConsumptionHandler.CanConsume(ExpenseUserEntraId));
     end;
 
     local procedure GetModelTelemetryValue(ModelJson: JsonObject; FieldName: Text): Text

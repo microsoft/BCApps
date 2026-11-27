@@ -1,12 +1,15 @@
 namespace System.Test.AI;
 
 using System.AI;
+using System.Environment.Consumption;
 using System.TestLibraries.AI;
 using System.TestLibraries.Utilities;
 
+// [FEATURE] [Copilot]
 codeunit 132683 "Copilot Test"
 {
     Subtype = Test;
+    Permissions = tabledata "AI Consumption Log Entry" = i;
 
     var
         CopilotCapability: Codeunit "Copilot Capability";
@@ -374,6 +377,31 @@ codeunit 132683 "Copilot Test"
         asserterror CopilotFeatureTrial.ReportMonthlyFeatureTrialQuota(ConsumptionId, 'Trial', Enum::"Copilot Capability"::"Text Capability", 0, 0, 0, -1, '');
         // [THEN] An error is thrown
         LibraryAssert.ExpectedError(QuotaLimitsMustBeNonNegativeErr);
+    end;
+
+    [Test]
+    [TestPermissions(TestPermissions::Disabled)]
+    procedure TestIsAIConsumptionRecordedFlow()
+    var
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+        CopilotQuota: Codeunit "Copilot Quota";
+        ConsumptionId: Guid;
+    begin
+        // [SCENARIO] Consumption lookup flow observes an ID becoming recorded and excludes unrelated IDs
+        // [GIVEN] A consumption ID without a ledger entry
+        ConsumptionId := CreateGuid();
+
+        // [WHEN] [THEN] Looking up the unrecorded ID returns false
+        LibraryAssert.IsFalse(CopilotQuota.IsAIConsumptionRecorded(ConsumptionId), 'An unrecorded consumption ID should not be recorded.');
+
+        // [GIVEN] A ledger entry is recorded with that consumption ID
+        AIConsumptionLogEntry.SystemId := ConsumptionId;
+        AIConsumptionLogEntry."Consumption DateTime" := CurrentDateTime();
+        AIConsumptionLogEntry.Insert(false, true);
+
+        // [WHEN] [THEN] Only the recorded ID is found
+        LibraryAssert.IsTrue(CopilotQuota.IsAIConsumptionRecorded(ConsumptionId), 'A recorded consumption ID should be recorded.');
+        LibraryAssert.IsFalse(CopilotQuota.IsAIConsumptionRecorded(CreateGuid()), 'A different consumption ID should not be recorded.');
     end;
 
     local procedure Initialize()

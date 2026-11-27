@@ -55,41 +55,94 @@ table 6969 "Expense Agent Env. Consumption"
             Caption = 'Is Feature Trial';
             DataClassification = SystemMetadata;
         }
+        field(8; "Source Company Name"; Text[30])
+        {
+            Caption = 'Source Company Name';
+            DataClassification = OrganizationIdentifiableInformation;
+        }
+        field(9; "Consumption Reported"; Boolean)
+        {
+            Caption = 'Consumption Reported';
+            DataClassification = SystemMetadata;
+        }
+#if not CLEANSCHEMA30
         field(101; "Consumption DateTime"; DateTime)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Consumption DateTime" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Consumption DateTime';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(102; "User Id"; Guid)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."User Id" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'User Id';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(106; "App Version"; Text[50])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."App Version" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'App Version';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(108; "Feature Name"; Text[256])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Feature Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Feature Name';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(109; "Actions"; Text[1024])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Actions" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Actions';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(110; "Copilot Studio Feature"; Text[1024])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(111; "Copilot Credits"; Decimal)
         {
@@ -97,31 +150,67 @@ table 6969 "Expense Agent Env. Consumption"
             AutoFormatType = 0;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Credits" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Credits';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(113; "Company Name"; Text[30])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Company Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Company Name';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(115; "Processed For Billing"; Boolean)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Processed For Billing" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Processed For Billing';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(116; "CS Feature Quantity"; Integer)
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature Quantity" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature Quantity';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
         field(117; "CS Feature Display Name"; Text[1024])
         {
             FieldClass = FlowField;
             CalcFormula = lookup("User AI Consumption Data"."Copilot Studio Feature Display Name" where("Unique Id" = field("Consumption Unique ID")));
             Caption = 'Copilot Studio Feature Display Name';
+#if not CLEAN30
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
+            ObsoleteReason = 'Use GetBillingDetails instead to read from the active consumption ledger.';
+            ObsoleteTag = '30.0';
         }
+#endif
 
     }
     keys
@@ -141,15 +230,25 @@ table 6969 "Expense Agent Env. Consumption"
     var
         DifferentCompanyRecordTxt: Label 'Record belongs to company %1', Comment = '%1: a company name, such as "CRONUS W1"';
         DeletedRecordTxt: Label 'Deleted %1', Comment = '%1: a record caption, such as "Expense Report"';
+        DeletedExpenseOrInvalidReceiptTxt: Label 'Deleted expense or invalid receipt';
         RecordIdStringPatternTxt: Label '%1 %2', Comment = '%1: a record caption, such as "Expense Report"; %2: a record number, such as "ER123"';
 
+    [NonDebuggable]
     procedure GetTaskDisplayName(var TaskShortName: Text[30]; var TaskLongName: Text)
+    var
+        TempUserAIConsumptionData: Record "User AI Consumption Data" temporary;
+    begin
+        GetBillingDetails(TempUserAIConsumptionData);
+        GetTaskDisplayName(TempUserAIConsumptionData."Company Name", TaskShortName, TaskLongName);
+    end;
+
+    [NonDebuggable]
+    procedure GetTaskDisplayName(SourceCompany: Text[30]; var TaskShortName: Text[30]; var TaskLongName: Text)
     var
         DestinationCompany: Text[30];
     begin
-        Rec.CalcFields("Company Name");
-        if Rec."Company Name" <> CompanyName() then
-            DestinationCompany := Rec."Company Name";
+        if SourceCompany <> CompanyName() then
+            DestinationCompany := SourceCompany;
         case Rec."Consumption Source Type" of
             Rec."Consumption Source Type"::Expense:
                 TaskLongName := GetTaskDisplayNameForExpense(DestinationCompany, Rec."Consumption Source System ID");
@@ -158,6 +257,69 @@ table 6969 "Expense Agent Env. Consumption"
         end;
 
         TaskShortName := CopyStr(TaskLongName, 1, 30);
+    end;
+
+    [NonDebuggable]
+    procedure GetBillingDetails(var TempUserAIConsumptionData: Record "User AI Consumption Data" temporary): Boolean
+    var
+        UserAIConsumptionData: Record "User AI Consumption Data";
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+    begin
+        Clear(TempUserAIConsumptionData);
+        if not AIConsumptionLogEntry.ReadPermission() then
+            exit(false);
+
+        TempUserAIConsumptionData."Company Name" := Rec."Source Company Name";
+        AIConsumptionLogEntry.SetLoadFields("Consumption DateTime", "Executing User Security Id", "App Version", "Resource Name", "AI Credits", "Company Name", "Reporting State");
+        if AIConsumptionLogEntry.GetBySystemId(Rec.SystemId) then begin
+            TempUserAIConsumptionData."Consumption DateTime" := AIConsumptionLogEntry."Consumption DateTime";
+            TempUserAIConsumptionData."User Id" := AIConsumptionLogEntry."Executing User Security Id";
+            TempUserAIConsumptionData."App Version" := AIConsumptionLogEntry."App Version";
+            TempUserAIConsumptionData."Feature Name" := AIConsumptionLogEntry."Resource Name";
+            TempUserAIConsumptionData."Copilot Credits" := AIConsumptionLogEntry."AI Credits";
+            TempUserAIConsumptionData."Company Name" := AIConsumptionLogEntry."Company Name";
+            TempUserAIConsumptionData."Processed For Billing" := AIConsumptionLogEntry."Reporting State" = Enum::"AI Consumption Reporting State"::Completed;
+            exit(true);
+        end;
+
+        UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
+        UserAIConsumptionData.SetLoadFields("Consumption DateTime", "Actions", "Copilot Studio Feature", "Copilot Studio Feature Quantity", "Copilot Studio Feature Display Name", "Copilot Credits", "Company Name", "Processed For Billing");
+        if not UserAIConsumptionData.FindFirst() then
+            exit(false);
+
+        TempUserAIConsumptionData := UserAIConsumptionData;
+        exit(true);
+    end;
+
+    [NonDebuggable]
+    procedure GetBillingDescription() FullDescription: Text
+    var
+        UserAIConsumptionData: Record "User AI Consumption Data";
+        AIConsumptionLogEntry: Record "AI Consumption Log Entry";
+        DescriptionInStream: InStream;
+        TextLine: Text;
+    begin
+        if not AIConsumptionLogEntry.ReadPermission() then
+            exit('');
+
+        if AIConsumptionLogEntry.GetBySystemId(Rec.SystemId) then begin
+            AIConsumptionLogEntry.CalcFields(Description);
+            AIConsumptionLogEntry.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+        end else begin
+            UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
+            if not UserAIConsumptionData.FindFirst() then
+                exit('');
+
+            UserAIConsumptionData.CalcFields(Description);
+            UserAIConsumptionData.Description.CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+        end;
+
+        while not DescriptionInStream.EOS() do begin
+            DescriptionInStream.ReadText(TextLine);
+            if FullDescription <> '' then
+                FullDescription += '\';
+            FullDescription += TextLine;
+        end;
     end;
 
     local procedure GetTaskDisplayNameForExpense(DestinationCompany: Text[30]; SourceSystemId: Guid): Text
@@ -171,7 +333,7 @@ table 6969 "Expense Agent Env. Consumption"
         Expense.SetLoadFields("No.");
         if Expense.GetBySystemId(SourceSystemId) then
             exit(StrSubstNo(RecordIdStringPatternTxt, Expense.TableCaption(), Expense."No."));
-        exit(StrSubstNo(DeletedRecordTxt, Expense.TableCaption()));
+        exit(DeletedExpenseOrInvalidReceiptTxt);
     end;
 
     local procedure GetTaskDisplayNameForExpenseReport(DestinationCompany: Text[30]; SourceSystemId: Guid): Text

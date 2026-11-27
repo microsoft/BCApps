@@ -29,6 +29,7 @@ codeunit 148318 "Expense Capabilities API Test"
         ActivityLogCapabilityNameTok: Label 'activityLog', Locked = true;
         ApprovalConversationCapabilityNameTok: Label 'approvalConversation', Locked = true;
         TravelRequestCapabilityNameTok: Label 'travelRequest', Locked = true;
+        ConsumptionV2CapabilityNameTok: Label 'consumptionV2', Locked = true;
 
     [Test]
     procedure ActivityLogCapabilityEnabledViaAPI()
@@ -232,6 +233,25 @@ codeunit 148318 "Expense Capabilities API Test"
 
         // [THEN] The provider reports activeApproverRouting as enabled.
         Assert.IsTrue(IsEnabled, 'activeApproverRouting must always be enabled.');
+    end;
+
+    [Test]
+    procedure ConsumptionV2CapabilityEnabledViaAPI()
+    var
+        TargetURL: Text;
+        ResponseText: Text;
+    begin
+        // [SCENARIO] V2 consumption support is always advertised when the supporting actions are installed.
+        Initialize();
+
+        // [WHEN] The expenseCapabilities collection is fetched through the API.
+        TargetURL := LibraryGraphMgt.CreateTargetURL('', Page::"Expense Capabilities API", ServiceNameTok);
+        LibraryGraphMgt.GetFromWebServiceAndCheckResponseCode(ResponseText, TargetURL, 200);
+
+        // [THEN] ConsumptionV2 is present and enabled.
+        Assert.IsTrue(
+            ResponseContainsCapabilityState(ResponseText, ConsumptionV2CapabilityNameTok, true),
+            'Response must contain an enabled consumptionV2 capability row.');
     end;
 
     local procedure Initialize()

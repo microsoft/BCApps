@@ -1,5 +1,78 @@
 # Todo: Missing documentation of the expense agent module.
 
+# Expense Agent consumption reporting
+
+The `expenseCapabilities` API always advertises `ConsumptionV2` as enabled,
+indicating support for `LogAIConsumptionV2` and `CanConsumeV2`.
+
+`userConsumptions` exposes `LogAIConsumptionV2`. The request contains a `model`
+object with model usage and a `v1` object with `usage` and `usageType`.
+The action calls `Copilot Quota.IsV2ConsumptionActive()` and submits only the
+active pipeline. When V2 is inactive, it uses the V1 usage and usage type.
+When V2 is active, it uses only model usage; the V2 platform payload retains the
+top-level `model` object and excludes the `v1` object.
+The four model token counters must be present, whole, and non-negative:
+`inputTokenCount`, `outputTokenCount`, `promptCacheReadTokenCount`, and
+`promptCacheCreationTokenCount`.
+Zero V1 usage, or all four V2 counters being zero, emits skip telemetry and
+returns an empty GUID without creating a companion or reporting consumption.
+The legacy V1-only action retains its V1 routing regardless of V2 activation.
+
+The legacy `userConsumptions({id})/Microsoft.NAV.canConsume` action retains its
+empty request body and evaluates quota using the integration session's principal.
+The new `userConsumptions({id})/Microsoft.NAV.canConsumeV2` action requires an
+`expenseUserEntraId` GUID in its request body. V2 quota checks and recording use
+the API-supplied Entra ID, not the stored ID or the integration session's
+principal. A missing or empty supplied ID returns an error. If a nonblank stored
+Entra ID differs from the supplied ID, the action emits error-level telemetry
+and continues recording with the supplied ID. A blank stored ID doesn't prevent
+recording.
+The System Application `Copilot Quota.CanConsume(Guid)` overload is scoped to
+OnPrem and evaluates paid quota in the active pipeline. The parameterless
+overload retains its legacy session-based behavior.
+The new production billing methods and the consumption API entry points are
+marked `NonDebuggable`. Identity-mismatch telemetry remains publisher-only.
+
+One environment consumption record identifies the event by source type, source
+system ID, and operation. V1 uses its text consumption key; V2 uses its
+`SystemId`. The record and its trial classification are committed before either
+submission because V2 records consumption in a separate system transaction.
+A failed submission can leave a pending companion record. Repeating the request
+reuses both IDs and the original trial classification. A completion flag records
+successful processing, including V1 trials that have no billing-ledger entry.
+Completed events aren't submitted again. Existing V1 and V2 ledger entries
+also prevent duplicate submission. If a V2 ledger entry exists but its trial
+counter failed, the retry finishes the counter using the same consumption ID.
+Pending events use the currently active pipeline when retried, including after
+a change in activation, without changing their identity or trial classification.
+
+Only `PROCESS` consumes trial allowance, once per consumption ID.
+V1 trial events update the trial counter without submitting normal V1
+consumption; other V1 trial operations are completed without consuming allowance.
+V2 trial events are always recorded with `IsFeatureTrial = true`, then update
+the trial counter after the V2 ledger entry is confirmed. Paid events use normal
+consumption reporting in the selected pipeline. Failed or ignored V2 recording
+doesn't consume trial allowance.
+
+The billing overview reads V2 details from `AI Consumption Log Entry` by
+`SystemId`, or V1 details from `User AI Consumption Data` by the text key.
+It doesn't combine credits from the two ledgers. Copilot Studio feature fields
+are blank for V2 events. The expense user's name must be present to supply the
+V2 consumption principal's display name.
+V2 Actions stays empty. List rendering doesn't load description blobs from
+either ledger. Description drilldown looks up the current V2 entry, or the V1
+entry when no V2 entry exists, and loads the full text on demand.
+The lookup reads the description while its ledger record is in scope and
+returns text with message line separators.
+Missing expense sources display "Deleted expense or invalid receipt".
+
+The companion table's V1 lookup FlowFields are obsolete as of 30.0.
+Use `GetBillingDetails` to read billing details from the active ledger.
+
+If the user can't read `AI Consumption Log Entry`, the billing overview shows
+a message when opened and leaves billing details empty. It doesn't fall back
+to V1 when V2 read permission is missing.
+
 # Expense Agent no-receipt API
 
 The `microsoft/expense/beta` API exposes no-receipt support through the
