@@ -13,6 +13,6 @@ enumextension 133750 "Designer Test Metadata" extends "Agent Metadata Provider"
     value(133750; "Designer Test Agent")
     {
         Caption = 'Designer test agent';
-        Implementation = IAgentFactory = "Custom Agent Metadata Provider", IAgentMetadata = "Custom Agent Metadata Provider";
+        Implementation = IAgentFactory = "Designer Test Agent Factory", IAgentMetadata = "Custom Agent Metadata Provider";
     }
 }

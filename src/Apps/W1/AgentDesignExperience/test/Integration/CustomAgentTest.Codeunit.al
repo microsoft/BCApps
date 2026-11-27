@@ -354,6 +354,7 @@ codeunit 133754 "Custom Agent Test"
         // [GIVEN] A custom agent with saved instructions and history
         Initialize();
         CustomAgentSetup.Get(TestAgentId1);
+        CustomAgentSetup.SetInstructions('# Initial editor instructions');
         OriginalInstructions := CustomAgentSetup.GetInstructions(TestAgentId1);
         OriginalVersion := CustomAgentSetup."Instructions Version";
         InstructionsLog.SetRange("User Security ID", TestAgentId1);
@@ -407,6 +408,7 @@ codeunit 133754 "Custom Agent Test"
         // [GIVEN] A configured agent with existing instructions and history
         Initialize();
         CustomAgentSetup.Get(TestAgentId1);
+        CustomAgentSetup.SetInstructions('# Initial setup instructions');
         OriginalInstructions := CustomAgentSetup.GetInstructions(TestAgentId1);
         OriginalVersion := CustomAgentSetup."Instructions Version";
         InstructionsLog.SetRange("User Security ID", TestAgentId1);
