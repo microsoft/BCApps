@@ -106,7 +106,7 @@ if (($null -ne $TestType) -and ($TestType -ne "Legacy")) {
     $parameters["testType"] = $TestType
 }
 
-$parameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $parameters["appName"])
+$parameters["disabledTests"] = @(Get-DisabledTestsForApp -AppName $parameters["appName"] -Country (Get-ALGoSetting -Key 'country'))
 $parameters["renewClientContextBetweenTests"] = $true
 
 # When invoked from the per-project override on the parent process, $AppNamesToTest contains
@@ -125,7 +125,7 @@ $isRequiredDisabledRun = $parameters.ContainsKey("requiredTestIsolation") -and $
 $result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
 
 # Preserve the old sequential fallback. Parallel project execution defers this pass to the
-# clean-tenant codeunit scheduler in ParallelTestExecution.psm1.
+# second app-level phase in ParallelTestExecution.psm1.
 if ($TestType -eq "UnitTest" -and -not $SkipAutomaticDisabledPass -and -not $isRequiredDisabledRun) {
     Write-Host "Running DisableTestIsolation pass for UnitTest"
     $parameters["requiredTestIsolation"] = "Disabled"

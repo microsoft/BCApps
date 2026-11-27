@@ -8,5 +8,11 @@
     "codeunitId": 139806,
     "codeunitName": "APIV2 - Company Info. E2E",
     "method": "TestModifyCompanyInformation"
+  },
+  {
+    "codeunitId": 139830,
+    "codeunitName": "APIV2 - GLEntries E2E",
+    "method": "TestGetGLEntries",
+    "country": "AU"
   }
 ]
