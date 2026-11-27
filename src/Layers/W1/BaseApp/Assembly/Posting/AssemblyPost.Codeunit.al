@@ -1486,6 +1486,7 @@ codeunit 900 "Assembly-Post"
                         CreateReservEntry.SetQtyToHandleAndInvoice(ItemLedgEntry.Quantity, ItemLedgEntry.Quantity);
                         CreateReservEntry.SetItemLedgEntryNo(ItemLedgEntry."Entry No.");
                         ReservEntry.CopyTrackingFromItemLedgEntry(ItemLedgEntry);
+                        OnRestoreItemTrackingOnBeforeCreateReservEntryFor(ItemLedgEntry, AsmHeader, CreateReservEntry, ReservEntry, IsATOHeader);
                         CreateReservEntry.CreateReservEntryFor(
                             SourceType, DocType, ItemLedgEntry."Order No.", '', 0, ItemLedgEntry."Order Line No.",
                             ItemLedgEntry."Qty. per Unit of Measure", 0, Abs(ItemLedgEntry.Quantity), ReservEntry);
@@ -1511,6 +1512,7 @@ codeunit 900 "Assembly-Post"
                             ReservStatus := ReservStatus::Surplus;
                         CreateReservEntry.CreateEntry(
                             ItemLedgEntry."Item No.", ItemLedgEntry."Variant Code", ItemLedgEntry."Location Code", '', RcptDate, ShptDate, 0, ReservStatus);
+                        OnRestoreItemTrackingOnAfterCreateEntry(ItemLedgEntry, AsmHeader, CreateReservEntry, ReservStatus);
                     end;
                 until ItemLedgEntry.Next() = 0;
             ItemLedgEntry.DeleteAll();
@@ -1928,6 +1930,16 @@ codeunit 900 "Assembly-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRestoreItemTracking(var ItemLedgerEntry: Record "Item Ledger Entry"; OrderNo: Code[20]; OrderLineNo: Integer; SourceType: Integer; DocType: Option; RcptDate: Date; ShptDate: Date; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRestoreItemTrackingOnBeforeCreateReservEntryFor(var ItemLedgerEntry: Record "Item Ledger Entry"; AssemblyHeader: Record "Assembly Header"; var CreateReservEntry: Codeunit "Create Reserv. Entry"; var ReservationEntry: Record "Reservation Entry"; IsATOHeader: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRestoreItemTrackingOnAfterCreateEntry(var ItemLedgerEntry: Record "Item Ledger Entry"; AssemblyHeader: Record "Assembly Header"; var CreateReservEntry: Codeunit "Create Reserv. Entry"; ReservationStatus: Enum "Reservation Status")
     begin
     end;
 
