@@ -14,7 +14,10 @@ codeunit 133750 "Agent Designer Test Install"
     trigger OnInstallAppPerDatabase()
     var
         LibraryCopilotCapability: Codeunit "Library - Copilot Capability";
+        AppInfo: ModuleInfo;
     begin
         LibraryCopilotCapability.ActivateCopilotCapability(Enum::"Copilot Capability"::"Custom Agent", '00155c68-8cdd-4d60-a451-2034ad094223');
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        LibraryCopilotCapability.ActivateCopilotCapability(Enum::"Copilot Capability"::"Designer Test Agent", AppInfo.Id);
     end;
 }
