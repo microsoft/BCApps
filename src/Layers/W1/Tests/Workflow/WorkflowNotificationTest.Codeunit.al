@@ -139,6 +139,51 @@ codeunit 134301 "Workflow Notification Test"
 
     [Test]
     [Scope('OnPrem')]
+    procedure TestJournalLineNotificationWithBodyLayout()
+    var
+        WorkflowStepArgument: Record "Workflow Step Argument";
+        WorkflowStepInstance: Record "Workflow Step Instance";
+        NotificationEntry: Record "Notification Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        NotificationEntryDispatcher: Codeunit "Notification Entry Dispatcher";
+        HtmlBodyText: Text;
+        ExpectedValues: array[20] of Text;
+    begin
+        // [FEATURE] [Journal] [Layout]
+        // [SCENARIO] The HTML email body of a notification is rendered with the body-only layout "NotificationEmailBody.docx".
+        // [GIVEN] The body-only layout is selected as the default layout for report "Notification Email".
+        // [WHEN] A notification entry is created for a journal line and its HTML body is generated.
+        // [THEN] The HTML body is generated and contains the expected information.
+
+        // Setup.
+        Initialize();
+        SelectNotificationEmailLayout('NotificationEmailBody.docx');
+
+        LibraryJournals.CreateGenJournalLineWithBatch(GenJournalLine, GenJournalLine."Document Type"::Payment,
+          GenJournalLine."Account Type"::"Bank Account", '', 100);
+
+        SetupArgumentForNotifications(WorkflowStepInstance, WorkflowStepArgument);
+
+        // Exercise.
+        NotificationEntry.CreateNotificationEntry(NotificationEntry.Type::"New Record", WorkflowStepArgument."Notification User ID",
+          GenJournalLine, WorkflowStepArgument."Link Target Page", WorkflowStepArgument."Custom Link", '');
+        NotificationEntry.SetRange("Triggered By Record", GenJournalLine.RecordId);
+        NotificationEntry.FindFirst();
+        Assert.IsTrue(NotificationEntryDispatcher.GetHTMLBodyText(NotificationEntry, HtmlBodyText), GetLastErrorText());
+
+        // Verify.
+        ExpectedValues[1] := GenJournalLine."Journal Template Name" + ',' +
+          GenJournalLine."Journal Batch Name" + ',' + Format(GenJournalLine."Line No.");
+        ExpectedValues[2] := Format(GenJournalLine.Amount);
+        ExpectedValues[3] := 'page=' + Format(PAGE::"General Journal") + '&amp;bookmark=';
+        VerifyHTMLBodyText(HtmlBodyText, ExpectedValues);
+
+        // Tear down.
+        ClearNotificationEmailLayoutSelection();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure NotificationForOpenPurchApprovalEntry()
     var
         ApprovalEntry: Record "Approval Entry";
@@ -3054,6 +3099,31 @@ codeunit 134301 "Workflow Notification Test"
         NotificationEntryDispatcher.GetHTMLBodyText(NotificationEntry, HtmlBodyText);
 
         VerifyHTMLBodyText(HtmlBodyText, ExpectedValues);
+    end;
+
+    local procedure SelectNotificationEmailLayout(LayoutName: Text[250])
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+    begin
+        ClearNotificationEmailLayoutSelection();
+        ReportLayoutList.SetRange("Report ID", Report::"Notification Email");
+        ReportLayoutList.SetRange(Name, LayoutName);
+        ReportLayoutList.FindFirst();
+
+        TenantReportLayoutSelection."Report ID" := Report::"Notification Email";
+        TenantReportLayoutSelection."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutSelection."Company Name"));
+        TenantReportLayoutSelection."Layout Name" := ReportLayoutList.Name;
+        TenantReportLayoutSelection."App ID" := ReportLayoutList."Application ID";
+        TenantReportLayoutSelection.Insert(true);
+    end;
+
+    local procedure ClearNotificationEmailLayoutSelection()
+    var
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+    begin
+        TenantReportLayoutSelection.SetRange("Report ID", Report::"Notification Email");
+        TenantReportLayoutSelection.DeleteAll(true);
     end;
 
     local procedure VerifyHTMLBodyText(HtmlBodyText: Text; ExpectedValues: array[20] of Text)
