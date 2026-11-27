@@ -633,6 +633,10 @@ report 5692 "Calculate Depreciation"
 #pragma warning disable AS0108
         DocumentNo: Code[20];
         PostingDescription: Text[100];
+#if not CLEAN30
+        [Obsolete('Use PostingDescription instead.', '30.0')]
+        PostingDescriptionTxt: Text[100];
+#endif
 #pragma warning restore AS0108
         BalAccount: Boolean;
 
