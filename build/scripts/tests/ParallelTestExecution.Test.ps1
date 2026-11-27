@@ -170,18 +170,23 @@ Describe "ParallelTestExecution churn selection" {
         $script:selectionLog | Should -Not -Contain 'Logging only: full bucket will run (3 test apps).'
     }
 
-    It "does not dispatch tests for a known empty PR proposal" {
+    It "caches an empty PR proposal so later hooks skip discovery and dispatch" {
         $env:GITHUB_EVENT_NAME = 'pull_request'
         Mock -ModuleName BuildOptimization Get-AffectedAppNames {
             [PSCustomObject]@{ RunAll = $false; AppNames = @('Unrelated Tests') }
         } -ParameterFilter { $true }
-        Invoke-PerProjectTestRun -parameters @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' } |
-            Should -BeTrue
+        $parameters = @{ containerName = 'selection'; tenant = 'default'; appName = 'Tests A' }
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
+        Invoke-PerProjectTestRun -parameters $parameters | Should -BeTrue
 
         Should -Invoke -ModuleName BuildOptimization Get-AffectedAppNames -Times 1 -Exactly
+        Should -Invoke -ModuleName ParallelTestExecution Get-InstalledTestAppNames -Times 1 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Get-RequiredDisabledWorkItems -Times 0 -Exactly
         Should -Invoke -ModuleName ParallelTestExecution Start-TestAppDispatch -Times 0 -Exactly
-        Test-Path (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') | Should -BeFalse
+        $state = Get-Content (Join-Path $env:RUNNER_TEMP 'parallelTests_selection.json') -Raw | ConvertFrom-Json
+        $state.completed | Should -BeTrue
+        $state.finalResult | Should -BeTrue
+        $state.selectionSkipped | Should -BeTrue
         $script:selectionLog | Should -Contain 'Affected-app selection applied: 0 of 3 test apps will run.'
     }
 
