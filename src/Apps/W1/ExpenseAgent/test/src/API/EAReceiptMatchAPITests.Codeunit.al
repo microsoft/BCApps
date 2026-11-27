@@ -24,7 +24,7 @@ codeunit 148371 "EA Receipt Match API Tests"
         CardExpenseMatchesServiceNameTok: Label 'cardExpenseMatches', Locked = true;
         ExpensesServiceNameTok: Label 'expenses', Locked = true;
         CardReceiptDataServiceNameTok: Label 'cardReceiptData', Locked = true;
-        ApplyURLTxt: Label '%1(%2)/Microsoft.NAV.apply', Locked = true, Comment = '%1 = Card receipt data collection URL, %2 = Card receipt data id';
+        ApplyActionPathTok: Label '/Microsoft.NAV.apply', Locked = true;
         CardIdTok: Label 'CORPCARD-0001', Locked = true;
 
     [Test]
@@ -265,7 +265,7 @@ codeunit 148371 "EA Receipt Match API Tests"
         CardReceiptData.Modify();
         Commit();
         LibraryGraphMgt.PostToWebServiceAndCheckResponseCode(
-            StrSubstNo(ApplyURLTxt, TargetURL, LowerCase(DelChr(Format(ReceiptDataId), '=', '{}'))), '', ResponseText, 200);
+            LibraryGraphMgt.AppendPathToTargetURL(TargetURL, '(' + LibraryGraphMgt.StripBrackets(Format(ReceiptDataId)) + ')' + ApplyActionPathTok), '', ResponseText, 200);
 
         // [THEN] The expense has the receipt, the justification and the participant, and the receipt data is deleted.
         Expense.Get(Expense."No.");
