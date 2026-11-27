@@ -47,15 +47,11 @@ codeunit 6790 "WHT Employee Calculation"
     procedure CalcEmployeeWHT(var GenJnlLine: Record "Gen. Journal Line"; var WHTAmount: Decimal; var WHTBaseAmount: Decimal)
     var
         Employee: Record Employee;
-        WHTGroupLine: Record "Withholding Tax Group Line";
         PostingSetup: Record "Withholding Tax Posting Setup";
         CalcBase: Enum "Withholding Calculation Base";
         CalcMethod: Enum "Withholding Calculation Method";
         WHTGroupCode: Code[20];
         LineAmount: Decimal;
-        CompoundBase: Decimal;
-        ComponentWHT: Decimal;
-        TotalWHT: Decimal;
         TaxableBaseAmount: Decimal;
         HasGroup: Boolean;
         IsHandled: Boolean;
@@ -96,9 +92,9 @@ codeunit 6790 "WHT Employee Calculation"
             if PostingSetup."Tax Amount Above Threshold" then
                 case PostingSetup."WHT Threshold Base" of
                     PostingSetup."WHT Threshold Base"::Record:
-                        LineAmount := CalcGrossUpAmount(LineAmount, PostingSetup, WHTGroupCode, HasGroup, PostingSetup."Wthldg. Tax Min. Inv. Amount");
+                        LineAmount := CalcGrossUpAmount(LineAmount, GenJnlLine, PostingSetup, WHTGroupCode, HasGroup, PostingSetup."Wthldg. Tax Min. Inv. Amount");
                     PostingSetup."WHT Threshold Base"::Document:
-                        LineAmount := CalcGrossUpAmount(LineAmount, PostingSetup, WHTGroupCode, HasGroup, GetRemainingDocumentThreshold(PostingSetup, Employee."No.", GenJnlLine."Document No."));
+                        LineAmount := CalcGrossUpAmount(LineAmount, GenJnlLine, PostingSetup, WHTGroupCode, HasGroup, GetRemainingDocumentThreshold(PostingSetup, Employee."No.", GenJnlLine."Document No."));
                     else
                         Error(
                             NetThresholdModeNotSupportedErr,
@@ -107,7 +103,7 @@ codeunit 6790 "WHT Employee Calculation"
                             Format(PostingSetup."WHT Threshold Base"));
                 end
             else
-                LineAmount := CalcGrossUpAmount(LineAmount, PostingSetup, WHTGroupCode, HasGroup, 0);
+                LineAmount := CalcGrossUpAmount(LineAmount, GenJnlLine, PostingSetup, WHTGroupCode, HasGroup, 0);
 
             if GenJnlLine.Amount < 0 then
                 GenJnlLine.Validate(Amount, -LineAmount);
@@ -121,29 +117,37 @@ codeunit 6790 "WHT Employee Calculation"
 
         WHTBaseAmount := TaxableBaseAmount;
 
-        if HasGroup then begin
-            CompoundBase := TaxableBaseAmount;
-            WHTGroupLine.Reset();
-            WHTGroupLine.SetCurrentKey("Group Code", "Component Order");
-            WHTGroupLine.SetRange("Group Code", WHTGroupCode);
-            if WHTGroupLine.FindSet() then
-                repeat
-                    if PostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", WHTGroupLine."Wthldg. Tax Prod. Post. Group") then begin
-                        CalcMethod := PostingSetup."Calculation Method";
-                        CalcBase := PostingSetup."Calculation Base";
-                    end;
-
-                    ComponentWHT := CalcComponentWHT(WHTGroupLine, CompoundBase, GenJnlLine);
-                    TotalWHT += ComponentWHT;
-
-                    if CalcMethod = CalcMethod::Compound then
-                        CompoundBase := CompoundBase + ComponentWHT;
-                until WHTGroupLine.Next() = 0;
-
-            WHTAmount := Round(TotalWHT);
-        end else
+        if HasGroup then
+            WHTAmount := Round(CalcGroupComponentsWHT(GenJnlLine, WHTGroupCode, TaxableBaseAmount, CalcMethod))
+        else
             if PostingSetup."Withholding Tax %" > 0 then
                 WHTAmount := Round(TaxableBaseAmount * PostingSetup."Withholding Tax %" / 100);
+    end;
+
+    local procedure CalcGroupComponentsWHT(GenJnlLine: Record "Gen. Journal Line"; WHTGroupCode: Code[20]; BaseAmount: Decimal; CalcMethod: Enum "Withholding Calculation Method"): Decimal
+    var
+        WHTGroupLine: Record "Withholding Tax Group Line";
+        ComponentSetup: Record "Withholding Tax Posting Setup";
+        CompoundBase: Decimal;
+        ComponentWHT: Decimal;
+        TotalWHT: Decimal;
+    begin
+        CompoundBase := BaseAmount;
+        WHTGroupLine.SetCurrentKey("Group Code", "Component Order");
+        WHTGroupLine.SetRange("Group Code", WHTGroupCode);
+        if WHTGroupLine.FindSet() then
+            repeat
+                if ComponentSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", WHTGroupLine."Wthldg. Tax Prod. Post. Group") then
+                    CalcMethod := ComponentSetup."Calculation Method";
+
+                ComponentWHT := CalcComponentWHT(WHTGroupLine, CompoundBase, GenJnlLine);
+                TotalWHT += ComponentWHT;
+
+                if CalcMethod = CalcMethod::Compound then
+                    CompoundBase := CompoundBase + ComponentWHT;
+            until WHTGroupLine.Next() = 0;
+
+        exit(TotalWHT);
     end;
 
     procedure InsertEmployeeWithholdingTaxEntry(GenJnlLine: Record "Gen. Journal Line"; WHTAmount: Decimal; WHTBaseAmount: Decimal; TransactionNo: Integer; var NextEntryNo: Integer): Integer
@@ -380,26 +384,19 @@ codeunit 6790 "WHT Employee Calculation"
         exit(false);
     end;
 
-    local procedure CalcGrossUpAmount(NetAmount: Decimal; PostingSetup: Record "Withholding Tax Posting Setup"; WHTGroupCode: Code[20]; HasGroup: Boolean; ThresholdAmount: Decimal): Decimal
+    local procedure CalcGrossUpAmount(NetAmount: Decimal; GenJnlLine: Record "Gen. Journal Line"; PostingSetup: Record "Withholding Tax Posting Setup"; WHTGroupCode: Code[20]; HasGroup: Boolean; ThresholdAmount: Decimal): Decimal
     var
-        WHTGroupLine: Record "Withholding Tax Group Line";
-        TotalTaxRate: Decimal;
         TaxRate: Decimal;
     begin
-        if HasGroup then begin
-            WHTGroupLine.Reset();
-            WHTGroupLine.SetRange("Group Code", WHTGroupCode);
-            if WHTGroupLine.FindSet() then
-                repeat
-                    TotalTaxRate += GetComponentTaxRate(WHTGroupLine, PostingSetup);
-                until WHTGroupLine.Next() = 0;
-        end else
-            TotalTaxRate := PostingSetup."Withholding Tax %";
+        // Withholding is linear in its base, so the group's effective rate is the withholding on a base of 1.
+        if HasGroup then
+            TaxRate := CalcGroupComponentsWHT(GenJnlLine, WHTGroupCode, 1, PostingSetup."Calculation Method")
+        else
+            TaxRate := PostingSetup."Withholding Tax %" / 100;
 
-        if TotalTaxRate >= 100 then
+        if TaxRate >= 1 then
             exit(NetAmount);
 
-        TaxRate := TotalTaxRate / 100;
         if ThresholdAmount > 0 then begin
             if NetAmount <= ThresholdAmount then
                 exit(NetAmount);
@@ -408,17 +405,6 @@ codeunit 6790 "WHT Employee Calculation"
         end;
 
         exit(Round(NetAmount / (1 - TaxRate)));
-    end;
-
-    local procedure GetComponentTaxRate(WHTGroupLine: Record "Withholding Tax Group Line"; ParentSetup: Record "Withholding Tax Posting Setup"): Decimal
-    var
-        ComponentSetup: Record "Withholding Tax Posting Setup";
-    begin
-        if WHTGroupLine."Wthldg. Tax Prod. Post. Group" <> '' then
-            if ComponentSetup.Get(ParentSetup."Wthldg. Tax Bus. Post. Group", WHTGroupLine."Wthldg. Tax Prod. Post. Group") then
-                exit(ComponentSetup."Withholding Tax %");
-
-        exit(ParentSetup."Withholding Tax %");
     end;
 
     procedure CalcComponentWHT(WHTGroupLine: Record "Withholding Tax Group Line"; BaseAmount: Decimal; GenJnlLine: Record "Gen. Journal Line"): Decimal

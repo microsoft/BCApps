@@ -517,6 +517,56 @@ codeunit 148323 "WHT Employee Threshold Tests"
     end;
 
     [Test]
+    procedure NetCalculationGroupedCompoundTaxAboveThreshold()
+    var
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        ComponentWHTPostingSetup: array[2] of Record "Withholding Tax Posting Setup";
+        GenJournalLine: Record "Gen. Journal Line";
+        WHTEmployeeCalculation: Codeunit "WHT Employee Calculation";
+        WHTEmplGroupTestSubscr: Codeunit "WHT Empl. Group Test Subscr.";
+        EmployeeNo: Code[20];
+        WHTGroupCode: Code[20];
+        WHTAmount: Decimal;
+        WHTBaseAmount: Decimal;
+        i: Integer;
+    begin
+        // [SCENARIO 657603] Net gross-up of a grouped line uses the compounded rate of its components, so the employee receives the requested net amount.
+        Initialize();
+
+        // [GIVEN] Net calculation, Record/Line threshold 1,000 and "Tax Only Amount Above Threshold" enabled.
+        CreateEmployeeWHTPostingSetup(WHTPostingSetup, "Withholding Calculation Base"::Net, "Withholding Threshold Base"::Record, true);
+        EmployeeNo := CreateEmployee(WHTPostingSetup);
+
+        // [GIVEN] Withholding tax group with two Compound 10 % components, an effective rate of 21 %.
+        for i := 1 to 2 do begin
+            CreateComponentWHTPostingSetup(ComponentWHTPostingSetup[i], WHTPostingSetup."Wthldg. Tax Bus. Post. Group");
+            ComponentWHTPostingSetup[i].Validate("Withholding Tax %", 10);
+            ComponentWHTPostingSetup[i].Validate("Calculation Method", "Withholding Calculation Method"::Compound);
+            ComponentWHTPostingSetup[i].Modify(true);
+        end;
+        WHTGroupCode := CreateWHTGroup(ComponentWHTPostingSetup[1]."Wthldg. Tax Prod. Post. Group");
+        AddWHTGroupLine(WHTGroupCode, ComponentWHTPostingSetup[2]."Wthldg. Tax Prod. Post. Group", 2);
+        WHTEmplGroupTestSubscr.SetWHTGroupCode(WHTGroupCode);
+        BindSubscription(WHTEmplGroupTestSubscr);
+
+        // [GIVEN] Employee journal line with a net amount of 1,800.
+        CreateEmployeeJournalLine(GenJournalLine, WHTPostingSetup, EmployeeNo, LibraryERM.CreateGLAccountNoWithDirectPosting(), true, -1800);
+
+        // [WHEN] Calculate employee withholding tax.
+        WHTEmployeeCalculation.CalcEmployeeWHT(GenJournalLine, WHTAmount, WHTBaseAmount);
+
+        // [THEN] Gross amount is 2,012.66 = (1,800 - 1,000 * 21 %) / 79 %, taxable base is 1,012.66 and withholding is 101.27 + 111.39 = 212.66.
+        Assert.AreEqual(-2012.66, GenJournalLine.Amount, StrSubstNo(WrongValueErr, GenJournalLine.FieldCaption(Amount)));
+        Assert.AreEqual(1012.66, WHTBaseAmount, StrSubstNo(WrongValueErr, 'withholding tax base'));
+        Assert.AreEqual(212.66, WHTAmount, StrSubstNo(WrongValueErr, 'withholding tax amount'));
+
+        // [THEN] The employee receives the requested net amount 1,800.
+        Assert.AreEqual(1800, Abs(GenJournalLine.Amount) - WHTAmount, StrSubstNo(WrongValueErr, 'net amount'));
+
+        UnbindSubscription(WHTEmplGroupTestSubscr);
+    end;
+
+    [Test]
     procedure GroupedBelowThresholdPostsNoWithholding()
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
