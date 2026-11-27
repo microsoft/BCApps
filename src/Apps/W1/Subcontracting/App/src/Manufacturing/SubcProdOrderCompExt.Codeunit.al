@@ -439,7 +439,7 @@ codeunit 20524 "Subc. Prod. Order Comp. Ext."
                 ProdOrderComponent."Due Date" := ProdOrderRoutingLine."Starting Date";
                 ProdOrderComponent."Due Time" := ProdOrderRoutingLine."Starting Time";
                 if (ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center") then
-                    if SubcontractingManagement.GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
+                    if SubcontractingManagement.GetOperationSubcontractor(ProdOrderRoutingLine, Vendor) then
                         SubcontractingManagement.ChangeLocationOnProdOrderComponent(ProdOrderComponent, Vendor."Subc. Location Code", ProdOrderComponent."Subc. Original Location Code", ProdOrderComponent."Subc. Orig. Bin Code");
             end;
         end else
