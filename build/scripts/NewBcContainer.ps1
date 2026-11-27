@@ -28,7 +28,45 @@ Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -key
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
 # API tests call the container's own web services through AL HttpClient, which anti-SSRF blocks for local addresses (same as NAV RunALTests.ps1).
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "NavHttpClientAntiSSRFEnabled" -keyValue "false"
+$isUS = (Get-ALGoSetting -Key "country") -eq "US"
+if ($isUS) {
+    # Read the running server's values, including defaults, rather than just the configuration file.
+    $readCompilationSettings = {
+        $ErrorActionPreference = "Stop"
+        $serverInstance = Get-NAVServerInstance
+        $settings = [ordered]@{}
+        foreach ($key in @("ClrRetrieverKind", "EnableMultithreadedCompilation")) {
+            $setting = @($serverInstance | Get-NAVServerConfiguration -KeyName $key -InMemory)
+            if ($setting.Count -ne 1 -or [string]::IsNullOrWhiteSpace($setting[0].Value)) {
+                throw "Could not read the effective US compilation setting '$key'."
+            }
+            $settings[$key] = [string]$setting[0].Value
+        }
+        [PSCustomObject]$settings
+    }
+    & {
+        $ErrorActionPreference = "Stop"
+        $before = Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock $readCompilationSettings
+        if ($null -eq $before) {
+            throw "Could not read the effective US compilation settings before change."
+        }
+        Write-Host "US compilation settings before change: ClrRetrieverKind=$($before.ClrRetrieverKind); EnableMultithreadedCompilation=$($before.EnableMultithreadedCompilation)"
+        Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName ClrRetrieverKind -keyValue OneApplicationMultipleAssemblies
+        Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName EnableMultithreadedCompilation -keyValue true
+    }
+}
 Restart-BcContainer -containerName $parameters.ContainerName
+
+if ($isUS) {
+    $after = Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock $readCompilationSettings
+    if ($null -eq $after) {
+        throw "Could not read the effective US compilation settings after restart."
+    }
+    Write-Host "US compilation settings after restart: ClrRetrieverKind=$($after.ClrRetrieverKind); EnableMultithreadedCompilation=$($after.EnableMultithreadedCompilation)"
+    if ($after.ClrRetrieverKind -ne "OneApplicationMultipleAssemblies" -or $after.EnableMultithreadedCompilation -ne "true") {
+        throw "US compilation settings mismatch after restart: expected ClrRetrieverKind=OneApplicationMultipleAssemblies; EnableMultithreadedCompilation=true."
+    }
+}
 
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
