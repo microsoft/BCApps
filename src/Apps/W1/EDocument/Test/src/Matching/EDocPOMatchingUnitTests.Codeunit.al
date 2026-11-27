@@ -6,6 +6,9 @@ namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+#if not CLEAN29
+using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -15,6 +18,11 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+#if not CLEAN29
+using System.AI;
+using System.Test.Library;
+using System.TestLibraries.Azure.KeyVault;
+#endif
 
 codeunit 133508 "E-Doc. PO Matching Unit Tests"
 {
@@ -33,6 +41,47 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         LibraryLowerPermission: Codeunit "Library - Lower Permissions";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         IsInitialized: Boolean;
+
+#if not CLEAN29
+    [Test]
+    [Scope('OnPrem')]
+    procedure LegacyPOModelDeploymentUsesTrimmedOverride()
+    begin
+        VerifyLegacyPOModelDeployment(true, '  gpt-41-latest  ', 'gpt-41-latest');
+        VerifyLegacyPOModelDeployment(true, ' GPT-41-LATEST ', 'gpt-41-latest');
+        VerifyLegacyPOModelDeployment(true, 'gpt-56-ceres-latest', 'gpt-56-ceres-latest');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure LegacyPOModelDeploymentDefaultsToCeres()
+    var
+        AOAIDeployments: Codeunit "AOAI Deployments";
+    begin
+        VerifyLegacyPOModelDeployment(false, '', AOAIDeployments.GetGPT56CeresLatest());
+        VerifyLegacyPOModelDeployment(true, '', AOAIDeployments.GetGPT56CeresLatest());
+        VerifyLegacyPOModelDeployment(true, '   ', AOAIDeployments.GetGPT56CeresLatest());
+        VerifyLegacyPOModelDeployment(true, 'custom-model-deployment', AOAIDeployments.GetGPT56CeresLatest());
+    end;
+
+    local procedure VerifyLegacyPOModelDeployment(SecretExists: Boolean; OverrideValue: Text; ExpectedDeployment: Text)
+    var
+        EDocPOCopilotMatching: Codeunit "E-Doc. PO Copilot Matching";
+        AzureKeyVaultTestLibrary: Codeunit "Azure Key Vault Test Library";
+        MockAzureKeyVaultSecretProvider: DotNet MockAzureKeyVaultSecretProvider;
+        ActualDeployment: Text;
+    begin
+        MockAzureKeyVaultSecretProvider := MockAzureKeyVaultSecretProvider.MockAzureKeyVaultSecretProvider();
+        if SecretExists then
+            MockAzureKeyVaultSecretProvider.AddSecretMapping('EDocLegacyPOModelDeploymentOverride', OverrideValue);
+        AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyVaultSecretProvider);
+
+        ActualDeployment := EDocPOCopilotMatching.GetChatCompletionsDeployment();
+
+        AzureKeyVaultTestLibrary.ClearSecrets();
+        Assert.AreEqual(ExpectedDeployment, ActualDeployment, 'Unexpected deployment for legacy PO matching.');
+    end;
+#endif
 
     [Test]
     procedure LoadAvailablePOLinesForEDocLineWithNoMatchedVendor()
