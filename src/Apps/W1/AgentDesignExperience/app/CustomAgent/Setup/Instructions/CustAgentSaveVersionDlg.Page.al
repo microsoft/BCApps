@@ -70,5 +70,5 @@ page 4355 "Cust. Agent Save Version Dlg"
         VersionName: Text[100];
         VersionNameRequiredErr: Label 'You must specify a version name.';
         InstructionsLbl: Label 'Save instructions to history';
-        ExplanationLbl: Label 'Instructions are automatically saved to history when you run a task, manual saving is not required. You can still use manual saving to create versions as needed.';
+        ExplanationLbl: Label 'Instruction changes are automatically saved to history. You can still use manual saving to create named versions as needed.';
 }

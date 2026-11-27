@@ -3,7 +3,7 @@ codeunit 139002 "Web Services Tests"
     Permissions = TableData "Web Service" = rimd,
                   TableData "Tenant Web Service" = rimd;
     Subtype = Test;
-    TestPermissions = NonRestrictive;
+    TestPermissions = Disabled;
 
     trigger OnRun()
     begin
@@ -349,8 +349,6 @@ codeunit 139002 "Web Services Tests"
         if Initialized then
             exit;
 
-        Initialized := true;
-
         WebService.DeleteAll();
         // Add a Page for both OData and SOAP.
         WebService.Init();
@@ -564,6 +562,8 @@ codeunit 139002 "Web Services Tests"
         TenantWebService."Service Name" := PageQTxt;
         TenantWebService.Published := false;
         TenantWebService.Insert();
+
+        Initialized := true;
     end;
 
     local procedure VerifyUrlHasServiceName(Url: Text; ServiceName: Text[240])

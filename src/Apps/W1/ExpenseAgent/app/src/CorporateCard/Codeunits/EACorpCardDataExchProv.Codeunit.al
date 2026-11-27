@@ -518,6 +518,8 @@ codeunit 7434 "EA Corp Card Data Exch Prov" implements "EA Corp Card Provider"
         until not HasNextField;
 
         CorpCardStatement.Modify();
+        if (CorpCardStatement.Imported = 0) and (CorpCardStatement.Duplicates = 0) and (CorpCardStatement.Rejected > 0) then
+            MarkAllRowsRejected(CorpCardStatement, DataExch."File Name");
     end;
 
     local procedure NormalizeMappedCurrencyCode(DataExchFieldMapping: Record "Data Exch. Field Mapping"; var DataExchField: Record "Data Exch. Field"; CorpCardTrans: Record "EA Corp Card Trans"; CorpCardValidateMgt: Codeunit "EA Corp Card Validate Mgt")

@@ -298,6 +298,7 @@ table 7428 "EA Corp Card Trans"
     local procedure CalcAmountLCY(): Decimal
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
+        LCYCurrency: Record Currency;
         RateDate: Date;
     begin
         if "Currency Code" = '' then
@@ -309,16 +310,23 @@ table 7428 "EA Corp Card Trans"
         if RateDate = 0D then
             RateDate := WorkDate();
 
-        exit(CurrencyExchangeRate.ExchangeAmtFCYToLCY(RateDate, "Currency Code", Amount, CurrencyExchangeRate.ExchangeRate(RateDate, "Currency Code")));
+        LCYCurrency.InitRoundingPrecision();
+        exit(Round(
+            CurrencyExchangeRate.ExchangeAmtFCYToLCY(RateDate, "Currency Code", Amount, CurrencyExchangeRate.ExchangeRate(RateDate, "Currency Code")),
+            LCYCurrency."Amount Rounding Precision"));
     end;
 
     internal procedure GetAmountInCurrency(TargetCurrencyCode: Code[10]): Decimal
+    var
+        LCYCurrency: Record Currency;
     begin
         if TargetCurrencyCode = "Currency Code" then
             exit(Amount);
         if (TargetCurrencyCode = '') and ("Currency Code" <> '') then begin
-            if "Amount (LCY)" <> 0 then
-                exit("Amount (LCY)");
+            if "Amount (LCY)" <> 0 then begin
+                LCYCurrency.InitRoundingPrecision();
+                exit(Round("Amount (LCY)", LCYCurrency."Amount Rounding Precision"));
+            end;
             exit(CalcAmountLCY());
         end;
 

@@ -5311,7 +5311,6 @@ codeunit 80 "Sales-Post"
                         TempPrepmtSalesLine."Shortcut Dimension 1 Code" := TempSalesLine."Shortcut Dimension 1 Code";
                         TempPrepmtSalesLine."Shortcut Dimension 2 Code" := TempSalesLine."Shortcut Dimension 2 Code";
                         TempPrepmtSalesLine."Gen. Bus. Posting Group" := TempSalesLine."Gen. Bus. Posting Group";
-                        TempPrepmtSalesLine."Gen. Prod. Posting Group" := TempSalesLine."Gen. Prod. Posting Group";
                         TempPrepmtSalesLine."Dimension Set ID" := TempSalesLine."Dimension Set ID";
                         TempPrepmtSalesLine."Line No." := NextLineNo;
                         NextLineNo := NextLineNo + 10000;
@@ -8959,7 +8958,6 @@ codeunit 80 "Sales-Post"
 
     local procedure UpdateSalesOrderLineIfExist(DocumentNo: Code[20])
     var
-        SalesCreditMemoHeader: Record "Sales Cr.Memo Header";
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
         IsHandled: Boolean;
     begin
@@ -8968,10 +8966,10 @@ codeunit 80 "Sales-Post"
         if IsHandled then
             exit;
 
-        SalesCreditMemoHeader.SetLoadFields("Return Order No.", "No.");
-        SalesCreditMemoHeader.SetRange("Return Order No.", DocumentNo);
-        if SalesCreditMemoHeader.FindFirst() then
-            CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCreditMemoHeader."No.");
+        if (SalesCrMemoHeader."No." = '') or (SalesCrMemoHeader."Return Order No." <> DocumentNo) then
+            exit;
+
+        CorrectPostedSalesInvoice.UpdateSalesOrderLineIfExist(SalesCrMemoHeader."No.");
     end;
 
     /// <summary>
@@ -11884,7 +11882,6 @@ codeunit 80 "Sales-Post"
         GLAccount: Record "G/L Account";
         SalesLine: Record "Sales Line";
         SalesInvoiceLine: Record "Sales Invoice Line";
-        GeneralPostingSetup: Record "General Posting Setup";
         TempPrepmtSalesLine: Record "Sales Line" temporary;
         TempExtendedTextLine: Record "Extended Text Line" temporary;
         TransferExtendedText: Codeunit "Transfer Extended Text";
@@ -11907,10 +11904,10 @@ codeunit 80 "Sales-Post"
         if SalesInvoiceLine.FindSet() then
             repeat
                 IsHandled := false;
-                GeneralPostingSetup.Get(SalesInvoiceLine."Gen. Bus. Posting Group", SalesInvoiceLine."Gen. Prod. Posting Group");
                 OnCreatePrepaymentLineForCreditMemoOnBeforeGetSalesPrepmtAccount(GLAccount, SalesInvoiceLine, IsHandled);
+                // Reverse to the account posted on the invoice; its posting groups need not map back to the same Sales Prepayments Account.
                 if not IsHandled then
-                    GLAccount.Get(GeneralPostingSetup.GetSalesPrepmtAccount());
+                    GLAccount.Get(SalesInvoiceLine."No.");
 
                 TempPrepmtSalesLine.Init();
                 TempPrepmtSalesLine."Document Type" := SalesHeader."Document Type";

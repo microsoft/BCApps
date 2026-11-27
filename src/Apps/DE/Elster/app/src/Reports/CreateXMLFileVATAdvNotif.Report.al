@@ -251,7 +251,10 @@ report 11016 "Create XML-File VAT Adv.Notif."
         AddAddressText(2, "Sales VAT Advance Notif."."Contact Phone No." + '; ');
         AddAddressText(2, "Sales VAT Advance Notif."."Contact E-Mail");
 
-        UseDataXmlNameSpace := 'http://finkonsens.de/elster/elsteranmeldung/ustva/v2023';
+        if "Sales VAT Advance Notif."."Starting Date" >= DMY2Date(1, 1, 2026) then
+            UseDataXmlNameSpace := 'http://finkonsens.de/elster/elsteranmeldung/ustva/v2026'
+        else
+            UseDataXmlNameSpace := 'http://finkonsens.de/elster/elsteranmeldung/ustva/v2023';
 
         Version :=
           CopyStr(
@@ -275,6 +278,8 @@ report 11016 "Create XML-File VAT Adv.Notif."
         TempNameValueBuffer: Record "Name/Value Buffer" temporary;
         XmlElemNew: XmlElement;
         NotificationVersion: Text[2];
+        KeyFigureNo: Integer;
+        i: Integer;
     begin
         if TaxAmount[39] < 0 then
             Error(ErrorKeyFigureErr, Format(39));
@@ -363,11 +368,20 @@ report 11016 "Create XML-File VAT Adv.Notif."
         if "Sales VAT Advance Notif."."Offset Amount of Refund" then
             if not AddElement(XmlRootElem, XmlElemNew, 'Kz29', '1', XmlNameSpace) then
                 exit;
-        if TempNameValueBuffer.FindSet() then
-            repeat
-                if not AddElement(XmlRootElem, XmlElemNew, 'Kz' + Format(TempNameValueBuffer.ID), TempNameValueBuffer.Value, XmlNameSpace) then
+        for i := 21 to 100 do begin
+            KeyFigureNo := i;
+            if "Sales VAT Advance Notif."."Starting Date" >= DMY2Date(1, 1, 2026) then
+                // The 2026 schema places Kz90 after Kz93.
+                case i of
+                    90 .. 92:
+                        KeyFigureNo := i + 1;
+                    93:
+                        KeyFigureNo := 90;
+                end;
+            if TempNameValueBuffer.Get(KeyFigureNo) then
+                if not AddElement(XmlRootElem, XmlElemNew, 'Kz' + Format(KeyFigureNo), TempNameValueBuffer.Value, XmlNameSpace) then
                     exit;
-            until TempNameValueBuffer.Next() = 0;
+        end;
     end;
 
     local procedure CheckAddressData(FieldID: Integer; TextToCheck: Text[250]; MaxLength: Integer)

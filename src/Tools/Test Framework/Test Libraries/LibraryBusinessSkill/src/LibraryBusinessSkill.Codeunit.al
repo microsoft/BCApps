@@ -24,25 +24,25 @@ codeunit 130055 "Library - Business Skill"
     /// <summary>
     /// Creates an active manual skill with initial content history.
     /// </summary>
-    procedure CreateSkill(Title: Text[250]; SkillContent: SecretText): BigInteger
+    procedure CreateSkill(Name: Text[250]; SkillContent: SecretText): BigInteger
     begin
-        exit(CreateSkill(Title, '', SkillContent));
+        exit(CreateSkill(Name, '', SkillContent));
     end;
 
     /// <summary>
     /// Creates an active manual skill with a description and initial content history.
     /// </summary>
-    procedure CreateSkill(Title: Text[250]; Description: Text[2048]; SkillContent: SecretText): BigInteger
+    procedure CreateSkill(Name: Text[250]; Description: Text[2048]; SkillContent: SecretText): BigInteger
     begin
-        exit(BusinessSkillTestImpl.CreateSkill(Title, Description, SkillContent));
+        exit(BusinessSkillTestImpl.CreateSkill(Name, Description, SkillContent));
     end;
 
     /// <summary>
     /// Creates an inactive skill owned by this test library rather than its caller.
     /// </summary>
-    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Title: Text[250]; SkillContent: SecretText): BigInteger
+    procedure CreateAppOwnedSkill(SkillCode: Code[100]; Name: Text[250]; SkillContent: SecretText): BigInteger
     begin
-        exit(BusinessSkillTestImpl.CreateAppOwnedSkill(SkillCode, Title, SkillContent));
+        exit(BusinessSkillTestImpl.CreateAppOwnedSkill(SkillCode, Name, SkillContent));
     end;
 
     /// <summary>
