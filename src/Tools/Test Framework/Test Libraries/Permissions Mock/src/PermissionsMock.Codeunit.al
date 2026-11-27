@@ -27,11 +27,13 @@ codeunit 131006 "Permissions Mock"
         Started: Boolean;
 
     /// <summary>
-    /// Start mocking Permission Sets.
+    /// Starts a permission-mocking scope. The helper is initialized by the first permission operation.
     /// </summary>
     procedure Start()
     begin
-        PermissionTestHelper := PermissionTestHelper.PermissionTestHelper();
+        if Started then
+            exit;
+
         Started := true;
     end;
 
@@ -43,7 +45,10 @@ codeunit 131006 "Permissions Mock"
         if not Started then
             exit;
         Started := false;
-        PermissionTestHelper.Dispose();
+        if not IsNull(PermissionTestHelper) then begin
+            PermissionTestHelper.Dispose();
+            Clear(PermissionTestHelper);
+        end;
     end;
 
     /// <summary>
@@ -51,6 +56,8 @@ codeunit 131006 "Permissions Mock"
     /// </summary>
     procedure ClearAssignments()
     begin
+        if Started then
+            InitializePermissionTestHelper();
         PermissionTestHelper.Clear();
     end;
 
@@ -69,6 +76,7 @@ codeunit 131006 "Permissions Mock"
 
         PermissionSet.Get(RoleID);
 
+        InitializePermissionTestHelper();
         PermissionTestHelper.AddEffectivePermissionSet(PermissionSet."Role ID");
     end;
 
@@ -82,7 +90,7 @@ codeunit 131006 "Permissions Mock"
         if not Started then
             exit;
 
-        PermissionTestHelper.Clear();
+        ClearAssignments();
 
         Assign('All Objects');
         Assign(RoleID);
@@ -98,7 +106,7 @@ codeunit 131006 "Permissions Mock"
         if not Started then
             exit;
 
-        PermissionTestHelper.Clear();
+        ClearAssignments();
 
         Assign(RoleID);
     end;
@@ -110,6 +118,12 @@ codeunit 131006 "Permissions Mock"
     procedure IsStarted(): Boolean
     begin
         exit(Started);
+    end;
+
+    local procedure InitializePermissionTestHelper()
+    begin
+        if IsNull(PermissionTestHelper) then
+            PermissionTestHelper := PermissionTestHelper.PermissionTestHelper();
     end;
 }
 
