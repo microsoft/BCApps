@@ -91,12 +91,17 @@ table 7427 "EA Card Receipt Data"
 
     trigger OnInsert()
     var
+        Expense: Record Expense;
         OlderCardReceiptData: Record "EA Card Receipt Data";
     begin
         if IsNullGuid(Rec.Id) then
             Rec.Id := CreateGuid();
 
         // Only the latest staged data per expense is kept, so data from failed applies doesn't pile up.
+        // Locking the expense serializes concurrent staging for it, so no older data is missed.
+        Expense.ReadIsolation := IsolationLevel::UpdLock;
+        Expense.SetLoadFields("No.");
+        if Expense.GetBySystemId(Rec."Expense SystemId") then;
         OlderCardReceiptData.SetRange("Expense SystemId", Rec."Expense SystemId");
         OlderCardReceiptData.SetFilter(Id, '<>%1', Rec.Id);
         if OlderCardReceiptData.FindSet() then

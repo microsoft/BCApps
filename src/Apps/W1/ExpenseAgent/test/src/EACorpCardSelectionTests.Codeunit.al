@@ -1174,19 +1174,26 @@ codeunit 148364 EACorpCardSelectionTests
     begin
         // [SCENARIO] Modifying a linked manual expense's report line cannot bypass card locks, but other details stay editable.
         Initialize();
+
+        // [GIVEN] A report line for a manual expense linked to a card transaction.
         CreateLinkedManualExpenseReportLine(ExpenseReportLine);
         OriginalAmount := ExpenseReportLine.Amount;
         Commit();
 
+        // [WHEN] The amount is changed directly and the line is modified.
         ExpenseReportLine.Amount += 1;
         asserterror ExpenseReportLine.Modify(true);
+
+        // [THEN] The modification is rejected.
         Assert.ExpectedError(StrSubstNo(CardLineSourceFieldCannotChangeErr, ExpenseReportLine.FieldCaption(Amount)));
 
+        // [WHEN] The description and justification are changed.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         ExpenseReportLine.Validate(Description, 'User description');
         ExpenseReportLine.Validate(Justification, 'User justification');
         ExpenseReportLine.Modify(true);
 
+        // [THEN] They are saved and the amount is unchanged.
         ExpenseReportLine.Get(ExpenseReportLine."Document No.", ExpenseReportLine."Line No.");
         ExpenseReportLine.TestField(Amount, OriginalAmount);
         ExpenseReportLine.TestField(Description, 'User description');
