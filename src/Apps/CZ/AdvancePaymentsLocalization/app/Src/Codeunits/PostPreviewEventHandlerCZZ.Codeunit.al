@@ -4,11 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.AdvancePayments;
 
+using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Foundation.Navigate;
 
 codeunit 31069 "Post.Preview Event Handler CZZ"
 {
     EventSubscriberInstance = Manual;
+    SingleInstance = true;
 
     var
         TempSalesAdvLetterEntryCZZ: Record "Sales Adv. Letter Entry CZZ" temporary;
@@ -45,26 +47,11 @@ codeunit 31069 "Post.Preview Event Handler CZZ"
     end;
 
     procedure InsertAllDocumentEntry(var DocumentEntry: Record "Document Entry")
-    begin
-        InsertDocumentEntry(TempSalesAdvLetterEntryCZZ, DocumentEntry);
-        InsertDocumentEntry(TempPurchAdvLetterEntryCZZ, DocumentEntry);
-    end;
-
-    local procedure InsertDocumentEntry(RecVariant: Variant; var TempDocumentEntry: Record "Document Entry")
     var
-        RecordRef: RecordRef;
+        PostingPreviewEventHandler: Codeunit "Posting Preview Event Handler";
     begin
-        RecordRef.GetTable(RecVariant);
-
-        if RecordRef.IsEmpty() then
-            exit;
-
-        TempDocumentEntry.Init();
-        TempDocumentEntry."Entry No." := RecordRef.Number;
-        TempDocumentEntry."Table ID" := RecordRef.Number;
-        TempDocumentEntry."Table Name" := CopyStr(RecordRef.Caption, 1, MaxStrLen(TempDocumentEntry."Table Name"));
-        TempDocumentEntry."No. of Records" := RecordRef.Count();
-        TempDocumentEntry.Insert();
+        PostingPreviewEventHandler.InsertDocumentEntry(TempSalesAdvLetterEntryCZZ, DocumentEntry);
+        PostingPreviewEventHandler.InsertDocumentEntry(TempPurchAdvLetterEntryCZZ, DocumentEntry);
     end;
 
     procedure ShowEntries(TableNo: Integer)
