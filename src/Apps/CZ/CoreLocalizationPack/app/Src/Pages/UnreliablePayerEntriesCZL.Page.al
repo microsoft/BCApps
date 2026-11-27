@@ -19,17 +19,25 @@ page 11753 "Unreliable Payer Entries CZL"
         {
             repeater(Control1)
             {
+#if not CLEAN30
                 field("Vendor No."; Rec."Vendor No.")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of vendor.';
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Unreliable payer entries are shared by VAT registration number and are no longer linked to a specific vendor.';
                 }
                 field("Vendor Name"; Rec."Vendor Name")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name of vendor.';
                     Visible = false;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Unreliable payer entries are shared by VAT registration number and are no longer linked to a specific vendor.';
                 }
+#endif
                 field("VAT Registration No."; Rec."VAT Registration No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -88,56 +96,97 @@ page 11753 "Unreliable Payer Entries CZL"
     {
         area(Processing)
         {
+#if not CLEAN30
             action(CreateVendorBankAccountCZL)
             {
-                Caption = 'Create Vendor Bank Account';
+                Caption = 'Create Vendor Bank Account (Obsolete)';
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Create the account as a vendor''s bank account (if does not exists).';
                 Image = BankAccount;
                 Ellipsis = true;
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
+                ObsoleteReason = 'Replaced by CreateBankAccountCZL action, which supports both vendors and customers.';
 
                 trigger OnAction()
                 begin
                     Rec.CreateVendorBankAccountCZL(UnreliablePayerNoCZL);
                 end;
             }
+#endif
+            action(CreateBankAccount)
+            {
+                Caption = 'Create Bank Account';
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Create a vendor or customer bank account from the published bank account. Select a vendor or customer with the same VAT registration number.';
+                Image = BankAccount;
+                Ellipsis = true;
+
+                trigger OnAction()
+                begin
+                    Rec.CreateBankAccountWithDialogCZL();
+                end;
+            }
         }
+#if not CLEAN30
         area(Navigation)
         {
             action("Vendor Bank Accounts")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Vendor Bank Accounts';
+                Caption = 'Vendor Bank Accounts (Obsolete)';
                 Image = BankAccount;
                 RunObject = Page "Vendor Bank Account List";
                 RunPageLink = "Vendor No." = field("Vendor No.");
                 ToolTip = 'View or set up the vendor''s bank accounts. You can set up any number of bank accounts for each vendor.';
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteTag = '30.0';
+                ObsoleteReason = 'The action depends on the obsolete Vendor No. field. Unreliable payer entries are identified by VAT registration number and no longer provide a vendor-specific context.';
             }
         }
+#endif
         area(Promoted)
         {
             group(Category_New)
             {
                 Caption = 'New';
+#if not CLEAN30
                 actionref(CreateVendorBankAccountCZL_Promoted; CreateVendorBankAccountCZL)
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'Replaced by CreateBankAccountCZL_Promoted action reference.';
+                }
+#endif
+                actionref(CreateBankAccountCZL_Promoted; CreateBankAccount)
                 {
                 }
             }
+#if not CLEAN30
             group(Category_Category4)
             {
                 Caption = 'Related';
                 actionref(VendorBankAccounts_Promoted; "Vendor Bank Accounts")
                 {
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                    ObsoleteReason = 'The action depends on the obsolete Vendor No. field. Unreliable payer entries are identified by VAT registration number and no longer provide a vendor-specific context.';
                 }
             }
+#endif
         }
     }
 
+#if not CLEAN30
     var
         UnreliablePayerNoCZL: Code[20];
 
+    [Obsolete('Use the CreateBankAccountCZL action to select a customer or vendor explicitly.', '30.0')]
     procedure SetUnreliablePayerNoCZL(NewUnreliablePayerNoCZL: Code[20])
     begin
         UnreliablePayerNoCZL := NewUnreliablePayerNoCZL;
     end;
+#endif
 }

@@ -5,7 +5,6 @@
 namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Finance.VAT.Registration;
-using Microsoft.Sales.Customer;
 
 table 11753 "Unreliable Payer Entry CZL"
 {
@@ -21,16 +20,21 @@ table 11753 "Unreliable Payer Entry CZL"
             Caption = 'Entry No.';
             Editable = false;
         }
+#if not CLEANSCHEMA33
         field(8; "Vendor No."; Code[20])
         {
-            Caption = 'Vendor No.';
+            Caption = 'Vendor No. (Obsolete)';
             TableRelation = Vendor;
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
+            ObsoleteReason = 'Unreliable payer entries are shared by VAT registration number and are no longer linked to a specific vendor.';
         }
-        field(9; "Customer No."; Code[20])
-        {
-            Caption = 'Customer No.';
-            TableRelation = Customer;
-        }
+#endif
         field(20; "Check Date"; Date)
         {
             Caption = 'Check Date';
@@ -46,12 +50,12 @@ table 11753 "Unreliable Payer Entry CZL"
 #if not CLEANSCHEMA33
         field(25; "Unreliable Payer"; Option)
         {
-            Caption = 'Unreliable Payer';
+            Caption = 'Unreliable Payer (Obsolete)';
             OptionCaption = ' ,NO,YES,NOTFOUND';
             OptionMembers = " ",NO,YES,NOTFOUND;
 #if not CLEAN30
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';
@@ -66,12 +70,12 @@ table 11753 "Unreliable Payer Entry CZL"
 #if not CLEANSCHEMA33
         field(30; "Entry Type"; Option)
         {
-            Caption = 'Entry Type';
+            Caption = 'Entry Type (Obsolete)';
             OptionCaption = 'Payer,Bank Account';
             OptionMembers = Payer,"Bank Account";
 #if not CLEAN30
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '30.0';
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
 #else
             ObsoleteState = Removed;
             ObsoleteTag = '33.0';
@@ -94,12 +98,11 @@ table 11753 "Unreliable Payer Entry CZL"
         field(60; "Full Bank Account No."; Code[50])
         {
             Caption = 'Full Bank Account No.';
-            MaskType = Concealed;
         }
 #if not CLEANSCHEMA33
         field(61; "Bank Account No. Type"; Option)
         {
-            Caption = 'Bank Account No. Type';
+            Caption = 'Bank Account No. Type (Obsolete)';
             OptionCaption = 'Standard,Nonstandard';
             OptionMembers = Standard,"Not Standard";
 #if not CLEAN30
@@ -116,20 +119,18 @@ table 11753 "Unreliable Payer Entry CZL"
         {
             Caption = 'Bank Account Type';
         }
+#if not CLEAN30
         field(70; "Vendor Name"; Text[100])
         {
             CalcFormula = lookup(Vendor.Name where("No." = field("Vendor No.")));
-            Caption = 'Vendor Name';
+            Caption = 'Vendor Name (Obsolete)';
             FieldClass = FlowField;
             Editable = false;
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'Unreliable payer entries are shared by VAT registration number and are no longer linked to a specific vendor.';
         }
-        field(71; "Customer Name"; Text[100])
-        {
-            CalcFormula = lookup(Customer.Name where("No." = field("Customer No.")));
-            Caption = 'Customer Name';
-            FieldClass = FlowField;
-            Editable = false;
-        }
+#endif
     }
     keys
     {
@@ -137,18 +138,24 @@ table 11753 "Unreliable Payer Entry CZL"
         {
             Clustered = true;
         }
+#if not CLEAN30
         key(Key2; "Vendor No.", "Check Date")
         {
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'The vendor-specific key is no longer needed. Entries are accessed by VAT registration number.';
         }
         key(Key3; "VAT Registration No.", "Vendor No.", "Check Date")
         {
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+            ObsoleteReason = 'The vendor-specific key is no longer needed. Entries are accessed by VAT registration number.';
         }
-#if not CLEAN30
         key(Key4; "Vendor No.", "Entry Type", "Full Bank Account No.", "End Public Date")
         {
             ObsoleteState = Pending;
             ObsoleteTag = '30.0';
-            ObsoleteReason = 'The key contains the obsolete "Entry Type" field.';
+            ObsoleteReason = 'The vendor-specific key is no longer needed. Entries are accessed by VAT registration number.';
         }
 #endif
         key(Key5; "VAT Registration No.", "Type", "Check Date")
@@ -156,9 +163,10 @@ table 11753 "Unreliable Payer Entry CZL"
         }
     }
 
+#if not CLEAN30
+    [Obsolete('Use CreateBankAccountCZL for creation without UI or CreateBankAccountWithDialogCZL for interactive creation.', '30.0')]
     procedure CreateVendorBankAccountCZL(UnreliablePayerNoCZL: Code[20]);
     var
-        Vendor: Record Vendor;
         VendorBankAccount: Record "Vendor Bank Account";
         GetVendBankAccCodeCZL: Page "Get Vend. Bank Acc. Code CZL";
         VendorBankAccountCode: Code[10];
@@ -187,23 +195,41 @@ table 11753 "Unreliable Payer Entry CZL"
         GetVendBankAccCodeCZL.SetValue(UnreliablePayerNoCZL);
         if GetVendBankAccCodeCZL.RunModal() = Action::OK then begin
             GetVendBankAccCodeCZL.GetValue(VendorBankAccountCode, VendorBankAccountName, PreferredBankAccount);
-            Clear(VendorBankAccount);
-            VendorBankAccount.Validate("Vendor No.", UnreliablePayerNoCZL);
-            VendorBankAccount.Validate(Code, VendorBankAccountCode);
-            VendorBankAccount.TestField(Code);
-            VendorBankAccount.Validate(Name, VendorBankAccountName);
-            case "Bank Account Type" of
-                "Bank Account Type"::Standard:
-                    VendorBankAccount.Validate("Bank Account No.", "Full Bank Account No.");
-                "Bank Account Type"::"Not Standard":
-                    VendorBankAccount.Validate(IBAN, "Full Bank Account No.");
-            end;
-            VendorBankAccount.Insert(true);
-            if PreferredBankAccount then
-                if Vendor.Get(UnreliablePayerNoCZL) then begin
-                    Vendor.Validate("Preferred Bank Account Code", VendorBankAccountCode);
-                    Vendor.Modify(true);
-                end;
+            CreateBankAccountCZL(Enum::"Unrel. Payer Account Type CZL"::Vendor, UnreliablePayerNoCZL, VendorBankAccountCode, VendorBankAccountName, PreferredBankAccount);
         end;
+    end;
+#endif
+
+    procedure CheckBankAccountCreationPossible()
+    begin
+        TestField(Type, Type::"Bank Account");
+        TestField("Full Bank Account No.");
+        TestField("VAT Registration No.");
+    end;
+
+    procedure CreateBankAccountCZL(AccountType: Enum "Unrel. Payer Account Type CZL"; AccountNo: Code[20]; BankAccountCode: Code[10]; BankAccountName: Text[100]; PreferredBankAccount: Boolean): RecordId
+    var
+        UnreliableAccountCZL: Interface "Unreliable Account CZL";
+    begin
+        UnreliableAccountCZL := AccountType;
+        exit(UnreliableAccountCZL.CreateBankAccount(Rec, AccountNo, BankAccountCode, BankAccountName, PreferredBankAccount));
+    end;
+
+    procedure CreateBankAccountWithDialogCZL()
+    var
+        GetBankAccountCodeCZL: Page "Get Vend. Bank Acc. Code CZL";
+        AccountType: Enum "Unrel. Payer Account Type CZL";
+        AccountNo: Code[20];
+        BankAccountCode: Code[10];
+        BankAccountName: Text[100];
+        PreferredBankAccount: Boolean;
+    begin
+        CheckBankAccountCreationPossible();
+        GetBankAccountCodeCZL.SetVATRegistrationNo("VAT Registration No.");
+        if GetBankAccountCodeCZL.RunModal() <> Action::OK then
+            exit;
+        GetBankAccountCodeCZL.GetAccount(AccountType, AccountNo);
+        GetBankAccountCodeCZL.GetValue(BankAccountCode, BankAccountName, PreferredBankAccount);
+        CreateBankAccountCZL(AccountType, AccountNo, BankAccountCode, BankAccountName, PreferredBankAccount);
     end;
 }
