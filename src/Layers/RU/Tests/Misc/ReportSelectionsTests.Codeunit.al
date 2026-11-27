@@ -23,6 +23,7 @@
         LibraryMarketing: Codeunit "Library - Marketing";
         ActiveDirectoryMockEvents: Codeunit "Active Directory Mock Events";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryReportSelection: Codeunit "Library - Report Selection";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         CustomMessageTypeTxt: Text;
         FromEmailBodyTemplateTxt: Text;
@@ -40,8 +41,6 @@
         LayoutCodeShouldNotChangedErr: Label 'Layout code should not change.';
 #endif
         SendToEmailTxt: Label 'test@test.com';
-        MSXLbl: Label 'MS-X%1', Comment = '%1 = Random Value';
-        DocxLbl: Label 'docx';
         MustSelectAndEmailBodyOrAttahmentErr: Label 'You must select an email body or attachment in report selection for %1.', Comment = '%1 = Usage, for example Sales Invoice';
 
     [Test]
@@ -725,7 +724,7 @@
     var
         ReportSelections: Record "Report Selections";
         CustomReportSelection: Record "Custom Report Selection";
-        CustomReportLayout: Record "Custom Report Layout";
+        StatementBodyLayout: Record "Report Layout List";
         Customer: Record Customer;
         SalesInvoiceHeader: Record "Sales Invoice Header";
         InteractionLogEntry: Record "Interaction Log Entry";
@@ -746,10 +745,11 @@
         InsertReportSelections(
           ReportSelections, GetCustomerStatementReportID(), false, false, '', ReportSelections.Usage::"C.Statement");
 
+        LibraryReportSelection.CreateWordLayout(GetCustomerStatementReportID(), StatementBodyLayout);
         InsertCustomReportSelectionCustomer(
-          CustomReportSelection, CustomerNo, GetCustomerStatementReportID(), true, true,
-          CustomReportLayout.InitBuiltInLayout(GetCustomerStatementReportID(), CustomReportLayout.Type::Word.AsInteger()),
+          CustomReportSelection, CustomerNo, GetCustomerStatementReportID(), true, true, '',
           'abc@abc.abc', CustomReportSelection.Usage::"C.Statement");
+        SetDocumentLayouts(CustomReportSelection, StatementBodyLayout, false, true);
         Commit();
 
         // [WHEN] Run Statement report for the Customer "C" with "Report Output" = Email.
@@ -2446,6 +2446,7 @@
         CustomReportSelection.DeleteAll();
         ReportSelections.DeleteAll();
         ReportLayoutSelection.DeleteAll();
+        LibraryReportSelection.DeleteTestLayouts();
         CreateDefaultReportSelection();
         LibrarySetupStorage.Restore();
         LibraryEmail.SetUpEmailAccount();
@@ -2617,24 +2618,17 @@
 
     local procedure SetupReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
-        OldReportSelections: Record "Report Selections";
-        CustomReportLayout: Record "Custom Report Layout";
+        EmailBodyLayout: Record "Report Layout List";
     begin
-        GetCustomBodyLayout(CustomReportLayout);
-
-        OldReportSelections.Reset();
-        OldReportSelections.SetRange(Usage, OldReportSelections.Usage::"S.Invoice");
-        OldReportSelections.FindFirst();
-
+        GetCustomBodyLayout(EmailBodyLayout);
         UpdateReportSelections(
-          OldReportSelections.Usage::"S.Invoice", CustomReportLayout."Report ID", UseForEmailAttachment, UseForEmailBody,
-          CustomReportLayout.Code);
+          "Report Selection Usage"::"S.Invoice", EmailBodyLayout."Report ID", UseForEmailAttachment, UseForEmailBody, EmailBodyLayout);
     end;
 
     local procedure SetupReportSelectionsVendor(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
         OldReportSelections: Record "Report Selections";
-        DummyCustomReportLayout: Record "Custom Report Layout";
+        NoEmailBodyLayout: Record "Report Layout List";
     begin
         OldReportSelections.Reset();
         OldReportSelections.SetRange(Usage, OldReportSelections.Usage::"P.Order");
@@ -2642,8 +2636,7 @@
             CreateReportSelection(OldReportSelections.Usage::"P.Order", '2', REPORT::Order);
 
         UpdateReportSelections(
-          OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody,
-          DummyCustomReportLayout.Code);
+          OldReportSelections.Usage::"P.Order", GetReportIDForPurchaseOrder(), UseForEmailAttachment, UseForEmailBody, NoEmailBodyLayout);
     end;
 
     local procedure SetupInvoiceReportLayoutSelection()
@@ -2679,7 +2672,7 @@
         ReportSelections.Insert();
     end;
 
-    local procedure UpdateReportSelections(NewUsage: Enum "Report Selection Usage"; NewReportID: Integer; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; NewEmailBodyLayout: Code[20])
+    local procedure UpdateReportSelections(NewUsage: Enum "Report Selection Usage"; NewReportID: Integer; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; EmailBodyLayout: Record "Report Layout List")
     var
         ReportSelections: Record "Report Selections";
     begin
@@ -2692,9 +2685,9 @@
         ReportSelections.Validate(Default, true);
 
         if UseForEmailBody then
-            ReportSelections.Validate("Email Body Layout Code", NewEmailBodyLayout)
+            ReportSelections.Validate("Email Body Layout Name", EmailBodyLayout.Name)
         else
-            ReportSelections.Validate("Email Body Layout Code", '');
+            ReportSelections.Validate("Email Body Layout Name", '');
 
         ReportSelections.Modify(true);
     end;
@@ -2702,18 +2695,26 @@
     local procedure UpdateCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
-        CustomReportLayout: Record "Custom Report Layout";
+        DocumentLayout: Record "Report Layout List";
     begin
-        GetCustomBodyLayout(CustomReportLayout);
+        GetCustomBodyLayout(DocumentLayout);
         InsertCustomReportSelectionCustomer(
-          CustomReportSelection, NewCustNo, CustomReportLayout."Report ID", UseForEmailAttachment, UseForEmailBody, '', SendToAddress,
+          CustomReportSelection, NewCustNo, DocumentLayout."Report ID", UseForEmailAttachment, UseForEmailBody, '', SendToAddress,
           CustomReportSelection.Usage::"S.Invoice");
+        SetDocumentLayouts(CustomReportSelection, DocumentLayout, UseForEmailAttachment, UseForEmailBody);
+    end;
 
-        if UseForEmailAttachment then
-            CustomReportSelection.Validate("Custom Report Layout Code", CustomReportLayout.Code);
+    local procedure SetDocumentLayouts(var CustomReportSelection: Record "Custom Report Selection"; DocumentLayout: Record "Report Layout List"; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
+    begin
+        if UseForEmailAttachment then begin
+            CustomReportSelection."Email Attachment Layout Name" := DocumentLayout.Name;
+            CustomReportSelection."Email Attachment Layout AppID" := DocumentLayout."Application ID";
+        end;
 
-        if UseForEmailBody then
-            CustomReportSelection.Validate("Email Body Layout Code", CustomReportLayout.Code);
+        if UseForEmailBody then begin
+            CustomReportSelection."Email Body Layout Name" := DocumentLayout.Name;
+            CustomReportSelection."Email Body Layout AppID" := DocumentLayout."Application ID";
+        end;
 
         CustomReportSelection.Modify(true);
     end;
@@ -2743,36 +2744,9 @@
         exit(REPORT::Statement);
     end;
 
-    local procedure GetCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
-    var
-        ReportLayoutList: Record "Report Layout List";
-        TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
-        OutStr: OutStream;
+    local procedure GetCustomBodyLayout(var EmailBodyLayout: Record "Report Layout List")
     begin
-        CustomReportLayout.SetRange("Report ID", GetStandardSalesInvoiceReportID());
-        CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
-        if not CustomReportLayout.FindLast() then begin
-            ReportLayoutList.SetRange("Report ID", GetStandardSalesInvoiceReportID());
-            ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-            ReportLayoutList.FindFirst();
-
-            TempBlob.CreateOutStream(OutStr);
-            ReportLayoutList.Layout.ExportStream(OutStr);
-            TempBlob.CreateInStream(InStr);
-
-            CustomReportLayout.Init();
-            CustomReportLayout."Report ID" := GetStandardSalesInvoiceReportID();
-            CustomReportLayout.Code := CopyStr(StrSubstNo('MS-X%1', Random(9999)), 1, 10);
-            CustomReportLayout."File Extension" := 'docx';
-            CustomReportLayout.Description := 'Test report layout';
-            CustomReportLayout.Type := CustomReportLayout.Type::Word;
-            CustomReportLayout.Layout.CreateOutStream(OutStr);
-
-            CopyStream(OutStr, InStr);
-
-            CustomReportLayout.Insert();
-        end;
+        LibraryReportSelection.CreateWordLayout(GetStandardSalesInvoiceReportID(), EmailBodyLayout);
     end;
 
 
@@ -2988,73 +2962,28 @@
 
     local procedure SetupSalesShipmentReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
-        OldReportSelections: Record "Report Selections";
-        CustomReportLayout: Record "Custom Report Layout";
+        EmailBodyLayout: Record "Report Layout List";
     begin
-        GeSalesShipmentCustomBodyLayout(CustomReportLayout);
-
-        OldReportSelections.Reset();
-        OldReportSelections.SetRange(Usage, OldReportSelections.Usage::"S.Shipment");
-        OldReportSelections.FindFirst();
-
-        UpdateReportSelections(OldReportSelections.Usage::"S.Shipment", CustomReportLayout."Report ID", UseForEmailAttachment, UseForEmailBody, CustomReportLayout.Code);
-    end;
-
-    local procedure GeSalesShipmentCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
-    var
-        ReportLayoutList: Record "Report Layout List";
-        TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
-        OutStr: OutStream;
-    begin
-        CustomReportLayout.SetRange("Report ID", GetStandardSalesShipmentReportID());
-        CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
-        if CustomReportLayout.FindLast() then
-            exit;
-
-        ReportLayoutList.SetRange("Report ID", GetStandardSalesShipmentReportID());
-        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-        ReportLayoutList.FindFirst();
-
-        TempBlob.CreateOutStream(OutStr);
-        ReportLayoutList.Layout.ExportStream(OutStr);
-        TempBlob.CreateInStream(InStr);
-
-        CustomReportLayout.Init();
-        CustomReportLayout."Report ID" := GetStandardSalesShipmentReportID();
-        CustomReportLayout.Code := CopyStr(StrSubstNo(MSXLbl, LibraryRandom.RandIntInRange(100, 200)), 1, 10);
-        CustomReportLayout."File Extension" := DocxLbl;
-        CustomReportLayout.Type := CustomReportLayout.Type::Word;
-        CustomReportLayout.Layout.CreateOutStream(OutStr);
-
-        CopyStream(OutStr, InStr);
-
-        CustomReportLayout.Insert();
+        LibraryReportSelection.CreateWordLayout(GetStandardSalesShipmentReportID(), EmailBodyLayout);
+        UpdateReportSelections("Report Selection Usage"::"S.Shipment", EmailBodyLayout."Report ID", UseForEmailAttachment, UseForEmailBody, EmailBodyLayout);
     end;
 
     local procedure UpdateSalesShipmentCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
-        CustomReportLayout: Record "Custom Report Layout";
+        DocumentLayout: Record "Report Layout List";
     begin
-        GeSalesShipmentCustomBodyLayout(CustomReportLayout);
+        LibraryReportSelection.CreateWordLayout(GetStandardSalesShipmentReportID(), DocumentLayout);
         InsertCustomReportSelectionCustomer(
             CustomReportSelection,
             NewCustNo,
-            CustomReportLayout."Report ID",
+            DocumentLayout."Report ID",
             UseForEmailAttachment,
             UseForEmailBody,
             '',
             SendToAddress,
             CustomReportSelection.Usage::"S.Shipment");
-
-        if UseForEmailAttachment then
-            CustomReportSelection.Validate("Custom Report Layout Code", CustomReportLayout.Code);
-
-        if UseForEmailBody then
-            CustomReportSelection.Validate("Email Body Layout Code", CustomReportLayout.Code);
-
-        CustomReportSelection.Modify(true);
+        SetDocumentLayouts(CustomReportSelection, DocumentLayout, UseForEmailAttachment, UseForEmailBody);
     end;
 
     local procedure GetStandardSalesShipmentReportID(): Integer
@@ -3081,73 +3010,28 @@
 
     local procedure SetupSalesReturnReceiptReportSelections(UseForEmailAttachment: Boolean; UseForEmailBody: Boolean)
     var
-        OldReportSelections: Record "Report Selections";
-        CustomReportLayout: Record "Custom Report Layout";
+        EmailBodyLayout: Record "Report Layout List";
     begin
-        GeSalesReturnReceiptCustomBodyLayout(CustomReportLayout);
-
-        OldReportSelections.Reset();
-        OldReportSelections.SetRange(Usage, OldReportSelections.Usage::"S.Ret.Rcpt.");
-        OldReportSelections.FindFirst();
-
-        UpdateReportSelections(OldReportSelections.Usage::"S.Ret.Rcpt.", CustomReportLayout."Report ID", UseForEmailAttachment, UseForEmailBody, CustomReportLayout.Code);
-    end;
-
-    local procedure GeSalesReturnReceiptCustomBodyLayout(var CustomReportLayout: Record "Custom Report Layout")
-    var
-        ReportLayoutList: Record "Report Layout List";
-        TempBlob: Codeunit "Temp Blob";
-        InStr: InStream;
-        OutStr: OutStream;
-    begin
-        CustomReportLayout.SetRange("Report ID", GetStandardSalesReturnReceiptReportID());
-        CustomReportLayout.SetRange(Type, CustomReportLayout.Type::Word);
-        if CustomReportLayout.FindLast() then
-            exit;
-
-        ReportLayoutList.SetRange("Report ID", GetStandardSalesReturnReceiptReportID());
-        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
-        ReportLayoutList.FindFirst();
-
-        TempBlob.CreateOutStream(OutStr);
-        ReportLayoutList.Layout.ExportStream(OutStr);
-        TempBlob.CreateInStream(InStr);
-
-        CustomReportLayout.Init();
-        CustomReportLayout."Report ID" := GetStandardSalesReturnReceiptReportID();
-        CustomReportLayout.Code := CopyStr(StrSubstNo(MSXLbl, LibraryRandom.RandIntInRange(300, 400)), 1, 10);
-        CustomReportLayout."File Extension" := DocxLbl;
-        CustomReportLayout.Type := CustomReportLayout.Type::Word;
-        CustomReportLayout.Layout.CreateOutStream(OutStr);
-
-        CopyStream(OutStr, InStr);
-
-        CustomReportLayout.Insert();
+        LibraryReportSelection.CreateWordLayout(GetStandardSalesReturnReceiptReportID(), EmailBodyLayout);
+        UpdateReportSelections("Report Selection Usage"::"S.Ret.Rcpt.", EmailBodyLayout."Report ID", UseForEmailAttachment, UseForEmailBody, EmailBodyLayout);
     end;
 
     local procedure UpdateSalesReturnReceiptCustomReportSelections(NewCustNo: Code[20]; UseForEmailAttachment: Boolean; UseForEmailBody: Boolean; SendToAddress: Text[200])
     var
         CustomReportSelection: Record "Custom Report Selection";
-        CustomReportLayout: Record "Custom Report Layout";
+        DocumentLayout: Record "Report Layout List";
     begin
-        GeSalesReturnReceiptCustomBodyLayout(CustomReportLayout);
+        LibraryReportSelection.CreateWordLayout(GetStandardSalesReturnReceiptReportID(), DocumentLayout);
         InsertCustomReportSelectionCustomer(
             CustomReportSelection,
             NewCustNo,
-            CustomReportLayout."Report ID",
+            DocumentLayout."Report ID",
             UseForEmailAttachment,
             UseForEmailBody,
             '',
             SendToAddress,
             CustomReportSelection.Usage::"S.Ret.Rcpt.");
-
-        if UseForEmailAttachment then
-            CustomReportSelection.Validate("Custom Report Layout Code", CustomReportLayout.Code);
-
-        if UseForEmailBody then
-            CustomReportSelection.Validate("Email Body Layout Code", CustomReportLayout.Code);
-
-        CustomReportSelection.Modify(true);
+        SetDocumentLayouts(CustomReportSelection, DocumentLayout, UseForEmailAttachment, UseForEmailBody);
     end;
 
     local procedure GetStandardSalesReturnReceiptReportID(): Integer
@@ -3356,6 +3240,7 @@
         VendorReportSelections.CopyFromReportSelectionsAction.Invoke();
     end;
 
+#if not CLEAN30
     [ModalPageHandler]
     procedure VendorReportSelectionsHandler(var VendorReportSelections: TestPage "Vendor Report Selections")
     begin
@@ -3363,6 +3248,7 @@
         VendorReportSelections."Custom Report Description".Drilldown();
         VendorReportSelections."Custom Report Description".AssertEquals(LibraryVariableStorage.DequeueText());
     end;
+#endif
 
     [ModalPageHandler]
     procedure ProFormInvoiceCustomerReportSelectionsHandler(var CustomerReportSelections: TestPage "Customer Report Selections")

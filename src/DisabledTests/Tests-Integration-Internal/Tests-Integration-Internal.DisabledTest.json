@@ -162,11 +162,6 @@
   {
     "codeunitId": 139111,
     "codeunitName": "Mail Service Test",
-    "method": "JobSendEmail"
-  },
-  {
-    "codeunitId": 139111,
-    "codeunitName": "Mail Service Test",
     "method": "PostedServiceCrMemoSendEmail"
   },
   {
@@ -198,16 +193,6 @@
     "codeunitId": 139111,
     "codeunitName": "Mail Service Test",
     "method": "ReturnReceiptSendEmail"
-  },
-  {
-    "codeunitId": 139111,
-    "codeunitName": "Mail Service Test",
-    "method": "SalesInvoiceSendEmail"
-  },
-  {
-    "codeunitId": 139111,
-    "codeunitName": "Mail Service Test",
-    "method": "SalesQuoteSendEmail"
   },
   {
     "codeunitId": 139111,

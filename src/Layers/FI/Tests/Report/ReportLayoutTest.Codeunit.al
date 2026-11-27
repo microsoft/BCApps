@@ -92,6 +92,7 @@ codeunit 134600 "Report Layout Test"
         asserterror ReportLayoutSelection.Validate(Type, ReportLayoutSelection.Type::"External Layout");
     end;
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestReportLayoutSelectionReportLayoutID()
@@ -120,6 +121,7 @@ codeunit 134600 "Report Layout Test"
         // Verify
         Assert.IsTrue(ReportLayoutSelection.Type = ReportLayoutSelection.Type::"RDLC (built-in)", '');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -133,6 +135,7 @@ codeunit 134600 "Report Layout Test"
     end;
 
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestTableCustomReportLayoutTriggers()
@@ -175,6 +178,7 @@ codeunit 134600 "Report Layout Test"
         CustomReportLayout.ClearLayout();
         Assert.IsFalse(CustomReportLayout.ValidateLayout(false, false), '');
     end;
+#endif
 
 #if not CLEAN28
     [Test]
@@ -203,6 +207,7 @@ codeunit 134600 "Report Layout Test"
     end;
 #endif
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestCopyRecord()
@@ -283,6 +288,7 @@ codeunit 134600 "Report Layout Test"
         // Validate
         Assert.IsTrue(StrPos(GetLastErrorText, 'The RDLC layout does not comply with the current report design (for example') = 1, '');
     end;
+#endif
 
     [Test]
     [Scope('OnPrem')]
@@ -795,20 +801,26 @@ codeunit 134600 "Report Layout Test"
         VerifyJobTaskNo(20000, SalesLine[2]."Job Task No.");
     end;
 
+#if not CLEAN30
     [Test]
     [Scope('OnPrem')]
     procedure TestLenghtOfDescriptionCustomReportLayout()
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         CustomReportSelection: Record "Custom Report Selection";
     begin
         // [FEATURE] [UT]
         // [SCENARIO 252058] Length of "Custom Report Layout"."Description" shoud be equal to length of "Custom Report Selection"."Custom Report Description"
 
+#pragma warning disable AL0432
         LibraryTablesUT.CompareFieldTypeAndLength(
           CustomReportLayout, CustomReportLayout.FieldNo(Description),
           CustomReportSelection, CustomReportSelection.FieldNo("Custom Report Description"));
+#pragma warning restore AL0432
     end;
+#endif
 
     [Test]
     [HandlerFunctions('MessageHandler')]
@@ -856,6 +868,7 @@ codeunit 134600 "Report Layout Test"
         Assert.ExpectedMessage(Format(SalesHeader.RecordId()), LibraryVariableStorage.DequeueText()); // message from MessageHandler
     end;
 
+#if not CLEAN30
     local procedure InitCustomReportLayout(var CustomReportLayout: Record "Custom Report Layout"; LayoutType: Enum "Custom Report Layout Type"; WithCompanyName: Boolean)
     var
         LayoutCode: Code[20];
@@ -868,14 +881,13 @@ codeunit 134600 "Report Layout Test"
             CustomReportLayout.Modify(true);
         end;
     end;
+#endif
 
     local procedure InitReportSelection(ReportID: Integer; Selection: Option "None","RDLC (Built-in)","Word (Built-in)","Custom RDLC","Custom Word","Excel Layout","External Layout")
     var
         ReportLayoutSelection: Record "Report Layout Selection";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
         ReportLayoutList: Record "Report Layout List";
-        CustomReportLayout: Record "Custom Report Layout";
-        LayoutCode: Code[20];
     begin
         if ReportLayoutSelection.Get(ReportID, CompanyName) then
             ReportLayoutSelection.Delete();
@@ -896,19 +908,11 @@ codeunit 134600 "Report Layout Test"
             Selection::"Word (Built-in)":
                 ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Word (built-in)";
             Selection::"Custom RDLC":
-                begin
-                    ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Custom Layout";
-                    LayoutCode := CustomReportLayout.InitBuiltInLayout(ReportID, CustomReportLayout.Type::RDLC.AsInteger());
-                    CustomReportLayout.Get(LayoutCode);
-                    ReportLayoutSelection."Custom Report Layout Code" := CustomReportLayout.Code;
-                end;
+                if SelectUserDefinedLayout(ReportID, ReportLayoutList."Layout Format"::RDLC) then
+                    exit;
             Selection::"Custom Word":
-                begin
-                    ReportLayoutSelection.Type := ReportLayoutSelection.Type::"Custom Layout";
-                    LayoutCode := CustomReportLayout.InitBuiltInLayout(ReportID, CustomReportLayout.Type::Word.AsInteger());
-                    CustomReportLayout.Get(LayoutCode);
-                    ReportLayoutSelection."Custom Report Layout Code" := CustomReportLayout.Code;
-                end;
+                if SelectUserDefinedLayout(ReportID, ReportLayoutList."Layout Format"::Word) then
+                    exit;
             Selection::"Excel Layout":
                 begin
                     SetupSelection(ReportLayoutList, TenantReportLayoutSelection, ReportLayoutList."Layout Format"::Excel);
@@ -921,6 +925,28 @@ codeunit 134600 "Report Layout Test"
                 end;
         end;
         ReportLayoutSelection.Insert();
+    end;
+
+    local procedure SelectUserDefinedLayout(ReportID: Integer; LayoutFormat: Option): Boolean
+    var
+        BuiltInLayout: Record "Report Layout List";
+        UserDefinedLayout: Record "Report Layout List";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        LibraryReportSelection: Codeunit "Library - Report Selection";
+    begin
+        // A user-defined copy of the report's own layout, selected as the company's default layout, replaces a "Custom Layout" selection.
+        // A processing-only report has no layout to copy, so it is left without a selection.
+        BuiltInLayout.SetRange("Report ID", ReportID);
+        BuiltInLayout.SetRange("Layout Format", LayoutFormat);
+        BuiltInLayout.SetRange("User Defined", false);
+        if BuiltInLayout.IsEmpty() then
+            exit(false);
+
+        LibraryReportSelection.CreateLayoutFromBuiltIn(ReportID, LayoutFormat, UserDefinedLayout);
+        UndoSelection(ReportID);
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        ReportLayoutsImpl.SetDefaultReportLayoutSelection(UserDefinedLayout, false);
+        exit(true);
     end;
 
     local procedure SetupSelection(var ReportLayoutList: Record "Report Layout List"; var TenantReportLayoutSelection: Record "Tenant Report Layout Selection"; LayoutFormat: Integer)
@@ -942,26 +968,18 @@ codeunit 134600 "Report Layout Test"
         TenantReportLayoutSelection.DeleteAll(true);
     end;
 
-    local procedure AddOrderConfirmationToCustomReportLayout(): Code[20]
-    var
-        CustomReportLayout: Record "Custom Report Layout";
-    begin
-        CustomReportLayout.Init();
-        CustomReportLayout."Report ID" := REPORT::"Standard Sales - Order Conf.";
-        CustomReportLayout.Insert(true);
-        exit(CustomReportLayout.Code);
-    end;
-
     local procedure AddOrderConfirmationToCustomerDocumentLayout(CustomerNo: Code[20])
     var
         CustomReportSelection: Record "Custom Report Selection";
+        OrderConfirmationLayout: Record "Report Layout List";
+        LibraryReportSelection: Codeunit "Library - Report Selection";
     begin
+        LibraryReportSelection.CreateWordLayout(REPORT::"Standard Sales - Order Conf.", OrderConfirmationLayout);
         AddCustomerDocumentLayoutReport(
-          CustomerNo, CustomReportSelection.Usage::"S.Order", REPORT::"Standard Sales - Order Conf.",
-          AddOrderConfirmationToCustomReportLayout());
+          CustomerNo, CustomReportSelection.Usage::"S.Order", REPORT::"Standard Sales - Order Conf.", OrderConfirmationLayout);
     end;
 
-    local procedure AddCustomerDocumentLayoutReport(CustomerNo: Code[20]; NewUsage: Enum "Report Selection Usage"; ReportID: Integer; CustomReportLayoutCode: Code[20])
+    local procedure AddCustomerDocumentLayoutReport(CustomerNo: Code[20]; NewUsage: Enum "Report Selection Usage"; ReportID: Integer; ReportLayoutList: Record "Report Layout List")
     var
         CustomReportSelection: Record "Custom Report Selection";
     begin
@@ -971,7 +989,8 @@ codeunit 134600 "Report Layout Test"
         CustomReportSelection.Usage := NewUsage;
         CustomReportSelection.Sequence := 1;
         CustomReportSelection."Report ID" := ReportID;
-        CustomReportSelection."Custom Report Layout Code" := CustomReportLayoutCode;
+        CustomReportSelection."Email Attachment Layout Name" := ReportLayoutList.Name;
+        CustomReportSelection."Email Attachment Layout AppID" := ReportLayoutList."Application ID";
         CustomReportSelection.Insert(true);
     end;
 
