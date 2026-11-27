@@ -21,6 +21,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
         TempXMLBuffer.LoadFromStream(DocStream);
+        InitializePEPPOLNamespacePrefixes(TempXMLBuffer);
 
         GLSetup.Get();
         LCYCode := GLSetup."LCY Code";
@@ -43,6 +44,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         TempXMLBuffer.DeleteAll();
         TempBlob.CreateInStream(DocStream, TextEncoding::UTF8);
         TempXMLBuffer.LoadFromStream(DocStream);
+        InitializePEPPOLNamespacePrefixes(TempXMLBuffer);
 
         PurchaseHeader."Buy-from Vendor No." := EDocument."Bill-to/Pay-to No.";
         PurchaseHeader."Currency Code" := EDocument."Currency Code";
@@ -263,14 +265,13 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         end;
 
         TempXMLBuffer.Reset();
-        TempXMLBuffer.SetFilter(Path, DocumentText + '/cac:AllowanceCharge*');
 
         PurchaseLine.FindLast();
         LineNo := PurchaseLine."Line No." + 10000;
 
         if TempXMLBuffer.FindSet() then
             repeat
-                case TempXMLBuffer.Path of
+                case GetCanonicalPath(TempXMLBuffer."Entry No.") of
                     DocumentText + '/cac:AllowanceCharge/cbc:ChargeIndicator':
                         if TempXMLBuffer.Value = 'true' then begin
                             SetGLAccountAndInsertLine(EDocument, PurchaseLine, LineNo);
@@ -322,7 +323,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     begin
         Path := TempXMLBuffer.Path;
         Value := TempXMLBuffer.Value;
-        case Path of
+        case GetCanonicalPath(TempXMLBuffer."Entry No.") of
             '/CreditNote/cbc:ID':
                 PurchaseHeader."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."Vendor Invoice No."));
             '/CreditNote/cbc:IssueDate':
@@ -436,7 +437,7 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     begin
         Path := TempXMLBuffer.Path;
         Value := TempXMLBuffer.Value;
-        case Path of
+        case GetCanonicalPath(TempXMLBuffer."Entry No.") of
             '/Invoice/cbc:ID':
                 PurchaseHeader."Vendor Invoice No." := CopyStr(Value, 1, MaxStrLen(PurchaseHeader."Vendor Invoice No."));
             '/Invoice/cac:OrderReference/cbc:ID':
@@ -553,23 +554,139 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         end;
     end;
 
-    local procedure GetNodeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
+    local procedure InitializePEPPOLNamespacePrefixes(var TempXMLBuffer: Record "XML Buffer" temporary)
+    var
+        TempNamespaceBuffer: Record "XML Buffer" temporary;
+        TempIndexBuffer: Record "XML Buffer" temporary;
+        CanonicalPath: Text;
+        NamespaceKey: Text;
     begin
-        TempXMLBuffer.Reset();
-        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
-        TempXMLBuffer.SetRange(Path, XPath);
+        Clear(NamespaceDeclarations);
+        Clear(CanonicalPathsByEntryNo);
+        Clear(ElementEntryNosByPath);
+        Clear(AttributeEntryNosByPath);
 
-        if TempXMLBuffer.FindFirst() then
+        TempNamespaceBuffer.Copy(TempXMLBuffer, true);
+        TempNamespaceBuffer.Reset();
+        TempNamespaceBuffer.SetRange(Type, TempNamespaceBuffer.Type::Attribute);
+        if TempNamespaceBuffer.FindSet() then
+            repeat
+                NamespaceKey := GetNamespaceDeclarationKey(TempNamespaceBuffer.Name);
+                if NamespaceKey <> '' then
+                    NamespaceDeclarations.Add(
+                        Format(TempNamespaceBuffer."Parent Entry No.") + '|' + NamespaceKey,
+                        TempNamespaceBuffer.Value);
+            until TempNamespaceBuffer.Next() = 0;
+
+        TempIndexBuffer.Copy(TempXMLBuffer, true);
+        TempIndexBuffer.Reset();
+        if TempIndexBuffer.FindSet() then
+            repeat
+                CanonicalPath := BuildCanonicalPath(TempIndexBuffer);
+                CanonicalPathsByEntryNo.Add(TempIndexBuffer."Entry No.", CanonicalPath);
+
+                case TempIndexBuffer.Type of
+                    TempIndexBuffer.Type::Element:
+                        if not ElementEntryNosByPath.ContainsKey(CanonicalPath) then
+                            ElementEntryNosByPath.Add(CanonicalPath, TempIndexBuffer."Entry No.");
+                    TempIndexBuffer.Type::Attribute:
+                        if not AttributeEntryNosByPath.ContainsKey(CanonicalPath) then
+                            AttributeEntryNosByPath.Add(CanonicalPath, TempIndexBuffer."Entry No.");
+                end;
+            until TempIndexBuffer.Next() = 0;
+    end;
+
+    local procedure GetNamespaceDeclarationKey(AttributeName: Text): Text
+    begin
+        if AttributeName = 'xmlns' then
+            exit('xmlns');
+        if AttributeName.StartsWith('xmlns:') then
+            exit(CopyStr(AttributeName, 7));
+    end;
+
+    local procedure BuildCanonicalPath(var TempXMLBuffer: Record "XML Buffer" temporary): Text
+    var
+        ParentPath: Text;
+        NodeName: Text;
+    begin
+        case TempXMLBuffer.Type of
+            TempXMLBuffer.Type::Element:
+                NodeName := GetCanonicalElementName(TempXMLBuffer);
+            TempXMLBuffer.Type::Attribute:
+                NodeName := '@' + TempXMLBuffer.Name;
+            else
+                exit(TempXMLBuffer.Path);
+        end;
+
+        if TempXMLBuffer."Parent Entry No." = 0 then
+            exit('/' + NodeName);
+
+        CanonicalPathsByEntryNo.Get(TempXMLBuffer."Parent Entry No.", ParentPath);
+        exit(ParentPath + '/' + NodeName);
+    end;
+
+    local procedure GetCanonicalElementName(var TempXMLBuffer: Record "XML Buffer" temporary): Text
+    var
+        NamespaceUri: Text;
+    begin
+        NamespaceUri := GetNamespaceUri(TempXMLBuffer, TempXMLBuffer."Entry No.", TempXMLBuffer.Namespace);
+
+        case NamespaceUri of
+            AggregateNamespaceUriLbl:
+                exit('cac:' + TempXMLBuffer.Name);
+            BasicNamespaceUriLbl:
+                exit('cbc:' + TempXMLBuffer.Name);
+            InvoiceNamespaceUriLbl, CreditNoteNamespaceUriLbl:
+                exit(TempXMLBuffer.Name);
+            else
+                if TempXMLBuffer.Namespace = '' then
+                    exit(TempXMLBuffer.Name);
+                exit('invalid-' + TempXMLBuffer.Namespace + ':' + TempXMLBuffer.Name);
+        end;
+    end;
+
+    local procedure GetNamespaceUri(var TempXMLBuffer: Record "XML Buffer" temporary; EntryNo: Integer; NamespacePrefix: Text): Text
+    var
+        TempCurrentXMLBuffer: Record "XML Buffer" temporary;
+        NamespaceKey: Text;
+        NamespaceUri: Text;
+    begin
+        TempCurrentXMLBuffer.Copy(TempXMLBuffer, true);
+        if NamespacePrefix = '' then
+            NamespaceKey := 'xmlns'
+        else
+            NamespaceKey := NamespacePrefix;
+
+        while EntryNo <> 0 do begin
+            if NamespaceDeclarations.Get(Format(EntryNo) + '|' + NamespaceKey, NamespaceUri) then
+                exit(NamespaceUri);
+            if not TempCurrentXMLBuffer.Get(EntryNo) then
+                exit;
+            EntryNo := TempCurrentXMLBuffer."Parent Entry No.";
+        end;
+    end;
+
+    local procedure GetCanonicalPath(EntryNo: Integer): Text
+    var
+        CanonicalPath: Text;
+    begin
+        CanonicalPathsByEntryNo.Get(EntryNo, CanonicalPath);
+        exit(CanonicalPath);
+    end;
+
+    local procedure GetNodeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
+    var
+        EntryNo: Integer;
+    begin
+        if ElementEntryNosByPath.Get(XPath, EntryNo) and TempXMLBuffer.Get(EntryNo) then
             exit(TempXMLBuffer.Value);
     end;
 
     local procedure GetNodeAttributeByPath(var TempXMLBuffer: Record "XML Buffer" temporary; XPath: Text): Text
+    var
+        EntryNo: Integer;
     begin
-        TempXMLBuffer.Reset();
-        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Attribute);
-        TempXMLBuffer.SetRange(Path, XPath);
-
-        if TempXMLBuffer.FindFirst() then
+        if AttributeEntryNosByPath.Get(XPath, EntryNo) and TempXMLBuffer.Get(EntryNo) then
             exit(TempXMLBuffer.Value);
     end;
 
@@ -616,7 +733,15 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
     var
         EDocumentAttachmentGen: Codeunit "E-Doc. Attachment Processor";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        AggregateNamespaceUriLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
+        BasicNamespaceUriLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
+        InvoiceNamespaceUriLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
+        CreditNoteNamespaceUriLbl: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
         LCYCode: Code[10];
+        NamespaceDeclarations: Dictionary of [Text, Text];
+        CanonicalPathsByEntryNo: Dictionary of [Integer, Text];
+        ElementEntryNosByPath: Dictionary of [Text, Integer];
+        AttributeEntryNosByPath: Dictionary of [Text, Integer];
 
     [IntegrationEvent(false, false)]
     internal procedure OnAfterParseInvoice(EDocument: Record "E-Document"; var PurchaseHeader: Record "Purchase Header" temporary; var PurchaseLine: Record "Purchase Line" temporary; DocumentAttachment: Record "Document Attachment"; DocumentAttachmentData: Codeunit "Temp Blob"; TempXMLBuffer: Record "XML Buffer" temporary; Path: Text; Value: Text)
