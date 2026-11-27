@@ -14,7 +14,8 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     Subtype = Upgrade;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Privacy Notice" = rd,
+    Permissions = tabledata "Expense Agent Setup" = rm,
+                  tabledata "Privacy Notice" = rd,
                   tabledata "Privacy Notice Approval" = rd;
 
     var
@@ -38,6 +39,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         UpgradeEnableCommunicationDefault();
         UpgradeMigratePostedExpRepLineCanceled();
         UpgradeMigrateExpenseUserUnlimitedApproval();
+        UpgradeAllowInterimApproversDefault();
         UpgradeExpenseVendorNoSeries();
     end;
 
@@ -125,6 +127,7 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         PerCompanyUpgradeTags.Add(GetEnableCommunicationDefaultUpgradeTag());
         PerCompanyUpgradeTags.Add(GetMigratePostedExpRepLineCanceledTag());
         PerCompanyUpgradeTags.Add(GetMigrateExpenseUserUnlimitedApprovalTag());
+        PerCompanyUpgradeTags.Add(GetAllowInterimApproversDefaultUpgradeTag());
         PerCompanyUpgradeTags.Add(GetExpenseVendorNoSeriesUpgradeTag());
     end;
 
@@ -213,6 +216,22 @@ codeunit 6978 "Upgrade Expense Agent Setup"
         UpgradeTag.SetUpgradeTag(GetMigrateExpenseUserUnlimitedApprovalTag());
     end;
 
+    local procedure UpgradeAllowInterimApproversDefault()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetAllowInterimApproversDefaultUpgradeTag()) then
+            exit;
+
+        if ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup."Allow Interim Approvers" := true;
+            ExpenseAgentSetup.Modify();
+        end;
+
+        UpgradeTag.SetUpgradeTag(GetAllowInterimApproversDefaultUpgradeTag());
+    end;
+
     internal procedure UpgradeExpenseVendorNoSeries()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";
@@ -255,5 +274,10 @@ codeunit 6978 "Upgrade Expense Agent Setup"
     local procedure GetMigrateExpenseUserUnlimitedApprovalTag(): Code[250]
     begin
         exit('MS-640938-MigrateExpenseUserUnlimitedApproval-20260925');
+    end;
+
+    local procedure GetAllowInterimApproversDefaultUpgradeTag(): Code[250]
+    begin
+        exit('MS-ExpenseAgent-AllowInterimApproversDefault-20261009');
     end;
 }

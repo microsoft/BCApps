@@ -59,7 +59,8 @@ codeunit 48528 "Fabric Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         FabricPlatformMgt.EnsureRequiredLogTables();
-        UpgradeTag.SetDatabaseUpgradeTag(RequiredLogTablesUpgradeTag());
+        if not UpgradeTag.HasDatabaseUpgradeTag(RequiredLogTablesUpgradeTag()) then
+            UpgradeTag.SetDatabaseUpgradeTag(RequiredLogTablesUpgradeTag());
     end;
 
     local procedure EnsureRequiredLogTablesOnce()

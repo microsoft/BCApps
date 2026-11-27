@@ -12,6 +12,7 @@ The BC Copilot Eval Toolkit lets developers write and run automated evals for co
 1. Upload the required datasets for the evals
 1. Create an eval suite
 1. In the eval suite, define a line for each codeunit
+1. For agent eval suites, optionally select a **Model** to run the evals on a specific model instead of the model set by the test or agent
 
 ### Execute
 1. Run the AI Eval Suite from the header, or one line at a time

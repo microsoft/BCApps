@@ -138,6 +138,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestSuite: Record "AIT Test Suite";
         TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AITEvalLimitProvider: Interface "AIT Eval Limit Provider";
         TelemetryCustomDimensions: Dictionary of [Text, Text];
@@ -161,7 +162,10 @@ codeunit 149034 "AIT Test Suite Mgt."
         Commit();
 
         BindSubscription(TestRunnerProgressDialog);
-        Codeunit.Run(Codeunit::"AIT Test Run Iteration", AITTestMethodLine);
+        if not Codeunit.Run(Codeunit::"AIT Test Run Iteration", AITTestMethodLine) then begin
+            AITTestRunIteration.ClearSuiteContext();
+            Error(GetLastErrorText());
+        end;
 
         if AITTestMethodLine.Find() then begin
             // Check if credit limit was reached during the test run
