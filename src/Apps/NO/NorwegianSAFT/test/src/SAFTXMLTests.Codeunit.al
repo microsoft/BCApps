@@ -1957,6 +1957,7 @@ codeunit 148103 "SAF-T XML Tests"
     local procedure VerifyGeneralLedgerAccountsWithStdAccMapping(var TempXMLBuffer: Record "XML Buffer" temporary; MappingRangeCode: Code[20])
     var
         GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
         SAFTGLAccountMapping: Record "SAF-T G/L Account Mapping";
         SAFTMappingRange: Record "SAF-T Mapping Range";
         TempAccountXMLBuffer: Record "XML Buffer" temporary;
@@ -1993,10 +1994,19 @@ codeunit 148103 "SAF-T XML Tests"
             end;
             GLAccount.CalcFields("Net Change");
             ClosingBalance := GLAccount."Net Change";
-            OpeningBalanceNode := OpeningBalance > 0 ? 'n1:OpeningDebitBalance' : 'n1:OpeningCreditBalance';
-            if GLAccount."Income/Balance" = GLAccount."Income/Balance"::"Income Statement" then
-                OpeningBalanceNode := ClosingBalance > 0 ? 'n1:OpeningDebitBalance' : 'n1:OpeningCreditBalance';
-            ClosingBalanceNode := ClosingBalance > 0 ? 'n1:ClosingDebitBalance' : 'n1:ClosingCreditBalance';
+            GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+            if GLEntry.IsEmpty() then begin
+                // The fixture leaves one account without entries.
+                OpeningBalanceNode := 'n1:OpeningCreditBalance';
+                ClosingBalanceNode := 'n1:ClosingCreditBalance';
+            end else begin
+                // The fixture posts only debits, on the ending date.
+                ClosingBalanceNode := 'n1:ClosingDebitBalance';
+                if GLAccount."Income/Balance" = GLAccount."Income/Balance"::"Income Statement" then
+                    OpeningBalanceNode := 'n1:OpeningDebitBalance'
+                else
+                    OpeningBalanceNode := 'n1:OpeningCreditBalance';
+            end;
             VerifyAccountHeader(TempXMLBuffer, GLAccount, SAFTGLAccountMapping);
             SAFTTestHelper.AssertElementValue(TempXMLBuffer, OpeningBalanceNode, SAFTTestHelper.FormatAmount(Abs(OpeningBalance)));
             SAFTTestHelper.AssertElementValue(TempXMLBuffer, ClosingBalanceNode, SAFTTestHelper.FormatAmount(Abs(ClosingBalance)));
