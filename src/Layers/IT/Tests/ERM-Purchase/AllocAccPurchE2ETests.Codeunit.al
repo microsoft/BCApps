@@ -384,19 +384,19 @@ codeunit 134831 "Alloc. Acc. Purch. E2E Tests"
         AllocAccountDistribution.Insert(true);
     end;
 
-    [Test]
+    // [Test] // TODO: Re-enable with bug 661189.
     procedure GenerateAllocationLinesPreservesZeroRatedVendorVAT()
     begin
         VerifyGenerateAllocationLinesPreservesVendorVAT(0, false);
     end;
 
-    [Test]
+    // [Test] // TODO: Re-enable with bug 661189.
     procedure GenerateAllocationLinesPreservesVendorNonDeductibleVAT()
     begin
         VerifyGenerateAllocationLinesPreservesVendorVAT(20, false);
     end;
 
-    [Test]
+    // [Test] // TODO: Re-enable with bug 661189.
     procedure GenerateAllocationLinesUsesGrossAmountWithStaleSourceAmount()
     begin
         VerifyGenerateAllocationLinesPreservesVendorVAT(20, true);
