@@ -58,6 +58,8 @@ codeunit 13916 "Export XRechnung Document"
         XmlNamespaceCBC: Text;
         XmlNamespaceCAC: Text;
         ItemGTINCache: Dictionary of [Code[20], Code[14]];
+        ActualDeliveryStartDates: Dictionary of [Integer, Date];
+        ActualDeliveryEndDates: Dictionary of [Integer, Date];
         AlwaysIncludeTwoDecimalPlacesForAmountFields: Boolean;
         AllLinesNotSubjectToVAT: Boolean;
 #if not CLEAN30
@@ -203,6 +205,7 @@ codeunit 13916 "Export XRechnung Document"
         CalculateLineAmounts(SalesInvoiceHeader, SalesInvLine, Currency, LineAmounts);
         DetectNotSubjectToVATLines(SalesInvLine);
         ClassifyItemCharges(SalesInvoiceHeader, SalesInvLine);
+        EDocumentDEHelper.CollectActualDeliveryDates(SalesInvLine, ActualDeliveryStartDates, ActualDeliveryEndDates);
         InsertAccountingSupplierParty(SalesInvoiceHeader."Responsibility Center", SalesInvoiceHeader."Salesperson Code", RootXMLNode, SalesInvoiceHeader."Payment Method Code", SalesInvoiceHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesInvoiceHeader);
         InsertDelivery(RootXMLNode, SalesInvoiceHeader);
@@ -255,6 +258,7 @@ codeunit 13916 "Export XRechnung Document"
         CalculateLineAmounts(SalesCrMemoHeader, SalesCrMemoLine, Currency, LineAmounts);
         DetectNotSubjectToVATLines(SalesCrMemoLine);
         ClassifyItemCharges(SalesCrMemoHeader, SalesCrMemoLine);
+        EDocumentDEHelper.CollectActualDeliveryDates(SalesCrMemoLine, ActualDeliveryStartDates, ActualDeliveryEndDates);
         InsertAccountingSupplierParty(SalesCrMemoHeader."Responsibility Center", SalesCrMemoHeader."Salesperson Code", RootXMLNode, SalesCrMemoHeader."Payment Method Code", SalesCrMemoHeader."Company Bank Account Code");
         InsertAccountingCustomerParty(RootXMLNode, SalesCrMemoHeader);
         InsertDelivery(RootXMLNode, SalesCrMemoHeader);
@@ -290,6 +294,7 @@ codeunit 13916 "Export XRechnung Document"
         Clear(ItemGTINCache);
         GetSetups();
         ClearItemChargeClassification();
+        ClearActualDeliveryDates();
         TransferToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
         SalesInvoiceHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
@@ -352,6 +357,7 @@ codeunit 13916 "Export XRechnung Document"
         Clear(ItemGTINCache);
         GetSetups();
         ClearItemChargeClassification();
+        ClearActualDeliveryDates();
         TransferToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
         SalesCrMemoHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
@@ -584,6 +590,12 @@ codeunit 13916 "Export XRechnung Document"
         Clear(ItemChargeStructures);
         Clear(LineLevelItemChargeAmounts);
         Clear(LineLevelItemChargeLineNos);
+    end;
+
+    local procedure ClearActualDeliveryDates()
+    begin
+        Clear(ActualDeliveryStartDates);
+        Clear(ActualDeliveryEndDates);
     end;
 
     local procedure AddLineLevelItemCharge(TargetLineNo: Integer; ChargeLineNo: Integer; ChargeAmount: Decimal)
@@ -1005,7 +1017,7 @@ codeunit 13916 "Export XRechnung Document"
         DeliveryAddress.County := SalesInvoiceHeader."Ship-to County";
         DeliveryAddress."Country/Region Code" := SalesInvoiceHeader."Ship-to Country/Region Code";
 
-        InsertDelivery(RootXMLNode, SalesInvoiceHeader."Shipment Date", DeliveryAddress, GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code"));
+        InsertDelivery(RootXMLNode, EDocumentDEHelper.GetDocumentActualDeliveryDate(ActualDeliveryStartDates, ActualDeliveryEndDates, SalesInvoiceHeader."Shipment Date"), DeliveryAddress, GetDeliveryGLN(SalesInvoiceHeader."Sell-to Customer No.", SalesInvoiceHeader."Ship-to Code"));
     end;
 
     local procedure InsertDelivery(var RootXMLNode: XmlElement; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
@@ -1019,7 +1031,7 @@ codeunit 13916 "Export XRechnung Document"
         DeliveryAddress.County := SalesCrMemoHeader."Ship-to County";
         DeliveryAddress."Country/Region Code" := SalesCrMemoHeader."Ship-to Country/Region Code";
 
-        InsertDelivery(RootXMLNode, SalesCrMemoHeader."Shipment Date", DeliveryAddress, GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code"));
+        InsertDelivery(RootXMLNode, EDocumentDEHelper.GetDocumentActualDeliveryDate(ActualDeliveryStartDates, ActualDeliveryEndDates, SalesCrMemoHeader."Shipment Date"), DeliveryAddress, GetDeliveryGLN(SalesCrMemoHeader."Sell-to Customer No.", SalesCrMemoHeader."Ship-to Code"));
     end;
 
     local procedure InsertDelivery(var RootXMLNode: XmlElement; ShipmentDate: Date; DeliveryAddress: Record "Standard Address"; DeliveryGLN: Code[13])
@@ -1253,6 +1265,18 @@ codeunit 13916 "Export XRechnung Document"
         PriceElement := XmlElement.Create('Price', XmlNamespaceCAC);
         PriceElement.Add(XmlElement.Create('PriceAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimalUnlimited(UnitPrice, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         RootElement.Add(PriceElement);
+    end;
+
+    local procedure InsertLinePeriod(var LineElement: XmlElement; LineNo: Integer; ShipmentDate: Date)
+    var
+        StartDate: Date;
+        EndDate: Date;
+    begin
+        if EDocumentDEHelper.GetActualDeliveryPeriod(LineNo, ActualDeliveryStartDates, ActualDeliveryEndDates, StartDate, EndDate) then
+            InsertInvoicePeriod(LineElement, StartDate, EndDate)
+        else
+            if ShipmentDate <> 0D then
+                InsertInvoicePeriod(LineElement, ShipmentDate, ShipmentDate);
     end;
 
     local procedure InsertInvoicePeriod(var RootElement: XmlElement; StartDate: Date; EndDate: Date);
@@ -1846,8 +1870,7 @@ codeunit 13916 "Export XRechnung Document"
             InvoiceLineElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, Format(SalesInvLine."Line No.")));
             InsertInvoicedQuantity(InvoiceLineElement, SalesInvLine);
             InvoiceLineElement.Add(XmlElement.Create('LineExtensionAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(SalesInvLine.Amount + SalesInvLine."Inv. Discount Amount" + GetLineLevelItemChargeAmount(SalesInvLine), AlwaysIncludeTwoDecimalPlacesForAmountFields)));
-            if SalesInvLine."Shipment Date" <> 0D then
-                InsertInvoicePeriod(InvoiceLineElement, SalesInvLine."Shipment Date", SalesInvLine."Shipment Date");
+            InsertLinePeriod(InvoiceLineElement, SalesInvLine."Line No.", SalesInvLine."Shipment Date");
             InsertOrderLineReference(InvoiceLineElement, SalesInvLine."Line No.");
             if SalesInvLine."Line Discount Amount" > 0 then
                 InsertAllowanceCharge(
@@ -1887,8 +1910,7 @@ codeunit 13916 "Export XRechnung Document"
             CrMemoLineElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, Format(SalesCrMemoLine."Line No.")));
             InsertCreditedQuantity(CrMemoLineElement, SalesCrMemoLine);
             CrMemoLineElement.Add(XmlElement.Create('LineExtensionAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount" + GetLineLevelItemChargeAmount(SalesCrMemoLine), AlwaysIncludeTwoDecimalPlacesForAmountFields)));
-            if SalesCrMemoLine."Shipment Date" <> 0D then
-                InsertInvoicePeriod(CrMemoLineElement, SalesCrMemoLine."Shipment Date", SalesCrMemoLine."Shipment Date");
+            InsertLinePeriod(CrMemoLineElement, SalesCrMemoLine."Line No.", SalesCrMemoLine."Shipment Date");
             InsertOrderLineReference(CrMemoLineElement, SalesCrMemoLine."Line No.");
             if SalesCrMemoLine."Line Discount Amount" > 0 then
                 InsertAllowanceCharge(

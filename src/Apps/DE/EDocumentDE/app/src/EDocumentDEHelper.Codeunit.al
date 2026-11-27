@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -367,6 +368,248 @@ codeunit 11038 "E-Document DE Helper"
     internal procedure GetReportedAmount(SignedAmount: Decimal): Decimal
     begin
         exit(Abs(SignedAmount));
+    end;
+
+    /// <summary>
+    /// Collects, per invoice line, the first and last posting date of the posted sales shipments the line was invoiced from.
+    /// A line is traced through its shipment line (Get Shipment Lines), the value entries of the item it delivered or an item
+    /// charge was assigned to, or the shipment lines of the order line it was invoiced from, up to the invoice's posting date.
+    /// A line with a quantity that cannot be traced gets 0D; lines without quantity get no entry.
+    /// Temporary lines are not posted invoice lines, so they get no entries.
+    /// </summary>
+    /// <param name="SalesInvoiceLine">The exported lines of the posted sales invoice.</param>
+    /// <param name="DeliveryStartDates">Returns the earliest shipment posting date per line number.</param>
+    /// <param name="DeliveryEndDates">Returns the latest shipment posting date per line number.</param>
+    internal procedure CollectActualDeliveryDates(var SalesInvoiceLine: Record "Sales Invoice Line"; var DeliveryStartDates: Dictionary of [Integer, Date]; var DeliveryEndDates: Dictionary of [Integer, Date])
+    var
+        DocumentSalesInvoiceLine: Record "Sales Invoice Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ValueItemLedgerEntries: Query "Value Item Ledger Entries";
+        ShipmentStartDates: Dictionary of [Integer, Date];
+        ShipmentEndDates: Dictionary of [Integer, Date];
+        LineNosToTrace: List of [Integer];
+    begin
+        Clear(DeliveryStartDates);
+        Clear(DeliveryEndDates);
+        if SalesInvoiceLine.IsTemporary() then
+            exit;
+        DocumentSalesInvoiceLine.Copy(SalesInvoiceLine);
+        DocumentSalesInvoiceLine.SetLoadFields(Quantity, "Shipment No.", "Shipment Line No.", "Order No.", "Order Line No.", "Posting Date");
+        if not DocumentSalesInvoiceLine.FindSet() then
+            exit;
+
+        SalesShipmentLine.SetLoadFields("Posting Date");
+        repeat
+            if DocumentSalesInvoiceLine.Quantity <> 0 then
+                if (DocumentSalesInvoiceLine."Shipment No." <> '') and SalesShipmentLine.Get(DocumentSalesInvoiceLine."Shipment No.", DocumentSalesInvoiceLine."Shipment Line No.") then
+                    AddActualDeliveryDate(DocumentSalesInvoiceLine."Line No.", SalesShipmentLine."Posting Date", DeliveryStartDates, DeliveryEndDates)
+                else
+                    LineNosToTrace.Add(DocumentSalesInvoiceLine."Line No.");
+        until DocumentSalesInvoiceLine.Next() = 0;
+        if LineNosToTrace.Count() = 0 then
+            exit;
+
+        ValueItemLedgerEntries.SetRange(Value_Entry_Doc_No, DocumentSalesInvoiceLine."Document No.");
+        ValueItemLedgerEntries.SetRange(Value_Entry_Doc_Type, Enum::"Item Ledger Document Type"::"Sales Invoice");
+        ValueItemLedgerEntries.SetRange(Item_Ledg_Document_Type, Enum::"Item Ledger Document Type"::"Sales Shipment");
+        ValueItemLedgerEntries.Open();
+        while ValueItemLedgerEntries.Read() do
+            if SalesShipmentLine.Get(ValueItemLedgerEntries.Item_Ledg_Document_No, ValueItemLedgerEntries.Item_Ledg_Document_Line_No) then
+                AddActualDeliveryDate(ValueItemLedgerEntries.Value_Entry_Doc_Line_No, SalesShipmentLine."Posting Date", ShipmentStartDates, ShipmentEndDates);
+        ValueItemLedgerEntries.Close();
+
+        DocumentSalesInvoiceLine.FindSet();
+        repeat
+            if LineNosToTrace.Contains(DocumentSalesInvoiceLine."Line No.") then
+                if ShipmentStartDates.ContainsKey(DocumentSalesInvoiceLine."Line No.") then
+                    AddActualDeliveryPeriod(DocumentSalesInvoiceLine."Line No.", ShipmentStartDates, ShipmentEndDates, DeliveryStartDates, DeliveryEndDates)
+                else
+                    if not AddOrderShipmentDates(DocumentSalesInvoiceLine, DeliveryStartDates, DeliveryEndDates) then
+                        AddUntracedDeliveryLine(DocumentSalesInvoiceLine."Line No.", DeliveryStartDates, DeliveryEndDates);
+        until DocumentSalesInvoiceLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Collects, per credit memo line, the first and last posting date of the posted return receipts the line was invoiced from.
+    /// A line is traced through its return receipt line (Get Return Receipt Lines), the value entries of the item it returned or an
+    /// item charge was assigned to, or the return receipt lines of the return order line it was invoiced from, up to the credit
+    /// memo's posting date. A line with a quantity that cannot be traced gets 0D; lines without quantity get no entry.
+    /// Temporary lines are not posted credit memo lines, so they get no entries.
+    /// </summary>
+    /// <param name="SalesCrMemoLine">The exported lines of the posted sales credit memo.</param>
+    /// <param name="DeliveryStartDates">Returns the earliest return receipt posting date per line number.</param>
+    /// <param name="DeliveryEndDates">Returns the latest return receipt posting date per line number.</param>
+    internal procedure CollectActualDeliveryDates(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; var DeliveryStartDates: Dictionary of [Integer, Date]; var DeliveryEndDates: Dictionary of [Integer, Date])
+    var
+        DocumentSalesCrMemoLine: Record "Sales Cr.Memo Line";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        ValueItemLedgerEntries: Query "Value Item Ledger Entries";
+        ReceiptStartDates: Dictionary of [Integer, Date];
+        ReceiptEndDates: Dictionary of [Integer, Date];
+        LineNosToTrace: List of [Integer];
+    begin
+        Clear(DeliveryStartDates);
+        Clear(DeliveryEndDates);
+        if SalesCrMemoLine.IsTemporary() then
+            exit;
+        DocumentSalesCrMemoLine.Copy(SalesCrMemoLine);
+        DocumentSalesCrMemoLine.SetLoadFields(Quantity, "Return Receipt No.", "Return Receipt Line No.", "Order No.", "Order Line No.", "Posting Date");
+        if not DocumentSalesCrMemoLine.FindSet() then
+            exit;
+
+        ReturnReceiptLine.SetLoadFields("Posting Date");
+        repeat
+            if DocumentSalesCrMemoLine.Quantity <> 0 then
+                if (DocumentSalesCrMemoLine."Return Receipt No." <> '') and ReturnReceiptLine.Get(DocumentSalesCrMemoLine."Return Receipt No.", DocumentSalesCrMemoLine."Return Receipt Line No.") then
+                    AddActualDeliveryDate(DocumentSalesCrMemoLine."Line No.", ReturnReceiptLine."Posting Date", DeliveryStartDates, DeliveryEndDates)
+                else
+                    LineNosToTrace.Add(DocumentSalesCrMemoLine."Line No.");
+        until DocumentSalesCrMemoLine.Next() = 0;
+        if LineNosToTrace.Count() = 0 then
+            exit;
+
+        // No filter on the invoiced quantity: the value entries of an item charge carry none.
+        ValueItemLedgerEntries.SetRange(Value_Entry_Doc_No, DocumentSalesCrMemoLine."Document No.");
+        ValueItemLedgerEntries.SetRange(Value_Entry_Doc_Type, Enum::"Item Ledger Document Type"::"Sales Credit Memo");
+        ValueItemLedgerEntries.SetRange(Item_Ledg_Document_Type, Enum::"Item Ledger Document Type"::"Sales Return Receipt");
+        ValueItemLedgerEntries.Open();
+        while ValueItemLedgerEntries.Read() do
+            if ReturnReceiptLine.Get(ValueItemLedgerEntries.Item_Ledg_Document_No, ValueItemLedgerEntries.Item_Ledg_Document_Line_No) then
+                AddActualDeliveryDate(ValueItemLedgerEntries.Value_Entry_Doc_Line_No, ReturnReceiptLine."Posting Date", ReceiptStartDates, ReceiptEndDates);
+        ValueItemLedgerEntries.Close();
+
+        DocumentSalesCrMemoLine.FindSet();
+        repeat
+            if LineNosToTrace.Contains(DocumentSalesCrMemoLine."Line No.") then
+                if ReceiptStartDates.ContainsKey(DocumentSalesCrMemoLine."Line No.") then
+                    AddActualDeliveryPeriod(DocumentSalesCrMemoLine."Line No.", ReceiptStartDates, ReceiptEndDates, DeliveryStartDates, DeliveryEndDates)
+                else
+                    if not AddReturnOrderReceiptDates(DocumentSalesCrMemoLine, DeliveryStartDates, DeliveryEndDates) then
+                        AddUntracedDeliveryLine(DocumentSalesCrMemoLine."Line No.", DeliveryStartDates, DeliveryEndDates);
+        until DocumentSalesCrMemoLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Gets the actual delivery date (BT-72) of the document. When no line has a posted delivery, the default date is returned.
+    /// When the posted deliveries do not share one date, or some delivered lines have no posted delivery, no date is returned,
+    /// because one date cannot represent the whole document.
+    /// </summary>
+    /// <param name="DeliveryStartDates">The earliest posted delivery date per line number; 0D for a line without a posted delivery.</param>
+    /// <param name="DeliveryEndDates">The latest posted delivery date per line number; 0D for a line without a posted delivery.</param>
+    /// <param name="DefaultDeliveryDate">The date to return when no line has a posted delivery.</param>
+    /// <returns>The common delivery date, the default date, or 0D.</returns>
+    internal procedure GetDocumentActualDeliveryDate(DeliveryStartDates: Dictionary of [Integer, Date]; DeliveryEndDates: Dictionary of [Integer, Date]; DefaultDeliveryDate: Date): Date
+    var
+        DocumentDeliveryDate: Date;
+        UntracedLineExists: Boolean;
+        LineNo: Integer;
+    begin
+        DocumentDeliveryDate := 0D;
+        foreach LineNo in DeliveryStartDates.Keys() do
+            if DeliveryStartDates.Get(LineNo) = 0D then
+                UntracedLineExists := true
+            else begin
+                if DeliveryStartDates.Get(LineNo) <> DeliveryEndDates.Get(LineNo) then
+                    exit(0D);
+                if DocumentDeliveryDate = 0D then
+                    DocumentDeliveryDate := DeliveryStartDates.Get(LineNo);
+                if DeliveryStartDates.Get(LineNo) <> DocumentDeliveryDate then
+                    exit(0D);
+            end;
+
+        if DocumentDeliveryDate = 0D then
+            exit(DefaultDeliveryDate);
+        if UntracedLineExists then
+            exit(0D);
+        exit(DocumentDeliveryDate);
+    end;
+
+    /// <summary>
+    /// Gets the posted delivery period of a document line.
+    /// </summary>
+    /// <param name="LineNo">The line number of the document line.</param>
+    /// <param name="DeliveryStartDates">The earliest posted delivery date per line number.</param>
+    /// <param name="DeliveryEndDates">The latest posted delivery date per line number.</param>
+    /// <param name="StartDate">Returns the first posted delivery date of the line.</param>
+    /// <param name="EndDate">Returns the last posted delivery date of the line.</param>
+    /// <returns>True when the line has a posted delivery; otherwise, false.</returns>
+    internal procedure GetActualDeliveryPeriod(LineNo: Integer; DeliveryStartDates: Dictionary of [Integer, Date]; DeliveryEndDates: Dictionary of [Integer, Date]; var StartDate: Date; var EndDate: Date): Boolean
+    begin
+        if not DeliveryStartDates.Get(LineNo, StartDate) then
+            exit(false);
+        if StartDate = 0D then
+            exit(false);
+        EndDate := DeliveryEndDates.Get(LineNo);
+        exit(true);
+    end;
+
+    local procedure AddOrderShipmentDates(SalesInvoiceLine: Record "Sales Invoice Line"; var DeliveryStartDates: Dictionary of [Integer, Date]; var DeliveryEndDates: Dictionary of [Integer, Date]) ShipmentFound: Boolean
+    var
+        SalesShipmentLine: Record "Sales Shipment Line";
+    begin
+        if SalesInvoiceLine."Order No." = '' then
+            exit(false);
+        SalesShipmentLine.SetCurrentKey("Order No.", "Order Line No.", "Posting Date");
+        SalesShipmentLine.SetRange("Order No.", SalesInvoiceLine."Order No.");
+        SalesShipmentLine.SetRange("Order Line No.", SalesInvoiceLine."Order Line No.");
+        SalesShipmentLine.SetRange("Posting Date", 0D, SalesInvoiceLine."Posting Date");
+        SalesShipmentLine.SetLoadFields(Quantity, "Posting Date");
+        if not SalesShipmentLine.FindSet() then
+            exit(false);
+        repeat
+            if SalesShipmentLine.Quantity <> 0 then begin
+                AddActualDeliveryDate(SalesInvoiceLine."Line No.", SalesShipmentLine."Posting Date", DeliveryStartDates, DeliveryEndDates);
+                ShipmentFound := true;
+            end;
+        until SalesShipmentLine.Next() = 0;
+    end;
+
+    local procedure AddReturnOrderReceiptDates(SalesCrMemoLine: Record "Sales Cr.Memo Line"; var DeliveryStartDates: Dictionary of [Integer, Date]; var DeliveryEndDates: Dictionary of [Integer, Date]) ReceiptFound: Boolean
+    var
+        ReturnReceiptLine: Record "Return Receipt Line";
+    begin
+        if SalesCrMemoLine."Order No." = '' then
+            exit(false);
+        ReturnReceiptLine.SetCurrentKey("Return Order No.", "Return Order Line No.");
+        ReturnReceiptLine.SetRange("Return Order No.", SalesCrMemoLine."Order No.");
+        ReturnReceiptLine.SetRange("Return Order Line No.", SalesCrMemoLine."Order Line No.");
+        ReturnReceiptLine.SetRange("Posting Date", 0D, SalesCrMemoLine."Posting Date");
+        ReturnReceiptLine.SetLoadFields(Quantity, "Posting Date");
+        if not ReturnReceiptLine.FindSet() then
+            exit(false);
+        repeat
+            if ReturnReceiptLine.Quantity <> 0 then begin
+                AddActualDeliveryDate(SalesCrMemoLine."Line No.", ReturnReceiptLine."Posting Date", DeliveryStartDates, DeliveryEndDates);
+                ReceiptFound := true;
+            end;
+        until ReturnReceiptLine.Next() = 0;
+    end;
+
+    local procedure AddActualDeliveryPeriod(LineNo: Integer; SourceStartDates: Dictionary of [Integer, Date]; SourceEndDates: Dictionary of [Integer, Date]; var DeliveryStartDates: Dictionary of [Integer, Date]; var DeliveryEndDates: Dictionary of [Integer, Date])
+    begin
+        AddActualDeliveryDate(LineNo, SourceStartDates.Get(LineNo), DeliveryStartDates, DeliveryEndDates);
+        AddActualDeliveryDate(LineNo, SourceEndDates.Get(LineNo), DeliveryStartDates, DeliveryEndDates);
+    end;
+
+    local procedure AddUntracedDeliveryLine(LineNo: Integer; var DeliveryStartDates: Dictionary of [Integer, Date]; var DeliveryEndDates: Dictionary of [Integer, Date])
+    begin
+        DeliveryStartDates.Add(LineNo, 0D);
+        DeliveryEndDates.Add(LineNo, 0D);
+    end;
+
+    local procedure AddActualDeliveryDate(LineNo: Integer; DeliveryDate: Date; var DeliveryStartDates: Dictionary of [Integer, Date]; var DeliveryEndDates: Dictionary of [Integer, Date])
+    begin
+        if DeliveryDate = 0D then
+            exit;
+        if not DeliveryStartDates.ContainsKey(LineNo) then begin
+            DeliveryStartDates.Add(LineNo, DeliveryDate);
+            DeliveryEndDates.Add(LineNo, DeliveryDate);
+            exit;
+        end;
+        if DeliveryDate < DeliveryStartDates.Get(LineNo) then
+            DeliveryStartDates.Set(LineNo, DeliveryDate);
+        if DeliveryDate > DeliveryEndDates.Get(LineNo) then
+            DeliveryEndDates.Set(LineNo, DeliveryDate);
     end;
 
     [TryFunction]

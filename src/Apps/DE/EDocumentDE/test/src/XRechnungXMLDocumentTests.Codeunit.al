@@ -15,6 +15,7 @@ using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
@@ -880,21 +881,21 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [SCENARIO 9815] A delivery with only a delivery date exports no empty DeliveryLocation
+        // [SCENARIO] A delivery with only a delivery date exports no empty DeliveryLocation
         Initialize();
 
-        // [GIVEN] Posted Sales Invoice with "Shipment Date", without ship-to address and delivery GLN
+        // [GIVEN] Posted Sales Invoice for an item, shipped with the invoice, without ship-to address and delivery GLN
+        SetShipmentOnInvoice();
         SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
-        SalesInvoiceHeader.TestField("Shipment Date");
         ClearShipToAddress(SalesInvoiceHeader);
         SalesInvoiceHeader.Modify(false);
 
         // [WHEN] Export XRechnung Electronic Document
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] Delivery holds the ActualDeliveryDate and no DeliveryLocation
+        // [THEN] Delivery holds the ActualDeliveryDate of the shipment and no DeliveryLocation
         Assert.AreEqual(
-            FormatDate(SalesInvoiceHeader."Shipment Date"), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
             StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
         VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cac:DeliveryLocation');
     end;
@@ -989,16 +990,17 @@ codeunit 13918 "XRechnung XML Document Tests"
     [Test]
     procedure ExportPostedSalesInvoiceInXRechnungFormatWithShipmentDateTodayExportsActualDeliveryDate()
     var
+        SalesHeader: Record "Sales Header";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [SCENARIO 9815] A shipment on the current date is exported as the actual delivery date (BT-72)
+        // [SCENARIO] A shipment posted on the current date is exported as the actual delivery date (BT-72)
         Initialize();
 
-        // [GIVEN] Posted Sales Invoice with "Shipment Date" = today
-        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
-        SalesInvoiceHeader."Shipment Date" := Today();
-        SalesInvoiceHeader.Modify(false);
+        // [GIVEN] Sales Invoice for an item, shipped and invoiced with posting date = today
+        SetShipmentOnInvoice();
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceHeader.Get(PostSalesDocumentOnDate(SalesHeader, Today(), true, true));
 
         // [WHEN] Export XRechnung Electronic Document
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
@@ -1015,13 +1017,13 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [SCENARIO 9815] A shipment on the work date is exported as the actual delivery date (BT-72)
+        // [SCENARIO] A shipment posted on the work date is exported as the actual delivery date (BT-72)
         Initialize();
 
-        // [GIVEN] Posted Sales Invoice with "Shipment Date" = work date
+        // [GIVEN] Sales Invoice for an item, shipped and invoiced on the work date
+        SetShipmentOnInvoice();
         SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
-        SalesInvoiceHeader."Shipment Date" := WorkDate();
-        SalesInvoiceHeader.Modify(false);
+        SalesInvoiceHeader.TestField("Posting Date", WorkDate());
 
         // [WHEN] Export XRechnung Electronic Document
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
@@ -1030,6 +1032,344 @@ codeunit 13918 "XRechnung XML Document Tests"
         Assert.AreEqual(
             FormatDate(WorkDate()), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
             StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportInvoiceFromShipmentsOnDifferentDatesOmitsActualDeliveryDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        FirstShipmentDate: Date;
+        SecondShipmentDate: Date;
+    begin
+        // [SCENARIO] An invoice that collects two shipments posted on different days states each shipment's date on its line and no single actual delivery date
+        Initialize();
+
+        // [GIVEN] A sales order for an item, shipped in two parts on different posting dates
+        // [GIVEN] A sales invoice that takes both shipments with Get Shipment Lines, posted on a later date
+        FirstShipmentDate := CalcDate('<-20D>', WorkDate());
+        SecondShipmentDate := CalcDate('<-10D>', WorkDate());
+        SalesInvoiceHeader.Get(PostInvoiceFromTwoShipments(Enum::"Sales Line Type"::Item, FirstShipmentDate, SecondShipmentDate));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+        // [THEN] The first line's period is the first shipment's posting date, the last line's period the second shipment's
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, FirstShipmentDate, FirstShipmentDate, SecondShipmentDate, SecondShipmentDate);
+    end;
+
+    [Test]
+    procedure ExportInvoiceFromShipmentsOnSameDateExportsShipmentPostingDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ShipmentDate: Date;
+    begin
+        // [SCENARIO] An invoice whose shipments were all posted on one day exports that day as the actual delivery date, not the invoice's Shipment Date
+        Initialize();
+
+        // [GIVEN] A sales order for an item, shipped in two parts on the same posting date
+        // [GIVEN] A sales invoice that takes both shipments with Get Shipment Lines, posted on a later date
+        ShipmentDate := CalcDate('<-15D>', WorkDate());
+        SalesInvoiceHeader.Get(PostInvoiceFromTwoShipments(Enum::"Sales Line Type"::Item, ShipmentDate, ShipmentDate));
+        Assert.AreNotEqual(ShipmentDate, SalesInvoiceHeader."Shipment Date", 'The invoice Shipment Date must differ from the shipment posting date.');
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the shipments' posting date
+        Assert.AreEqual(
+            FormatDate(ShipmentDate), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, ShipmentDate, ShipmentDate, ShipmentDate, ShipmentDate);
+    end;
+
+    [Test]
+    procedure ExportInvoiceOfOrderShippedOnTwoDatesExportsLinePeriod()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        FirstShipmentDate: Date;
+        SecondShipmentDate: Date;
+    begin
+        // [SCENARIO] An order line shipped on two days and then invoiced from the order states both days as its line period
+        Initialize();
+
+        // [GIVEN] A sales order for an item, shipped in two parts on different posting dates
+        FirstShipmentDate := CalcDate('<-20D>', WorkDate());
+        SecondShipmentDate := CalcDate('<-10D>', WorkDate());
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, SalesHeader."Document Type"::Order, Enum::"Sales Line Type"::Item, FirstShipmentDate, SecondShipmentDate);
+
+        // [GIVEN] The order is invoiced on the work date
+        SalesInvoiceHeader.Get(PostSalesDocumentOnDate(SalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+        // [THEN] The line period runs from the first to the second shipment's posting date
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, FirstShipmentDate, SecondShipmentDate, FirstShipmentDate, SecondShipmentDate);
+    end;
+
+    [Test]
+    procedure ExportInvoiceOfOrderWithBackdatedSecondShipmentExportsEarliestShipmentAsPeriodStart()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        EarlierShipmentDate: Date;
+        LaterShipmentDate: Date;
+    begin
+        // [SCENARIO] The line period starts at the earliest shipment, also when that shipment was posted after the other one
+        Initialize();
+
+        // [GIVEN] A sales order for an item, shipped first on a later posting date and then on an earlier one
+        LaterShipmentDate := CalcDate('<-10D>', WorkDate());
+        EarlierShipmentDate := CalcDate('<-20D>', WorkDate());
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, SalesHeader."Document Type"::Order, Enum::"Sales Line Type"::Item, LaterShipmentDate, EarlierShipmentDate);
+
+        // [GIVEN] The order is invoiced on the work date
+        SalesInvoiceHeader.Get(PostSalesDocumentOnDate(SalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] The line period runs from the earlier to the later shipment's posting date
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, EarlierShipmentDate, LaterShipmentDate, EarlierShipmentDate, LaterShipmentDate);
+    end;
+
+    [Test]
+    procedure ExportInvoiceFromGLAccountShipmentsExportsShipmentPostingDates()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        FirstShipmentDate: Date;
+        SecondShipmentDate: Date;
+    begin
+        // [SCENARIO] Lines without item ledger entries take their dates from the posted shipment they were invoiced from
+        Initialize();
+
+        // [GIVEN] A sales order for a G/L account, shipped in two parts on different posting dates
+        // [GIVEN] A sales invoice that takes both shipments with Get Shipment Lines
+        FirstShipmentDate := CalcDate('<-20D>', WorkDate());
+        SecondShipmentDate := CalcDate('<-10D>', WorkDate());
+        SalesInvoiceHeader.Get(PostInvoiceFromTwoShipments(Enum::"Sales Line Type"::"G/L Account", FirstShipmentDate, SecondShipmentDate));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported, and each line states its shipment's posting date
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, FirstShipmentDate, FirstShipmentDate, SecondShipmentDate, SecondShipmentDate);
+    end;
+
+    [Test]
+    procedure ReusedInstanceDoesNotCarryShipmentDatesIntoServiceInvoiceExport()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ReusedExportXRechnungDocument: Codeunit "Export XRechnung Document";
+        SalesTempBlob: Codeunit "Temp Blob";
+        ServiceTempBlob: Codeunit "Temp Blob";
+        XmlInStream: InStream;
+        XmlOutStream: OutStream;
+        FirstShipmentDate: Date;
+        SecondShipmentDate: Date;
+    begin
+        // [SCENARIO] A reused Export XRechnung Document instance does not carry the shipment dates of an earlier sales invoice into a later service invoice
+        Initialize();
+
+        // [GIVEN] A posted sales invoice that collects two shipments posted on different days, exported first on this instance
+        FirstShipmentDate := CalcDate('<-20D>', WorkDate());
+        SecondShipmentDate := CalcDate('<-10D>', WorkDate());
+        SalesInvoiceHeader.Get(PostInvoiceFromTwoShipments(Enum::"Sales Line Type"::Item, FirstShipmentDate, SecondShipmentDate));
+        SalesTempBlob.CreateOutStream(XmlOutStream);
+        ReusedExportXRechnungDocument.CreateXML(SalesInvoiceHeader, XmlOutStream);
+
+        // [GIVEN] A posted service invoice with two lines
+        ServiceInvoiceHeader.Get(CreateAndPostServiceDocumentWithTwoLines());
+
+        // [WHEN] The same instance exports the service invoice
+        ServiceTempBlob.CreateOutStream(XmlOutStream);
+        ReusedExportXRechnungDocument.CreateXML(ServiceInvoiceHeader, XmlOutStream);
+        ServiceTempBlob.CreateInStream(XmlInStream);
+        TempXMLBuffer.LoadFromStream(XmlInStream);
+
+        // [THEN] No service invoice line states a shipment date of the earlier sales invoice
+        Assert.IsFalse(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/cac:InvoicePeriod/cbc:StartDate', FormatDate(FirstShipmentDate)), 'The first shipment date of the earlier export must not be reused.');
+        Assert.IsFalse(NodeValueExists(TempXMLBuffer, InvoiceLineTok + '/cac:InvoicePeriod/cbc:StartDate', FormatDate(SecondShipmentDate)), 'The second shipment date of the earlier export must not be reused.');
+    end;
+
+    [Test]
+    procedure ExportInvoiceOfOrderWithItemAndGLAccountShippedOnDifferentDatesOmitsActualDeliveryDate()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemShipmentDate: Date;
+        GLAccountShipmentDate: Date;
+    begin
+        // [SCENARIO] An invoice of an order whose item and G/L account lines were shipped on different days states each line's shipment date and no single actual delivery date
+        Initialize();
+
+        // [GIVEN] A sales order with an item line and a G/L account line; the item line is shipped first, the G/L account line on a later day
+        ItemShipmentDate := CalcDate('<-20D>', WorkDate());
+        GLAccountShipmentDate := CalcDate('<-10D>', WorkDate());
+        CreateSalesDocumentWithItemAndGLAccountLine(SalesHeader, SalesHeader."Document Type"::Order);
+        PostItemAndGLAccountLineOnTwoDates(SalesHeader, ItemShipmentDate, GLAccountShipmentDate);
+
+        // [GIVEN] The order is invoiced on the work date
+        SalesInvoiceHeader.Get(PostSalesDocumentOnDate(SalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported; the item line states its shipment date, the G/L account line its own
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, ItemShipmentDate, ItemShipmentDate, GLAccountShipmentDate, GLAccountShipmentDate);
+    end;
+
+    [Test]
+    procedure ExportInvoiceOfOrderWithItemAndGLAccountShippedTogetherExportsShipmentPostingDate()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ShipmentDate: Date;
+    begin
+        // [SCENARIO] An order with an item line and a G/L account line, shipped and invoiced in one posting, exports the shipment date as the actual delivery date
+        Initialize();
+
+        // [GIVEN] A sales order with an item line and a G/L account line, shipped and invoiced from the order in one posting
+        ShipmentDate := CalcDate('<-5D>', WorkDate());
+        CreateSalesDocumentWithItemAndGLAccountLine(SalesHeader, SalesHeader."Document Type"::Order);
+        SalesInvoiceHeader.Get(PostSalesDocumentOnDate(SalesHeader, ShipmentDate, true, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the shipment's posting date, and both lines state it
+        Assert.AreEqual(
+            FormatDate(ShipmentDate), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, ShipmentDate, ShipmentDate, ShipmentDate, ShipmentDate);
+    end;
+
+    [Test]
+    procedure ExportInvoiceWithShipmentLinesAndUntracedGLAccountLineOmitsActualDeliveryDate()
+    var
+        SalesHeader: Record "Sales Header";
+        InvoiceSalesHeader: Record "Sales Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
+        ShipmentDate: Date;
+    begin
+        // [SCENARIO] An invoice that mixes a line from a posted shipment with a G/L account line that has no order or shipment does not claim one actual delivery date
+        Initialize();
+
+        // [GIVEN] A sales order for an item, shipped in two parts on the same day
+        ShipmentDate := CalcDate('<-15D>', WorkDate());
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, SalesHeader."Document Type"::Order, Enum::"Sales Line Type"::Item, ShipmentDate, ShipmentDate);
+
+        // [GIVEN] A sales invoice that takes the shipments with Get Shipment Lines and gets an extra G/L account line, posted on the work date
+        CreateSalesHeader(InvoiceSalesHeader, InvoiceSalesHeader."Document Type"::Invoice, SalesHeader."Sell-to Customer No.");
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesGetShipment.SetSalesHeader(InvoiceSalesHeader);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+        CreateSalesLine(InvoiceSalesHeader, Enum::"Sales Line Type"::"G/L Account", false);
+        SalesInvoiceHeader.Get(PostSalesDocumentOnDate(InvoiceSalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
+    end;
+
+    [Test]
+    procedure ExportInvoiceOfPartlyInvoicedOrderIgnoresLaterShipment()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        FirstShipmentDate: Date;
+    begin
+        // [SCENARIO] A G/L account order line invoiced after its first shipment does not take the date of a shipment posted after the invoice
+        Initialize();
+
+        // [GIVEN] A sales order with a G/L account line, shipped in part, invoiced, and then shipped in full
+        FirstShipmentDate := CalcDate('<-20D>', WorkDate());
+        SalesInvoiceHeader.Get(PostLineInvoicedBetweenTwoDeliveries(SalesHeader, SalesHeader."Document Type"::Order, FirstShipmentDate, CalcDate('<-15D>', WorkDate()), CalcDate('<-10D>', WorkDate())));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) and the line period are the first shipment's posting date
+        Assert.AreEqual(
+            FormatDate(FirstShipmentDate), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, FirstShipmentDate, FirstShipmentDate, FirstShipmentDate, FirstShipmentDate);
+    end;
+
+    [Test]
+    procedure ExportInvoiceWithItemChargeExportsShipmentPostingDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+    begin
+        // [SCENARIO] An item charge line is traced through the shipment of the item it is assigned to, so it does not keep the shipment date out of BT-72
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with an item line and an item charge assigned to it, shipped with the invoice
+        SetShipmentOnInvoice();
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::Invoice, 1, 1, 1, LibraryRandom.RandDecInRange(10, 20, 2), ItemChargeNo));
+        // [GIVEN] A header "Shipment Date" that differs from the posting date of the shipment
+        SalesInvoiceHeader."Shipment Date" := CalcDate('<-3D>', SalesInvoiceHeader."Posting Date");
+        SalesInvoiceHeader.Modify(false);
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the posting date of the shipment
+        Assert.AreEqual(
+            FormatDate(SalesInvoiceHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportInvoiceWithoutPostedDeliveryKeepsShipmentDate()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO] An invoice whose lines cannot be traced to a posted shipment keeps the Shipment Date as actual delivery date and line period
+        Initialize();
+
+        // [GIVEN] Posted Sales Invoice with a G/L account line, and a header "Shipment Date" that differs from the posting date
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::"G/L Account", false));
+        SalesInvoiceHeader."Shipment Date" := CalcDate('<-3D>', SalesInvoiceHeader."Posting Date");
+        SalesInvoiceHeader.Modify(false);
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.FindFirst();
+        SalesInvoiceLine.TestField("Shipment Date");
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the header "Shipment Date", and the line period is the line "Shipment Date"
+        Assert.AreEqual(
+            FormatDate(SalesInvoiceHeader."Shipment Date"), GetNodeByPathWithError(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyLinePeriods(TempXMLBuffer, InvoiceLineTok, SalesInvoiceLine."Shipment Date", SalesInvoiceLine."Shipment Date", SalesInvoiceLine."Shipment Date", SalesInvoiceLine."Shipment Date");
     end;
 
     #endregion
@@ -1938,6 +2278,261 @@ codeunit 13918 "XRechnung XML Document Tests"
         VerifyHeaderData(SalesCrMemoHeader, TempXMLBuffer);
     end;
 
+    [Test]
+    procedure ExportCreditMemoOfReturnOrderReceivedOnTwoDatesExportsLinePeriod()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        FirstReceiptDate: Date;
+        SecondReceiptDate: Date;
+    begin
+        // [SCENARIO] A return order line received on two days and then invoiced states both days as its line period
+        Initialize();
+
+        // [GIVEN] A sales return order for an item, received in two parts on different posting dates
+        FirstReceiptDate := CalcDate('<-20D>', WorkDate());
+        SecondReceiptDate := CalcDate('<-10D>', WorkDate());
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, SalesHeader."Document Type"::"Return Order", Enum::"Sales Line Type"::Item, FirstReceiptDate, SecondReceiptDate);
+
+        // [GIVEN] The return order is invoiced on the work date
+        SalesCrMemoHeader.Get(PostSalesDocumentOnDate(SalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported
+        VerifyNodeDoesNotExist(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate');
+        // [THEN] The line period runs from the first to the second return receipt's posting date
+        VerifyLinePeriods(TempXMLBuffer, CrMemoLineTok, FirstReceiptDate, SecondReceiptDate, FirstReceiptDate, SecondReceiptDate);
+    end;
+
+    [Test]
+    procedure ExportCreditMemoOfReturnOrderWithItemAndGLAccountReceivedOnDifferentDatesOmitsActualDeliveryDate()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemReceiptDate: Date;
+        GLAccountReceiptDate: Date;
+    begin
+        // [SCENARIO] A credit memo of a return order whose item and G/L account lines were received on different days states each line's receipt date and no single actual delivery date
+        Initialize();
+
+        // [GIVEN] A sales return order with an item line and a G/L account line; the item line is received first, the G/L account line on a later day
+        ItemReceiptDate := CalcDate('<-20D>', WorkDate());
+        GLAccountReceiptDate := CalcDate('<-10D>', WorkDate());
+        CreateSalesDocumentWithItemAndGLAccountLine(SalesHeader, SalesHeader."Document Type"::"Return Order");
+        PostItemAndGLAccountLineOnTwoDates(SalesHeader, ItemReceiptDate, GLAccountReceiptDate);
+
+        // [GIVEN] The return order is invoiced on the work date
+        SalesCrMemoHeader.Get(PostSalesDocumentOnDate(SalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported; the item line states its receipt date, the G/L account line its own
+        VerifyNodeDoesNotExist(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate');
+        VerifyLinePeriods(TempXMLBuffer, CrMemoLineTok, ItemReceiptDate, ItemReceiptDate, GLAccountReceiptDate, GLAccountReceiptDate);
+    end;
+
+    [Test]
+    procedure ExportCreditMemoOfReturnOrderWithItemAndGLAccountReceivedTogetherExportsReceiptPostingDate()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ReceiptDate: Date;
+    begin
+        // [SCENARIO] A return order with an item line and a G/L account line, received and invoiced in one posting, exports the receipt date as the actual delivery date
+        Initialize();
+
+        // [GIVEN] A sales return order with an item line and a G/L account line, received and invoiced in one posting
+        ReceiptDate := CalcDate('<-5D>', WorkDate());
+        CreateSalesDocumentWithItemAndGLAccountLine(SalesHeader, SalesHeader."Document Type"::"Return Order");
+        SalesCrMemoHeader.Get(PostSalesDocumentOnDate(SalesHeader, ReceiptDate, true, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the receipt's posting date, and both lines state it
+        Assert.AreEqual(
+            FormatDate(ReceiptDate), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyLinePeriods(TempXMLBuffer, CrMemoLineTok, ReceiptDate, ReceiptDate, ReceiptDate, ReceiptDate);
+    end;
+
+    [Test]
+    procedure ExportCreditMemoOfPartlyInvoicedReturnOrderIgnoresLaterReceipt()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        FirstReceiptDate: Date;
+    begin
+        // [SCENARIO] A G/L account return order line credited after its first receipt does not take the date of a receipt posted after the credit memo
+        Initialize();
+
+        // [GIVEN] A sales return order with a G/L account line, received in part, credited, and then received in full
+        FirstReceiptDate := CalcDate('<-20D>', WorkDate());
+        SalesCrMemoHeader.Get(PostLineInvoicedBetweenTwoDeliveries(SalesHeader, SalesHeader."Document Type"::"Return Order", FirstReceiptDate, CalcDate('<-15D>', WorkDate()), CalcDate('<-10D>', WorkDate())));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) and the line period are the first receipt's posting date
+        Assert.AreEqual(
+            FormatDate(FirstReceiptDate), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyLinePeriods(TempXMLBuffer, CrMemoLineTok, FirstReceiptDate, FirstReceiptDate, FirstReceiptDate, FirstReceiptDate);
+    end;
+
+    [Test]
+    procedure ExportCreditMemoOfReturnOrderWithItemChargeExportsReceiptPostingDate()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeNo: Code[20];
+    begin
+        // [SCENARIO] An item charge on a return order is traced through the return receipt of the item it is assigned to, so it does not keep the receipt date out of BT-72
+        Initialize();
+
+        // [GIVEN] A sales return order with an item line and an item charge assigned to it, received and credited in one posting
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentWithItemCharge("Sales Document Type"::"Return Order", 1, 1, 1, LibraryRandom.RandDecInRange(10, 20, 2), ItemChargeNo));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the posting date of the return receipt
+        Assert.AreEqual(
+            FormatDate(SalesCrMemoHeader."Posting Date"), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportCreditMemoWithItemChargeOnReturnReceiptExportsReceiptPostingDate()
+    var
+        Item: Record Item;
+        ReturnSalesHeader: Record "Sales Header";
+        CrMemoSalesHeader: Record "Sales Header";
+        ChargeSalesLine: Record "Sales Line";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        ItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        ItemChargeAssgntSales: Codeunit "Item Charge Assgnt. (Sales)";
+        ReceiptDate: Date;
+        NextLineNo: Integer;
+    begin
+        // [SCENARIO] A credit memo item charge assigned to a posted return receipt line takes that receipt's date as the actual delivery date
+        Initialize();
+        PrepareItemChargePosting();
+
+        // [GIVEN] A sales return order for an item, received but not invoiced
+        ReceiptDate := CalcDate('<-10D>', WorkDate());
+        CreateSalesHeader(ReturnSalesHeader, ReturnSalesHeader."Document Type"::"Return Order");
+        CreateSalesLine(ReturnSalesHeader, Enum::"Sales Line Type"::Item, false);
+        PostSalesDocumentOnDate(ReturnSalesHeader, ReceiptDate, true, false);
+        ReturnReceiptLine.SetRange("Return Order No.", ReturnSalesHeader."No.");
+        ReturnReceiptLine.FindFirst();
+        Item.Get(ReturnReceiptLine."No.");
+
+        // [GIVEN] A sales credit memo with only an item charge line, assigned to the posted return receipt line, posted on the work date
+        CreateSalesHeader(CrMemoSalesHeader, CrMemoSalesHeader."Document Type"::"Credit Memo", ReturnSalesHeader."Sell-to Customer No.");
+        LibrarySales.CreateSalesLine(ChargeSalesLine, CrMemoSalesHeader, ChargeSalesLine.Type::"Charge (Item)", CreateItemChargeForItem(Item), 1);
+        ChargeSalesLine.Validate("Unit Price", LibraryRandom.RandDecInRange(10, 20, 2));
+        ChargeSalesLine.Validate("Tax Category", TaxCategoryStandardTok);
+        ChargeSalesLine.Modify(true);
+        ItemChargeAssignmentSales."Document Type" := ChargeSalesLine."Document Type";
+        ItemChargeAssignmentSales."Document No." := ChargeSalesLine."Document No.";
+        ItemChargeAssignmentSales."Document Line No." := ChargeSalesLine."Line No.";
+        ItemChargeAssignmentSales."Item Charge No." := ChargeSalesLine."No.";
+        ItemChargeAssignmentSales."Unit Cost" := ChargeSalesLine."Unit Price";
+        NextLineNo := 10000;
+        ItemChargeAssgntSales.InsertItemChargeAssignmentWithValues(
+            ItemChargeAssignmentSales, Enum::"Sales Applies-to Document Type"::"Return Receipt", ReturnReceiptLine."Document No.", ReturnReceiptLine."Line No.",
+            ReturnReceiptLine."No.", ReturnReceiptLine.Description, 1, ChargeSalesLine."Line Amount", NextLineNo);
+        SalesCrMemoHeader.Get(PostSalesDocumentOnDate(CrMemoSalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the posting date of the return receipt
+        Assert.AreEqual(
+            FormatDate(ReceiptDate), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'));
+    end;
+
+    [Test]
+    procedure ExportCreditMemoFromGLAccountReturnReceiptsExportsReceiptPostingDate()
+    var
+        SalesHeader: Record "Sales Header";
+        CrMemoSalesHeader: Record "Sales Header";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        SalesGetReturnReceipts: Codeunit "Sales-Get Return Receipts";
+        ReceiptDate: Date;
+    begin
+        // [SCENARIO] A credit memo built from return receipts posted on one day exports that day as the actual delivery date
+        Initialize();
+
+        // [GIVEN] A sales return order for a G/L account, received in two parts on the same posting date
+        ReceiptDate := CalcDate('<-15D>', WorkDate());
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, SalesHeader."Document Type"::"Return Order", Enum::"Sales Line Type"::"G/L Account", ReceiptDate, ReceiptDate);
+
+        // [GIVEN] A sales credit memo that takes both return receipts with Get Return Receipt Lines, posted on the work date
+        CreateSalesHeader(CrMemoSalesHeader, CrMemoSalesHeader."Document Type"::"Credit Memo", SalesHeader."Sell-to Customer No.");
+        ReturnReceiptLine.SetRange("Return Order No.", SalesHeader."No.");
+        SalesGetReturnReceipts.SetSalesHeader(CrMemoSalesHeader);
+        SalesGetReturnReceipts.CreateInvLines(ReturnReceiptLine);
+        SalesCrMemoHeader.Get(PostSalesDocumentOnDate(CrMemoSalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] ActualDeliveryDate (BT-72) is the return receipts' posting date, and each line states it
+        Assert.AreEqual(
+            FormatDate(ReceiptDate), GetNodeByPathWithError(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate'));
+        VerifyLinePeriods(TempXMLBuffer, CrMemoLineTok, ReceiptDate, ReceiptDate, ReceiptDate, ReceiptDate);
+    end;
+
+    [Test]
+    procedure ExportCreditMemoFromGLAccountReturnReceiptsOnDifferentDatesExportsEachReceiptDate()
+    var
+        SalesHeader: Record "Sales Header";
+        CrMemoSalesHeader: Record "Sales Header";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        SalesGetReturnReceipts: Codeunit "Sales-Get Return Receipts";
+        FirstReceiptDate: Date;
+        SecondReceiptDate: Date;
+    begin
+        // [SCENARIO] Credit memo lines taken from return receipts posted on different days each state their own receipt's date
+        Initialize();
+
+        // [GIVEN] A sales return order for a G/L account, received in two parts on different posting dates
+        FirstReceiptDate := CalcDate('<-20D>', WorkDate());
+        SecondReceiptDate := CalcDate('<-10D>', WorkDate());
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, SalesHeader."Document Type"::"Return Order", Enum::"Sales Line Type"::"G/L Account", FirstReceiptDate, SecondReceiptDate);
+
+        // [GIVEN] A sales credit memo that takes both return receipts with Get Return Receipt Lines, posted on the work date
+        CreateSalesHeader(CrMemoSalesHeader, CrMemoSalesHeader."Document Type"::"Credit Memo", SalesHeader."Sell-to Customer No.");
+        ReturnReceiptLine.SetRange("Return Order No.", SalesHeader."No.");
+        SalesGetReturnReceipts.SetSalesHeader(CrMemoSalesHeader);
+        SalesGetReturnReceipts.CreateInvLines(ReturnReceiptLine);
+        SalesCrMemoHeader.Get(PostSalesDocumentOnDate(CrMemoSalesHeader, WorkDate(), false, true));
+
+        // [WHEN] Export XRechnung Electronic Document
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] No ActualDeliveryDate (BT-72) is exported; the first line states the first receipt's date, the last line the second's
+        VerifyNodeDoesNotExist(TempXMLBuffer, CreditMemoDeliveryTok + '/cbc:ActualDeliveryDate');
+        VerifyLinePeriods(TempXMLBuffer, CrMemoLineTok, FirstReceiptDate, FirstReceiptDate, SecondReceiptDate, SecondReceiptDate);
+    end;
+
     #endregion
 
     #region ServiceCreditMemo
@@ -2622,22 +3217,20 @@ codeunit 13918 "XRechnung XML Document Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         TempXMLBuffer: Record "XML Buffer" temporary;
     begin
-        // [SCENARIO 9815] A delivery location with only a GLN exports the ID and no empty Address
+        // [SCENARIO] A delivery location with only a GLN exports the ID and no empty Address
         Initialize();
 
-        // [GIVEN] Posted Sales Invoice for a customer that uses GLN, without ship-to address and "Shipment Date"
+        // [GIVEN] Posted Sales Invoice for a customer that uses GLN, without ship-to address
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceForCustomerWithGLNAndShipToGLN(CustomerGLN(), '', true));
         ClearShipToAddress(SalesInvoiceHeader);
-        SalesInvoiceHeader."Shipment Date" := 0D;
         SalesInvoiceHeader.Modify(false);
 
         // [WHEN] Export XRechnung Electronic Document
         ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
 
-        // [THEN] DeliveryLocation holds the customer GLN, and neither an Address nor an ActualDeliveryDate is exported
+        // [THEN] DeliveryLocation holds the customer GLN, and no Address is exported
         VerifyGLNIdentifier(CustomerGLN(), TempXMLBuffer, DeliveryLocationIdTok);
         VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryAddressTok);
-        VerifyNodeDoesNotExist(TempXMLBuffer, InvoiceDeliveryTok + '/cbc:ActualDeliveryDate');
     end;
 
     #endregion
@@ -4425,6 +5018,108 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         SalesHeader.Get(DocumentType, CreateSalesDocumentWithLine(DocumentType, LineType, InvoiceDiscount));
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure PostInvoiceFromTwoShipments(LineType: Enum "Sales Line Type"; FirstShipmentDate: Date; SecondShipmentDate: Date): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        InvoiceSalesHeader: Record "Sales Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
+    begin
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, SalesHeader."Document Type"::Order, LineType, FirstShipmentDate, SecondShipmentDate);
+        CreateSalesHeader(InvoiceSalesHeader, InvoiceSalesHeader."Document Type"::Invoice, SalesHeader."Sell-to Customer No.");
+        SalesShipmentLine.SetRange("Order No.", SalesHeader."No.");
+        SalesGetShipment.SetSalesHeader(InvoiceSalesHeader);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+        exit(PostSalesDocumentOnDate(InvoiceSalesHeader, WorkDate(), false, true));
+    end;
+
+    local procedure CreateSalesDocumentPostedInTwoParts(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; FirstPostingDate: Date; SecondPostingDate: Date)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        CreateSalesLine(SalesHeader, LineType, false);
+        LibrarySales.FindFirstSalesLine(SalesLine, SalesHeader);
+        SalesLine.Validate(Quantity, 2);
+        if DocumentType = DocumentType::"Return Order" then
+            SalesLine.Validate("Return Qty. to Receive", 1)
+        else
+            SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Modify(true);
+        PostSalesDocumentOnDate(SalesHeader, FirstPostingDate, true, false);
+        if SecondPostingDate <> 0D then
+            PostSalesDocumentOnDate(SalesHeader, SecondPostingDate, true, false);
+    end;
+
+    local procedure CreateSalesDocumentWithItemAndGLAccountLine(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type")
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::Item, false);
+        CreateSalesLine(SalesHeader, Enum::"Sales Line Type"::"G/L Account", false);
+    end;
+
+    local procedure PostItemAndGLAccountLineOnTwoDates(var SalesHeader: Record "Sales Header"; ItemPostingDate: Date; GLAccountPostingDate: Date)
+    var
+        SalesLine: Record "Sales Line";
+    begin
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetRange(Type, SalesLine.Type::"G/L Account");
+        SalesLine.FindFirst();
+        if SalesHeader."Document Type" = SalesHeader."Document Type"::"Return Order" then
+            SalesLine.Validate("Return Qty. to Receive", 0)
+        else
+            SalesLine.Validate("Qty. to Ship", 0);
+        SalesLine.Modify(true);
+        PostSalesDocumentOnDate(SalesHeader, ItemPostingDate, true, false);
+        PostSalesDocumentOnDate(SalesHeader, GLAccountPostingDate, true, false);
+    end;
+
+    local procedure PostLineInvoicedBetweenTwoDeliveries(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; FirstDeliveryDate: Date; InvoiceDate: Date; SecondDeliveryDate: Date) PostedDocumentNo: Code[20]
+    begin
+        CreateSalesDocumentPostedInTwoParts(SalesHeader, DocumentType, Enum::"Sales Line Type"::"G/L Account", FirstDeliveryDate, 0D);
+        PostedDocumentNo := PostSalesDocumentOnDate(SalesHeader, InvoiceDate, false, true);
+        PostSalesDocumentOnDate(SalesHeader, SecondDeliveryDate, true, false);
+    end;
+
+    local procedure SetShipmentOnInvoice()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Shipment on Invoice", true);
+        SalesReceivablesSetup.Modify(true);
+    end;
+
+    local procedure PostSalesDocumentOnDate(var SalesHeader: Record "Sales Header"; PostingDate: Date; Ship: Boolean; Invoice: Boolean): Code[20]
+    var
+        ReasonCode: Record "Reason Code";
+    begin
+        ResetPostingNoSeriesDateUsage();
+        SalesHeader.Find();
+        SalesHeader.Validate("Posting Date", PostingDate);
+        SalesHeader.Validate("Document Date", PostingDate);
+        if SalesHeader."Document Type" in [SalesHeader."Document Type"::"Credit Memo", SalesHeader."Document Type"::"Return Order"] then begin
+            LibraryERM.CreateReasonCode(ReasonCode);
+            SalesHeader.Validate("Reason Code", ReasonCode.Code);
+        end;
+        SalesHeader.Modify(true);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, Ship, Invoice));
+    end;
+
+    local procedure VerifyLinePeriods(var TempXMLBuffer: Record "XML Buffer" temporary; LineTok: Text; FirstLineStartDate: Date; FirstLineEndDate: Date; LastLineStartDate: Date; LastLineEndDate: Date)
+    var
+        StartDatePath: Text;
+        EndDatePath: Text;
+    begin
+        StartDatePath := LineTok + '/cac:InvoicePeriod/cbc:StartDate';
+        EndDatePath := LineTok + '/cac:InvoicePeriod/cbc:EndDate';
+        Assert.AreEqual(FormatDate(FirstLineStartDate), GetNodeByPathWithError(TempXMLBuffer, StartDatePath), StrSubstNo(IncorrectValueErr, StartDatePath));
+        Assert.AreEqual(FormatDate(FirstLineEndDate), GetNodeByPathWithError(TempXMLBuffer, EndDatePath), StrSubstNo(IncorrectValueErr, EndDatePath));
+        Assert.AreEqual(FormatDate(LastLineStartDate), GetLastNodeByPathWithError(TempXMLBuffer, StartDatePath), StrSubstNo(IncorrectValueErr, StartDatePath));
+        Assert.AreEqual(FormatDate(LastLineEndDate), GetLastNodeByPathWithError(TempXMLBuffer, EndDatePath), StrSubstNo(IncorrectValueErr, EndDatePath));
     end;
 
     local procedure CreateAndPostSalesDocumentWithLongDescription(DocumentType: Enum "Sales Document Type"): Code[20];
