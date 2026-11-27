@@ -6,6 +6,7 @@
 namespace System.Agents.Designer;
 
 using System.Agents;
+using System.Agents.Designer.CustomAgent;
 
 page 4359 "Agent New Task Message"
 {
@@ -118,6 +119,21 @@ page 4359 "Agent New Task Message"
     {
         area(Processing)
         {
+            action(TestAgent)
+            {
+                ApplicationArea = All;
+                Caption = 'Open test agent';
+                ToolTip = 'Open the test agent page to edit instructions, run tasks, and inspect results. The current task draft stays open.';
+                Image = TestFile;
+                Visible = IsCustomAgent;
+
+                trigger OnAction()
+                var
+                    CustomAgentSetup: Codeunit "Custom Agent Setup";
+                begin
+                    CustomAgentSetup.OpenEditInstructionsPage(GlobalAgentTask."Agent User Security ID");
+                end;
+            }
             group(Template)
             {
                 Caption = 'Template';
@@ -166,7 +182,9 @@ page 4359 "Agent New Task Message"
         {
             group(Category_Process)
             {
-
+                actionref(TestAgent_Promoted; TestAgent)
+                {
+                }
                 actionref(SaveToTemplate_Promoted; SaveToTemplate)
                 {
                 }
@@ -352,6 +370,7 @@ page 4359 "Agent New Task Message"
 
     trigger OnOpenPage()
     var
+        Agent: Record Agent;
         AgentDesignerEnvironment: Codeunit "Agent Designer Environment";
     begin
         FromText := CopyStr(UserId(), 1, MaxStrLen(FromText));
@@ -359,6 +378,9 @@ page 4359 "Agent New Task Message"
         SanitizeMessageText := true;
         RequiresReview := false;
         IgnoreAttachments := false;
+        IsCustomAgent := false;
+        if Agent.Get(GlobalAgentTask."Agent User Security ID") then
+            IsCustomAgent := Agent."Agent Metadata Provider" = Enum::"Agent Metadata Provider"::"Custom Agent";
     end;
 
     var
@@ -373,6 +395,7 @@ page 4359 "Agent New Task Message"
         RequiresReview: Boolean;
         IgnoreAttachments: Boolean;
         SaveAsTemplate: Boolean;
+        IsCustomAgent: Boolean;
         ExternalId: Text[2048];
         MessageExternalId: Text[2048];
         CreateNewTaskLbl: Label 'Run new task';
