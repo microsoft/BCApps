@@ -1985,8 +1985,8 @@ codeunit 13916 "Export XRechnung Document"
         MimeCode: Text;
         FileName: Text;
     begin
-        MimeCode := GetMimeCode(DocumentAttachment);
-        if not IsValidMimeCode(MimeCode) then
+        MimeCode := EDocumentDEHelper.GetAttachmentMimeCode(DocumentAttachment);
+        if not EDocumentDEHelper.IsSupportedAttachmentMimeCode(MimeCode) then
             exit;
 
         TempBlob.CreateOutStream(OutStream);
@@ -2013,49 +2013,6 @@ codeunit 13916 "Export XRechnung Document"
             XmlAttribute.Create('filename', FileName),
             Base64Convert.ToBase64(InStream)));
         AttachmentElement.Add(AttachmentObjectElement);
-    end;
-
-    local procedure GetMimeCode(var DocumentAttachment: Record "Document Attachment"): Text;
-    begin
-        case DocumentAttachment."File Type" of
-            "Document Attachment File Type"::Image:
-                case LowerCase(DocumentAttachment."File Extension") of
-                    'png':
-                        exit('image/png');
-                    'jpeg', 'jpg':
-                        exit('image/jpeg');
-                end;
-            "Document Attachment File Type"::PDF:
-                exit('application/pdf');
-            "Document Attachment File Type"::Excel:
-                exit('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            "Document Attachment File Type"::Other:
-                exit(GetMimeCodeFromExtension(DocumentAttachment."File Extension"));
-        end;
-    end;
-
-    local procedure GetMimeCodeFromExtension(FileExtension: Text): Text
-    begin
-        case LowerCase(FileExtension) of
-            'csv':
-                exit('text/csv');
-            'ots':
-                exit('application/vnd.oasis.opendocument.spreadsheet');
-        end;
-    end;
-
-    local procedure IsValidMimeCode(MimeCode: Text): Boolean
-    begin
-        case MimeCode of
-            'application/pdf',
-            'image/png',
-            'image/jpeg',
-            'text/csv',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/vnd.oasis.opendocument.spreadsheet':
-                exit(true);
-        end;
-        exit(false);
     end;
 
     local procedure CalculateLineAmounts(SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvLine: Record "Sales Invoice Line"; Currency: Record Currency; var LineAmounts: Dictionary of [Text, Decimal])

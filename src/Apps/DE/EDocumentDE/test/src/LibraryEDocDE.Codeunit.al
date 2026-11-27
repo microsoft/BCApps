@@ -9,6 +9,7 @@ using Microsoft.Bank.DirectDebit;
 #if not CLEAN30
 using Microsoft.eServices.EDocument;
 #endif
+using Microsoft.Foundation.Attachment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Setup;
 using System.Reflection;
@@ -26,6 +27,7 @@ codeunit 13925 "Library - E-Doc DE"
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
         SEPADirectDebitMeansCodeTok: Label '59', Locked = true;
         CapturedEDocumentServiceCode: Code[20];
+        ExcludedAttachmentFileName: Text[250];
         EDocumentServiceEventCount: Integer;
 
     /// <summary>
@@ -94,6 +96,23 @@ codeunit 13925 "Library - E-Doc DE"
     local procedure CaptureZUGFeRDOnInsertPaymentMethodOnBeforeAddToRoot(var PaymentMethodElement: XmlElement; HeaderRecRef: RecordRef)
     begin
         CapturedPaymentMeansHeaderRecordId := HeaderRecRef.RecordId();
+    end;
+
+    /// <summary>
+    /// Makes the bound subscriber exclude document attachments with the given file name from the ZUGFeRD export.
+    /// Bind this codeunit with BindSubscription before the export and unbind afterwards.
+    /// </summary>
+    /// <param name="FileName">The file name, without extension, of the attachments to exclude.</param>
+    procedure SetExcludedAttachmentFileName(FileName: Text[250])
+    begin
+        ExcludedAttachmentFileName := FileName;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", OnInsertAttachmentOnAfterSetFilters, '', false, false)]
+    local procedure ExcludeZUGFeRDAttachmentOnInsertAttachmentOnAfterSetFilters(TableNo: Integer; DocumentNo: Code[20]; var DocumentAttachment: Record "Document Attachment")
+    begin
+        if ExcludedAttachmentFileName <> '' then
+            DocumentAttachment.SetFilter("File Name", '<>%1', ExcludedAttachmentFileName);
     end;
 
     /// <summary>

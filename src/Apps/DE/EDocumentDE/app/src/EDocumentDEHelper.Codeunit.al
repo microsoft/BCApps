@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
+using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -367,6 +368,60 @@ codeunit 11038 "E-Document DE Helper"
     internal procedure GetReportedAmount(SignedAmount: Decimal): Decimal
     begin
         exit(Abs(SignedAmount));
+    end;
+
+    /// <summary>
+    /// Gets the MIME code of a document attachment that is exported as an additional supporting document (BG-24).
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment.</param>
+    /// <returns>The MIME code, or an empty text when the file type has none.</returns>
+    internal procedure GetAttachmentMimeCode(var DocumentAttachment: Record "Document Attachment"): Text
+    begin
+        case DocumentAttachment."File Type" of
+            "Document Attachment File Type"::Image:
+                case LowerCase(DocumentAttachment."File Extension") of
+                    'png':
+                        exit('image/png');
+                    'jpeg', 'jpg':
+                        exit('image/jpeg');
+                end;
+            "Document Attachment File Type"::PDF:
+                exit('application/pdf');
+            "Document Attachment File Type"::Excel:
+                if LowerCase(DocumentAttachment."File Extension") = 'xlsx' then
+                    exit('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            "Document Attachment File Type"::Other:
+                exit(GetAttachmentMimeCodeFromExtension(DocumentAttachment."File Extension"));
+        end;
+    end;
+
+    local procedure GetAttachmentMimeCodeFromExtension(FileExtension: Text): Text
+    begin
+        case LowerCase(FileExtension) of
+            'csv':
+                exit('text/csv');
+            'ods':
+                exit('application/vnd.oasis.opendocument.spreadsheet');
+        end;
+    end;
+
+    /// <summary>
+    /// Tells whether an additional supporting document (BT-125) with the given MIME code may be embedded in the e-document.
+    /// </summary>
+    /// <param name="MimeCode">The MIME code of the attachment.</param>
+    /// <returns>True if the MIME code is supported; otherwise, false.</returns>
+    internal procedure IsSupportedAttachmentMimeCode(MimeCode: Text): Boolean
+    begin
+        case MimeCode of
+            'application/pdf',
+            'image/png',
+            'image/jpeg',
+            'text/csv',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/vnd.oasis.opendocument.spreadsheet':
+                exit(true);
+        end;
+        exit(false);
     end;
 
     [TryFunction]
