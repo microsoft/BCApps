@@ -2,6 +2,7 @@ codeunit 134123 "Price List Line UT"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -24,6 +25,7 @@ codeunit 134123 "Price List Line UT"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
+        ODataAuthenticationBound: Boolean;
         PriceListLinesServiceNameTxt: Label 'PriceListLinesODataTest', Locked = true;
         PriceListLineODataKeyTxt: Label 'Price_List_Code=''%1'',Line_No=%2', Locked = true;
         RecordIdentificationTxt: Label '%1=''%2'',%3=''%4''', Locked = true;
@@ -4042,6 +4044,11 @@ codeunit 134123 "Price List Line UT"
         // Commit so the web service and the test data are visible to the OData session.
         WebServiceManagement.CreateTenantWebService(TenantWebService."Object Type"::Page, Page::"Price List Lines", PriceListLinesServiceNameTxt, true);
         Commit();
+        // Bind once per codeunit run so the OData requests are authenticated, see AddBasicAuthenticationOnAfterInitializeWebRequestWithURL
+        if not ODataAuthenticationBound then begin
+            BindSubscription(this);
+            ODataAuthenticationBound := true;
+        end;
         if PriceListCode <> '' then
             RecordKey := StrSubstNo(PriceListLineODataKeyTxt, PriceListCode, Format(LineNo, 0, 9));
         exit(LibraryGraphMgt.CreateTargetURL(RecordKey, Page::"Price List Lines", PriceListLinesServiceNameTxt));
