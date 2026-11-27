@@ -40,8 +40,10 @@ report 20502 "Subc. Create SubCReturnOrder"
                 if not "Subc. Order" then
                     Error(OrderNoIsNotSubcontractorErr, PurchOrderNo);
 
-                if not CheckTransferToCreate() then
+                if not CheckTransferToCreate() then begin
+                    CheckOpenReturnTransferOrder();
                     Error(NothingToCreateErr);
+                end;
 
                 Vendor.Get("Purchase Header"."Buy-from Vendor No.");
             end;
@@ -81,6 +83,7 @@ report 20502 "Subc. Create SubCReturnOrder"
         PurchOrderNo: Code[20];
         LineNo: Integer;
         NothingToCreateErr: Label 'Nothing to create. No components or WIP items to return for the specified subcontracting order.';
+        ReturnTransferOrderAlreadyExistsErr: Label 'A return transfer order already exists for subcontracting purchase order %1. Complete or delete the existing return transfer order before creating another return.', Comment = '%1=Subcontracting Purchase Order No.';
         OrderNoDoesNotExistInProdOrderErr: Label 'Operation %1 in the subcontracting order %2 does not exist in the routing %3 of the production order %4.', Comment = '%1=Operation No., %2=Purchase Order No., %3=Routing No., %4=Production Order No.';
         OrderNoIsNotSubcontractorErr: Label 'Order %1 is not a Subcontractor work.', Comment = '%1=Purchase Order No.';
         SubcLocationCodeMissingErr: Label 'The Subc. Location Code must be specified on Vendor %1 or the Subcontracting Purchase Order to create return orders.', Comment = '%1=Vendor No.';
@@ -137,6 +140,22 @@ report 20502 "Subc. Create SubCReturnOrder"
             else
                 LineNo := 0;
         end;
+    end;
+
+    local procedure CheckOpenReturnTransferOrder()
+    var
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+    begin
+        ReturnTransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
+        ReturnTransferLine.SetRange("Derived From Line No.", 0);
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        if ReturnTransferLine.FindSet() then
+            repeat
+                ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+                if ReturnTransferHeader.Status = ReturnTransferHeader.Status::Open then
+                    Error(ReturnTransferOrderAlreadyExistsErr, PurchOrderNo);
+            until ReturnTransferLine.Next() = 0;
     end;
 
     local procedure CheckTransferToCreate(): Boolean

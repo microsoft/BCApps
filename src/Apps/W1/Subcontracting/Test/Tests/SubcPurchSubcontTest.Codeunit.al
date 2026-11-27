@@ -56,6 +56,8 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         IsInitialized: Boolean;
         ItemTrackingWasOpened: Boolean;
         UnitCostCalculation: Option Time,Units;
+        ReturnTransferOrderAlreadyExistsErr: Label 'A return transfer order already exists for subcontracting purchase order %1. Complete or delete the existing return transfer order before creating another return.', Locked = true, Comment = '%1=Subcontracting Purchase Order No.';
+        NothingToReturnErr: Label 'Nothing to create. No components or WIP items to return for the specified subcontracting order.', Locked = true;
 
     [Test]
     procedure VendorLocationWithBinMandatoryThrowsError()
@@ -1183,6 +1185,111 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         end;
         WorkCenter.Modify(true);
         WorkCenterNo := WorkCenter."No.";
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure OpenReturnWithDeletedComponentExplainsExistingReturnOrder()
+    var
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderComponent: Record "Prod. Order Component";
+        OtherProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+        DeletedComponentItemNo: Code[20];
+    begin
+        // [SCENARIO 660833] An open return with a deleted component line reports the existing return, not missing returnable stock.
+        Initialize();
+
+        // [GIVEN] Two transfer-to-vendor components linked to the same subcontracting purchase line
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", 2);
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+        ProdOrderRoutingLine.Get(
+            ProductionOrder.Status, ProductionOrder."No.", PurchaseLine."Routing Reference No.", PurchaseLine."Routing No.", PurchaseLine."Operation No.");
+        ProdOrderRoutingLine."Transfer WIP Item" := false;
+        ProdOrderRoutingLine.Modify(true);
+        PurchaseLine."Transfer WIP Item" := false;
+        PurchaseLine.Modify(true);
+
+        FindTransferProdOrderComponent(ProdOrderComponent, PurchaseLine);
+        ProdOrderComponent.FindFirst();
+        OtherProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        OtherProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        OtherProdOrderComponent.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        OtherProdOrderComponent.SetFilter("Line No.", '<>%1', ProdOrderComponent."Line No.");
+        OtherProdOrderComponent.FindFirst();
+        OtherProdOrderComponent.Validate("Routing Link Code", ProdOrderComponent."Routing Link Code");
+        OtherProdOrderComponent.Validate("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
+        OtherProdOrderComponent.Modify(true);
+        DeletedComponentItemNo := OtherProdOrderComponent."Item No.";
+
+        // [GIVEN] Both components are transferred to the subcontractor and included in the first open return
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
+        PostDirectTransferOrder(TransferHeader);
+        CreateReturnTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(ReturnTransferHeader, PurchaseLine, true);
+        ReturnTransferHeader.TestField(Status, ReturnTransferHeader.Status::Open);
+        ReturnTransferLine.SetRange("Document No.", ReturnTransferHeader."No.");
+        Assert.RecordCount(ReturnTransferLine, 2);
+        ReturnTransferLine.SetRange("Item No.", DeletedComponentItemNo);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferLine.TestField(Quantity, 2);
+        ReturnTransferLine.Delete(true);
+
+        // [GIVEN] The deleted component still has two units at the subcontractor
+        OtherProdOrderComponent.Get(
+            OtherProdOrderComponent.Status, OtherProdOrderComponent."Prod. Order No.", OtherProdOrderComponent."Prod. Order Line No.", OtherProdOrderComponent."Line No.");
+        OtherProdOrderComponent.CalcFields("Subc. Qty. transf. to Subcontr");
+        Assert.AreEqual(2, OtherProdOrderComponent."Subc. Qty. transf. to Subcontr", 'The deleted component must still be at the subcontractor.');
+        Commit();
+
+        // [WHEN] Creating another return from the same purchase order
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+        asserterror PurchaseOrderPage.CreateReturnFromSubcontractor.Invoke();
+
+        // [THEN] The error identifies the purchase order and explains how to proceed without changing the open return
+        Assert.ExpectedError(StrSubstNo(ReturnTransferOrderAlreadyExistsErr, PurchaseHeader."No."));
+        ReturnTransferLine.SetRange("Item No.");
+        Assert.RecordCount(ReturnTransferLine, 1);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferLine.TestField("Item No.", ProdOrderComponent."Item No.");
+        ReturnTransferLine.TestField(Quantity, 2);
+        ReturnTransferLine.TestField("Quantity Shipped", 0);
+        ReturnTransferLine.TestField("Quantity Received", 0);
+        PurchaseOrderPage.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess')]
+    procedure NoReturnableStockWithoutOpenReturnKeepsNothingToReturnError()
+    var
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO 660833] With no outbound transfer or open return, the existing no-returnable-stock error is preserved.
+        Initialize();
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", 2);
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        asserterror CreateReturnTransferOrderForPurchaseOrder(PurchaseHeader);
+
+        Assert.ExpectedError(NothingToReturnErr);
     end;
 
     local procedure Initialize()
