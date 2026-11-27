@@ -2365,11 +2365,11 @@ codeunit 137048 "SCM Warehouse II"
         LibraryWarehouse.CreateLocationWMS(Location, true, true, true, true, true);
 
         // [GIVEN] Create Bin 1 & Validate Receipt Bin Code.
-        LibraryWarehouse.CreateBin(Bin1, Location.Code, Format(LibraryRandom.RandText(3)), '', '');
+        LibraryWarehouse.CreateBin(Bin1, Location.Code, '', '', '');
         Location.Validate("Receipt Bin Code", Bin1.Code);
 
         // [GIVEN] Create Bin 2.
-        LibraryWarehouse.CreateBin(Bin2, Location.Code, Format(LibraryRandom.RandText(3)), '', '');
+        LibraryWarehouse.CreateBin(Bin2, Location.Code, '', '', '');
 
         // [GIVEN] Disable Check Whse. Class in Warehouse Location.
         Location.Validate("Check Whse. Class", false);

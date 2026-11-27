@@ -241,7 +241,9 @@ report 5802 "Inventory Valuation - WIP"
                                 ValueOfWIP := ValueOfExpOutput1 + ValueOfInvOutput1;
                             end;
 
-                            if ("Entry Type" = "Entry Type"::Revaluation) and ("Cost Amount (Actual)" <> 0) then
+                            if ("Entry Type" = "Entry Type"::Revaluation) and ("Cost Amount (Actual)" <> 0) and
+                                not IsWIPConsumptionRevaluation("Value Entry")
+                            then
                                 ValueOfWIP := 0;
                         end else
                             case "Item Ledger Entry Type" of
@@ -676,6 +678,14 @@ report 5802 "Inventory Valuation - WIP"
             exit(false);
 
         exit(true);
+    end;
+
+    local procedure IsWIPConsumptionRevaluation(ValueEntry: Record "Value Entry"): Boolean
+    begin
+        exit(
+            (ValueEntry."Entry Type" = ValueEntry."Entry Type"::Revaluation) and
+            (ValueEntry."Item Ledger Entry Type" = ValueEntry."Item Ledger Entry Type"::Consumption) and
+            (ValueEntry."Item Ledger Entry Quantity" <= 0));
     end;
 
     local procedure FinishedProdOrderIsCompletelyInvoiced(): Boolean
