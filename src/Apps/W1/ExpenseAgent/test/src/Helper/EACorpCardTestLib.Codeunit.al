@@ -180,6 +180,19 @@ codeunit 148357 EACorpCardTestLib
         CorpCardTrans.Insert(true);
     end;
 
+    // Creates another card for the expense user of the given card and returns its card ID.
+    internal procedure CreateAdditionalCard(CorpCard: Record "EA Corp Card"; MaskedCardNo: Text[30]): Code[50]
+    var
+        AdditionalCorpCard: Record "EA Corp Card";
+    begin
+        AdditionalCorpCard := CorpCard;
+        AdditionalCorpCard."Card Id" := CopyStr(Format(CreateGuid()), 1, MaxStrLen(AdditionalCorpCard."Card Id"));
+        AdditionalCorpCard."External Card Ref" := '';
+        AdditionalCorpCard."Masked Card No." := MaskedCardNo;
+        AdditionalCorpCard.Insert(true);
+        exit(AdditionalCorpCard."Card Id");
+    end;
+
     local procedure InitializeCorpCardSetup()
     var
         ExpenseAgentSetup: Record "Expense Agent Setup";

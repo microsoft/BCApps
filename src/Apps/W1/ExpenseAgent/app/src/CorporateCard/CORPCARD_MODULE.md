@@ -151,6 +151,7 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7447 | EA Corp Card Selection Mgt | Validates employee-card ownership, eligibility, and selection; formats compact card labels | ValidateExpenseCard, ValidateReportLine, LookupCard, LookupReportLineCard, GetCardDisplay |
 | 7448 | EA Corp Card Expense Match | Matches selected-card expenses across lifecycle states and links feed provenance without reposting | MatchExistingExpense, LinkExpense |
 | 7449 | EA Corp Card Liability Mgt | Transfers and reverses an already-posted manual expense liability | TransferLiability, ReverseLiability |
+| 7438 | EA Receipt Expense Match | Read-only matching of extracted receipt data to a card-created expense waiting for a receipt | SetPendingCardExpenseFilters, FindMatchingExpense, CheckMatchingExpense |
 
 ### Corporate Card Pages and Page Extensions
 
@@ -176,6 +177,7 @@ The primary workflow codeunits in the `CorporateCard/Codeunits` folder include:
 | 7448 | EA Corp Card Settlement Lines | ListPart | Validated provider statements included in a settlement |
 | 7450 | EA Corp Card Lookup | List | Read-only employee-card selection with provider short name and last four digits |
 | 7451 | Expense Corporate Cards API | API | Read-only, single-expense-user card catalog |
+| 7420 | EA Card Expense Matches API | API | `expenseUsers({id})/cardExpenseMatches`: read-only receipt-to-card-expense matching |
 | 7452 | EA Card Liability Transfer | StandardDialog | Posting-date selection for a manual liability transfer |
 | 7440 | EA Payment Rec. Journal | Page extension | Shows corporate card transaction and posted expense report references |
 | 7441 | EA Bank Account Stmt. Lines | Page extension | Shows durable corporate card and posted expense report references |
@@ -201,6 +203,7 @@ The module retains its existing Expense Agent records and models provider statem
 - **Bank Account Statement Line** (table extension 7441) - Durable posted-statement links
 - **Bank Account Ledger Entry** (table extension 7442) - Durable transaction link on the bank entry
 - **Gen. Journal Line** (table extension 7443) - Carries the transaction reference through standard posting
+- **EA Card Expense Match Buffer** (table 7420) - Temporary request/response buffer for the card expense matches API
 
 ---
 
@@ -524,7 +527,13 @@ Corporate-card events use `Feature Telemetry` under the existing Expense Agent f
 
 ### Agent API Card Selection
 
-The read-only `corporateCards` entity set is published by `microsoft/expense/beta`. It requires agent access and an equality filter for exactly one nonblank `expenseUserNumber`, for example:
+The read-only `corporateCards` entity set is published by `microsoft/expense/beta`. It requires agent access and exactly one nonblank expense user. Read it through the expense user:
+
+```http
+GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/corporateCards
+```
+
+The top-level route with an equality filter on `expenseUserNumber` is **deprecated** and will be removed in a future release. It still works for existing clients; new clients should use the route above. Both routes reject requests that do not resolve to a single expense user.
 
 ```http
 GET .../api/microsoft/expense/beta/companies({companyId})/corporateCards?$filter=expenseUserNumber eq 'EU0001'
@@ -540,11 +549,43 @@ The `expenses` API exposes a read-only `source` field. `Manual` is the default, 
 
 Once a `CorporateCard`-source expense is stored, its amount, expense date, and currency cannot be changed, including through receipt extraction/API updates. The Expense Card shows these fields as read-only. Updates that retain the financial values and updates to other receipt details remain allowed. `Manual`-source expenses are not subject to this restriction, even after matching to a transaction.
 
-To find corporate-card-created drafts awaiting receipts:
+The `expenses` API exposes a read-only, filterable `pendingCardExpense` flag (a FlowField, so it is always current). It is `true` for a corporate-card-created expense that is still waiting for a receipt, using the same rules as receipt matching: source `CorporateCard`, linked to a card transaction, no receipt, no **No Receipt Type**, status `Open`, and not on an expense report. Expenses marked *Lost Receipt* or *Receipt not needed* are `false`. Use it to split an expense user's expenses into card expenses waiting for a receipt and all others:
 
 ```http
-GET .../api/microsoft/expense/beta/companies({companyId})/expenses?$filter=source eq 'CorporateCard' and status eq 'Open' and receiptAttached eq false and expenseReportNo eq ''
+GET .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/expenses?$filter=pendingCardExpense eq true
+GET .../expenseUsers({expenseUserId})?$expand=expenses($filter=pendingCardExpense eq false;$orderby=systemCreatedAt desc;$top=50)
 ```
+
+Clients can detect support by checking for the `pendingCardExpense` property on the `expense` entity in `$metadata`.
+
+### Receipt Matching (Card Expense Matches API)
+
+When a receipt has been extracted, the client asks Business Central which pending card expense it belongs to. The expense user comes only from the URL; nothing is written.
+
+```http
+POST .../api/microsoft/expense/beta/companies({companyId})/expenseUsers({expenseUserId})/cardExpenseMatches
+{ "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR", "merchantName": "Contoso Coffee", "cardLast4": "1234" }
+```
+
+Candidates are the user's pending card expenses with the same currency (LCY may be blank or the LCY code), the exact amount, and an expense date within **Corp Card Date Match Window** days of the receipt date. When the optional `cardLast4` is exactly four digits, candidates must also be paid with one of the user's cards whose **Masked Card No.** ends in those digits; other values are ignored. Without valid card digits nothing proves the receipt was paid by card, so a candidate must also have a similar merchant name: a similarity of at least 0.6 (Levenshtein), where the shorter name is also compared with the start of the longer one, so "Fourth Coffee" fits "FOURTH COFFEE CANARY WHARF". A receipt without a merchant name and card digits therefore matches nothing. Candidates are scored on date distance (5 points per day) and merchant name similarity; the highest score wins and ties keep the lowest expense number. The response `expenseId` is the matching expense, or an empty GUID when there is no match.
+
+Recommended client flow for a matched expense:
+
+1. Store the returned `expenseId` immediately, so a resumed run does not create a duplicate expense.
+2. Upload the receipt through `expenses({id})/attachments` **before** release; attachments cannot be changed once the expense is no longer open.
+3. Set `expenseCategory` if it is blank (drafts get a category only for mapped MCCs); release requires it.
+4. Call `releaseExpense`, then add the expense to a report using the expense's `expenseDate` (the transaction date), not the receipt date.
+
+When there is no match, the client creates the expense as usual.
+
+When the user picks a pending card expense (`pendingCardExpense eq true`) and submits a receipt for it, the client can check that the extracted receipt really fits that expense by posting the same data with its `expenseId`:
+
+```http
+POST .../expenseUsers({expenseUserId})/cardExpenseMatches
+{ "expenseId": "{expenseId}", "expenseDate": "2026-06-01", "amount": 42.50, "currencyCode": "EUR" }
+```
+
+Only that expense is checked, with the same rules as above, including `cardLast4` when it is sent. The merchant name is not checked, because the user picked the expense. The response `expenseId` is the same expense when the receipt fits, or an empty GUID when it does not. On a fit the client continues with steps 2–4 above on that expense.
 
 ### Upgrade Behavior
 
@@ -818,7 +859,7 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 2. **Max String Length:** Levenshtein algorithm capped at 100 characters (longer strings truncated)
 3. **Pattern Syntax:** Merchant normalization uses substring matching, not regular expressions; `*` characters are stripped
 4. **Report Helpers:** Corporate-card ReportMgt and ApprovalMgt have no callers; approval runs through the standard Expense Agent workflow
-5. **No Receipt Matching:** Does not support image-based receipt OCR (future enhancement)
+5. **Receipt Matching Inputs:** Receipt matching relies on client-extracted data (date, amount, currency, merchant); Business Central does not run OCR, and receipt merchant names are not normalized before comparison
 6. **Reversal Prerequisites:** Standard Business Central reversal restrictions apply; closed, reconciled, or already-reversed bank entries must be corrected through the relevant standard process
 7. **Runtime Test Infrastructure:** Posting and reversal integration tests require a Business Central AL test runtime; compiler validation alone does not execute them
 8. **Level 3 Import:** No current CSV/XML import creates detail rows or VAT specifications from Level 3 data
@@ -830,7 +871,6 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 ## Future Enhancements
 
-- [ ] **Receipt Image Matching:** Attachment-based expense verification via OCR
 - [ ] **Multi-Transaction Grouping:** Detect related transactions for per-diem/group expenses
 - [ ] **Vendor Master Integration:** Link transactions to vendor records (AP reconciliation)
 - [ ] **Rule-Based Auto-Approval:** Trusted vendor/amount workflows (no manager review)
@@ -913,7 +953,7 @@ All-provider batches fetch one enabled automated-feed provider at a time, withou
 
 **Corporate-card allocation in app.json:** 7420–7459 (40 IDs per object type). The app also declares 6900–6999 and 7073–7147; `EA Corp Card Stats Calculator` uses codeunit 6913.
 
-Corporate-card objects also live outside the CorporateCard folder, including the agent card API (page 7451), setup/upgrade code, and expense/report integration.
+Corporate-card objects also live outside the CorporateCard folder, including the agent card API (page 7451), the receipt matching APIs (pages 7420–7421, table 7420 under `APIs/CardExpenseMatches`), setup/upgrade code, and expense/report integration.
 
 ---
 

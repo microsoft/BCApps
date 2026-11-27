@@ -26,6 +26,7 @@ permissionset 6953 "Expense Agent - Data"
                   tabledata "Expense Report Line Per Diem" = RIMD,
                   tabledata "Expense Report Rule Violation" = RID,
                   tabledata "Expense Report Line Item" = RIMD,
+                  tabledata "Expense Report Line VAT Spec." = RIMD,
                   tabledata "Expense VAT Specification" = RIMD,
                   tabledata "Expense Vendor" = RIM,
                   tabledata "Expense Ledger Entry" = RiM,

@@ -54,15 +54,30 @@ page 7451 "Expense Corporate Cards API"
     var
         ExpenseUserNo: Code[20];
     begin
-        if Rec.GetFilter("Expense User No.") = '' then
-            Error(GetExpenseUserFilterRequiredError());
-        ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
-        if (ExpenseUserNo = '') or (ExpenseUserNo <> Rec.GetRangeMax("Expense User No.")) then
-            Error(GetExpenseUserFilterRequiredError());
+        if not GetLinkedExpenseUserNo(ExpenseUserNo) then begin
+            if Rec.GetFilter("Expense User No.") = '' then
+                Error(GetExpenseUserFilterRequiredError());
+            ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
+            if (ExpenseUserNo = '') or (ExpenseUserNo <> Rec.GetRangeMax("Expense User No.")) then
+                Error(GetExpenseUserFilterRequiredError());
+        end;
         Rec.FilterGroup(2);
         Rec.SetRange("Expense User No.", ExpenseUserNo);
         Rec.SetRange(Blocked, false);
         Rec.FilterGroup(0);
+    end;
+
+    // expenseUsers({id})/corporateCards passes the expense user through the subpage link, which is set in filter group 4.
+    local procedure GetLinkedExpenseUserNo(var ExpenseUserNo: Code[20]): Boolean
+    var
+        OriginalFilterGroup: Integer;
+    begin
+        OriginalFilterGroup := Rec.FilterGroup();
+        Rec.FilterGroup(4);
+        if Rec.GetFilter("Expense User No.") <> '' then
+            ExpenseUserNo := Rec.GetRangeMin("Expense User No.");
+        Rec.FilterGroup(OriginalFilterGroup);
+        exit(ExpenseUserNo <> '');
     end;
 
     local procedure GetExpenseUserFilterRequiredError(): ErrorInfo
@@ -79,6 +94,6 @@ page 7451 "Expense Corporate Cards API"
 
     var
         ExpenseUserFilterRequiredTitleErr: Label 'Expense user filter required';
-        ExpenseUserFilterRequiredErr: Label 'Filter corporate cards by a single expenseUserNumber. Retry the request with $filter=expenseUserNumber eq ''<expense-user-number>''.', Comment = '$filter and expenseUserNumber are OData API identifiers; <expense-user-number> is a placeholder for an expense user number.';
-        ExpenseUserFilterRequiredDetailsErr: Label 'Use one non-empty expense user number. Ranges and filters selecting multiple expense users are not supported.';
+        ExpenseUserFilterRequiredErr: Label 'Read corporate cards through a single expense user. Retry the request with expenseUsers(<expense-user-id>)/corporateCards.', Comment = 'expenseUsers and corporateCards are OData API identifiers; <expense-user-id> is a placeholder for an expense user ID.';
+        ExpenseUserFilterRequiredDetailsErr: Label 'The deprecated $filter=expenseUserNumber eq ''<expense-user-number>'' route still works with one non-empty expense user number. Ranges and filters selecting multiple expense users are not supported.', Comment = '$filter and expenseUserNumber are OData API identifiers; <expense-user-number> is a placeholder for an expense user number.';
 }

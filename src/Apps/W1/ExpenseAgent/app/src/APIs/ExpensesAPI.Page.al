@@ -126,6 +126,11 @@ page 6927 "Expenses API"
                 {
                     Caption = 'Receipt Attached';
                 }
+                field(pendingCardExpense; Rec."Pending Card Expense")
+                {
+                    Caption = 'Pending Card Expense';
+                    Editable = false;
+                }
                 field(receiptEntry; Rec."Receipt Entry")
                 {
                     Caption = 'Receipt Entry';
