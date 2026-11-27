@@ -1238,7 +1238,7 @@ codeunit 10695 "Generate SAF-T 1.4 File"
     local procedure GetCurrencyFactor(OriginalCurrencyFactor: Decimal; Amount: Decimal; AmountLCY: Decimal): Decimal
     begin
         if OriginalCurrencyFactor <> 0 then
-            exit(OriginalCurrencyFactor);
+            exit(1 / OriginalCurrencyFactor);
         exit(AmountLCY / Amount);
     end;
 
