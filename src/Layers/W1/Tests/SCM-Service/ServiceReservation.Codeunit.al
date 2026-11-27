@@ -2161,6 +2161,7 @@ codeunit 136121 "Service Reservation"
         ProductionOrder.SetRange("No.", ProductionOrder."No.");
         RefreshProductionOrder.SetTableView(ProductionOrder);
         Commit();
+        RefreshProductionOrder.SetHideValidationDialog(true);
         RefreshProductionOrder.UseRequestPage(false);
         RefreshProductionOrder.RunModal();
         exit(ProductionOrder."Location Code");

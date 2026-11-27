@@ -380,6 +380,13 @@ table 99000765 "Manufacturing Setup"
             ToolTip = 'Specifies the number series used to assign codes to new routing versions when the routing does not specify its own version number series.';
             TableRelation = "No. Series";
         }
+        field(314; "Default Location Code"; Code[10])
+        {
+            Caption = 'Default Location Code';
+            DataClassification = CustomerContent;
+            TableRelation = Location where("Use As In-Transit" = const(false));
+            ToolTip = 'Specifies the default finished-output location for new simulated, planned, firm planned, and released production orders without a source or explicit location. This does not change component locations.';
+        }
         field(5500; "Preset Output Quantity"; Option)
         {
             Caption = 'Preset Output Quantity';

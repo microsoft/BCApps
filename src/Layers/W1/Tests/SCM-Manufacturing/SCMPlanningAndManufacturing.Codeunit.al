@@ -3482,6 +3482,75 @@ codeunit 137080 "SCM Planning And Manufacturing"
         ManufacturingSetup.Modify(true);
     end;
 
+    [Test]
+    procedure DefaultLocationPlanningSource()
+    var
+        Item: Record Item;
+        Component: Record Item;
+        DefaultLocation: Record Location;
+        SourceLocation: Record Location;
+        RequisitionLine: Record "Requisition Line";
+        PlanningComponent: Record "Planning Component";
+        ProductionOrder: Record "Production Order";
+        Observer: Codeunit "SCM Production Orders";
+        SourceCode: Code[10];
+        Iteration: Integer;
+        Direction: Option Forward,Backward;
+    begin
+        // [SCENARIO] Planning carry-out preserves the planning location, including blank, through forward flushing.
+        Initialize();
+        // [GIVEN] A default location and planning demand at a different or blank source location.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(DefaultLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(SourceLocation);
+        Observer.ConfigureDefaultLocation(DefaultLocation.Code, '');
+        for Iteration := 1 to 2 do begin
+            SourceCode := '';
+            if Iteration = 1 then
+                SourceCode := SourceLocation.Code;
+            CreateProdItemWithForwardFlushingComponent(Item, Component, 1);
+            RequisitionLine.Reset();
+            CreateRequisitionLine(RequisitionLine, Item."No.", 1);
+            RequisitionLine.Validate("Location Code", SourceCode);
+            RequisitionLine.Modify(true);
+            RequisitionLine.SetRecFilter();
+            LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Forward, false, true);
+            RequisitionLine.FindFirst();
+            PlanningComponent.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
+            PlanningComponent.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
+            PlanningComponent.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+            Assert.RecordCount(PlanningComponent, 1);
+            PlanningComponent.FindFirst();
+            PlanningComponent.TestField("Item No.", Component."No.");
+            PlanningComponent.TestField("Location Code", SourceCode);
+            PlanningComponent.TestField("Expected Quantity", 1);
+            Observer.PostDefaultLocationStock(Component."No.", SourceCode, 1);
+            Component.SetRange("Location Filter", SourceCode);
+            Component.CalcFields(Inventory);
+            Component.TestField(Inventory, 1);
+            RequisitionLine.Validate("Accept Action Message", true);
+            RequisitionLine.Modify();
+            Assert.RecordCount(RequisitionLine, 1);
+            Observer.StartDefaultLocationCapture(DefaultLocation.Code, '');
+            BindSubscription(Observer);
+            // [WHEN] Planning carry-out creates released production supply.
+            LibraryPlanning.CarryOutPlanWksh(
+                RequisitionLine,
+                Enum::"Planning Create Prod. Order"::Released.AsInteger(),
+                Enum::"Planning Create Purchase Order"::" ".AsInteger(),
+                Enum::"Planning Create Transfer Order"::" ".AsInteger(),
+                Enum::"Planning Create Assembly Order"::" ".AsInteger(),
+                '', '', '', '');
+            UnbindSubscription(Observer);
+            // [THEN] No setup-default validation occurs and supply and consumption retain the source location and quantity.
+            Observer.AssertDefaultLocationCapture();
+            Observer.FindDefaultLocationOrder(ProductionOrder, Item."No.");
+            ProductionOrder.TestField(Quantity, 1);
+            Observer.AssertDefaultLocationRelations(ProductionOrder, Item."No.", SourceCode, SourceCode, 1);
+            Observer.AssertDefaultLocationLedger(Component."No.", ProductionOrder."No.", SourceCode, Enum::"Item Ledger Entry Type"::Consumption, -1);
+        end;
+        LibrarySetupStorage.Restore();
+    end;
+
     local procedure Initialize()
     var
         PlanningErrorLog: Record "Planning Error Log";

@@ -448,6 +448,11 @@ page 99000813 "Planned Production Order"
             VariantCodeMandatory := Item.IsVariantMandatory(Rec."Source Type" = Rec."Source Type"::Item, Rec."Source No.");
     end;
 
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec.SetDefaultLocation();
+    end;
+
     var
         VariantCodeMandatory: Boolean;
 

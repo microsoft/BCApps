@@ -872,6 +872,23 @@ table 5405 "Production Order"
     protected var
         HideValidationDialog: Boolean;
 
+    /// <summary>
+    /// Applies the setup default to a blank location when a caller opts in to new-order defaulting.
+    /// </summary>
+    procedure SetDefaultLocation()
+    begin
+        if "Location Code" <> '' then
+            exit;
+
+        if MfgSetup.Get() then
+            if MfgSetup."Default Location Code" <> '' then begin
+                Validate("Location Code", MfgSetup."Default Location Code");
+                // Refresh must select the output bin using the source's final routing.
+                if "Source No." = '' then
+                    "Bin Code" := '';
+            end;
+    end;
+
     procedure InitRecord()
     begin
         OnBeforeInitRecord(Rec);
