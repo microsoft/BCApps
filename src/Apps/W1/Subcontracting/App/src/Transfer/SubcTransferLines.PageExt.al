@@ -12,6 +12,13 @@ pageextension 20530 "Subc. Transfer Lines" extends "Transfer Lines"
     {
         addlast(Control1)
         {
+            field(SubcWIPStatus; WIPStatus)
+            {
+                ApplicationArea = Subcontracting;
+                Caption = 'WIP Status';
+                Editable = false;
+                ToolTip = 'Specifies the processing state allocated to this WIP transfer.';
+            }
             field("Subc. Return Order"; Rec."Subc. Return Order")
             {
                 ApplicationArea = Subcontracting;
@@ -23,6 +30,16 @@ pageextension 20530 "Subc. Transfer Lines" extends "Transfer Lines"
                 ApplicationArea = Subcontracting;
                 Editable = false;
             }
+
+            trigger OnAfterGetRecord()
+            begin
+                Clear(WIPStatus);
+                if Rec."Subc. State Tracked" and Rec."Transfer WIP Item" then
+                    WIPStatus := Format(Rec."Subc. WIP State");
+            end;
+
+            var
+                WIPStatus: Text;
         }
     }
 }

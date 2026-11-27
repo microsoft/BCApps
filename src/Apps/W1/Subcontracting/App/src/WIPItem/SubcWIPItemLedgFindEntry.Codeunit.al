@@ -45,7 +45,10 @@ codeunit 20564 "Subc. WIP Item Ledg Find Entry"
     begin
         SubcontractorWIPLedgerEntry.Reset();
         SubcontractorWIPLedgerEntry.SetCurrentKey("Document No.", "Posting Date");
+        SubcontractorWIPLedgerEntry.FilterGroup(-1);
         SubcontractorWIPLedgerEntry.SetFilter("Document No.", DocNoFilter);
+        SubcontractorWIPLedgerEntry.SetFilter("Purchase Receipt No.", DocNoFilter);
+        SubcontractorWIPLedgerEntry.FilterGroup(0);
         SubcontractorWIPLedgerEntry.SetFilter("Posting Date", PostingDateFilter);
     end;
 
@@ -59,6 +62,8 @@ codeunit 20564 "Subc. WIP Item Ledg Find Entry"
             exit;
 #endif
         if DocumentEntry."Table ID" = Database::"Subcontractor WIP Ledger Entry" then begin
+            if not SubcontractorWIPLedgerEntry.ReadPermission() then
+                exit;
             FilterWIPLedgerEntries(DocNoFilter, PostingDateFilter);
             Page.Run(0, SubcontractorWIPLedgerEntry);
         end;

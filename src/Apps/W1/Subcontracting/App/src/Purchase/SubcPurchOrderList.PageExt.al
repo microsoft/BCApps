@@ -36,7 +36,7 @@ pageextension 20525 "Subc. PurchOrderList" extends "Purchase Order List"
                 begin
                     PurchaseHeader := Rec;
                     PurchaseHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
+                    Report.Run(Report::"Subc. Create Transf. Order", true, false, PurchaseHeader);
                 end;
             }
             action(CreateReturnFromSubcontractor)
@@ -52,7 +52,7 @@ pageextension 20525 "Subc. PurchOrderList" extends "Purchase Order List"
                 begin
                     PurchaseHeader := Rec;
                     PurchaseHeader.SetRecFilter();
-                    Report.Run(Report::"Subc. Create SubCReturnOrder", false, false, PurchaseHeader);
+                    Report.Run(Report::"Subc. Create SubCReturnOrder", true, false, PurchaseHeader);
                 end;
             }
             action(PrintSubcDispatchingList)

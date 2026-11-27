@@ -35,6 +35,8 @@ codeunit 20567 "Subc. Pst. Prev. Event Handler"
 
         TempSubcontractorWIPLedgerEntry := Rec;
         TempSubcontractorWIPLedgerEntry."Document No." := DocumentMaskTok;
+        if TempSubcontractorWIPLedgerEntry."Purchase Receipt No." <> '' then
+            TempSubcontractorWIPLedgerEntry."Purchase Receipt No." := DocumentMaskTok;
         TempSubcontractorWIPLedgerEntry.Insert();
     end;
 

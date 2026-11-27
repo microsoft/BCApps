@@ -36,6 +36,18 @@ codeunit 149918 "Subc. Invt. Put-away Test"
         IsInitialized := false;
     end;
 
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -920,7 +932,7 @@ codeunit 149918 "Subc. Invt. Put-away Test"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure WipItemTransfer_PostInvtPutAway_NoItemLedgerNoWarehouseEntry_CreatesWipLedgerEntry()
     var
         ForwardTransferHeader: Record "Transfer Header";

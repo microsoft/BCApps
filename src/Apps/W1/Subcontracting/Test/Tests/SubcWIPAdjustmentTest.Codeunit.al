@@ -11,6 +11,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 
 codeunit 149914 "Subc. WIP Adjustment Test"
 {
@@ -25,7 +26,146 @@ codeunit 149914 "Subc. WIP Adjustment Test"
     end;
 
     [Test]
-    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,StateWIPTransferOrder,WIPAdjustmentPageHandler')]
+    procedure LegacyAdjustmentAndCleanupStayNative()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        Adjustment: Page "Subc. WIP Adjustment";
+        WarehouseLibrary: Codeunit "Subc. Warehouse Library";
+        WIPPosting: Codeunit "Subc. Transfer WIP Posting";
+        CleanupCount: Integer;
+    begin
+        Initialize();
+        WarehouseLibrary.CreateLegacyWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10);
+        WarehouseLibrary.PostStateWIPSupply(PurchaseHeader);
+        Entry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Entry.SetRange("In Transit", false);
+        Entry.FindFirst();
+        SetHandlerValues(8, 'LEGACY', 'Native unsplit legacy adjustment', '');
+        Adjustment.SetWIPLedgerEntry(Entry);
+        Adjustment.RunModal();
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(8, Entry."Quantity (Base)", 'Legacy adjustment retains the native total.');
+        Entry.SetRange("Document Type", Entry."Document Type"::"Adjustment (Manual)");
+        Assert.RecordCount(Entry, 1);
+        Entry.FindFirst();
+        Assert.AreEqual(-2, Entry."Quantity (Base)", 'Legacy adjustment must not split by a new processing state.');
+        Assert.IsFalse(Entry."State Tracked", 'Legacy adjustment must not invent state.');
+        Assert.AreEqual('', Entry.ProcessingStateCaption(), 'Legacy adjustment remains unclassified.');
+        Clear(Adjustment);
+        SetHandlerValues(11, 'LEGACY-CAP', 'Native production cap', '');
+        Adjustment.SetWIPLedgerEntry(Entry);
+        asserterror Adjustment.RunModal();
+        Assert.ExpectedError('must not exceed');
+        WIPPosting.CreateAdjustmentWIPEntriesOnFinishProdOrder(ProductionOrder, WorkDate());
+        Entry.SetRange("Document Type");
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(0, Entry."Quantity (Base)", 'The native legacy cleanup must balance unsplit custody.');
+        Entry.SetRange("Document Type", Entry."Document Type"::"Adjustment (Finish Prod Order)");
+        Assert.RecordCount(Entry, 1);
+        Entry.FindFirst();
+        Assert.AreEqual(-8, Entry."Quantity (Base)", 'Legacy cleanup remains one native balancing entry.');
+        Assert.IsFalse(Entry."State Tracked", 'Cleanup cannot manufacture a processing-state classification.');
+        CleanupCount := Entry.Count();
+        WIPPosting.CreateAdjustmentWIPEntriesOnFinishProdOrder(ProductionOrder, WorkDate());
+        Assert.AreEqual(CleanupCount, Entry.Count(), 'Repeated native cleanup must not post another balancing entry.');
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,StateWIPTransferOrder,WIPAdjustmentPageHandler')]
+    procedure AdjustmentChangesOnlySelectedState()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        Adjustment: Page "Subc. WIP Adjustment";
+        WarehouseLibrary: Codeunit "Subc. Warehouse Library";
+    begin
+        Initialize();
+        WarehouseLibrary.CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10, 1, true);
+        WarehouseLibrary.PostStateWIPSupply(PurchaseHeader);
+        WarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        WarehouseLibrary.FindStateWIPEntry(Entry, PurchaseLine, Entry."WIP State"::Processed);
+        SetHandlerValues(6, 'PROCESSED', 'Processed-state reduction', '');
+        Adjustment.SetWIPLedgerEntry(Entry);
+        Adjustment.RunModal();
+        WarehouseLibrary.AssertStateWIP(PurchaseLine, 9, 3, 6, 0);
+        Entry.SetRange("Document Type", Entry."Document Type"::"Adjustment (Manual)");
+        Entry.FindFirst();
+        Assert.AreEqual(-1, Entry."Quantity (Base)", 'The actual adjustment delta must be one processed unit.');
+        Assert.AreEqual(ProductionOrder."Subc. WIP Lineage ID", Entry."Lineage ID", 'Manual adjustments must retain the real source lineage.');
+
+        WarehouseLibrary.FindStateWIPEntry(Entry, PurchaseLine, Entry."WIP State"::Unprocessed);
+        Clear(Adjustment);
+        SetHandlerValues(4, 'UNPROCESSED', 'Unprocessed-state increase', '');
+        Adjustment.SetWIPLedgerEntry(Entry);
+        Adjustment.RunModal();
+        WarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 4, 6, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('StateWIPRequest,StateWIPProposal,StateWIPMessage,StateWIPConfirm,StateWIPTransferOrder,WIPAdjustmentPageHandler')]
+    procedure AdjustmentPreservesCombinedNativeCap()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReceiptLine: Record "Purch. Rcpt. Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        Adjustment: Page "Subc. WIP Adjustment";
+        WarehouseLibrary: Codeunit "Subc. Warehouse Library";
+    begin
+        Initialize();
+        WarehouseLibrary.CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10, 1, true);
+        WarehouseLibrary.PostStateWIPSupply(PurchaseHeader);
+        WarehouseLibrary.ReceiveStateWIP(PurchaseHeader, PurchaseLine, 7, ReceiptLine);
+        WarehouseLibrary.FindStateWIPEntry(Entry, PurchaseLine, Entry."WIP State"::Processed);
+        SetHandlerValues(8, 'OVER-CAP', 'Must not create a combined quantity of eleven', '');
+        Adjustment.SetWIPLedgerEntry(Entry);
+        asserterror Adjustment.RunModal();
+        Assert.ExpectedError('must not exceed');
+        WarehouseLibrary.AssertStateWIP(PurchaseLine, 10, 3, 7, 0);
+        Entry.SetRange("Document Type", Entry."Document Type"::"Adjustment (Manual)");
+        Assert.RecordIsEmpty(Entry);
+    end;
+
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure StateWIPMessage(Message: Text[1024])
+    begin
+        Assert.AreEqual('1 transfer order(s) with 1 line(s) were created.', Message, 'Unexpected transfer-creation result.');
+    end;
+
+    [ConfirmHandler]
+    procedure StateWIPConfirm(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [PageHandler]
+    procedure StateWIPTransferOrder(var TransferOrder: TestPage "Transfer Order")
+    begin
+        TransferOrder.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler,StateWIPRequest,StateWIPProposal,StateWIPMessage')]
     procedure SummaryRealOrderAdjustmentRefresh()
     var
         ProductionOrder: Record "Production Order";
@@ -54,7 +194,7 @@ codeunit 149914 "Subc. WIP Adjustment Test"
     end;
 
     [Test]
-    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler,StateWIPRequest,StateWIPProposal,StateWIPMessage')]
     procedure SummaryRealOrderPositiveAdjustmentRefresh()
     var
         ProductionOrder: Record "Production Order";
@@ -87,7 +227,7 @@ codeunit 149914 "Subc. WIP Adjustment Test"
     end;
 
     [Test]
-    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler,StateWIPRequest,StateWIPProposal,StateWIPMessage')]
     procedure SummaryRealOrderNegativeTargetRejected()
     var
         ProductionOrder: Record "Production Order";
@@ -123,7 +263,7 @@ codeunit 149914 "Subc. WIP Adjustment Test"
     end;
 
     [Test]
-    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler')]
+    [HandlerFunctions('WIPAdjustmentPageHandler,SummaryTransferCreatedHandler,StateWIPRequest,StateWIPProposal,StateWIPMessage')]
     procedure SummaryRealOrderExcessiveTargetRejected()
     var
         ProductionOrder: Record "Production Order";

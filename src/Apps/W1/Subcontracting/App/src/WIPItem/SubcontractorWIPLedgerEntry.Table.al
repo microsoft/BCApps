@@ -21,6 +21,23 @@ table 20560 "Subcontractor WIP Ledger Entry"
 
     fields
     {
+        field(22; "WIP State"; Enum "Subc. WIP Processing State")
+        {
+            Caption = 'WIP Status';
+            ToolTip = 'Specifies whether the tracked work in progress is unprocessed or processed.';
+        }
+        field(23; "State Tracked"; Boolean) { Caption = 'State Tracked'; }
+        field(24; "Lineage ID"; Guid) { Caption = 'Lineage ID'; }
+        field(25; "Source Position No."; Integer) { Caption = 'Source Position No.'; }
+        field(26; "Supply Lot ID"; Guid) { Caption = 'Supply Lot ID'; }
+        field(27; "Purchase Receipt No."; Code[20])
+        {
+            Caption = 'Purchase Receipt No.';
+            ToolTip = 'Specifies the purchase receipt that changed the processing state.';
+        }
+        field(28; "Purchase Receipt Line No."; Integer) { Caption = 'Purchase Receipt Line No.'; }
+        field(29; "Receipt Application ID"; Guid) { Caption = 'Receipt Application ID'; }
+        field(30; "Reversed Entry No."; Integer) { Caption = 'Reversed Entry No.'; }
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
@@ -171,6 +188,11 @@ table 20560 "Subcontractor WIP Ledger Entry"
         {
             Clustered = true;
         }
+        key(StateBalance; "Source Position No.", "WIP State", "Supply Lot ID")
+        {
+            SumIndexFields = "Quantity (Base)";
+        }
+        key(ProcessingBalance; "Prod. Order Status", "Prod. Order No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code", "In Transit", "State Tracked", "WIP State") { }
         key(Key2; "Item No.", "Variant Code", "Location Code")
         {
             IncludedFields = "Quantity (Base)";
@@ -208,6 +230,10 @@ table 20560 "Subcontractor WIP Ledger Entry"
             SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
         SetRange("Prod. Order No.", ProductionOrder."No.");
         SetRange("Prod. Order Status", ProductionOrder.Status);
+        if ProductionOrder."Subc. WIP Cohort" = ProductionOrder."Subc. WIP Cohort"::StateV1 then
+            SetRange("Lineage ID", ProductionOrder."Subc. WIP Lineage ID")
+        else
+            SetRange("State Tracked", false);
     end;
 
     /// <summary>
@@ -229,7 +255,17 @@ table 20560 "Subcontractor WIP Ledger Entry"
         SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        if not IsNullGuid(ProdOrderRoutingLine."Subc. WIP Lineage ID") then
+            SetRange("Lineage ID", ProdOrderRoutingLine."Subc. WIP Lineage ID")
+        else
+            SetRange("State Tracked", false);
     end;
+    internal procedure ProcessingStateCaption(): Text
+    begin
+        if "State Tracked" then
+            exit(Format("WIP State"));
+    end;
+
     /// <summary>
     /// Gets the next entry number for the Subcontractor WIP Ledger Entry table.
     /// </summary>

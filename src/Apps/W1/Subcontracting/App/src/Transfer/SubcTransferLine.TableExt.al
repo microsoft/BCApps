@@ -19,6 +19,36 @@ tableextension 20517 "Subc. Transfer Line" extends "Transfer Line"
     AllowInCustomizations = AsReadOnly;
     fields
     {
+        field(20583; "Subc. WIP Lineage ID"; Guid)
+        {
+            Caption = 'WIP Lineage ID';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(20584; "Subc. State Tracked"; Boolean)
+        {
+            Caption = 'State-tracked WIP';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(20580; "Subc. WIP State"; Enum "Subc. WIP Processing State")
+        {
+            Caption = 'WIP Status';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the processing state of the WIP quantity selected for transfer.';
+        }
+        field(20581; "Subc. Source Position No."; Integer)
+        {
+            Caption = 'WIP Source Position No.';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
+        field(20582; "Subc. Supply Lot ID"; Guid)
+        {
+            Caption = 'WIP Supply Lot ID';
+            DataClassification = SystemMetadata;
+            Editable = false;
+        }
         field(20530; "Subc. Purch. Order No."; Code[20])
         {
             Caption = 'Subc. Purch. Order No.';

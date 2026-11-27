@@ -43,6 +43,18 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
         IsInitialized := false;
     end;
 
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -104,7 +116,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure FullWIPRoundTripForwardPickReturnPutAway()
     var
         Item: Record Item;
@@ -220,7 +232,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure TrackedWipTransferPickSkipsRequiredTracking()
     var
         BinContent: Record "Bin Content";
@@ -320,7 +332,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure WipTransferInventoryPickCreationAllowsBlankBinWithAccordingToBin()
     var
         Bin: Record Bin;
@@ -405,7 +417,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure WipTransferInventoryPickPostingPreservesPostedMetadata()
     var
         Bin: Record Bin;
@@ -506,7 +518,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure WipTransferInventoryPutAwayCreationAllowsBlankBinWithAccordingToBin()
     var
         Bin: Record Bin;
@@ -598,7 +610,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure WipTransferInventoryPutAwayPostingPreservesPostedMetadata()
     var
         Bin: Record Bin;
@@ -714,7 +726,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
 
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure PartialThenRepeatPickAndPutAwayForWipTransfer()
     var
         Item: Record Item;
@@ -815,7 +827,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('HandleSubcTransferOrderPage')]
+    [HandlerFunctions('HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure ForwardWipTransferWithRequirePickFalsePostsDirectly()
     var
         Item: Record Item;
@@ -875,7 +887,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure DirectTransferFullWIPRoundTripForwardPickReturnPutAway()
     var
         Item: Record Item;
@@ -981,7 +993,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure OutboundPickLineSplitAcrossBins()
     var
         Bins: array[3] of Record Bin;
@@ -1170,7 +1182,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure AutoFillQtyToHandleOnWIPLines()
     var
         Item: Record Item;
@@ -1350,7 +1362,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage')]
+    [HandlerFunctions('MessageHandler,HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure WIPLedgerSynchronizesAcrossFullChain()
     var
         Item: Record Item;
@@ -1867,7 +1879,7 @@ codeunit 149920 "Subc. Invt. Put-away E2E WIP"
     end;
 
     [Test]
-    [HandlerFunctions('HandleSubcTransferOrderPage')]
+    [HandlerFunctions('HandleSubcTransferOrderPage,StateWIPRequest,StateWIPProposal')]
     procedure PurchaseLineBinAndLocationLockedAfterTransferExists()
     var
         DefaultBin: Record Bin;

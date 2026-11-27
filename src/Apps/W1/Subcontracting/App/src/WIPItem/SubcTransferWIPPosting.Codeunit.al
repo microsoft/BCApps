@@ -44,6 +44,13 @@ codeunit 20541 "Subc. Transfer WIP Posting"
                 TransferLine.Validate("Transfer WIP Item", TempTransferLine."Transfer WIP Item");
             TransferLine.UpdateDescriptions();
         end;
+        ReceiptSource.SetRange("Supply Lot ID", SubcontractorWIPLedgerEntry."Supply Lot ID");
+        ReceiptSource.SetFilter("Receipt Application ID", '<>%1', EmptyGuid);
+        if ReceiptSource.FindFirst() then begin
+            SubcontractorWIPLedgerEntry."Receipt Application ID" := ReceiptSource."Receipt Application ID";
+            SubcontractorWIPLedgerEntry."Purchase Receipt No." := ReceiptSource."Purchase Receipt No.";
+            SubcontractorWIPLedgerEntry."Purchase Receipt Line No." := ReceiptSource."Purchase Receipt Line No.";
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Transfer Header", OnBeforeValidateEvent, "Direct Transfer", false, false)]
@@ -164,6 +171,11 @@ codeunit 20541 "Subc. Transfer WIP Posting"
             exit;
 #endif
         TransferShipmentLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
+        TransferShipmentLine."Subc. WIP State" := TransferLine."Subc. WIP State";
+        TransferShipmentLine."Subc. State Tracked" := TransferLine."Subc. State Tracked";
+        TransferShipmentLine."Subc. WIP Lineage ID" := TransferLine."Subc. WIP Lineage ID";
+        TransferShipmentLine."Subc. Supply Lot ID" := TransferLine."Subc. Supply Lot ID";
+        TransferShipmentLine."Subc. Source Position No." := TransferLine."Subc. Source Position No.";
         CreateWIPLedgerEntryForShipment(TransferShipmentLine, TransferLine);
     end;
 
@@ -177,6 +189,11 @@ codeunit 20541 "Subc. Transfer WIP Posting"
             exit;
 #endif
         TransferReceiptLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
+        TransferReceiptLine."Subc. WIP State" := TransferLine."Subc. WIP State";
+        TransferReceiptLine."Subc. State Tracked" := TransferLine."Subc. State Tracked";
+        TransferReceiptLine."Subc. WIP Lineage ID" := TransferLine."Subc. WIP Lineage ID";
+        TransferReceiptLine."Subc. Supply Lot ID" := TransferLine."Subc. Supply Lot ID";
+        TransferReceiptLine."Subc. Source Position No." := TransferLine."Subc. Source Position No.";
         CreateWIPLedgerEntryForReceive(TransferReceiptLine, TransferLine);
     end;
 
@@ -190,6 +207,11 @@ codeunit 20541 "Subc. Transfer WIP Posting"
             exit;
 #endif
         DirectTransLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
+        DirectTransLine."Subc. WIP State" := TransferLine."Subc. WIP State";
+        DirectTransLine."Subc. State Tracked" := TransferLine."Subc. State Tracked";
+        DirectTransLine."Subc. WIP Lineage ID" := TransferLine."Subc. WIP Lineage ID";
+        DirectTransLine."Subc. Supply Lot ID" := TransferLine."Subc. Supply Lot ID";
+        DirectTransLine."Subc. Source Position No." := TransferLine."Subc. Source Position No.";
         CreateWIPLedgerEntryForDirectTransfer(DirectTransLine, TransferLine);
     end;
 
@@ -380,6 +402,9 @@ codeunit 20541 "Subc. Transfer WIP Posting"
     var
         TransferHeader: Record "Transfer Header";
         SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        Availability: Codeunit "Subc. WIP Availability";
+        ReceiptSource: Record "Subcontractor WIP Ledger Entry";
+        ProductionLine: Record "Prod. Order Line";
     begin
         TransferHeader.SetLoadFields("Posting Date");
         TransferHeader.Get(TransferLine."Document No.");
@@ -389,6 +414,34 @@ codeunit 20541 "Subc. Transfer WIP Posting"
         SubcontractorWIPLedgerEntry."Location Code" := LocationCode;
         SubcontractorWIPLedgerEntry."In Transit" := InTransit;
         AssignFieldsFromTransferLine(SubcontractorWIPLedgerEntry, TransferLine, IsShipment);
+        if TransferLine."Subc. State Tracked" then begin
+            ProductionLine.LockTable();
+            ProductionLine.Get(ProductionLine.Status::Released, TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.");
+            SubcontractorWIPLedgerEntry."State Tracked" := true;
+            SubcontractorWIPLedgerEntry."Lineage ID" := TransferLine."Subc. WIP Lineage ID";
+            SubcontractorWIPLedgerEntry."WIP State" := TransferLine."Subc. WIP State";
+            SubcontractorWIPLedgerEntry."Supply Lot ID" := TransferLine."Subc. Supply Lot ID";
+            if IsNullGuid(SubcontractorWIPLedgerEntry."Supply Lot ID") then begin
+                TransferLine."Subc. Supply Lot ID" := CreateGuid();
+                TransferLine.Modify();
+                SubcontractorWIPLedgerEntry."Supply Lot ID" := TransferLine."Subc. Supply Lot ID";
+            end;
+            Availability.EnsurePosition(SubcontractorWIPLedgerEntry);
+            if SubcontractorWIPLedgerEntry."WIP State" = SubcontractorWIPLedgerEntry."WIP State"::Processed then begin
+                ReceiptSource.SetRange("Lineage ID", SubcontractorWIPLedgerEntry."Lineage ID");
+                ReceiptSource.SetRange("Receipt Application ID", SubcontractorWIPLedgerEntry."Supply Lot ID");
+                ReceiptSource.SetRange("State Tracked", true);
+                ReceiptSource.SetRange("WIP State", ReceiptSource."WIP State"::Processed);
+                if ReceiptSource.FindFirst() then begin
+                    SubcontractorWIPLedgerEntry."Purchase Receipt No." := ReceiptSource."Purchase Receipt No.";
+                    SubcontractorWIPLedgerEntry."Purchase Receipt Line No." := ReceiptSource."Purchase Receipt Line No.";
+                    SubcontractorWIPLedgerEntry."Receipt Application ID" := ReceiptSource."Receipt Application ID";
+                end;
+            end;
+            if (QuantityBase < 0) and not InTransit then
+                Availability.CheckQuantity(SubcontractorWIPLedgerEntry."Source Position No.", SubcontractorWIPLedgerEntry."WIP State",
+                    SubcontractorWIPLedgerEntry."Supply Lot ID", -QuantityBase, TransferLine."Document No.", TransferLine."Line No.");
+        end;
         SubcontractorWIPLedgerEntry."Quantity (Base)" := QuantityBase;
         AssignSourceDocument(SubcontractorWIPLedgerEntry, "WIP Document Type"::"Transfer Order", DocumentNo, DocumentLineNo);
         InsertWIPItemLedgerEntry(SubcontractorWIPLedgerEntry);
@@ -397,6 +450,7 @@ codeunit 20541 "Subc. Transfer WIP Posting"
     internal procedure CreateAdjustmentWIPEntriesOnFinishProdOrder(ProductionOrder: Record "Production Order"; PostingDate: Date)
     var
         SubcontractorWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        ProductionLine: Record "Prod. Order Line";
     begin
 #if not CLEAN28
 #pragma warning disable AL0432
@@ -404,6 +458,13 @@ codeunit 20541 "Subc. Transfer WIP Posting"
 #pragma warning restore AL0432
             exit;
 #endif
+        ProductionLine.LockTable();
+        ProductionLine.SetRange(Status, ProductionOrder.Status);
+        ProductionLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        // Acquire every production-line lock before balancing WIP positions.
+        if ProductionLine.FindSet(true) then
+            repeat
+            until ProductionLine.Next() = 0;
         SubcontractorWIPLedgerEntry.SetProductionOrderFilter(ProductionOrder, false);
         SearchForAllWIPLedgerEntryCombinationAndCreateAdjustmentEntryToBalanceTheQuantities(SubcontractorWIPLedgerEntry, PostingDate);
     end;
@@ -413,7 +474,32 @@ codeunit 20541 "Subc. Transfer WIP Posting"
         LastWIPEntry: Record "Subcontractor WIP Ledger Entry";
         IsFirstEntry: Boolean;
         TotalQty: Decimal;
+        StateEntry: Record "Subcontractor WIP Ledger Entry";
+        Seen: Dictionary of [Text, Boolean];
+        GroupKey: Text;
+        Availability: Codeunit "Subc. WIP Availability";
+        OpenTransferErr: Label 'Complete or cancel the open WIP transfers before finishing the production order.';
     begin
+        StateEntry.CopyFilters(FilteredWIPLedgerEntry);
+        StateEntry.SetRange("State Tracked", true);
+        if StateEntry.FindSet() then
+            repeat
+                GroupKey := Format(StateEntry."Source Position No.") + '/' + Format(StateEntry."WIP State".AsInteger()) + '/' + Format(StateEntry."Supply Lot ID");
+                if not Seen.ContainsKey(GroupKey) then begin
+                    Seen.Add(GroupKey, true);
+                    Availability.LockPosition(StateEntry."Source Position No.");
+                    if Availability.OpenClaim(StateEntry."Source Position No.", StateEntry."WIP State", StateEntry."Supply Lot ID", '', 0) <> 0 then
+                        Error(OpenTransferErr);
+                    LastWIPEntry.Reset();
+                    LastWIPEntry.SetRange("Source Position No.", StateEntry."Source Position No.");
+                    LastWIPEntry.SetRange("WIP State", StateEntry."WIP State");
+                    LastWIPEntry.SetRange("Supply Lot ID", StateEntry."Supply Lot ID");
+                    LastWIPEntry.CalcSums("Quantity (Base)");
+                    if LastWIPEntry."Quantity (Base)" <> 0 then
+                        CreateAdjustmentWIPEntry(StateEntry, PostingDate, LastWIPEntry."Quantity (Base)");
+                end;
+            until StateEntry.Next() = 0;
+        FilteredWIPLedgerEntry.SetRange("State Tracked", false);
         IsFirstEntry := true;
         TotalQty := 0;
 
@@ -464,6 +550,14 @@ codeunit 20541 "Subc. Transfer WIP Posting"
         AdjustmentEntry.Description := TemplateWIPEntry.Description;
         AdjustmentEntry."Description 2" := TemplateWIPEntry."Description 2";
         AdjustmentEntry."In Transit" := TemplateWIPEntry."In Transit";
+        AdjustmentEntry."State Tracked" := TemplateWIPEntry."State Tracked";
+        AdjustmentEntry."WIP State" := TemplateWIPEntry."WIP State";
+        AdjustmentEntry."Lineage ID" := TemplateWIPEntry."Lineage ID";
+        AdjustmentEntry."Source Position No." := TemplateWIPEntry."Source Position No.";
+        AdjustmentEntry."Supply Lot ID" := TemplateWIPEntry."Supply Lot ID";
+        AdjustmentEntry."Purchase Receipt No." := TemplateWIPEntry."Purchase Receipt No.";
+        AdjustmentEntry."Purchase Receipt Line No." := TemplateWIPEntry."Purchase Receipt Line No.";
+        AdjustmentEntry."Receipt Application ID" := TemplateWIPEntry."Receipt Application ID";
         AdjustmentEntry."Quantity (Base)" := -TotalQty;
         if TotalQty > 0 then
             AdjustmentEntry."Entry Type" := "WIP Ledger Entry Type"::"Negative Adjustment"

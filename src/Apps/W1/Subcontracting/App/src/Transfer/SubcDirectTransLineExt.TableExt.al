@@ -14,6 +14,11 @@ tableextension 20523 "Subc. DirectTrans. Line Ext" extends "Direct Trans. Line"
     AllowInCustomizations = AsReadOnly;
     fields
     {
+        field(20580; "Subc. WIP State"; Enum "Subc. WIP Processing State") { Caption = 'WIP State'; DataClassification = CustomerContent; }
+        field(20581; "Subc. Source Position No."; Integer) { Caption = 'WIP Source Position No.'; DataClassification = SystemMetadata; }
+        field(20582; "Subc. Supply Lot ID"; Guid) { Caption = 'WIP Supply Lot ID'; DataClassification = SystemMetadata; }
+        field(20583; "Subc. WIP Lineage ID"; Guid) { Caption = 'WIP Lineage ID'; DataClassification = SystemMetadata; }
+        field(20584; "Subc. State Tracked"; Boolean) { Caption = 'State-tracked WIP'; DataClassification = SystemMetadata; }
         field(20530; "Subcontr. Purch. Order No."; Code[20])
         {
             Caption = 'Subcontr. Purch. Order No.';

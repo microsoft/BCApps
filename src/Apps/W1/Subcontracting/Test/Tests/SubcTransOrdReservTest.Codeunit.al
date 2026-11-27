@@ -33,8 +33,20 @@ codeunit 149925 "Subc. TransOrd. Reserv. Test"
         IsInitialized := false;
     end;
 
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
     [Test]
-    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure FullQuantityTransferTransfersAllReservationsWithoutConfirm()
     var
         Item: Record Item;
@@ -131,7 +143,7 @@ codeunit 149925 "Subc. TransOrd. Reserv. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure PartialQuantityWithoutReservationsAllowsTransferCreation()
     var
         Item: Record Item;
@@ -254,7 +266,7 @@ codeunit 149925 "Subc. TransOrd. Reserv. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CannotModifySubcTransferLineAndHeaderWhenLinkedToProdOrder()
     var
         Item: Record Item;
@@ -300,7 +312,7 @@ codeunit 149925 "Subc. TransOrd. Reserv. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure DeleteTransferOrderAndRecreateSucceeds()
     var
         Item: Record Item;
@@ -342,7 +354,7 @@ codeunit 149925 "Subc. TransOrd. Reserv. Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure CannotModifyOrDeleteProdOrderComponentWhenTransferOrderExists()
     var
         Item: Record Item;

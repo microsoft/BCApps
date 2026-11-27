@@ -102,6 +102,7 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
                                                                                         "Routing No." = field("Routing No."),
                                                                                         "Operation No." = field("Operation No."),
                                                                                         "Location Code" = field("WIP Location Filter"),
+                                                                                        "Lineage ID" = field("Subc. WIP Lineage ID"),
                                                                                         "In Transit" = const(false)));
             Caption = 'WIP Qty. (Base) at Subcontractor';
             DecimalPlaces = 0 : 5;
@@ -119,12 +120,49 @@ tableextension 20506 "Subc. ProdOrderRtngLine Ext." extends "Prod. Order Routing
                                                                                         "Routing Reference No." = field("Routing Reference No."),
                                                                                         "Routing No." = field("Routing No."),
                                                                                         "Operation No." = field("Operation No."),
+                                                                                        "Lineage ID" = field("Subc. WIP Lineage ID"),
                                                                                         "In Transit" = const(true)));
             Caption = 'WIP Qty. (Base) in Transit';
             DecimalPlaces = 0 : 5;
             Editable = false;
             FieldClass = FlowField;
             ToolTip = 'Specifies the outstanding quantity of the production order parent item on transfer orders that is currently in transit to the subcontractor for this operation.';
+        }
+        field(20580; "Unprocessed WIP Qty. (Base)"; Decimal)
+        {
+            Caption = 'Unprocessed WIP Quantity (Base)';
+            FieldClass = FlowField;
+            Editable = false;
+            DecimalPlaces = 0 : 5;
+            ToolTip = 'Specifies the state-tracked WIP still at the subcontractor that has not been received as processed for this operation. Legacy orders are not classified.';
+            CalcFormula = sum("Subcontractor WIP Ledger Entry"."Quantity (Base)" where(
+                "Prod. Order Status" = field(Status), "Prod. Order No." = field("Prod. Order No."),
+                "Prod. Order Line No." = field("Prod. Order Line Filter"),
+                "Routing Reference No." = field("Routing Reference No."), "Routing No." = field("Routing No."),
+                "Operation No." = field("Operation No."), "Location Code" = field("WIP Location Filter"),
+                "Lineage ID" = field("Subc. WIP Lineage ID"),
+                "In Transit" = const(false), "State Tracked" = const(true), "WIP State" = const(Unprocessed)));
+        }
+        field(20581; "Processed WIP Qty. (Base)"; Decimal)
+        {
+            Caption = 'Processed WIP Quantity (Base)';
+            FieldClass = FlowField;
+            Editable = false;
+            DecimalPlaces = 0 : 5;
+            ToolTip = 'Specifies the state-tracked WIP received as processed for this operation that is still at the subcontractor. Legacy orders are not classified.';
+            CalcFormula = sum("Subcontractor WIP Ledger Entry"."Quantity (Base)" where(
+                "Prod. Order Status" = field(Status), "Prod. Order No." = field("Prod. Order No."),
+                "Prod. Order Line No." = field("Prod. Order Line Filter"),
+                "Routing Reference No." = field("Routing Reference No."), "Routing No." = field("Routing No."),
+                "Operation No." = field("Operation No."), "Location Code" = field("WIP Location Filter"),
+                "Lineage ID" = field("Subc. WIP Lineage ID"),
+                "In Transit" = const(false), "State Tracked" = const(true), "WIP State" = const(Processed)));
+        }
+        field(20582; "Subc. WIP Lineage ID"; Guid)
+        {
+            Caption = 'WIP Lineage ID';
+            Editable = false;
+            DataClassification = SystemMetadata;
         }
         field(20534; "WIP Location Filter"; Code[10])
         {

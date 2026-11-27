@@ -5,8 +5,15 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Purchases.Document;
+using System.Environment;
 using System.Upgrade;
 
 codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
@@ -15,6 +22,8 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    EventSubscriberInstance = Manual;
+    RequiredTestIsolation = Disabled;
 
     trigger OnRun()
     begin
@@ -25,6 +34,424 @@ codeunit 139994 "Subc. ReqWkshTemplUpgrade Test"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        CopySourceNo: Code[20];
+        FailCutoverOrderNo: Code[20];
+
+    [Test]
+    [Scope('OnPrem')]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure CutoverSerializesHeaderCreation()
+    var
+        Workers: Codeunit "Subc WIP Concurrent Worker";
+    begin
+        Workers.ExerciseHeaderRace();
+    end;
+
+    [Test]
+    procedure ImmutableWIPIdentityErrorHidesInternalDiagnostics()
+    var
+        ProductionOrder: Record "Production Order";
+    begin
+        Initialize();
+        ProductionOrder.Status := ProductionOrder.Status::Planned;
+        ProductionOrder."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ProductionOrder."No."));
+        ProductionOrder.Insert(false);
+        ProductionOrder."Subc. WIP Version" += 1;
+
+        asserterror ProductionOrder.Modify(false);
+        Assert.ExpectedErrorCode('Dialog');
+        Assert.IsFalse(GetLastErrorText(true).Contains('The subcontracting WIP identity'), 'Internal bookkeeping diagnostics must not be exposed as an actionable client error.');
+    end;
+
+    [Test]
+    procedure CutoverRetryAndCompanyIsolation()
+    var
+        ExistingOrder: Record "Production Order";
+        OtherOrder: Record "Production Order";
+        Activation: Record "Subc. WIP Activation";
+        OtherActivation: Record "Subc. WIP Activation";
+        Alias: Record "Subc. WIP Order Alias";
+        Company: Record Company;
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        UpgradeFixture: Codeunit "Subc. WIP Upgrade Fixture";
+        FailureSubscriber: Codeunit "Subc. ReqWkshTemplUpgrade Test";
+        LineageID: Guid;
+        ActivationID: Guid;
+        ActivationCreatedAt: DateTime;
+        AliasCount: Integer;
+    begin
+        Initialize();
+        ExistingOrder.Status := ExistingOrder.Status::Planned;
+        ExistingOrder."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ExistingOrder."No."));
+        ExistingOrder.Insert(false);
+        UpgradeFixture.RestorePreactivationColumns();
+        FailureSubscriber.FailWhenEnrolling(ExistingOrder."No.");
+        BindSubscription(FailureSubscriber);
+        asserterror CohortMgt.InitializeCompany();
+        Assert.ExpectedError('Injected failure before completed cutover marker.');
+        UnbindSubscription(FailureSubscriber);
+        Assert.RecordIsEmpty(Activation);
+        ExistingOrder.Get(ExistingOrder.Status, ExistingOrder."No.");
+        Assert.AreEqual(ExistingOrder."Subc. WIP Cohort"::Unassigned, ExistingOrder."Subc. WIP Cohort", 'Rollback must not leave partial enrollment.');
+        Assert.IsTrue(IsNullGuid(ExistingOrder."Subc. WIP Lineage ID"), 'Rollback must undo the identity as well as the marker.');
+        Assert.RecordIsEmpty(Alias);
+        CohortMgt.InitializeCompany();
+        ExistingOrder.Get(ExistingOrder.Status, ExistingOrder."No.");
+        LineageID := ExistingOrder."Subc. WIP Lineage ID";
+        Assert.AreEqual(ExistingOrder."Subc. WIP Cohort"::Legacy, ExistingOrder."Subc. WIP Cohort", 'Retry must classify the old persistent root as legacy.');
+        Activation.Get('');
+        ActivationID := Activation.SystemId;
+        ActivationCreatedAt := Activation.SystemCreatedAt;
+        AliasCount := Alias.Count();
+        CohortMgt.InitializeCompany();
+        Activation.Get('');
+        ExistingOrder.Get(ExistingOrder.Status, ExistingOrder."No.");
+        Assert.AreEqual(ActivationID, Activation.SystemId, 'Idempotent initialization must retain the exact marker.');
+        Assert.AreEqual(ActivationCreatedAt, Activation.SystemCreatedAt, 'Repeated initialization cannot change the activation epoch.');
+        Assert.AreEqual(LineageID, ExistingOrder."Subc. WIP Lineage ID", 'Repeated initialization cannot generate another identity.');
+        Assert.AreEqual(AliasCount, Alias.Count(), 'Repeated initialization cannot duplicate aliases.');
+
+        Company.Name := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Company.Name));
+        Company.Insert(true);
+        OtherOrder.ChangeCompany(Company.Name);
+        OtherOrder.Status := OtherOrder.Status::Planned;
+        OtherOrder."No." := ExistingOrder."No.";
+        OtherOrder.Insert(false);
+        OtherActivation.ChangeCompany(Company.Name);
+        OtherActivation.Get('');
+        OtherOrder.Get(OtherOrder.Status, OtherOrder."No.");
+        Assert.AreEqual(1, OtherActivation.Version, 'An empty second company initializes independently on its first persistent insert.');
+        Assert.AreNotEqual(ActivationID, OtherActivation.SystemId, 'Companies cannot share activation marker identity.');
+        Assert.AreEqual(OtherOrder."Subc. WIP Cohort"::StateV1, OtherOrder."Subc. WIP Cohort", 'The new root in the empty company is postactivation.');
+        Assert.AreNotEqual(LineageID, OtherOrder."Subc. WIP Lineage ID", 'Identical native order numbers in different companies cannot share identity.');
+        Activation.Get('');
+        Assert.AreEqual(ActivationID, Activation.SystemId, 'Initializing another company must not replace the first marker.');
+        Assert.AreEqual(AliasCount, Alias.Count(), 'Another company must not add aliases to this one.');
+        Company.Delete(true);
+    end;
+
+    internal procedure FailWhenEnrolling(OrderNo: Code[20])
+    begin
+        FailCutoverOrderNo := OrderNo;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Production Order", OnAfterModifyEvent, '', false, false)]
+    local procedure FailIncompleteCutover(var Rec: Record "Production Order"; var xRec: Record "Production Order"; RunTrigger: Boolean)
+    begin
+        if (FailCutoverOrderNo <> '') and (Rec."No." = FailCutoverOrderNo) and
+           (Rec."Subc. WIP Cohort" = Rec."Subc. WIP Cohort"::Legacy)
+        then
+            Error('Injected failure before completed cutover marker.');
+    end;
+
+    [Test]
+    [HandlerFunctions('CutoverRequest,CutoverProposal,CutoverMessage,CutoverConfirm,CutoverTransferOrder')]
+    procedure CutoverKeepsAllExistingOrdersLegacy()
+    var
+        ProductionOrder: Record "Production Order";
+        Header: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Entry: Record "Subcontractor WIP Ledger Entry";
+        Activation: Record "Subc. WIP Activation";
+        WarehouseLibrary: Codeunit "Subc. Warehouse Library";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
+        UpgradeFixture: Codeunit "Subc. WIP Upgrade Fixture";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        Seen: Dictionary of [Guid, Boolean];
+        I: Integer;
+    begin
+        Initialize();
+        WarehouseLibrary.CreateLegacyWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 14);
+        WarehouseLibrary.CreateStateWIPSupply(PurchaseHeader, TransferHeader, TransferLine);
+        TransferLine.Validate("Qty. to Ship", 10);
+        TransferLine.Modify(true);
+        LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
+        for I := 0 to 4 do begin
+            Header.Init();
+            Header.Status := Enum::"Production Order Status".FromInteger(I);
+            Header."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(Header."No."));
+            Header.Insert(false);
+        end;
+        UpgradeFixture.RestorePreactivationColumns();
+        CohortMgt.InitializeCompany();
+        Activation.Get('');
+        Assert.AreEqual(1, Activation.Version, 'The completed activation marker must be persisted.');
+        Header.FindSet();
+        repeat
+            Assert.AreEqual(Header."Subc. WIP Cohort"::Legacy, Header."Subc. WIP Cohort", 'Every preactivation status remains legacy.');
+            Assert.IsFalse(IsNullGuid(Header."Subc. WIP Lineage ID"), 'Every existing persistent order requires identity.');
+            Assert.IsFalse(Seen.ContainsKey(Header."Subc. WIP Lineage ID"), 'Independent orders cannot share a lineage.');
+            Seen.Add(Header."Subc. WIP Lineage ID", true);
+        until Header.Next() = 0;
+        Entry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        Entry.SetRange("In Transit", false);
+        Entry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(10, Entry."Quantity (Base)", 'Cutover must not rewrite legacy physical custody.');
+        Entry.SetRange("State Tracked", true);
+        Assert.RecordIsEmpty(Entry);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        Assert.AreEqual(4, TransferLine.Quantity - TransferLine."Quantity Shipped", 'Cutover preserves the native open transfer.');
+        Assert.IsFalse(TransferLine."Subc. State Tracked", 'The preactivation open transfer stays legacy.');
+    end;
+
+    [RequestPageHandler]
+    procedure CutoverRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure CutoverProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure CutoverMessage(Message: Text[1024])
+    begin
+        Assert.AreEqual('1 transfer order(s) with 1 line(s) were created.', Message, 'Unexpected cutover fixture creation.');
+    end;
+
+    [ConfirmHandler]
+    procedure CutoverConfirm(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [PageHandler]
+    procedure CutoverTransferOrder(var TransferOrder: TestPage "Transfer Order")
+    begin
+        TransferOrder.Close();
+    end;
+
+    [Test]
+    procedure ReplanChildGetsNewBusinessLineage()
+    var
+        ParentItem: Record Item;
+        ChildItem: Record Item;
+        BOM: Record "Production BOM Header";
+        BOMLine: Record "Production BOM Line";
+        ParentOrder: Record "Production Order";
+        ChildOrder: Record "Production Order";
+        UpgradeFixture: Codeunit "Subc. WIP Upgrade Fixture";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        Replan: Report "Replan Production Order";
+        Direction: Option Forward,Backward;
+        Calculate: Option "No Levels","One level","All levels";
+        ParentLineage: Guid;
+        ChildLineage: Guid;
+    begin
+        Initialize();
+        LibraryInventory.CreateItem(ChildItem);
+        ChildItem.Validate("Replenishment System", ChildItem."Replenishment System"::"Prod. Order");
+        ChildItem.Validate("Manufacturing Policy", ChildItem."Manufacturing Policy"::"Make-to-Order");
+        ChildItem.Modify(true);
+        LibraryInventory.CreateItem(ParentItem);
+        LibraryManufacturing.CreateProductionBOMHeader(BOM, ParentItem."Base Unit of Measure");
+        LibraryManufacturing.CreateProductionBOMLine(BOM, BOMLine, '', BOMLine.Type::Item, ChildItem."No.", 1);
+        BOM.Validate(Status, BOM.Status::Certified);
+        BOM.Modify(true);
+        ParentItem.Validate("Replenishment System", ParentItem."Replenishment System"::"Prod. Order");
+        ParentItem.Validate("Production BOM No.", BOM."No.");
+        ParentItem.Modify(true);
+        LibraryManufacturing.CreateProductionOrder(ParentOrder, ParentOrder.Status::Released, ParentOrder."Source Type"::Item, ParentItem."No.", 10);
+        LibraryManufacturing.RefreshProdOrder(ParentOrder, false, true, true, true, false);
+        UpgradeFixture.RestorePreactivationColumns();
+        CohortMgt.InitializeCompany();
+        ParentOrder.Get(ParentOrder.Status, ParentOrder."No.");
+        ParentLineage := ParentOrder."Subc. WIP Lineage ID";
+        ParentOrder.SetRecFilter();
+        Replan.InitializeRequest(Direction::Backward, Calculate::"All levels");
+        Replan.SetTableView(ParentOrder);
+        Replan.UseRequestPage(false);
+        Replan.RunModal();
+        ChildOrder.SetRange("Source Type", ChildOrder."Source Type"::Item);
+        ChildOrder.SetRange("Source No.", ChildItem."No.");
+        Assert.RecordCount(ChildOrder, 1);
+        ChildOrder.FindFirst();
+        ChildLineage := ChildOrder."Subc. WIP Lineage ID";
+        AssertStateIdentity(ChildOrder, ChildLineage);
+        Assert.AreNotEqual(ParentLineage, ChildLineage, 'A shortage-generated child is a new business root, not continuation of its legacy parent.');
+        LibraryManufacturing.RefreshProdOrder(ChildOrder, false, true, true, true, false);
+        ChildOrder.Get(ChildOrder.Status, ChildOrder."No.");
+        AssertStateIdentity(ChildOrder, ChildLineage);
+        ParentOrder.Get(ParentOrder.Status, ParentOrder."No.");
+        Assert.AreEqual(ParentOrder."Subc. WIP Cohort"::Legacy, ParentOrder."Subc. WIP Cohort", 'Replanning cannot promote the original parent.');
+        Assert.AreEqual(ParentLineage, ParentOrder."Subc. WIP Lineage ID", 'Replanning must preserve parent identity.');
+    end;
+
+    [Test]
+    procedure NewHeaderPathsEnrollExactlyOnce()
+    var
+        ProductionOrder: Record "Production Order";
+        ImportedOrder: Record "Production Order";
+        TemporaryOrder: Record "Production Order" temporary;
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        OriginalLineage: Guid;
+        OriginalWorkDate: Date;
+    begin
+        Initialize();
+        CohortMgt.InitializeCompany();
+        OriginalWorkDate := WorkDate();
+        WorkDate(CalcDate('<-1Y>', OriginalWorkDate));
+        ProductionOrder.Init();
+        ProductionOrder.Status := ProductionOrder.Status::Planned;
+        ProductionOrder."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ProductionOrder."No."));
+        ProductionOrder.Insert(true);
+        WorkDate(OriginalWorkDate);
+        OriginalLineage := ProductionOrder."Subc. WIP Lineage ID";
+        AssertStateIdentity(ProductionOrder, OriginalLineage);
+
+        ImportedOrder := ProductionOrder;
+        ImportedOrder."No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ImportedOrder."No."));
+        ImportedOrder.Insert(false);
+        Assert.AreNotEqual(OriginalLineage, ImportedOrder."Subc. WIP Lineage ID", 'A new imported header must not clone foreign identity.');
+        AssertStateIdentity(ImportedOrder, ImportedOrder."Subc. WIP Lineage ID");
+        ImportedOrder.Description := 'Imported after activation';
+        ImportedOrder.Modify(false);
+        CohortMgt.InitializeCompany();
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+        AssertStateIdentity(ProductionOrder, OriginalLineage);
+
+        TemporaryOrder.Init();
+        TemporaryOrder.Status := TemporaryOrder.Status::Planned;
+        TemporaryOrder."No." := ProductionOrder."No.";
+        TemporaryOrder.Insert(false);
+        Assert.IsTrue(IsNullGuid(TemporaryOrder."Subc. WIP Lineage ID"), 'Temporary planning headers must not enroll.');
+        Assert.AreEqual(TemporaryOrder."Subc. WIP Cohort"::Unassigned, TemporaryOrder."Subc. WIP Cohort", 'Temporary headers must remain unclassified.');
+        ImportedOrder."Subc. WIP Lineage ID" := OriginalLineage;
+        asserterror ImportedOrder.Modify(false);
+        Assert.ExpectedError('is inconsistent');
+    end;
+
+    [Test]
+    procedure StatusReplacementRetainsCohort()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        OriginalLineage: Guid;
+        OriginalNo: Code[20];
+        ReleasedNo: Code[20];
+    begin
+        Initialize();
+        CohortMgt.InitializeCompany();
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::"Firm Planned", ProductionOrder."Source Type"::Item, Item."No.", 10);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+        OriginalLineage := ProductionOrder."Subc. WIP Lineage ID";
+        OriginalNo := ProductionOrder."No.";
+        ReleasedNo := LibraryManufacturing.ChangeStatusFirmPlanToReleased(OriginalNo);
+        ProductionOrder.Get(ProductionOrder.Status::Released, ReleasedNo);
+        AssertStateIdentity(ProductionOrder, OriginalLineage);
+        Assert.AreEqual(OriginalLineage, CohortMgt.GetLineage(ProductionOrder.Status::"Firm Planned", OriginalNo), 'The deleted native source must retain its lineage alias.');
+        Assert.IsTrue(CohortMgt.IsTracked(ProductionOrder.Status::"Firm Planned", OriginalNo), 'Historical aliases retain cohort classification.');
+    end;
+
+    [Test]
+    [HandlerFunctions('CopyStateOrderRequest')]
+    procedure RefreshAndCopyKeepTargetCohort()
+    var
+        Item: Record Item;
+        SourceOrder: Record "Production Order";
+        TargetOrder: Record "Production Order";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        CopyProductionOrder: Report "Copy Production Order Document";
+        TargetLineage: Guid;
+    begin
+        Initialize();
+        CohortMgt.InitializeCompany();
+        LibraryInventory.CreateItem(Item);
+        LibraryManufacturing.CreateProductionOrder(SourceOrder, SourceOrder.Status::Planned, SourceOrder."Source Type"::Item, Item."No.", 10);
+        LibraryManufacturing.RefreshProdOrder(SourceOrder, false, true, true, true, false);
+        LibraryManufacturing.CreateProductionOrder(TargetOrder, TargetOrder.Status::Planned, TargetOrder."Source Type"::Item, Item."No.", 1);
+        TargetLineage := TargetOrder."Subc. WIP Lineage ID";
+        LibraryManufacturing.RefreshProdOrder(TargetOrder, false, true, true, true, false);
+        TargetOrder.Get(TargetOrder.Status, TargetOrder."No.");
+        AssertStateIdentity(TargetOrder, TargetLineage);
+        Assert.AreNotEqual(SourceOrder."Subc. WIP Lineage ID", TargetLineage, 'Distinct business orders require distinct lineages.');
+        CopySourceNo := SourceOrder."No.";
+        CopyProductionOrder.SetProdOrder(TargetOrder);
+        CopyProductionOrder.RunModal();
+        TargetOrder.Get(TargetOrder.Status, TargetOrder."No.");
+        Assert.AreEqual(10, TargetOrder.Quantity, 'The native copy must actually copy source content.');
+        AssertStateIdentity(TargetOrder, TargetLineage);
+    end;
+
+    [Test]
+    [HandlerFunctions('ReopenStateOrderConfirm')]
+    procedure NativeReopenKeepsOriginalLineage()
+    var
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        WarehouseLibrary: Codeunit "Subc. Warehouse Library";
+        ManagementLibrary: Codeunit "Subc. Management Library";
+        StatusManagement: Codeunit "Prod. Order Status Management";
+        OriginalLineage: Guid;
+        FinishedNo: Code[20];
+    begin
+        Initialize();
+        ManagementLibrary.Initialize();
+        WarehouseLibrary.CreateStateWIPPurchaseOrder(ProductionOrder, PurchaseHeader, PurchaseLine, 10, 1, false);
+        OriginalLineage := ProductionOrder."Subc. WIP Lineage ID";
+        WarehouseLibrary.CompleteStateWIPProduction(ProductionOrder);
+        ItemLedgerEntry.SetRange("Item No.", ProductionOrder."Source No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(10, ItemLedgerEntry.Quantity, 'Reopen requires real nonzero native output, not a bypassed guard.');
+        LibraryManufacturing.ChangeProdOrderStatus(ProductionOrder, ProductionOrder.Status::Finished, WorkDate(), false);
+        ProductionOrder.Reset();
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Finished);
+        ProductionOrder.SetRange("Subc. WIP Lineage ID", OriginalLineage);
+        ProductionOrder.FindFirst();
+        FinishedNo := ProductionOrder."No.";
+        StatusManagement.ReopenFinishedProdOrder(ProductionOrder);
+        ProductionOrder.Reset();
+        ProductionOrder.SetRange(Status, ProductionOrder.Status::Released);
+        ProductionOrder.SetRange("Subc. WIP Lineage ID", OriginalLineage);
+        ProductionOrder.FindFirst();
+        AssertStateIdentity(ProductionOrder, OriginalLineage);
+        Assert.AreEqual(OriginalLineage, CohortMgt.GetLineage(ProductionOrder.Status::Finished, FinishedNo), 'The native finished source alias survives its deletion.');
+    end;
+
+    [ConfirmHandler]
+    procedure ReopenStateOrderConfirm(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := not Question.ToLower().Contains('view') and not Question.ToLower().Contains('open the');
+    end;
+
+    local procedure AssertStateIdentity(ProductionOrder: Record "Production Order"; LineageID: Guid)
+    var
+        CohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
+    begin
+        Assert.IsFalse(IsNullGuid(LineageID), 'A persistent StateV1 order requires a lineage.');
+        Assert.AreEqual(ProductionOrder."Subc. WIP Cohort"::StateV1, ProductionOrder."Subc. WIP Cohort", 'The persistent order must enroll after activation.');
+        Assert.AreEqual(1, ProductionOrder."Subc. WIP Version", 'The enrolled version must remain stable.');
+        Assert.AreEqual(LineageID, ProductionOrder."Subc. WIP Lineage ID", 'A native content/status change must retain its business identity.');
+        Assert.AreEqual(LineageID, CohortMgt.GetLineage(ProductionOrder.Status, ProductionOrder."No."), 'The native key must resolve the same durable identity.');
+    end;
+
+    [RequestPageHandler]
+    procedure CopyStateOrderRequest(var Request: TestRequestPage "Copy Production Order Document")
+    begin
+        Request.Status.SetValue('Planned');
+        Request.DocumentNo.SetValue(CopySourceNo);
+        Request.IncludeHeader.SetValue(true);
+        Request.OK().Invoke();
+    end;
 
     [Test]
     procedure MigrationConvertsLegacyRawTypeValueToCurrentSubcontractingValue()

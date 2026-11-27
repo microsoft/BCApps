@@ -13,7 +13,9 @@ codeunit 20501 "Subcontracting Install"
     trigger OnInstallAppPerCompany()
     var
         CurrentAppInfo: ModuleInfo;
+        SubcWIPCohortMgt: Codeunit "Subc. WIP Cohort Mgt.";
     begin
+        SubcWIPCohortMgt.InitializeCompany();
         NavApp.GetCurrentModuleInfo(CurrentAppInfo);
 
         if CurrentAppInfo.DataVersion() = Version.Create(0, 0, 0, 0) then

@@ -39,7 +39,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryTransferLinesHandler')]
+    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryTransferLinesHandler,SummaryTransferRequestHandler,SummaryReturnRequestHandler,SummaryTransferProposalHandler,SummaryTransferResultHandler')]
     procedure SummaryOriginalTransferLinesDrilldown()
     var
         ProductionOrder: Record "Production Order";
@@ -110,7 +110,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler,SummaryTransferLinesHandler,SummaryConformanceWIPHandler,SummaryConformanceRoutingHandler')]
+    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryPurchaseLinesHandler,SummaryReceiptLinesHandler,SummaryInvoiceLinesHandler,SummaryTransferLinesHandler,SummaryConformanceWIPHandler,SummaryConformanceRoutingHandler,SummaryTransferRequestHandler,SummaryReturnRequestHandler,SummaryTransferProposalHandler,SummaryTransferResultHandler')]
     procedure SummaryFeatureWideConformance()
     var
         ProductionOrder: Record "Production Order";
@@ -1010,7 +1010,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
     end;
 
     [Test]
-    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryReadPurchaseHandler,SummaryReadReceiptHandler,SummaryReadInvoiceHandler,SummaryReadWIPHandler,SummaryReadTransferHandler,SummaryRoutingHandler')]
+    [HandlerFunctions('SummaryReadTransferCreatedHandler,SummaryReadPurchaseHandler,SummaryReadReceiptHandler,SummaryReadInvoiceHandler,SummaryReadWIPHandler,SummaryReadTransferHandler,SummaryRoutingHandler,SummaryTransferRequestHandler,SummaryTransferProposalHandler,SummaryTransferResultHandler')]
     procedure SummaryReadPermissionsContract()
     var
         ProductionOrder: Record "Production Order";
@@ -1182,6 +1182,33 @@ codeunit 139990 "Subc. Subcontracting UI Test"
             LibraryVariableStorage.Enqueue(OperationNumbers.Get(RowIndex));
         end;
         Routing.Close();
+    end;
+
+    [RequestPageHandler]
+    procedure SummaryTransferRequestHandler(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure SummaryReturnRequestHandler(var Request: TestRequestPage "Subc. Create SubCReturnOrder")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure SummaryTransferProposalHandler(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
+    [MessageHandler]
+    procedure SummaryTransferResultHandler(Message: Text[1024])
+    begin
+        Assert.IsTrue(
+            (Message = '1 transfer order(s) with 1 line(s) were created.') or
+            (Message = '1 transfer order(s) with 2 line(s) were created.'),
+            'Unexpected summary transfer result: ' + Message);
     end;
 
     [PageHandler]

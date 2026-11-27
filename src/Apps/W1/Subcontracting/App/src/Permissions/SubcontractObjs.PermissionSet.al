@@ -16,6 +16,18 @@ permissionset 20501 "Subcontract. - Objs"
         table "Subc. Prod. Rtng. Comment" = X,
         table "Subcontractor Price" = X,
         table "Subcontractor WIP Ledger Entry" = X,
+        table "Subc. WIP Activation" = X,
+        table "Subc. WIP Lineage" = X,
+        table "Subc. WIP Order Alias" = X,
+        table "Subc. WIP Source Position" = X,
+        table "Subc. WIP Receipt Appl." = X,
+        table "Subc. WIP Receipt Detail" = X,
+        table "Subc. Transfer Proposal" = X,
+        codeunit "Subc. WIP Cohort Mgt." = X,
+        codeunit "Subc. WIP Receipt Mgt." = X,
+        codeunit "Subc. WIP Availability" = X,
+        codeunit "Subc. Transfer Proposal Mgt." = X,
+        page "Subc. Transfer Proposal" = X,
 
         // Codeunits
         codeunit "Subc. Session State" = X,

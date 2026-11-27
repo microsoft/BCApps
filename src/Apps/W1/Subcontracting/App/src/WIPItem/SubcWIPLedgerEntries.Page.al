@@ -57,6 +57,11 @@ page 20560 "Subc. WIP Ledger Entries"
                 field("Quantity (Base)"; Rec."Quantity (Base)")
                 {
                 }
+                field("WIP Status"; Rec.ProcessingStateCaption()) { Caption = 'WIP Status'; ToolTip = 'Specifies the processing state. Legacy WIP is not classified.'; }
+                field("Purchase Receipt No."; Rec."Purchase Receipt No.") { }
+                field("Purchase Receipt Line No."; Rec."Purchase Receipt Line No.") { }
+                field("Receipt Application ID"; Rec."Receipt Application ID") { Visible = false; }
+                field("Reversed Entry No."; Rec."Reversed Entry No.") { Visible = false; }
                 field("Base Unit of Measure"; Rec."Base Unit of Measure")
                 {
                 }

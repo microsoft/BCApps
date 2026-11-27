@@ -34,6 +34,18 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         IsInitialized := false;
     end;
 
+    [RequestPageHandler]
+    procedure StateWIPRequest(var Request: TestRequestPage "Subc. Create Transf. Order")
+    begin
+        Request.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure StateWIPProposal(var Proposal: TestPage "Subc. Transfer Proposal")
+    begin
+        Proposal.OK().Invoke();
+    end;
+
     [Test]
     procedure TestCreationOfPurchOrderFromRtngLineWithSubcontractorWithAddLine()
     var
@@ -112,7 +124,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure ChangeVendorKeepsTransferOrderWhenItemLedgerEntryExistsForProductionOrder()
     var
         Item: Record Item;
@@ -183,7 +195,7 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
     end;
 
     [Test]
-    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,StateWIPRequest,StateWIPProposal')]
     procedure ChangeVendorDeletesTransferOrderWhenNoItemLedgerEntryExistsForProductionOrder()
     var
         Item: Record Item;
