@@ -185,8 +185,7 @@ table 4 Currency
         /// </summary>
         field(10; "Invoice Rounding Precision"; Decimal)
         {
-            AutoFormatExpression = Code;
-            AutoFormatType = 1;
+            AutoFormatType = 0;
             DecimalPlaces = 2 : 5;
             Caption = 'Invoice Rounding Precision';
             ToolTip = 'Specifies the size of the interval to be used when rounding amounts in this currency. You can specify invoice rounding for each currency in the Currency table.';
@@ -223,8 +222,7 @@ table 4 Currency
             DecimalPlaces = 2 : 5;
             InitValue = 0.01;
             MinValue = 0;
-            AutoFormatType = 1;
-            AutoFormatExpression = Code;
+            AutoFormatType = 0;
 
             trigger OnValidate()
             begin

@@ -280,6 +280,330 @@ codeunit 134275 "Currency UT"
         Assert.AreEqual(Currency.Code, Customer."Currency Code", CurrencyCodeShouldNotBeClearedErr);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrencyCardShowsSmallestRoundingPrecisions()
+    var
+        Currency: Record Currency;
+        CurrencyCard: TestPage "Currency Card";
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] The currency card retains and displays the smallest five-decimal rounding precisions.
+        Initialize();
+
+        // [GIVEN] Currency "C" with the smallest rounding precisions and two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.00001);
+
+        // [WHEN] The stored currency is opened on the card.
+        CurrencyCard.OpenView();
+        CurrencyCard.GoToRecord(Currency);
+
+        // [THEN] Stored and displayed precisions retain all five decimal places.
+        VerifyRoundingPrecisions(
+            Currency, 0.00001, CurrencyCard."Amount Rounding Precision".Value(),
+            CurrencyCard."Invoice Rounding Precision".Value());
+        CurrencyCard.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrencyCardShowsFiveDecimalRoundingPrecisions()
+    var
+        Currency: Record Currency;
+        CurrencyCard: TestPage "Currency Card";
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] The currency card displays nontrivial five-decimal rounding precisions independently of amount formatting.
+        Initialize();
+
+        // [GIVEN] Currency "C" with five-decimal rounding precisions and two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.12345);
+
+        // [WHEN] The stored currency is opened on the card.
+        CurrencyCard.OpenView();
+        CurrencyCard.GoToRecord(Currency);
+
+        // [THEN] Stored and displayed precisions retain all five decimal places.
+        VerifyRoundingPrecisions(
+            Currency, 0.12345, CurrencyCard."Amount Rounding Precision".Value(),
+            CurrencyCard."Invoice Rounding Precision".Value());
+        CurrencyCard.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrenciesShowsSmallestRoundingPrecisions()
+    var
+        Currency: Record Currency;
+        Currencies: TestPage Currencies;
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] The currencies list retains and displays the smallest five-decimal rounding precisions.
+        Initialize();
+
+        // [GIVEN] Currency "C" with the smallest rounding precisions and two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.00001);
+
+        // [WHEN] The stored currency is opened on the list.
+        Currencies.OpenView();
+        Currencies.GoToRecord(Currency);
+
+        // [THEN] Stored and displayed precisions retain all five decimal places.
+        VerifyRoundingPrecisions(
+            Currency, 0.00001, Currencies."Amount Rounding Precision".Value(),
+            Currencies."Invoice Rounding Precision".Value());
+        Currencies.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrenciesShowsFiveDecimalRoundingPrecisions()
+    var
+        Currency: Record Currency;
+        Currencies: TestPage Currencies;
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] The currencies list displays nontrivial five-decimal rounding precisions independently of amount formatting.
+        Initialize();
+
+        // [GIVEN] Currency "C" with five-decimal rounding precisions and two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.12345);
+
+        // [WHEN] The stored currency is opened on the list.
+        Currencies.OpenView();
+        Currencies.GoToRecord(Currency);
+
+        // [THEN] Stored and displayed precisions retain all five decimal places.
+        VerifyRoundingPrecisions(
+            Currency, 0.12345, Currencies."Amount Rounding Precision".Value(),
+            Currencies."Invoice Rounding Precision".Value());
+        Currencies.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrencyCardKeepsTwoDecimalRoundingPrecisions()
+    var
+        Currency: Record Currency;
+        CurrencyCard: TestPage "Currency Card";
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] The currency card continues to display ordinary rounding precisions with two decimal places.
+        Initialize();
+
+        // [GIVEN] Currency "C" with two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.01);
+
+        // [WHEN] Both rounding precisions are entered and the card is reopened.
+        EnterRoundingPrecisionsOnCurrencyCard(Currency, CurrencyCard, 0.05);
+
+        // [THEN] Two-decimal values are retained without adding unnecessary decimal places.
+        VerifyRoundingPrecisions(
+            Currency, 0.05, CurrencyCard."Amount Rounding Precision".Value(),
+            CurrencyCard."Invoice Rounding Precision".Value());
+        CurrencyCard.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrenciesKeepsTwoDecimalRoundingPrecisions()
+    var
+        Currency: Record Currency;
+        Currencies: TestPage Currencies;
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] The currencies list continues to display ordinary rounding precisions with two decimal places.
+        Initialize();
+
+        // [GIVEN] Currency "C" with two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.01);
+
+        // [WHEN] Both rounding precisions are entered and the list is reopened.
+        EnterRoundingPrecisionsOnCurrencies(Currency, Currencies, 0.05);
+
+        // [THEN] Two-decimal values are retained without adding unnecessary decimal places.
+        VerifyRoundingPrecisions(
+            Currency, 0.05, Currencies."Amount Rounding Precision".Value(),
+            Currencies."Invoice Rounding Precision".Value());
+        Currencies.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrencyCardRejectsIncompatibleInvoicePrecision()
+    var
+        Currency: Record Currency;
+        CurrencyCard: TestPage "Currency Card";
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] Invoice precision on the currency card must remain a multiple of amount precision.
+        Initialize();
+
+        // [GIVEN] Currency "C" with an amount rounding precision of 0.05.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.05);
+        CurrencyCard.OpenEdit();
+        CurrencyCard.GoToRecord(Currency);
+
+        // [WHEN] An incompatible invoice rounding precision is entered.
+        asserterror CurrencyCard."Invoice Rounding Precision".SetValue(Format(0.03));
+
+        // [THEN] The existing rounding compatibility validation rejects the value.
+        VerifyIncompatibleInvoicePrecisionError();
+        CurrencyCard.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrenciesRejectsIncompatibleInvoicePrecision()
+    var
+        Currency: Record Currency;
+        Currencies: TestPage Currencies;
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] Invoice precision on the currencies list must remain a multiple of amount precision.
+        Initialize();
+
+        // [GIVEN] Currency "C" with an amount rounding precision of 0.05.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.05);
+        Currencies.OpenEdit();
+        Currencies.GoToRecord(Currency);
+
+        // [WHEN] An incompatible invoice rounding precision is entered.
+        asserterror Currencies."Invoice Rounding Precision".SetValue(Format(0.03));
+
+        // [THEN] The existing rounding compatibility validation rejects the value.
+        VerifyIncompatibleInvoicePrecisionError();
+        Currencies.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrencyCardRetainsEnteredFiveDecimalPrecisions()
+    var
+        Currency: Record Currency;
+        CurrencyCard: TestPage "Currency Card";
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] Five-decimal rounding precisions entered on the card persist after reopening.
+        Initialize();
+
+        // [GIVEN] Currency "C" with two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.01);
+
+        // [WHEN] The smallest rounding precisions are entered and the card is reopened.
+        EnterRoundingPrecisionsOnCurrencyCard(Currency, CurrencyCard, 0.00001);
+
+        // [THEN] Both fields retain their full stored and displayed precision.
+        VerifyRoundingPrecisions(
+            Currency, 0.00001, CurrencyCard."Amount Rounding Precision".Value(),
+            CurrencyCard."Invoice Rounding Precision".Value());
+        CurrencyCard.Close();
+
+        // [WHEN] Nontrivial five-decimal rounding precisions are entered and the card is reopened.
+        EnterRoundingPrecisionsOnCurrencyCard(Currency, CurrencyCard, 0.12345);
+
+        // [THEN] Both fields retain their full stored and displayed precision.
+        VerifyRoundingPrecisions(
+            Currency, 0.12345, CurrencyCard."Amount Rounding Precision".Value(),
+            CurrencyCard."Invoice Rounding Precision".Value());
+        CurrencyCard.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure CurrenciesRetainsEnteredFiveDecimalPrecisions()
+    var
+        Currency: Record Currency;
+        Currencies: TestPage Currencies;
+    begin
+        // [FEATURE] [AI test 0.3] [Currency] [UI]
+        // [SCENARIO 413] Five-decimal rounding precisions entered on the list persist after reopening.
+        Initialize();
+
+        // [GIVEN] Currency "C" with two-decimal amount formatting.
+        CreateCurrencyWithTwoDecimalAmounts(Currency, 0.01);
+
+        // [WHEN] The smallest rounding precisions are entered and the list is reopened.
+        EnterRoundingPrecisionsOnCurrencies(Currency, Currencies, 0.00001);
+
+        // [THEN] Both fields retain their full stored and displayed precision.
+        VerifyRoundingPrecisions(
+            Currency, 0.00001, Currencies."Amount Rounding Precision".Value(),
+            Currencies."Invoice Rounding Precision".Value());
+        Currencies.Close();
+
+        // [WHEN] Nontrivial five-decimal rounding precisions are entered and the list is reopened.
+        EnterRoundingPrecisionsOnCurrencies(Currency, Currencies, 0.12345);
+
+        // [THEN] Both fields retain their full stored and displayed precision.
+        VerifyRoundingPrecisions(
+            Currency, 0.12345, Currencies."Amount Rounding Precision".Value(),
+            Currencies."Invoice Rounding Precision".Value());
+        Currencies.Close();
+    end;
+
+    local procedure Initialize()
+    begin
+        LibraryApplicationArea.EnableFoundationSetup();
+    end;
+
+    local procedure CreateCurrencyWithTwoDecimalAmounts(var Currency: Record Currency; RoundingPrecision: Decimal)
+    begin
+        LibraryERM.CreateCurrency(Currency);
+        Currency.Validate("Amount Decimal Places", '2:2');
+        Currency.Validate("Amount Rounding Precision", RoundingPrecision);
+        Currency.Validate("Invoice Rounding Precision", RoundingPrecision);
+        Currency.Modify(true);
+        Currency.Get(Currency.Code);
+    end;
+
+    local procedure EnterRoundingPrecisionsOnCurrencyCard(var Currency: Record Currency; var CurrencyCard: TestPage "Currency Card"; RoundingPrecision: Decimal)
+    begin
+        CurrencyCard.OpenEdit();
+        CurrencyCard.GoToRecord(Currency);
+        CurrencyCard."Amount Rounding Precision".SetValue(Format(RoundingPrecision));
+        CurrencyCard."Invoice Rounding Precision".SetValue(Format(RoundingPrecision));
+        CurrencyCard.Close();
+        Currency.Get(Currency.Code);
+        CurrencyCard.OpenView();
+        CurrencyCard.GoToRecord(Currency);
+    end;
+
+    local procedure EnterRoundingPrecisionsOnCurrencies(var Currency: Record Currency; var Currencies: TestPage Currencies; RoundingPrecision: Decimal)
+    begin
+        Currencies.OpenEdit();
+        Currencies.GoToRecord(Currency);
+        Currencies."Amount Rounding Precision".SetValue(Format(RoundingPrecision));
+        Currencies."Invoice Rounding Precision".SetValue(Format(RoundingPrecision));
+        Currencies.Close();
+        Currency.Get(Currency.Code);
+        Currencies.OpenView();
+        Currencies.GoToRecord(Currency);
+    end;
+
+    local procedure VerifyRoundingPrecisions(Currency: Record Currency; RoundingPrecision: Decimal; AmountPrecisionText: Text; InvoicePrecisionText: Text)
+    var
+        ExpectedPrecisionText: Text;
+    begin
+        Assert.AreEqual('2:2', Currency."Amount Decimal Places", 'Ordinary amount formatting must remain unchanged.');
+        Assert.AreEqual(
+            RoundingPrecision, Currency."Amount Rounding Precision",
+            'Amount rounding precision must be stored without losing decimals.');
+        Assert.AreEqual(
+            RoundingPrecision, Currency."Invoice Rounding Precision",
+            'Invoice rounding precision must be stored without losing decimals.');
+        ExpectedPrecisionText := Format(RoundingPrecision, 0, '<Precision,2:5><Standard Format,0>');
+        Assert.AreEqual(
+            ExpectedPrecisionText + ' / ' + ExpectedPrecisionText, AmountPrecisionText + ' / ' + InvoicePrecisionText,
+            'Amount / Invoice rounding precision must display up to five decimals.');
+    end;
+
+    local procedure VerifyIncompatibleInvoicePrecisionError()
+    begin
+        Assert.ExpectedError(StrSubstNo('must be rounded to the nearest %1', Format(0.05)));
+        Assert.ExpectedErrorCode('TestValidation');
+    end;
+
     local procedure CreateCurrencyAndExchangeRate(): Code[10]
     var
         Currency: Record Currency;
