@@ -37,12 +37,10 @@ codeunit 131341 "Library - XML Read OnServer"
 
     [Scope('OnPrem')]
     procedure LoadXMLDocFromInStream(FileInStream: InStream)
-    var
-        XMLDOMMgt: Codeunit "XML DOM Management";
     begin
         Clear(XMLDocOut);
         XMLDocOut := XMLDocOut.XmlDocument();
-        XMLDOMMgt.LoadXMLDocumentFromInStream(FileInStream, XMLDocOut);
+        XMLDocOut.Load(FileInStream);
     end;
 
     local procedure Equal(ExpectedValue: Variant; ActualValue: Text): Boolean
