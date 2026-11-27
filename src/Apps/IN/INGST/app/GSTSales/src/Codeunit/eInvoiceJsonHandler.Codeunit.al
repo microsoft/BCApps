@@ -17,7 +17,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.Security.Encryption;
-using System.Text;
 using System.Utilities;
 
 codeunit 18147 "e-Invoice Json Handler"
@@ -57,6 +56,7 @@ codeunit 18147 "e-Invoice Json Handler"
         AcknowledgementNoTxt: Label 'AckNo', Locked = true;
         AcknowledgementDateTxt: Label 'AckDt', Locked = true;
         IRNHashErr: Label 'No matched IRN Hash %1 found to update.', Comment = '%1 = IRN Hash';
+        InvalidResponseJsonErr: Label 'The e-invoice response file does not contain valid JSON.';
         SignedQRCodeTxt: Label 'SignedQRCode', Locked = true;
         CGSTLbl: Label 'CGST', Locked = true;
         SGSTLbl: label 'SGST', Locked = true;
@@ -96,10 +96,10 @@ codeunit 18147 "e-Invoice Json Handler"
 
     procedure GetEInvoiceResponse(var RecRef: RecordRef)
     var
-        JSONManagement: Codeunit "JSON Management";
         QRGenerator: Codeunit "QR Generator";
         TempBlob: Codeunit "Temp Blob";
         FieldRef: FieldRef;
+        ResponseJson: JsonObject;
         JsonString: Text;
         TempIRNTxt: Text;
         TempDateTime: DateTime;
@@ -111,14 +111,15 @@ codeunit 18147 "e-Invoice Json Handler"
         if (JsonString = '') or (JsonString = '[]') then
             exit;
 
-        JSONManagement.InitializeObject(JsonString);
-        if JSONManagement.GetValue(IRNTxt) <> '' then begin
+        if not ResponseJson.ReadFrom(JsonString) then
+            Error(InvalidResponseJsonErr);
+        if ResponseJson.GetText(IRNTxt, true) <> '' then begin
             FieldRef := RecRef.Field(SalesInvoiceHeader.FieldNo("IRN Hash"));
-            FieldRef.Value := JSONManagement.GetValue(IRNTxt);
+            FieldRef.Value := ResponseJson.GetText(IRNTxt, true);
             FieldRef := RecRef.Field(SalesInvoiceHeader.FieldNo("Acknowledgement No."));
-            FieldRef.Value := JSONManagement.GetValue(AcknowledgementNoTxt);
+            FieldRef.Value := ResponseJson.GetText(AcknowledgementNoTxt, true);
 
-            AcknowledgementDateTimeText := JSONManagement.GetValue(AcknowledgementDateTxt);
+            AcknowledgementDateTimeText := ResponseJson.GetText(AcknowledgementDateTxt, true);
             Evaluate(AcknowledgementDate, CopyStr(AcknowledgementDateTimeText, 1, 10));
             Evaluate(AcknowledgementTime, CopyStr(AcknowledgementDateTimeText, 11, 8));
             TempDateTime := CreateDateTime(AcknowledgementDate, AcknowledgementTime);
@@ -127,7 +128,7 @@ codeunit 18147 "e-Invoice Json Handler"
             FieldRef.Value := TempDateTime;
             FieldRef := RecRef.Field(SalesInvoiceHeader.FieldNo(IsJSONImported));
             FieldRef.Value := true;
-            QRGenerator.GenerateQRCodeImage(JSONManagement.GetValue(SignedQRCodeTxt), TempBlob);
+            QRGenerator.GenerateQRCodeImage(ResponseJson.GetText(SignedQRCodeTxt, true), TempBlob);
             FieldRef := RecRef.Field(SalesInvoiceHeader.FieldNo("QR Code"));
             TempBlob.ToRecordRef(RecRef, SalesInvoiceHeader.FieldNo("QR Code"));
             RecRef.Modify();

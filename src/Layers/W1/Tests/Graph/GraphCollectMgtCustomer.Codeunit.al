@@ -107,6 +107,52 @@ codeunit 134631 "Graph Collect Mgt Customer"
         VerifyMatchingPostalAddress(PostalAddressJSON, Customer);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestEmptyDimensionsJSON()
+    var
+        GraphMgtComplexTypes: Codeunit "Graph Mgt - Complex Types";
+        NewDimensionSetId: Integer;
+    begin
+        NewDimensionSetId := 42;
+        GraphMgtComplexTypes.GetDimensionSetFromJSON('', 0, NewDimensionSetId);
+
+        Assert.AreEqual(0, NewDimensionSetId, 'Blank dimensions JSON must produce an empty dimension set.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestUpdateWebsiteAddsNewWebsiteWithAddress()
+    var
+        GraphCollectionMgtContact: Codeunit "Graph Collection Mgt - Contact";
+        WebsitesJson: JsonArray;
+        WebsiteToken: JsonToken;
+        AddressToken: JsonToken;
+        WebsitesText: Text;
+        WebsiteAddress: Text[80];
+    begin
+        // [SCENARIO] Updating a website that does not exist yet adds a website entry that carries the address
+        WebsiteAddress := 'https://contoso.example/' + LibraryUtility.GenerateGUID();
+
+        WebsitesText := GraphCollectionMgtContact.UpdateWorkWebsite('', WebsiteAddress);
+
+        Assert.IsTrue(WebsitesJson.ReadFrom(WebsitesText), 'The websites collection must be a JSON array.');
+        Assert.AreEqual(1, WebsitesJson.Count(), 'A single website must be added.');
+        WebsitesJson.Get(0, WebsiteToken);
+        Assert.IsTrue(WebsiteToken.AsObject().Get('Address', AddressToken), 'The added website must contain the address.');
+        Assert.AreEqual(WebsiteAddress, AddressToken.AsValue().AsText(), 'The added website address is incorrect.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestUpdateWebsiteWithBlankAddressDoesNotAddWebsite()
+    var
+        GraphCollectionMgtContact: Codeunit "Graph Collection Mgt - Contact";
+    begin
+        // [SCENARIO] Updating a missing website with a blank address leaves the collection empty
+        Assert.AreEqual('[]', GraphCollectionMgtContact.UpdateHomeWebsite('', ''), 'No website must be added for a blank address.');
+    end;
+
     local procedure FindCustomerWithAddress(var Customer: Record Customer)
     var
         CountryRegion: Record "Country/Region";
@@ -146,4 +192,3 @@ codeunit 134631 "Graph Collect Mgt Customer"
         Customer.TestField("Post Code", TempCustomer."Post Code");
     end;
 }
-
