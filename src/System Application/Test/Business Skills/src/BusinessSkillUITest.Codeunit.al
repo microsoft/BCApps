@@ -40,11 +40,12 @@ codeunit 130052 "Business Skill UI Test"
         Initialize();
         // [WHEN] Metadata is entered, edited, and the new skill is activated.
         SkillCard.OpenNew();
-        Assert.IsTrue(SkillCard.Activate.Visible(), 'A new inactive skill must offer activation.');
+        Assert.IsFalse(SkillCard.Activate.Visible(), 'An unsaved skill must not offer activation.');
         Assert.IsFalse(SkillCard.Deactivate.Visible(), 'A new inactive skill must not offer deactivation.');
         Assert.IsFalse(SkillCard.Export.Visible(), 'An unsaved skill must not offer export.');
         Assert.IsFalse(SkillCard.CopyToEdit.Visible(), 'An unsaved skill must not offer copy.');
         SkillCard.Title.SetValue('Created from card');
+        Assert.IsTrue(SkillCard.Activate.Visible(), 'Saving an inactive skill must make activation visible without reopening the card.');
         Assert.IsTrue(SkillCard.Export.Visible(), 'Saving a manual skill must make export visible without reopening the card.');
         Assert.IsTrue(SkillCard.CopyToEdit.Visible(), 'Saving a skill must make copy visible without reopening the card.');
         SkillCard.Description.SetValue('Created description');
