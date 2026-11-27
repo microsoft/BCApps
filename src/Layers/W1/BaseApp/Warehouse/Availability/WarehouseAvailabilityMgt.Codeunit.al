@@ -1112,6 +1112,7 @@ codeunit 7314 "Warehouse Availability Mgt."
         SourceKey: Text;
     begin
         // Stock left in a shared bin cannot be attributed to source lines of deleted shipments, so it is credited to them once, in pick order.
+        // Source lines without a reservation on inventory (e.g. cancelled) are skipped as they take no part in the reservation aggregation and would never use the credit.
         WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
         WarehouseEntry.SetLoadFields("Source Type", "Source Subtype", "Source No.", "Source Line No.");
         WarehouseEntry.SetFilter("Entry No.", '<%1', BeforeEntryNo);
@@ -1130,8 +1131,11 @@ codeunit 7314 "Warehouse Availability Mgt."
                     StrSubstNo('%1|%2|%3|%4', WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.");
                 if not CheckedSources.Contains(SourceKey) then begin
                     CheckedSources.Add(SourceKey);
-                    if CalcQtyPickedOnWhseShipmentLine(
-                         WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.") <= 0
+                    if (CalcQtyPickedOnWhseShipmentLine(
+                          WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.") <= 0) and
+                       HasReservationOnInventory(
+                          LocationCode, ItemNo, VariantCode, WhseItemTrackingSetup,
+                          WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.")
                     then
                         QtyInBin +=
                             TypeHelper.Maximum(
@@ -1141,6 +1145,22 @@ codeunit 7314 "Warehouse Availability Mgt."
                                     WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No."));
                 end;
             until WarehouseEntry.Next() = 0;
+    end;
+
+    local procedure HasReservationOnInventory(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer): Boolean
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        ReservationEntry.SetLoadFields("Entry No.");
+        ReservationEntry.SetSourceFilter(SourceType, SourceSubType, SourceID, SourceRefNo, true);
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        ReservationEntry.SetRange("Location Code", LocationCode);
+        ReservationEntry.SetRange("Variant Code", VariantCode);
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        ReservationEntry.SetRange(Positive, false);
+        ReservationEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        exit(not ReservationEntry.IsEmpty());
     end;
 
     local procedure CalcOtherOpenShipmentsQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: Integer) QtyInBin: Decimal
