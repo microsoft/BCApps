@@ -25,8 +25,8 @@ remain in System; persistent skill storage is not an application table.
 
 ### Builder naming
 
-Initialize the builder with `Initialize(SkillCode, DisplayName, Content)`.
-Use `SetDisplayName`, `SetDescription`, `SetContent`, `SetContentLocked`,
+Initialize the builder with `Initialize(SkillCode, Name, Content)`.
+Use `SetName`, `SetDescription`, `SetContent`, `SetContentLocked`,
 `SetContentVersion`, and `SetActive` before `Create`.
 Creation defaults to inactive, app-owned with locked content, and version `v1.0`.
 The internal `SetManual(true)` supports native authoring and approved friend apps;
@@ -55,11 +55,11 @@ automatically advances the content version when instructions change. Identical
 manual content preserves revision and history. Content updates do not implicitly
 activate a skill.
 
-Use `Business Skill.UpdateMetadata(SkillCode, DisplayName, Description)` to
+Use `Business Skill.UpdateMetadata(SkillCode, Name, Description)` to
 maintain the calling app's existing skill, including inactive or content-locked
 skills. It preserves identity, content, version, history, status and lock state;
 identical metadata is a no-op. An empty description clears it. Missing or
-foreign-owned codes fail, and active skills still require a nonblank title.
+foreign-owned codes fail, and active skills still require a nonblank name.
 Normal TableData and management permissions apply. This is not a replacement
 for revision-aware native page updates.
 
@@ -78,7 +78,7 @@ TableData permissions or bypass native authorization. External tests use
 `Library - Business Skill` rather than receiving additional friendship.
 
 The builder terminology maps to the existing platform fields: Skill Code to
-`Skill ID`, Display Name to `Title`, Content to `Skill Text`, Content Locked to
+`Skill ID`, Name to `Title`, Content to `Skill Text`, Content Locked to
 `Read-Only`, and Content Version to `Version`. Table-field renames and calculated
 Manual are a separate change. The history table uses `Content` and `Content Version`,
 retaining its field IDs and types; its numeric `Skill ID` remains the relationship key.

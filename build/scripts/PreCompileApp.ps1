@@ -1,3 +1,11 @@
+<#
+.SYNOPSIS
+    Prepares workspace compilation and API-compatibility baselines.
+.DESCRIPTION
+    Clean builds first compile a no-symbol, analyzer-free comparison baseline.
+    The actual app/test compilation retains its configured analyzers. The temporary
+    baseline pass reports elapsed seconds and success even when compilation fails.
+#>
 Param(
     [ValidateSet('app', 'testApp', 'bcptApp')]
     [string] $appType = 'app',
@@ -254,6 +262,10 @@ if($appType -eq 'app')
 
                 $tempParameters = $parameters.Value.Clone()
                 $tempParameters["PreprocessorSymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+                # This pass produces comparison symbols only. The actual compilation retains
+                # all analyzers, including AppSourceCop against the baseline generated here.
+                $tempParameters["Analyzers"] = @()
+                $tempParameters["CustomAnalyzers"] = @()
                 $incrementalBaselineAppNames = @()
                 if ($outFolder) {
                     $baselineAppsFolder = Join-Path (Split-Path -Path $outFolder -Parent) 'Apps'
@@ -272,7 +284,16 @@ if($appType -eq 'app')
                     -CurrentBuildBaselineAppNames $incrementalBaselineAppNames
                 $tempParameters["OutFolder"] = $parameters.Value["PackageCachePath"] # Output the baseline app into the package cache folder used by the breaking changes check
 
-                $baselineAppFiles = CompileAppsInWorkspace @tempParameters
+                $baselineTimer = [System.Diagnostics.Stopwatch]::StartNew()
+                $baselineSucceeded = $false
+                try {
+                    $baselineAppFiles = CompileAppsInWorkspace @tempParameters
+                    $baselineSucceeded = $true
+                }
+                finally {
+                    $baselineTimer.Stop()
+                    Write-Host "PreCompileApp: Clean symbol-only baseline compilation: $($baselineTimer.Elapsed.TotalSeconds.ToString('F2', [System.Globalization.CultureInfo]::InvariantCulture)) seconds; succeeded=$baselineSucceeded"
+                }
 
                 # Rename baseline apps to end with _clean.app
                 foreach ($appFile in $baselineAppFiles) {

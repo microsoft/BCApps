@@ -24,7 +24,7 @@ codeunit 148370 EAReceiptMatchTests
         LibraryExpense: Codeunit "Library - Expense";
         ReceiptExpenseMatch: Codeunit "EA Receipt Expense Match";
         CardReceiptDataApply: Codeunit "EA Card Receipt Data Apply";
-        CannotDeleteCardExpenseErr: Label 'You cannot delete expense %1 because it is linked to a corporate card transaction.', Comment = '%1 = Expense No.';
+        CannotDeleteFeedLinkedExpenseErr: Label 'You cannot delete expense %1 because it is linked to corporate card transaction %2.', Comment = '%1 = expense number, %2 = corporate card transaction entry number';
         CardExpenseSourceFieldCannotChangeErr: Label '%1 cannot be changed on an expense linked to a corporate card transaction.', Comment = '%1 = field caption';
         CurrencyFactorRequiredErr: Label 'A currency factor is required for currency %1.', Comment = '%1 = Currency Code';
         NotCardExpenseErr: Label 'Receipt data can only be applied to expense %1 when it was created from a corporate card transaction.', Comment = '%1 = Expense No.';
@@ -531,7 +531,7 @@ codeunit 148370 EAReceiptMatchTests
         asserterror Expense.Delete(true);
 
         // [THEN] An error says it is linked to a card transaction.
-        Assert.ExpectedError(StrSubstNo(CannotDeleteCardExpenseErr, Expense."No."));
+        Assert.ExpectedError(StrSubstNo(CannotDeleteFeedLinkedExpenseErr, Expense."No.", Expense."Credit Card Feed No."));
     end;
 
     [Test]

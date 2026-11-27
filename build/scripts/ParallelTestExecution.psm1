@@ -1,17 +1,6 @@
 Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1" -Resolve)
+Import-Module (Join-Path $PSScriptRoot "BuildOptimization.psm1" -Resolve)
 
-# ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
-# internally. Set both up before importing so its functions work in CI runners that don't
-# have the full NAV build environment configured.
-if ([string]::IsNullOrEmpty($env:INETROOT)) {
-    $env:INETROOT = Get-BaseFolder
-}
-if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
-    function global:Write-Log {
-        param([Parameter(Position = 0)][string]$Message, [string]$ForegroundColor)
-        Write-Host $Message
-    }
-}
 Import-Module (Join-Path $PSScriptRoot "ALAppBuild.psm1" -Resolve)
 
 <#
@@ -1537,6 +1526,8 @@ function Invoke-ParallelTestExecution {
     call computes the bucket's app list and dispatches them all in parallel; subsequent calls in
     the same job short-circuit on the cached final result. Returns the cached result if there
     are no apps to run for the project's testType.
+    enableChurnBasedTesting in .github/AL-Go-Settings.json enables proposal logging only;
+    false or absent bypasses analysis. All bucket tests still run.
 .PARAMETER parameters
     The Run-AlPipeline parameters hashtable (containerName, tenant, credential, etc.).
 .OUTPUTS
@@ -1563,6 +1554,9 @@ function Invoke-PerProjectTestRun {
         return $true
     }
 
+    $appNamesToTest = @(Get-SelectedTestApps -AppNamesToTest $appNamesToTest -BaseFolder (Get-BaseFolder) `
+        -ChurnEnabled ((Get-ALGoSetting -Key 'enableChurnBasedTesting') -eq $true) `
+        -Country $country -TestType $testType -BucketNumber $bucketNumber)
     Write-Host "Test apps to dispatch ($($appNamesToTest.Count)): $($appNamesToTest -join ', ')"
 
     $parameters["returnTrueIfAllPassed"] = $true
