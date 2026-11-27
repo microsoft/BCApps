@@ -9,6 +9,7 @@ using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Clause;
@@ -4059,6 +4060,251 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         Assert.AreEqual(0, GetNodeCountByPath(TempXMLBuffer, DocumentAllowanceChargeTok), 'The item charge must not be exported as a document level allowance/charge.');
     end;
     #endregion
+
+    #region ServiceSetup
+    [Test]
+    procedure SelectingZUGFeRDFormatSetsZUGFeRDDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Choosing ZUGFeRD as the document format of a service also chooses ZUGFeRD as its draft format
+        Initialize();
+
+        // [GIVEN] A new e-document service without a draft format
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+
+        // [WHEN] ZUGFeRD is chosen as the document format
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::ZUGFeRD);
+
+        // [THEN] The draft format is ZUGFeRD, so import process Version 2.0 can read the received documents into a draft
+        Assert.AreEqual("E-Doc. Read into Draft"::ZUGFeRD, NewEDocumentService."Read into Draft Impl.", 'Choosing ZUGFeRD as the document format must choose ZUGFeRD as the draft format.');
+    end;
+
+    [Test]
+    procedure SelectingZUGFeRDFormatKeepsChosenDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Choosing ZUGFeRD as the document format keeps a draft format that was already chosen
+        Initialize();
+
+        // [GIVEN] A new e-document service whose draft format is PEPPOL
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+        NewEDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+        NewEDocumentService.Modify();
+
+        // [WHEN] ZUGFeRD is chosen as the document format
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::ZUGFeRD);
+
+        // [THEN] The chosen draft format is kept
+        Assert.AreEqual("E-Doc. Read into Draft"::PEPPOL, NewEDocumentService."Read into Draft Impl.", 'Choosing ZUGFeRD as the document format must keep the chosen draft format.');
+    end;
+    [Test]
+    procedure SwitchingFromXRechnungToZUGFeRDSetsZUGFeRDDraftFormat()
+    var
+        NewEDocumentService: Record "E-Document Service";
+    begin
+        // [SCENARIO] Switching the document format from XRechnung to ZUGFeRD also switches the draft format to ZUGFeRD
+        Initialize();
+
+        // [GIVEN] A service whose document format is XRechnung, with the draft format that XRechnung chose
+        CreateServiceWithoutDocumentFormat(NewEDocumentService);
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::XRechnung);
+
+        // [WHEN] The document format is switched to ZUGFeRD
+        NewEDocumentService.Validate("Document Format", NewEDocumentService."Document Format"::ZUGFeRD);
+
+        // [THEN] The draft format follows the new document format
+        Assert.AreEqual("E-Doc. Read into Draft"::ZUGFeRD, NewEDocumentService."Read into Draft Impl.", 'Switching the document format must replace the draft format of the previous document format.');
+    end;
+
+    #endregion
+
+    local procedure CreateServiceWithoutDocumentFormat(var NewEDocumentService: Record "E-Document Service")
+    begin
+        NewEDocumentService.Init();
+        NewEDocumentService.Code := LibraryUtility.GenerateRandomCode20(NewEDocumentService.FieldNo(Code), Database::"E-Document Service");
+        NewEDocumentService.Insert();
+    end;
+
+    #region ImportFromPDF
+    [Test]
+    procedure ZUGFeRDPdfIsStructuredFromItsEmbeddedInvoice()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Import process Version 2.0 structures a received ZUGFeRD PDF from the invoice embedded in it instead of from the rendered page
+        Initialize();
+
+        // [GIVEN] A ZUGFeRD PDF of a posted sales invoice
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        ExportInvoicePdf(SalesInvoiceHeader, TempBlob);
+
+        // [GIVEN] The PDF received as an e-document of a service with import process Version 2.0, without a structure implementation
+        CreateReceivedEDocument(EDocument, EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
+
+        // [WHEN] The received data is structured
+        RunStructureReceivedDataStep(EDocument);
+
+        // [THEN] ZUGFeRD structures the e-document and reads it into a draft
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("Structure Received E-Doc."::ZUGFeRD, EDocument."Structure Data Impl.", 'A PDF with an embedded ZUGFeRD invoice must be structured by ZUGFeRD.');
+        Assert.AreEqual("E-Doc. Read into Draft"::ZUGFeRD, EDocument."Read into Draft Impl.", 'A PDF with an embedded ZUGFeRD invoice must be read into a draft by ZUGFeRD.');
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'The ZUGFeRD PDF must be structured.');
+
+        // [THEN] The structured data is the Cross Industry Invoice embedded in the PDF
+        EDocDataStorage.Get(EDocument."Structured Data Entry No.");
+        Assert.AreEqual(Enum::"E-Doc. File Format"::XML, EDocDataStorage."File Format", 'The structured data must be the embedded XML.');
+        Assert.IsTrue(ReadDataStorage(EDocDataStorage).Contains(SalesInvoiceHeader."No."), 'The structured data must be the invoice embedded in the PDF.');
+    end;
+
+    [Test]
+    procedure PdfWithoutEmbeddedInvoiceKeepsPreferredStructureImplementation()
+    var
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocImport: Codeunit "E-Doc. Import";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A received PDF without an embedded ZUGFeRD invoice keeps the preferred structure implementation of PDF files
+        Initialize();
+
+        // [GIVEN] A PDF without an embedded invoice, received as an e-document
+        CreatePdfWithoutAttachment(TempBlob);
+        CreateReceivedEDocument(EDocument, EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
+
+        // [WHEN] The structure implementation is determined
+        // [THEN] ZUGFeRD is not chosen and the preferred implementation is kept
+        Assert.AreEqual(
+            "Structure Received E-Doc."::MLLM, EDocImport.GetStructureDataImplementation(EDocument, EDocDataStorage, "Structure Received E-Doc."::MLLM),
+            'A PDF without an embedded ZUGFeRD invoice must keep the preferred structure implementation.');
+    end;
+
+    [Test]
+    procedure PdfWithEmbeddedNonCIIInvoiceKeepsPreferredStructureImplementation()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocImport: Codeunit "E-Doc. Import";
+        ZUGFeRDUBLAttachmentMock: Codeunit "ZUGFeRD UBL Attachment Mock";
+        PDFDocument: Codeunit "PDF Document";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentTempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A received PDF whose embedded XML is not a Cross Industry Invoice is not structured as ZUGFeRD
+        Initialize();
+
+        // [GIVEN] A PDF of a posted sales invoice that embeds a UBL invoice instead of a ZUGFeRD invoice
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        BindSubscription(ZUGFeRDUBLAttachmentMock);
+        ExportInvoicePdf(SalesInvoiceHeader, TempBlob);
+        UnbindSubscription(ZUGFeRDUBLAttachmentMock);
+        Assert.IsTrue(PDFDocument.GetDocumentAttachmentStream(TempBlob.CreateInStream(), AttachmentTempBlob), 'The PDF must embed an invoice attachment.');
+
+        // [GIVEN] The PDF received as an e-document
+        CreateReceivedEDocument(EDocument, EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
+
+        // [WHEN] The structure implementation is determined
+        // [THEN] ZUGFeRD is not chosen and the preferred implementation is kept
+        Assert.AreEqual(
+            "Structure Received E-Doc."::MLLM, EDocImport.GetStructureDataImplementation(EDocument, EDocDataStorage, "Structure Received E-Doc."::MLLM),
+            'A PDF whose embedded XML is not a Cross Industry Invoice must keep the preferred structure implementation.');
+    end;
+
+    [Test]
+    procedure EmbeddedInvoiceIsOnlyLookedUpInPdfFiles()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocImport: Codeunit "E-Doc. Import";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] ZUGFeRD is only chosen for files received as PDF
+        Initialize();
+
+        // [GIVEN] A ZUGFeRD PDF received as an e-document whose file format is XML
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        ExportInvoicePdf(SalesInvoiceHeader, TempBlob);
+        CreateReceivedEDocument(EDocument, EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::XML);
+
+        // [WHEN] The structure implementation is determined
+        // [THEN] The preferred implementation of the file format is kept
+        Assert.AreEqual(
+            "Structure Received E-Doc."::"Already Structured", EDocImport.GetStructureDataImplementation(EDocument, EDocDataStorage, "Structure Received E-Doc."::"Already Structured"),
+            'ZUGFeRD must only be chosen for files received as PDF.');
+    end;
+    #endregion
+
+    local procedure ExportInvoicePdf(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempBlob: Codeunit "Temp Blob")
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        EDocument: Record "E-Document";
+        SourceDocumentHeader: RecordRef;
+        SourceDocumentLines: RecordRef;
+    begin
+        SourceDocumentHeader.GetTable(SalesInvoiceHeader);
+        SourceDocumentLines.GetTable(SalesInvoiceLine);
+        ZUGFeRDFormat.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
+    end;
+
+    local procedure CreatePdfWithoutAttachment(var TempBlob: Codeunit "Temp Blob")
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceRecordRef: RecordRef;
+        PdfOutStream: OutStream;
+    begin
+        // Printing outside of the e-document export does not embed the ZUGFeRD XML
+        SalesInvoiceHeader.SetRange("No.", CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesInvoiceRecordRef.GetTable(SalesInvoiceHeader);
+        TempBlob.CreateOutStream(PdfOutStream);
+        Report.SaveAs(Report::"Standard Sales - Invoice", '', ReportFormat::Pdf, PdfOutStream, SalesInvoiceRecordRef);
+    end;
+
+    local procedure CreateReceivedEDocument(var EDocument: Record "E-Document"; var EDocDataStorage: Record "E-Doc. Data Storage"; TempBlob: Codeunit "Temp Blob"; FileFormat: Enum "E-Doc. File Format")
+    var
+        ImportV2EDocumentService: Record "E-Document Service";
+        EDocLogRecord: Record "E-Document Log";
+        EDocumentLog: Codeunit "E-Document Log";
+        EDocumentProcessing: Codeunit "E-Document Processing";
+    begin
+        ImportV2EDocumentService.Get(LibraryEdocument.CreateService("E-Document Format"::Mock, "Service Integration"::"No Integration", "E-Document Import Process"::"Version 2.0"));
+        LibraryEdocument.CreateInboundEDocument(EDocument, ImportV2EDocumentService);
+        EDocumentLog.SetBlob('Invoice.pdf', FileFormat, TempBlob);
+        EDocumentLog.SetFields(EDocument, ImportV2EDocumentService);
+        EDocLogRecord := EDocumentLog.InsertLog(Enum::"E-Document Service Status"::Imported, Enum::"Import E-Doc. Proc. Status"::Unprocessed);
+        EDocument."Unstructured Data Entry No." := EDocLogRecord."E-Doc. Data Storage Entry No.";
+        EDocument."File Name" := 'Invoice.pdf';
+        EDocument.Modify();
+        EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Unprocessed);
+        EDocDataStorage.Get(EDocument."Unstructured Data Entry No.");
+    end;
+
+    local procedure RunStructureReceivedDataStep(var EDocument: Record "E-Document")
+    var
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+    begin
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+    end;
+
+    local procedure ReadDataStorage(EDocDataStorage: Record "E-Doc. Data Storage") Content: Text
+    var
+        DataInStream: InStream;
+        Line: Text;
+    begin
+        EDocDataStorage.GetTempBlob().CreateInStream(DataInStream, TextEncoding::UTF8);
+        while not DataInStream.EOS() do begin
+            DataInStream.ReadText(Line);
+            Content += Line;
+        end;
+    end;
 
     local procedure CreateAndPostSalesInvoiceWithChargeAndZeroQuantityLine(var ItemChargeNo: Code[20]): Code[20]
     var

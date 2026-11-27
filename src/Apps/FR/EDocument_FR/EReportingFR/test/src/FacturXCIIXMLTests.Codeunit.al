@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -22,6 +23,7 @@ using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using System.IO;
 using System.Utilities;
 
 codeunit 148148 "Factur-X CII XML Tests"
@@ -51,6 +53,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         FacturXProfileIdTok: Label 'urn:cen.eu:en16931:2017', Locked = true;
         DialogErrorCodeTok: Label 'Dialog', Locked = true;
+        FacturXInvoiceResourceTok: Label 'facturx/facturx-invoice-0.xml', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -1857,6 +1860,219 @@ codeunit 148148 "Factur-X CII XML Tests"
             StrSubstNo(IncorrectValueErr, 'SpecifiedTradeAllowanceCharge count'));
     end;
     #endregion
+
+    #region ImportFromPDF
+    [Test]
+    procedure FacturXPdfHasEmbeddedInvoice()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A received Factur-X PDF is recognized by its embedded invoice, so import process Version 2.0 structures it with Factur-X
+        Initialize();
+
+        // [GIVEN] A Factur-X PDF of a posted sales invoice, received as a PDF file
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        ExportInvoicePdf(SalesInvoiceHeader, TempBlob);
+        InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
+
+        // [WHEN] The received file is checked for an embedded invoice
+        // [THEN] The embedded Cross Industry Invoice is found
+        Assert.IsTrue(EDocumentFacturXHandler.HasEmbeddedInvoice(EDocDataStorage), 'A Factur-X PDF must be recognized by its embedded invoice.');
+    end;
+
+    [Test]
+    procedure PdfWithoutAttachmentHasNoEmbeddedInvoice()
+    var
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A received PDF without an embedded invoice is not structured with Factur-X
+        Initialize();
+
+        // [GIVEN] A PDF without attachments, received as a PDF file
+        CreatePdfWithoutAttachment(TempBlob);
+        InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
+
+        // [WHEN] The received file is checked for an embedded invoice
+        // [THEN] No embedded invoice is found
+        Assert.IsFalse(EDocumentFacturXHandler.HasEmbeddedInvoice(EDocDataStorage), 'A PDF without attachments must not be recognized as a Factur-X PDF.');
+    end;
+
+    [Test]
+    procedure CIIXmlFileHasNoEmbeddedInvoice()
+    var
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+        TempBlob: Codeunit "Temp Blob";
+        XmlOutStream: OutStream;
+    begin
+        // [SCENARIO] A received Cross Industry Invoice XML file is not a PDF with an embedded invoice
+        Initialize();
+
+        // [GIVEN] A Factur-X CII XML file, received as an XML file
+        TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        XmlOutStream.WriteText(NavApp.GetResourceAsText(FacturXInvoiceResourceTok));
+        InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::XML);
+
+        // [WHEN] The received file is checked for an embedded invoice
+        // [THEN] No embedded invoice is found
+        Assert.IsFalse(EDocumentFacturXHandler.HasEmbeddedInvoice(EDocDataStorage), 'A CII XML file must not be recognized as a Factur-X PDF.');
+    end;
+
+    [Test]
+    procedure PdfWithEmbeddedNonCIIInvoiceHasNoEmbeddedInvoice()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocumentFacturXHandler: Codeunit "E-Document Factur-X Handler";
+        FacturXUBLRootMock: Codeunit "Factur-X UBL Root Mock";
+        PDFDocument: Codeunit "PDF Document";
+        TempBlob: Codeunit "Temp Blob";
+        AttachmentTempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A received PDF whose embedded XML is not a Cross Industry Invoice is not structured with Factur-X
+        Initialize();
+
+        // [GIVEN] A PDF of a posted sales invoice that embeds a UBL invoice instead of a Factur-X invoice, received as a PDF file
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        BindSubscription(FacturXUBLRootMock);
+        ExportInvoicePdf(SalesInvoiceHeader, TempBlob);
+        UnbindSubscription(FacturXUBLRootMock);
+        Assert.IsTrue(PDFDocument.GetDocumentAttachmentStream(TempBlob.CreateInStream(), AttachmentTempBlob), 'The PDF must embed an invoice attachment.');
+        InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
+
+        // [WHEN] The received file is checked for an embedded invoice
+        // [THEN] No embedded Factur-X invoice is found
+        Assert.IsFalse(EDocumentFacturXHandler.HasEmbeddedInvoice(EDocDataStorage), 'A PDF whose embedded XML is not a Cross Industry Invoice must not be recognized as a Factur-X PDF.');
+    end;
+
+    [Test]
+    procedure FacturXPdfIsStructuredFromItsEmbeddedInvoice()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ImportV2EDocumentService: Record "E-Document Service";
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Import process Version 2.0 structures a received Factur-X PDF from the invoice embedded in it instead of from the rendered page
+        Initialize();
+
+        // [GIVEN] A Factur-X PDF of a posted sales invoice, received as an e-document of a service with import process Version 2.0
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        ExportInvoicePdf(SalesInvoiceHeader, TempBlob);
+        CreateImportV2Service(ImportV2EDocumentService);
+        EDocImport.CreateFromType(EDocument, ImportV2EDocumentService, Enum::"E-Doc. File Format"::PDF, 'Invoice.pdf', TempBlob.CreateInStream());
+
+        // [WHEN] The received data is structured
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Structure received data";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        // [THEN] Factur-X structures the e-document and reads it into a draft
+        EDocument.Get(EDocument."Entry No");
+        Assert.AreEqual("Structure Received E-Doc."::"Factur-X FR", EDocument."Structure Data Impl.", 'A PDF with an embedded Factur-X invoice must be structured by Factur-X.');
+        Assert.AreEqual("E-Doc. Read into Draft"::"Factur-X FR", EDocument."Read into Draft Impl.", 'A PDF with an embedded Factur-X invoice must be read into a draft by Factur-X.');
+        EDocument.CalcFields("Import Processing Status");
+        Assert.AreEqual(Enum::"Import E-Doc. Proc. Status"::Readable, EDocument."Import Processing Status", 'The Factur-X PDF must be structured.');
+    end;
+
+    [Test]
+    procedure PdfWithoutAttachmentKeepsPreferredStructureImplementation()
+    var
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocImport: Codeunit "E-Doc. Import";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] A received PDF without an embedded invoice keeps the preferred structure implementation of PDF files
+        Initialize();
+
+        // [GIVEN] A PDF without attachments, received as a PDF file
+        CreatePdfWithoutAttachment(TempBlob);
+        InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::PDF);
+
+        // [WHEN] The structure implementation is determined
+        // [THEN] Factur-X is not chosen and the preferred implementation is kept
+        Assert.AreEqual(
+            "Structure Received E-Doc."::MLLM, EDocImport.GetStructureDataImplementation(EDocument, EDocDataStorage, "Structure Received E-Doc."::MLLM),
+            'A PDF without an embedded Factur-X invoice must keep the preferred structure implementation.');
+    end;
+
+    [Test]
+    procedure FacturXInvoiceIsOnlyLookedUpInPdfFiles()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+        EDocImport: Codeunit "E-Doc. Import";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [SCENARIO] Factur-X is only chosen for files received as PDF
+        Initialize();
+
+        // [GIVEN] A Factur-X PDF received as a file whose file format is XML
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice());
+        ExportInvoicePdf(SalesInvoiceHeader, TempBlob);
+        InsertReceivedFile(EDocDataStorage, TempBlob, Enum::"E-Doc. File Format"::XML);
+
+        // [WHEN] The structure implementation is determined
+        // [THEN] The preferred implementation of the file format is kept
+        Assert.AreEqual(
+            "Structure Received E-Doc."::"Already Structured", EDocImport.GetStructureDataImplementation(EDocument, EDocDataStorage, "Structure Received E-Doc."::"Already Structured"),
+            'Factur-X must only be chosen for files received as PDF.');
+    end;
+    #endregion
+
+    local procedure CreatePdfWithoutAttachment(var TempBlob: Codeunit "Temp Blob")
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceRecordRef: RecordRef;
+        PdfOutStream: OutStream;
+    begin
+        // Printing outside of the e-document export does not embed the Factur-X XML
+        SalesInvoiceHeader.SetRange("No.", CreateAndPostSalesInvoice());
+        SalesInvoiceRecordRef.GetTable(SalesInvoiceHeader);
+        TempBlob.CreateOutStream(PdfOutStream);
+        Report.SaveAs(Report::"Standard Sales - Invoice", '', ReportFormat::Pdf, PdfOutStream, SalesInvoiceRecordRef);
+    end;
+
+    local procedure ExportInvoicePdf(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempBlob: Codeunit "Temp Blob")
+    var
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        ExportFacturXDocument: Codeunit "Export Factur-X Document";
+    begin
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId;
+        TempRecordExportBuffer.Insert();
+        ExportFacturXDocument.ExportDocument(TempRecordExportBuffer);
+        TempBlob.FromRecord(TempRecordExportBuffer, TempRecordExportBuffer.FieldNo("File Content"));
+    end;
+
+    local procedure CreateImportV2Service(var ImportV2EDocumentService: Record "E-Document Service")
+    begin
+        ImportV2EDocumentService.Init();
+        ImportV2EDocumentService.Code := LibraryUtility.GenerateRandomCode20(ImportV2EDocumentService.FieldNo(Code), Database::"E-Document Service");
+        ImportV2EDocumentService."Import Process" := ImportV2EDocumentService."Import Process"::"Version 2.0";
+        ImportV2EDocumentService.Insert();
+    end;
+
+    local procedure InsertReceivedFile(var EDocDataStorage: Record "E-Doc. Data Storage"; TempBlob: Codeunit "Temp Blob"; FileFormat: Enum "E-Doc. File Format")
+    var
+        DataStorageRecordRef: RecordRef;
+    begin
+        EDocDataStorage.Init();
+        EDocDataStorage."File Format" := FileFormat;
+        EDocDataStorage."Data Storage Size" := TempBlob.Length();
+        EDocDataStorage.Insert();
+        DataStorageRecordRef.GetTable(EDocDataStorage);
+        TempBlob.ToRecordRef(DataStorageRecordRef, EDocDataStorage.FieldNo("Data Storage"));
+        DataStorageRecordRef.Modify();
+        EDocDataStorage.Get(EDocDataStorage."Entry No.");
+    end;
 
     [Test]
     procedure FacturXSalesInvoiceXMLHasBuyerSIRENWithScheme()

@@ -194,6 +194,42 @@ codeunit 11041 "E-Document ZUGFeRD Handler" implements IStructuredFormatReader, 
             Error(NoEmbeddedInvoiceErr);
     end;
 
+    /// <summary>
+    /// Lets Import Process Version 2.0 structure a received PDF as ZUGFeRD when the PDF embeds a ZUGFeRD invoice.
+    /// A PDF without one keeps the structure implementation chosen so far.
+    /// </summary>
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterGetStructureDataImplementation, '', false, false)]
+    local procedure StructurePdfWithEmbeddedInvoiceAsZUGFeRD(EDocumentDataStorage: Record "E-Doc. Data Storage"; var StructureDataImpl: Enum "Structure Received E-Doc.")
+    begin
+        if EDocumentDataStorage."File Format" <> EDocumentDataStorage."File Format"::PDF then
+            exit;
+        if HasEmbeddedInvoice(EDocumentDataStorage) then
+            StructureDataImpl := "Structure Received E-Doc."::ZUGFeRD;
+    end;
+
+    /// <summary>
+    /// Returns whether the received file is a PDF/A-3 container that embeds a Cross Industry Invoice.
+    /// </summary>
+    /// <param name="EDocumentDataStorage">The data storage entry that holds the received file.</param>
+    /// <returns>True if the embedded attachment is a CII invoice.</returns>
+    internal procedure HasEmbeddedInvoice(EDocumentDataStorage: Record "E-Doc. Data Storage"): Boolean
+    var
+        SourceBlob: Codeunit "Temp Blob";
+        CIIXml: XmlDocument;
+        RootElement: XmlElement;
+        PdfInStream: InStream;
+    begin
+        SourceBlob := GetSourceBlob(EDocumentDataStorage);
+        SourceBlob.CreateInStream(PdfInStream);
+        if not TryGetEmbeddedAttachment(PdfInStream) then
+            exit(false);
+        if not XmlDocument.ReadFrom(GlobalEmbeddedBlob.CreateInStream(TextEncoding::UTF8), CIIXml) then
+            exit(false);
+        if not CIIXml.GetRoot(RootElement) then
+            exit(false);
+        exit(UpperCase(RootElement.LocalName()) = CrossIndustryInvoiceTok);
+    end;
+
     #endregion CII document access
 
     #region Document type codes

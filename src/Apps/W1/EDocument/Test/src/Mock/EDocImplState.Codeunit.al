@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
@@ -30,6 +31,12 @@ codeunit 139630 "E-Doc. Impl. State"
 #endif
         LocalHttpResponse: HttpResponseMessage;
         ActionStatus: Enum "E-Document Service Status";
+        StructureDataImplToChoose: Enum "Structure Received E-Doc.";
+        OfferedStructureDataImpl: Enum "Structure Received E-Doc.";
+        ChooseStructureDataImpl: Boolean;
+        StructureDataImplRequests: Integer;
+        RequestEDocumentEntryNo: Integer;
+        RequestDataStorageEntryNo: Integer;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Export", 'OnAfterCreateEDocument', '', false, false)]
     local procedure OnAfterCreateEDocument(var EDocument: Record "E-Document")
@@ -517,6 +524,31 @@ codeunit 139630 "E-Doc. Impl. State"
     internal procedure GetVariableStorage(var NewLibraryVariableStorage: Codeunit "Library - Variable Storage")
     begin
         NewLibraryVariableStorage := LibraryVariableStorage;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterGetStructureDataImplementation, '', false, false)]
+    local procedure OnAfterGetStructureDataImplementation(EDocument: Record "E-Document"; EDocumentDataStorage: Record "E-Doc. Data Storage"; var StructureDataImpl: Enum "Structure Received E-Doc.")
+    begin
+        StructureDataImplRequests += 1;
+        RequestEDocumentEntryNo := EDocument."Entry No";
+        RequestDataStorageEntryNo := EDocumentDataStorage."Entry No.";
+        OfferedStructureDataImpl := StructureDataImpl;
+        if ChooseStructureDataImpl then
+            StructureDataImpl := StructureDataImplToChoose;
+    end;
+
+    internal procedure SetStructureDataImplToChoose(StructureDataImpl: Enum "Structure Received E-Doc.")
+    begin
+        ChooseStructureDataImpl := true;
+        StructureDataImplToChoose := StructureDataImpl;
+    end;
+
+    internal procedure GetStructureDataImplRequest(var EDocumentEntryNo: Integer; var DataStorageEntryNo: Integer; var StructureDataImpl: Enum "Structure Received E-Doc."): Integer
+    begin
+        EDocumentEntryNo := RequestEDocumentEntryNo;
+        DataStorageEntryNo := RequestDataStorageEntryNo;
+        StructureDataImpl := OfferedStructureDataImpl;
+        exit(StructureDataImplRequests);
     end;
 
 

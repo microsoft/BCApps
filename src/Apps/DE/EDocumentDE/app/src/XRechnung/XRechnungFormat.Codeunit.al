@@ -143,6 +143,8 @@ codeunit 13914 "XRechnung Format" implements "E-Document"
         if Rec."Document Format" <> Rec."Document Format"::XRechnung then
             exit;
 
+        EDocumentDEHelper.SetDefaultDraftFormat(Rec, xRec."Document Format", Rec."Read into Draft Impl."::XRechnung);
+
         EDocServiceSupportedType.SetRange("E-Document Service Code", Rec.Code);
         if not EDocServiceSupportedType.IsEmpty() then
             exit;

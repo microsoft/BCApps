@@ -71,6 +71,7 @@ codeunit 6104 "Import E-Document Process"
         EDocumentDataStorage: Record "E-Doc. Data Storage";
         FileManagement: Codeunit "File Management";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
+        EDocImport: Codeunit "E-Doc. Import";
         IStructuredDataType: Interface IStructuredDataType;
         IStructureReceivedEDocument: Interface IStructureReceivedEDocument;
         IFileFormat: Interface IEDocFileFormat;
@@ -81,9 +82,10 @@ codeunit 6104 "Import E-Document Process"
         EDocumentDataStorage.Get(Edocument."Unstructured Data Entry No.");
         IFileFormat := EDocumentDataStorage."File Format";
 
-        // If previous parts of the process have not specified how to structure the data, we take the preferred one for the file format.
+        // If previous parts of the process have not specified how to structure the data, we take the preferred one for the file format,
+        // unless an extension chooses another one based on the received file.
         if EDocument."Structure Data Impl." = "Structure Received E-Doc."::Unspecified then
-            EDocument."Structure Data Impl." := IFileFormat.PreferredStructureDataImplementation();
+            EDocument."Structure Data Impl." := EDocImport.GetStructureDataImplementation(EDocument, EDocumentDataStorage, IFileFormat.PreferredStructureDataImplementation());
 
         IStructureReceivedEDocument := EDocument."Structure Data Impl.";
         IStructuredDataType := IStructureReceivedEDocument.StructureReceivedEDocument(EDocumentDataStorage);
