@@ -4,7 +4,11 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.Test;
 
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+#if not CLEAN30
+using Microsoft.Finance.GeneralLedger.Posting;
+#endif
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
@@ -14,6 +18,8 @@ using Microsoft.FixedAssets.Maintenance;
 using Microsoft.FixedAssets.Posting;
 using Microsoft.Foundation.AuditCodes;
 #if not CLEAN30
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using System.Environment;
 using System.Environment.Configuration;
 #endif
@@ -28,17 +34,26 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     Subtype = Test;
     TestPermissions = Disabled;
     TestType = IntegrationTest;
+    EventSubscriberInstance = Manual;
 
     var
         Assert: Codeunit Assert;
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
+#if not CLEAN30
+        LibraryPurchase: Codeunit "Library - Purchase";
+#endif
         LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         SourceDepreciationBookCode: Code[10];
         DerogatoryDepreciationBookCode: Code[10];
         IsInitialized: Boolean;
         TestBodyCompleted: Boolean;
+#if not CLEAN30
+        ObservedFixedAssetNo: Code[20];
+        ObservedFAPostingCount: Integer;
+        ObservedDerogatoryLine: Boolean;
+#endif
         TestBodyCompletedErr: Label 'The test body ran to completion.';
         AmbiguousHistoricalCounterpartErr: Label 'The historical derogatory counterpart for source entry %1 cannot be identified uniquely.', Comment = '%1 - source entry number';
         SimulatedMigrationFailureErr: Label 'Simulated failure after accelerated depreciation migration.';
@@ -51,6 +66,112 @@ codeunit 144047 "UT Derogatory Linkage Upg."
 #endif
 
 #if not CLEAN30
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LegacyPurchaseInvoiceMirrorsAcquisition()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A purchase invoice mirrors acquisition cost to the legacy FR tax book without ordinary duplication.
+        Initialize();
+
+        // [GIVEN] The feature state of company "C" is captured before selecting the legacy route.
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+
+        // [WHEN] Invoice "I" acquires asset "A" for 15000 in its accounting book.
+        asserterror
+        begin
+            LegacyPurchaseAcquisitionBody();
+            CompleteTestBody();
+        end;
+
+        // [THEN] Each book has one acquisition, and the original feature state is restored even on failure.
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+        Assert.ExpectedError(TestBodyCompletedErr);
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LegacyPurchaseInvoiceGenJnlLineHasDerogatoryLine()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A purchase invoice hands a legacy-eligible "Derogatory Line" journal line to French fixed-asset posting.
+        Initialize();
+
+        // [GIVEN] The feature state of company "C" is captured before selecting the legacy route.
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+
+        // [WHEN] Invoice "I" acquires asset "A" in accounting book "B1" whose tax book "B2" references "B1".
+        BindSubscription(this);
+        asserterror
+        begin
+            LegacyPurchaseDerogatoryLineBody();
+            CompleteTestBody();
+        end;
+        UnbindSubscription(this);
+
+        // [THEN] The FA journal line reaching "Gen. Jnl.-Post Line" is flagged as a derogatory line, and the feature state is restored.
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+        Assert.ExpectedError(TestBodyCompletedErr);
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure LegacyFAGLJournalMirrorsAcquisition()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A validated FA G/L journal mirrors acquisition cost to the legacy FR tax book.
+        Initialize();
+
+        // [GIVEN] The feature state of company "C" is captured before selecting the legacy route.
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+
+        // [WHEN] Journal "J" acquires asset "A" for 15000 in its accounting book.
+        asserterror
+        begin
+            LegacyGeneralJournalAcquisitionBody();
+            CompleteTestBody();
+        end;
+
+        // [THEN] Each book has one acquisition, and the original feature state is restored even on failure.
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+        Assert.ExpectedError(TestBodyCompletedErr);
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    procedure PurchaseWithoutLegacyRelationshipDoesNotMirror()
+    var
+        PreviousFeatureStatus: Integer;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A purchase acquisition does not mirror to an unrelated depreciation book.
+        Initialize();
+
+        // [GIVEN] The feature state of company "C" is captured before selecting the legacy route.
+        PreviousFeatureStatus := CaptureFeatureStateIfRequired();
+
+        // [WHEN] Invoice "I" acquires asset "A" with two unrelated depreciation books.
+        asserterror
+        begin
+            PurchaseWithoutLegacyRelationshipBody();
+            CompleteTestBody();
+        end;
+
+        // [THEN] Only the accounting book has an acquisition, and the original feature state is restored.
+        RestoreFeatureStateAfterTestBody(PreviousFeatureStatus);
+        Assert.ExpectedError(TestBodyCompletedErr);
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     procedure DisabledFeatureFAJournalUsesOnlyLegacyRelationship()
@@ -2598,6 +2719,11 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"UT Derogatory Linkage Upg.");
         LibraryLowerPermissions.SetOutsideO365Scope();
+#if not CLEAN30
+        ObservedFixedAssetNo := '';
+        ObservedFAPostingCount := 0;
+        ObservedDerogatoryLine := false;
+#endif
         FALedgerEntry.DeleteAll();
         MaintenanceLedgerEntry.DeleteAll();
         DepreciationBook.ModifyAll("Derogatory Calc.", '');
@@ -3182,6 +3308,154 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     end;
 
 #if not CLEAN30
+    local procedure CreateLegacyAcquisitionSetup(var SourceDepreciationBook: Record "Depreciation Book"; var TaxDepreciationBook: Record "Depreciation Book"; var FixedAsset: Record "Fixed Asset")
+    var
+        FAPostingGroup: Record "FA Posting Group";
+        FAJournalSetup: Record "FA Journal Setup";
+        FAJournalTemplate: Record "FA Journal Template";
+        FAJournalBatch: Record "FA Journal Batch";
+    begin
+        DisableAcceleratedDepreciationFeature();
+        LibraryFixedAsset.CreateDepreciationBook(SourceDepreciationBook);
+        SourceDepreciationBook.Validate("G/L Integration - Acq. Cost", true);
+        SourceDepreciationBook.Validate("Part of Duplication List", false);
+        SourceDepreciationBook.Modify(true);
+        LibraryFixedAsset.CreateDepreciationBook(TaxDepreciationBook);
+        TaxDepreciationBook.Validate("G/L Integration - Acq. Cost", false);
+        TaxDepreciationBook.Validate("Part of Duplication List", false);
+        TaxDepreciationBook.Validate("Derogatory Calculation", SourceDepreciationBook.Code);
+        TaxDepreciationBook.Modify(true);
+        CreateFixedAssetWithPostingGroup(FixedAsset, FAPostingGroup);
+        CreateFADepreciationBook(FixedAsset."No.", SourceDepreciationBook.Code, FAPostingGroup.Code);
+        CreateFADepreciationBook(FixedAsset."No.", TaxDepreciationBook.Code, FAPostingGroup.Code);
+        FAJournalTemplate.SetRange(Recurring, false);
+        LibraryFixedAsset.FindFAJournalTemplate(FAJournalTemplate);
+        LibraryFixedAsset.CreateFAJournalBatch(FAJournalBatch, FAJournalTemplate.Name);
+        FAJournalBatch.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
+        FAJournalBatch.Modify(true);
+        LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, TaxDepreciationBook.Code, '');
+        FAJournalSetup.Validate("FA Jnl. Template Name", FAJournalBatch."Journal Template Name");
+        FAJournalSetup.Validate("FA Jnl. Batch Name", FAJournalBatch.Name);
+        FAJournalSetup.Modify(true);
+    end;
+
+    local procedure LegacyPurchaseAcquisitionBody()
+    var
+        SourceDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        PostedInvoiceNo: Code[20];
+    begin
+        CreateLegacyAcquisitionSetup(SourceDepreciationBook, TaxDepreciationBook, FixedAsset);
+        PostedInvoiceNo := PostLegacyAcquisitionPurchaseInvoice(FixedAsset."No.", SourceDepreciationBook.Code);
+        VerifyLegacyAcquisitionEntries(
+            FixedAsset."No.", SourceDepreciationBook.Code, TaxDepreciationBook.Code, PostedInvoiceNo, 1);
+    end;
+
+    local procedure LegacyPurchaseDerogatoryLineBody()
+    var
+        SourceDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+    begin
+        CreateLegacyAcquisitionSetup(SourceDepreciationBook, TaxDepreciationBook, FixedAsset);
+        ObservedFixedAssetNo := FixedAsset."No.";
+        PostLegacyAcquisitionPurchaseInvoice(FixedAsset."No.", SourceDepreciationBook.Code);
+        ObservedFixedAssetNo := '';
+        Assert.AreEqual(1, ObservedFAPostingCount, 'Purchase posting must hand exactly one FA journal line for the asset to "Gen. Jnl.-Post Line".');
+        Assert.IsTrue(ObservedDerogatoryLine, 'The FA journal line built from the purchase invoice must be flagged as a legacy derogatory line.');
+    end;
+
+    local procedure LegacyGeneralJournalAcquisitionBody()
+    var
+        SourceDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        DocumentNo: Code[20];
+    begin
+        CreateLegacyAcquisitionSetup(SourceDepreciationBook, TaxDepreciationBook, FixedAsset);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Assets);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        GenJournalBatch.Validate("No. Series", LibraryERM.CreateNoSeriesCode());
+        GenJournalBatch.Modify(true);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"Fixed Asset", FixedAsset."No.", 15000);
+        GenJournalLine.Validate("FA Posting Type", GenJournalLine."FA Posting Type"::"Acquisition Cost");
+        GenJournalLine.Validate("Depreciation Book Code", SourceDepreciationBook.Code);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", LibraryERM.CreateGLAccountNo());
+        GenJournalLine.Modify(true);
+        Assert.IsTrue(GenJournalLine."Derogatory Line", 'Field validation must initialize legacy journal eligibility.');
+        DocumentNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        VerifyLegacyAcquisitionEntries(
+            FixedAsset."No.", SourceDepreciationBook.Code, TaxDepreciationBook.Code, DocumentNo, 1);
+    end;
+
+    local procedure PurchaseWithoutLegacyRelationshipBody()
+    var
+        SourceDepreciationBook: Record "Depreciation Book";
+        TaxDepreciationBook: Record "Depreciation Book";
+        FixedAsset: Record "Fixed Asset";
+        PostedInvoiceNo: Code[20];
+    begin
+        CreateLegacyAcquisitionSetup(SourceDepreciationBook, TaxDepreciationBook, FixedAsset);
+        TaxDepreciationBook.Validate("Derogatory Calculation", '');
+        TaxDepreciationBook.Modify(true);
+        PostedInvoiceNo := PostLegacyAcquisitionPurchaseInvoice(FixedAsset."No.", SourceDepreciationBook.Code);
+        VerifyLegacyAcquisitionEntries(
+            FixedAsset."No.", SourceDepreciationBook.Code, TaxDepreciationBook.Code, PostedInvoiceNo, 0);
+    end;
+
+    local procedure PostLegacyAcquisitionPurchaseInvoice(FixedAssetNo: Code[20]; SourceDepreciationBookCode: Code[10]): Code[20]
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Fixed Asset", FixedAssetNo, 1);
+        PurchaseLine.Validate("Direct Unit Cost", 15000);
+        PurchaseLine.Validate("FA Posting Type", PurchaseLine."FA Posting Type"::"Acquisition Cost");
+        PurchaseLine.Validate("Depreciation Book Code", SourceDepreciationBookCode);
+        PurchaseLine.Modify(true);
+        Assert.AreEqual('', PurchaseLine."Duplicate in Depreciation Book", 'Ordinary duplication must not be requested.');
+        Assert.IsFalse(PurchaseLine."Use Duplication List", 'Ordinary duplication must not be requested.');
+        exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure VerifyLegacyAcquisitionEntries(FixedAssetNo: Code[20]; SourceDepreciationBookCode: Code[10]; TaxDepreciationBookCode: Code[10]; DocumentNo: Code[20]; ExpectedTaxEntryCount: Integer)
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry.SetRange("FA No.", FixedAssetNo);
+        FALedgerEntry.SetRange("Depreciation Book Code", SourceDepreciationBookCode);
+        Assert.AreEqual(1, FALedgerEntry.Count(), 'The accounting book must contain exactly one entry.');
+        FALedgerEntry.FindFirst();
+        Assert.AreEqual(FALedgerEntry."FA Posting Type"::"Acquisition Cost", FALedgerEntry."FA Posting Type", 'The accounting entry must be an acquisition.');
+        Assert.AreEqual(15000, FALedgerEntry.Amount, 'The accounting acquisition must equal the net cost.');
+        Assert.AreEqual(DocumentNo, FALedgerEntry."Document No.", 'The accounting acquisition must reference the posted document.');
+        FALedgerEntry.SetRange("Depreciation Book Code", TaxDepreciationBookCode);
+        Assert.AreEqual(ExpectedTaxEntryCount, FALedgerEntry.Count(), 'The legacy tax book must contain exactly the expected counterpart count.');
+        FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Acquisition Cost");
+        FALedgerEntry.SetRange("Document No.", DocumentNo);
+        Assert.AreEqual(ExpectedTaxEntryCount, FALedgerEntry.Count(), 'Tax counterparts must be acquisitions referencing the posted document.');
+        FALedgerEntry.CalcSums(Amount);
+        Assert.AreEqual(15000 * ExpectedTaxEntryCount, FALedgerEntry.Amount, 'The legacy tax acquisition must equal the accounting acquisition.');
+        FALedgerEntry.SetRange("Depreciation Book Code");
+        FALedgerEntry.SetRange("FA Posting Type");
+        FALedgerEntry.SetRange("Document No.");
+        Assert.AreEqual(1 + ExpectedTaxEntryCount, FALedgerEntry.Count(), 'Posting must not create additional FA entries.');
+    end;
+
     local procedure DisableAcceleratedDepreciationFeature()
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
@@ -4195,5 +4469,14 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         VerifyHistoricalLink(TargetEntryNo, ExpectedSourceEntryNo);
     end;
 
-
+#if not CLEAN30
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnBeforePostFixedAsset', '', false, false)]
+    local procedure CaptureDerogatoryLineOnBeforePostFixedAsset(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        if (ObservedFixedAssetNo = '') or (GenJournalLine."Account No." <> ObservedFixedAssetNo) then
+            exit;
+        ObservedFAPostingCount += 1;
+        ObservedDerogatoryLine := GenJournalLine."Derogatory Line";
+    end;
+#endif
 }
