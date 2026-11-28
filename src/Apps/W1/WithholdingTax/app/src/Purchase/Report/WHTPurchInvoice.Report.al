@@ -25,7 +25,7 @@ using System.Utilities;
 report 6788 "WHT Purch. - Invoice"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Purchase\Report\WHTPurchInvoice.rdlc';
+    RDLCLayout = 'src/Purchase/Report/WHTPurchInvoice.rdlc';
     Caption = 'Purch. - Invoice';
 
     dataset

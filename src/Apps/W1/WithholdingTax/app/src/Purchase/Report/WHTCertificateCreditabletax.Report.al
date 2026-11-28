@@ -11,7 +11,7 @@ using Microsoft.WithholdingTax;
 report 6786 "WHT Certificate Creditable tax"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Purchase\Report\WHTCertificateCreditabletax.rdlc';
+    RDLCLayout = 'src/Purchase/Report/WHTCertificateCreditabletax.rdlc';
     Caption = 'Certificate of Creditable tax';
 
     dataset

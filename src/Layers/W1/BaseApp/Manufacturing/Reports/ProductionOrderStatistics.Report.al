@@ -316,14 +316,14 @@ report 99000791 "Production Order Statistics"
         layout(ProdOrderStatisticsExcel)
         {
             Caption = 'Production Order Statistics Excel';
-            LayoutFile = '.\Manufacturing\Reports\ProdOrderStatisticsExcel.xlsx';
+            LayoutFile = './Manufacturing/Reports/ProdOrderStatisticsExcel.xlsx';
             Type = Excel;
             Summary = 'Built in layout for the Production Order Statistics excel report.';
         }
         layout(ProdOrderStatisticsWord)
         {
             Caption = 'Production Order Statistics Word';
-            LayoutFile = '.\Manufacturing\Reports\ProdOrderStatisticsWord.docx';
+            LayoutFile = './Manufacturing/Reports/ProdOrderStatisticsWord.docx';
             Type = Word;
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }

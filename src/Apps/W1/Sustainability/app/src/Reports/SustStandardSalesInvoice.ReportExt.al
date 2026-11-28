@@ -150,14 +150,14 @@ reportextension 6299 "Sust. Standard Sales Invoice" extends "Standard Sales - In
             Type = Word;
             Caption = 'Standard ESG Sales Invoice (Word)';
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout.';
-            LayoutFile = 'src\Reports\StandardESGSalesInvoice.docx';
+            LayoutFile = 'src/Reports/StandardESGSalesInvoice.docx';
         }
         layout("StandardESGSalesInvoiceBlueSimple.docx")
         {
             Type = Word;
             Caption = 'Standard ESG Sales Invoice - Blue (Word)';
             Summary = 'The Standard ESG Sales Invoice (Word) provides a basic layout with blue theme.';
-            LayoutFile = 'src\Reports\StandardESGSalesInvoiceBlueSimple.docx';
+            LayoutFile = 'src/Reports/StandardESGSalesInvoiceBlueSimple.docx';
         }
     }
 

@@ -292,7 +292,7 @@ report 713 "Inventory - Customer Sales"
         layout(Excel)
         {
             Caption = 'Inventory Customer Sales Excel';
-            LayoutFile = '.\Inventory\Reports\InventoryCustomerSales.xlsx';
+            LayoutFile = './Inventory/Reports/InventoryCustomerSales.xlsx';
             Type = Excel;
             Summary = 'Built in layout for the Inventory Customer Sales Excel report.';
         }
@@ -300,7 +300,7 @@ report 713 "Inventory - Customer Sales"
         layout(Word)
         {
             Caption = 'Inventory Customer Sales Word';
-            LayoutFile = '.\Inventory\Reports\InventoryCustomerSales.docx';
+            LayoutFile = './Inventory/Reports/InventoryCustomerSales.docx';
             Type = Word;
             Summary = 'Built in layout for the Inventory Customer Sales Word report.';
             ObsoleteState = Pending;

@@ -15,7 +15,7 @@ using Microsoft.WithholdingTax;
 report 6790 "Withholding Tax Certificate"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Purchase\Report\WIthholdingTaxCertificate.rdlc';
+    RDLCLayout = 'src/Purchase/Report/WIthholdingTaxCertificate.rdlc';
     Caption = 'Withholding Tax Certificate';
 
     dataset

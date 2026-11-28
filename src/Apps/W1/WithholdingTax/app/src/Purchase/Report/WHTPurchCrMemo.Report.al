@@ -23,7 +23,7 @@ using System.Utilities;
 report 6789 "WHT Purch. - Cr. Memo"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = 'src\Purchase\Report\WHTPurchCrMemo.rdlc';
+    RDLCLayout = 'src/Purchase/Report/WHTPurchCrMemo.rdlc';
     Caption = 'Purch. - Cr. Memo';
 
     dataset

@@ -37,7 +37,7 @@ report 20504 "Subc. Dispatching List"
     DefaultLayout = Word;
     PreviewMode = PrintLayout;
     UsageCategory = Administration;
-    WordLayout = '.\src\Manufacturing\SubcDispatchingList.docx';
+    WordLayout = './src/Manufacturing/SubcDispatchingList.docx';
     WordMergeDataItem = "Purchase Header";
 
     dataset
