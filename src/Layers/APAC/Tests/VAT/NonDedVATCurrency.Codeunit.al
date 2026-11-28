@@ -23,6 +23,7 @@ codeunit 134286 "Non. Ded. VAT Currency"
         GLEntriesSourceCurrNotBalancedErr: Label 'G/L Entries source currency amounts must be balanced';
         NoSourceCurrGLEntriesErr: Label 'No G/L Entries with the expected source currency were created';
         GLEntrySourceCurrAmountErr: Label 'G/L Entry source currency amount for account %1 is not as expected', Comment = '%1 = G/L Account No.';
+        AmountMustBeEqualErr: Label 'Amount must be equal.';
 
     [Test]
     procedure BasicPurchInvWithACY()
@@ -406,10 +407,14 @@ codeunit 134286 "Non. Ded. VAT Currency"
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange("Posting Date", PostingDate);
         VATEntry.FindFirst();
-        VATEntry.TestField("Additional-Currency Base", Base);
-        VATEntry.TestField("Additional-Currency Amount", Amount);
-        VATEntry.TestField("Non-Deductible VAT Base ACY", NDBase);
-        VATEntry.TestField("Non-Deductible VAT Amount ACY", NDAmount);
+        Assert.AreNearlyEqual(
+          Base, VATEntry."Additional-Currency Base", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
+        Assert.AreNearlyEqual(
+          Amount, VATEntry."Additional-Currency Amount", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
+        Assert.AreNearlyEqual(
+          NDBase, VATEntry."Non-Deductible VAT Base ACY", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
+        Assert.AreNearlyEqual(
+          NDAmount, VATEntry."Non-Deductible VAT Amount ACY", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
     end;
 
     local procedure VerifyVATEntry(DocumentNo: Code[20]; PostingDate: Date; Base: Decimal; Amount: Decimal; NDBase: Decimal; NDAmount: Decimal)
@@ -419,10 +424,14 @@ codeunit 134286 "Non. Ded. VAT Currency"
         VATEntry.SetRange("Document No.", DocumentNo);
         VATEntry.SetRange("Posting Date", PostingDate);
         VATEntry.FindFirst();
-        VATEntry.TestField(Base, Base);
-        VATEntry.TestField(Amount, Amount);
-        VATEntry.TestField("Non-Deductible VAT Base", NDBase);
-        VATEntry.TestField("Non-Deductible VAT Amount", NDAmount);
+        Assert.AreNearlyEqual(
+          Base, VATEntry.Base, LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
+        Assert.AreNearlyEqual(
+          Amount, VATEntry.Amount, LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
+        Assert.AreNearlyEqual(
+          NDBase, VATEntry."Non-Deductible VAT Base", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
+        Assert.AreNearlyEqual(
+          NDAmount, VATEntry."Non-Deductible VAT Amount", LibraryERM.GetAmountRoundingPrecision(), AmountMustBeEqualErr);
     end;
 
     local procedure VerifyGLEntriesBalanced(DocumentNo: Code[20]; PostingDate: Date)
