@@ -12099,6 +12099,7 @@ codeunit 80 "Sales-Post"
         TempPrepmtSalesLine.SetHasBeenShown();
         SalesInvoiceLine.SetRange("Document No.", SalesHeader."Applies-to Doc. No.");
         SalesInvoiceLine.SetRange("Prepayment Line", true);
+        OnCreatePrepaymentLineForCreditMemoOnBeforeFindSalesInvoiceLines(SalesHeader, SalesInvoiceLine);
         if SalesInvoiceLine.FindSet() then
             repeat
                 IsHandled := false;
@@ -14191,6 +14192,11 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateRemainingQtyToBeInvoiced(SalesShptLine: Record "Sales Shipment Line"; var RemQtyToInvoiceCurrLine: Decimal; var RemQtyToInvoiceCurrLineBase: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreatePrepaymentLineForCreditMemoOnBeforeFindSalesInvoiceLines(SalesHeader: Record "Sales Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
     begin
     end;
 
