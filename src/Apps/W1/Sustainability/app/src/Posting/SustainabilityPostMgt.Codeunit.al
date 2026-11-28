@@ -53,6 +53,7 @@ codeunit 6212 "Sustainability Post Mgt"
         if not IsHandled then begin
             SustainabilityLedgerEntry.Insert(true);
             CreateGLEntryRelations(SustainabilityJnlLine, SustainabilityLedgerEntry."Entry No.");
+            OnInsertLedgerEntryOnAfterInsert(SustainabilityLedgerEntry, SustainabilityJnlLine);
         end;
     end;
 
@@ -618,6 +619,11 @@ codeunit 6212 "Sustainability Post Mgt"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertSustainabilityLedgerEntry(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; SustainabilityJnlLine: Record "Sustainability Jnl. Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertLedgerEntryOnAfterInsert(var SustainabilityLedgerEntry: Record "Sustainability Ledger Entry"; SustainabilityJnlLine: Record "Sustainability Jnl. Line")
     begin
     end;
 
