@@ -105,7 +105,6 @@ page 12217 "Periodic VAT Split"
         SplitIsValidMsg: Label 'Periodic VAT Settlement Entry is split correctly between the separate entries.';
         SplitIsInvalidMsg: Label 'Periodic VAT Settlement Entry is not split correctly between the separate entries.';
 
-
     internal procedure SetPeriod(NewPeriod: Code[10])
     begin
         Period := NewPeriod;

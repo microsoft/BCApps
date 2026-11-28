@@ -318,8 +318,21 @@ page 49 "Purchase Quote"
                     Importance = Promoted;
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Basic, Suite;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -1563,6 +1576,7 @@ page 49 "Purchase Quote"
     var
         IsHandled: Boolean;
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         IsHandled := false;
         OnBeforeOpenPage(IsHandled);
         if IsHandled then
@@ -1639,7 +1653,10 @@ page 49 "Purchase Quote"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+        IsActivityCodeMandatory := GeneralLedgerSetup.IsBusinessActivityCodeEnabled();
+    #if not CLEAN30
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup.IsLegacyActivityCodeEnabled();
+    #endif
     end;
 
     local procedure ApproveCalcInvDisc()
@@ -1765,4 +1782,8 @@ page 49 "Purchase Quote"
     local procedure OnBeforeOpenPage(var IsHandled: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

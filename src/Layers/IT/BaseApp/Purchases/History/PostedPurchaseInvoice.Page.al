@@ -233,8 +233,21 @@ page 138 "Posted Purchase Invoice"
                     Editable = false;
                     Importance = Additional;
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -1175,6 +1188,7 @@ page 138 "Posted Purchase Invoice"
         OfficeMgt: Codeunit "Office Management";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
         if GuiAllowed() then
             IsOfficeAddin := OfficeMgt.IsAvailable();
@@ -1221,4 +1235,8 @@ page 138 "Posted Purchase Invoice"
     local procedure OnBeforeCreateCreditMemoOnAction(var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -136,8 +136,19 @@ page 12152 "Subcontracting Order"
                 {
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
                 }
                 field("Check Total"; Rec."Check Total")
@@ -713,6 +724,7 @@ page 12152 "Subcontracting Order"
 
     trigger OnOpenPage()
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         if UserMgt.GetPurchasesFilter() <> '' then begin
             Rec.FilterGroup(2);
             Rec.SetRange("Responsibility Center", UserMgt.GetPurchasesFilter());
@@ -743,5 +755,9 @@ page 12152 "Subcontracting Order"
     begin
         CurrPage.PurchLines.PAGE.UpdateForm(true);
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 #endif

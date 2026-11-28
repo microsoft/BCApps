@@ -289,6 +289,7 @@ permissionset 209 "D365 Basic - Read"
                   tabledata "Booking Sync" = R,
                   tabledata "Budget Buffer" = R,
                   tabledata "Bus. Unit In Cons. Process" = R,
+                  tabledata "Business Activity" = R,
                   tabledata "Business Chart Buffer" = R,
                   tabledata "Business Chart Map" = R,
                   tabledata "Business Chart User Setup" = R,

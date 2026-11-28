@@ -177,6 +177,11 @@ page 6050 "Service Contract"
                 {
                     ApplicationArea = Service;
                 }
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                }
             }
             part(ServContractLines; "Service Contract Subform")
             {

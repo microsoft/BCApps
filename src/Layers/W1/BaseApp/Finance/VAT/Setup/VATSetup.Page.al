@@ -252,7 +252,6 @@ page 187 "VAT Setup"
         end;
     end;
 
-
     var
         IsVATDateEnabled: Boolean;
 }

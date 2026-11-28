@@ -253,8 +253,20 @@ page 283 "Recurring General Journal"
                     ApplicationArea = Suite;
                     Visible = false;
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Suite;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Suite;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
                 }
@@ -899,6 +911,7 @@ page 283 "Recurring General Journal"
         ServerSetting: Codeunit "Server Setting";
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         OnBeforeOnOpenPage();
 
         IsSaaSExcelAddinEnabled := ServerSetting.GetIsSaasExcelAddinEnabled();
@@ -1113,4 +1126,8 @@ page 283 "Recurring General Journal"
     local procedure OnBeforeUpdateBalance(var GenJournalLine: Record "Gen. Journal Line"; xGenJournalLine: Record "Gen. Journal Line"; var Balance: Decimal; var TotalBalance: Decimal; var ShowBalance: Boolean; var ShowTotalBalance: Boolean; var IsHandled: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

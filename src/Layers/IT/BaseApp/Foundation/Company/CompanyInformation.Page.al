@@ -466,8 +466,20 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the company''s identification code assigned by the Finance and Economics Government Department.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
                 }
@@ -934,6 +946,7 @@ page 1 "Company Information"
         MonitorSensitiveField: Codeunit "Monitor Sensitive Field";
         FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         Rec.Reset();
         if not Rec.Get() then begin
             Rec.Init();
@@ -1028,4 +1041,8 @@ page 1 "Company Information"
         SessionSetting.Init();
         SessionSetting.RequestSessionUpdate(false);
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

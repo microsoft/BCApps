@@ -7,7 +7,9 @@ namespace Microsoft.Service.History;
 using Microsoft.EServices.EDocument;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Inventory.Intrastat;
+#if not CLEAN30
 using Microsoft.Utilities;
+#endif
 
 tableextension 12456 "Service Invoice Header IT" extends "Service Invoice Header"
 {
@@ -24,12 +26,18 @@ tableextension 12456 "Service Invoice Header IT" extends "Service Invoice Header
             Caption = 'Operation Occurred Date';
             DataClassification = CustomerContent;
         }
+#if not CLEAN30
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
             DataClassification = CustomerContent;
+            Editable = false;
             TableRelation = "Activity Code".Code;
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';

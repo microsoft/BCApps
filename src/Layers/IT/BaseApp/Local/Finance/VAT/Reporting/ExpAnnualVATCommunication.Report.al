@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
@@ -139,7 +140,7 @@ report 12125 "Exp. Annual VAT Communication"
                   PadStr('', 20) +
                   Format(TaxYear, 4) +
                   PadStr(CompanyInfo."VAT Registration No.", 11) +
-                  PADSTR(ActivityCode.Code, 5) +
+                  PadStr(GetActivityCode(), 5) +
                   ConvertBoolean(SeparateLedger) +
                   ConvertBoolean(GroupSettlement) +
                   ConvertBoolean(ExceptionalEvent) +
@@ -266,11 +267,25 @@ report 12125 "Exp. Annual VAT Communication"
                             if ACTION::LookupOK = PAGE.RunModal(0, VATStatementName, VATStatementName.Name) then;
                         end;
                     }
+#if not CLEAN30
                     field("ActivityCode.Code"; ActivityCode.Code)
                     {
+                        Visible = not BusinessActivityEnabled;
                         ApplicationArea = Basic, Suite;
                         Caption = 'Activity Code';
                         TableRelation = "Activity Code".Code;
+                        ToolTip = 'Specifies a code that describes a primary activity for the company.';
+                        ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '30.0';
+                    }
+#endif
+                    field("BusinessActivityCode.Code"; BusinessActivity.Code)
+                    {
+                        Visible = BusinessActivityEnabled;
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Business Activity Code';
+                        TableRelation = "Business Activity".Code;
                         ToolTip = 'Specifies a code that describes a primary activity for the company.';
                     }
                     field(SeparateLedger; SeparateLedger)
@@ -348,6 +363,7 @@ report 12125 "Exp. Annual VAT Communication"
 
     trigger OnInitReport()
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         CompanyInfo.Get();
         CompanyInfo.TestField(Name);
         CompanyInfo.TestField("VAT Registration No.");
@@ -381,8 +397,12 @@ report 12125 "Exp. Annual VAT Communication"
         VATStatementLine.SetRange("Statement Name", VATStatementName.Name);
         VATStatementLine.SetFilter("Annual VAT Comm. Field", '<>%1', VATStatementLine."Annual VAT Comm. Field"::" ");
         VATStatementLine.FilterGroup := 0;
-        if GeneralLedgerSetup."Use Activity Code" then
+#if not CLEAN30
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
             VATStatementLine.SetRange("Activity Code Filter", ActivityCode.Code);
+#endif
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
+            VATStatementLine.SetRange("Business Activity Code Filter", BusinessActivity.Code);
         VATStatementLine.SetRange("Date Filter", StartDate, EndDate);
 
         ExportFileName := RBMgt.ServerTempFileName('');
@@ -395,7 +415,10 @@ report 12125 "Exp. Annual VAT Communication"
     var
         Vendor: Record Vendor;
         CompanyInfo: Record "Company Information";
+        BusinessActivity: Record "Business Activity";
+#if not CLEAN30
         ActivityCode: Record "Activity Code";
+#endif
         AppointmentCode: Record "Appointment Code";
         VATStatementLine: Record "VAT Statement Line";
         VATStatementName: Record "VAT Statement Name";
@@ -410,7 +433,10 @@ report 12125 "Exp. Annual VAT Communication"
         SeparateLedger: Boolean;
         GroupSettlement: Boolean;
         ExceptionalEvent: Boolean;
+#if not CLEAN30
         InvalidActivityCodeFilterErr: Label 'The Activity Code Filter should contain exactly one Activity Code.';
+#endif
+        InvalidBusinessActivityCodeFilterErr: Label 'The Business Activity Code Filter should contain exactly one Business Activity Code.';
         Text003: Label 'IVC Files (*.ivc)|*.ivc|Text Files (*.txt)|*.txt|All Files (*.*)|*.*';
         Text004: Label 'default.ivc';
         Text005: Label 'Export';
@@ -458,7 +484,8 @@ report 12125 "Exp. Annual VAT Communication"
             EndDate := VATStatementName.GetRangeMax("Date Filter");
         end;
 
-        if GeneralLedgerSetup."Use Activity Code" then begin
+#if not CLEAN30
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then begin
             if VATStatementName.GetFilter("Activity Code Filter") <> '' then begin
                 ActivityCode.SetFilter(Code, VATStatementName.GetFilter("Activity Code Filter"));
                 if ActivityCode.Count() <> 1 then
@@ -468,10 +495,36 @@ report 12125 "Exp. Annual VAT Communication"
             end else
                 Error(InvalidActivityCodeFilterErr);
 
-            VATStatementLine.SetFilter("Activity Code Filter", VATStatementName.GetFilter("Activity Code Filter"));
+            VATStatementName.CopyFilter("Activity Code Filter", VATStatementLine."Activity Code Filter");
+        end;
+#endif
+        if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then begin
+            if VATStatementName.GetFilter("Business Activity Code Filter") <> '' then begin
+                BusinessActivity.SetFilter(Code, VATStatementName.GetFilter("Business Activity Code Filter"));
+                if BusinessActivity.Count() <> 1 then
+                    Error(InvalidBusinessActivityCodeFilterErr);
+
+                BusinessActivity.FindFirst();
+            end else
+                Error(InvalidBusinessActivityCodeFilterErr);
+
+            VATStatementName.CopyFilter("Business Activity Code Filter", VATStatementLine."Business Activity Code Filter");
         end;
 
         VATStatementLine.SetFilter("Date Filter", VATStatementName.GetFilter("Date Filter"));
     end;
+
+    local procedure GetActivityCode(): Code[10]
+    begin
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then
+            exit(ActivityCode.Code);
+#endif
+        exit(BusinessActivity.Code);
+    end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

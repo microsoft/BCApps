@@ -25,6 +25,29 @@ codeunit 143000 "Library - IT Localization"
         AppointmentCode.Insert(true);
     end;
 
+#if not CLEAN30
+    /// <summary>
+    /// Sets the current company's data-update status for a registered feature.
+    /// </summary>
+    /// <param name="FeatureKeyId">The registered feature key.</param>
+    /// <param name="FeatureStatus">The company-local feature status to use in the test.</param>
+    procedure SetFeatureStatus(FeatureKeyId: Text[50]; FeatureStatus: Enum "Feature Status")
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        FeatureKey.Get(FeatureKeyId);
+        if not FeatureDataUpdateStatus.Get(FeatureKeyId, CompanyName()) then begin
+            FeatureDataUpdateStatus."Feature Key" := FeatureKeyId;
+            FeatureDataUpdateStatus."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
+            FeatureDataUpdateStatus."Data Update Required" := true;
+            FeatureDataUpdateStatus.Insert();
+        end;
+        FeatureDataUpdateStatus."Feature Status" := FeatureStatus;
+        FeatureDataUpdateStatus.Modify();
+    end;
+#endif
+
     [Scope('OnPrem')]
     procedure CreateBill(var Bill: Record Bill)
     begin

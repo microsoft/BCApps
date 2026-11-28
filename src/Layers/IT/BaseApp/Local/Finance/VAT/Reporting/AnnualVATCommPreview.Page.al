@@ -4,7 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Foundation.AuditCodes;
+#if not CLEAN30
 using Microsoft.Utilities;
+#endif
 using System.Text;
 
 page 12127 "Annual VAT Comm. Preview"
@@ -32,16 +35,36 @@ page 12127 "Annual VAT Comm. Preview"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name.';
                 }
+#if not CLEAN30
                 field("Activity Code"; ActivityCode)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Activity Code';
                     TableRelation = "Activity Code".Code;
                     ToolTip = 'Specifies a code that describes a primary activity for the company.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
 
                     trigger OnValidate()
                     begin
                         Rec.SetFilter("Activity Code Filter", ActivityCode);
+                        CurrPage.Update();
+                    end;
+                }
+#endif
+                field("Business Activity Code"; ActivityCode)
+                {
+                    Visible = BusinessActivityEnabled;
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Business Activity Code';
+                    TableRelation = "Business Activity".Code;
+                    ToolTip = 'Specifies a code that describes a primary activity for the company.';
+
+                    trigger OnValidate()
+                    begin
+                        Rec.SetFilter("Business Activity Code Filter", ActivityCode);
                         CurrPage.Update();
                     end;
                 }
@@ -120,13 +143,14 @@ page 12127 "Annual VAT Comm. Preview"
 
     trigger OnOpenPage()
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         UpdateSubForm();
     end;
 
     var
         Selection: Enum "VAT Statement Report Selection";
         PeriodSelection: Enum "VAT Statement Report Period Selection";
-        ActivityCode: Code[6];
+        ActivityCode: Code[10];
         DateFilter: Text;
 
     [Scope('OnPrem')]
@@ -134,5 +158,9 @@ page 12127 "Annual VAT Comm. Preview"
     begin
         CurrPage.VATStatementLineSubForm.PAGE.UpdateForm(Rec, Selection, PeriodSelection, false, '');
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

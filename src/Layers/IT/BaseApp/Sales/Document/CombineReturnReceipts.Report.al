@@ -341,7 +341,12 @@ report 6653 "Combine Return Receipts"
             SalesHeader.Insert(true);
             ValidateCustomerNoFromOrder(SalesHeader, SalesOrderHeader);
             SalesHeader.Validate("Operation Type", OperationType.Code);
-            SalesHeader.Validate("Activity Code", SalesOrderHeader."Activity Code");
+#if not CLEAN30
+            if not BusinessActivityFeature.IsEnabled() then
+                SalesHeader.Validate("Activity Code", SalesOrderHeader."Activity Code");
+#endif
+            if BusinessActivityFeature.IsEnabled() then
+                SalesHeader.Validate("Business Activity Code", SalesOrderHeader."Business Activity Code");
             SalesHeader.Validate("Currency Code", SalesOrderHeader."Currency Code");
             SalesHeader.Validate("Posting Date", PostingDateReq);
             SalesHeader.Validate("Document Date", DocDateReq);
@@ -430,7 +435,10 @@ report 6653 "Combine Return Receipts"
           (SalesOrderHeader."Salesperson Code" <> SalesHeader."Salesperson Code") or
           (SalesOrderHeader."Payment Terms Code" <> SalesHeader."Payment Terms Code") or
           (SalesOrderHeader."Payment Method Code" <> SalesHeader."Payment Method Code") or
-          (SalesOrderHeader."Activity Code" <> SalesHeader."Activity Code");
+#if not CLEAN30
+          (not BusinessActivityFeature.IsEnabled() and (SalesOrderHeader."Activity Code" <> SalesHeader."Activity Code")) or
+#endif
+          (BusinessActivityFeature.IsEnabled() and (SalesOrderHeader."Business Activity Code" <> SalesHeader."Business Activity Code"));
 
         OnAfterShouldFinalizeSalesInvHeader(SalesOrderHeader, SalesHeader, Finalize, ReturnReceiptLine, "Return Receipt Header");
         exit(Finalize);
@@ -500,4 +508,7 @@ report 6653 "Combine Return Receipts"
     local procedure OnReturnReceiptHeaderOnAfterFinalizeSalesInvHeader(var SalesHeader: Record "Sales Header"; var NoOfSalesCrMemoErrors: Integer; PostInv: Boolean; HideDialog: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -205,15 +205,33 @@ page 5551 "Fixed Asset Acquisition Wizard"
                             ValidateCurrentStep(Step);
                         end;
                     }
+#if not CLEAN30
                     field(ActivityCode; Rec."Activity Code")
                     {
+                        Visible = not BusinessActivityEnabled;
                         ApplicationArea = FixedAssets;
                         Caption = 'Activity Code';
                         ToolTip = 'Specifies a code that describes the company+s primary activities.';
+                        ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '30.0';
 
                         trigger OnValidate()
                         begin
-                            if GeneralLedgerSetup."Use Activity Code" then
+                            if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
+                                ValidateCurrentStep(Step);
+                        end;
+                    }
+#endif
+                    field(BusinessActivityCode; Rec."Business Activity Code")
+                    {
+                        Visible = BusinessActivityEnabled;
+                        ApplicationArea = FixedAssets;
+                        ToolTip = 'Specifies the code for the company''s primary activity.';
+
+                        trigger OnValidate()
+                        begin
+                            if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
                                 ValidateCurrentStep(Step);
                         end;
                     }
@@ -346,6 +364,7 @@ page 5551 "Fixed Asset Acquisition Wizard"
     var
         CompanyInformation: Record "Company Information";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         // We could check if values like FA Posting code, descirption are in the temp
         if not Rec.Get() then begin
             Rec.Init();
@@ -358,12 +377,16 @@ page 5551 "Fixed Asset Acquisition Wizard"
             Rec."Posting Date" := WorkDate();
             Rec.SetAccountNoFromFilter();
 
-            // Initialize Activity Code
-
             GeneralLedgerSetup.GetRecordOnce();
-            if GeneralLedgerSetup."Use Activity Code" then begin
+#if not CLEAN30
+            if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then begin
                 CompanyInformation.Get();
                 Rec."Activity Code" := CompanyInformation."Activity Code";
+            end;
+#endif
+            if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then begin
+                CompanyInformation.Get();
+                Rec."Business Activity Code" := CompanyInformation."Business Activity Code";
             end;
 
             Rec.Insert();
@@ -433,7 +456,13 @@ page 5551 "Fixed Asset Acquisition Wizard"
                         CurrStepIsValid := CurrStepIsValid and (Rec."External Document No." <> '');
                 end;
             Step::"FA Details":
-                CurrStepIsValid := (Rec.Amount >= 0.0) and (Rec."Posting Date" <> 0D) and ((Rec."Activity Code" <> '') or not GeneralLedgerSetup."Use Activity Code");
+                begin
+                    CurrStepIsValid := (Rec.Amount >= 0.0) and (Rec."Posting Date" <> 0D);
+#if not CLEAN30
+                    CurrStepIsValid := CurrStepIsValid and ((Rec."Activity Code" <> '') or not GeneralLedgerSetup.IsLegacyActivityCodeEnabled());
+#endif
+                    CurrStepIsValid := CurrStepIsValid and ((Rec."Business Activity Code" <> '') or not GeneralLedgerSetup.IsBusinessActivityCodeEnabled());
+                end;
             Step::Done:
                 CurrStepIsValid := true;
             else
@@ -464,5 +493,9 @@ page 5551 "Fixed Asset Acquisition Wizard"
             Rec.Insert();
         end
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }
 

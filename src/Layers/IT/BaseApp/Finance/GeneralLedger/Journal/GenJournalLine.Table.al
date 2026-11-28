@@ -2802,6 +2802,12 @@ table 81 "Gen. Journal Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Dimension set identifier linking to dimension value combinations for analytical reporting and cost center tracking.
         /// </summary>
@@ -3990,11 +3996,23 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Closing Balance Sheet';
         }
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
+#if not CLEAN30
             TableRelation = "Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';
@@ -7913,7 +7931,12 @@ table 81 "Gen. Journal Line"
         "VAT Posting" := "VAT Posting"::"Manual VAT Entry";
         "System-Created Entry" := true;
         Prepayment := true;
-        "Activity Code" := PurchHeader."Activity Code";
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then
+            "Activity Code" := PurchHeader."Activity Code";
+#endif
+        if BusinessActivityFeature.IsEnabled() then
+            "Business Activity Code" := PurchHeader."Business Activity Code";
         "Fiscal Code" := PurchHeader."Fiscal Code";
         "Individual Person" := PurchHeader."Individual Person";
         Resident := PurchHeader.Resident;
@@ -8037,7 +8060,12 @@ table 81 "Gen. Journal Line"
         "Source No." := SalesHeader."Bill-to Customer No.";
         "IC Partner Code" := SalesHeader."Sell-to IC Partner Code";
         "Payment Method Code" := SalesHeader."Payment Method Code";
-        "Activity Code" := SalesHeader."Activity Code";
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then
+            "Activity Code" := SalesHeader."Activity Code";
+#endif
+        if BusinessActivityFeature.IsEnabled() then
+            "Business Activity Code" := SalesHeader."Business Activity Code";
         "Fiscal Code" := SalesHeader."Fiscal Code";
         "Individual Person" := SalesHeader."Individual Person";
         Resident := SalesHeader.Resident;
@@ -8909,7 +8937,12 @@ table 81 "Gen. Journal Line"
         FAGenJournalLine.Validate(Amount, Amount);
         FAGenJournalLine.Validate("Currency Code", "Currency Code");
         FAGenJournalLine.Validate("Posting Date", "Posting Date");
-        FAGenJournalLine.Validate("Activity Code", "Activity Code");
+#if not CLEAN30
+        if not BusinessActivityFeature.IsEnabled() then
+            FAGenJournalLine.Validate("Activity Code", "Activity Code");
+#endif
+        if BusinessActivityFeature.IsEnabled() then
+            FAGenJournalLine.Validate("Business Activity Code", "Business Activity Code");
         FAGenJournalLine.Validate("FA Posting Type", "FA Posting Type"::"Acquisition Cost");
         FAGenJournalLine.Validate("External Document No.", "External Document No.");
         FAGenJournalLine.Insert(true);
@@ -13506,4 +13539,7 @@ table 81 "Gen. Journal Line"
     local procedure OnBeforeGetAccCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; var CurrencyCode: Code[10]; var IsHandled: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

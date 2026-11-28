@@ -168,10 +168,22 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the VAT registration numbers for domestic customers, vendors, and contacts must be validated against the Italian regulations.';
                 }
+#if not CLEAN30
                 field("Use Activity Code"; Rec."Use Activity Code")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Use activity code in purchase/sales headers';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Use Business Activity Code"; Rec."Use Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies whether to use business activity codes in purchase and sales headers.';
                 }
                 field("Mark Cr. Memos as Corrections"; Rec."Mark Cr. Memos as Corrections")
                 {
@@ -972,6 +984,7 @@ page 118 "General Ledger Setup"
     trigger OnOpenPage()
     var
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         Rec.Reset();
         if not Rec.Get() then begin
             Rec.Init();
@@ -1005,4 +1018,8 @@ page 118 "General Ledger Setup"
           (Rec."Shortcut Dimension 7 Code" <> xGeneralLedgerSetup."Shortcut Dimension 7 Code") or
           (Rec."Shortcut Dimension 8 Code" <> xGeneralLedgerSetup."Shortcut Dimension 8 Code"));
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

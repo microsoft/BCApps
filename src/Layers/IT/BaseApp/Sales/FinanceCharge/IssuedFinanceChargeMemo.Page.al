@@ -124,8 +124,20 @@ page 450 "Issued Finance Charge Memo"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
                 }
@@ -420,6 +432,7 @@ page 450 "Issued Finance Charge Memo"
     var
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         VATDateEnabled := VATReportingDateMgt.IsVATDateEnabled();
     end;
 
@@ -436,4 +449,8 @@ page 450 "Issued Finance Charge Memo"
         CurrExchRate: Record "Currency Exchange Rate";
         ChangeExchangeRate: Page "Change Exchange Rate";
         VATDateEnabled: Boolean;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

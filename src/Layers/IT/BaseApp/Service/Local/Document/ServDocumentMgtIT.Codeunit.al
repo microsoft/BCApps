@@ -385,15 +385,17 @@ codeunit 12140 "Serv. Document Mgt. IT"
     end;
 
 
+#if not CLEAN30
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"ServContractManagement", 'OnBeforeServHeaderModify', '', false, false)]
     local procedure ServiceContract_OnBeforeServHeaderModify(var ServiceHeader: Record "Service Header"; ServiceContractHeader: Record "Service Contract Header")
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        if GeneralLedgerSetup."Use Activity Code" then
+        if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
             ServiceHeader."Activity Code" := ServiceContractHeader."Activity Code";
     end;
+#endif
 
     // History
 

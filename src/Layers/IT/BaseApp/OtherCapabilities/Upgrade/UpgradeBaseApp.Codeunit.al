@@ -25,6 +25,9 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
+#if not CLEAN30
+using Microsoft.Finance.VAT.Ledger;
+#endif
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
@@ -62,16 +65,28 @@ using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Project.Planning;
 using Microsoft.Projects.Project.Setup;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+#if not CLEAN30
+using Microsoft.Sales.Archive;
+#endif
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
+#if not CLEAN30
+using Microsoft.Sales.FinanceCharge;
+#endif
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
+using Microsoft.Service.Archive;
+#if not CLEAN30
+using Microsoft.Service.Contract;
+#endif
+using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
@@ -3839,6 +3854,127 @@ codeunit 104000 "Upgrade - BaseApp"
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetInitShipToPhoneNoUpgradeTag());
     end;
+
+#if not CLEAN30
+    internal procedure GetBusinessActivityUpgradeOverview(var TempDocumentEntry: Record Microsoft.Foundation.Navigate."Document Entry" temporary)
+    var
+        SourceRecord: RecordRef;
+        TableIds: List of [Integer];
+        TableId: Integer;
+    begin
+        TempDocumentEntry.Reset();
+        TempDocumentEntry.DeleteAll();
+        TableIds.Add(Database::"Activity Code");
+        TableIds.Add(Database::"Gen. Journal Line");
+        TableIds.Add(Database::"Posted Gen. Journal Line");
+        TableIds.Add(Database::"General Ledger Setup");
+        TableIds.Add(Database::"VAT Entry");
+        TableIds.Add(Database::"Company Information");
+        TableIds.Add(Database::"Purchase Header Archive");
+        TableIds.Add(Database::"Purchase Header");
+        TableIds.Add(Database::"Purch. Cr. Memo Hdr.");
+        TableIds.Add(Database::"Purch. Inv. Header");
+        TableIds.Add(Database::"Sales Header Archive");
+        TableIds.Add(Database::"Sales Header");
+        TableIds.Add(Database::"Finance Charge Memo Header");
+        TableIds.Add(Database::"Issued Fin. Charge Memo Header");
+        TableIds.Add(Database::"Sales Cr.Memo Header");
+        TableIds.Add(Database::"Sales Invoice Header");
+        TableIds.Add(Database::"Service Header Archive");
+        TableIds.Add(Database::"Filed Service Contract Header");
+        TableIds.Add(Database::"Service Contract Header");
+        TableIds.Add(Database::"Service Header");
+        TableIds.Add(Database::"Service Cr.Memo Header");
+        TableIds.Add(Database::"Service Invoice Header");
+        foreach TableId in TableIds do begin
+            SourceRecord.Open(TableId);
+            if not SourceRecord.IsEmpty() then begin
+                TempDocumentEntry.Init();
+                TempDocumentEntry."Entry No." += 1;
+                TempDocumentEntry."Table ID" := TableId;
+                TempDocumentEntry."Table Name" := CopyStr(SourceRecord.Caption(), 1, MaxStrLen(TempDocumentEntry."Table Name"));
+                TempDocumentEntry."No. of Records" := SourceRecord.Count();
+                TempDocumentEntry.Insert();
+            end;
+            SourceRecord.Close();
+        end;
+    end;
+
+    internal procedure UpgradeBusinessActivityCodes()
+    var
+        ActivityCode: Record "Activity Code";
+        BusinessActivity: Record "Business Activity";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        CreatedBusinessActivityCount: Integer;
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag()) then begin
+            LogBusinessActivityCodeUpgrade('Skipped', 0);
+            exit;
+        end;
+
+        LogBusinessActivityCodeUpgrade('Started', 0);
+
+        if ActivityCode.FindSet() then
+            repeat
+                if not BusinessActivity.Get(ActivityCode.Code) then begin
+                    BusinessActivity.Init();
+                    BusinessActivity.Code := ActivityCode.Code;
+                    BusinessActivity.Description := ActivityCode.Description;
+                    BusinessActivity.Insert();
+                    CreatedBusinessActivityCount += 1;
+                end;
+            until ActivityCode.Next() = 0;
+
+        CopyBusinessActivityCodeField(Database::"Gen. Journal Line", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Posted Gen. Journal Line", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"General Ledger Setup", 12131, 395);
+        CopyBusinessActivityCodeField(Database::"VAT Entry", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Company Information", 12124, 395);
+        CopyBusinessActivityCodeField(Database::"Purchase Header Archive", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Purchase Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Purch. Cr. Memo Hdr.", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Purch. Inv. Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Header Archive", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Finance Charge Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Issued Fin. Charge Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Cr.Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Sales Invoice Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Header Archive", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Filed Service Contract Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Contract Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Cr.Memo Header", 12123, 395);
+        CopyBusinessActivityCodeField(Database::"Service Invoice Header", 12123, 395);
+
+        LogBusinessActivityCodeUpgrade('Completed', CreatedBusinessActivityCount);
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag());
+    end;
+
+    local procedure LogBusinessActivityCodeUpgrade(Status: Text; CreatedBusinessActivityCount: Integer)
+    var
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        TelemetryDimensions: Dictionary of [Text, Text];
+        BusinessActivityCodeUpgradeTelemetryTxt: Label 'Business Activity Code upgrade status.', Locked = true;
+    begin
+        TelemetryDimensions.Add('Category', 'AL SaaS Upgrade');
+        TelemetryDimensions.Add('UpgradeTag', UpgradeTagDefinitions.GetBusinessActivityCodeUpgradeTag());
+        TelemetryDimensions.Add('Status', Status);
+        TelemetryDimensions.Add('CreatedBusinessActivityCount', Format(CreatedBusinessActivityCount, 0, 9));
+        Session.LogMessage('0000RQ1', BusinessActivityCodeUpgradeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+    end;
+
+    local procedure CopyBusinessActivityCodeField(TableId: Integer; ActivityCodeFieldId: Integer; BusinessActivityCodeFieldId: Integer)
+    var
+        DataTransfer: DataTransfer;
+    begin
+        DataTransfer.SetTables(TableId, TableId);
+        DataTransfer.AddFieldValue(ActivityCodeFieldId, BusinessActivityCodeFieldId);
+        DataTransfer.UpdateAuditFields := false;
+        DataTransfer.CopyFields();
+    end;
+#endif
 
     local procedure UpgradeReminderTextMultilines()
     var

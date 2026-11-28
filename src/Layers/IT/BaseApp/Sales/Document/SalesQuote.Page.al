@@ -371,8 +371,21 @@ page 41 "Sales Quote"
                     Importance = Promoted;
                     ToolTip = 'Specifies the operation type that is assigned to the sales order.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Basic, Suite;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -1843,6 +1856,7 @@ page 41 "Sales Quote"
         OfficeMgt: Codeunit "Office Management";
         EnvironmentInfo: Codeunit "Environment Information";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
         OnOpenPageOnAfterSetSecurityFilterOnRespCenter(Rec);
 
@@ -1926,7 +1940,10 @@ page 41 "Sales Quote"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+        IsActivityCodeMandatory := GeneralLedgerSetup.IsBusinessActivityCodeEnabled();
+    #if not CLEAN30
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup.IsLegacyActivityCodeEnabled();
+    #endif
     end;
 
     local procedure ApproveCalcInvDisc()
@@ -2030,4 +2047,8 @@ page 41 "Sales Quote"
     local procedure OnAfterOnAfterGetRecord(var SalesHeader: Record "Sales Header")
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

@@ -470,8 +470,12 @@ codeunit 442 "Sales-Post Prepayments"
         GLSetup.GetRecordOnce();
         if GLSetup."Journal Templ. Name Mandatory" then
             SalesHeader.TestField("Journal Templ. Name");
-        if GLSetup."Use Activity Code" then
+#if not CLEAN30
+        if GLSetup.IsLegacyActivityCodeEnabled() then
             SalesHeader.TestField("Activity Code");
+#endif
+        if GLSetup.IsBusinessActivityCodeEnabled() then
+            SalesHeader.TestField("Business Activity Code");
         if SalesHeader."Operation Occurred Date" < GLSetup."Last Gen. Jour. Printing Date" then
             SalesHeader.FieldError("Operation Occurred Date", Text1130007);
         if SalesHeader."Applies-to Doc. No." <> '' then

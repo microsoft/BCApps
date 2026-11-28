@@ -348,8 +348,21 @@ page 43 "Sales Invoice"
                     Importance = Promoted;
                     ToolTip = 'Specifies the operation type that is assigned to the sales order.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Basic, Suite;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -2024,6 +2037,7 @@ page 43 "Sales Invoice"
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         Rec.SetSecurityFilterOnRespCenter();
 
         Rec.SetRange("Date Filter", 0D, WorkDate());
@@ -2132,7 +2146,10 @@ page 43 "Sales Invoice"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+        IsActivityCodeMandatory := GeneralLedgerSetup.IsBusinessActivityCodeEnabled();
+    #if not CLEAN30
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup.IsLegacyActivityCodeEnabled();
+    #endif
     end;
 
     /// <summary>
@@ -2399,4 +2416,8 @@ page 43 "Sales Invoice"
     local procedure OnPostDocumentOnElseCaseNavigateAfterPosting(var SalesHeader: Record "Sales Header"; PostingCodeunitID: Integer; Navigate: Enum "Navigate After Posting")
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

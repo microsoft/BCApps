@@ -335,8 +335,21 @@ page 51 "Purchase Invoice"
                     Importance = Promoted;
                     ToolTip = 'Specifies the operation type that is assigned to the purchase invoice.';
                 }
+#if not CLEAN30
                 field("Activity Code"; Rec."Activity Code")
                 {
+                    ApplicationArea = Basic, Suite;
+                    ShowMandatory = IsActivityCodeMandatory;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                    Visible = not BusinessActivityEnabled;
+                    ObsoleteReason = 'Replaced by the Business Activity Code field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '30.0';
+                }
+#endif
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    Visible = BusinessActivityEnabled;
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = IsActivityCodeMandatory;
                     ToolTip = 'Specifies the code for the company''s primary activity.';
@@ -1934,6 +1947,7 @@ page 51 "Purchase Invoice"
         ICInboxOutboxMgt: Codeunit ICInboxOutboxMgt;
         VATReportingDateMgt: Codeunit "VAT Reporting Date Mgt";
     begin
+        BusinessActivityEnabled := BusinessActivityFeature.IsEnabled();
         DocAmountEnable := PurchSetup.ShouldDocumentTotalAmountsBeChecked(Rec);
         DocAmountsEditable := PurchSetup.CanDocumentTotalAmountsBeEdited(Rec);
         SetDocNoVisible();
@@ -2059,7 +2073,10 @@ page 51 "Purchase Invoice"
         GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         GeneralLedgerSetup.Get();
-        IsActivityCodeMandatory := GeneralLedgerSetup."Use Activity Code";
+        IsActivityCodeMandatory := GeneralLedgerSetup.IsBusinessActivityCodeEnabled();
+    #if not CLEAN30
+        IsActivityCodeMandatory := IsActivityCodeMandatory or GeneralLedgerSetup.IsLegacyActivityCodeEnabled();
+    #endif
     end;
 
     procedure LineModified()
@@ -2368,4 +2385,8 @@ page 51 "Purchase Invoice"
     local procedure OnPostDocumentOnAfterCalcDocumentIsScheduledForPosting(var PurchaseHeader: Record "Purchase Header"; var DocumentIsScheduledForPosting: Boolean; var DocumentIsPosted: Boolean)
     begin
     end;
+
+    var
+        BusinessActivityEnabled: Boolean;
+        BusinessActivityFeature: Codeunit Microsoft.Foundation.AuditCodes."Business Activity Feature IT";
 }

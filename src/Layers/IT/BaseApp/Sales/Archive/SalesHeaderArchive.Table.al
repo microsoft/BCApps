@@ -36,7 +36,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
-using Microsoft.Utilities;
 using System.Globalization;
 using System.Reflection;
 using System.Security.AccessControl;
@@ -1185,6 +1184,12 @@ table 5107 "Sales Header Archive"
             ExtendedDatatype = PhoneNo;
             ToolTip = 'Specifies the telephone number of the company''s shipping address.';
         }
+        field(395; "Business Activity Code"; Code[10])
+        {
+            Caption = 'Business Activity Code';
+            DataClassification = CustomerContent;
+            TableRelation = "Business Activity".Code;
+        }
         /// <summary>
         /// Specifies the unique identifier for the combination of dimension values assigned to this document.
         /// </summary>
@@ -1520,11 +1525,23 @@ table 5107 "Sales Header Archive"
         {
             Caption = 'Operation Occurred Date';
         }
+#if not CLEANSCHEMA33
         field(12123; "Activity Code"; Code[6])
         {
             Caption = 'Activity Code';
-            TableRelation = "Activity Code".Code;
+#if not CLEAN30
+            TableRelation = Microsoft.Utilities."Activity Code".Code;
+#endif
+            ObsoleteReason = 'Replaced by the Business Activity Code field.';
+#if not CLEAN30
+            ObsoleteState = Pending;
+            ObsoleteTag = '30.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '33.0';
+#endif
         }
+#endif
         field(12125; "Service Tariff No."; Code[10])
         {
             Caption = 'Service Tariff No.';

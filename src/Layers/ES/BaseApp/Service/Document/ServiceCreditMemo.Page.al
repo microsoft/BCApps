@@ -168,6 +168,11 @@ page 5935 "Service Credit Memo"
                 {
                     ApplicationArea = Service;
                 }
+                field("Business Activity Code"; Rec."Business Activity Code")
+                {
+                    ApplicationArea = Service;
+                    ToolTip = 'Specifies the code for the company''s primary activity.';
+                }
                 field("External Document No."; Rec."External Document No.")
                 {
                     ApplicationArea = Service;

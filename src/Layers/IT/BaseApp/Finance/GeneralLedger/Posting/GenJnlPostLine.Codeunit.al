@@ -830,6 +830,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         Vend: Record Vendor;
         GeneralLedgerSetup: Record "General Ledger Setup";
         NoSeriesRec: Record "No. Series";
+        BusinessActivityFeature: Codeunit "Business Activity Feature IT";
         NoSeries: Codeunit "No. Series";
         VATAmount: Decimal;
         VATBase: Decimal;
@@ -1043,10 +1044,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 VATEntry."Base Before Pmt. Disc." := GLEntryAmount;
             if not ((GenJnlLine."Document Type" = GenJnlLine."Document Type"::Reminder) or IsReminderFinChargeMemoCanceling(GenJnlLine)) then begin
                 GeneralLedgerSetup.GetRecordOnce();
-                if GeneralLedgerSetup."Use Activity Code" then
+#if not CLEAN30
+                if GeneralLedgerSetup.IsLegacyActivityCodeEnabled() then
                     GenJnlLine.TestField(GenJnlLine."Activity Code");
+#endif
+                if GeneralLedgerSetup.IsBusinessActivityCodeEnabled() then
+                    GenJnlLine.TestField("Business Activity Code");
             end;
-            VATEntry."Activity Code" := GenJnlLine."Activity Code";
+#if not CLEAN30
+            if not BusinessActivityFeature.IsEnabled() then
+                VATEntry."Activity Code" := GenJnlLine."Activity Code";
+#endif
+            if BusinessActivityFeature.IsEnabled() then
+                VATEntry."Business Activity Code" := GenJnlLine."Business Activity Code";
             CheckVATPlafond(VATEntry, true);
             SetRelatedEntryData(GenJnlLine);
 
