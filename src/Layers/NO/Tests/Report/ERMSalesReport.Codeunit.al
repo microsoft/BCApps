@@ -2858,6 +2858,68 @@ codeunit 134976 "ERM Sales Report"
     end;
 
     [Test]
+    [HandlerFunctions('CustomerSummaryAgingSimpRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CustomerSummaryAgingSimpDoesNotAccumulateBalancesAcrossCustomers()
+    var
+        FirstCustomer: Record Customer;
+        SecondCustomer: Record Customer;
+        OmittedCustomer: Record Customer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 658970] Customer balances and footer total are independent when report 109 processes multiple customers
+        Initialize();
+
+        // [GIVEN] Customer "C1" with one outstanding LCY invoice of 100
+        CreateCustomerSummaryAgingEntry(FirstCustomer, 100);
+
+        // [GIVEN] Customer "C2" with one outstanding LCY invoice of 200 and a number after "C1"
+        CreateCustomerSummaryAgingEntry(SecondCustomer, 200);
+        Assert.IsTrue(FirstCustomer."No." < SecondCustomer."No.", 'Customers must be created in ascending order.');
+
+        // [GIVEN] Customer "C3" with one outstanding LCY invoice of 400 that is excluded by the customer filter
+        CreateCustomerSummaryAgingEntry(OmittedCustomer, 400);
+
+        // [WHEN] Run report 109 for "C1" and "C2" in ascending customer order
+        RunCustomerSummaryAgingSimp(StrSubstNo('%1|%2', FirstCustomer."No.", SecondCustomer."No."), WorkDate());
+
+        // [THEN] "C1" balance is 100, "C2" balance is 200, the footer total is 300, and "C3" is omitted
+        VerifyCustomerSummaryAgingSimpBalance(FirstCustomer."No.", 100);
+        VerifyCustomerSummaryAgingSimpBalance(SecondCustomer."No.", 200);
+        VerifyCustomerSummaryAgingSimpTotal(300);
+        VerifyCustomerSummaryAgingSimpCustomerNotPresent(OmittedCustomer."No.");
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('CustomerSummaryAgingSimpRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure CustomerSummaryAgingSimpSingleCustomerBalanceIsIndependent()
+    var
+        FirstCustomer: Record Customer;
+        SecondCustomer: Record Customer;
+    begin
+        // [FEATURE] [AI test 0.3]
+        // [SCENARIO 658970] Customer balance remains unchanged when report 109 is run for that customer alone
+        Initialize();
+
+        // [GIVEN] Customer "C1" with one outstanding LCY invoice of 100
+        CreateCustomerSummaryAgingEntry(FirstCustomer, 100);
+
+        // [GIVEN] Customer "C2" with one outstanding LCY invoice of 200
+        CreateCustomerSummaryAgingEntry(SecondCustomer, 200);
+
+        // [WHEN] Run report 109 for "C2" only
+        RunCustomerSummaryAgingSimp(SecondCustomer."No.", WorkDate());
+
+        // [THEN] "C2" balance and the footer total are 200, and "C1" is omitted
+        VerifyCustomerSummaryAgingSimpBalance(SecondCustomer."No.", 200);
+        VerifyCustomerSummaryAgingSimpTotal(200);
+        VerifyCustomerSummaryAgingSimpCustomerNotPresent(FirstCustomer."No.");
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     [HandlerFunctions('CustSummaryAgingRequestPageHandler')]
     [Scope('OnPrem')]
     procedure CustSummaryAging()
@@ -4023,6 +4085,44 @@ codeunit 134976 "ERM Sales Report"
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibrarySetupStorage.Save(DATABASE::"Sales & Receivables Setup");
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"ERM Sales Report");
+    end;
+
+    local procedure CreateCustomerSummaryAgingEntry(var Customer: Record Customer; Amount: Decimal)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        CreatePostGeneralJournalLineWithDueDate(
+          GenJournalLine, GenJournalLine."Document Type"::Invoice, Customer."No.", '', Amount, WorkDate(), WorkDate());
+    end;
+
+    local procedure RunCustomerSummaryAgingSimp(CustomerFilter: Text; StartingDate: Date)
+    begin
+        LibraryVariableStorage.Enqueue(StartingDate);
+        LibraryVariableStorage.Enqueue(CustomerFilter);
+        Report.Run(Report::"Customer - Summary Aging Simp.");
+        LibraryReportDataset.LoadDataSetFile();
+    end;
+
+    local procedure VerifyCustomerSummaryAgingSimpBalance(CustomerNo: Code[20]; ExpectedBalance: Decimal)
+    begin
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.SetRange('Customer__No__', CustomerNo);
+        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'Unexpected customer row count.');
+        Assert.IsTrue(LibraryReportDataset.GetNextRow(), 'Customer row was not found.');
+        LibraryReportDataset.AssertCurrentRowValueEquals('TotCustBal', ExpectedBalance);
+    end;
+
+    local procedure VerifyCustomerSummaryAgingSimpTotal(ExpectedTotal: Decimal)
+    begin
+        LibraryReportDataset.Reset();
+        Assert.AreEqual(ExpectedTotal, LibraryReportDataset.Sum('TotCustBal'), 'Unexpected customer summary aging footer total.');
+    end;
+
+    local procedure VerifyCustomerSummaryAgingSimpCustomerNotPresent(CustomerNo: Code[20])
+    begin
+        LibraryReportDataset.Reset();
+        LibraryReportDataset.AssertElementWithValueNotExist('Customer__No__', CustomerNo);
     end;
 
     local procedure ClearGenJournalLine(var GenJournalBatch: Record "Gen. Journal Batch")

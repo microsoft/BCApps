@@ -150,6 +150,7 @@ report 109 "Customer - Summary Aging Simp."
                 FilteredCustomer: Record Customer;
                 ShouldSkipCustomer: Boolean;
             begin
+                TotalCustBalanceLCY := 0;
                 FilteredCustomer.CopyFilters(Customer);
                 FilteredCustomer.SetFilter("Date Filter", '..%1', StartDate);
                 FilteredCustomer.SetRange("No.", "No.");
