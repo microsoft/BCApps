@@ -60,6 +60,8 @@ codeunit 20402 "Qlty. Auto Configure"
         PurchLineToTrackingDescriptionTxt: Label 'Tracking Specification to Purchase Line', MaxLength = 100;
         WhseReceiptToSalesLineTok: Label 'WRTOSALESRET', MaxLength = 20, Locked = true;
         WhseReceiptToSalesLineDescriptionTxt: Label 'Whse. Receipt to Sales Return', MaxLength = 100;
+        WhseReceiptToTransferLineTok: Label 'WRTOTRANSFER', MaxLength = 20, Locked = true;
+        WhseReceiptToTransferLineDescriptionTxt: Label 'Whse. Receipt to Inbound Transfer', MaxLength = 100;
         WhseJournalToPurchLineTok: Label 'WJNLTOPURCH', MaxLength = 20, Locked = true;
         WhseJournalToPurchLineDescriptionTxt: Label 'Whse. Journal to Purchase Line', MaxLength = 100;
         WhseJournalToSalesLineTok: Label 'WJNLTOSALES', MaxLength = 20, Locked = true;
@@ -399,6 +401,8 @@ codeunit 20402 "Qlty. Auto Configure"
                 CreateDefaultTrackingSpecificationToPurchaseConfiguration();
             CopyStr(WhseReceiptToSalesLineTok, 1, 20):
                 CreateDefaultWarehouseReceiptLineToSalesConfiguration();
+            CopyStr(WhseReceiptToTransferLineTok, 1, 20):
+                CreateDefaultWarehouseReceiptLineToTransferConfiguration();
             CopyStr(WhseJournalToPurchLineTok, 1, 20):
                 CreateDefaultWarehouseJournalLineToPurchConfiguration();
             CopyStr(WhseJournalToSalesLineTok, 1, 20):
@@ -446,6 +450,7 @@ codeunit 20402 "Qlty. Auto Configure"
         ShippedCodes.Add(CopyStr(ProdLineToTrackingTok, 1, 20));
         ShippedCodes.Add(CopyStr(PurchLineToTrackingTok, 1, 20));
         ShippedCodes.Add(CopyStr(WhseReceiptToSalesLineTok, 1, 20));
+        ShippedCodes.Add(CopyStr(WhseReceiptToTransferLineTok, 1, 20));
         ShippedCodes.Add(CopyStr(WhseJournalToPurchLineTok, 1, 20));
         ShippedCodes.Add(CopyStr(WhseJournalToSalesLineTok, 1, 20));
         ShippedCodes.Add(CopyStr(PurchLineToInspectTok, 1, 20));
@@ -557,6 +562,7 @@ codeunit 20402 "Qlty. Auto Configure"
         CreateDefaultTrackingSpecificationToSalesConfiguration();
         CreateDefaultWarehouseReceiptLineToPurchConfiguration();
         CreateDefaultWarehouseReceiptLineToSalesConfiguration();
+        CreateDefaultWarehouseReceiptLineToTransferConfiguration();
         CreateDefaultWarehouseJournalLineToPurchConfiguration();
         CreateDefaultWarehouseJournalLineToSalesConfiguration();
         CreateDefaultTransferLineReceiptToInspectConfiguration();
@@ -1221,6 +1227,36 @@ codeunit 20402 "Qlty. Auto Configure"
             TempWarehouseReceiptLine.FieldNo("Source Line No."),
             Database::"Purchase Line",
             TempPurchaseLine.FieldNo("Line No."),
+            '');
+    end;
+
+    /// <summary>
+    /// Ensures the chained mapping from warehouse receipt lines to inbound transfer lines exists.
+    /// </summary>
+    local procedure CreateDefaultWarehouseReceiptLineToTransferConfiguration()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        TempTransferLine: Record "Transfer Line" temporary;
+        TempWarehouseReceiptLine: Record "Warehouse Receipt Line" temporary;
+    begin
+        EnsureSourceConfigWithFilterExists(
+            WhseReceiptToTransferLineTok,
+            WhseReceiptToTransferLineDescriptionTxt,
+            Database::"Warehouse Receipt Line",
+            Database::"Transfer Line",
+            QltyInspectSourceConfig,
+            'WHERE(Source Type=CONST(5741))');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Source No."),
+            Database::"Transfer Line",
+            TempTransferLine.FieldNo("Document No."),
+            '');
+        EnsureSourceConfigLineExists(
+            QltyInspectSourceConfig,
+            TempWarehouseReceiptLine.FieldNo("Source Line No."),
+            Database::"Transfer Line",
+            TempTransferLine.FieldNo("Line No."),
             '');
     end;
 
