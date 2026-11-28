@@ -105,7 +105,6 @@ page 9800 Users
                     Editable = false;
                     ExtendedDatatype = EMail;
                     ToolTip = 'Specifies the Microsoft account that this user signs into Microsoft 365 or SharePoint Online with.';
-                    Visible = IsSaaS;
                 }
                 field("User Telemetry ID"; TelemetryUserId)
                 {
