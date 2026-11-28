@@ -47,6 +47,7 @@ codeunit 137140 "SCM Inventory Documents"
         AmountShouldEqualQtyTimesUnitAmountErr: Label 'Amount should equal Quantity * Unit Amount.';
         UnitAmountShouldBeDerivedErr: Label 'Unit Amount should be derived from Unit Cost and Indirect Cost %%.';
         UnitCostShouldBeDerivedErr: Label 'Unit Cost should be derived from Unit Amount and Indirect Cost %%.';
+        DirectTransferRequireReceiveErr: Label 'Direct transfers cannot be posted directly to location %1 because Require Receive is enabled.', Comment = '%1 = location code';
 
     [Test]
     [Scope('OnPrem')]
@@ -313,25 +314,35 @@ codeunit 137140 "SCM Inventory Documents"
 
         Initialize();
 
-        // [GIVEN] Two locations: "A" without warehouse setup, and "B" with "Require Receipt" enabled
+        // [GIVEN] Two locations without receipt requirements
         LibraryInventory.CreateItem(Item);
         LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
-        LibraryWarehouse.CreateLocationWMS(ToLocation, true, false, false, true, false);
+        LibraryWarehouse.CreateLocationWMS(ToLocation, true, false, false, false, false);
         LibraryWarehouse.CreateBin(Bin, ToLocation.Code, '', '', '');
 
         // [GIVEN] Item "I" with stock of 100 pcs on location "A"
         Qty := CreateAndPostItemJournalLine(Item."No.", FromLocation.Code, '');
 
         // [GIVEN] Create a direct transfer order from location "A" to location "B"
+        SetDirectTransferPosting(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
         CreateDirectTransferHeader(TransferHeader, FromLocation.Code, ToLocation.Code);
+        TransferHeader.Validate("Direct Transfer Posting", TransferHeader."Direct Transfer Posting"::"Direct Transfer");
+        TransferHeader.Modify(true);
         LibraryInventory.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Qty);
         TransferLine.Validate("Transfer-To Bin Code", Bin.Code);
         TransferLine.Modify(true);
 
+        // [GIVEN] The destination now requires receipt
+        ToLocation.Validate("Require Receive", true);
+        ToLocation.Modify(true);
+
         // [WHEN] Post the transfer using "Direct Transfer Posting" = "Direct Transfer"
-        SetDirectTransferPosting(Enum::"Direct Transfer Posting Type"::"Direct Transfer");
         asserterror LibraryInventory.PostDirectTransferOrder(TransferHeader);
-        SetDirectTransferPosting(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt");
+
+        // [THEN] Posting still rejects a receipt requirement introduced after order creation
+        Assert.ExpectedError(
+            StrSubstNo(DirectTransferRequireReceiveErr, ToLocation.Code));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]

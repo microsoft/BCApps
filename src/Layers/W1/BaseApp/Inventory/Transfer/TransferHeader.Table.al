@@ -84,14 +84,9 @@ table 5740 "Transfer Header"
                         if Location.Get("Transfer-from Code") then begin
                             InitFromTransferFromLocation(Location);
                             "Outbound Whse. Handling Time" := Location."Outbound Whse. Handling Time";
-                            TransferRoute.GetTransferRoute(
-                              "Transfer-from Code", "Transfer-to Code", InTransitCode,
-                              ShippingAgentCode, ShippingAgentServiceCode, "Direct Transfer", "Direct Transfer Posting");
-                            if "Direct Transfer Posting" = "Direct Transfer Posting"::"Direct Transfer" then
-                                "In-Transit Code" := ''
-                            else
-                                "In-Transit Code" := InTransitCode;
+                            GetAndValidateTransferRoute(InTransitCode, ShippingAgentCode, ShippingAgentServiceCode);
                             if not "Direct Transfer" then begin
+                                "In-Transit Code" := InTransitCode;
                                 "Shipping Agent Code" := ShippingAgentCode;
                                 "Shipping Agent Service Code" := ShippingAgentServiceCode;
                                 OnAfterGetTransferRoute(Rec, TransferRoute);
@@ -229,9 +224,6 @@ table 5740 "Transfer Header"
                 if "Transfer-to Code" <> '' then
                     CheckTransferFromAndToCodesNotTheSame();
 
-                if "Direct Transfer" then
-                    VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
-
                 if xRec."Transfer-to Code" <> "Transfer-to Code" then begin
                     if HideValidationDialog or (xRec."Transfer-to Code" = '') then
                         Confirmed := true
@@ -240,13 +232,7 @@ table 5740 "Transfer Header"
                     if Confirmed then begin
                         if Location.Get("Transfer-to Code") then begin
                             InitFromTransferToLocation(Location);
-                            TransferRoute.GetTransferRoute(
-                                  "Transfer-from Code", "Transfer-to Code", InTransitCode,
-                                  ShippingAgentCode, ShippingAgentServiceCode, "Direct Transfer", "Direct Transfer Posting");
-                            if "Direct Transfer Posting" = "Direct Transfer Posting"::"Direct Transfer" then
-                                "In-Transit Code" := ''
-                            else
-                                "In-Transit Code" := InTransitCode;
+                            GetAndValidateTransferRoute(InTransitCode, ShippingAgentCode, ShippingAgentServiceCode);
                             if not "Direct Transfer" then begin
                                 "Inbound Whse. Handling Time" := Location."Inbound Whse. Handling Time";
                                 "Shipping Agent Code" := ShippingAgentCode;
@@ -625,18 +611,11 @@ table 5740 "Transfer Header"
 
             trigger OnValidate()
             begin
-                if Rec."Direct Transfer Posting" <> Rec."Direct Transfer Posting"::" " then
-                    Rec.TestField("Direct Transfer", true);
-
-                if not (Rec."Direct Transfer Posting" in [Rec."Direct Transfer Posting"::"Direct Transfer", Rec."Direct Transfer Posting"::"Shipment and Receipt"]) then
-                    Rec.TestField("Direct Transfer", false);
-
                 if Rec."Direct Transfer" and (Rec."Direct Transfer Posting" = Rec."Direct Transfer Posting"::"Direct Transfer") then
                     if Rec."In-Transit Code" <> '' then
                         Rec.Validate("In-Transit Code", '');
 
-                if Rec."Direct Transfer" then
-                    VerifyNoInboundWhseHandlingOnLocation(Rec."Transfer-to Code");
+                CheckTransferConfiguration();
             end;
         }
         field(480; "Dimension Set ID"; Integer)
@@ -814,6 +793,8 @@ table 5740 "Transfer Header"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         SameLocationErr: Label 'Transfer order %1 cannot be posted because %2 and %3 are the same.', Comment = '%1 - order number, %2 - location from, %3 - location to';
+        DirectTransferRequireReceiveErr: Label 'Direct transfers cannot be posted directly to location %1 because Require Receive is enabled.', Comment = '%1 - location code';
+        ShipmentReceiptRequirePutAwayErr: Label 'Direct transfers using Shipment and Receipt posting cannot use location %1 because Require Put-away is enabled. Use Direct Transfer posting with inventory put-away, or use a non-direct transfer.', Comment = '%1 - location code';
 #pragma warning disable AA0074
         TransferOrderPostedMsg1: Label 'Transfer order %1 was successfully posted and is now deleted.', Comment = '%1 = transfer order number e.g. Transfer order 1003 was successfully posted and is now deleted ';
         Text007: Label 'You may have changed a dimension.\\Do you want to update the lines?';
@@ -1511,6 +1492,42 @@ table 5740 "Transfer Header"
         Location.TestField("Require Shipment", false);
     end;
 
+    local procedure GetAndValidateTransferRoute(var InTransitCode: Code[10]; var ShippingAgentCode: Code[10]; var ShippingAgentServiceCode: Code[10])
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        TransferHeader := Rec;
+        TransferRoute.GetTransferRoute(
+          "Transfer-from Code", "Transfer-to Code", InTransitCode,
+          ShippingAgentCode, ShippingAgentServiceCode, TransferHeader."Direct Transfer", TransferHeader."Direct Transfer Posting");
+        TransferHeader."In-Transit Code" := InTransitCode;
+        if TransferHeader."Direct Transfer" and
+           (TransferHeader."Direct Transfer Posting" = TransferHeader."Direct Transfer Posting"::"Direct Transfer")
+        then
+            TransferHeader."In-Transit Code" := '';
+        TransferHeader.CheckTransferConfiguration();
+
+        "Direct Transfer" := TransferHeader."Direct Transfer";
+        "Direct Transfer Posting" := TransferHeader."Direct Transfer Posting";
+        "In-Transit Code" := TransferHeader."In-Transit Code";
+    end;
+
+    internal procedure CheckTransferConfiguration()
+    begin
+        if "Direct Transfer Posting" <> "Direct Transfer Posting"::" " then
+            TestField("Direct Transfer", true);
+
+        if not ("Direct Transfer Posting" in ["Direct Transfer Posting"::"Direct Transfer", "Direct Transfer Posting"::"Shipment and Receipt"]) then
+            TestField("Direct Transfer", false);
+
+        if not "Direct Transfer" then
+            exit;
+
+        if "Direct Transfer Posting" = "Direct Transfer Posting"::"Direct Transfer" then
+            TestField("In-Transit Code", '');
+        VerifyNoInboundWhseHandlingOnLocation("Transfer-to Code");
+    end;
+
     procedure VerifyNoInboundWhseHandlingOnLocation(LocationCode: Code[10])
     var
         Location: Record Location;
@@ -1526,11 +1543,14 @@ table 5740 "Transfer Header"
 
         Location.TestField("Directed Put-away and Pick", false);
 
+        if Location."Require Receive" then
+            Error(DirectTransferRequireReceiveErr, Location.Code);
+
         if Rec."Direct Transfer Posting" = Rec."Direct Transfer Posting"::"Direct Transfer" then
             exit;
 
-        Location.TestField("Require Put-away", false);
-        Location.TestField("Require Receive", false);
+        if Location."Require Put-away" then
+            Error(ShipmentReceiptRequirePutAwayErr, Location.Code);
     end;
 
     local procedure InitInsert()

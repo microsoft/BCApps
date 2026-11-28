@@ -65,14 +65,23 @@ table 5742 "Transfer Route"
                     InventorySetup.SetLoadFields("Direct Transfer Posting Type");
                     InventorySetup.Get();
                     Rec."Direct Transfer Posting" := InventorySetup."Direct Transfer Posting Type";
+                    if Rec."Direct Transfer Posting" = Rec."Direct Transfer Posting"::" " then
+                        Rec."Direct Transfer Posting" := Rec."Direct Transfer Posting"::"Shipment and Receipt";
                 end else
                     Rec."Direct Transfer Posting" := Rec."Direct Transfer Posting"::" ";
+
+                ClearDirectTransferInTransitCode();
             end;
         }
         field(8; "Direct Transfer Posting"; Enum "Direct Transfer Posting Type")
         {
             Caption = 'Direct Transfer Posting';
             ToolTip = 'Specifies the posting type for direct transfer.';
+
+            trigger OnValidate()
+            begin
+                ClearDirectTransferInTransitCode();
+            end;
         }
     }
 
@@ -88,6 +97,16 @@ table 5742 "Transfer Route"
     {
     }
 
+    trigger OnInsert()
+    begin
+        CheckTransferConfiguration();
+    end;
+
+    trigger OnModify()
+    begin
+        CheckTransferConfiguration();
+    end;
+
     var
         CalChange: Record "Customized Calendar Change";
         ShippingAgentServices: Record "Shipping Agent Services";
@@ -98,6 +117,24 @@ table 5742 "Transfer Route"
 #pragma warning disable AA0074
         Text003: Label 'The receipt date must be greater or equal to the shipment date.';
 #pragma warning restore AA0074
+
+    local procedure ClearDirectTransferInTransitCode()
+    begin
+        if "Direct Transfer" and ("Direct Transfer Posting" = "Direct Transfer Posting"::"Direct Transfer") then
+            "In-Transit Code" := '';
+    end;
+
+    local procedure CheckTransferConfiguration()
+    var
+        TransferHeader: Record "Transfer Header";
+    begin
+        TransferHeader."Transfer-from Code" := "Transfer-from Code";
+        TransferHeader."Transfer-to Code" := "Transfer-to Code";
+        TransferHeader."Direct Transfer" := "Direct Transfer";
+        TransferHeader."Direct Transfer Posting" := "Direct Transfer Posting";
+        TransferHeader."In-Transit Code" := "In-Transit Code";
+        TransferHeader.CheckTransferConfiguration();
+    end;
 
     procedure GetTransferRoute(TransferFromCode: Code[10]; TransferToCode: Code[10]; var InTransitCode: Code[10]; var ShippingAgentCode: Code[10]; var ShippingAgentServiceCode: Code[10])
     var
