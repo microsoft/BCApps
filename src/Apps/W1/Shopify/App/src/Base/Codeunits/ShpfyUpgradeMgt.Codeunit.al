@@ -44,6 +44,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         CreateInvoicesFromOrdersUpgrade();
         OrderTransactionShopCodeUpgrade();
         HasAdvancedShopifyPlanUpgrade();
+        StaffMemberAccessUpgrade();
         ItalianSardinianProvinceRenameUpgrade();
         ProcessReturnsAsUpgrade();
     end;
@@ -536,6 +537,23 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag());
     end;
 
+    internal procedure StaffMemberAccessUpgrade()
+    var
+        Shop: Record "Shpfy Shop";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        ShopDataTransfer: DataTransfer;
+    begin
+        if UpgradeTag.HasUpgradeTag(GetStaffMemberAccessUpgradeTag()) then
+            exit;
+
+        ShopDataTransfer.SetTables(Database::"Shpfy Shop", Database::"Shpfy Shop");
+        ShopDataTransfer.AddFieldValue(Shop.FieldNo("Advanced Shopify Plan"), Shop.FieldNo("Can Access Staff Members"));
+        ShopDataTransfer.UpdateAuditFields := false;
+        ShopDataTransfer.CopyFields();
+
+        UpgradeTag.SetUpgradeTag(GetStaffMemberAccessUpgradeTag());
+    end;
+
     internal procedure ProcessReturnsAsUpgrade()
     var
         Shop: Record "Shpfy Shop";
@@ -630,6 +648,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-630316-HasAdvancedShopifyPlanUpgrade-20260408');
     end;
 
+    internal procedure GetStaffMemberAccessUpgradeTag(): Code[250]
+    begin
+        exit('MS-659801-StaffMemberAccessUpgrade-20261118');
+    end;
+
     local procedure ItalianSardinianProvinceRenameUpgrade()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -693,6 +716,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetCreateInvoicesFromOrdersUpgradeTag());
         PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetHasAdvancedShopifyPlanUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetStaffMemberAccessUpgradeTag());
         PerCompanyUpgradeTags.Add(GetItalianSardinianProvinceRenameUpgradeTag());
         PerCompanyUpgradeTags.Add(GetProcessReturnsAsUpgradeTag());
     end;

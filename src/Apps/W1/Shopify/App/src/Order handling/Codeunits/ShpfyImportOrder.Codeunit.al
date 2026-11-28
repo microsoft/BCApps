@@ -399,7 +399,7 @@ codeunit 30161 "Shpfy Import Order"
         JResponse: JsonToken;
     begin
         Parameters.Add('OrderId', Format(OrderId));
-        if Shop."Advanced Shopify Plan" then
+        if Shop."Can Access Staff Members" then
             Parameters.Add('StaffMember', 'staffMember { id }')
         else
             Parameters.Add('StaffMember', '');
@@ -473,7 +473,7 @@ codeunit 30161 "Shpfy Import Order"
         JsonHelper.GetValueIntoField(JOrder, 'presentmentCurrencyCode', OrderHeaderRecordRef, OrderHeader.FieldNo("Presentment Currency Code"));
         JsonHelper.GetValueIntoField(JOrder, 'test', OrderHeaderRecordRef, OrderHeader.FieldNo(Test));
         JsonHelper.GetValueIntoField(JOrder, 'edited', OrderHeaderRecordRef, OrderHeader.FieldNo(Edited));
-        if Shop."Advanced Shopify Plan" then begin
+        if Shop."Can Access Staff Members" then begin
             StaffMemberId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JOrder, 'staffMember.id'));
             SetSalespersonOnOrderHeader(OrderHeader."Shop Code", StaffMemberId, OrderHeaderRecordRef);
         end;

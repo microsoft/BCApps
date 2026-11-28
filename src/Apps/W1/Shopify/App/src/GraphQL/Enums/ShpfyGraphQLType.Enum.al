@@ -624,4 +624,8 @@ enum 30111 "Shpfy GraphQL Type"
     {
         Caption = 'Get Next Refund Exchange Lines';
     }
+    value(154; Base_CheckStaffMemberAccess)
+    {
+        Caption = 'Check Staff Member Access';
+    }
 }
