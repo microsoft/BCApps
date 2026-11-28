@@ -1898,6 +1898,11 @@ table 1001 "Job Task"
         CalledFromHeader := Suspend;
     end;
 
+    procedure SuspendDeletionCheck(): Boolean
+    begin
+        exit(CalledFromHeader);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterApplyPurchaseLineFilters(var JobTask: Record "Job Task"; var PurchaseLine: Record "Purchase Line")
     begin
