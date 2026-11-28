@@ -562,25 +562,34 @@ codeunit 37201 "PEPPOL30 Impl."
     local procedure GetAccountingCustomerPartyInfoByFormat(SalesHeader: Record "Sales Header"; var CustomerEndpointID: Text; var CustomerSchemeID: Text; var CustomerPartyIdentificationID: Text; var CustomerPartyIDSchemeID: Text; var CustomerName: Text; IsBISBilling: Boolean)
     var
         Cust: Record Customer;
+        VATCountryCode: Code[10];
     begin
         Cust.Get(SalesHeader."Bill-to Customer No.");
         if (Cust.GLN <> '') and Cust."Use GLN in Electronic Document" then begin
             CustomerEndpointID := Cust.GLN;
             CustomerSchemeID := GetGLNSchemeIDByFormat(IsBISBilling);
         end else begin
+            VATCountryCode := GetCustomerVATCountryCode(SalesHeader);
             CustomerEndpointID := SalesHeader.GetCustomerVATRegistrationNumber();
             if IsBISBilling then begin
                 CustomerEndpointID := DelChr(CustomerEndpointID);
 
-                if UseVATSchemeID(SalesHeader."Bill-to Country/Region Code") then
-                    CustomerEndpointID := Cust.FormatVATRegistrationNo(CustomerEndpointID, SalesHeader."Bill-to Country/Region Code");
+                if UseVATSchemeID(VATCountryCode) then
+                    CustomerEndpointID := Cust.FormatVATRegistrationNo(CustomerEndpointID, VATCountryCode);
             end;
-            CustomerSchemeID := GetVATScheme(SalesHeader."Bill-to Country/Region Code");
+            CustomerSchemeID := GetVATScheme(VATCountryCode);
         end;
 
         CustomerPartyIdentificationID := Cust.GLN;
         CustomerPartyIDSchemeID := GetGLNSchemeIDByFormat(IsBISBilling);
         CustomerName := SalesHeader."Bill-to Name";
+    end;
+
+    local procedure GetCustomerVATCountryCode(SalesHeader: Record "Sales Header"): Code[10]
+    begin
+        if SalesHeader."VAT Country/Region Code" <> '' then
+            exit(SalesHeader."VAT Country/Region Code");
+        exit(SalesHeader."Bill-to Country/Region Code");
     end;
 
     procedure GetAccountingCustomerPartyPostalAddr(SalesHeader: Record "Sales Header"; var CustomerStreetName: Text; var CustomerAdditionalStreetName: Text; var CustomerCityName: Text; var CustomerPostalZone: Text; var CustomerCountrySubentity: Text; var CustomerIdentificationCode: Text; var CustomerListID: Text)
@@ -625,15 +634,17 @@ codeunit 37201 "PEPPOL30 Impl."
     local procedure GetAccountingCustomerPartyTaxSchemeByFormat(SalesHeader: Record "Sales Header"; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text; IsBISBilling: Boolean)
     var
         Customer: Record Customer;
+        VATCountryCode: Code[10];
     begin
+        VATCountryCode := GetCustomerVATCountryCode(SalesHeader);
         if IsBISBilling then
-            CustPartyTaxSchemeCompanyID := Customer.FormatVATRegistrationNo(SalesHeader.GetCustomerVATRegistrationNumber(), SalesHeader."Bill-to Country/Region Code")
+            CustPartyTaxSchemeCompanyID := Customer.FormatVATRegistrationNo(SalesHeader.GetCustomerVATRegistrationNumber(), VATCountryCode)
         else
             CustPartyTaxSchemeCompanyID := SalesHeader.GetCustomerVATRegistrationNumber();
         if IsBISBilling then
             CustPartyTaxSchemeCompIDSchID := ''
         else
-            CustPartyTaxSchemeCompIDSchID := GetVATSchemeByFormat(SalesHeader."Bill-to Country/Region Code", false);
+            CustPartyTaxSchemeCompIDSchID := GetVATSchemeByFormat(VATCountryCode, false);
         CustTaxSchemeID := VATTxt;
     end;
 
@@ -652,6 +663,7 @@ codeunit 37201 "PEPPOL30 Impl."
     local procedure GetAccountingCustomerPartyLegalEntityByFormat(SalesHeader: Record "Sales Header"; var CustPartyLegalEntityRegName: Text; var CustPartyLegalEntityCompanyID: Text; var CustPartyLegalEntityIDSchemeID: Text; IsBISBilling: Boolean)
     var
         Customer: Record Customer;
+        VATCountryCode: Code[10];
     begin
         if Customer.Get(SalesHeader."Bill-to Customer No.") then begin
             CustPartyLegalEntityRegName := Customer.Name;
@@ -659,14 +671,15 @@ codeunit 37201 "PEPPOL30 Impl."
                 CustPartyLegalEntityCompanyID := Customer.GLN;
                 CustPartyLegalEntityIDSchemeID := GetGLNSchemeIDByFormat(IsBISBilling);
             end else begin
+                VATCountryCode := GetCustomerVATCountryCode(SalesHeader);
                 CustPartyLegalEntityCompanyID := SalesHeader.GetCustomerVATRegistrationNumber();
                 if IsBISBilling then begin
                     CustPartyLegalEntityCompanyID := DelChr(CustPartyLegalEntityCompanyID);
 
-                    if UseVATSchemeID(SalesHeader."Bill-to Country/Region Code") then
-                        CustPartyLegalEntityCompanyID := Customer.FormatVATRegistrationNo(CustPartyLegalEntityCompanyID, SalesHeader."Bill-to Country/Region Code");
+                    if UseVATSchemeID(VATCountryCode) then
+                        CustPartyLegalEntityCompanyID := Customer.FormatVATRegistrationNo(CustPartyLegalEntityCompanyID, VATCountryCode);
                 end;
-                CustPartyLegalEntityIDSchemeID := GetVATSchemeByFormat(SalesHeader."Bill-to Country/Region Code", IsBISBilling);
+                CustPartyLegalEntityIDSchemeID := GetVATSchemeByFormat(VATCountryCode, IsBISBilling);
             end;
         end;
     end;
