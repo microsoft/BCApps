@@ -5963,7 +5963,6 @@ table 37 "Sales Line"
         OnAfterUpdateAmounts(Rec, xRec, CurrFieldNo);
 
         UpdateVATAmounts();
-        UpdateVATRoundingFromVATAmountLines();
         InitOutstandingAmount();
 
         CheckCreditLimit();
@@ -6048,6 +6047,8 @@ table 37 "Sales Line"
                 ("VAT %" <> 0))
             then begin
                 SalesLine2.SetFilter("VAT %", '<>0');
+                if "VAT Calculation Type" <> "VAT Calculation Type"::"Sales Tax" then
+                    SetSalesLineSignFilter(SalesLine2, "Line Amount");
                 if not SalesLine2.IsEmpty() then begin
                     SalesLine2.CalcSums("Line Amount", "Inv. Discount Amount", Amount, "Amount Including VAT", "Quantity (Base)", "VAT Difference", "VAT Base Amount");
                     TotalLineAmount := SalesLine2."Line Amount";
@@ -10944,32 +10945,13 @@ table 37 "Sales Line"
         end;
     end;
 
-    local procedure UpdateVATRoundingFromVATAmountLines()
-    var
-        TempSalesHeader: Record "Sales Header" temporary;
-        TempSalesLine: Record "Sales Line" temporary;
-        SalesDoc: Codeunit "Release Sales Document";
+    local procedure SetSalesLineSignFilter(var SalesLine: Record "Sales Line"; LineAmount: Decimal)
     begin
-        GetSalesHeader();
-
-        if not SalesHeader."Prices Including VAT" then
-            exit;
-
-        TempSalesHeader.Init();
-        TempSalesHeader := SalesHeader;
-        TempSalesHeader.Insert();
-
-        TempSalesLine.Init();
-        TempSalesLine.Copy(Rec);
-        TempSalesLine.Insert();
-
-        if SalesDoc.CalcAndUpdateVATOnLines(TempSalesHeader, TempSalesLine) then
-            if Abs(Amount) < Abs(TempSalesLine.Amount) then begin
-                Amount := TempSalesLine.Amount;
-                "VAT Base Amount" := TempSalesLine."VAT Base Amount";
-                "VAT Difference" := TempSalesLine."VAT Difference";
-                "Amount Including VAT" := TempSalesLine."Amount Including VAT";
-            end;
+        // VAT Amount Lines are grouped by sign (see FindVATAmountLine), so running totals must not mix positive and negative lines
+        if LineAmount >= 0 then
+            SalesLine.SetFilter("Line Amount", '>=0')
+        else
+            SalesLine.SetFilter("Line Amount", '<0');
     end;
 
     /// <summary>
