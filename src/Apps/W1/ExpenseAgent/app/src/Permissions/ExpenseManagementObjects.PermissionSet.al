@@ -67,6 +67,7 @@ permissionset 6904 "Expense Management - Objects"
         table "Expense Capabilities Buffer" = X,
         table Traveler = X,
         table "Expense Activity Log Entry" = X,
+        table "Exp. Report Change Log Entry" = X,
         table "Expense Project Buf" = X,
         table "EA Corp Card" = X,
         table "EA Corp Card Statement" = X,
@@ -178,6 +179,7 @@ permissionset 6904 "Expense Management - Objects"
 #endif
         page "Expense Report FactBox" = X,
         page "Expense Activity Log FactBox" = X,
+        page "Exp. Report Change Log Entries" = X,
         page "Expense Approval Setups Part" = X,
         page "Expense Picture" = X,
         page Travelers = X,
@@ -260,6 +262,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense API Currency Helper" = X,
         codeunit "Expense Capabilities Provider" = X,
         codeunit "Expense Activity Log Mgt." = X,
+        codeunit "Exp. Report Change Log Mgt." = X,
         codeunit "Expense Projects Builder" = X,
         codeunit "Exp. Policies To Eval Builder" = X,
         codeunit "Import Expense User" = X,

@@ -171,8 +171,6 @@ table 6906 "Expense Report Header"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
             end;
         }
@@ -185,8 +183,6 @@ table 6906 "Expense Report Header"
 
             trigger OnValidate()
             begin
-                TestStatusOpen();
-
                 Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
             end;
         }
@@ -699,8 +695,10 @@ table 6906 "Expense Report Header"
         ExpenseReportLine: Record "Expense Report Line";
         ExpenseReportCommentLine: Record "Expense Report Comment Line";
         ExpenseActivityLogMgt: Codeunit "Expense Activity Log Mgt.";
+        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
     begin
         ExpenseActivityLogMgt.DeleteEntriesForSource(Database::"Expense Report Header", Rec.SystemId);
+        ExpReportChangeLogMgt.DeleteEntriesForSource(Database::"Expense Report Header", Rec.SystemId);
         ExpenseReportCommentLine.DeleteComments(ExpenseReportCommentLine."Document Type"::"Expense Report", Rec."No.");
 
         ExpenseReportLine.SetRange("Document No.", Rec."No.");
@@ -753,6 +751,7 @@ table 6906 "Expense Report Header"
     /// </summary>
     procedure ShowDocDim()
     var
+        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
         OldDimSetID: Integer;
     begin
         OldDimSetID := "Dimension Set ID";
@@ -762,6 +761,7 @@ table 6906 "Expense Report Header"
             "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
         if OldDimSetID <> "Dimension Set ID" then begin
             Modify();
+            ExpReportChangeLogMgt.LogHeaderDimensionChange(Rec, OldDimSetID);
             if ExpenseLinesExist() then
                 UpdateAllLineDim("Dimension Set ID", OldDimSetID);
         end;
@@ -774,6 +774,7 @@ table 6906 "Expense Report Header"
     /// <param name="ShortcutDimCode">The shortcut dimension value code to validate.</param>
     procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
     var
+        ExpReportChangeLogMgt: Codeunit "Exp. Report Change Log Mgt.";
         OldDimSetID: Integer;
     begin
         OldDimSetID := "Dimension Set ID";
@@ -782,8 +783,10 @@ table 6906 "Expense Report Header"
             Modify();
 
         if OldDimSetID <> "Dimension Set ID" then begin
-            if not IsNullGuid(Rec.SystemId) then
+            if not IsNullGuid(Rec.SystemId) then begin
                 Modify();
+                ExpReportChangeLogMgt.LogHeaderDimensionChange(Rec, OldDimSetID);
+            end;
             if ExpenseLinesExist() then
                 UpdateAllLineDim("Dimension Set ID", OldDimSetID);
         end;
