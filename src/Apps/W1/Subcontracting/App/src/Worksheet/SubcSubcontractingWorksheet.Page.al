@@ -387,6 +387,28 @@ page 20504 "Subc. Subcontracting Worksheet"
                         Rec.Modify(true);
                     end;
                 }
+                action(AcceptAllActionMessages)
+                {
+                    Caption = 'Accept all action messages';
+                    Image = Approve;
+                    ToolTip = 'Select Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
+
+                    trigger OnAction()
+                    begin
+                        SetAcceptActionMessages(true);
+                    end;
+                }
+                action(ClearAllAcceptances)
+                {
+                    Caption = 'Clear all acceptances';
+                    Image = ClearFilter;
+                    ToolTip = 'Clear Accept Action Message on the selected lines. If only one line is selected, all lines that match the filters in the current worksheet batch are updated.';
+
+                    trigger OnAction()
+                    begin
+                        SetAcceptActionMessages(false);
+                    end;
+                }
                 action(CarryOutActionMessage)
                 {
                     Caption = 'Carry Out Action Message';
@@ -408,6 +430,12 @@ page 20504 "Subc. Subcontracting Worksheet"
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
                 actionref("Calculate Subcontracts_Promoted"; "Calculate Subcontracts")
+                {
+                }
+                actionref(AcceptAllActionMessages_Promoted; AcceptAllActionMessages)
+                {
+                }
+                actionref(ClearAllAcceptances_Promoted; ClearAllAcceptances)
                 {
                 }
                 actionref(CarryOutActionMessage_Promoted; CarryOutActionMessage)
@@ -493,6 +521,18 @@ page 20504 "Subc. Subcontracting Worksheet"
         CurrPage.SaveRecord();
         ReqJnlManagement.SetName(CurrentJnlBatchName, Rec);
         CurrPage.Update(false);
+    end;
+
+    local procedure SetAcceptActionMessages(Accept: Boolean)
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CurrPage.SaveRecord();
+        CurrPage.SetSelectionFilter(RequisitionLine);
+        if RequisitionLine.Count() <= 1 then
+            RequisitionLine.Copy(Rec);
+        if ReqJnlManagement.SetAcceptActionMessages(RequisitionLine, Accept) then
+            CurrPage.Update(false);
     end;
 
     local procedure CarryOutActionMsg()

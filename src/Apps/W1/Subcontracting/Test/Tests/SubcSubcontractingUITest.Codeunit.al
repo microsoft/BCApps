@@ -2852,6 +2852,58 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         RoutingLine.Insert(true);
     end;
 
+    [Test]
+    procedure AcceptAndClearAllActionMessagesOnSubcontractingWorksheet()
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        RequisitionLine: array[2] of Record "Requisition Line";
+        ReqJnlManagement: Codeunit ReqJnlManagement;
+        SubcSubcontractingWorksheet: TestPage "Subc. Subcontracting Worksheet";
+        i: Integer;
+    begin
+        // [SCENARIO 321912] Accept All Action Messages and Clear All Acceptances on the Subcontracting Worksheet update all lines of the current batch.
+        Initialize();
+
+        // [GIVEN] Subcontracting worksheet batch with two lines where Accept Action Message is not selected.
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        for i := 1 to ArrayLen(RequisitionLine) do
+            CreateItemRequisitionLine(RequisitionLine[i], RequisitionWkshName);
+
+        // [GIVEN] Subcontracting Worksheet opened for the batch.
+        SubcSubcontractingWorksheet.Trap();
+        ReqJnlManagement.TemplateSelectionFromBatch(RequisitionWkshName);
+
+        // [WHEN] Choose Accept All Action Messages.
+        SubcSubcontractingWorksheet.AcceptAllActionMessages.Invoke();
+
+        // [THEN] Accept Action Message is selected on both lines.
+        for i := 1 to ArrayLen(RequisitionLine) do
+            VerifyAcceptActionMessage(RequisitionLine[i], true);
+
+        // [WHEN] Choose Clear All Acceptances.
+        SubcSubcontractingWorksheet.ClearAllAcceptances.Invoke();
+
+        // [THEN] Accept Action Message is cleared on both lines.
+        for i := 1 to ArrayLen(RequisitionLine) do
+            VerifyAcceptActionMessage(RequisitionLine[i], false);
+    end;
+
+    local procedure CreateItemRequisitionLine(var RequisitionLine: Record "Requisition Line"; RequisitionWkshName: Record "Requisition Wksh. Name")
+    begin
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", LibraryInventory.CreateItemNo());
+        RequisitionLine.Validate("Accept Action Message", false);
+        RequisitionLine.Modify(true);
+    end;
+
+    local procedure VerifyAcceptActionMessage(RequisitionLine: Record "Requisition Line"; ExpectedAcceptActionMessage: Boolean)
+    begin
+        RequisitionLine.Find();
+        RequisitionLine.TestField("Accept Action Message", ExpectedAcceptActionMessage);
+    end;
+
     local procedure CreateVendorWithSubcontractingLocation(var Vendor: Record Vendor)
     var
         Location: Record Location;
@@ -2886,6 +2938,7 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPlanning: Codeunit "Library - Planning";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryMfgManagement: Codeunit "Subc. Library Mfg. Management";
