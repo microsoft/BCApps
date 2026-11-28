@@ -103,7 +103,9 @@ codeunit 5530 "Calc. Item Availability"
         if not ItemLedgEntry.ReadPermission then
             exit(false);
 
-        if ItemLedgEntry.FindLinesWithItemToPlan(Item, false) then begin
+        ItemLedgEntry.FilterLinesWithItemToPlan(Item, false);
+        ItemLedgEntry.SetCurrentKey("Location Code", "Item No.", "Variant Code", Open, Positive);
+        if ItemLedgEntry.Find('-') then begin
             FilterItemLedgEntry.Copy(ItemLedgEntry);
             repeat
                 if ItemLedgEntry."Location Code" = '' then
