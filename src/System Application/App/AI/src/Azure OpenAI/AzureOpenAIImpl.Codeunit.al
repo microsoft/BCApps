@@ -35,7 +35,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
         EmbeddingsFailedWithCodeErr: Label 'Embeddings failed to be generated.';
         ChatCompletionsFailedWithCodeErr: Label 'Chat completions failed to be generated.';
         AuthenticationNotConfiguredErr: Label 'The authentication was not configured.';
-        CapabilityBackgroundErr: Label 'Microsoft Copilot Capabilities are not allowed in the background.';
         CapabilityODataErr: Label 'Microsoft Copilot Capabilities are not allowed in API and OData Web Services sessions.';
         MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
 #if not CLEAN29
@@ -607,9 +606,6 @@ codeunit 7772 "Azure OpenAI Impl" implements "AI Service Name"
 
         if ClientTypeManagement.GetCurrentClientType() in [ClientType::Api, ClientType::OData, ClientType::ODataV4, ClientType::SOAP, ClientType::Management] then
             Error(CapabilityODataErr);
-
-        if (not GuiAllowed()) and (AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Microsoft Managed") then
-            Error(CapabilityBackgroundErr);
     end;
 
     local procedure CheckAuthorizationEnabled(AOAIAuthorization: Codeunit "AOAI Authorization"; CallerModuleInfo: ModuleInfo)
