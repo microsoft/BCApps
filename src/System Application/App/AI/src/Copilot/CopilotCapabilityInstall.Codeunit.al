@@ -24,6 +24,7 @@ codeunit 7760 "Copilot Capability Install"
         AnalyzeListLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2252783', Locked = true;
         SummarizeLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2284702', Locked = true;
         AutofillLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298223', Locked = true;
+        TroubleshootingLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=', Locked = true;
 
     internal procedure RegisterCapabilities()
     begin
@@ -31,6 +32,7 @@ codeunit 7760 "Copilot Capability Install"
         RegisterSaaSCapability(Enum::"Copilot Capability"::Autofill, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", AutofillLearnMoreLbl);
         RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", ChatLearnMoreLbl);
         RegisterSaaSCapability(Enum::"Copilot Capability"::Summarize, Enum::"Copilot Availability"::Preview, Enum::"Copilot Billing Type"::"Not Billed", SummarizeLearnMoreLbl);
+        RegisterSaaSCapability(Enum::"Copilot Capability"::Troubleshooting, Enum::"Copilot Availability"::"Early Preview", Enum::"Copilot Billing Type"::"Microsoft Billed", TroubleshootingLearnMoreLbl);
     end;
 
     local procedure RegisterSaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; BillingType: Enum "Copilot Billing Type"; LearnMoreUrl: Text[2048])
