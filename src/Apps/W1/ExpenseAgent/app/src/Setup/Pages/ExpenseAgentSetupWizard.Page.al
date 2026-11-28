@@ -933,6 +933,14 @@ page 6991 "Expense Agent Setup Wizard"
                     }
                 }
             }
+            group(receipts)
+            {
+                Caption = 'Receipts';
+
+                field(NoReceipt; Rec."Allow No Receipt")
+                {
+                }
+            }
             group(CanaryGroup)
             {
                 Caption = 'Canary (allowlisted tenants)';
@@ -1366,6 +1374,7 @@ page 6991 "Expense Agent Setup Wizard"
         Rec."Partial Day Rules" := TempExpenseAgentSetup."Partial Day Rules";
         Rec."Min Hours for Partial Per Diem" := TempExpenseAgentSetup."Min Hours for Partial Per Diem";
         Rec."Percentage For Partial Day" := TempExpenseAgentSetup."Percentage For Partial Day";
+        Rec."Partial Day Rounding Precision" := TempExpenseAgentSetup."Partial Day Rounding Precision";
         Rec."Reduction for Breakfast %" := TempExpenseAgentSetup."Reduction for Breakfast %";
         Rec."Reduction for Lunch %" := TempExpenseAgentSetup."Reduction for Lunch %";
         Rec."Reduction for Dinner %" := TempExpenseAgentSetup."Reduction for Dinner %";

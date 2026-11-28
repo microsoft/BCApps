@@ -295,7 +295,7 @@ codeunit 10058 "IRS 1099 Upgrade"
         IRS1099FormStatementLine.Validate("Form No.", FormNo);
         IRS1099FormStatementLine.Validate("Line No.", StatementLineNo);
         IRS1099FormStatementLine.Validate("Row No.", FormBoxNo);
-        IRS1099FormStatementLine.Validate("Description", Description);
+        IRS1099FormStatementLine.Validate("Description", CopyStr(Description, 1, MaxStrLen(IRS1099FormStatementLine.Description)));
         if IRS1099FormStatementLine."Row No." = 'MISC-07' then
             IRS1099FormStatementLine."Print Value Type" := Enum::"IRS 1099 Print Value Type"::"Yes/No";
         IRS1099FormStatementLine.SetFormBoxFilter(FormBoxNo);

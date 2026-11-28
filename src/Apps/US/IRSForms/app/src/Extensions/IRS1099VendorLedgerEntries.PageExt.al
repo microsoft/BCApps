@@ -15,7 +15,7 @@ pageextension 10048 "IRS 1099 Vendor Ledger Entries" extends "Vendor Ledger Entr
             field("IRS 1099 Reporting Period"; Rec."IRS 1099 Reporting Period")
             {
                 ApplicationArea = BasicCA, BasicUS;
-                Tooltip = 'Specifies the IRS reporting period for the vendor ledger entry.';
+                Tooltip = 'Specifies the period used for this entry''s IRS form and box setup. The reporting year for applied payments and refunds is determined by their posting dates, not this field.';
             }
             field("IRS 1099 Form No."; Rec."IRS 1099 Form No.")
             {
@@ -30,7 +30,7 @@ pageextension 10048 "IRS 1099 Vendor Ledger Entries" extends "Vendor Ledger Entr
             field("IRS 1099 Reporting Amount"; Rec."IRS 1099 Reporting Amount")
             {
                 ApplicationArea = BasicCA, BasicUS;
-                Tooltip = 'Specifies the IRS reporting amount for the vendor ledger entry.';
+                Tooltip = 'Specifies the entry''s 1099-liable amount, not the amount paid in a particular year. The reporting calculation includes the proportion covered by applied payments and refunds.';
             }
         }
     }

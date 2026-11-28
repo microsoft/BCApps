@@ -23,6 +23,7 @@ codeunit 148014 "IRS 1099 Form Calc. Tests"
         LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
         LibraryIRS1099Document: Codeunit "Library IRS 1099 Document";
         LibraryERM: Codeunit "Library - ERM";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit "Assert";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryRandom: Codeunit "Library - Random";
@@ -318,7 +319,7 @@ codeunit 148014 "IRS 1099 Form Calc. Tests"
         PurchaseHeader.Validate("Posting Date", PostingDate);
         LibraryPurchase.CreatePurchaseLineWithUnitCost(
             PurchaseLine, PurchaseHeader, LibraryInventory.CreateItemNo(),
-            LibraryRandom.RandInt(100), LibraryRandom.RandDec(100, 2));
+            1, 100);
         LibraryERM.FindVendorLedgerEntry(
             InvVendorLedgerEntry, InvVendorLedgerEntry."Document Type"::Invoice,
             LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
@@ -427,7 +428,7 @@ codeunit 148014 "IRS 1099 Form Calc. Tests"
         VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(PostingDate, FormNo, FormBoxNo);
 
         // [GIVEN] Posted invoice with "FB" code and amount = 1000
-        InvAmount := LibraryRandom.RandIntInRange(1000, 2000);
+        InvAmount := 1000;
         CreateVendorLedgerEntry(
             InvVendorLedgerEntry, PostingDate, InvVendorLedgerEntry."Document Type"::Invoice, VendNo, FormNo, FormBoxNo, InvAmount);
         CreateDetailedVendorLedgerEntry(
@@ -497,8 +498,9 @@ codeunit 148014 "IRS 1099 Form Calc. Tests"
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(PostingDate, FormNo);
         VendNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(PostingDate, FormNo, FormBoxNo);
         // [GIVEN] Two posted invoices with "MISC-01" code and total amount = 1000
+        InvAmount[1] := 300;
+        InvAmount[2] := 700;
         for i := 1 to ArrayLen(InvAmount) do begin
-            InvAmount[i] := LibraryRandom.RandIntInRange(1000, 2000);
             CreateVendorLedgerEntry(
                 InvVendorLedgerEntry[i], PostingDate, InvVendorLedgerEntry[i]."Document Type"::Invoice, VendNo, FormNo, FormBoxNo, InvAmount[i]);
             CreateDetailedVendorLedgerEntry(
@@ -802,6 +804,11 @@ codeunit 148014 "IRS 1099 Form Calc. Tests"
 
     local procedure Initialize()
     begin
+        LibrarySetupStorage.Restore();
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
+        if not IsInitialized then
+            LibrarySetupStorage.SaveGeneralLedgerSetup();
+        LibraryERM.SetAllowPostingFromTo(WorkDate(), WorkDate());
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 Form Calc. Tests");
         if IsInitialized then
             exit;

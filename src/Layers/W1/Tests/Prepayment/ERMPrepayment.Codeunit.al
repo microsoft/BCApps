@@ -4211,6 +4211,47 @@
         Assert.ExpectedError(SalesLine.FieldCaption("Prepmt. Line Amount"));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure SalesOrderPrepmtLineAmountNotIncreasedAfterPartialPostingWithIncreasedPrepmtAmtToDeduct()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesLineToUpdate: Record "Sales Line";
+        ReleaseSalesDocument: Codeunit "Release Sales Document";
+    begin
+        // [SCENARIO 656934] Recalculating VAT on lines after partial posting with increased "Prepmt Amt to Deduct" does not require an additional prepayment invoice
+        Initialize();
+        
+        // [GIVEN] Sales Order with Quantity = 10, "Unit Price" = 193.70 and posted 50% Prepayment Invoice = 968.50
+        InitSalesPrepaymentScenario(SalesHeader, SalesLine, false, 50, '');
+        PostedPrepmtInvNosInSetup(SalesReceivablesSetup, CreateNoSeriesWithLine());
+        SalesLine.Validate(Quantity, 10);
+        SalesLine.Validate("Unit Price", 193.7);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesPrepaymentInvoice(SalesHeader);
+
+        // [GIVEN] Order is partially shipped and invoiced with Quantity = 4 and "Prepmt Amt to Deduct" increased from 387.40 to 700
+        SalesLine.Find();
+        SalesLine.Validate("Qty. to Ship", 4);
+        SalesLine.Validate("Prepmt Amt to Deduct", 700);
+        SalesLine.Modify(true);
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [WHEN] VAT is recalculated on lines, as when closing the Sales Order Statistics page
+        SalesHeader.Find();
+        ReleaseSalesDocument.CalcAndUpdateVATOnLines(SalesHeader, SalesLineToUpdate);
+
+        // [THEN] "Prepmt. Line Amount" stays equal to "Prepmt. Amt. Inv." = 968.50
+        SalesLine.Find();
+        SalesLine.TestField("Prepmt. Line Amount", SalesLine."Prepmt. Amt. Inv.");
+
+        // [THEN] The remaining quantity can be posted
+        SalesHeader.Find();
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";

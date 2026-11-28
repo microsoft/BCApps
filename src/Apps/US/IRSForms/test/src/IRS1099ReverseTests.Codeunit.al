@@ -17,6 +17,7 @@ codeunit 148021 "IRS 1099 Reverse Tests"
 
     var
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryERM: Codeunit "Library - ERM";
         LibraryJournals: Codeunit "Library - Journals";
         LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
@@ -255,11 +256,13 @@ codeunit 148021 "IRS 1099 Reverse Tests"
     end;
 
     local procedure Initialize()
-    var
-        IRSReportingPeriod: Record "IRS Reporting Period";
     begin
+        LibrarySetupStorage.Restore();
+        if not IsInitialized then
+            LibrarySetupStorage.SaveGeneralLedgerSetup();
+        LibraryERM.SetAllowPostingFromTo(WorkDate(), WorkDate());
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 Reverse Tests");
-        IRSReportingPeriod.DeleteAll(true);
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"IRS 1099 Reverse Tests");

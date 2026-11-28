@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.UOM;
 using Microsoft.Inventory;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
@@ -1022,6 +1023,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
 
     /// <summary>
     /// Updates the related sales order lines when a credit memo exists for the specified credit memo number.
+    /// Credit memo quantities are converted to the unit of measure of each sales order line.
     /// </summary>
     /// <param name="SalesCreditMemoNo">Specifies the posted sales credit memo number.</param>
     internal procedure UpdateSalesOrderLineIfExist(SalesCreditMemoNo: Code[20])
@@ -1036,7 +1038,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
         if (SalesCrMemoHeader."Return Order No." <> '') and (SalesCrMemoHeader."Applies-to Doc. No." <> '') then
             exit;
 
-        SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Variant Code");
+        SalesCrMemoLine.SetLoadFields("Document No.", "No.", "Appl.-from Item Entry", Quantity, "Quantity (Base)", "Qty. per Unit of Measure", "Variant Code");
         SalesCrMemoLine.SetRange("Document No.", SalesCreditMemoNo);
         SalesCrMemoLine.SetFilter("No.", '<>%1', '');
         SalesCrMemoLine.SetFilter(Quantity, '<>%1', 0);
@@ -1057,6 +1059,8 @@ codeunit 1303 "Correct Posted Sales Invoice"
         TempItemLedgerEntry: Record "Item Ledger Entry" temporary;
         SalesLine: Record "Sales Line";
         UndoPostingManagement: Codeunit "Undo Posting Management";
+        UOMMgt: Codeunit "Unit of Measure Management";
+        CancelledQuantity: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1070,7 +1074,10 @@ codeunit 1303 "Correct Posted Sales Invoice"
         if SalesLine.Type = SalesLine.Type::Item then
             SalesInvoiceLine.GetItemLedgEntries(TempItemLedgerEntry, false);
 
-        UpdateSalesOrderLineInvoicedQuantity(SalesLine, SalesCrMemoLine.Quantity, SalesCrMemoLine."Quantity (Base)");
+        CancelledQuantity := SalesCrMemoLine.Quantity;
+        if SalesLine."Qty. per Unit of Measure" <> SalesCrMemoLine."Qty. per Unit of Measure" then
+            CancelledQuantity := UOMMgt.CalcQtyFromBase(SalesCrMemoLine."Quantity (Base)", SalesLine."Qty. per Unit of Measure");
+        UpdateSalesOrderLineInvoicedQuantity(SalesLine, CancelledQuantity, SalesCrMemoLine."Quantity (Base)");
         UpdateSalesOrderLinePrepmtAmount(SalesInvoiceLine);
 
         if SalesLine.Type = SalesLine.Type::Item then begin

@@ -12,8 +12,10 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
 
     var
         IRSFormsSetup: Record "IRS Forms Setup";
+        Supplemental: Codeunit "IRS 1099 Supplemental";
         NoVendorFormBoxAmountsFoundErr: Label 'No vendor form box amounts are found';
 
+    [CommitBehavior(CommitBehavior::Error)]
     procedure CreateFormDocs(var TempVendFormBoxBuffer: Record "IRS 1099 Vend. Form Box Buffer" temporary; IRS1099CalcParameters: Record "IRS 1099 Calc. Params");
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
@@ -21,8 +23,11 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
         TempIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line" temporary;
         TempIRS1099FormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail" temporary;
         TempCurrVendFormBoxBuffer: Record "IRS 1099 Vend. Form Box Buffer";
+        TempSupplLine: Record "IRS 1099 Doc. Suppl. Line" temporary;
+        SourceDocumentIDs: Dictionary of [Integer, Integer];
         LineNo: Integer;
         DocID: Integer;
+        OldDocumentID: Integer;
     begin
         TempVendFormBoxBuffer.Reset();
         TempVendFormBoxBuffer.SetCurrentKey("Vendor No.", "Form No.", "Form Box No.");
@@ -34,9 +39,11 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
         if IRS1099FormDocHeader.FindLast() then
             DocID := IRS1099FormDocHeader.ID;
         repeat
-            if not SkipFormDocumentCreation(TempVendFormBoxBuffer, IRS1099CalcParameters) then begin
+            if not SkipFormDocumentCreation(TempVendFormBoxBuffer, IRS1099CalcParameters, OldDocumentID, TempSupplLine) then begin
                 LineNo := 0;
                 AddTempFormHeaderFromBuffer(TempIRS1099FormDocHeader, DocID, TempVendFormBoxBuffer);
+                if OldDocumentID <> 0 then
+                    SourceDocumentIDs.Add(TempIRS1099FormDocHeader.ID, OldDocumentID);
                 repeat
                     LineNo += 1000;
                     AddTempFormLineFromBuffer(TempIRS1099FormDocLine, TempIRS1099FormDocHeader, TempVendFormBoxBuffer, LineNo);
@@ -57,14 +64,15 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
             TempVendFormBoxBuffer.SetRange("Form No.");
         until TempVendFormBoxBuffer.Next() = 0;
 
-        InsertFormDocsFromTempBuffer(TempIRS1099FormDocHeader, TempIRS1099FormDocLine, TempIRS1099FormDocLineDetail);
+        InsertFormDocsFromTempBuffer(TempIRS1099FormDocHeader, TempIRS1099FormDocLine, TempIRS1099FormDocLineDetail, TempSupplLine, SourceDocumentIDs);
     end;
 
-    local procedure SkipFormDocumentCreation(var VendFormBoxBuffer: Record "IRS 1099 Vend. Form Box Buffer"; IRS1099CalcParameters: Record "IRS 1099 Calc. Params"): Boolean
+    local procedure SkipFormDocumentCreation(var VendFormBoxBuffer: Record "IRS 1099 Vend. Form Box Buffer"; IRS1099CalcParameters: Record "IRS 1099 Calc. Params"; var OldDocumentID: Integer; var TempSupplLine: Record "IRS 1099 Doc. Suppl. Line" temporary): Boolean
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRS1099FormDocument: Codeunit "IRS 1099 Form Document";
     begin
+        OldDocumentID := 0;
         if (IRS1099CalcParameters."Vendor No." <> '') and
            (VendFormBoxBuffer."Vendor No." <> IRS1099CalcParameters."Vendor No.")
         then
@@ -80,6 +88,7 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
         IRS1099FormDocHeader.SetRange("Period No.", VendFormBoxBuffer."Period No.");
         IRS1099FormDocHeader.SetRange("Vendor No.", VendFormBoxBuffer."Vendor No.");
         IRS1099FormDocHeader.SetRange("Form No.", VendFormBoxBuffer."Form No.");
+        IRS1099FormDocHeader.SetFilter(Status, '<>%1', IRS1099FormDocHeader.Status::Abandoned);
         if not IRS1099FormDocHeader.FindFirst() then
             exit(false);
 
@@ -89,6 +98,8 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
         if not IRS1099CalcParameters.Replace then
             exit(true);
 
+        OldDocumentID := IRS1099FormDocHeader.ID;
+        Supplemental.CopySupplLinesToTemp(OldDocumentID, TempSupplLine);
         if IRS1099FormDocHeader.Status = IRS1099FormDocHeader.Status::Released then
             IRS1099FormDocument.Reopen(IRS1099FormDocHeader);
 
@@ -137,20 +148,38 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
 
     procedure InsertFormDocsFromTempBuffer(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var TempIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line" temporary; var TempIRS1099FormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail" temporary) IRS1099FormDocHeaderIDs: List of [Integer]
     var
+        TempSupplLine: Record "IRS 1099 Doc. Suppl. Line" temporary;
+        SourceDocumentIDs: Dictionary of [Integer, Integer];
+    begin
+        exit(InsertFormDocsFromTempBuffer(TempIRS1099FormDocHeader, TempIRS1099FormDocLine, TempIRS1099FormDocLineDetail, TempSupplLine, SourceDocumentIDs));
+    end;
+
+    procedure InsertFormDocsFromTempBuffer(var TempIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header" temporary; var TempIRS1099FormDocLine: Record "IRS 1099 Form Doc. Line" temporary; var TempIRS1099FormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail" temporary; var TempSupplLine: Record "IRS 1099 Doc. Suppl. Line" temporary; SourceDocumentIDs: Dictionary of [Integer, Integer]) IRS1099FormDocHeaderIDs: List of [Integer]
+    var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
         IRS1099FormDocLineDetail: Record "IRS 1099 Form Doc. Line Detail";
         TempDocID: Integer;
+        OldDocumentID: Integer;
+        HasSupplemental: Boolean;
     begin
+        IRSFormsSetup.Get();
         TempIRS1099FormDocHeader.Reset();
         TempIRS1099FormDocLine.Reset();
         if TempIRS1099FormDocHeader.FindSet() then
             repeat
                 TempDocID := TempIRS1099FormDocHeader.ID;
+                OldDocumentID := 0;
+                HasSupplemental := false;
+                if SourceDocumentIDs.Get(TempDocID, OldDocumentID) then begin
+                    TempSupplLine.SetRange("Document ID", OldDocumentID);
+                    HasSupplemental := not TempSupplLine.IsEmpty();
+                    TempSupplLine.SetRange("Document ID");
+                end;
                 // Skip creating form document if no lines have "Include In 1099" = true
                 TempIRS1099FormDocLine.SetRange("Document ID", TempDocID);
                 TempIRS1099FormDocLine.SetRange("Include In 1099", true);
-                if TempIRS1099FormDocLine.IsEmpty() then begin
+                if TempIRS1099FormDocLine.IsEmpty() and not HasSupplemental then begin
                     TempIRS1099FormDocLine.SetRange("Include In 1099");
                     TempIRS1099FormDocLine.SetRange("Document ID");
                 end else begin
@@ -178,6 +207,9 @@ codeunit 10036 "IRS 1099 Form Docs Impl." implements "IRS 1099 Create Form Docs"
                                     until TempIRS1099FormDocLineDetail.Next() = 0;
                             end;
                         until TempIRS1099FormDocLine.Next() = 0;
+                    Supplemental.RecalculateIncludeIn1099(IRS1099FormDocHeader.ID);
+                    if OldDocumentID <> 0 then
+                        Supplemental.RestoreSupplLinesFromTemp(OldDocumentID, IRS1099FormDocHeader.ID, TempSupplLine);
                     TempIRS1099FormDocLine.SetRange("Document ID");
                 end;
             until TempIRS1099FormDocHeader.Next() = 0;

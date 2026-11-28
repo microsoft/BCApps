@@ -10,7 +10,9 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Assert: Codeunit Assert;
         LibrarySalesLib: Codeunit "Library - Sales";
         WizardPrivacyNoticeOpenCount: Integer;
+        ConfirmQuestions: List of [Text];
         InvalidSourceHostErr: Label 'not a valid Business Central endpoint', Locked = true;
+        InvalidSourceEnvironmentNameErr: Label 'An environment name has up to 30 characters', Locked = true;
         // Test certificates are generated at run time, so no certificate, private key, or password is checked in.
         [NonDebuggable]
         TestCertificatePfxBase64: Text;
@@ -85,6 +87,116 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [GIVEN] a look-alike host that only embeds the allowed host as a non-final label [THEN] validation is rejected
         asserterror LibraryMasterDataMgt.ValidateHttpTransportSourceHost('https://api.businesscentral.dynamics.com.evil.example.com');
         Assert.ExpectedError(InvalidSourceHostErr);
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportBuildsSourceUrlFromOwnTenant()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        AzureADTenant: Codeunit "Azure AD Tenant";
+        SourceApiBaseUrl: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660386] The request URL is rebuilt for every request from this environment's tenant and the source
+        //                   environment name, so a changed stored URL can't send the token to another tenant.
+        Initialize();
+        // [GIVEN] a cross-environment setup
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
+        // [GIVEN] the stored source URL was changed to point to another tenant's environment
+        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/00000000-0000-0000-0000-0000000000aa/OTHER-PROD';
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the transport builds the source URL
+        SourceApiBaseUrl := LibraryMasterDataMgt.GetHttpTransportSourceApiBaseUrl();
+
+        // [THEN] it targets this environment's tenant and the configured source environment, never the stored URL
+        Assert.IsTrue(StrPos(SourceApiBaseUrl, '/v2.0/' + AzureADTenant.GetAadTenantId() + '/CONTOSO-PROD') > 0, 'The URL should use this tenant and the source environment name');
+        Assert.AreEqual(0, StrPos(SourceApiBaseUrl, 'OTHER-PROD'), 'The stored URL must not be used');
+        Assert.AreEqual(0, StrPos(SourceApiBaseUrl, '00000000-0000-0000-0000-0000000000aa'), 'Another tenant must never be addressed');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure SourceEnvironmentNameMustBeAPlainEnvironmentName()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        EnteredSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660386] The source environment name becomes a path segment of the request URL, so only a plain
+        //                   environment name is accepted; a name that would change the URL path is rejected.
+        // Each expected error rolls back to the last commit, so the entered names are validated on a record that isn't
+        // inserted, and the stored setup is created right before the scenario that reads it.
+        Initialize();
+        EnteredSetup.Init();
+
+        // [WHEN] a name with URL path characters is entered [THEN] it is rejected
+        asserterror EnteredSetup.Validate("Source Environment Name", 'PROD/../../00000000-0000-0000-0000-0000000000aa/OTHER');
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+        asserterror EnteredSetup.Validate("Source Environment Name", 'PROD?company=x');
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+        // [WHEN] a name that doesn't start with a letter or is longer than 30 characters is entered [THEN] it is rejected
+        asserterror EnteredSetup.Validate("Source Environment Name", '1PROD');
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+        asserterror EnteredSetup.Validate("Source Environment Name", PadStr('PROD', 31, 'X'));
+        Assert.ExpectedError(InvalidSourceEnvironmentNameErr);
+
+        // [WHEN] a valid environment name is entered [THEN] it is accepted
+        EnteredSetup.Validate("Source Environment Name", 'Contoso_Prod-2');
+
+        // [GIVEN] an invalid name stored without validation, for example by a configuration package
+        if not MasterDataManagementSetup.Get() then begin
+            MasterDataManagementSetup.Init();
+            MasterDataManagementSetup.Insert();
+        end;
+        MasterDataManagementSetup."Source Environment Name" := 'PROD/../../OTHER';
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the transport builds the source URL [THEN] it refuses
+        asserterror LibraryMasterDataMgt.GetHttpTransportSourceApiBaseUrl();
+        Assert.ExpectedError('not a valid environment name');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportAuditDimensionsNameTheAppAndCredentialType()
+    var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        Dimensions: Dictionary of [Text, Text];
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660388] Cross-environment audit entries and telemetry name the Microsoft Entra application (client) ID
+        //                   and whether it authenticated with a client secret or a certificate.
+        Initialize();
+        // [GIVEN] a cross-environment connection that uses a client secret
+        SetCrossEnvConnectionDetails();
+        MasterDataManagementSetup.Get();
+        MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret
+        MasterDataManagementSetup.Modify(false);
+
+        // [WHEN] the transport builds the audit and telemetry dimensions [THEN] they carry the client ID and credential type
+        Dimensions := LibraryMasterDataMgt.GetHttpTransportConnectionDimensions();
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', Dimensions.Get('ClientId'), 'The client ID should be logged');
+        Assert.AreEqual('ClientSecret', Dimensions.Get('CredentialType'), 'The client secret credential type should be logged');
+
+        // [GIVEN] the connection uses a certificate instead
+        MasterDataManagementSetup."Source Client Secret Key" := EmptyGuid;
+        MasterDataManagementSetup."Source Client Certificate Key" := CreateGuid(); // simulate a stored certificate
+        MasterDataManagementSetup.Modify(false);
+
+        // [THEN] the certificate credential type is logged
+        Dimensions := LibraryMasterDataMgt.GetHttpTransportConnectionDimensions();
+        Assert.AreEqual('11111111-2222-3333-4444-555555555555', Dimensions.Get('ClientId'), 'The client ID should be logged');
+        Assert.AreEqual('Certificate', Dimensions.Get('CredentialType'), 'The certificate credential type should be logged');
 
         CleanUp();
     end;
@@ -379,6 +491,233 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     end;
 
     [Test]
+    procedure CrossEnvErrorsWhenSourceCannotReadTable()
+    var
+        Customer: Record Customer;
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        SourceRecordRef: RecordRef;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 656413] When the source's registered app can't read the table, the sync stops with an error that
+        //                   tells the source admin to grant read permission, instead of failing without a usable message.
+        Initialize();
+        // [GIVEN] a cross-environment setup whose source reports that its app can't read the Customer table
+        LibrarySalesLib.CreateCustomer(Customer);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedResponse('{"tableId":18,"tableAvailable":false,"readPermission":false,"records":[],"hasMore":false}');
+
+        // [WHEN] the subsidiary reads a customer from the source
+        asserterror LibraryMasterDataMgt.DataSourceGetBySystemId(Database::Customer, Customer.SystemId, SourceRecordRef);
+
+        // [THEN] the error tells the source admin to grant read permission, not that the table is unavailable
+        Assert.ExpectedError('grant the application direct read permission (R) to this table');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure CrossEnvFullSynchReviewErrorsWhenSourceCannotReadTable()
+    var
+        IntegrationTableMapping: Record "Integration Table Mapping";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 656413] The full-synch review doesn't treat an unreadable source table as empty (which would skip it).
+        Initialize();
+        // [GIVEN] a Customer mapping whose source reports that its app can't read the table
+        CreateMinimalCustomerMapping(IntegrationTableMapping);
+        LibraryMasterDataMgt.SetSourceEnvironmentName('PROD');
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedResponse('{"tables":[{"tableId":18,"tableAvailable":true,"readPermission":false}]}');
+
+        // [WHEN] the full-synch review checks whether the source table has records
+        asserterror LibraryMasterDataMgt.GetIntegrationRecRefCount(IntegrationTableMapping);
+
+        // [THEN] it stops with the read-permission error instead of reporting an empty table
+        Assert.ExpectedError('grant the application direct read permission (R) to this table');
+
+        CleanUp();
+    end;
+
+    [Test]
+    procedure HttpTransportExplainsFailedResponses()
+    var
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        FailureReason: Text;
+        FailureMessage: Text;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO 660237] A failed source response is explained by its cause, telling the 404s apart by the OData error code.
+        Initialize();
+        SetCrossEnvConnectionDetails();
+
+        // [GIVEN] a 404 for a company that doesn't exist [THEN] the message names the company to check
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(404, ODataErrorBody('Internal_DataNotFoundFilter'), FailureReason);
+        Assert.AreEqual('CompanyNotFound', FailureReason, 'Wrong reason for an unknown company');
+        Assert.IsTrue(StrPos(FailureMessage, 'The company ''CRONUS'' does not exist') > 0, 'Unexpected message: ' + FailureMessage);
+
+        // [GIVEN] a 404 for the service segment [THEN] the source is missing the MDM service
+        LibraryMasterDataMgt.DescribeHttpTransportFailure(404, ODataErrorBody('BadRequest_NotFound'), FailureReason);
+        Assert.AreEqual('SourceApiNotFound', FailureReason, 'Wrong reason for a missing service');
+
+        // [GIVEN] a 404 without an OData error body [THEN] the environment wasn't found
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(404, '', FailureReason);
+        Assert.AreEqual('EnvironmentNotFound', FailureReason, 'Wrong reason for an unknown environment');
+        Assert.IsTrue(StrPos(FailureMessage, 'CONTOSO-PROD was not found') > 0, 'Unexpected message: ' + FailureMessage);
+
+        // [GIVEN] a 404 whose error code isn't a platform code [THEN] it is ignored rather than trusted
+        LibraryMasterDataMgt.DescribeHttpTransportFailure(404, ODataErrorBody('not a code'), FailureReason);
+        Assert.AreEqual('EnvironmentNotFound', FailureReason, 'A malformed error code should be ignored');
+
+        // [GIVEN] a 401 [THEN] the message points at the app registration on the source
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(401, '', FailureReason);
+        Assert.AreEqual('NotAuthenticated', FailureReason, 'Wrong reason for HTTP 401');
+        Assert.IsTrue(StrPos(FailureMessage, '11111111-2222-3333-4444-555555555555') > 0, 'The message should name the client ID: ' + FailureMessage);
+
+        // [GIVEN] a 403 [THEN] the message points at the permission set
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(403, '', FailureReason);
+        Assert.AreEqual('AccessDenied', FailureReason, 'Wrong reason for HTTP 403');
+        Assert.IsTrue(StrPos(FailureMessage, 'Master Data Mgt. - Cross Environment') > 0, 'The message should name the permission set: ' + FailureMessage);
+
+        // [GIVEN] any other status [THEN] the generic message with the status code
+        FailureMessage := LibraryMasterDataMgt.DescribeHttpTransportFailure(500, '', FailureReason);
+        Assert.AreEqual('HttpError', FailureReason, 'Wrong reason for HTTP 500');
+        Assert.AreEqual('The source environment returned HTTP 500.', FailureMessage, 'Unexpected message for HTTP 500');
+
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('RecordingConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardFinishAsksWhenConnectionFails()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO 660237] Finish checks the connection; when it fails, the user can go back and correct the details.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        Clear(ConfirmQuestions);
+        // [GIVEN] a source that can't be reached
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('not a capabilities response');
+
+        // [WHEN] the user completes the wizard and chooses not to finish anyway
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the user is told why, and is not asked to enable synchronization; the wizard stays open on Finish
+        Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'could not be verified') > 0, 'Unexpected question: ' + ConfirmQuestions.Get(1));
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'Could not connect to the source environment') > 0, 'The question should include the reason: ' + ConfirmQuestions.Get(1));
+        Assert.IsTrue(ConnectionDetails.ActionFinish.Enabled(), 'The wizard should stay open so the details can be corrected');
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('RecordingConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardFinishReportsSourceConsentRequired()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Privacy]
+        // [SCENARIO] Finish tells the user when the source hasn't approved sharing, instead of leaving it to the first sync.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        Clear(ConfirmQuestions);
+        // [GIVEN] a reachable source that hasn't approved the privacy notice
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('{"version":1,"features":["records","lastModifiedPerTable"],"consentRequired":true}');
+
+        // [WHEN] the user completes the wizard
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the question names the missing approval on the source
+        Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'has not approved sharing its master data') > 0, 'The question should name the missing approval: ' + ConfirmQuestions.Get(1));
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    [Test]
+    [HandlerFunctions('RecordingConfirmHandlerNo')]
+    procedure ConnectionDetailsWizardFinishRejectsCapabilitiesWithoutVersion()
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
+        ConnectionDetails: TestPage "MDM Connection Details";
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment]
+        // [SCENARIO] A JSON response without the contract version isn't from the source API, so Finish doesn't treat it as a connection.
+        Initialize();
+        PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        Clear(ConfirmQuestions);
+        // [GIVEN] a source that answers GetCapabilities with a JSON object that has no version
+        InProcessTransport.Activate();
+        InProcessTransport.SetCannedCapabilities('{"features":["records","lastModifiedPerTable"]}');
+
+        // [WHEN] the user completes the wizard
+        ConnectionDetails.OpenEdit();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.SourceEnvironmentName.SetValue('CONTOSO-PROD');
+        ConnectionDetails.SourceCompanyName.SetValue('CRONUS');
+        ConnectionDetails.OAuth2ClientId.SetValue('11111111-2222-3333-4444-555555555555');
+        ConnectionDetails.OAuth2ClientSecret.SetValue('super-secret');
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionNext.Invoke();
+        ConnectionDetails.ActionFinish.Invoke();
+
+        // [THEN] the connection is reported as failed rather than verified
+        Assert.AreEqual(1, ConfirmQuestions.Count(), 'Only the failed-connection question should be asked');
+        Assert.IsTrue(StrPos(ConfirmQuestions.Get(1), 'Could not connect to the source environment') > 0, 'The question should report the failed connection: ' + ConfirmQuestions.Get(1));
+        ConnectionDetails.Close();
+
+        LibraryMasterDataMgt.PrivacyNoticeResetApproval();
+        CleanUp();
+    end;
+
+    local procedure ODataErrorBody(ErrorCode: Text) Body: Text
+    var
+        ErrorObject: JsonObject;
+        Envelope: JsonObject;
+    begin
+        ErrorObject.Add('code', ErrorCode);
+        ErrorObject.Add('message', 'The source''s own message, which must never be used.');
+        Envelope.Add('error', ErrorObject);
+        Envelope.WriteTo(Body);
+    end;
+
+    [Test]
     procedure CrossEnvIntegrationRecRefCountReportsExistence()
     var
         Customer: Record Customer;
@@ -406,14 +745,17 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         PrivacyNotice: Codeunit "Privacy Notice";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
         AzureADTenant: Codeunit "Azure AD Tenant";
         ConnectionDetails: TestPage "MDM Connection Details";
+        SourceApiBaseUrl: Text;
     begin
         // [FEATURE] [AI test 0.4]
         // [SCENARIO] The Connection Details wizard collects the source connection details and saves them (secret to Isolated Storage).
         Initialize();
         // Pre-approve so ticking consent doesn't open the notice dialog in this configuration-focused test.
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate(); // a reachable source, so Finish's connection check passes
 
         ConnectionDetails.OpenEdit();
         // Welcome step: consent is pre-approved above, so Next advances without prompting.
@@ -430,12 +772,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] the setup holds the connection and a stored client secret
         MasterDataManagementSetup.Get();
         Assert.AreEqual('CONTOSO-PROD', MasterDataManagementSetup."Source Environment Name", 'Source environment not saved');
-        // The URL is constructed from the current tenant, ring host, and source environment name.
+        // The request URL is constructed at runtime from the current tenant, ring host, and source environment name.
+        SourceApiBaseUrl := LibraryMasterDataMgt.GetHttpTransportSourceApiBaseUrl();
         Assert.IsTrue(
-            StrPos(MasterDataManagementSetup."Source Environment URL", '/v2.0/' + AzureADTenant.GetAadTenantId() + '/CONTOSO-PROD') > 0,
+            StrPos(SourceApiBaseUrl, '/v2.0/' + AzureADTenant.GetAadTenantId() + '/CONTOSO-PROD') > 0,
             'Source URL should embed the tenant id and source environment name');
         Assert.IsTrue(
-            StrPos(LowerCase(MasterDataManagementSetup."Source Environment URL"), 'https://api.businesscentral.dynamics') = 1,
+            StrPos(LowerCase(SourceApiBaseUrl), 'https://api.businesscentral.dynamics') = 1,
             'Source URL should target the Business Central API host');
         Assert.AreEqual('CRONUS', MasterDataManagementSetup."Source Company Name", 'Source company not saved');
         Assert.AreEqual('11111111-2222-3333-4444-555555555555', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id not saved');
@@ -460,7 +803,6 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [GIVEN] a configured cross-environment connection with a stored secret
         MasterDataManagementSetup.Get();
         MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
-        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/contoso-prod';
         MasterDataManagementSetup."Source Company Name" := 'CRONUS';
         MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
         MasterDataManagementSetup."Source Client Secret Key" := CreateGuid(); // simulate a stored secret key
@@ -474,7 +816,6 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         // [THEN] every cross-environment field and the stored secret are cleared
         MasterDataManagementSetup.Get();
         Assert.AreEqual('', MasterDataManagementSetup."Source Environment Name", 'Source environment should be cleared');
-        Assert.AreEqual('', MasterDataManagementSetup."Source Environment URL", 'Source URL should be cleared');
         Assert.AreEqual('', MasterDataManagementSetup."Source Company Name", 'Source company should be cleared');
         Assert.AreEqual('', MasterDataManagementSetup."Source OAuth Client Id", 'Source client id should be cleared');
         Assert.IsTrue(IsNullGuid(MasterDataManagementSetup."Source Client Secret Key"), 'Secret key should be cleared'); // empty Source Environment Name (asserted above) means same-environment again
@@ -519,6 +860,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         JobQueueEntry: Record "Job Queue Entry";
         PrivacyNotice: Codeunit "Privacy Notice";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
         EnvironmentTriggers: Codeunit "Environment Triggers";
         EmptyRecordId: RecordId;
         ConnectionDetails: TestPage "MDM Connection Details";
@@ -530,6 +872,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         //            disables cross-environment synchronization, keeping the rest of the connection for re-entry.
         Initialize();
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate(); // a reachable source, so Finish's connection check passes
 
         // [GIVEN] a cross-environment connection saved through the wizard, so the secret is really in Isolated Storage
         ConnectionDetails.OpenEdit();
@@ -856,6 +1199,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         MasterDataManagementSetup: Record "Master Data Management Setup";
         PrivacyNotice: Codeunit "Privacy Notice";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
+        InProcessTransport: Codeunit "MDM In-Process Transport";
         ConnectionDetails: TestPage "MDM Connection Details";
     begin
         // [FEATURE] [Master Data Management] [Cross-Environment] [Certificate]
@@ -863,6 +1207,7 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         //            and lets the user finish without uploading the certificate again.
         Initialize();
         PrivacyNotice.SetApprovalState(LibraryMasterDataMgt.PrivacyNoticeId(), "Privacy Notice Approval State"::Agreed);
+        InProcessTransport.Activate(); // a reachable source, so Finish's connection check passes
         // [GIVEN] a cross-environment connection that authenticates with a certificate
         SetCrossEnvConnectionDetails();
         LibraryMasterDataMgt.SetSourceClientCertificate(GetTestCertificateBase64(), GetTestCertificatePassword());
@@ -2105,6 +2450,13 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
         Reply := false;
     end;
 
+    [ConfirmHandler]
+    procedure RecordingConfirmHandlerNo(Question: Text; var Reply: Boolean)
+    begin
+        ConfirmQuestions.Add(Question);
+        Reply := false;
+    end;
+
     [MessageHandler]
     procedure ConnectionTestedMessageHandler(Message: Text[1024])
     begin
@@ -2122,13 +2474,18 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
 
     local procedure CleanUp()
     var
+        MasterDataManagementSetup: Record "Master Data Management Setup";
         InProcessTransport: Codeunit "MDM In-Process Transport";
         LibraryMasterDataMgt: Codeunit "Library - Master Data Mgt.";
         PagingConfig: Codeunit "MDM Test Paging Config";
     begin
         InProcessTransport.Deactivate();
         PagingConfig.Deactivate();
-        LibraryMasterDataMgt.SetSourceEnvironmentName('');
+        // A test's last expected error can roll back a setup row that Initialize inserted, so there may be nothing to reset.
+        if MasterDataManagementSetup.Get() then begin
+            MasterDataManagementSetup."Source Environment Name" := '';
+            MasterDataManagementSetup.Modify(false);
+        end;
         LibraryMasterDataMgt.ClearCrossEnvConnection(); // removes stored credentials from Isolated Storage, not just their keys
         DeleteTestArtifacts();
     end;
@@ -2217,7 +2574,6 @@ codeunit 139932 "MDM Cross-Env Consumer Tests"
     begin
         MasterDataManagementSetup.Get();
         MasterDataManagementSetup.Validate("Source Environment Name", 'CONTOSO-PROD');
-        MasterDataManagementSetup."Source Environment URL" := 'https://api.businesscentral.dynamics.com/v2.0/contoso-prod';
         MasterDataManagementSetup."Source Company Name" := 'CRONUS';
         MasterDataManagementSetup."Source OAuth Client Id" := '11111111-2222-3333-4444-555555555555';
         MasterDataManagementSetup.Modify(false);

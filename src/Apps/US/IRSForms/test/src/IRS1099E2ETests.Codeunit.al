@@ -21,6 +21,7 @@ codeunit 148015 "IRS 1099 E2E Tests"
         LibraryIRS1099Document: Codeunit "Library IRS 1099 Document";
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryERM: Codeunit "Library - ERM";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         Assert: Codeunit Assert;
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
@@ -98,6 +99,7 @@ PeriodNo := LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
         IRS1099CreateFormDocsReport.RunModal();
 
         // [THEN] Four form documents are created
+        IRS1099FormDocHeader.SetRange("Period No.", PeriodNo);
         Assert.RecordCount(IRS1099FormDocHeader, ArrayLen(VendNo) * ArrayLen(FormNo));
 
         for i := 1 to ArrayLen(VendNo) do
@@ -122,6 +124,11 @@ end;
 
     local procedure Initialize()
     begin
+        LibrarySetupStorage.Restore();
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
+        if not IsInitialized then
+            LibrarySetupStorage.SaveGeneralLedgerSetup();
+        LibraryERM.SetAllowPostingFromTo(WorkDate(), WorkDate());
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 E2E Tests");
         if IsInitialized then
             exit;

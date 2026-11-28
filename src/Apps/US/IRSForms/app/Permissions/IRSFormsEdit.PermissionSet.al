@@ -20,6 +20,8 @@ permissionset 10031 "IRS Forms - Edit"
                   tabledata "IRS 1099 Form Doc. Header" = IMD,
                   tabledata "IRS 1099 Form" = IMD,
                   tabledata "IRS 1099 Form Box" = IMD,
+                  tabledata "IRS 1099 Suppl. Box" = IMD,
+                  tabledata "IRS 1099 Doc. Suppl. Line" = IMD,
                   tabledata "IRS 1099 Form Report" = IMD,
                   tabledata "IRS 1099 Form Instruction" = IMD,
                   tabledata "IRS 1099 Vendor Form Box Adj." = IMD,
