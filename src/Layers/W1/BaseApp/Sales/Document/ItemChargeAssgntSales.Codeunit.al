@@ -125,6 +125,7 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
         if TempToItemChargeAssignmentSales.FindSet() then
             repeat
                 if (TempToItemChargeAssignmentSales."Item Charge No." <> ToItemChargeAssignmentSales."Item Charge No.") or
+                   (TempToItemChargeAssignmentSales."Applies-to Doc. Type" <> ToItemChargeAssignmentSales."Applies-to Doc. Type") or
                    (TempToItemChargeAssignmentSales."Applies-to Doc. No." <> ToItemChargeAssignmentSales."Applies-to Doc. No.") or
                    (TempToItemChargeAssignmentSales."Applies-to Doc. Line No." <> ToItemChargeAssignmentSales."Applies-to Doc. Line No.")
                 then begin
@@ -956,4 +957,3 @@ codeunit 5807 "Item Charge Assgnt. (Sales)"
     begin
     end;
 }
-
