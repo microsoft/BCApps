@@ -375,8 +375,30 @@ codeunit 47201 "SL Populate Vendor 1099 Data"
     var
         SLAPBalances: Record "SL AP_Balances";
     begin
+        if TaxYear = SLNext1099Yr then
+            SLAPBalances.SetLoadFields(NYBox00, NYBox01, NYBox02, NYBox03, NYBox04, NYBox05, NYBox06, NYBox07, NYBox09, NYBox11, NYBox12, NYBox13, NYBox14)
+        else
+            SLAPBalances.SetLoadFields(CYBox00, CYBox01, CYBox02, CYBox03, CYBox04, CYBox05, CYBox06, CYBox07, CYBox09, CYBox11, CYBox12, CYBox13, CYBox14);
+
         if not SLAPBalances.Get(VendorNo, CompanyName) then
             exit;
+
+        if TaxYear = SLNext1099Yr then begin
+            ProcessBoxAmount(SLAPBalances.NYBox00, '1', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox01, '2', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox02, '3', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox03, '4', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox04, '5', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox05, '6', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox06, '7', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox07, '8', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox09, '10', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox14, '14', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox11, '15', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox13, '13', TaxYear, VendorYear1099AmountDictionary);
+            ProcessBoxAmount(SLAPBalances.NYBox12, '25', TaxYear, VendorYear1099AmountDictionary);
+            exit;
+        end;
 
         ProcessBoxAmount(SLAPBalances.CYBox00, '1', TaxYear, VendorYear1099AmountDictionary);
         ProcessBoxAmount(SLAPBalances.CYBox01, '2', TaxYear, VendorYear1099AmountDictionary);

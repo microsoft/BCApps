@@ -75,6 +75,54 @@ xmlport 147678 "SL AP Balances Data"
                 textelement(CYBox15)
                 {
                 }
+                textelement(NYBox00)
+                {
+                }
+                textelement(NYBox01)
+                {
+                }
+                textelement(NYBox02)
+                {
+                }
+                textelement(NYBox03)
+                {
+                }
+                textelement(NYBox04)
+                {
+                }
+                textelement(NYBox05)
+                {
+                }
+                textelement(NYBox06)
+                {
+                }
+                textelement(NYBox07)
+                {
+                }
+                textelement(NYBox08)
+                {
+                }
+                textelement(NYBox09)
+                {
+                }
+                textelement(NYBox10)
+                {
+                }
+                textelement(NYBox11)
+                {
+                }
+                textelement(NYBox12)
+                {
+                }
+                textelement(NYBox13)
+                {
+                }
+                textelement(NYBox14)
+                {
+                }
+                textelement(NYBox15)
+                {
+                }
 
                 trigger OnPreXmlItem()
                 begin
@@ -95,22 +143,38 @@ xmlport 147678 "SL AP Balances Data"
 
                     SLAPBalances.VendID := VendID;
                     SLAPBalances.CpnyID := CopyStr(CompanyName(), 1, MaxStrLen(SLAPBalances.CpnyID));
-                    Evaluate(SLAPBalances.CYBox00, CYBox00);
-                    Evaluate(SLAPBalances.CYBox01, CYBox01);
-                    Evaluate(SLAPBalances.CYBox02, CYBox02);
-                    Evaluate(SLAPBalances.CYBox03, CYBox03);
-                    Evaluate(SLAPBalances.CYBox04, CYBox04);
-                    Evaluate(SLAPBalances.CYBox05, CYBox05);
-                    Evaluate(SLAPBalances.CYBox06, CYBox06);
-                    Evaluate(SLAPBalances.CYBox07, CYBox07);
-                    Evaluate(SLAPBalances.CYBox08, CYBox08);
-                    Evaluate(SLAPBalances.CYBox09, CYBox09);
-                    Evaluate(SLAPBalances.CYBox10, CYBox10);
-                    Evaluate(SLAPBalances.CYBox11, CYBox11);
-                    Evaluate(SLAPBalances.CYBox12, CYBox12);
-                    Evaluate(SLAPBalances.CYBox13, CYBox13);
-                    Evaluate(SLAPBalances.CYBox14, CYBox14);
-                    Evaluate(SLAPBalances.CYBox15, CYBox15);
+                    Evaluate(SLAPBalances.CYBox00, CYBox00, 9);
+                    Evaluate(SLAPBalances.CYBox01, CYBox01, 9);
+                    Evaluate(SLAPBalances.CYBox02, CYBox02, 9);
+                    Evaluate(SLAPBalances.CYBox03, CYBox03, 9);
+                    Evaluate(SLAPBalances.CYBox04, CYBox04, 9);
+                    Evaluate(SLAPBalances.CYBox05, CYBox05, 9);
+                    Evaluate(SLAPBalances.CYBox06, CYBox06, 9);
+                    Evaluate(SLAPBalances.CYBox07, CYBox07, 9);
+                    Evaluate(SLAPBalances.CYBox08, CYBox08, 9);
+                    Evaluate(SLAPBalances.CYBox09, CYBox09, 9);
+                    Evaluate(SLAPBalances.CYBox10, CYBox10, 9);
+                    Evaluate(SLAPBalances.CYBox11, CYBox11, 9);
+                    Evaluate(SLAPBalances.CYBox12, CYBox12, 9);
+                    Evaluate(SLAPBalances.CYBox13, CYBox13, 9);
+                    Evaluate(SLAPBalances.CYBox14, CYBox14, 9);
+                    Evaluate(SLAPBalances.CYBox15, CYBox15, 9);
+                    Evaluate(SLAPBalances.NYBox00, NYBox00, 9);
+                    Evaluate(SLAPBalances.NYBox01, NYBox01, 9);
+                    Evaluate(SLAPBalances.NYBox02, NYBox02, 9);
+                    Evaluate(SLAPBalances.NYBox03, NYBox03, 9);
+                    Evaluate(SLAPBalances.NYBox04, NYBox04, 9);
+                    Evaluate(SLAPBalances.NYBox05, NYBox05, 9);
+                    Evaluate(SLAPBalances.NYBox06, NYBox06, 9);
+                    Evaluate(SLAPBalances.NYBox07, NYBox07, 9);
+                    Evaluate(SLAPBalances.NYBox08, NYBox08, 9);
+                    Evaluate(SLAPBalances.NYBox09, NYBox09, 9);
+                    Evaluate(SLAPBalances.NYBox10, NYBox10, 9);
+                    Evaluate(SLAPBalances.NYBox11, NYBox11, 9);
+                    Evaluate(SLAPBalances.NYBox12, NYBox12, 9);
+                    Evaluate(SLAPBalances.NYBox13, NYBox13, 9);
+                    Evaluate(SLAPBalances.NYBox14, NYBox14, 9);
+                    Evaluate(SLAPBalances.NYBox15, NYBox15, 9);
                     SLAPBalances.Insert();
                 end;
             }
