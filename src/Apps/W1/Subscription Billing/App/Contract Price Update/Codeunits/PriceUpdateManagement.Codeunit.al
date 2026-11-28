@@ -27,6 +27,7 @@ codeunit 8009 "Price Update Management"
                 TempContractPriceUpdateLine.Insert(false);
             until ContractPriceUpdateLine.Next() = 0;
         TempContractPriceUpdateLine.CopyFilters(TempContractPriceUpdateLine2);
+        OnAfterInitTempTable(TempContractPriceUpdateLine);
     end;
 
     local procedure SetKeysForGrouping(var ContractPriceUpdateLine: Record "Sub. Contr. Price Update Line"; var TempContractPriceUpdateLine: Record "Sub. Contr. Price Update Line" temporary; GroupBy: Enum "Contract Billing Grouping")
@@ -304,6 +305,11 @@ codeunit 8009 "Price Update Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFilterSubscriptionLineOnAfterGetAndApplyFiltersOnSubscriptionLine(var SubscriptionLine: Record "Subscription Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitTempTable(var TempContractPriceUpdateLine: Record "Sub. Contr. Price Update Line" temporary)
     begin
     end;
 }
