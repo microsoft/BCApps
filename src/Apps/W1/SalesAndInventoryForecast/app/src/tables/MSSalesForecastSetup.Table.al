@@ -166,7 +166,6 @@ table 1853 "MS - Sales Forecast Setup"
         exit(TryReadAPICredentialAsSecret("API Key ID"));
     end;
 
-    [Scope('OnPrem')]
     procedure SetUserDefinedAPIKey(UserDefinedAPIKey: SecretText)
     begin
         // Store the user-defined API Key in the Isolated Storage and save its GUID in the "API Key ID"
