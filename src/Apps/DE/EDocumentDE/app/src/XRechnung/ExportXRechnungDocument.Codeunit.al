@@ -1527,11 +1527,16 @@ codeunit 13916 "Export XRechnung Document"
     begin
         TaxCategoryElement := XmlElement.Create('TaxCategory', XmlNamespaceCAC);
         TaxCategoryElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, TaxCategoryID));
-        TaxCategoryElement.Add(XmlElement.Create('Percent', XmlNamespaceCBC, FormatFiveDecimal(Percent)));
-        if VATEXCode <> '' then
-            TaxCategoryElement.Add(XmlElement.Create('TaxExemptionReasonCode', XmlNamespaceCBC, VATEXCode));
-        if VATClauseDescription <> '' then
-            TaxCategoryElement.Add(XmlElement.Create('TaxExemptionReason', XmlNamespaceCBC, VATClauseDescription));
+        // BR-O-06/07 apply to document allowances/charges; retain BT-119 in the VAT breakdown (BR-DE-14).
+        if (RootElement.LocalName() <> 'AllowanceCharge') or (not IsTaxCategoryNotSubjectToVAT(TaxCategoryID)) then
+            TaxCategoryElement.Add(XmlElement.Create('Percent', XmlNamespaceCBC, FormatFiveDecimal(Percent)));
+        // UBL-CR-480/481: exemption details belong in the VAT breakdown, not allowances/charges.
+        if RootElement.LocalName() <> 'AllowanceCharge' then begin
+            if VATEXCode <> '' then
+                TaxCategoryElement.Add(XmlElement.Create('TaxExemptionReasonCode', XmlNamespaceCBC, VATEXCode));
+            if VATClauseDescription <> '' then
+                TaxCategoryElement.Add(XmlElement.Create('TaxExemptionReason', XmlNamespaceCBC, VATClauseDescription));
+        end;
         InsertTaxScheme(TaxCategoryElement);
         RootElement.Add(TaxCategoryElement);
     end;
