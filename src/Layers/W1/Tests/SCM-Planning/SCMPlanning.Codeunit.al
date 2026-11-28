@@ -5530,6 +5530,65 @@ codeunit 137020 "SCM Planning"
             until RequisitionLine.Next() = 0;
     end;
 
+    [Test]
+    procedure DampenerPeriodDoesNotSplitNewLotForLotSupplyCoveringSafetyStock()
+    var
+        Item: Record Item;
+        RequisitionLine: Record "Requisition Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        StartDate: Date;
+        SecondDemandDate: Date;
+        ThirdDemandDate: Date;
+        DemandQty: Integer;
+        FinalShortageQty: Integer;
+        InventoryQty: Integer;
+        OrderMultiple: Integer;
+        SafetyStockQty: Integer;
+    begin
+        // [FEATURE] [Lot-for-Lot] [Dampener Period] [Safety Stock]
+        // [SCENARIO 657821] New Lot-for-Lot supply within the Dampener Period accumulates the safety stock need instead of being split into several lines
+        Initialize();
+        TestSetup();
+
+        // [GIVEN] Lot-for-Lot item with Minimum Order Qty. = Order Multiple = "M", Safety Stock = 3 * "M", Lot Accumulation Period = 2M, Dampener Period = 1M
+        OrderMultiple := LibraryRandom.RandIntInRange(50, 1000);
+        SafetyStockQty := 3 * OrderMultiple;
+        LFLItemSetup(Item, true, '<3M>', '<2M>', '<1M>', 0, SafetyStockQty, 0);
+        Item.Validate("Minimum Order Quantity", OrderMultiple);
+        Item.Validate("Order Multiple", OrderMultiple);
+        Item.Modify(true);
+
+        // [GIVEN] Three demands of "D" where 2 * "D" < "M", so every single shortage fits into one order of "M"
+        // [GIVEN] Final safety stock shortage "S" where "M" < "S" <= 3 * "D", so it needs exactly 2 * "M" and the first shortage is positive
+        DemandQty := LibraryRandom.RandIntInRange(OrderMultiple * 2 div 5, OrderMultiple div 2 - 1);
+        FinalShortageQty := LibraryRandom.RandIntInRange(OrderMultiple + 1, 3 * DemandQty);
+
+        // [GIVEN] Inventory = Safety Stock + 3 * "D" - "S", which covers the Safety Stock at the planning start
+        InventoryQty := SafetyStockQty + 3 * DemandQty - FinalShortageQty;
+        MakeItemInventory(Item."No.", InventoryQty);
+
+        // [GIVEN] Demands of "D" on the planning start date and two later dates within the Dampener Period
+        StartDate := CalcDate(PlanningStartDate, WorkDate());
+        SecondDemandDate := StartDate + LibraryRandom.RandIntInRange(1, 5);
+        ThirdDemandDate := SecondDemandDate + LibraryRandom.RandIntInRange(1, 10);
+        CreateSalesOrder(SalesHeader, SalesLine, Item, DemandQty, StartDate);
+        CreateSalesOrder(SalesHeader, SalesLine, Item, DemandQty, SecondDemandDate);
+        CreateSalesOrder(SalesHeader, SalesLine, Item, DemandQty, ThirdDemandDate);
+
+        // [WHEN] Calculate Regenerative Plan respecting planning parameters
+        Item.SetRange("No.", Item."No.");
+        LibraryPlanning.CalcRegenPlanForPlanWkshPlanningParams(Item, StartDate, CalcDate(PlanningEndDate, WorkDate()), true);
+
+        // [THEN] One New line of 2 * "M", due on the date of the first safety stock shortage, covers the shortage "S" rounded up to the Order Multiple
+        FilterRequisitionLine(RequisitionLine, Item."No.");
+        Assert.RecordCount(RequisitionLine, 1);
+        RequisitionLine.FindFirst();
+        RequisitionLine.TestField("Action Message", RequisitionLine."Action Message"::New);
+        RequisitionLine.TestField(Quantity, 2 * OrderMultiple);
+        RequisitionLine.TestField("Due Date", StartDate);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
