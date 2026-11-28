@@ -78,7 +78,8 @@ codeunit 7314 "Warehouse Availability Mgt."
             PickQty := CalcQtyRegisteredPick(ReservEntry);
             // Keep the shipment check item-wide, as lot validation also adds item-wide reserved pick/shipment quantities.
             ValidateQtyPickedInShipmentBin(
-                PickQty, ReservEntry."Location Code", ReservEntry."Item No.", ReservEntry."Variant Code", TempTrackingSpecification, ReservEntry."Source Type");
+                PickQty, ReservEntry."Location Code", ReservEntry."Item No.", ReservEntry."Variant Code", TempTrackingSpecification,
+                ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.", false);
             PickQty +=
                 CalcQtyOutstandingPick(
                     ReservEntry."Source Type", ReservEntry."Source Subtype", ReservEntry."Source ID", ReservEntry."Source Ref. No.", ReservEntry."Source Prod. Order Line", WarehouseActivityLine);
@@ -96,11 +97,18 @@ codeunit 7314 "Warehouse Availability Mgt."
     var
         TempTrackingSpecification: Record "Tracking Specification" temporary;
     begin
+        // Item-level availability deducts Item."Qty. Picked", which only covers open warehouse shipment lines.
         exit(CalcReservQtyOnPicksShipsWithItemTracking(
-            WarehouseActivityLine, TempTrackingSpecification, LocationCode, ItemNo, VariantCode));
+            WarehouseActivityLine, TempTrackingSpecification, LocationCode, ItemNo, VariantCode, true));
     end;
 
-    procedure CalcReservQtyOnPicksShipsWithItemTracking(var WarehouseActivityLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]) Result: Decimal
+    procedure CalcReservQtyOnPicksShipsWithItemTracking(var WarehouseActivityLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]): Decimal
+    begin
+        exit(CalcReservQtyOnPicksShipsWithItemTracking(
+            WarehouseActivityLine, TrackingSpecification, LocationCode, ItemNo, VariantCode, false));
+    end;
+
+    local procedure CalcReservQtyOnPicksShipsWithItemTracking(var WarehouseActivityLine: Record "Warehouse Activity Line"; var TrackingSpecification: Record "Tracking Specification"; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; LimitToOpenShipments: Boolean) Result: Decimal
     var
         TempReservEntryBuffer: Record "Reservation Entry Buffer" temporary;
         CalcRsvQtyOnPicksShipsWithIT: Query CalcRsvQtyOnPicksShipsWithIT;
@@ -154,7 +162,10 @@ codeunit 7314 "Warehouse Availability Mgt."
                 QtyPicked :=
                   CalcQtyRegisteredPick(
                     LocationCode, TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line");
-                ValidateQtyPickedInShipmentBin(QtyPicked, LocationCode, ItemNo, VariantCode, TrackingSpecification, TempReservEntryBuffer."Source Type");
+                ValidateQtyPickedInShipmentBin(
+                    QtyPicked, LocationCode, ItemNo, VariantCode, TrackingSpecification,
+                    TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.",
+                    LimitToOpenShipments);
                 QtyToPick :=
                   CalcQtyOutstandingPick(
                     TempReservEntryBuffer."Source Type", TempReservEntryBuffer."Source Subtype", TempReservEntryBuffer."Source ID", TempReservEntryBuffer."Source Ref. No.", TempReservEntryBuffer."Source Prod. Order Line", WarehouseActivityLine);
@@ -950,10 +961,11 @@ codeunit 7314 "Warehouse Availability Mgt."
         exit(WarehouseShipmentLine."Qty. Picked (Base)" - WarehouseShipmentLine."Qty. Shipped (Base)")
     end;
 
-    local procedure ValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer)
+    local procedure ValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer; LimitToOpenShipments: Boolean)
     var
         Location: Record Location;
         ItemTrackingSetup: Record "Item Tracking Setup";
+        TypeHelper: Codeunit "Type Helper";
         QtyOnShipmentBin: Decimal;
         IsHandled: Boolean;
     begin
@@ -973,8 +985,18 @@ codeunit 7314 "Warehouse Availability Mgt."
             exit;
 
         QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup);
-        if QtyOnShipmentBin = 0 then
-            QtyPicked := 0
+        if QtyOnShipmentBin <> 0 then
+            exit;
+
+        // Alternate shipment bins: credit only the quantity this source line still has staged.
+        QtyOnShipmentBin :=
+            CalcQtyOnRegisteredPickDestinationBins(
+                LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, ItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
+        // Stock staged for a deleted shipment is not in Item."Qty. Picked", so item-level availability must not credit it back.
+        if LimitToOpenShipments then
+            QtyOnShipmentBin := TypeHelper.Minimum(QtyOnShipmentBin, CalcQtyPickedOnWhseShipmentLine(SourceType, SourceSubType, SourceID, SourceRefNo));
+        if QtyPicked > QtyOnShipmentBin then
+            QtyPicked := QtyOnShipmentBin;
     end;
 
     local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
@@ -1012,6 +1034,171 @@ codeunit 7314 "Warehouse Availability Mgt."
             end;
 
         exit(QtyOnShipmentBins);
+    end;
+
+    local procedure CalcQtyOnRegisteredPickDestinationBins(LocationCode: Code[10]; DefaultShipmentBinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer) QtyOnBins: Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        TypeHelper: Codeunit "Type Helper";
+        CheckedBins: List of [Code[20]];
+        QtyOnBin: Decimal;
+        SourceQtyInBin: Decimal;
+        OpenShipmentsQtyInBin: Decimal;
+        EarlierDeletedSourcesQtyInBin: Decimal;
+    begin
+        // Registered pick place entries remain after the warehouse shipment is deleted, so use them to find destination bins.
+        // Only the bins that the credited source line was picked into count; stock picked by other source lines must not keep this credit.
+        WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        WarehouseEntry.SetLoadFields("Bin Code");
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Variant Code", VariantCode);
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Reference Document", WarehouseEntry."Reference Document"::Pick);
+        WarehouseEntry.SetRange("Whse. Document Type", WarehouseEntry."Whse. Document Type"::Shipment);
+        WarehouseEntry.SetSourceFilter(SourceType, SourceSubType, SourceID, SourceRefNo, true);
+        WarehouseEntry.SetFilter(Quantity, '>%1', 0);
+        WarehouseEntry.SetFilter("Bin Code", '<>%1&<>%2', '', DefaultShipmentBinCode);
+        WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        if WarehouseEntry.FindSet() then
+            repeat
+                if not CheckedBins.Contains(WarehouseEntry."Bin Code") then begin
+                    CheckedBins.Add(WarehouseEntry."Bin Code");
+                    QtyOnBin := CalcQtyOnBin(LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup);
+                    if QtyOnBin > 0 then begin
+                        // The bin stock is matched to sources rather than to entry order: the credited source can only own what it still has in the bin,
+                        // and stock of other source lines with picked, unshipped quantity on an open warehouse shipment is assigned to them first.
+                        SourceQtyInBin :=
+                            CalcSourceQtyInBin(
+                                LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
+                        OpenShipmentsQtyInBin :=
+                            CalcOtherOpenShipmentsQtyInBin(
+                                LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup, SourceType, SourceSubType, SourceID, SourceRefNo);
+                        EarlierDeletedSourcesQtyInBin := 0;
+                        if CalcQtyPickedOnWhseShipmentLine(SourceType, SourceSubType, SourceID, SourceRefNo) <= 0 then
+                            EarlierDeletedSourcesQtyInBin :=
+                                CalcEarlierDeletedShipmentSourcesQtyInBin(
+                                    LocationCode, WarehouseEntry."Bin Code", ItemNo, VariantCode, WhseItemTrackingSetup, WarehouseEntry."Entry No.");
+                        QtyOnBins +=
+                            TypeHelper.Maximum(
+                                0, TypeHelper.Minimum(SourceQtyInBin, QtyOnBin - OpenShipmentsQtyInBin - EarlierDeletedSourcesQtyInBin));
+                    end;
+                end;
+            until WarehouseEntry.Next() = 0;
+    end;
+
+    local procedure CalcSourceQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer): Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        // Picks into and out of the bin and shipments posted from it carry the source line, so their sum is what the source line still has in the bin.
+        WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        WarehouseEntry.SetSourceFilter(SourceType, SourceSubType, SourceID, SourceRefNo, false);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Variant Code", VariantCode);
+        WarehouseEntry.SetRange("Whse. Document Type", WarehouseEntry."Whse. Document Type"::Shipment);
+        WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        exit(WarehouseEntry."Qty. (Base)");
+    end;
+
+    local procedure CalcEarlierDeletedShipmentSourcesQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; BeforeEntryNo: Integer) QtyInBin: Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        TypeHelper: Codeunit "Type Helper";
+        CheckedSources: List of [Text];
+        SourceKey: Text;
+    begin
+        // Stock left in a shared bin cannot be attributed to source lines of deleted shipments, so it is credited to them once, in pick order.
+        // Source lines without a reservation on inventory (e.g. cancelled) are skipped as they take no part in the reservation aggregation and would never use the credit.
+        WarehouseEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        WarehouseEntry.SetLoadFields("Source Type", "Source Subtype", "Source No.", "Source Line No.");
+        WarehouseEntry.SetFilter("Entry No.", '<%1', BeforeEntryNo);
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Bin Code", BinCode);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Variant Code", VariantCode);
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::Movement);
+        WarehouseEntry.SetRange("Reference Document", WarehouseEntry."Reference Document"::Pick);
+        WarehouseEntry.SetRange("Whse. Document Type", WarehouseEntry."Whse. Document Type"::Shipment);
+        WarehouseEntry.SetFilter(Quantity, '>%1', 0);
+        WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        if WarehouseEntry.FindSet() then
+            repeat
+                SourceKey :=
+                    StrSubstNo('%1|%2|%3|%4', WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.");
+                if not CheckedSources.Contains(SourceKey) then begin
+                    CheckedSources.Add(SourceKey);
+                    if (CalcQtyPickedOnWhseShipmentLine(
+                          WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.") <= 0) and
+                       HasReservationOnInventory(
+                          LocationCode, ItemNo, VariantCode, WhseItemTrackingSetup,
+                          WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No.")
+                    then
+                        QtyInBin +=
+                            TypeHelper.Maximum(
+                                0,
+                                CalcSourceQtyInBin(
+                                    LocationCode, BinCode, ItemNo, VariantCode, WhseItemTrackingSetup,
+                                    WarehouseEntry."Source Type", WarehouseEntry."Source Subtype", WarehouseEntry."Source No.", WarehouseEntry."Source Line No."));
+                end;
+            until WarehouseEntry.Next() = 0;
+    end;
+
+    local procedure HasReservationOnInventory(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Option; SourceID: Code[20]; SourceRefNo: Integer): Boolean
+    var
+        ReservationEntry: Record "Reservation Entry";
+        PositiveReservationEntry: Record "Reservation Entry";
+    begin
+        // Tracking is held by the inventory side of the reservation pair, as in CalcReservQtyOnPicksShipsWithItemTracking.
+        ReservationEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        ReservationEntry.SetLoadFields("Entry No.");
+        ReservationEntry.SetSourceFilter(SourceType, SourceSubType, SourceID, SourceRefNo, true);
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        ReservationEntry.SetRange("Location Code", LocationCode);
+        ReservationEntry.SetRange("Variant Code", VariantCode);
+        ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
+        ReservationEntry.SetRange(Positive, false);
+        if ReservationEntry.FindSet() then
+            repeat
+                PositiveReservationEntry.Reset();
+                PositiveReservationEntry.ReadIsolation(IsolationLevel::ReadUnCommitted);
+                PositiveReservationEntry.SetRange("Entry No.", ReservationEntry."Entry No.");
+                PositiveReservationEntry.SetRange(Positive, true);
+                PositiveReservationEntry.SetRange("Source Type", Database::"Item Ledger Entry");
+                PositiveReservationEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+                if not PositiveReservationEntry.IsEmpty() then
+                    exit(true);
+            until ReservationEntry.Next() = 0;
+        exit(false);
+    end;
+
+    local procedure CalcOtherOpenShipmentsQtyInBin(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"; SourceType: Integer; SourceSubType: Integer; SourceID: Code[20]; SourceRefNo: Integer) QtyInBin: Decimal
+    var
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        TypeHelper: Codeunit "Type Helper";
+    begin
+        WarehouseShipmentLine.ReadIsolation(IsolationLevel::ReadUnCommitted);
+        WarehouseShipmentLine.SetLoadFields("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Qty. Picked (Base)", "Qty. Shipped (Base)");
+        WarehouseShipmentLine.SetRange("Item No.", ItemNo);
+        WarehouseShipmentLine.SetRange("Location Code", LocationCode);
+        WarehouseShipmentLine.SetRange("Variant Code", VariantCode);
+        WarehouseShipmentLine.SetFilter("Qty. Picked (Base)", '>%1', 0);
+        if WarehouseShipmentLine.FindSet() then
+            repeat
+                if (WarehouseShipmentLine."Qty. Picked (Base)" > WarehouseShipmentLine."Qty. Shipped (Base)") and
+                   not ((WarehouseShipmentLine."Source Type" = SourceType) and (WarehouseShipmentLine."Source Subtype" = SourceSubType) and
+                        (WarehouseShipmentLine."Source No." = SourceID) and (WarehouseShipmentLine."Source Line No." = SourceRefNo))
+                then
+                    QtyInBin +=
+                        TypeHelper.Maximum(
+                            0,
+                            CalcSourceQtyInBin(
+                                LocationCode, BinCode, ItemNo, VariantCode, WhseItemTrackingSetup,
+                                WarehouseShipmentLine."Source Type", WarehouseShipmentLine."Source Subtype", WarehouseShipmentLine."Source No.", WarehouseShipmentLine."Source Line No."));
+            until WarehouseShipmentLine.Next() = 0;
     end;
 
     [IntegrationEvent(false, false)]
