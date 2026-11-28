@@ -531,8 +531,8 @@ table 30102 "Shpfy Shop"
         }
         field(62; "Customer Templ. Code"; Code[20])
         {
-            Caption = 'Customer/Company Template Code';
-            ToolTip = 'Specifies which customer template to use when creating unknown customers.';
+            Caption = 'Customer Template Code';
+            ToolTip = 'Specifies the default customer template used when Shopify creates a Business Central customer for a Shopify customer. This template is also used for a Shopify company when no company template is configured.';
             DataClassification = SystemMetadata;
             TableRelation = "Customer Templ.".Code;
             ValidateTableRelation = true;
@@ -885,6 +885,20 @@ table 30102 "Shpfy Shop"
             DataClassification = CustomerContent;
             ValuesAllowed = "Credit Memo", "Return Order";
             InitValue = "Credit Memo";
+        }
+        field(138; "Auto Create Alt. VAT Reg. Cust"; Boolean)
+        {
+            Caption = 'Auto Create Alternative VAT Registration for Customers';
+            ToolTip = 'Specifies whether Shopify creates missing Alternative Customer VAT Registration when it creates a sales document for a customer. Uses the country/region customer template.';
+            DataClassification = CustomerContent;
+            InitValue = false;
+        }
+        field(139; "Auto Create Alt. VAT Reg. Co."; Boolean)
+        {
+            Caption = 'Auto Create Alternative VAT Registration for Companies';
+            ToolTip = 'Specifies whether Shopify creates missing Alternative Customer VAT Registration when it creates a sales document for a company. Uses the country/region customer template.';
+            DataClassification = CustomerContent;
+            InitValue = false;
         }
         field(200; "Shop Id"; Integer)
         {
