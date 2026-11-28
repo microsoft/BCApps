@@ -802,7 +802,7 @@ page 6910 "Expense Report"
         ReopenSubmittedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Submitted");
         ApproveEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::Approve);
         ReopenApprovedEnabled := ExpenseReportApprovalMgt.CanPerformApprovalAction(Rec, RefActionType::"Reopen Approved");
-        AssignInterimApproverEnabled := ExpenseReportApprovalMgt.CanAssignInterimApprover(Rec);
+        AssignInterimApproverEnabled := ExpenseReportApprovalMgt.CanAssignInterimApprover(Rec) and ExpenseReportApprovalMgt.IsInterimApproverOverwriteAllowed();
 
         ExpenseAgentSetup.GetRecordOnce();
         AgentEnabled := ExpenseAgentSetup."Enable Agent";
