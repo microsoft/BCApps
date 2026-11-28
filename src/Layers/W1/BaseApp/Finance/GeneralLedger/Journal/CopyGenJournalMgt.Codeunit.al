@@ -38,6 +38,7 @@ codeunit 181 "Copy Gen. Journal Mgt."
     procedure CopyToGenJournal(var PostedGenJournalLine: Record "Posted Gen. Journal Line")
     var
         CopyGenJournalParameters: Record "Copy Gen. Journal Parameters";
+        IsHandled: Boolean;
     begin
         if not PostedGenJournalLine.FindSet() then
             exit;
@@ -51,6 +52,11 @@ codeunit 181 "Copy Gen. Journal Mgt."
         repeat
             InsertGenJournalLine(PostedGenJournalLine, CopyGenJournalParameters);
         until PostedGenJournalLine.Next() = 0;
+
+        IsHandled := false;
+        OnCopyToGenJournalOnBeforeShowFinishMessage(PostedGenJournalLine.Count, CopyGenJournalParameters, IsHandled);
+        if IsHandled then
+            exit;
 
         ShowFinishMessage(PostedGenJournalLine.Count, CopyGenJournalParameters);
     end;
@@ -228,6 +234,17 @@ codeunit 181 "Copy Gen. Journal Mgt."
             CopyGenJournalParameters."Journal Template Name" := TempGenJournalBatch."Journal Template Name";
             CopyGenJournalParameters."Journal Batch Name" := TempGenJournalBatch.Name;
         end;
+    end;
+
+    /// <summary>
+    /// Integration event raised after copying posted general journal lines and before showing the finish message.
+    /// </summary>
+    /// <param name="LineCount">Number of copied general journal lines</param>
+    /// <param name="CopyGenJournalParameters">Copy parameters used during the copy process</param>
+    /// <param name="IsHandled">Boolean flag indicating whether the finish message is handled by the event subscriber</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCopyToGenJournalOnBeforeShowFinishMessage(LineCount: Integer; CopyGenJournalParameters: Record "Copy Gen. Journal Parameters"; var IsHandled: Boolean)
+    begin
     end;
 
     /// <summary>
