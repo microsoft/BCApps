@@ -101,6 +101,7 @@ codeunit 7302 "WMS Management"
         OnCreateWhseJnlLineOnAfterGetLocation(ItemJnlLine, WhseJnlLine, Location);
         InitWhseJnlLine(ItemJnlLine, WhseJnlLine, ItemJnlLine."Quantity (Base)");
         SetZoneAndBins(ItemJnlLine, WhseJnlLine, ToTransfer);
+        KeepNonBaseUOMForDecreaseFromBinContent(ItemJnlLine, WhseJnlLine);
         if (ItemJnlLine."Journal Template Name" <> '') and (ItemJnlLine."Journal Batch Name" <> '') then begin
             WhseJnlLine.SetSource(Database::"Item Journal Line", ItemJnlTemplateType, ItemJnlLine."Document No.", ItemJnlLine."Line No.", 0);
             WhseJnlLine."Source Document" := WhseManagement.GetWhseJnlSourceDocument(WhseJnlLine."Source Type", WhseJnlLine."Source Subtype");
@@ -1188,6 +1189,62 @@ codeunit 7302 "WMS Management"
         then
             if not ItemUnitOfMeasure.Get(ItemNo, UOMCode) then
                 ItemUnitOfMeasure.Init();
+    end;
+
+    local procedure KeepNonBaseUOMForDecreaseFromBinContent(ItemJournalLine: Record "Item Journal Line"; var WarehouseJournalLine: Record "Warehouse Journal Line")
+    begin
+        // At locations without directed put-away and pick, warehouse quantities are registered in the base unit of measure.
+        // Bin content in another unit of measure can still exist, for example after "Directed Put-away and Pick" was turned off.
+        // Keep the entered unit of measure for the outbound side so that this bin content can be reduced and cleared.
+        // Items with warehouse item tracking are excluded: the journal line is split by tracking only after this point,
+        // so the bin content of each serial, lot, or package number cannot be checked here.
+        if WarehouseJournalLine."From Bin Code" = '' then
+            exit;
+        if ItemTrackingMgt.GetWhseItemTrkgSetup(WarehouseJournalLine."Item No.") then
+            exit;
+        if ItemJournalLine."Unit of Measure Code" = WarehouseJournalLine."Unit of Measure Code" then
+            exit;
+        if ItemJournalLine."Qty. per Unit of Measure" = 0 then
+            exit;
+        if not UseNonBaseUOMBinContent(
+            WarehouseJournalLine."Location Code", WarehouseJournalLine."From Bin Code", WarehouseJournalLine."Item No.", WarehouseJournalLine."Variant Code",
+            ItemJournalLine."Unit of Measure Code", WarehouseJournalLine."Qty. (Absolute, Base)")
+        then
+            exit;
+
+        WarehouseJournalLine.Quantity := Round(WarehouseJournalLine."Qty. (Base)" / ItemJournalLine."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision());
+        WarehouseJournalLine."Qty. (Absolute)" := Abs(WarehouseJournalLine.Quantity);
+        WarehouseJournalLine."Unit of Measure Code" := ItemJournalLine."Unit of Measure Code";
+        WarehouseJournalLine."Qty. per Unit of Measure" := ItemJournalLine."Qty. per Unit of Measure";
+        if Location."Bin Capacity Policy" <> Location."Bin Capacity Policy"::"Never Check Capacity" then
+            CalcCubageAndWeight(
+              WarehouseJournalLine."Item No.", WarehouseJournalLine."Unit of Measure Code", WarehouseJournalLine."Qty. (Absolute)", WarehouseJournalLine.Cubage, WarehouseJournalLine.Weight);
+    end;
+
+    /// <summary>
+    /// Checks whether a decrease at a location without directed put-away and pick should be taken from bin content
+    /// in a unit of measure other than the base unit of measure.
+    /// This is the case when such bin content exists in the given bin and holds at least the given base quantity.
+    /// </summary>
+    internal procedure UseNonBaseUOMBinContent(LocationCode: Code[10]; BinCode: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; UnitOfMeasureCode: Code[10]; QtyAbsBase: Decimal): Boolean
+    var
+        BinLocation: Record Location;
+        BinContent: Record "Bin Content";
+    begin
+        if (BinCode = '') or (UnitOfMeasureCode = '') then
+            exit(false);
+        if UnitOfMeasureCode = GetBaseUOM(ItemNo) then
+            exit(false);
+        if not BinLocation.Get(LocationCode) then
+            exit(false);
+        if BinLocation."Directed Put-away and Pick" or (not BinLocation."Bin Mandatory") then
+            exit(false);
+        if BinCode = BinLocation."Adjustment Bin Code" then
+            exit(false);
+        if not BinContent.Get(LocationCode, BinCode, ItemNo, VariantCode, UnitOfMeasureCode) then
+            exit(false);
+        BinContent.CalcFields("Quantity (Base)");
+        exit((BinContent."Quantity (Base)" > 0) and (BinContent."Quantity (Base)" >= QtyAbsBase));
     end;
 
     procedure GetBaseUOM(ItemNo: Code[20]): Code[10]
