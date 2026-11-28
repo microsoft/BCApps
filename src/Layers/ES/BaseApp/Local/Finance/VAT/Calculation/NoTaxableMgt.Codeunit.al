@@ -397,6 +397,7 @@ codeunit 10740 "No Taxable Mgt."
                 if VATPostingSetup.IsNoTaxable() then begin
                     if Format(LineType) = Format(DummyPurchInvLine.Type::"G/L Account") then
                         NotIn347 := GLAccount.Get(LineNo) and GLAccount."Ignore in 347 Report";
+                    OnInsertNoTaxableEntriesFromPurchLinesOnBeforeInsertNoTaxableEntry(NoTaxableEntry, PostedLineRecRef, VATPostingSetup);
                     InsertNoTaxableEntry(
                       NoTaxableEntry, NoTaxableEntry.Type::Purchase, Sign * LineAmount, VATPostingSetup."EU Service", NotIn347, 0, 0,
                       VATPostingSetup."VAT Calculation Type", VATBusPostGroup, VATProdPostGroup,
@@ -452,6 +453,7 @@ codeunit 10740 "No Taxable Mgt."
                     if Format(LineType) = Format(DummySalesInvoiceLine.Type::"G/L Account") then
                         NotIn347 := GLAccount.Get(LineNo) and GLAccount."Ignore in 347 Report";
                     if VATProductPostingGroup.Get(VATPostingSetup."VAT Prod. Posting Group") then;
+                    OnInsertNoTaxableEntriesFromSalesLinesOnBeforeInsertNoTaxableEntry(NoTaxableEntry, PostedLineRecRef, VATPostingSetup);
                     InsertNoTaxableEntry(
                       NoTaxableEntry, NoTaxableEntry.Type::Sale, Sign * LineAmount, VATPostingSetup."EU Service", NotIn347,
                       VATPostingSetup."No Taxable Type", VATProductPostingGroup."Delivery Operation Code",
@@ -994,6 +996,16 @@ codeunit 10740 "No Taxable Mgt."
         if VATPostingSetup.Get(GenJournalLine."VAT Bus. Posting Group", GenJournalLine."VAT Prod. Posting Group") and
             (VATPostingSetup."No Taxable Type" <> VATPostingSetup."No Taxable Type"::" ") then
             VATPostingSetup.TestField("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"No Taxable VAT");
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertNoTaxableEntriesFromPurchLinesOnBeforeInsertNoTaxableEntry(var NoTaxableEntry: Record "No Taxable Entry"; var PostedLineRecordRef: RecordRef; VATPostingSetup: Record "VAT Posting Setup")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnInsertNoTaxableEntriesFromSalesLinesOnBeforeInsertNoTaxableEntry(var NoTaxableEntry: Record "No Taxable Entry"; var PostedLineRecordRef: RecordRef; VATPostingSetup: Record "VAT Posting Setup")
+    begin
     end;
 
     [IntegrationEvent(false, false)]
