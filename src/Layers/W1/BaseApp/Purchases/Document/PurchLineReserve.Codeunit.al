@@ -6,6 +6,7 @@ namespace Microsoft.Purchases.Document;
 
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.UOM;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
@@ -696,11 +697,15 @@ codeunit 99000834 "Purch. Line-Reserve"
     local procedure SetReservSourceFor(SourceRecordRef: RecordRef; var ReservationEntry: Record "Reservation Entry"; var CaptionText: Text)
     var
         PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
     begin
         SourceRecordRef.SetTable(PurchaseLine);
         PurchaseLine.TestField("Job No.", '');
         PurchaseLine.TestField("Drop Shipment", false);
         PurchaseLine.TestField(Type, PurchaseLine.Type::Item);
+        Item.SetLoadFields(Reserve);
+        Item.Get(PurchaseLine."No.");
+        Item.TestField(Reserve);
         PurchaseLine.TestField("Expected Receipt Date");
 
         PurchaseLine.SetReservationEntry(ReservationEntry);
