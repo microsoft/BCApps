@@ -64,14 +64,14 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Create self-billed E-Document';
                     Image = CreateDocument;
-                    ToolTip = 'Creates a self-billed E-Document from this posted purchase invoice and sends it via service. Only available for self-billing invoices with registered participant IDs.';
+                    ToolTip = 'Creates a self-billed E-Document from this posted purchase invoice and sends it via service. Requires a self-billing invoice and the setup required by the configured format.';
                     Enabled = (not SelfBillEDocumentExists) and CanSelfBill;
 
                     trigger OnAction()
                     var
                         EDocumentProcessing: Codeunit "E-Document Processing";
                     begin
-                        if EDocumentProcessing.CreateEDocumentFromPostedDocumentPage(Rec, Enum::"E-Document Type"::"Self-Billed Purchase Invoice") then
+                        if EDocumentProcessing.CreateSelfBilledEDocumentFromPostedPage(Rec, Enum::"E-Document Type"::"Self-Billed Purchase Invoice") then
                             Message(EDocumentCreatedMsg)
                         else
                             Message(EDocumentNotCreatedMsg);
@@ -93,7 +93,7 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
     var
         EDocument: Record "E-Document";
         EDocumentHelper: Codeunit "E-Document Helper";
-        EDocumentSubscribers: Codeunit "E-Document Subscribers";
+        EDocumentProcessing: Codeunit "E-Document Processing";
         EDocDataStorageEntryNo: Integer;
     begin
         EDocDataStorageEntryNo := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId());
@@ -105,6 +105,6 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
 
         EDocument.SetRange("Document Record ID", Rec.RecordId());
         SelfBillEDocumentExists := not EDocument.IsEmpty();
-        CanSelfBill := EDocumentSubscribers.IsEligibleForSelfBilling(Rec);
+        CanSelfBill := EDocumentProcessing.CanCreateSelfBilledEDocument(Rec);
     end;
 }

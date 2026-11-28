@@ -13,6 +13,12 @@
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
   "dependencies": [
     {
+      "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8c",
+      "name": "E-Document Core Tests",
+      "publisher": "Microsoft",
+      "version": "30.0.0.0"
+    },
+    {
       "id": "44469049-4bb4-4a32-82ab-f6c34d0204d3",
       "name": "E-Reporting FR",
       "publisher": "Microsoft",

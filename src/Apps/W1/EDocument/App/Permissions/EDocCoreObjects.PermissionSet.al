@@ -71,6 +71,7 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Document Error Helper" = X,
         codeunit "E-Document Log" = X,
         codeunit "E-Doc. Export" = X,
+        codeunit "Default Export Eligibility" = X,
         codeunit "E-Document No Integration" = X,
         codeunit "E-Document Subscribers" = X,
         codeunit "E-Document Update Order" = X,

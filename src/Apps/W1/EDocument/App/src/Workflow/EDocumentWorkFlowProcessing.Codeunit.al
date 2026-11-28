@@ -497,6 +497,7 @@ codeunit 6135 "E-Document WorkFlow Processing"
 
     local procedure ValidateFlowStep(var EDocument: Record "E-Document"; var WorkflowStepArgument: Record "Workflow Step Argument"; WorkflowStepInstance: Record "Workflow Step Instance"; ValidateArgument: Boolean): Boolean
     var
+        EDocumentServiceStatus: Record "E-Document Service Status";
         EDocErrorHelper: Codeunit "E-Document Error Helper";
     begin
         // Check that step instance corresponds to workflow code set by document sending profile for the document
@@ -519,6 +520,10 @@ codeunit 6135 "E-Document WorkFlow Processing"
             EDocErrorHelper.LogErrorMessage(EDocument, WorkflowStepArgument, WorkflowStepArgument.FieldNo("E-Document Service"), 'E-Document Service must be specified in Workflow Argument');
             exit(false);
         end;
+        // Workflow responses must not activate services excluded when self-billing was initiated.
+        if EDocument."Document Type" in [EDocument."Document Type"::"Self-Billed Purchase Invoice", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo"] then
+            if not EDocumentServiceStatus.Get(EDocument."Entry No", WorkflowStepArgument."E-Document Service") then
+                exit(false);
         exit(true);
     end;
 

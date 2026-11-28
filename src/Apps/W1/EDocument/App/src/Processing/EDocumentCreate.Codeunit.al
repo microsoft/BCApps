@@ -18,7 +18,15 @@ codeunit 6141 "E-Document Create"
     end;
 
     local procedure Create()
+    var
+        EDocumentProcessing: Codeunit "E-Document Processing";
+        OriginalSource: RecordRef;
     begin
+        if EDocument."Document Type" in [EDocument."Document Type"::"Self-Billed Purchase Invoice", EDocument."Document Type"::"Self-Billed Purch. Cr. Memo"] then begin
+            OriginalSource.Get(EDocument."Document Record ID");
+            EDocumentProcessing.CheckSelfBillingSource(OriginalSource, EDocument."Document Type");
+            EDocumentProcessing.CheckSelfBillingSource(SourceDocumentHeader, EDocument."Document Type");
+        end;
         EDocumentInterface := EDocService."Document Format";
         EDocumentInterface.Create(EDocService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
     end;
