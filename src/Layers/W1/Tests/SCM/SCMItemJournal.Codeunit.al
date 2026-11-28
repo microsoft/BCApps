@@ -2417,6 +2417,105 @@
     end;
 
     [Test]
+    procedure IsOpenedFromBatchWithRecordWithNoFilters()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [Item Journal] [UT]
+        // [SCENARIO 659621] ItemJournalLine.IsOpenedFromBatch returns TRUE when the record is already selected, e.g. opened from a URL link.
+        Initialize();
+
+        // [GIVEN] Item journal line in batch "B" of template "T".
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        ItemJournalLine.Reset();
+
+        // [WHEN] IsOpenedFromBatch is called on the record with no filters.
+        // [THEN] It returns TRUE and the journal template filter is set to "T".
+        Assert.IsTrue(ItemJournalLine.IsOpenedFromBatch(), 'ItemJournalLine.IsOpenedFromBatch must return TRUE');
+        Assert.AreEqual(ItemJournalTemplate.Name, ItemJournalLine.GetFilter("Journal Template Name"), 'Journal Template Name filter is not set.');
+    end;
+
+    [Test]
+    procedure IsOpenedFromBatchWithRecordInBatchWithFilterSymbolsInName()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [Item Journal] [UT]
+        // [SCENARIO 659621] ItemJournalLine.IsOpenedFromBatch treats the batch name of the current record as a literal value.
+        Initialize();
+
+        // [GIVEN] Item journal line in batch "Z..A" of template "T".
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        ItemJournalBatch.Init();
+        ItemJournalBatch.Validate("Journal Template Name", ItemJournalTemplate.Name);
+        ItemJournalBatch.Validate(Name, 'Z..A');
+        ItemJournalBatch.Insert(true);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        ItemJournalLine.Reset();
+
+        // [WHEN] IsOpenedFromBatch is called on the record with no filters.
+        // [THEN] It returns TRUE without failing to find batch "Z..A".
+        Assert.IsTrue(ItemJournalLine.IsOpenedFromBatch(), 'ItemJournalLine.IsOpenedFromBatch must return TRUE');
+    end;
+
+    [Test]
+    procedure IsOpenedFromBatchWithNoRecordAndNoFilters()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        // [FEATURE] [Item Journal] [UT]
+        // [SCENARIO 659621] ItemJournalLine.IsOpenedFromBatch returns FALSE when there are no filters and no record selected.
+        Initialize();
+
+        Assert.IsFalse(ItemJournalLine.IsOpenedFromBatch(), 'ItemJournalLine.IsOpenedFromBatch must return FALSE');
+    end;
+
+    [Test]
+    procedure ItemJournalOpenedForLineWithoutFiltersShowsLineBatch()
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: array[2] of Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournal: TestPage "Item Journal";
+    begin
+        // [FEATURE] [Item Journal] [UI]
+        // [SCENARIO 659621] Item Journal opened for a specific line without filters (e.g. from an approval URL link) opens the batch of that line.
+        Initialize();
+
+        // [GIVEN] Item journal template "T" with batches "B1" and "B2".
+        // [GIVEN] Item journal line in the last batch of the template.
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch[1], ItemJournalTemplate.Name);
+        LibraryInventory.CreateItemJournalBatch(ItemJournalBatch[2], ItemJournalTemplate.Name);
+        ItemJournalBatch[2].SetRange("Journal Template Name", ItemJournalTemplate.Name);
+        ItemJournalBatch[2].FindLast();
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch[2]."Journal Template Name", ItemJournalBatch[2].Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(10));
+        ItemJournalLine.Reset();
+        Commit();
+
+        // [WHEN] Open Item Journal for the line without any filters.
+        ItemJournal.Trap();
+        Page.Run(Page::"Item Journal", ItemJournalLine);
+
+        // [THEN] Item Journal shows the batch of the line and the line can be located.
+        ItemJournal.CurrentJnlBatchName.AssertEquals(ItemJournalBatch[2].Name);
+        Assert.IsTrue(ItemJournal.GoToRecord(ItemJournalLine), 'The requested item journal line cannot be located.');
+        ItemJournal.Close();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure PostItemJnlLineCommitBySubscriberIsSuppressed()
     var
