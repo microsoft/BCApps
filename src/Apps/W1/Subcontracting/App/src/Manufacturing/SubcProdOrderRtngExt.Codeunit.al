@@ -181,6 +181,9 @@ codeunit 20520 "Subc. Prod. Order Rtng. Ext."
 #pragma warning restore AL0432
             exit;
 #endif
+        if ProdOrderRoutingLine.IsTemporary() then
+            exit;
+
         SubcPriceManagement.GetSubcPriceList(ProdOrderRoutingLine);
     end;
 

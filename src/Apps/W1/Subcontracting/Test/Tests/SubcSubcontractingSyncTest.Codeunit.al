@@ -19,6 +19,7 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
+using Microsoft.Manufacturing.Wizard;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
@@ -294,7 +295,6 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         LibraryMfgManagement.CreateMachineCenter(MachineCenterNo2, WorkCenterNo, "Flushing Method"::"Pick + Manual".AsInteger());
         MachineCenter[2].Get(MachineCenterNo2);
         LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
-
         if Subcontracting then
             CreateWorkCenter(WorkCenterNo2, ShopCalendarCode, "Flushing Method"::"Pick + Manual", Subcontracting, UnitCostCalculation, '')
         else
@@ -417,7 +417,6 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         WorkCenter.Validate("Indirect Cost %", LibraryRandom.RandDec(5, 1));
         WorkCenter.Validate("Overhead Rate", LibraryRandom.RandDec(5, 1));
         WorkCenter.Validate("Unit Cost Calculation", UnitCostCalc);
-
         if Subcontract then begin
             LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
             GenProductPostingGroup.FindFirst();
@@ -500,12 +499,12 @@ codeunit 139992 "Subc. Subcontracting Sync Test"
         SubcManagementLibrary.Initialize();
         UpdateSubMgmtSetupComponentAtLocation("Components at Location"::Purchase);
         LibraryMfgManagement.Initialize();
-
         if IsInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Subc. Subcontracting Sync Test");
 
         SubSetupLibrary.InitSetupFields();
+        SubSetupLibrary.ConfigureSubManagementForNothingPresentScenario("Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
         LibraryERMCountryData.CreateVATData();
         SubSetupLibrary.InitialSetupForGenProdPostingGroup();
 
