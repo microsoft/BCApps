@@ -2639,6 +2639,139 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         VerifyToggleDirectTransferPreservesReservations(Enum::"Direct Transfer Posting Type"::"Shipment and Receipt", false);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure DirectShipmentAndReceiptWithInTransitSetBeforeLinesLocationMandatory()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Direct Transfer] [In-Transit] [Location Mandatory]
+        // [SCENARIO 660065] Direct transfer "Shipment and Receipt" with In-Transit Code set before lines posts through the in-transit location when Location Mandatory is on.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] Locations "FROM", "TO" and in-transit location "TRANSIT"; item with inventory at "FROM".
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, Quantity);
+
+        // [GIVEN] Inventory Setup has "Location Mandatory" = true.
+        LibraryInventory.SetLocationMandatory(true);
+
+        // [GIVEN] Direct transfer order with "Shipment and Receipt" posting and In-Transit Code = "TRANSIT" set before adding lines.
+        CreateDirectTransferOrderHeader(TransferHeader, LocationFrom.Code, LocationTo.Code, TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.Validate("In-Transit Code", LocationInTransit.Code);
+        TransferHeader.Modify(true);
+        CreateDirectTransferLine(TransferHeader, TransferLine, Item."No.", '', Quantity);
+        TransferLine.TestField("Qty. to Ship", Quantity);
+        TransferLine.TestField("Qty. to Receive", Quantity);
+
+        // [WHEN] Post the transfer order.
+        LibraryInventory.PostDirectTransferOrder(TransferHeader);
+
+        // [THEN] Transfer shipment and receipt are posted.
+        VerifyTransferShipmentAndReceiptPosted(TransferHeader."No.");
+
+        // [THEN] Item ledger entries move the item "FROM" -> "TRANSIT" -> "TO".
+        VerifyItemLedgerEntriesViaInTransit(Item."No.", LocationFrom.Code, LocationInTransit.Code, LocationTo.Code, Quantity);
+
+        LibraryInventory.SetLocationMandatory(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DirectShipmentAndReceiptWithInTransitSetAfterLinesLocationMandatory()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        LocationInTransit: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Direct Transfer] [In-Transit] [Location Mandatory]
+        // [SCENARIO 660065] Direct transfer "Shipment and Receipt" with In-Transit Code set after lines posts through the in-transit location when Location Mandatory is on.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] Locations "FROM", "TO" and in-transit location "TRANSIT"; item with inventory at "FROM".
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        LibraryWarehouse.CreateInTransitLocation(LocationInTransit);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, Quantity);
+
+        // [GIVEN] Inventory Setup has "Location Mandatory" = true.
+        LibraryInventory.SetLocationMandatory(true);
+
+        // [GIVEN] Direct transfer order with "Shipment and Receipt" posting and a line.
+        CreateDirectTransferOrder(TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', Quantity, TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+
+        // [GIVEN] In-Transit Code = "TRANSIT" set after the line was added.
+        TransferHeader.Validate("In-Transit Code", LocationInTransit.Code);
+        TransferHeader.Modify(true);
+        TransferLine.Get(TransferLine."Document No.", TransferLine."Line No.");
+        TransferLine.TestField("In-Transit Code", LocationInTransit.Code);
+        TransferLine.TestField("Qty. to Ship", Quantity);
+        TransferLine.TestField("Qty. to Receive", Quantity);
+
+        // [WHEN] Post the transfer order.
+        LibraryInventory.PostDirectTransferOrder(TransferHeader);
+
+        // [THEN] Transfer shipment and receipt are posted.
+        VerifyTransferShipmentAndReceiptPosted(TransferHeader."No.");
+
+        // [THEN] Item ledger entries move the item "FROM" -> "TRANSIT" -> "TO".
+        VerifyItemLedgerEntriesViaInTransit(Item."No.", LocationFrom.Code, LocationInTransit.Code, LocationTo.Code, Quantity);
+
+        LibraryInventory.SetLocationMandatory(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DirectShipmentAndReceiptWithoutInTransitLocationMandatory()
+    var
+        LocationFrom: Record Location;
+        LocationTo: Record Location;
+        Item: Record Item;
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Direct Transfer] [Location Mandatory]
+        // [SCENARIO 660065] Direct transfer "Shipment and Receipt" without In-Transit Code still posts when Location Mandatory is on.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] Locations "FROM" and "TO"; item with inventory at "FROM".
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationFrom);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(LocationTo);
+        CreateItemWithPositiveInventory(Item, LocationFrom.Code, Quantity);
+
+        // [GIVEN] Inventory Setup has "Location Mandatory" = true.
+        LibraryInventory.SetLocationMandatory(true);
+
+        // [GIVEN] Direct transfer order with "Shipment and Receipt" posting and blank In-Transit Code.
+        CreateDirectTransferOrder(TransferHeader, TransferLine, LocationFrom.Code, LocationTo.Code, Item."No.", '', Quantity, TransferHeader."Direct Transfer Posting"::"Shipment and Receipt");
+        TransferHeader.TestField("In-Transit Code", '');
+
+        // [WHEN] Post the transfer order.
+        LibraryInventory.PostDirectTransferOrder(TransferHeader);
+
+        // [THEN] Transfer shipment and receipt are posted and the item moved from "FROM" to "TO".
+        VerifyTransferShipmentAndReceiptPosted(TransferHeader."No.");
+        VerifyItemLedgerEntriesForTransfer(Item."No.", LocationFrom.Code, LocationTo.Code, -Quantity, Quantity);
+
+        LibraryInventory.SetLocationMandatory(false);
+    end;
+
     local procedure VerifyToggleDirectTransferPreservesReservations(PostingMode: Enum "Direct Transfer Posting Type"; InitialDirectTransfer: Boolean)
     begin
         SetDirectTransferPostingMode(PostingMode);
@@ -3266,6 +3399,20 @@ codeunit 137108 "SCM Direct Transfer Warehouse"
         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
         ItemLedgerEntry.CalcSums(Quantity);
         Assert.AreEqual(ExpectedQtyTo, ItemLedgerEntry.Quantity, 'Item ledger quantity incorrect for TO location');
+    end;
+
+    local procedure VerifyItemLedgerEntriesViaInTransit(ItemNo: Code[20]; FromLocationCode: Code[10]; InTransitLocationCode: Code[10]; ToLocationCode: Code[10]; Quantity: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.SetRange("Item No.", ItemNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Transfer);
+        Assert.RecordCount(ItemLedgerEntry, 4);
+
+        VerifyItemLedgerEntryByLocationAndSign(ItemNo, FromLocationCode, false, -Quantity);
+        VerifyItemLedgerEntryByLocationAndSign(ItemNo, InTransitLocationCode, true, Quantity);
+        VerifyItemLedgerEntryByLocationAndSign(ItemNo, InTransitLocationCode, false, -Quantity);
+        VerifyItemLedgerEntryByLocationAndSign(ItemNo, ToLocationCode, true, Quantity);
     end;
 
     local procedure VerifyItemLedgerEntriesForDirectTransfer(ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; ExpectedQtyFrom: Decimal; ExpectedQtyTo: Decimal)
