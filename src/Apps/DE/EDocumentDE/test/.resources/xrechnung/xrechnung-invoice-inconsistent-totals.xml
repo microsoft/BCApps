@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+    <cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:xeinkauf.de:kosit:xrechnung_3.0</cbc:CustomizationID>
+    <cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
+    <cbc:ID>103033</cbc:ID>
+    <cbc:IssueDate>2026-01-22</cbc:IssueDate>
+    <cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+    <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+    <cbc:BuyerReference>1</cbc:BuyerReference>
+    <cac:AccountingSupplierParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="EM">seller@email.de</cbc:EndpointID>
+            <cac:PartyName><cbc:Name>CRONUS International</cbc:Name></cac:PartyName>
+            <cac:PostalAddress>
+                <cbc:CityName>Birmingham</cbc:CityName>
+                <cbc:PostalZone>B27 4KT</cbc:PostalZone>
+                <cac:Country><cbc:IdentificationCode>GB</cbc:IdentificationCode></cac:Country>
+            </cac:PostalAddress>
+            <cac:PartyLegalEntity><cbc:CompanyID>123456789</cbc:CompanyID></cac:PartyLegalEntity>
+        </cac:Party>
+    </cac:AccountingSupplierParty>
+    <cac:AccountingCustomerParty>
+        <cac:Party>
+            <cbc:EndpointID schemeID="EM">buyer@info.de</cbc:EndpointID>
+            <cac:PartyName><cbc:Name>The Cannon Group PLC</cbc:Name></cac:PartyName>
+            <cac:PostalAddress>
+                <cbc:CityName>Birmingham</cbc:CityName>
+                <cbc:PostalZone>B27 4KT</cbc:PostalZone>
+                <cac:Country><cbc:IdentificationCode>GB</cbc:IdentificationCode></cac:Country>
+            </cac:PostalAddress>
+        </cac:Party>
+    </cac:AccountingCustomerParty>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="XYZ">19</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="XYZ">100</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="XYZ">19</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cbc:ID>S</cbc:ID>
+                <cbc:Percent>19</cbc:Percent>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="XYZ">100</cbc:LineExtensionAmount>
+        <cbc:TaxExclusiveAmount currencyID="XYZ">100</cbc:TaxExclusiveAmount>
+        <cbc:TaxInclusiveAmount currencyID="XYZ">120</cbc:TaxInclusiveAmount>
+        <cbc:PayableAmount currencyID="XYZ">120</cbc:PayableAmount>
+    </cac:LegalMonetaryTotal>
+    <cac:InvoiceLine>
+        <cbc:ID>1</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="PCS">1</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="XYZ">100</cbc:LineExtensionAmount>
+        <cac:Item>
+            <cbc:Name>Item</cbc:Name>
+            <cac:ClassifiedTaxCategory><cbc:ID>S</cbc:ID></cac:ClassifiedTaxCategory>
+        </cac:Item>
+        <cac:Price><cbc:PriceAmount currencyID="XYZ">100</cbc:PriceAmount></cac:Price>
+    </cac:InvoiceLine>
+</ubl:Invoice>
