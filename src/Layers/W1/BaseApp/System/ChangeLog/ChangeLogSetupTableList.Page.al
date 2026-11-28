@@ -218,11 +218,29 @@ page 593 "Change Log Setup (Table) List"
            (ChangeLogSetupTable."Log Deletion" = ChangeLogSetupTable."Log Deletion"::" ")
         then begin
             if ChangeLogSetupTable.Delete() then;
-        end else
+        end else begin
             if not ChangeLogSetupTable.Modify() then
                 ChangeLogSetupTable.Insert();
+            if not ChangeLogSetupTable."Monitor Sensitive Field" then
+                ClearOrphanedFieldMonitoring();
+        end;
 
         ChangeLogSettingsUpdated := true;
+    end;
+
+    local procedure ClearOrphanedFieldMonitoring()
+    var
+        ChangeLogSetupField: Record "Change Log Setup (Field)";
+    begin
+        ChangeLogSetupField.SetRange("Table No.", ChangeLogSetupTable."Table No.");
+        ChangeLogSetupField.SetRange("Monitor Sensitive Field", true);
+        if ChangeLogSetupField.FindSet(true) then
+            repeat
+                ChangeLogSetupField.ClearOrphanedFieldMonitoring();
+#pragma warning disable AA0214 // Fields are modified by ClearOrphanedFieldMonitoring.
+                ChangeLogSetupField.Modify();
+#pragma warning restore AA0214
+            until ChangeLogSetupField.Next() = 0;
     end;
 
     local procedure GetRec()
