@@ -687,6 +687,51 @@ codeunit 134997 "Reminder - Add. Line fee"
     end;
 
     [Test]
+    [HandlerFunctions('UpdateReminderTextRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure UpdateReminderTextTwiceDoesNotCreateOrphanBlankLines()
+    var
+        ReminderAttachmentText: Record "Reminder Attachment Text";
+        ReminderAttachmentTextLine: Record "Reminder Attachment Text Line";
+        ReminderLine: Record "Reminder Line";
+        ReminderLevel: Record "Reminder Level";
+        ReminderTermCode: Code[10];
+        CustNo: Code[20];
+        ReminderNo: Code[20];
+    begin
+        Initialize(false);
+
+        // [GIVEN] A reminder without beginning or ending text.
+        CreateStandardReminderTermSetupWithCust(CustNo, ReminderTermCode, true);
+        PostSalesInvoice(CustNo, CalcDate('<-10D>', WorkDate()));
+        ReminderNo := CreateReminderAndSuggestLinesLineFeeOnAll(CustNo, WorkDate());
+
+        // [GIVEN] Beginning and ending text is added to the reminder level.
+        ReminderLevel.Get(ReminderTermCode, 1);
+        ReminderAttachmentText.Get(ReminderLevel."Reminder Attachment Text", Language.GetUserLanguageCode());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText,
+            ReminderAttachmentTextLine.Position::"Beginning Line", LibraryUtility.GenerateGUID());
+        LibraryERM.CreateReminderAttachmentTextLine(
+            ReminderAttachmentTextLine, ReminderAttachmentText,
+            ReminderAttachmentTextLine.Position::"Ending Line", LibraryUtility.GenerateGUID());
+
+        // [WHEN] The reminder text is updated twice.
+        UpdateReminderText(ReminderNo, 1);
+        UpdateReminderText(ReminderNo, 1);
+
+        // [THEN] All inserted text and blank lines belong to the reminder.
+        ReminderLine.SetRange("Reminder No.", '');
+        Assert.IsTrue(ReminderLine.IsEmpty(), StrSubstNo(ReminderLineMustNotExistErr, ReminderLine.GetFilters()));
+
+        ReminderLine.SetRange("Reminder No.", ReminderNo);
+        ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"Beginning Text");
+        Assert.AreEqual(2, ReminderLine.Count(), NumberReminderLineErr);
+        ReminderLine.SetRange("Line Type", ReminderLine."Line Type"::"Ending Text");
+        Assert.AreEqual(2, ReminderLine.Count(), NumberReminderLineErr);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure SuggestLineFeeGLAccountSetup()
     var
