@@ -437,7 +437,6 @@ table 7000005 "Bill Group"
         exit(StrSubstNo('%1 %2', "No.", "Bank Account Name"));
     end;
 
-    [Scope('OnPrem')]
     procedure ExportToFile()
     var
         DirectDebitCollection: Record "Direct Debit Collection";
@@ -455,7 +454,6 @@ table 7000005 "Bill Group"
         DeleteDirectDebitCollection(DirectDebitCollection."No.");
     end;
 
-    [Scope('OnPrem')]
     procedure RunFileExportCodeunit(CodeunitID: Integer; DirectDebitCollectionNo: Integer; var DirectDebitCollectionEntry: Record "Direct Debit Collection Entry")
     var
         LastError: Text;
