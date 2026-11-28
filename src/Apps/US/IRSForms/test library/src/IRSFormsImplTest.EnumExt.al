@@ -10,4 +10,9 @@ enumextension 148023 "IRS Forms Impl. Test" extends "IRS Forms Implementation"
     {
         Implementation = "IRS 1099 IRIS Configuration" = "Mock Key Vault Client IRIS";
     }
+    value(148024; "Mock XML Test")
+    {
+        Implementation = "IRS 1099 IRIS Configuration" = "Mock Key Vault Client IRIS",
+                         "IRS 1099 IRIS Xml" = "Mock IRIS XML";
+    }
 }

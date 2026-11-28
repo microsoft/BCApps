@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Purchases.Vendor;
+
 codeunit 148018 "IRS 1099 API Tests"
 {
     Subtype = Test;
@@ -13,13 +15,15 @@ codeunit 148018 "IRS 1099 API Tests"
     TestPermissions = Disabled;
 
     var
+        TempOwnedDocHeader: Record "IRS 1099 Form Doc. Header" temporary;
+        TempOwnedReportingPeriod: Record "IRS Reporting Period" temporary;
+        TempOwnedVendor: Record Vendor temporary;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         LibraryGraphMgt: Codeunit "Library - Graph Mgt";
         LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
-        LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
+        OriginalWorkDate: Date;
         IsInitialized: Boolean;
         IRS1099DocumentsServiceNameLbl: Label 'irs1099documents';
 
@@ -27,36 +31,34 @@ codeunit 148018 "IRS 1099 API Tests"
     procedure IRS1099DocumentsAPISunshine()
     var
         IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        OtherIRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
         IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line";
         IRS1099FormReport: Record "IRS 1099 Form Report";
-        VendNo, FormNo, FormBoxNo : Code[20];
-        ResponseText: Text;
+        ResponseSucceeded: Boolean;
+        ResponseError: Text;
     begin
-        // [SCENARIO 497835] 
+        // [SCENARIO 497835]
         Initialize();
-        LibraryIRSReportingPeriod.CreateOneDayReportingPeriod(WorkDate());
-        FormNo :=
-            LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(WorkDate(), WorkDate());
-        FormBoxNo :=
-            LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(WorkDate(), WorkDate(), FormNo);
-        VendNo := LibraryPurchase.CreateVendorNo();
+        Commit();
+        CreateAPIDocument(OtherIRS1099FormDocHeader);
+        CreateAPIDocument(IRS1099FormDocHeader);
         // [GIVEN]
-        MockIRS1099FormDocWithLineAndFormReport(IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport, VendNo, FormNo, FormBoxNo);
+        MockIRS1099FormDocWithLineAndFormReport(IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
         Commit();
         // [WHEN] Call the API
-        LibraryGraphMgt.GetFromWebService(ResponseText, GetIRS1099DocumentAPIWithExpands());
+        ResponseSucceeded := TryGetAndVerifyAPIResponse(IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
+        ResponseError := GetLastErrorText();
         // [THEN] The response contains the header, line and form report
-        VerifyResponseSunshine(ResponseText, IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
+        Cleanup();
+        Commit();
+        Assert.IsTrue(ResponseSucceeded, ResponseError);
     end;
 
     local procedure Initialize()
-    var
-        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
-        IRSReportingPeriod: Record "IRS Reporting Period";
     begin
+        Cleanup();
+        OriginalWorkDate := WorkDate();
         LibraryGraphMgt.SetLicenseSafeWorkDate();
-        IRS1099FormDocHeader.DeleteAll(true);
-        IRSReportingPeriod.DeleteAll(true);
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 API Tests");
         if IsInitialized then
             exit;
@@ -66,18 +68,90 @@ codeunit 148018 "IRS 1099 API Tests"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"IRS 1099 API Tests");
     end;
 
-    local procedure MockIRS1099FormDocWithLineAndFormReport(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; var IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; var IRS1099FormReport: Record "IRS 1099 Form Report"; VendNo: Code[20]; FormNo: Code[20]; FormBoxNo: Code[20])
+    local procedure Cleanup()
+    var
+        IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header";
+        ReportingPeriod: Record "IRS Reporting Period";
+        Vendor: Record Vendor;
     begin
+        if TempOwnedDocHeader.FindSet() then
+            repeat
+                if IRS1099FormDocHeader.Get(TempOwnedDocHeader.ID) then begin
+                    Assert.AreEqual(TempOwnedDocHeader.SystemId, IRS1099FormDocHeader.SystemId, 'The test document ID now belongs to a different document.');
+                    IRS1099FormDocHeader.Delete(true);
+                end;
+            until TempOwnedDocHeader.Next() = 0;
+        TempOwnedDocHeader.DeleteAll();
+        if TempOwnedReportingPeriod.FindSet() then
+            repeat
+                if ReportingPeriod.Get(TempOwnedReportingPeriod."No.") then
+                    ReportingPeriod.Delete(true);
+            until TempOwnedReportingPeriod.Next() = 0;
+        TempOwnedReportingPeriod.DeleteAll();
+        if TempOwnedVendor.FindSet() then
+            repeat
+                if Vendor.Get(TempOwnedVendor."No.") then
+                    Vendor.Delete();
+            until TempOwnedVendor.Next() = 0;
+        TempOwnedVendor.DeleteAll();
+        if OriginalWorkDate <> 0D then begin
+            WorkDate(OriginalWorkDate);
+            Clear(OriginalWorkDate);
+        end;
+    end;
+
+    local procedure CreateAPIDocument(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header")
+    var
+        ReportingPeriod: Record "IRS Reporting Period";
+        Form: Record "IRS 1099 Form";
+        FormBox: Record "IRS 1099 Form Box";
+        Vendor: Record Vendor;
+        PeriodNo: Code[20];
+    begin
+        // API test documents must not replace another codeunit's reporting setup or consume number series.
+        PeriodNo := LibraryIRSReportingPeriod.CreateAvailableAnnualReportingPeriod(2026);
+        ReportingPeriod.Get(PeriodNo);
+        TempOwnedReportingPeriod := ReportingPeriod;
+        TempOwnedReportingPeriod.Insert();
+        Form."Period No." := ReportingPeriod."No.";
+        Form."No." := 'NEC';
+        Form.Insert(true);
+        FormBox."Period No." := ReportingPeriod."No.";
+        FormBox."Form No." := Form."No.";
+        FormBox."No." := 'NEC-01';
+        FormBox.Insert(true);
+        Vendor."No." := LibraryUtility.GenerateGUID();
+        Vendor.Name := Vendor."No.";
+        Vendor.Insert();
+        TempOwnedVendor := Vendor;
+        TempOwnedVendor.Insert();
+        IRS1099FormDocHeader.Init();
         IRS1099FormDocHeader.ID := LibraryUtility.GetNewRecNo(IRS1099FormDocHeader, IRS1099FormDocHeader.FieldNo(ID));
-        IRS1099FormDocHeader."Vendor No." := VendNo;
-        IRS1099FormDocHeader."Form No." := FormNo;
+        IRS1099FormDocHeader."Period No." := ReportingPeriod."No.";
+        IRS1099FormDocHeader."Vendor No." := Vendor."No.";
+        IRS1099FormDocHeader."Form No." := Form."No.";
+        IRS1099FormDocHeader.Insert(true);
+        TempOwnedDocHeader := IRS1099FormDocHeader;
+        TempOwnedDocHeader.Insert(false, true);
+    end;
+
+    local procedure GetIRS1099DocumentAPIWithExpands(DocHeader: Record "IRS 1099 Form Doc. Header") Url: Text
+    begin
+        Url := LibraryGraphMgt.CreateTargetURL(Format(DocHeader.SystemId), Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
+        Url := LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099formreports');
+        exit(Url);
+    end;
+
+    local procedure MockIRS1099FormDocWithLineAndFormReport(var IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; var IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; var IRS1099FormReport: Record "IRS 1099 Form Report")
+    begin
         IRS1099FormDocHeader."Receiving 1099 E-Form Consent" := true;
         IRS1099FormDocHeader."Vendor E-Mail" := 'mymail@microsoft.com';
-        IRS1099FormDocHeader.Insert();
+        IRS1099FormDocHeader.Modify();
         IRS1099FormDocLine."Document ID" := IRS1099FormDocHeader.ID;
+        IRS1099FormDocLine."Period No." := IRS1099FormDocHeader."Period No.";
         IRS1099FormDocLine."Vendor No." := IRS1099FormDocHeader."Vendor No.";
         IRS1099FormDocLine."Form No." := IRS1099FormDocHeader."Form No.";
-        IRS1099FormDocLine."Form Box No." := FormBoxNo;
+        IRS1099FormDocLine."Form Box No." := 'NEC-01';
         IRS1099FormDocLine."Manually Changed" := true;
         IRS1099FormDocLine."Include In 1099" := true;
         IRS1099FormDocLine.Amount := 100;
@@ -88,19 +162,20 @@ codeunit 148018 "IRS 1099 API Tests"
         IRS1099FormReport.Insert();
     end;
 
-    local procedure GetIRS1099DocumentAPIWithExpands() Url: Text
+    [TryFunction]
+    local procedure TryGetAndVerifyAPIResponse(IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; IRS1099FormReport: Record "IRS 1099 Form Report")
+    var
+        ResponseText: Text;
     begin
-        Url := LibraryGraphMgt.CreateTargetURL('', Page::"IRS 1099 Documents API", IRS1099DocumentsServiceNameLbl);
-        Url := LibraryGraphMgt.AppendQueryParameterToTargetURL(Url, '$expand=irs1099documentlines,irs1099formreports');
-        exit(Url);
+        LibraryGraphMgt.GetFromWebService(ResponseText, GetIRS1099DocumentAPIWithExpands(IRS1099FormDocHeader));
+        VerifyResponseSunshine(ResponseText, IRS1099FormDocHeader, IRS1099FormDocLine, IRS1099FormReport);
     end;
 
     local procedure VerifyResponseSunshine(ResponseText: Text; IRS1099FormDocHeader: Record "IRS 1099 Form Doc. Header"; IRS1099FormDocLine: Record "IRS 1099 Form Doc. Line"; IRS1099FormReport: Record "IRS 1099 Form Report")
     var
         IRS1099FormHeaderJson, IRS1099DocumentLinesSet, IRS1099FormReportsSet : Text;
     begin
-        Assert.IsTrue(
-            LibraryGraphMgt.GetObjectFromJSONResponse(ResponseText, IRS1099FormHeaderJson, 1), 'No Json response from IRS1099FormDocHeader.SystemId');
+        IRS1099FormHeaderJson := ResponseText;
         LibraryGraphMgt.VerifyIDInJson(IRS1099FormHeaderJson);
         LibraryGraphMgt.VerifyPropertyInJSON(IRS1099FormHeaderJson, 'vendorNo', IRS1099FormDocHeader."Vendor No.");
         IRS1099FormDocHeader.CalcFields("Vendor Name");
@@ -132,4 +207,5 @@ codeunit 148018 "IRS 1099 API Tests"
         LibraryGraphMgt.VerifyIDInJson(ResponseJson);
         LibraryGraphMgt.VerifyPropertyInJSON(ResponseJson, 'reportType', Format(IRS1099FormReport."Report Type").Replace(' ', '_'));
     end;
+
 }

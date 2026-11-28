@@ -15,7 +15,6 @@ codeunit 148013 "IRS 1099 Notification Tests"
     var
         LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
         LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         Assert: Codeunit Assert;
         IsInitialized: Boolean;
@@ -41,7 +40,7 @@ codeunit 148013 "IRS 1099 Notification Tests"
         LibraryIRSReportingPeriod.CreateReportingPeriod(DMY2Date(1, 1, 2024), DMY2Date(31, 12, 2024));
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(PostingDate2023);
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(PostingDate2023, FormNo);
-        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(PostingDate2023, FormNo, FormBoxNo);
+        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBoxForNonPosting(PostingDate2023, FormNo, FormBoxNo);
 
         // [WHEN] ShowNotificationIfVendorHas1099CodePrevPeriodButNotCurr is called with vendor "V" and posting date in year 2024
         ExpectedMessage := 'You have a 1099 code for this vendor in the previous reporting period but not in the current one. Do you want to open the vendor setup to handle current one?';
@@ -66,7 +65,7 @@ codeunit 148013 "IRS 1099 Notification Tests"
         LibraryIRSReportingPeriod.CreateReportingPeriod(DMY2Date(1, 1, 2024), DMY2Date(31, 12, 2024));
         FormNo := LibraryIRS1099FormBox.CreateSingleFormInReportingPeriod(PostingDate);
         FormBoxNo := LibraryIRS1099FormBox.CreateSingleFormBoxInReportingPeriod(PostingDate, FormNo);
-        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBox(PostingDate, FormNo, FormBoxNo);
+        VendorNo := LibraryIRS1099FormBox.CreateVendorNoWithFormBoxForNonPosting(PostingDate, FormNo, FormBoxNo);
 
         // [WHEN] ShowNotificationIfVendorHas1099CodePrevPeriodButNotCurr is called with vendor "V" and posting date in year 2024
         LibraryIRS1099FormBox.ShowNotificationIfVendorHas1099CodePrevPeriodButNotCurr(VendorNo, PostingDate);
@@ -88,7 +87,7 @@ codeunit 148013 "IRS 1099 Notification Tests"
         // [GIVEN] Vendor "V" without 1099 form box setup for any period
         LibraryIRSReportingPeriod.CreateReportingPeriod(DMY2Date(1, 1, 2023), DMY2Date(31, 12, 2023));
         LibraryIRSReportingPeriod.CreateReportingPeriod(DMY2Date(1, 1, 2024), DMY2Date(31, 12, 2024));
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryIRS1099FormBox.CreateVendorForNonPosting(Vendor);
         PostingDate := DMY2Date(15, 6, 2024);
 
         // [WHEN] ShowNotificationIfVendorHas1099CodePrevPeriodButNotCurr is called with vendor "V" and posting date in year 2024
@@ -124,7 +123,7 @@ codeunit 148013 "IRS 1099 Notification Tests"
         Initialize();
 
         // [GIVEN] Vendor "V" with 1099 form box setup
-        LibraryPurchase.CreateVendor(Vendor);
+        LibraryIRS1099FormBox.CreateVendorForNonPosting(Vendor);
 
         // [WHEN] ShowNotificationIfVendorHas1099CodePrevPeriodButNotCurr is called with vendor "V" and zero posting date
         LibraryIRS1099FormBox.ShowNotificationIfVendorHas1099CodePrevPeriodButNotCurr(Vendor."No.", 0D);
@@ -133,10 +132,9 @@ codeunit 148013 "IRS 1099 Notification Tests"
     end;
 
     procedure Initialize()
-    var
-        IRSReportingPeriod: Record "IRS Reporting Period";
     begin
-        IRSReportingPeriod.DeleteAll();
+        LibraryVariableStorage.Clear();
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
         if IsInitialized then
             exit;
         IsInitialized := true;

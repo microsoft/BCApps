@@ -46,6 +46,12 @@ table 10050 "Transmission IRIS"
             ToolTip = 'Specifies the type of the last transmission received by the IRS and for which the Receipt ID was returned.';
             Editable = false;
         }
+        field(41; "Receipt ID Assigned Manually"; Boolean)
+        {
+            Caption = 'Receipt ID Assigned Manually';
+            ToolTip = 'Specifies that the receipt was assigned manually and may not have complete local submission history.';
+            Editable = false;
+        }
     }
 
     keys
@@ -58,6 +64,7 @@ table 10050 "Transmission IRIS"
 
     var
         CannotDeleteTransmissionErr: Label 'A transmission with status other than None cannot be deleted.';
+        SchemaSource: Text;
 
     trigger OnDelete()
     var
@@ -85,5 +92,15 @@ table 10050 "Transmission IRIS"
 
         Rec.Init();
         Rec."Document ID" := DocID;
+    end;
+
+    internal procedure SetSchemaSource(Source: Text)
+    begin
+        SchemaSource := Source;
+    end;
+
+    internal procedure GetSchemaSource(): Text
+    begin
+        exit(SchemaSource);
     end;
 }
