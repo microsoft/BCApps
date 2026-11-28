@@ -58,4 +58,58 @@ page 30132 "Shpfy Payment Methods Mapping"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(DiscoverPaymentMethods)
+            {
+                ApplicationArea = All;
+                Caption = 'Discover payment methods';
+                Image = Refresh;
+                ToolTip = 'Find payment methods used on recent Shopify orders and add new entries to Payment Method Mapping. Existing entries aren''t changed.';
+
+                trigger OnAction()
+                var
+                    PaymentMethodMapping: Record "Shpfy Payment Method Mapping";
+                    Shop: Record "Shpfy Shop";
+                    DiscoverPaymentMethods: Codeunit "Shpfy Discover Payment Methods";
+                    ShopCode: Code[20];
+                    ShopCodeMax: Code[20];
+                    HasOrders: Boolean;
+                    CreatedMappingCount: Integer;
+                    ShopContextRequiredErr: Label 'Open this page from a Shopify Shop Card to discover payment methods.';
+                    ShopNotFoundErr: Label 'The Shopify Shop %1 could not be found.', Comment = '%1 = Shopify Shop code';
+                    MappingModificationPermissionErr: Label 'You do not have permission to modify payment method mappings.';
+                    NoNewPaymentMethodsMsg: Label 'No new Shopify payment methods were found in the 100 most recent orders.';
+                    NoOrdersFoundMsg: Label 'No Shopify orders are available for payment method discovery.';
+                begin
+                    if not TryGetShopCodeRange(ShopCode, ShopCodeMax) then
+                        Error(ShopContextRequiredErr);
+                    if (ShopCode = '') or (ShopCode <> ShopCodeMax) then
+                        Error(ShopContextRequiredErr);
+                    if not Shop.Get(ShopCode) then
+                        Error(ShopNotFoundErr, ShopCode);
+                    if not PaymentMethodMapping.WritePermission() then
+                        Error(MappingModificationPermissionErr);
+
+                    DiscoverPaymentMethods.Discover(Shop.Code, HasOrders, CreatedMappingCount);
+                    if not HasOrders then
+                        Message(NoOrdersFoundMsg)
+                    else
+                        if CreatedMappingCount = 0 then
+                            Message(NoNewPaymentMethodsMsg)
+                        else
+                            CurrPage.Update(false);
+                end;
+            }
+        }
+    }
+
+    [TryFunction]
+    local procedure TryGetShopCodeRange(var ShopCodeMin: Code[20]; var ShopCodeMax: Code[20])
+    begin
+        ShopCodeMin := Rec.GetRangeMin("Shop Code");
+        ShopCodeMax := Rec.GetRangeMax("Shop Code");
+    end;
 }

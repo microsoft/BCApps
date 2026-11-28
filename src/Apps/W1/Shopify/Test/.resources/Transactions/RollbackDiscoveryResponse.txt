@@ -1,0 +1,1 @@
+{"data":{"orders":{"nodes":[{"transactions":[{"gateway":"%1","manualPaymentGateway":true,"paymentDetails":{"company":"Rollback First Card"}},{"gateway":"%2","manualPaymentGateway":true,"paymentDetails":{"company":"Rollback Failing Card"}}]}]}}}

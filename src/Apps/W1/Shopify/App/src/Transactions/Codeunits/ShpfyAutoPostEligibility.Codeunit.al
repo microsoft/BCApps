@@ -25,8 +25,10 @@ codeunit 30424 "Shpfy Auto Post Eligibility"
     end;
 
     internal procedure GetPaymentMethodMapping(OrderTransaction: Record "Shpfy Order Transaction"; var PaymentMethodMapping: Record "Shpfy Payment Method Mapping"): Boolean
+    var
+        PaymentMethodMappingMgt: Codeunit "Shpfy Pay. Method Mapp. Mgt.";
     begin
-        exit(PaymentMethodMapping.Get(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company"));
+        exit(PaymentMethodMappingMgt.FindMapping(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company", PaymentMethodMapping));
     end;
 
     internal procedure IsMappingConfigured(PaymentMethodMapping: Record "Shpfy Payment Method Mapping"): Boolean

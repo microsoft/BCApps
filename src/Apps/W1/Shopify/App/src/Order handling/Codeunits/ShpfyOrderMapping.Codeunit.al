@@ -292,20 +292,22 @@ codeunit 30163 "Shpfy Order Mapping"
     local procedure MapPaymentMethodCode(var OrderHeader: Record "Shpfy Order Header")
     var
         OrderTransaction: Record "Shpfy Order Transaction";
+        PaymentMethodMappingMgt: Codeunit "Shpfy Pay. Method Mapp. Mgt.";
         IsHandled: Boolean;
         PaymentMethods: List of [Code[10]];
+        PaymentMethodCode: Code[10];
     begin
         if OrderHeader."Payment Method Code" = '' then begin
             OrderEvents.OnBeforeMapPaymentMethod(OrderHeader, IsHandled);
             if not IsHandled then begin
-                OrderTransaction.SetAutoCalcFields("Payment Method");
                 OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
                 OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
                 OrderTransaction.SetFilter(Type, '%1|%2|%3', "Shpfy Transaction Type"::Sale, "Shpfy Transaction Type"::Capture, "Shpfy Transaction Type"::Authorization);
                 if OrderTransaction.FindSet() then begin
                     repeat
-                        if not PaymentMethods.Contains(OrderTransaction."Payment Method") then
-                            PaymentMethods.Add(OrderTransaction."Payment Method");
+                        PaymentMethodCode := PaymentMethodMappingMgt.GetPaymentMethodCode(OrderTransaction.Shop, OrderTransaction.Gateway, OrderTransaction."Credit Card Company");
+                        if not PaymentMethods.Contains(PaymentMethodCode) then
+                            PaymentMethods.Add(PaymentMethodCode);
 
                         if PaymentMethods.Count > 1 then begin
                             OrderEvents.OnAfterMapPaymentMethod(OrderHeader);
