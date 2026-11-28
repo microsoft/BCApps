@@ -379,10 +379,12 @@ page 8095 "Get Vendor Contract Lines"
         NextEntryNo: Integer;
         BillingToDate: Date;
         VendorInvoiceAmount: Decimal;
-        IsContractLine: Boolean;
         VendorInvoiceAmountEditable: Boolean;
         LastContractNo: Code[20];
-        LineStyleExpr: Text;
         VendorContractFilterText: Text;
         RunningMode: Option "Assign Purchase Line to Contract Line","Create Purch. Line from Contract Line";
+
+    protected var
+        LineStyleExpr: Text;
+        IsContractLine: Boolean;
 }
