@@ -133,7 +133,7 @@ page 99000896 "Available - Transfer Lines"
                             else
                                 CreateReservation(NewQtyReserved, NewQtyReservedBase)
                         else
-                            Error(Text001);
+                            ValidateReservationApplicable();
                     end;
                 }
                 action(CancelReservation)
@@ -197,6 +197,7 @@ page 99000896 "Available - Transfer Lines"
         Text003: Label 'Available Quantity is %1.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
+        InboundQtyErr: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 
     protected var
         ReservEntry: Record "Reservation Entry";
@@ -323,6 +324,14 @@ page 99000896 "Available - Transfer Lines"
         OnAfterSetFilters(Rec, ReservEntry);
     end;
 
+    local procedure ValidateReservationApplicable()
+    begin
+        if (Rec."Qty. in Transit (Base)" <> 0) and (TransferDirection = TransferDirection::Inbound) then
+            Error(InboundQtyErr);
+
+        Error(Text001);
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetFilters(var TransferLine: Record "Transfer Line"; ReservationEntry: Record "Reservation Entry")
     begin
@@ -338,4 +347,3 @@ page 99000896 "Available - Transfer Lines"
     begin
     end;
 }
-
