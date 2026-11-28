@@ -815,6 +815,7 @@ table 23 Vendor
         field(91; "Post Code"; Code[20])
         {
             Caption = 'Post Code';
+            OptimizeForTextSearch = true;
             ToolTip = 'Specifies the postal code.';
             TableRelation = if ("Country/Region Code" = const('')) "Post Code"
             else
