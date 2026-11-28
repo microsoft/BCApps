@@ -6,12 +6,15 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Bank.Reconciliation;
 using Microsoft.eServices.EDocument.Processing.Import;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -268,8 +271,14 @@ codeunit 6109 "E-Document Import Helper"
     procedure ValidateReceivingCompanyInfo(EDocument: Record "E-Document"; EDocService: Record "E-Document Service")
     begin
         // First, check if the Receiving Company Id matches a Company Service Participant
-        if MatchCompanyByServiceParticipant(EDocument, EDocService) then
+        if MatchCompanyByServiceParticipant(EDocument, EDocService) then begin
+            if RegistrationNoFeature.IsEnabled() then
+                if (EDocument."Receiving Registration Number" <> '') or
+                   (EDocument."Receiving Company GLN" <> '') or (EDocument."Receiving Company VAT Reg. No." <> '')
+                then
+                    ValidateReceivingCompanyInfo(EDocument);
             exit;
+        end;
 
         ValidateReceivingCompanyInfo(EDocument);
     end;
@@ -284,7 +293,20 @@ codeunit 6109 "E-Document Import Helper"
     begin
         CompanyInformation.Get();
 
+        if RegistrationNoFeature.IsEnabled() then
+            if ValidateReceivingLegalIdentity(EDocument) then begin
+                if CompanyInformation."Use GLN in Electronic Document" and (CompanyInformation.GLN <> '') and
+                   (EDocument."Receiving Company GLN" <> '') and (CompanyInformation.GLN <> EDocument."Receiving Company GLN")
+                then
+                    EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo(GLN), StrSubstNo(InvalidCompanyInfoGLNErr, EDocument."Receiving Company GLN"));
+                if (CompanyInformation."VAT Registration No." <> '') and (EDocument."Receiving Company VAT Reg. No." <> '') then
+                    if ExtractVatRegNo(CompanyInformation."VAT Registration No.", '') <> ExtractVatRegNo(EDocument."Receiving Company VAT Reg. No.", '') then
+                        EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), StrSubstNo(InvalidCompanyInfoVATRegNoErr, EDocument."Receiving Company VAT Reg. No."));
+                exit;
+            end;
+
         if (EDocument."Receiving Company Reg. No." <> '') and
+           not RegistrationNoFeature.IsEnabled() and
            CompanyInformation."Use Reg. No. in E-Document" and
            (CompanyInformation.GLN = '') and
            (CompanyInformation."VAT Registration No." = '') and
@@ -311,6 +333,140 @@ codeunit 6109 "E-Document Import Helper"
 
         if not (ExtractVatRegNo(CompanyInformation."VAT Registration No.", '') in ['', ExtractVatRegNo(EDocument."Receiving Company VAT Reg. No.", '')]) then
             EDocErrorHelper.LogErrorMessage(EDocument, CompanyInformation, CompanyInformation.FieldNo("VAT Registration No."), StrSubstNo(InvalidCompanyInfoVATRegNoErr, EDocument."Receiving Company VAT Reg. No."));
+    end;
+
+    local procedure ValidateReceivingLegalIdentity(EDocument: Record "E-Document"): Boolean
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+        if (EDocument."Receiving Registration Number" = '') or not CompanyInformation."Use Reg. No. in E-Document" then
+            exit(false);
+
+        if (CompanyInformation.GetRegistrationNumber() <> EDocument."Receiving Registration Number") or
+           not RegistrationCountryMatches(EDocument."Receiving Reg. Country/Region", CompanyInformation."Country/Region Code")
+        then
+            EDocErrorHelper.LogErrorMessage(
+                EDocument, CompanyInformation, CompanyInformation.FieldNo("Registration Number"), InvalidCompanyInfoRegistrationNoErr);
+        exit(true);
+    end;
+
+    internal procedure RegistrationCountryMatches(IncomingCountry: Code[10]; MasterCountry: Code[10]): Boolean
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        if IncomingCountry = '' then
+            exit(true);
+        if IncomingCountry = MasterCountry then
+            exit(true);
+        if CountryRegion.Get(MasterCountry) then
+            exit((CountryRegion."ISO Code" <> '') and (IncomingCountry = CountryRegion."ISO Code"));
+        exit(false);
+    end;
+
+    internal procedure CheckLegalIdentifierLength(Value: Text; MaximumLength: Integer)
+    begin
+        if StrLen(Value) > MaximumLength then
+            Error(LegalIdentifierTooLongErr, MaximumLength);
+    end;
+
+    internal procedure CopyIncomingLegalIdentity(Header: Record "E-Document Purchase Header"; var EDocument: Record "E-Document")
+    begin
+        EDocument."Supplier Registration No." := Header."Vendor Registration No.";
+        EDocument."Supplier Reg. Country/Region" := Header."Vendor Reg. Country/Region";
+        EDocument."Supplier Reg. Scheme" := Header."Vendor Reg. Scheme";
+        EDocument."Receiving Registration Number" := Header."Customer Registration No.";
+        EDocument."Receiving Reg. Country/Region" := Header."Customer Reg. Country/Region";
+        EDocument."Receiving Reg. Scheme" := Header."Customer Reg. Scheme";
+    end;
+
+    internal procedure IsIncomingLegalIdentityField(TableNo: Integer; FieldNo: Integer): Boolean
+    var
+        EDocument: Record "E-Document";
+        Header: Record "E-Document Purchase Header";
+    begin
+        case TableNo of
+            Database::"E-Document":
+                exit(FieldNo in [EDocument.FieldNo("Receiving Registration Number"), EDocument.FieldNo("Supplier Registration No."),
+                    EDocument.FieldNo("Supplier Reg. Country/Region"), EDocument.FieldNo("Supplier Reg. Scheme"),
+                    EDocument.FieldNo("Receiving Reg. Country/Region"), EDocument.FieldNo("Receiving Reg. Scheme")]);
+            Database::"E-Document Purchase Header":
+                exit(FieldNo in [Header.FieldNo("Vendor Registration No."), Header.FieldNo("Vendor Reg. Country/Region"),
+                    Header.FieldNo("Vendor Reg. Scheme"), Header.FieldNo("Customer Registration No."),
+                    Header.FieldNo("Customer Reg. Country/Region"), Header.FieldNo("Customer Reg. Scheme")]);
+        end;
+        exit(false);
+    end;
+
+    internal procedure TryGetIncomingHeaderValue(DataExch: Record "Data Exch."; ColumnName: Text[250]; var Value: Text): Boolean
+    var
+        DataExchColumnDef: Record "Data Exch. Column Def";
+        DataExchField: Record "Data Exch. Field";
+        DataExchLineDef: Record "Data Exch. Line Def";
+    begin
+        Clear(Value);
+        DataExchLineDef.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
+        DataExchLineDef.SetRange("Parent Code", '');
+        if not DataExchLineDef.FindFirst() then
+            exit(false);
+        DataExchColumnDef.SetRange("Data Exch. Def Code", DataExch."Data Exch. Def Code");
+        DataExchColumnDef.SetRange("Data Exch. Line Def Code", DataExchLineDef.Code);
+        DataExchColumnDef.SetRange(Name, ColumnName);
+        if not DataExchColumnDef.FindFirst() then
+            exit(false);
+        DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
+        DataExchField.SetRange("Data Exch. Line Def Code", DataExchLineDef.Code);
+        DataExchField.SetRange("Column No.", DataExchColumnDef."Column No.");
+        if DataExchField.FindFirst() then
+            Value := DataExchField.GetValue();
+        exit(true);
+    end;
+
+    internal procedure ApplyIncomingTaxIdentity(DataExch: Record "Data Exch."; var Header: Record "E-Document Purchase Header")
+    var
+        Value: Text;
+        EndpointValue: Text;
+        EndpointScheme: Text;
+    begin
+        if not RegistrationNoFeature.IsEnabled() then
+            exit;
+        if TryGetIncomingHeaderValue(DataExch, 'InboundSupplierVATID', Value) then begin
+            CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor VAT Id"));
+            Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
+            if TryGetIncomingHeaderValue(DataExch, 'SupplierName', Value) then begin
+                if Value = '' then
+                    TryGetIncomingHeaderValue(DataExch, 'SupplierRegistrationName', Value);
+                Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
+            end;
+        end;
+        if TryGetIncomingHeaderValue(DataExch, 'InboundCustomerVATID', Value) then begin
+            CheckLegalIdentifierLength(Value, MaxStrLen(Header."Customer VAT Id"));
+            Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
+        end;
+        if TryGetIncomingHeaderValue(DataExch, 'InboundSupplierEndpointID', EndpointValue) and
+           TryGetIncomingHeaderValue(DataExch, 'InboundSupplierEndpointScheme', EndpointScheme)
+        then begin
+            Value := EndpointScheme + ':' + EndpointValue;
+            CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor External Id"));
+            Header."Vendor External Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor External Id"));
+        end;
+    end;
+
+    internal procedure FindVendorForIncomingIdentity(Header: Record "E-Document Purchase Header"; ServiceCode: Code[20]) VendorNo: Code[20]
+    var
+        Vendor: Record Vendor;
+        ParticipantVendorNo: Code[20];
+    begin
+        VendorNo := FindVendorWithLegalIdentity('', Header."Vendor GLN", Header."Vendor VAT Id",
+            Header."Vendor Registration No.", Header."Vendor Reg. Country/Region");
+        ParticipantVendorNo := FindUniqueVendorByParticipant(Header."Vendor External Id", ServiceCode);
+        if (VendorNo <> '') and (ParticipantVendorNo <> '') and (VendorNo <> ParticipantVendorNo) then
+            Error(ConflictingVendorIdentityErr, VendorNo);
+        if VendorNo = '' then
+            VendorNo := ParticipantVendorNo;
+        if Vendor.Get(VendorNo) then
+            CheckVendorLegalIdentity(Vendor, Header."Vendor GLN", Header."Vendor VAT Id",
+                Header."Vendor Registration No.", Header."Vendor Reg. Country/Region");
     end;
 
     /// <summary>
@@ -459,6 +615,13 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="RegistrationNo">Vendor's registration number.</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]; RegistrationNo: Text[20]): Code[20]
+    begin
+        if RegistrationNoFeature.IsEnabled() then
+            exit(FindVendorWithLegalIdentity(VendorNoText, GLN, VATRegistrationNo, RegistrationNo, ''));
+        exit(FindVendorLegacy(VendorNoText, GLN, VATRegistrationNo, RegistrationNo));
+    end;
+
+    local procedure FindVendorLegacy(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]; RegistrationNo: Text[20]): Code[20]
     var
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         VendorNo: Code[20];
@@ -563,6 +726,115 @@ codeunit 6109 "E-Document Import Helper"
     /// <param name="RegistrationNo">Vendor's registration number.</param>
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendorByRegistrationNo(RegistrationNo: Text[20]): Code[20]
+    begin
+        if RegistrationNoFeature.IsEnabled() then
+            exit(FindVendorByLegalRegistrationNo(RegistrationNo, ''));
+        exit(FindVendorByRegistrationNoLegacy(RegistrationNo));
+    end;
+
+    /// <summary>
+    /// Finds an opted-in vendor by its full legal registration number and optional country/region or ISO country code.
+    /// </summary>
+    /// <param name="RegistrationNo">The untruncated legal registration identifier.</param>
+    /// <param name="CountryCode">The source country/region or ISO country code, or blank when unavailable.</param>
+    /// <returns>The unique matching vendor number, or blank when no vendor matches.</returns>
+    procedure FindVendorByLegalRegistrationNo(RegistrationNo: Text; CountryCode: Code[10]): Code[20]
+    begin
+        exit(FindVendorWithLegalIdentity('', '', '', RegistrationNo, CountryCode));
+    end;
+
+    /// <summary>
+    /// Resolves supplied identifiers to one vendor without truncating legal registration numbers or choosing between conflicting identities.
+    /// </summary>
+    /// <param name="VendorNoText">The Business Central vendor number, when supplied.</param>
+    /// <param name="GLN">The supplier GLN, when supplied.</param>
+    /// <param name="VATRegistrationNo">The supplier VAT identifier, when supplied.</param>
+    /// <param name="RegistrationNo">The untruncated supplier legal registration identifier.</param>
+    /// <param name="CountryCode">The source country/region or ISO country code, or blank when unavailable.</param>
+    /// <returns>The unique matching vendor number, or blank when no vendor matches.</returns>
+    procedure FindVendorWithLegalIdentity(VendorNoText: Code[20]; GLN: Text; VATRegistrationNo: Text; RegistrationNo: Text; CountryCode: Code[10]) VendorNo: Code[20]
+    var
+        Vendor: Record Vendor;
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
+        NormalizedVAT: Text;
+    begin
+        CheckLegalIdentifierLength(RegistrationNo, MaxStrLen(Vendor."Registration Number"));
+        CheckLegalIdentifierLength(GLN, MaxStrLen(Vendor.GLN));
+        if not RegistrationNoFeature.IsEnabled() then begin
+            CheckLegalIdentifierLength(RegistrationNo, 20);
+            CheckLegalIdentifierLength(VATRegistrationNo, MaxStrLen(Vendor."VAT Registration No."));
+            exit(FindVendorLegacy(VendorNoText, CopyStr(GLN, 1, 13), CopyStr(VATRegistrationNo, 1, 20), CopyStr(RegistrationNo, 1, 20)));
+        end;
+
+        if VendorNoText <> '' then
+            if Vendor.Get(VendorNoText) then begin
+                CheckVendorLegalIdentity(Vendor, GLN, VATRegistrationNo, RegistrationNo, CountryCode);
+                AddIncomingVendorCandidate(Vendor, VendorNoText, GLN, VATRegistrationNo, RegistrationNo, CountryCode, VendorNo);
+            end;
+
+        if GLN <> '' then begin
+            Vendor.SetRange(GLN, GLN);
+            if Vendor.FindSet() then
+                repeat
+                    AddIncomingVendorCandidate(Vendor, VendorNoText, GLN, VATRegistrationNo, RegistrationNo, CountryCode, VendorNo);
+                until Vendor.Next() = 0;
+        end;
+
+        if VATRegistrationNo <> '' then begin
+            Vendor.Reset();
+            Vendor.SetFilter("VAT Registration No.", '<>%1', '');
+            if Vendor.FindSet() then
+                repeat
+                    NormalizedVAT := ExtractVatRegNo(VATRegistrationNo, Vendor."Country/Region Code");
+                    if (NormalizedVAT <> '') and (ExtractVatRegNo(Vendor."VAT Registration No.", Vendor."Country/Region Code") = NormalizedVAT) then
+                        AddIncomingVendorCandidate(Vendor, VendorNoText, GLN, VATRegistrationNo, RegistrationNo, CountryCode, VendorNo);
+                until Vendor.Next() = 0;
+        end;
+
+        if RegistrationNo <> '' then begin
+            Vendor.Reset();
+            Vendor.SetRange("Use Reg. No. in E-Document", true);
+            if Vendor.FindSet() then
+                repeat
+                    if RegistrationCountryMatches(CountryCode, Vendor."Country/Region Code") then
+                        if Vendor.GetRegistrationNumber() = RegistrationNo then
+                            AddIncomingVendorCandidate(Vendor, VendorNoText, GLN, VATRegistrationNo, RegistrationNo, CountryCode, VendorNo);
+                until Vendor.Next() = 0;
+        end;
+
+        if VendorNo <> '' then
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'Identifiers');
+    end;
+
+    local procedure AddIncomingVendorCandidate(Vendor: Record Vendor; VendorNoText: Code[20]; GLN: Text; VATRegistrationNo: Text; RegistrationNo: Text; CountryCode: Code[10]; var VendorNo: Code[20])
+    begin
+        if not RegistrationCountryMatches(CountryCode, Vendor."Country/Region Code") then
+            exit;
+        if (VendorNoText <> '') and (VendorNoText <> Vendor."No.") then
+            Error(ConflictingVendorIdentityErr, Vendor."No.");
+        CheckVendorLegalIdentity(Vendor, GLN, VATRegistrationNo, RegistrationNo, CountryCode);
+        if (VendorNo <> '') and (VendorNo <> Vendor."No.") then
+            if (RegistrationNo <> '') and (GLN = '') and (VATRegistrationNo = '') and (VendorNoText = '') then
+                Error(MultipleVendorsWithRegistrationNoErr)
+            else
+                Error(AmbiguousVendorIdentityErr);
+        VendorNo := Vendor."No.";
+    end;
+
+    internal procedure CheckVendorLegalIdentity(Vendor: Record Vendor; GLN: Text; VATRegistrationNo: Text; RegistrationNo: Text; CountryCode: Code[10])
+    begin
+        if not RegistrationNoFeature.IsEnabled() or (Vendor."No." = '') then
+            exit;
+        if not RegistrationCountryMatches(CountryCode, Vendor."Country/Region Code") or
+           ((GLN <> '') and (Vendor.GLN <> '') and (GLN <> Vendor.GLN)) or
+           ((VATRegistrationNo <> '') and (Vendor."VAT Registration No." <> '') and
+            (ExtractVatRegNo(Vendor."VAT Registration No.", Vendor."Country/Region Code") <> ExtractVatRegNo(VATRegistrationNo, Vendor."Country/Region Code"))) or
+           ((RegistrationNo <> '') and Vendor."Use Reg. No. in E-Document" and (Vendor.GetRegistrationNumber() <> RegistrationNo))
+        then
+            Error(ConflictingVendorIdentityErr, Vendor."No.");
+    end;
+
+    local procedure FindVendorByRegistrationNoLegacy(RegistrationNo: Text[20]): Code[20]
     var
         Vendor: Record Vendor;
         VendorNo: Code[20];
@@ -742,6 +1014,9 @@ codeunit 6109 "E-Document Import Helper"
     var
         ServiceParticipant: Record "Service Participant";
     begin
+        if RegistrationNoFeature.IsEnabled() then
+            exit(FindUniqueVendorByParticipant(VendorID, EDocumentServiceCode));
+
         ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Vendor);
         ServiceParticipant.SetRange("Participant Identifier", VendorID);
         ServiceParticipant.SetRange(Service, EDocumentServiceCode);
@@ -751,6 +1026,25 @@ codeunit 6109 "E-Document Import Helper"
         ServiceParticipant.SetRange(Service);
         if ServiceParticipant.FindFirst() then
             exit(ServiceParticipant.Participant);
+    end;
+
+    internal procedure FindUniqueVendorByParticipant(VendorID: Text; EDocumentServiceCode: Code[20]) VendorNo: Code[20]
+    var
+        ServiceParticipant: Record "Service Participant";
+    begin
+        if VendorID in ['', ':'] then
+            exit('');
+        ServiceParticipant.SetRange("Participant Type", ServiceParticipant."Participant Type"::Vendor);
+        ServiceParticipant.SetRange("Participant Identifier", VendorID);
+        ServiceParticipant.SetRange(Service, EDocumentServiceCode);
+        if ServiceParticipant.IsEmpty() then
+            ServiceParticipant.SetRange(Service);
+        if ServiceParticipant.FindSet() then
+            repeat
+                if (VendorNo <> '') and (VendorNo <> ServiceParticipant.Participant) then
+                    Error(AmbiguousVendorIdentityErr);
+                VendorNo := ServiceParticipant.Participant;
+            until ServiceParticipant.Next() = 0;
     end;
 
     procedure LogErrorIfVendorIsSelfBilling(var EDocument: Record "E-Document"; Vendor: Record Vendor)
@@ -1131,6 +1425,10 @@ codeunit 6109 "E-Document Import Helper"
     var
         EDocErrorHelper: Codeunit "E-Document Error Helper";
         EDocumentImport: Codeunit "E-Doc. Import";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
+        LegalIdentifierTooLongErr: Label 'The incoming identifier exceeds the maximum length of %1 characters.', Comment = '%1 = Maximum supported length';
+        AmbiguousVendorIdentityErr: Label 'Multiple vendors match the identifiers on the electronic document. Review the vendor identities before processing the document.';
+        ConflictingVendorIdentityErr: Label 'The identifiers on the electronic document conflict with vendor %1. Review the vendor identity before processing the document.', Comment = '%1 = Vendor number';
         UOMNotFoundErr: Label 'Cannot find unit of measure %1. Make sure that the unit of measure exists.', Comment = '%1 International Standard Code or Code or Description for Unit of Measure';
         UOMConflictWithItemRefErr: Label 'Unit of measure %1 on electronic document line %2 does not match unit of measure %3 in the item reference.  Make sure that a card for the item with the specified unit of measure exists with the corresponding item reference.', Comment = '%1 imported unit code, %2 document line number (e.g. 2), %3 Item Reference unit code';
         UOMConflictItemRefWithItemErr: Label 'Unit of measure %1 in the item reference is not in the list of units of measure for the corresponding item. Make sure that a unit of measure of item reference is in the list of units of measure for the corresponding item.', Comment = '%1 item reference unit code';

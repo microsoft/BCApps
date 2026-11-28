@@ -23,6 +23,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Intercompany.Setup;
@@ -1509,6 +1510,39 @@ table 5107 "Sales Header Archive"
             TableRelation = "User Setup";
             ToolTip = 'Specifies the ID of the user who is responsible for the document.';
         }
+        field(72; "Registration Number"; Text[50])
+        {
+            Caption = 'Registration No.';
+            Editable = false;
+        }
+        field(7402; "Company Registration No."; Text[50])
+        {
+            Caption = 'Company Registration No.';
+            Editable = false;
+        }
+        field(7403; "Company Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Company Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(7404; "Registration Country/Region"; Code[10])
+        {
+            Caption = 'Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(7405; "Bill-to Registration No."; Text[50])
+        {
+            Caption = 'Bill-to Registration No.';
+            Editable = false;
+        }
+        field(7406; "Bill-to Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Bill-to Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
         field(12400; "External Document Text"; Text[100])
         {
             Caption = 'External Document Text';
@@ -1588,6 +1622,36 @@ table 5107 "Sales Header Archive"
         SalesCommentLineArch: Record "Sales Comment Line Archive";
         DimMgt: Codeunit DimensionManagement;
         UserSetupMgt: Codeunit "User Setup Management";
+
+    /// <summary>
+    /// Gets the legal registration number stored on this document.
+    /// </summary>
+    procedure GetRegistrationNumber(): Text[50]
+    begin
+        exit("Registration Number");
+    end;
+
+    procedure GetRegistrationCountryCode(): Code[10]
+    begin
+        exit("Registration Country/Region");
+    end;
+
+    procedure GetCompanyRegistrationNumber(): Text[50]
+    begin
+        exit("Company Registration No.");
+    end;
+
+    procedure GetCompanyRegistrationCountryCode(): Code[10]
+    begin
+        exit("Company Reg. Country/Region");
+    end;
+
+    procedure InitCompanyRegistrationSnapshot()
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        RegistrationNoMgt.GetCompanyRegistrationSnapshot("Company Registration No.", "Company Reg. Country/Region");
+    end;
 
     /// <summary>
     /// Opens the Dimension Set Entries page to display the dimensions associated with this archived sales header.

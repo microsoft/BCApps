@@ -285,6 +285,30 @@ table 6121 "E-Document"
         {
             Caption = 'Receiving Company Registration No.';
         }
+        field(46; "Supplier Registration No."; Text[50])
+        {
+            Caption = 'Supplier Registration No.';
+        }
+        field(47; "Supplier Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Supplier Registration Country/Region';
+        }
+        field(48; "Supplier Reg. Scheme"; Text[50])
+        {
+            Caption = 'Supplier Registration Scheme';
+        }
+        field(49; "Receiving Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Receiving Registration Country/Region';
+        }
+        field(50; "Receiving Reg. Scheme"; Text[50])
+        {
+            Caption = 'Receiving Registration Scheme';
+        }
+        field(51; "Receiving Registration Number"; Text[50])
+        {
+            Caption = 'Receiving Registration Number';
+        }
         #endregion
 
         #region Clearance Model

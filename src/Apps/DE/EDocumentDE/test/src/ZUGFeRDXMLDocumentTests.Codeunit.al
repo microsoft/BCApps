@@ -94,7 +94,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         OriginalCompanyUsesGLN: Boolean;
         OriginalCompanyUsesRegistrationNo: Boolean;
         OriginalCompanyVATRegistrationNo: Text[20];
-        OriginalCompanyRegistrationNo: Text[20];
+        OriginalCompanyRegistrationNo: Text[50];
 
     #region SalesInvoice
     [Test]

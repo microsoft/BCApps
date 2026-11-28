@@ -29,6 +29,7 @@ using Microsoft.FixedAssets.Maintenance;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
@@ -169,6 +170,7 @@ permissionset 7371 "Vendor - Edit"
                   tabledata "VAT Posting Setup" = R,
                   tabledata "VAT Rate Change Log Entry" = Ri,
                   tabledata "VAT Rate Change Setup" = R,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "VAT Reporting Code" = R,
                   tabledata "VAT Setup Posting Groups" = R,

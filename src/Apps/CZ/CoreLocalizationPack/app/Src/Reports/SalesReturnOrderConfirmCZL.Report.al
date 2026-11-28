@@ -76,7 +76,7 @@ report 31188 "Sales Return Order Confirm CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+            column(RegistrationNo_CompanyInformation; "Company Information".GetRegistrationNumber())
             {
             }
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")
@@ -172,7 +172,7 @@ report 31188 "Sales Return Order Confirm CZL"
             column(RegistrationNo_SalesHeaderCaption; FieldCaption("Registration Number"))
             {
             }
-            column(RegistrationNo_SalesHeader; "Registration Number")
+            column(RegistrationNo_SalesHeader; "Sales Header".GetRegistrationNumber())
             {
             }
             column(BankAccountNo_SalesHeaderCaption; FieldCaption("Bank Account No. CZL"))

@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Registration;
 using Microsoft.Peppol;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -99,6 +100,8 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
     begin
         if IsEDocExport(DataExchColumnDef."Data Exch. Def Code") then
             case DataExchColumnDef.Path of
+                '/Invoice/cbc:CustomizationID', '/CreditNote/cbc:CustomizationID':
+                    ExportProfile := xmlNodeValue;
                 '/Invoice/cbc:ID', '/CreditNote/cbc:ID':
                     PrepareHeaderAndVAT(CopyStr(xmlNodeValue, 1, 20));
                 '/Invoice/cbc:DocumentCurrencyCode', '/CreditNote/cbc:DocumentCurrencyCode':
@@ -152,6 +155,9 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             SupplierRegAddrCountryIdCode,
                             SupplRegAddrCountryIdListId);
 
+                        RegistrationNoExport.ApplyLegalIdentity(GetRegistrationDocument(), "Registration No. Party Role"::Company,
+                            ExportProfile, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID);
+
                         PEPPOLMgt.GetAccountingSupplierPartyContact(
                             SalesHeader,
                             DummyVar,
@@ -179,7 +185,11 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID':
                     xmlNodeValue := TaxSchemeID;
                 '/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID':
-                    xmlNodeValue := PartyLegalEntityCompanyID;
+                    begin
+                        xmlNodeValue := PartyLegalEntityCompanyID;
+                        if RegistrationNoFeature.IsEnabled() then
+                            DataExchColumnDef."Export If Not Blank" := true;
+                    end;
                 '/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Name':
                     xmlNodeValue := ContactName;
                 '/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Telephone':
@@ -210,6 +220,9 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             CustPartyLegalEntityCompanyID,
                             CustPartyLegalEntityIDSchemeID);
 
+                        RegistrationNoExport.ApplyLegalIdentity(GetRegistrationDocument(), "Registration No. Party Role"::"Sales Bill-to",
+                            ExportProfile, CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
+
                         PEPPOLMgt.GetAccountingCustomerPartyContact(
                             SalesHeader,
                             DummyVar,
@@ -229,7 +242,11 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName':
                     xmlNodeValue := CustPartyLegalEntityRegName;
                 '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID':
-                    xmlNodeValue := CustPartyLegalEntityCompanyID;
+                    begin
+                        xmlNodeValue := CustPartyLegalEntityCompanyID;
+                        if RegistrationNoFeature.IsEnabled() then
+                            DataExchColumnDef."Export If Not Blank" := true;
+                    end;
                 '/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:Name':
                     xmlNodeValue := CustContactName;
                 '/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:Telephone':
@@ -541,7 +558,11 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID[@schemeID]':
                     xmlAttributeValue := CompanyIDSchemeID;
                 '/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID[@schemeID]':
-                    xmlAttributeValue := PartyLegalEntitySchemeID;
+                    begin
+                        xmlAttributeValue := PartyLegalEntitySchemeID;
+                        if RegistrationNoFeature.IsEnabled() then
+                            DataExchColumnDef."Export If Not Blank" := true;
+                    end;
                 '/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID[@schemeID]':
                     xmlAttributeValue := CustomerSchemeID;
                 '/cac:AccountingCustomerParty/cac:Party/cac:PartyIdentification/cbc:ID[@schemeID]':
@@ -549,7 +570,11 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID[@schemeID]':
                     xmlAttributeValue := CustPartyTaxSchemeCompIDSchID;
                 '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID[@schemeID]':
-                    xmlAttributeValue := CustPartyLegalEntityIDSchemeID;
+                    begin
+                        xmlAttributeValue := CustPartyLegalEntityIDSchemeID;
+                        if RegistrationNoFeature.IsEnabled() then
+                            DataExchColumnDef."Export If Not Blank" := true;
+                    end;
                 '/cac:TaxRepresentativeParty/cac:PartyTaxScheme/cbc:CompanyID[@schemeID]':
                     xmlAttributeValue := PayeePartyTaxSchCompIDSchemeID;
                 '/cac:Delivery/cac:DeliveryLocation/cbc:ID[@schemeID]':
@@ -777,6 +802,20 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
         EDocServiceSupportedType.InsertDefaultIfMissing(Rec.Code, Enum::"E-Document Type"::"Service Credit Memo", Enum::"E-Doc. Supp. Type Direction"::Outgoing);
     end;
 
+    local procedure GetRegistrationDocument() Document: RecordRef
+    begin
+        case ProcessedDocType of
+            ProcessedDocType::"Sales Invoice":
+                Document.GetTable(SalesInvoiceHeader);
+            ProcessedDocType::"Sales Credit Memo":
+                Document.GetTable(SalesCrMemoHeader);
+            ProcessedDocType::"Service Invoice":
+                Document.GetTable(ServiceInvoiceHeader);
+            ProcessedDocType::"Service Credit Memo":
+                Document.GetTable(ServiceCrMemoHeader);
+        end;
+    end;
+
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -795,6 +834,9 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
         TempSalesLineRounding: Record "Sales Line" temporary;
         TempVATProductPostingGroup: Record "VAT Product Posting Group" temporary;
         PEPPOLMgt: Codeunit "PEPPOL30";
+        RegistrationNoExport: Codeunit "Registration No. Export";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
+        ExportProfile: Text;
         ProcessedDocType: Enum "E-Document Type";
         DocumentAttachmentNumber, ProcessedDocTypeInt : Integer;
         AdditionalDocumentReferenceID, AdditionalDocRefDocumentType, URI, Filename, MimeCode, EmbeddedDocumentBinaryObject : Text;

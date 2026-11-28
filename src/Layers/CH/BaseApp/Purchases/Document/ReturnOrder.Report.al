@@ -118,7 +118,7 @@ report 6641 "Return Order"
                     column(CompanyInfoBankName; CompanyInfo."Bank Name")
                     {
                     }
-                    column(CompanyInfoRegNo; CompanyInfo."Registration No.")
+                    column(CompanyInfoRegNo; CompanyInfo.GetRegistrationNumber())
                     {
                     }
                     column(CompanyInfoBankAccountNo; CompanyInfo."Bank Account No.")

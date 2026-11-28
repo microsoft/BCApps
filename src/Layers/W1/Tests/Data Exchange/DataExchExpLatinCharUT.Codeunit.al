@@ -1,3 +1,7 @@
+using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
+using System.Environment.Configuration;
+
 codeunit 132557 "Data Exch. Exp. Latin Char UT"
 {
     Permissions = TableData "Data Exch." = i;
@@ -247,6 +251,153 @@ codeunit 132557 "Data Exch. Exp. Latin Char UT"
         Assert.AreEqual(PaymentExportData."Document No.",
           StringConversionManagement.WindowsToASCII(GenJournalLine."Document No."),
           'The non-latin characters were not converted as expected');
+    end;
+
+    [Test]
+    procedure VendorPaymentRejectsLossyLegalSenderConversion()
+    var
+        CompanyInformation: Record "Company Information";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        TempPaymentExportData: Record "Payment Export Data" temporary;
+        PmtExportMgtVendLedgEntry: Codeunit "Pmt Export Mgt Vend Ledg Entry";
+    begin
+        Initialize();
+        SetRegistrationFeatureEnabled(true);
+        CompanyInformation.Get();
+        CompanyInformation."Registration Number" := 'LEGAL&001';
+        CompanyInformation.Modify();
+        CreateVendLedgEntryPaymentWithNonLatinCharsDoNotPreserve(VendorLedgerEntry);
+
+        asserterror PmtExportMgtVendLedgEntry.PreparePaymentExportDataVLE(TempPaymentExportData, VendorLedgerEntry, 0, 1);
+
+        Assert.ExpectedError('cannot be exported unchanged');
+    end;
+
+    [Test]
+    procedure CustomerPaymentRejectsLossyLegalSenderConversion()
+    var
+        CompanyInformation: Record "Company Information";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        TempPaymentExportData: Record "Payment Export Data" temporary;
+        PmtExportMgtCustLedgEntry: Codeunit "Pmt Export Mgt Cust Ledg Entry";
+    begin
+        Initialize();
+        SetRegistrationFeatureEnabled(true);
+        CompanyInformation.Get();
+        CompanyInformation."Registration Number" := 'LEGAL_001';
+        CompanyInformation.Modify();
+        CreateCustLedgEntryPaymentWithNonLatinCharsDoNotPreserve(CustLedgerEntry);
+
+        asserterror PmtExportMgtCustLedgEntry.PreparePaymentExportDataCLE(TempPaymentExportData, CustLedgerEntry, 0, 1);
+
+        Assert.ExpectedError('cannot be exported unchanged');
+    end;
+
+    [Test]
+    procedure UnicodePaymentPreservesFullLegalSenderAndBankBranch()
+    var
+        CompanyInformation: Record "Company Information";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorBankAccount: Record "Vendor Bank Account";
+        TempPaymentExportData: Record "Payment Export Data" temporary;
+        PmtExportMgtVendLedgEntry: Codeunit "Pmt Export Mgt Vend Ledg Entry";
+        NonLatinCharacter: Char;
+        RegistrationNo: Text[50];
+    begin
+        Initialize();
+        SetRegistrationFeatureEnabled(true);
+        NonLatinCharacter := 233;
+        RegistrationNo := PadStr('Ab-& /' + Format(NonLatinCharacter), 50, 'x');
+        CompanyInformation.Get();
+        CompanyInformation."Registration Number" := RegistrationNo;
+        CompanyInformation.Modify();
+        CreateVendLedgEntryPaymentWithNonLatinCharsPreserve(VendorLedgerEntry);
+        VendorBankAccount.Get(VendorLedgerEntry."Vendor No.", VendorLedgerEntry."Recipient Bank Account");
+        VendorBankAccount."Bank Branch No." := '0123';
+        VendorBankAccount.Modify();
+
+        PmtExportMgtVendLedgEntry.PreparePaymentExportDataVLE(TempPaymentExportData, VendorLedgerEntry, 0, 1);
+
+        Assert.AreEqual(RegistrationNo, TempPaymentExportData."Sender Reg. No.", 'A Unicode payment must retain the full legal identifier.');
+        TempPaymentExportData.TestField("Recipient Reg. No.", VendorBankAccount."Bank Branch No.");
+    end;
+
+    [Test]
+    procedure DisabledRegistrationFeaturePreservesSenderConversion()
+    var
+        CompanyInformation: Record "Company Information";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        TempPaymentExportData: Record "Payment Export Data" temporary;
+        PmtExportMgtVendLedgEntry: Codeunit "Pmt Export Mgt Vend Ledg Entry";
+    begin
+        Initialize();
+        SetRegistrationFeatureEnabled(false);
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := 'LEGAL&001';
+        CompanyInformation.Modify();
+        CreateVendLedgEntryPaymentWithNonLatinCharsDoNotPreserve(VendorLedgerEntry);
+
+        PmtExportMgtVendLedgEntry.PreparePaymentExportDataVLE(TempPaymentExportData, VendorLedgerEntry, 0, 1);
+
+        TempPaymentExportData.TestField("Sender Reg. No.", 'LEGAL+001');
+    end;
+
+    [Test]
+    procedure LegalSenderRejectsNarrowFixedTextColumnBeforeFormatting()
+    var
+        TempPaymentExportData: Record "Payment Export Data" temporary;
+        DataExch: Record "Data Exch.";
+        DataExchDef: Record "Data Exch. Def";
+        DataExchMapping: Record "Data Exch. Mapping";
+        DataExchColumnDef: Record "Data Exch. Column Def";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        SetRegistrationFeatureEnabled(true);
+        LibraryPaymentExport.CreateSimpleDataExchDefWithMapping(
+            DataExchMapping, Database::"Payment Export Data", TempPaymentExportData.FieldNo("Sender Reg. No."));
+        DataExchDef.Get(DataExchMapping."Data Exch. Def Code");
+        DataExchDef."File Type" := DataExchDef."File Type"::"Fixed Text";
+        DataExchDef.Modify();
+        DataExchColumnDef.SetRange("Data Exch. Def Code", DataExchMapping."Data Exch. Def Code");
+        DataExchColumnDef.SetRange("Data Exch. Line Def Code", DataExchMapping."Data Exch. Line Def Code");
+        DataExchColumnDef.FindFirst();
+        DataExchColumnDef.Length := 10;
+        DataExchColumnDef.Modify();
+        DataExch."Data Exch. Def Code" := DataExchDef.Code;
+        DataExch.Insert();
+        TempPaymentExportData."Data Exch Entry No." := DataExch."Entry No.";
+        TempPaymentExportData."Data Exch. Line Def Code" := DataExchMapping."Data Exch. Line Def Code";
+
+        asserterror RegistrationNoMgt.ValidatePaymentExportField(TempPaymentExportData, PadStr('0012', 50, 'X'),
+            TempPaymentExportData.FieldNo("Sender Reg. No."), false, false);
+
+        Assert.ExpectedError('maximum length of 10');
+    end;
+
+    local procedure SetRegistrationFeatureEnabled(Enabled: Boolean)
+    var
+        FeatureKey: Record "Feature Key";
+        Status: Record "Feature Data Update Status";
+        Feature: Codeunit "Registration No. Feature";
+    begin
+        if not FeatureKey.Get(Feature.GetFeatureKey()) then begin
+            FeatureKey.ID := Feature.GetFeatureKey();
+            FeatureKey.Insert();
+        end;
+        if Enabled then
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users"
+        else
+            FeatureKey.Enabled := FeatureKey.Enabled::None;
+        FeatureKey."Data Update Required" := true;
+        FeatureKey.Modify();
+        if not Status.Get(FeatureKey.ID, CompanyName()) then begin
+            Status."Feature Key" := FeatureKey.ID;
+            Status."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(Status."Company Name"));
+            Status.Insert();
+        end;
+        Status."Feature Status" := Status."Feature Status"::Complete;
+        Status."Data Update Required" := true;
+        Status.Modify();
     end;
 
     local procedure CreateVendorPaymentLineWithNonLatinCharsPreserve(var GenJournalLine: Record "Gen. Journal Line")

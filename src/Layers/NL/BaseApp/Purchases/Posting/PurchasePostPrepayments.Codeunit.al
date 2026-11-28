@@ -1577,6 +1577,7 @@ codeunit 444 "Purchase-Post Prepayments"
     begin
         PurchInvHeader.Init();
         PurchInvHeader.TransferFields(PurchHeader);
+        PurchInvHeader.InitCompanyRegistrationSnapshot();
         PurchInvHeader."Posting Description" := PostingDescription;
         PurchInvHeader."Payment Terms Code" := PurchHeader."Prepmt. Payment Terms Code";
         PurchInvHeader."Due Date" := PurchHeader."Prepayment Due Date";
@@ -1601,6 +1602,7 @@ codeunit 444 "Purchase-Post Prepayments"
     begin
         PurchCrMemoHdr.Init();
         PurchCrMemoHdr.TransferFields(PurchHeader);
+        PurchCrMemoHdr.InitCompanyRegistrationSnapshot();
         PurchCrMemoHdr."Payment Terms Code" := PurchHeader."Prepmt. Payment Terms Code";
         PurchCrMemoHdr."Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
         PurchCrMemoHdr."Payment Discount %" := PurchHeader."Prepmt. Payment Discount %";

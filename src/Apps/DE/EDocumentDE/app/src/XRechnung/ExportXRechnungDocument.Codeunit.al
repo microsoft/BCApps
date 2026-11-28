@@ -1339,7 +1339,7 @@ codeunit 13916 "Export XRechnung Document"
         PartyElement.Add(PartyTaxSchemeElement);
     end;
 
-    local procedure InsertPartyRegistrationNoTaxScheme(var PartyElement: XmlElement; RegistrationNo: Text[20])
+    local procedure InsertPartyRegistrationNoTaxScheme(var PartyElement: XmlElement; RegistrationNo: Text[50])
     var
         PartyTaxSchemeElement: XmlElement;
         TaxSchemeElement: XmlElement;

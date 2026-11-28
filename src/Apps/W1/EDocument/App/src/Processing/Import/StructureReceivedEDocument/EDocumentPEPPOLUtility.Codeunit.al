@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Registration;
 using System.Text;
 using System.Utilities;
 
@@ -181,34 +182,60 @@ codeunit 6401 "E-Document PEPPOL Utility"
     /// <summary>
     /// Extracts AccountingSupplierParty and PayeeParty fields from a UBL document.
     /// Per PEPPOL BIS 3.0: PartyName is optional; RegistrationName is mandatory fallback.
-    /// PayeeParty, when present, overrides vendor name and VAT ID.
+    /// The enabled legal registration flow keeps the accounting supplier separate from the payee.
     /// SchemeID 0088 on EndpointID = GLN.
     /// </summary>
     internal procedure PopulateSupplierInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Purchase Header")
     var
         XmlNode: XmlNode;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         Value: Text;
+        PartyPath: Text;
+        SchemeValue: Text;
     begin
+        PartyPath := RootPath + '/cac:AccountingSupplierParty/cac:Party';
+        if RegistrationNoFeature.IsEnabled() then
+            PopulateLegalRegistrationInfo(PeppolXML, XmlNamespaces, PartyPath,
+                Header."Vendor Registration No.", Header."Vendor Reg. Country/Region", Header."Vendor Reg. Scheme");
         if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyName/cbc:Name', Value) then
             Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
         if Header."Vendor Company Name" = '' then
             if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
                 Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
-        if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:PayeeParty/cac:PartyName/cbc:Name', Value) then
-            Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
+        if not RegistrationNoFeature.IsEnabled() then
+            if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:PayeeParty/cac:PartyName/cbc:Name', Value) then
+                Header."Vendor Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Company Name"));
         if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:Contact/cbc:Name', Value) then
             Header."Vendor Contact Name" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Contact Name"));
         if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PostalAddress/cbc:StreetName', Value) then
             Header."Vendor Address" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Address"));
-        if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Value) then
+        if RegistrationNoFeature.IsEnabled() then begin
+            Value := GetNodeValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID="VAT"]/cbc:CompanyID');
+            EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor VAT Id"));
             Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
-        if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID', Value) then
-            Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
+        end
+        else begin
+            if TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID', Value) then
+                Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
+            if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:PayeeParty/cac:PartyLegalEntity/cbc:CompanyID', Value) then
+                Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
+        end;
+
+        if RegistrationNoFeature.IsEnabled() then begin
+            SchemeValue := GetNodeValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID/@schemeID');
+            Value := GetNodeValue(PeppolXML, XmlNamespaces, PartyPath + '/cbc:EndpointID');
+            Value := SchemeValue + ':' + Value;
+            EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor External Id"));
+            Header."Vendor External Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor External Id"));
+        end;
 
         if PeppolXML.SelectSingleNode(RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID', XmlNamespaces, XmlNode) then
             if XmlNode.AsXmlAttribute().Value() = '0088' then
-                if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID', Value) then
+                if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID', Value) then begin
+                    if RegistrationNoFeature.IsEnabled() then
+                        EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor GLN"));
                     Header."Vendor GLN" := CopyStr(Value, 1, MaxStrLen(Header."Vendor GLN"));
+                end;
     end;
 
     /// <summary>
@@ -219,19 +246,32 @@ codeunit 6401 "E-Document PEPPOL Utility"
     internal procedure PopulateCustomerInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; RootPath: Text; var Header: Record "E-Document Purchase Header")
     var
         XmlNode: XmlNode;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         SchemeID: Text;
         EndpointValue: Text;
         Value: Text;
+        PartyPath: Text;
     begin
+        PartyPath := RootPath + '/cac:AccountingCustomerParty/cac:Party';
+        if RegistrationNoFeature.IsEnabled() then
+            PopulateLegalRegistrationInfo(PeppolXML, XmlNamespaces, PartyPath,
+                Header."Customer Registration No.", Header."Customer Reg. Country/Region", Header."Customer Reg. Scheme");
         if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyName/cbc:Name', Value) then
             Header."Customer Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Customer Company Name"));
         if Header."Customer Company Name" = '' then
             if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:RegistrationName', Value) then
                 Header."Customer Company Name" := CopyStr(Value, 1, MaxStrLen(Header."Customer Company Name"));
-        if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyLegalEntity/cbc:CompanyID', Value) then
+        if RegistrationNoFeature.IsEnabled() then begin
+            Value := GetNodeValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID="VAT"]/cbc:CompanyID');
+            EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Customer VAT Id"));
             Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
-        if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PartyTaxScheme/cbc:CompanyID', Value) then
-            Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
+        end
+        else begin
+            if TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:CompanyID', Value) then
+                Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
+            if TryGetStringValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyTaxScheme/cbc:CompanyID', Value) then
+                Header."Customer VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer VAT Id"));
+        end;
         if TryGetStringValue(PeppolXML, XmlNamespaces, RootPath + '/cac:AccountingCustomerParty/cac:Party/cac:PostalAddress/cbc:StreetName', Value) then
             Header."Customer Address" := CopyStr(Value, 1, MaxStrLen(Header."Customer Address"));
 
@@ -239,11 +279,33 @@ codeunit 6401 "E-Document PEPPOL Utility"
             if PeppolXML.SelectSingleNode(RootPath + '/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID/@schemeID', XmlNamespaces, XmlNode) then
                 SchemeID := XmlNode.AsXmlAttribute().Value();
 
-            if SchemeID = '0088' then
+            if SchemeID = '0088' then begin
+                if RegistrationNoFeature.IsEnabled() then
+                    EDocumentImportHelper.CheckLegalIdentifierLength(EndpointValue, MaxStrLen(Header."Customer GLN"));
                 Header."Customer GLN" := CopyStr(EndpointValue, 1, MaxStrLen(Header."Customer GLN"));
+            end;
 
-            Header."Customer Company Id" := CopyStr(SchemeID + ':' + EndpointValue, 1, MaxStrLen(Header."Customer Company Id"));
+            Value := SchemeID + ':' + EndpointValue;
+            if RegistrationNoFeature.IsEnabled() then
+                EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Customer Company Id"));
+            Header."Customer Company Id" := CopyStr(Value, 1, MaxStrLen(Header."Customer Company Id"));
         end;
+    end;
+
+    local procedure PopulateLegalRegistrationInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; PartyPath: Text; var RegistrationNo: Text[50]; var CountryCode: Code[10]; var Scheme: Text[50])
+    var
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        Value: Text;
+    begin
+        Value := GetNodeValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:CompanyID');
+        EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(RegistrationNo));
+        RegistrationNo := CopyStr(Value, 1, MaxStrLen(RegistrationNo));
+        Value := GetNodeValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PartyLegalEntity/cbc:CompanyID/@schemeID');
+        EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Scheme));
+        Scheme := CopyStr(Value, 1, MaxStrLen(Scheme));
+        Value := GetNodeValue(PeppolXML, XmlNamespaces, PartyPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode');
+        EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(CountryCode));
+        CountryCode := CopyStr(Value, 1, MaxStrLen(CountryCode));
     end;
 
     /// <summary>
@@ -274,6 +336,9 @@ codeunit 6401 "E-Document PEPPOL Utility"
     end;
 
     #endregion Header Field Extraction
+
+    var
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
 
     #region Line Field Extraction
 

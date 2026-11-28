@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.IO;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 #if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 #endif
@@ -24,6 +25,7 @@ codeunit 6161 "E-Document Install"
     begin
         InsertDataExch();
         InsertDataExchV2();
+        AddIncomingLegalIdentityMappings();
         EDocumentBackgroundJobs.EnsurePaymentOccurrenceDispatcher();
         HandleSupportedTypeDirectionUpgrade();
     end;
@@ -173,6 +175,94 @@ codeunit 6161 "E-Document Install"
         ImportDataExchDefinition(InvoiceImportV2ResourceTok);
     end;
 
+    internal procedure AddIncomingLegalIdentityMappings()
+    begin
+        AddIncomingLegalIdentityMappings('EDOCPEPPOLINVIMP', 'PEPPOLINVHEADER', false);
+        AddIncomingLegalIdentityMappings('EDOCPEPPOLCRMEMOIMP', 'PEPPOLCRMEMOHEADER', false);
+        AddIncomingLegalIdentityMappings('EDOCPEPINVPURCHDRAFT', 'PEPPOLINVHEADER', true);
+        AddIncomingLegalIdentityMappings('EDOCPEPCMPURCHDRAFT', 'PEPPOLCRMEMOHEADER', true);
+    end;
+
+    local procedure AddIncomingLegalIdentityMappings(DefinitionCode: Code[20]; LineCode: Code[20]; PurchaseDraft: Boolean)
+    var
+        DataExchLineDef: Record "Data Exch. Line Def";
+        DataExchMapping: Record "Data Exch. Mapping";
+        EDocument: Record "E-Document";
+        Header: Record "E-Document Purchase Header";
+        SupplierPath: Text;
+        CustomerPath: Text;
+    begin
+        if not DataExchLineDef.Get(DefinitionCode, LineCode) then
+            exit;
+        if not (DataExchLineDef."Data Line Tag" in ['/Invoice', '/CreditNote']) then
+            exit;
+        if not DataExchMapping.Get(DefinitionCode, LineCode, Database::"Intermediate Data Import") then
+            exit;
+        if not DataExchMapping."Use as Intermediate Table" then
+            exit;
+        SupplierPath := DataExchLineDef."Data Line Tag" + '/cac:AccountingSupplierParty/cac:Party';
+        CustomerPath := DataExchLineDef."Data Line Tag" + '/cac:AccountingCustomerParty/cac:Party';
+        if PurchaseDraft then begin
+            AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegistrationNo', SupplierPath + '/cac:PartyLegalEntity/cbc:CompanyID', Database::"E-Document Purchase Header", Header.FieldNo("Vendor Registration No."));
+            AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegCountry', SupplierPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode', Database::"E-Document Purchase Header", Header.FieldNo("Vendor Reg. Country/Region"));
+            AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegScheme', SupplierPath + '/cac:PartyLegalEntity/cbc:CompanyID/@schemeID', Database::"E-Document Purchase Header", Header.FieldNo("Vendor Reg. Scheme"));
+            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegistrationNo', CustomerPath + '/cac:PartyLegalEntity/cbc:CompanyID', Database::"E-Document Purchase Header", Header.FieldNo("Customer Registration No."));
+            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegCountry', CustomerPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode', Database::"E-Document Purchase Header", Header.FieldNo("Customer Reg. Country/Region"));
+            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegScheme', CustomerPath + '/cac:PartyLegalEntity/cbc:CompanyID/@schemeID', Database::"E-Document Purchase Header", Header.FieldNo("Customer Reg. Scheme"));
+        end else begin
+            AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegistrationNo', SupplierPath + '/cac:PartyLegalEntity/cbc:CompanyID', Database::"E-Document", EDocument.FieldNo("Supplier Registration No."));
+            AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegCountry', SupplierPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode', Database::"E-Document", EDocument.FieldNo("Supplier Reg. Country/Region"));
+            AddIncomingColumn(DataExchLineDef, 'InboundSupplierRegScheme', SupplierPath + '/cac:PartyLegalEntity/cbc:CompanyID/@schemeID', Database::"E-Document", EDocument.FieldNo("Supplier Reg. Scheme"));
+            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegistrationNo', CustomerPath + '/cac:PartyLegalEntity/cbc:CompanyID', Database::"E-Document", EDocument.FieldNo("Receiving Registration Number"));
+            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegCountry', CustomerPath + '/cac:PostalAddress/cac:Country/cbc:IdentificationCode', Database::"E-Document", EDocument.FieldNo("Receiving Reg. Country/Region"));
+            AddIncomingColumn(DataExchLineDef, 'InboundCustomerRegScheme', CustomerPath + '/cac:PartyLegalEntity/cbc:CompanyID/@schemeID', Database::"E-Document", EDocument.FieldNo("Receiving Reg. Scheme"));
+        end;
+        AddIncomingColumn(DataExchLineDef, 'InboundSupplierVATID', SupplierPath + '/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID="VAT"]/cbc:CompanyID', 0, 0);
+        AddIncomingColumn(DataExchLineDef, 'InboundCustomerVATID', CustomerPath + '/cac:PartyTaxScheme[cac:TaxScheme/cbc:ID="VAT"]/cbc:CompanyID', 0, 0);
+        AddIncomingColumn(DataExchLineDef, 'InboundSupplierEndpointID', SupplierPath + '/cbc:EndpointID', 0, 0);
+        AddIncomingColumn(DataExchLineDef, 'InboundSupplierEndpointScheme', SupplierPath + '/cbc:EndpointID/@schemeID', 0, 0);
+    end;
+
+    local procedure AddIncomingColumn(var DataExchLineDef: Record "Data Exch. Line Def"; ColumnName: Text[250]; ColumnPath: Text; TargetTable: Integer; TargetField: Integer)
+    var
+        DataExchColumnDef: Record "Data Exch. Column Def";
+        DataExchFieldMapping: Record "Data Exch. Field Mapping";
+        ColumnNo: Integer;
+    begin
+        DataExchColumnDef.SetRange("Data Exch. Def Code", DataExchLineDef."Data Exch. Def Code");
+        DataExchColumnDef.SetRange("Data Exch. Line Def Code", DataExchLineDef.Code);
+        DataExchColumnDef.SetRange(Name, ColumnName);
+        if DataExchColumnDef.FindFirst() then
+            exit;
+
+        DataExchColumnDef.SetRange(Name);
+        if DataExchColumnDef.FindLast() then
+            ColumnNo := DataExchColumnDef."Column No.";
+        ColumnNo += 1;
+        DataExchColumnDef.Init();
+        DataExchColumnDef."Data Exch. Def Code" := DataExchLineDef."Data Exch. Def Code";
+        DataExchColumnDef."Data Exch. Line Def Code" := DataExchLineDef.Code;
+        DataExchColumnDef."Column No." := ColumnNo;
+        DataExchColumnDef.Name := ColumnName;
+        DataExchColumnDef.Path := CopyStr(ColumnPath, 1, MaxStrLen(DataExchColumnDef.Path));
+        DataExchColumnDef.Insert(true);
+        if TargetTable <> 0 then begin
+            DataExchFieldMapping.Init();
+            DataExchFieldMapping."Data Exch. Def Code" := DataExchLineDef."Data Exch. Def Code";
+            DataExchFieldMapping."Data Exch. Line Def Code" := DataExchLineDef.Code;
+            DataExchFieldMapping."Table ID" := Database::"Intermediate Data Import";
+            DataExchFieldMapping."Column No." := ColumnNo;
+            DataExchFieldMapping."Target Table ID" := TargetTable;
+            DataExchFieldMapping."Target Field ID" := TargetField;
+            DataExchFieldMapping.Optional := true;
+            DataExchFieldMapping.Insert(true);
+        end;
+        if DataExchLineDef."Column Count" < ColumnNo then begin
+            DataExchLineDef."Column Count" := ColumnNo;
+            DataExchLineDef.Modify(true);
+        end;
+    end;
+
     internal procedure ImportCreditMemoV2XML()
     var
         DataExchDef: Record "Data Exch. Def";
@@ -198,6 +288,16 @@ codeunit 6161 "E-Document Install"
         TempBlob.CreateInStream(XMLInStream);
         Xmlport.Import(Xmlport::"Imp / Exp Data Exch Def & Map", XMLInStream);
         Clear(TempBlob);
+        case ResourceName of
+            InvoiceImportResourceTok:
+                AddIncomingLegalIdentityMappings('EDOCPEPPOLINVIMP', 'PEPPOLINVHEADER', false);
+            CrMemoImportResourceTok:
+                AddIncomingLegalIdentityMappings('EDOCPEPPOLCRMEMOIMP', 'PEPPOLCRMEMOHEADER', false);
+            InvoiceImportV2ResourceTok:
+                AddIncomingLegalIdentityMappings('EDOCPEPINVPURCHDRAFT', 'PEPPOLINVHEADER', true);
+            CrMemoImportV2ResourceTok:
+                AddIncomingLegalIdentityMappings('EDOCPEPCMPURCHDRAFT', 'PEPPOLCRMEMOHEADER', true);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]

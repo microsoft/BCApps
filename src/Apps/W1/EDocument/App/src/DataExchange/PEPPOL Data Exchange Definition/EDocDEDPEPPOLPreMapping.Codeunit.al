@@ -6,8 +6,10 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.Bank.Reconciliation;
 using Microsoft.EServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Foundation.Registration;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -26,6 +28,7 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
         TempIntegerHeaderRecords: Record "Integer" temporary;
         TempIntegerLineRecords: Record "Integer" temporary;
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
         CurrencyCodeMissingErr: Label 'The currency code is missing on the electronic document.';
         CurrencyCodeDifferentErr: Label 'The currency code %1 must not be different from the currency code %2 on the electronic document.', Comment = '%1 currency code (e.g. GBP), %2 the document currency code (e.g. DKK)';
         ItemCurrencyCodeDifferentErr: Label 'The currency code %1 on invoice line no. %2 must not be different from the currency code %3 on the electronic document.', Comment = '%1 Invoice line currency code (e.g. GBP), %2 invoice line no. (e.g. 2), %3 document currency code (e.g. DKK)';
@@ -38,6 +41,7 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
         UnableToFindTotalAmountErr: Label 'The electronic document has no total amount excluding VAT.';
         UnableToFindAppropriateAccountErr: Label 'Cannot find an appropriate G/L account for the line with description ''%1''. Choose the Map Text to Account button, and then map the core part of ''%1'' to the relevant G/L account.', Comment = '%1 - arbitrary text';
         InvoiceChargeHasNoReasonErr: Label 'Invoice charge on the e-document has no reason code.';
+        MappedVendorIdentityConflictErr: Label 'The mapped vendor number or system ID conflicts with another supplier identifier. Resolve the supplier identity before processing the electronic document.';
 
     trigger OnRun()
     var
@@ -160,7 +164,15 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
         VendorIBAN: Code[50];
         VendorBankBranchNo: Text[20];
         VendorBankAccountNo: Text[30];
+        EDocument: Record "E-Document";
+        RegistrationNo: Text;
     begin
+        if RegistrationNoFeature.IsEnabled() then begin
+            RegistrationNo := IntermediateDataImport.GetEntryValue(EntryNo, Database::"E-Document", EDocument.FieldNo("Supplier Registration No."), 0, RecordNo);
+            if RegistrationNo <> '' then
+                exit(FindBuyFromVendorWithLegalIdentity(EntryNo, RecordNo, RegistrationNo));
+        end;
+
         VendorIdText := IntermediateDataImport.GetEntryValue(EntryNo, Database::Vendor, Vendor.FieldNo(SystemId), 0, RecordNo);
         VendorNo := EDocumentImportHelper.FindVendorById(VendorIdText);
         if VendorNo <> '' then
@@ -248,6 +260,77 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
         exit('');
     end;
 
+    local procedure FindBuyFromVendorWithLegalIdentity(EntryNo: Integer; RecordNo: Integer; RegistrationNo: Text): Code[20]
+    var
+        IntermediateDataImport: Record "Intermediate Data Import";
+        EDocument: Record "E-Document";
+        Header: Record "E-Document Purchase Header";
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        DataExch: Record "Data Exch.";
+        Value: Text;
+        EndpointScheme: Text;
+        ServiceCode: Code[20];
+        VendorNo: Code[20];
+        MappedVendorNo: Code[20];
+        VendorNoFromNumber: Code[20];
+    begin
+        DataExch.Get(EntryNo);
+        EDocument := DataExch."Related Record".GetRecord();
+        ServiceCode := EDocument.GetEDocumentService().Code;
+        EDocumentImportHelper.CheckLegalIdentifierLength(RegistrationNo, MaxStrLen(Header."Vendor Registration No."));
+        Header."Vendor Registration No." := CopyStr(RegistrationNo, 1, MaxStrLen(Header."Vendor Registration No."));
+        Value := IntermediateDataImport.GetEntryValue(EntryNo, Database::"E-Document", EDocument.FieldNo("Supplier Reg. Country/Region"), 0, RecordNo);
+        EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor Reg. Country/Region"));
+        Header."Vendor Reg. Country/Region" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Reg. Country/Region"));
+        Value := IntermediateDataImport.GetEntryValue(EntryNo, Database::"E-Document", EDocument.FieldNo("Supplier Reg. Scheme"), 0, RecordNo);
+        EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor Reg. Scheme"));
+        Header."Vendor Reg. Scheme" := CopyStr(Value, 1, MaxStrLen(Header."Vendor Reg. Scheme"));
+        if EDocumentImportHelper.TryGetIncomingHeaderValue(DataExch, 'InboundSupplierVATID', Value) then begin
+            EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor VAT Id"));
+            Header."Vendor VAT Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor VAT Id"));
+        end;
+        if EDocumentImportHelper.TryGetIncomingHeaderValue(DataExch, 'InboundSupplierEndpointID', Value) then begin
+            EDocumentImportHelper.TryGetIncomingHeaderValue(DataExch, 'InboundSupplierEndpointScheme', EndpointScheme);
+            if EndpointScheme = '0088' then begin
+                EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor GLN"));
+                Header."Vendor GLN" := CopyStr(Value, 1, MaxStrLen(Header."Vendor GLN"));
+            end;
+            Value := EndpointScheme + ':' + Value;
+            EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Header."Vendor External Id"));
+            Header."Vendor External Id" := CopyStr(Value, 1, MaxStrLen(Header."Vendor External Id"));
+        end;
+
+        Value := IntermediateDataImport.GetEntryValue(EntryNo, Database::Vendor, Vendor.FieldNo(SystemId), 0, RecordNo);
+        MappedVendorNo := EDocumentImportHelper.FindVendorById(Value);
+        Value := IntermediateDataImport.GetEntryValue(EntryNo, Database::Vendor, Vendor.FieldNo("No."), 0, RecordNo);
+        EDocumentImportHelper.CheckLegalIdentifierLength(Value, MaxStrLen(Vendor."No."));
+        VendorNoFromNumber := EDocumentImportHelper.FindVendorByNo(CopyStr(Value, 1, MaxStrLen(Vendor."No.")));
+        if (MappedVendorNo <> '') and (VendorNoFromNumber <> '') and (MappedVendorNo <> VendorNoFromNumber) then
+            Error(MappedVendorIdentityConflictErr);
+        if MappedVendorNo = '' then
+            MappedVendorNo := VendorNoFromNumber;
+
+        VendorNo := EDocumentImportHelper.FindVendorForIncomingIdentity(Header, ServiceCode);
+        if MappedVendorNo <> '' then begin
+            if (VendorNo <> '') and (VendorNo <> MappedVendorNo) then
+                Error(MappedVendorIdentityConflictErr);
+            Vendor.Get(MappedVendorNo);
+            EDocumentImportHelper.CheckVendorLegalIdentity(Vendor, Header."Vendor GLN", Header."Vendor VAT Id", Header."Vendor Registration No.", Header."Vendor Reg. Country/Region");
+            VendorNo := MappedVendorNo;
+        end;
+        if VendorNo = '' then begin
+            Header."Vendor Company Name" := CopyStr(IntermediateDataImport.GetEntryValue(EntryNo, Database::"Purchase Header", PurchaseHeader.FieldNo("Buy-from Vendor Name"), 0, RecordNo), 1, MaxStrLen(Header."Vendor Company Name"));
+            Header."Vendor Address" := CopyStr(IntermediateDataImport.GetEntryValue(EntryNo, Database::"Purchase Header", PurchaseHeader.FieldNo("Buy-from Address"), 0, RecordNo), 1, MaxStrLen(Header."Vendor Address"));
+            VendorNo := EDocumentImportHelper.FindVendorByNameAndAddress(Header."Vendor Company Name", Header."Vendor Address");
+            if Vendor.Get(VendorNo) then
+                EDocumentImportHelper.CheckVendorLegalIdentity(Vendor, Header."Vendor GLN", Header."Vendor VAT Id", Header."Vendor Registration No.", Header."Vendor Reg. Country/Region");
+        end;
+        if VendorNo = '' then
+            LogErrorMessage(EntryNo, Vendor, Vendor.FieldNo("Registration Number"), StrSubstNo(BuyFromVendorNotFoundErr, Header."Vendor Company Name", Header."Vendor GLN", Header."Vendor VAT Id"));
+        exit(UpdateIntermediateRecord(IntermediateDataImport, EntryNo, RecordNo, VendorNo));
+    end;
+
     local procedure FindPayToVendor(EntryNo: Integer; RecordNo: Integer): Code[20]
     var
         IntermediateDataImport: Record "Intermediate Data Import";
@@ -270,6 +353,8 @@ codeunit 6156 "E-Doc. DED PEPPOL Pre-Mapping"
         IntermediateDataImport.SetRange("Field ID", PurchaseHeader.FieldNo("VAT Registration No."));
         if IntermediateDataImport.FindFirst() then
             VatRegNo := IntermediateDataImport.Value;
+        if RegistrationNoFeature.IsEnabled() then
+            VatRegNo := '';
 
         IntermediateDataImport.SetRange("Field ID", PurchaseHeader.FieldNo("Pay-to Vendor No."));
         if IntermediateDataImport.FindFirst() then

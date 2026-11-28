@@ -29,6 +29,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Integration.Dataverse;
@@ -406,18 +407,20 @@ table 18 Customer
         {
             Caption = 'Registration No.';
             OptimizeForTextSearch = true;
-            ToolTip = 'Specifies the registration number of the customer. You can enter a maximum of 20 characters, both numbers and letters.';
+            ToolTip = 'Specifies the customer''s legal registration number, including any leading zeros, spaces, and separators. You can enter up to 50 characters.';
 
             trigger OnValidate()
             var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
                 OnBeforeValidateRegistrationNumber(Rec, IsHandled);
                 if IsHandled then
                     exit;
-                if StrLen("Registration Number") > 20 then
-                    FieldError("Registration Number", FieldLengthErr);
+                RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
+                if CurrFieldNo <> 0 then
+                    RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
             end;
         }
         /// <summary>
@@ -531,11 +534,17 @@ table 18 Customer
             ToolTip = 'Specifies the country/region of the address.';
 
             trigger OnValidate()
+            var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
 
-                if "Country/Region Code" <> xRec."Country/Region Code" then
+                if "Country/Region Code" <> xRec."Country/Region Code" then begin
                     VATRegistrationValidation();
+                    RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
+                    if CurrFieldNo <> 0 then
+                        RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
+                end;
                 AltCustVATRegFacade.CheckCustomerConsistency(Rec);
             end;
         }
@@ -2543,6 +2552,9 @@ table 18 Customer
         key(Key22; "IC Partner Code")
         {
         }
+        key(RegistrationNumber; "Country/Region Code", "Registration Number")
+        {
+        }
     }
 
     fieldgroups
@@ -2717,7 +2729,16 @@ table 18 Customer
         ConfirmBlockedPrivacyBlockedQst: Label 'If you change the Blocked field, the Privacy Blocked field is changed to No. Do you want to continue?';
         CanNotChangeBlockedDueToPrivacyBlockedErr: Label 'The Blocked field cannot be changed because the user is blocked for privacy reasons.';
         PhoneNoCannotContainLettersErr: Label 'must not contain letters';
-        FieldLengthErr: Label 'must not have the length more than 20 symbols';
+
+    /// <summary>
+    /// Gets the customer's legal registration number without changing the stored field.
+    /// </summary>
+    procedure GetRegistrationNumber(): Text[50]
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        exit(RegistrationNoMgt.GetRegistrationNo("Registration Number", "Country/Region Code", RecordId));
+    end;
 
     /// <summary>
     /// Assists the user in selecting or generating a new customer number from the configured number series.

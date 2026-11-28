@@ -93,6 +93,7 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.Task;
@@ -1491,6 +1492,7 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "VAT Reg. No. Srv. Template" = RM,
                   tabledata "VAT Registration Log" = RM,
                   tabledata "VAT Registration Log Details" = RM,
+                  tabledata "Registration No. Format" = RM,
                   tabledata "VAT Registration No. Format" = RM,
                   tabledata "VAT Report Archive" = Rm,
                   tabledata "VAT Report Error Log" = RM,

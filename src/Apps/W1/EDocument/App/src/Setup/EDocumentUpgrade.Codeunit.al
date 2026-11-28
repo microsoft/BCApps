@@ -26,6 +26,7 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeProcessDraftEnum();
 #endif
         UpgradeDataExchV2Defs();
+        UpgradeIncomingLegalIdentityMappings();
         UpgradeEnableVATOptionsForPurchEDoc();
         UpgradePaymentOccurrenceDispatcher();
         UpgradeSupportedTypeDirection();
@@ -63,12 +64,29 @@ codeunit 6168 "E-Document Upgrade"
         UpgradeTag.SetUpgradeTag(GetUpgradeDataExchV2DefsTag());
     end;
 
+    local procedure UpgradeIncomingLegalIdentityMappings()
+    var
+        EDocumentInstall: Codeunit "E-Document Install";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetIncomingLegalIdentityUpgradeTag()) then
+            exit;
+        EDocumentInstall.AddIncomingLegalIdentityMappings();
+        UpgradeTag.SetUpgradeTag(GetIncomingLegalIdentityUpgradeTag());
+    end;
+
+    internal procedure GetIncomingLegalIdentityUpgradeTag(): Code[250]
+    begin
+        exit('MS-EDoc-IncomingLegalIdentity-20261126');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpgradeLogURLMaxLengthUpgradeTag());
         PerCompanyUpgradeTags.Add(GetUpgradeProcessDraftEnumTag());
         PerCompanyUpgradeTags.Add(GetUpgradeDataExchV2DefsTag());
+        PerCompanyUpgradeTags.Add(GetIncomingLegalIdentityUpgradeTag());
         PerCompanyUpgradeTags.Add(GetEnableVATOptionsForPurchEDocTag());
         PerCompanyUpgradeTags.Add(GetUpgradeSupportedTypeDirectionTag());
         PerCompanyUpgradeTags.Add(GetPaymentOccurrenceDispatcherUpgradeTag());

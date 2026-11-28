@@ -11,6 +11,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
@@ -116,7 +117,7 @@ report 1309 "Standard Sales - Return Rcpt."
             column(CompanyLogoPosition; CompanyLogoPosition)
             {
             }
-            column(CompanyRegistrationNumber; CompanyInfo.GetRegistrationNumber())
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport(Header.GetCompanyRegistrationNumber(), CompanyInfo))
             {
             }
             column(CompanyRegistrationNumber_Lbl; CompanyInfo.GetRegistrationNumberLbl())
@@ -687,6 +688,7 @@ report 1309 "Standard Sales - Return Rcpt."
         LanguageMgt: Codeunit Language;
         FormatAddr: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         SegManagement: Codeunit SegManagement;
         CustAddr: array[8] of Text[100];
         SalesPersonText: Text[50];
@@ -790,7 +792,7 @@ report 1309 "Standard Sales - Return Rcpt."
         FillNameValueTable(RightHeader, EMailLbl, CompanyInfo."E-Mail");
         FillNameValueTable(RightHeader, HomePageLbl, CompanyInfo."Home Page");
         FillNameValueTable(RightHeader, CompanyInfoPhoneNoLbl, CompanyInfo."Phone No.");
-        FillNameValueTable(RightHeader, CompanyInfo.GetRegistrationNumberLbl(), CompanyInfo.GetRegistrationNumber());
+        FillNameValueTable(RightHeader, CompanyInfo.GetRegistrationNumberLbl(), RegistrationNoMgt.GetCompanyRegistrationForReport(Header.GetCompanyRegistrationNumber(), CompanyInfo));
         FillNameValueTable(RightHeader, CompanyInfoBankNameLbl, CompanyInfo."Bank Name");
         FillNameValueTable(RightHeader, CompanyInfoGiroNoLbl, CompanyInfo."Giro No.");
         FillNameValueTable(RightHeader, CompanyInfo.FieldCaption(IBAN), CompanyInfo.IBAN);

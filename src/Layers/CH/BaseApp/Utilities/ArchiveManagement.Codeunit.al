@@ -175,6 +175,7 @@ codeunit 5063 ArchiveManagement
         SalesHeaderArchive.Init();
         SalesHeader.CalcFields("Work Description");
         SalesHeaderArchive.TransferFields(SalesHeader);
+        SalesHeaderArchive.InitCompanyRegistrationSnapshot();
         SalesHeaderArchive."Archived By" := CopyStr(UserId(), 1, MaxStrLen(SalesHeaderArchive."Archived By"));
         SalesHeaderArchive."Date Archived" := Today();
         SalesHeaderArchive."Time Archived" := Time();
@@ -226,6 +227,7 @@ codeunit 5063 ArchiveManagement
 
         PurchHeaderArchive.Init();
         PurchHeaderArchive.TransferFields(PurchHeader);
+        PurchHeaderArchive.InitCompanyRegistrationSnapshot();
         PurchHeaderArchive."Archived By" := CopyStr(UserId(), 1, MaxStrLen(PurchHeaderArchive."Archived By"));
         PurchHeaderArchive."Date Archived" := Today();
         PurchHeaderArchive."Time Archived" := Time();

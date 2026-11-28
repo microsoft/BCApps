@@ -15,6 +15,7 @@ using Microsoft.CRM.Setup;
 using Microsoft.CRM.Task;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Task;
 using Microsoft.Projects.TimeSheet;
 using Microsoft.Purchases.Archive;
@@ -98,6 +99,7 @@ permissionset 3100 "D365 OPPORTUNITY MGT"
                   tabledata "To-do Interaction Language" = RIMD,
                   tabledata "User Task Group" = RIMD,
                   tabledata "User Task Group Member" = RIMD,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "Web Source" = R,
                   tabledata "Workflow - Table Relation" = RIMD,

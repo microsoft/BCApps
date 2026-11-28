@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Registration;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
@@ -691,6 +692,9 @@ xmlport 1611 "Sales Cr.Memo - PEPPOL BIS 3.0"
                       SupplierRegAddrCountryIdCode,
                       SupplRegAddrCountryIdListId);
 
+                    RegistrationNoExport.ApplyLegalIdentity(GetRegistrationDocument(), "Registration No. Party Role"::Company,
+                        GetCustomizationID(), PartyLegalEntityCompanyID, PartyLegalEntitySchemeID);
+
                     PEPPOLMgt.GetAccountingSupplierPartyContact(
                       SalesHeader,
                       DummyVar,
@@ -965,6 +969,9 @@ xmlport 1611 "Sales Cr.Memo - PEPPOL BIS 3.0"
                       CustPartyLegalEntityRegName,
                       CustPartyLegalEntityCompanyID,
                       CustPartyLegalEntityIDSchemeID);
+
+                    RegistrationNoExport.ApplyLegalIdentity(GetRegistrationDocument(), "Registration No. Party Role"::"Sales Bill-to",
+                        GetCustomizationID(), CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
 
                     PEPPOLMgt.GetAccountingCustomerPartyContact(
                       SalesHeader,
@@ -2311,6 +2318,7 @@ xmlport 1611 "Sales Cr.Memo - PEPPOL BIS 3.0"
         TempSalesLineRounding: Record "Sales Line" temporary;
         DocumentAttachments: Record "Document Attachment";
         PEPPOLMgt: Codeunit "PEPPOL Management";
+        RegistrationNoExport: Codeunit "Registration No. Export";
         SourceRecRef: RecordRef;
         DummyVar: Text;
 
@@ -2318,6 +2326,14 @@ xmlport 1611 "Sales Cr.Memo - PEPPOL BIS 3.0"
         UnSupportedTableTypeErr: Label 'The %1 table is not supported.', Comment = '%1 is the table.';
         ProcessedDocType: Enum "PEPPOL Processing Type";
         GeneratePDF: Boolean;
+
+    local procedure GetRegistrationDocument() Document: RecordRef
+    begin
+        if ProcessedDocType = ProcessedDocType::Sale then
+            Document.GetTable(SalesCrMemoHeader)
+        else
+            Document := SourceRecRef;
+    end;
 
     local procedure GetTotals()
     begin

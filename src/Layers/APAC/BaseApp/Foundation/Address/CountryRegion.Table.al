@@ -6,6 +6,7 @@ namespace Microsoft.Foundation.Address;
 
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using System.Globalization;
 using System.Reflection;
 using System.Utilities;
@@ -154,10 +155,14 @@ table 9 "Country/Region"
     trigger OnDelete()
     var
         VATRegNoFormat: Record "VAT Registration No. Format";
+        RegistrationNoFormat: Record "Registration No. Format";
         CountryRegionTranslation: Record "Country/Region Translation";
     begin
         VATRegNoFormat.SetRange("Country/Region Code", Code);
         VATRegNoFormat.DeleteAll();
+
+        RegistrationNoFormat.SetRange("Country/Region Code", Code);
+        RegistrationNoFormat.DeleteAll(true);
 
         CountryRegionTranslation.SetRange("Country/Region Code", Rec.Code);
         if not CountryRegionTranslation.IsEmpty() then

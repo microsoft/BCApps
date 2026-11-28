@@ -21,6 +21,7 @@ using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Intrastat;
@@ -554,6 +555,27 @@ table 6650 "Return Shipment Header"
         {
             Caption = 'Price Calculation Method';
         }
+        field(7402; "Company Registration No."; Text[50])
+        {
+            Caption = 'Company Registration No.';
+            Editable = false;
+        }
+        field(7403; "Company Reg. Country/Region"; Code[10])
+        {
+            Caption = 'Company Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(7404; "Registration Country/Region"; Code[10])
+        {
+            Caption = 'Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(7407; "Registration Number"; Text[50])
+        {
+            Caption = 'Registration Number';
+        }
         field(12490; "Agreement No."; Code[20])
         {
             Caption = 'Agreement No.';
@@ -613,6 +635,33 @@ table 6650 "Return Shipment Header"
 #pragma warning disable AA0074
         Text001: Label 'Posted Document Dimensions';
 #pragma warning restore AA0074
+
+    procedure GetRegistrationNumber(): Text[50]
+    begin
+        exit("Registration Number");
+    end;
+
+    procedure GetRegistrationCountryCode(): Code[10]
+    begin
+        exit("Registration Country/Region");
+    end;
+
+    procedure GetCompanyRegistrationNumber(): Text[50]
+    begin
+        exit("Company Registration No.");
+    end;
+
+    procedure GetCompanyRegistrationCountryCode(): Code[10]
+    begin
+        exit("Company Reg. Country/Region");
+    end;
+
+    procedure InitCompanyRegistrationSnapshot()
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        RegistrationNoMgt.GetCompanyRegistrationSnapshot("Company Registration No.", "Company Reg. Country/Region");
+    end;
 
     procedure PrintRecords(ShowRequestForm: Boolean)
     var

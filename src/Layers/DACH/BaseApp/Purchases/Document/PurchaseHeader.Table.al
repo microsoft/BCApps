@@ -135,6 +135,8 @@ table 38 "Purchase Header"
                 "VAT Country/Region Code" := Vend."Country/Region Code";
                 "VAT Registration No." := Vend."VAT Registration No.";
                 "Registration No." := CopyStr(Vend."Registration Number", 1, MaxStrLen("Registration No."));
+                "Registration Number" := Vend.GetRegistrationNumber();
+                "Registration Country/Region" := Vend."Country/Region Code";
                 Validate("Lead Time Calculation", Vend."Lead Time Calculation");
                 "Shipment Method Code" := Vend."Shipment Method Code";
                 "Self-Billing Invoice" := Vend."Self-Billing Agreement" and Rec."Document Type" in [Rec."Document Type"::Order, Rec."Document Type"::Invoice];
@@ -1631,6 +1633,8 @@ table 38 "Purchase Header"
                         "Buy-from Vendor Name 2" := Vend."Name 2";
                         CopyBuyFromVendorAddressFieldsFromVendor(Vend, true);
                         "Registration No." := CopyStr(Vend."Registration Number", 1, MaxStrLen("Registration No."));
+                        "Registration Number" := Vend.GetRegistrationNumber();
+                        "Registration Country/Region" := Vend."Country/Region Code";
                     end;
 
                     OnValidateOrderAddressCodeOnAfterCopyBuyFromVendorAddressFieldsFromVendor(Rec, Vend);
@@ -2872,6 +2876,16 @@ table 38 "Purchase Header"
                                 Rec));
             end;
         }
+        field(7404; "Registration Country/Region"; Code[10])
+        {
+            Caption = 'Registration Country/Region Code';
+            Editable = false;
+            TableRelation = "Country/Region";
+        }
+        field(7407; "Registration Number"; Text[50])
+        {
+            Caption = 'Registration Number';
+        }
         field(11000; "Registration No."; Text[20])
         {
             Caption = 'Registration No.';
@@ -3194,6 +3208,19 @@ table 38 "Purchase Header"
 
         OnInitInsertOnBeforeInitRecord(Rec, xRec);
         InitRecord();
+    end;
+
+    /// <summary>
+    /// Gets the legal registration number stored on this document.
+    /// </summary>
+    procedure GetRegistrationNumber(): Text[50]
+    begin
+        exit("Registration Number");
+    end;
+
+    procedure GetRegistrationCountryCode(): Code[10]
+    begin
+        exit("Registration Country/Region");
     end;
 
     /// <summary>

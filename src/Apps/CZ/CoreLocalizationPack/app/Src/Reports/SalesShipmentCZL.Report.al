@@ -10,6 +10,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Location;
@@ -73,9 +74,14 @@ report 31191 "Sales Shipment CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+#if not CLEAN30
+            column(RegistrationNo_CompanyInformation; RegistrationNoMgt.GetCompanyRegistrationForReport('', "Company Information"))
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Use CompanyRegistrationNumber on the posted document dataitem. A shared current-company value cannot represent historical document snapshots.';
+                ObsoleteTag = '30.0';
             }
+#endif
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")
             {
             }
@@ -108,6 +114,9 @@ report 31191 "Sales Shipment CZL"
         }
         dataitem("Sales Shipment Header"; "Sales Shipment Header")
         {
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport("Sales Shipment Header".GetCompanyRegistrationNumber(), "Company Information"))
+            {
+            }
             column(DocumentLbl; DocumentLbl)
             {
             }
@@ -180,7 +189,7 @@ report 31191 "Sales Shipment CZL"
             column(RegistrationNo_SalesShipmentHeaderCaption; FieldCaption("Registration No. CZL"))
             {
             }
-            column(RegistrationNo_SalesShipmentHeader; "Registration No. CZL")
+            column(RegistrationNo_SalesShipmentHeader; RegistrationNoMgt.GetDocumentRegistrationForReport("Sales Shipment Header".GetRegistrationNumber(), "Registration No. CZL"))
             {
             }
             column(DocumentDate_SalesShipmentHeaderCaption; FieldCaption("Document Date"))
@@ -581,6 +590,7 @@ report 31191 "Sales Shipment CZL"
         LanguageMgt: Codeunit Language;
         FormatAddress: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         FormatDocumentMgtCZL: Codeunit "Format Document Mgt. CZL";
         SegManagement: Codeunit SegManagement;
         ItemTrackingDocManagement: Codeunit "Item Tracking Doc. Management";

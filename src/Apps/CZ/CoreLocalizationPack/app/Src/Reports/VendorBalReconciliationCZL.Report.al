@@ -79,13 +79,13 @@ report 11724 "Vendor-Bal. Reconciliation CZL"
             column(CompanyInfoVATRegistrationNo; CompanyInformation."VAT Registration No.")
             {
             }
-            column(CompanyInfoRegistrationNo; CompanyInformation."Registration No.")
+            column(CompanyInfoRegistrationNo; CompanyInformation.GetRegistrationNumber())
             {
             }
             column(CompanyInfoTaxRegistrationNo; CompanyInformation."Tax Registration No. CZL")
             {
             }
-            column(VendorRegistrationNo; "Registration Number")
+            column(VendorRegistrationNo; Vendor.GetRegistrationNumber())
             {
             }
             column(VendorTaxRegistrationNo; "Tax Registration No. CZL")

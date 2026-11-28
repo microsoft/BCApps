@@ -46,7 +46,7 @@ report 11751 "Posted Inventory Receipt CZL"
             column(CompanyAddr6; CompanyAddr[6])
             {
             }
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+            column(RegistrationNo_CompanyInformation; "Company Information".GetRegistrationNumber())
             {
                 IncludeCaption = true;
             }

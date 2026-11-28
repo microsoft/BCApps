@@ -4,10 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Environment.Configuration;
 
+using Microsoft.Foundation.Registration;
 using Microsoft.Pricing.Calculation;
 
 enumextension 2611 "Feature To Update - BaseApp" extends "Feature To Update"
 {
+    value(7403; GlobalRegistrationNumbers)
+    {
+        Implementation = "Feature Data Update" = "Registration No. Feature";
+    }
     value(7049; SalesPrices)
     {
         Implementation = "Feature Data Update" = "Feature - Price Calculation";

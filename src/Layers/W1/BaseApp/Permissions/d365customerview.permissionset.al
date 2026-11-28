@@ -2,6 +2,7 @@ namespace System.Security.AccessControl;
 
 using Microsoft.CRM.Profiling;
 using Microsoft.Finance.VAT.Registration;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Inventory.Item.Catalog;
@@ -25,5 +26,6 @@ permissionset 865 "D365 CUSTOMER, VIEW"
                   tabledata "Shipping Agent Services" = R,
                   tabledata "Transaction Type" = R,
                   tabledata "Transport Method" = R,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R;
 }

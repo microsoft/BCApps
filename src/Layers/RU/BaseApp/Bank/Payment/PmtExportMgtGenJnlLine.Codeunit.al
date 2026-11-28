@@ -295,6 +295,7 @@ codeunit 1206 "Pmt Export Mgt Gen. Jnl Line"
         TempPaymentExportData."Data Exch Entry No." := DataExchEntryNo;
         TempPaymentExportData."Sender Bank Account Code" := GenJnlLine."Bal. Account No.";
         TempPaymentExportData."Sender Bank Name" := BankAccount.Name;
+        // This format carries the balancing account, not a legal registration number.
         TempPaymentExportData."Sender Reg. No." := GenJnlLine."Bal. Account No.";
 
                 if IsEmployee then begin

@@ -14,6 +14,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Registration;
 using Microsoft.Inventory.Intrastat;
 using Microsoft.Purchases.Archive;
 using Microsoft.Purchases.Document;
@@ -85,6 +86,7 @@ permissionset 257 "Contact - Edit"
                   tabledata Territory = R,
                   tabledata "To-do" = RM,
                   tabledata "To-do Interaction Language" = RIMD,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata Vendor = R,
                   tabledata "Web Source" = R;

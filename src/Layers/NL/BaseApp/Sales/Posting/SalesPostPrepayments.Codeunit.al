@@ -1759,6 +1759,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
         SalesInvHeader.Init();
         SalesHeader.CalcFields("Work Description");
         SalesInvHeader.TransferFields(SalesHeader);
+        SalesInvHeader.InitCompanyRegistrationSnapshot();
         SalesInvHeader."Posting Description" := PostingDescription;
         SalesInvHeader."Payment Terms Code" := SalesHeader."Prepmt. Payment Terms Code";
         SalesInvHeader."Due Date" := SalesHeader."Prepayment Due Date";
@@ -1835,6 +1836,7 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
         SalesCrMemoHeader.Init();
         SalesHeader.CalcFields("Work Description");
         SalesCrMemoHeader.TransferFields(SalesHeader);
+        SalesCrMemoHeader.InitCompanyRegistrationSnapshot();
         SalesCrMemoHeader."Payment Terms Code" := SalesHeader."Prepmt. Payment Terms Code";
         SalesCrMemoHeader."Pmt. Discount Date" := SalesHeader."Prepmt. Pmt. Discount Date";
         SalesCrMemoHeader."Payment Discount %" := SalesHeader."Prepmt. Payment Discount %";

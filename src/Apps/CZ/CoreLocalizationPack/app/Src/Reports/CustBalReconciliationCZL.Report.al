@@ -79,10 +79,10 @@ report 11723 "Cust.- Bal. Reconciliation CZL"
             column(CompanyInfoVATRegistrationNo; CompanyInformation."VAT Registration No.")
             {
             }
-            column(CustomerRegistrationNo; "Registration Number")
+            column(CustomerRegistrationNo; Customer.GetRegistrationNumber())
             {
             }
-            column(CompanyInfoRegistrationNo; CompanyInformation."Registration No.")
+            column(CompanyInfoRegistrationNo; CompanyInformation.GetRegistrationNumber())
             {
             }
             column(CustomerTaxRegistrationNo; "Tax Registration No. CZL")

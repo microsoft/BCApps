@@ -92,6 +92,7 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.Task;
@@ -1485,6 +1486,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "VAT Reg. No. Srv. Template" = R,
                   tabledata "VAT Registration Log" = R,
                   tabledata "VAT Registration Log Details" = R,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "VAT Report Archive" = R,
                   tabledata "VAT Report Error Log" = R,

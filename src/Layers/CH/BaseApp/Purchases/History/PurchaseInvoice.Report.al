@@ -297,7 +297,7 @@ report 406 "Purchase - Invoice"
                     column(RegNoTxt; RegNoText)
                     {
                     }
-                    column(RegNo_PurchInvHeader; "Purch. Inv. Header"."Registration No.")
+                    column(RegNo_PurchInvHeader; "Purch. Inv. Header".GetRegistrationNumber())
                     {
                     }
                     column(PaymentTermsDesc; PaymentTerms.Description)

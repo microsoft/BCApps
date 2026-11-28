@@ -68,7 +68,7 @@ report 31199 "Service Shipment CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+            column(RegistrationNo_CompanyInformation; "Company Information".GetRegistrationNumber())
             {
             }
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")

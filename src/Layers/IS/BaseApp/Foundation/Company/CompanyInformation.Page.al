@@ -14,6 +14,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Setup;
 using Microsoft.Inventory.Location;
@@ -166,6 +167,12 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
+                field("Registration Number"; Rec."Registration Number")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    Visible = GlobalRegistrationNumbersEnabled;
+                }
 #pragma warning disable AW0009 // Accepted: The field remains Blob/Bitmap; migrating existing data to Media or MediaSet requires a breaking schema and data upgrade. Tracked by AB#640773.
                 field(Picture; Rec.Picture)
 #pragma warning restore AW0009
@@ -269,6 +276,7 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     ToolTip = 'Specifies the company''s registration number. You can enter a maximum of 20 characters, both numbers and letters.';
+                    Visible = not GlobalRegistrationNumbersEnabled;
                 }
                 field(BankAccountPostingGroup; BankAcctPostingGroup)
                 {
@@ -784,7 +792,9 @@ page 1 "Company Information"
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
         MonitorSensitiveField: Codeunit "Monitor Sensitive Field";
         FeatureKeyManagement: Codeunit "Feature Key Management";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
     begin
+        GlobalRegistrationNumbersEnabled := RegistrationNoFeature.IsEnabled();
         Rec.Reset();
         if not Rec.Get() then begin
             Rec.Init();
@@ -808,6 +818,7 @@ page 1 "Company Information"
         FormatAddress: Codeunit "Format Address";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
         EnvironmentInformation: Codeunit "Environment Information";
+        GlobalRegistrationNumbersEnabled: Boolean;
         Experience: Text;
         CompanyDescription: Text;
         EnvironmentDescription: Text;

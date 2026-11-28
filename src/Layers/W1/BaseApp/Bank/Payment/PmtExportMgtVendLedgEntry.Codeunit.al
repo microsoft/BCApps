@@ -8,6 +8,7 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using System.IO;
@@ -26,6 +27,7 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
 
     var
         ExportAgainQst: Label 'One or more of the selected lines has already been exported. Do you want to export it again?';
+        SenderRegistrationNoTooLongErr: Label 'The company registration number exceeds the maximum length of %1 characters for %2.', Comment = '%1 = Maximum field length, %2 = Sender registration number field caption';
 #pragma warning disable AA0470
         ProgressMsg: Label 'Processing line no. #1######.';
 #pragma warning restore AA0470
@@ -169,6 +171,8 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         BankAccount: Record "Bank Account";
         BankExportImportSetup: Record "Bank Export/Import Setup";
         CompanyInformation: Record "Company Information";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+        CompanyRegistrationNo: Text;
     begin
         GeneralLedgerSetup.Get();
         Vendor.Get(VendorLedgerEntry."Vendor No.");
@@ -181,8 +185,12 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
         TempPaymentExportData.Init();
         TempPaymentExportData."Data Exch Entry No." := DataExchEntryNo;
         TempPaymentExportData."Sender Bank Account Code" := VendorLedgerEntry."Bal. Account No.";
-        if CompanyInformation."Registration No." <> '' then
-            TempPaymentExportData."Sender Reg. No." := CopyStr(CompanyInformation."Registration No.", 1, MaxStrLen(TempPaymentExportData."Sender Reg. No."));
+        CompanyRegistrationNo := CompanyInformation.GetRegistrationNumber();
+        if CompanyRegistrationNo <> '' then begin
+            if StrLen(CompanyRegistrationNo) > MaxStrLen(TempPaymentExportData."Sender Reg. No.") then
+                Error(SenderRegistrationNoTooLongErr, MaxStrLen(TempPaymentExportData."Sender Reg. No."), TempPaymentExportData.FieldCaption("Sender Reg. No."));
+            TempPaymentExportData."Sender Reg. No." := CopyStr(CompanyRegistrationNo, 1, MaxStrLen(TempPaymentExportData."Sender Reg. No."));
+        end;
 
         if VendorBankAccount.Get(VendorLedgerEntry."Vendor No.", VendorLedgerEntry."Recipient Bank Account") then begin
             VendorLedgerEntry.CalcFields(Amount);
@@ -219,6 +227,8 @@ codeunit 1207 "Pmt Export Mgt Vend Ledg Entry"
             TempPaymentExportData."Data Exch. Line Def Code" := PaymentMethod."Pmt. Export Line Definition";
         TempPaymentExportData."Recipient Creditor No." := VendorLedgerEntry."Creditor No.";
         OnBeforeInsertPmtExportDataJnlFromVendorLedgerEntry(TempPaymentExportData, VendorLedgerEntry, GeneralLedgerSetup);
+        RegistrationNoMgt.ValidatePaymentExportField(TempPaymentExportData, TempPaymentExportData."Sender Reg. No.",
+            TempPaymentExportData.FieldNo("Sender Reg. No."), false, TempPaymentExportData.GetPreserveNonLatinCharacters());
         TempPaymentExportData.Insert(true);
     end;
 

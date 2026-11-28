@@ -14,6 +14,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Setup;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Registration;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -95,6 +96,7 @@ permissionset 2909 "D365 PURCH DOC, POST"
                   tabledata "Sales Shipment Line" = Ri,
                   tabledata "Sent Notification Entry" = RIMD,
                   tabledata "VAT Entry" = Rimd,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "VAT Return Period" = R,
                   tabledata "VAT Setup" = R,

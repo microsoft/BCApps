@@ -870,7 +870,7 @@ Cstr(Fields!PageLbl.Value)</Value>
                                               <Paragraph>
                                                 <TextRuns>
                                                   <TextRun>
-                                                    <Value>=First(Fields!RegistrationNo_CompanyInformation.Value, "DataSet_Result")</Value>
+                                                    <Value>=Fields!CompanyRegistrationNumber.Value</Value>
                                                     <Style>
                                                       <FontSize>9pt</FontSize>
                                                     </Style>
@@ -3103,8 +3103,8 @@ End Function</Code>
         <Field Name="CompanyAddr6">
           <DataField>CompanyAddr6</DataField>
         </Field>
-        <Field Name="RegistrationNo_CompanyInformation">
-          <DataField>RegistrationNo_CompanyInformation</DataField>
+        <Field Name="CompanyRegistrationNumber">
+          <DataField>CompanyRegistrationNumber</DataField>
         </Field>
         <Field Name="VATRegistrationNo_CompanyInformation">
           <DataField>VATRegistrationNo_CompanyInformation</DataField>

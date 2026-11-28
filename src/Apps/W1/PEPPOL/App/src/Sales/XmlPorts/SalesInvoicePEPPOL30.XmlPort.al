@@ -8,6 +8,7 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using System.Utilities;
@@ -610,6 +611,9 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       SupplierRegAddrCountryIdCode,
                       SupplRegAddrCountryIdListId);
 
+                    RegistrationNoExport.ApplyLegalIdentity(PostedSourceRecRef, "Registration No. Party Role"::Company,
+                        GetCustomizationID(), PartyLegalEntityCompanyID, PartyLegalEntitySchemeID);
+
                     PEPPOLPartyInfoProvider.GetAccountingSupplierPartyContact(
                       SalesHeader,
                       DummyVar,
@@ -890,6 +894,9 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
                       CustPartyLegalEntityRegName,
                       CustPartyLegalEntityCompanyID,
                       CustPartyLegalEntityIDSchemeID);
+
+                    RegistrationNoExport.ApplyLegalIdentity(PostedSourceRecRef, "Registration No. Party Role"::"Sales Bill-to",
+                        GetCustomizationID(), CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID);
 
                     PEPPOLPartyInfoProvider.GetAccountingCustomerPartyContact(
                       SalesHeader,
@@ -2276,6 +2283,7 @@ xmlport 37201 "Sales Invoice - PEPPOL30"
         TempSalesLineRounding: Record "Sales Line" temporary;
         DocumentAttachments: Record "Document Attachment";
         CompanyInformation: Record "Company Information";
+        RegistrationNoExport: Codeunit "Registration No. Export";
         PostedSourceRecRef, PostedSourceLineRecRef : RecordRef;
         PostedHeaderIterator, PostedLineIterator : Interface "PEPPOL Posted Document Iterator";
         PEPPOL30Format: Enum "PEPPOL 3.0 Format";

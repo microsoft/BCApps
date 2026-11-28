@@ -22,6 +22,7 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Registration;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Integration.Dataverse;
 using Microsoft.Inventory.Intrastat;
@@ -209,19 +210,21 @@ table 5050 Contact
         field(25; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
-            ToolTip = 'Specifies the registration number of the contact. You can enter a maximum of 20 characters, both numbers and letters.';
+            ToolTip = 'Specifies the contact''s legal registration number, including any leading zeros, spaces, and separators. You can enter up to 50 characters.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
             var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
                 OnBeforeValidateRegistrationNumber(Rec, IsHandled);
                 if IsHandled then
                     exit;
-                if StrLen("Registration Number") > 20 then
-                    FieldError("Registration Number", FieldLengthErr);
+                RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
+                if CurrFieldNo <> 0 then
+                    RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
             end;
         }
         field(29; "Salesperson Code"; Code[20])
@@ -242,11 +245,17 @@ table 5050 Contact
             TableRelation = "Country/Region";
 
             trigger OnValidate()
+            var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
 
-                if "Country/Region Code" <> xRec."Country/Region Code" then
+                if "Country/Region Code" <> xRec."Country/Region Code" then begin
                     VATRegistrationValidation();
+                    RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
+                    if CurrFieldNo <> 0 then
+                        RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
+                end;
             end;
         }
         field(38; Comment; Boolean)
@@ -975,6 +984,9 @@ table 5050 Contact
         key(Key17; "E-Mail 2")
         {
         }
+        key(RegistrationNumber; "Country/Region Code", "Registration Number")
+        {
+        }
     }
 
     fieldgroups
@@ -1269,7 +1281,6 @@ table 5050 Contact
         DifferentCustomerTemplateMsg: Label 'Sales quote %1 with original customer template %2 was assigned to the customer created from template %3.', Comment = '%1=Document No.,%2=Original Customer Template Code,%3=Customer Template Code';
         NoOriginalCustomerTemplateMsg: Label 'Sales quote %1 without an original customer template was assigned to the customer created from template %2.', Comment = '%1=Document No.,%2=Customer Template Code';
         PhoneNoCannotContainLettersErr: Label 'must not contain letters';
-        FieldLengthErr: Label 'must not have the length more than 20 symbols';
         VendorTemplNotFoundMsg: Label 'You cannot create vendor because there is no vendor template with contact type: %1.', Comment = '%1=Contact Type';
         MultipleVendorTemplatesConfirmQst: Label 'Quotes with vendor templates different from %1 were assigned to vendor %2. Do you want to review the quotes now?', Comment = '%1 = Vendor Template Code, %2 = Vendor No.';
         DifferentVendorTemplateMsg: Label 'Purchase quote %1 with original vendor template %2 was assigned to the vendor created from template %3.', Comment = '%1 = Document No., %2 = Original Vendor Template Code, %3 = Vendor Template Code';
@@ -1278,6 +1289,16 @@ table 5050 Contact
     protected var
         HideValidationDialog: Boolean;
         SkipDefaults: Boolean;
+
+    /// <summary>
+    /// Gets the contact's legal registration number without changing the stored field.
+    /// </summary>
+    procedure GetRegistrationNumber(): Text[50]
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        exit(RegistrationNoMgt.GetRegistrationNo("Registration Number", "Country/Region Code", RecordId));
+    end;
 
     procedure DoModify(ContactBeforeModify: Record Contact)
     var

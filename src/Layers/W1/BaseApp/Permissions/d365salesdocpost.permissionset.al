@@ -12,6 +12,7 @@ using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.BatchProcessing;
+using Microsoft.Foundation.Registration;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Integration.D365Sales;
 using Microsoft.Inventory.Availability;
@@ -101,6 +102,7 @@ permissionset 9977 "D365 SALES DOC, POST"
                   tabledata "Stockkeeping Unit" = R,
                   tabledata "VAT Entry" = Rimd,
                   tabledata "VAT Business Posting Group" = RM,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "VAT Return Period" = R,
                   tabledata "VAT Setup" = R,

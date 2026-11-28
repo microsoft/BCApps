@@ -16,6 +16,7 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
@@ -127,7 +128,7 @@ report 1307 "Standard Sales - Credit Memo"
             column(CompanyLogoPosition; CompanyLogoPosition)
             {
             }
-            column(CompanyRegistrationNumber; CompanyInfo.GetRegistrationNumber())
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport(Header.GetCompanyRegistrationNumber(), CompanyInfo))
             {
             }
             column(CompanyRegistrationNumber_Lbl; CompanyInfo.GetRegistrationNumberLbl())
@@ -1138,6 +1139,7 @@ report 1307 "Standard Sales - Credit Memo"
         LanguageMgt: Codeunit Language;
         FormatAddr: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         SegManagement: Codeunit SegManagement;
         AutoFormat: Codeunit "Auto Format";
         WorkDescriptionInstream: InStream;

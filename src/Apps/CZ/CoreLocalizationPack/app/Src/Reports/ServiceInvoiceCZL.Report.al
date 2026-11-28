@@ -78,7 +78,7 @@ report 31197 "Service Invoice CZL"
                 ObsoleteTag = '29.0';
             }
 #endif
-            column(RegistrationNo_CompanyInformation; "Registration No.")
+            column(RegistrationNo_CompanyInformation; "Company Information".GetRegistrationNumber())
             {
             }
             column(VATRegistrationNo_CompanyInformation; "VAT Registration No.")

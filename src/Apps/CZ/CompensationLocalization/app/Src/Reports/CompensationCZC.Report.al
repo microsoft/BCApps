@@ -120,7 +120,7 @@ report 31270 "Compensation CZC"
                     column(CompensationHeader_Name; CompanyName)
                     {
                     }
-                    column(CompanyInfo_RegistrationNo; CompanyInformation."Registration No.")
+                    column(CompanyInfo_RegistrationNo; CompanyInformation.GetRegistrationNumber())
                     {
                     }
                     column(CompanyInfo_BankAccountNo; CompanyInformation."Bank Account No.")
@@ -408,13 +408,13 @@ report 31270 "Compensation CZC"
                 case "Company Type" of
                     "Company Type"::Vendor:
                         if Vendor.Get("Company No.") then
-                            CompanyRegistrationNo := Vendor."Registration Number";
+                            CompanyRegistrationNo := Vendor.GetRegistrationNumber();
                     "Company Type"::Customer:
                         if Customer.Get("Company No.") then
-                            CompanyRegistrationNo := Customer."Registration Number";
+                            CompanyRegistrationNo := Customer.GetRegistrationNumber();
                     "Company Type"::Contact:
                         if Contact.Get("Company No.") then
-                            CompanyRegistrationNo := Contact."Registration Number";
+                            CompanyRegistrationNo := Contact.GetRegistrationNumber();
                 end;
 
                 CurrReport.Language := LanguageMgt.GetLanguageIdOrDefault("Language Code");

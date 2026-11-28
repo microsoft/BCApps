@@ -26,6 +26,7 @@ using Microsoft.FixedAssets.Maintenance;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Intercompany.BankAccount;
@@ -200,6 +201,7 @@ permissionset 9221 "Customer - Edit"
                   tabledata "VAT Reg. No. Srv. Template" = RIMD,
                   tabledata "VAT Registration Log" = rd,
                   tabledata "VAT Registration Log Details" = RIMD,
+                  tabledata "Registration No. Format" = R,
                   tabledata "VAT Registration No. Format" = R,
                   tabledata "Alt. Cust. VAT Reg." = R,
                   tabledata "Vendor Ledger Entry" = r,

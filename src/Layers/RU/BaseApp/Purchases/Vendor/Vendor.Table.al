@@ -30,6 +30,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.HumanResources.Employee;
@@ -304,19 +305,21 @@ table 23 Vendor
         field(25; "Registration Number"; Text[50])
         {
             Caption = 'Registration No.';
-            ToolTip = 'Specifies the registration number of the vendor. You can enter a maximum of 20 characters, both numbers and letters.';
+            ToolTip = 'Specifies the vendor''s legal registration number, including any leading zeros, spaces, and separators. You can enter up to 50 characters.';
             OptimizeForTextSearch = true;
 
             trigger OnValidate()
             var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
                 OnBeforeValidateRegistrationNumber(Rec, IsHandled);
                 if IsHandled then
                     exit;
-                if StrLen("Registration Number") > 20 then
-                    FieldError("Registration Number", FieldLengthErr);
+                RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
+                if CurrFieldNo <> 0 then
+                    RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
             end;
         }
         field(26; "Statistics Group"; Integer)
@@ -377,11 +380,17 @@ table 23 Vendor
             TableRelation = "Country/Region";
 
             trigger OnValidate()
+            var
+                RegistrationNoMgt: Codeunit "Registration No. Mgt.";
             begin
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
 
-                if "Country/Region Code" <> xRec."Country/Region Code" then
+                if "Country/Region Code" <> xRec."Country/Region Code" then begin
                     VATRegistrationValidation();
+                    RegistrationNoMgt.ValidateRegistrationNo("Registration Number", "Country/Region Code", RecordId);
+                    if CurrFieldNo <> 0 then
+                        RegistrationNoMgt.NotifyDuplicates("Registration Number", "Country/Region Code", RecordId);
+                end;
             end;
         }
         field(38; Comment; Boolean)
@@ -2024,6 +2033,9 @@ table 23 Vendor
         key(Key21; "IC Partner Code")
         {
         }
+        key(RegistrationNumber; "Country/Region Code", "Registration Number")
+        {
+        }
     }
 
     fieldgroups
@@ -2255,7 +2267,16 @@ table 23 Vendor
         ConfirmBlockedPrivacyBlockedQst: Label 'If you change the Blocked field, the Privacy Blocked field is changed to No. Do you want to continue?';
         CanNotChangeBlockedDueToPrivacyBlockedErr: Label 'The Blocked field cannot be changed because the user is blocked for privacy reasons.';
         PhoneNoCannotContainLettersErr: Label 'must not contain letters';
-        FieldLengthErr: Label 'must not have the length more than 20 symbols';
+
+    /// <summary>
+    /// Gets the vendor's legal registration number without changing the stored field.
+    /// </summary>
+    procedure GetRegistrationNumber(): Text[50]
+    var
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
+    begin
+        exit(RegistrationNoMgt.GetRegistrationNo("Registration Number", "Country/Region Code", RecordId));
+    end;
 
     procedure AssistEdit(OldVend: Record Vendor): Boolean
     var

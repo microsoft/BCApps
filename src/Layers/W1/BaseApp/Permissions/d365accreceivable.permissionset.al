@@ -9,6 +9,7 @@ using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Registration;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -118,5 +119,6 @@ permissionset 7862 "D365 ACC. RECEIVABLE"
                   tabledata "Reminder Text" = R,
                   tabledata "Reminder/Fin. Charge Entry" = Rimd,
                   tabledata "Remit Address" = RIMD,
+                  tabledata "Registration No. Format" = IMD,
                   tabledata "VAT Registration No. Format" = IMD;
 }

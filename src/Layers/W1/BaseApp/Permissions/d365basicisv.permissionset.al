@@ -80,6 +80,7 @@ using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.Task;
@@ -1061,6 +1062,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "VAT Reg. No. Srv. Template" = RIMD,
                   tabledata "VAT Registration Log" = RIMD,
                   tabledata "VAT Registration Log Details" = RIMD,
+                  tabledata "Registration No. Format" = RIMD,
                   tabledata "VAT Registration No. Format" = RIMD,
                   tabledata "VAT Report Archive" = Rimd,
                   tabledata "VAT Report Error Log" = RIMD,

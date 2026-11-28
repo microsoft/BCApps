@@ -2,6 +2,7 @@ namespace Microsoft.Peppol;
 
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Registration;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using System.Utilities;
@@ -22,6 +23,8 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         XMLDOMManagement: Codeunit "XML DOM Management";
         PEPPOL30: Codeunit "PEPPOL30";
         PEPPOL30Common: Codeunit "PEPPOL30 Common";
+        RegistrationNoExport: Codeunit "Registration No. Export";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
         PostedDocumentHeaderRecRef: RecordRef;
         PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase";
         SelfBilledXML: XmlDocument;
@@ -180,6 +183,8 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         ListID: Text;
         CompanyID: Text;
         CompanyIDSchemeID: Text;
+        LegalRegistrationNo: Text;
+        LegalSchemeID: Text;
         TaxSchemeID: Text;
         ContactName: Text;
         ContactPhone: Text;
@@ -220,6 +225,11 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
 
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyLegalEntity', '', this.CacNamespaceTok, PartyLegalEntityNode);
         this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationName', SupplierName, this.CbcNamespaceTok, ChildNode);
+        this.RegistrationNoExport.ApplyLegalIdentity(this.PostedDocumentHeaderRecRef, "Registration No. Party Role"::"Purchase Buy-from",
+            this.SelfBilledCustomizationIDTok, LegalRegistrationNo, LegalSchemeID);
+        this.AddNonEmptyNode(PartyLegalEntityNode, 'CompanyID', LegalRegistrationNo, this.CbcNamespaceTok, ChildNode);
+        if (LegalRegistrationNo <> '') and (LegalSchemeID <> '') then
+            this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', LegalSchemeID);
 
         PEPPOLPartyInfo.GetSellerSupplierPartyContact(PurchaseHeader, ContactName, ContactPhone, ContactTelefax, ContactEmail);
         if (ContactName <> '') or (ContactPhone <> '') or (ContactTelefax <> '') or (ContactEmail <> '') then begin
@@ -307,10 +317,17 @@ codeunit 37230 "Export Self-Billed PEPPOL30"
         end;
 
         PEPPOLPartyInfo.GetAccountingSupplierPartyLegalEntityBIS(PartyLegalEntityRegName, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID, RegAddrCityName, RegAddrCountryIdCode, RegAddrCountryIdListId);
+        this.RegistrationNoExport.ApplyLegalIdentity(this.PostedDocumentHeaderRecRef, "Registration No. Party Role"::Company,
+            this.SelfBilledCustomizationIDTok, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID);
 
         this.XMLDOMManagement.AddElement(PartyNode, 'PartyLegalEntity', '', this.CacNamespaceTok, PartyLegalEntityNode);
         this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationName', PartyLegalEntityRegName, this.CbcNamespaceTok, ChildNode);
-        this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'CompanyID', PartyLegalEntityCompanyID, this.CbcNamespaceTok, ChildNode);
+        if this.RegistrationNoFeature.IsEnabled() then begin
+            this.AddNonEmptyNode(PartyLegalEntityNode, 'CompanyID', PartyLegalEntityCompanyID, this.CbcNamespaceTok, ChildNode);
+            if (PartyLegalEntityCompanyID <> '') and (PartyLegalEntitySchemeID <> '') then
+                this.XMLDOMManagement.AddAttribute(ChildNode, 'schemeID', PartyLegalEntitySchemeID);
+        end else
+            this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'CompanyID', PartyLegalEntityCompanyID, this.CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(PartyLegalEntityNode, 'RegistrationAddress', '', this.CacNamespaceTok, RegistrationAddressNode);
         this.AddNonEmptyNode(RegistrationAddressNode, 'CityName', RegAddrCityName, this.CbcNamespaceTok, ChildNode);
         this.XMLDOMManagement.AddElement(RegistrationAddressNode, 'Country', '', this.CacNamespaceTok, CountryNode);

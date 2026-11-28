@@ -13,6 +13,7 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Registration;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Ledger;
@@ -124,7 +125,7 @@ report 1308 "Standard Sales - Shipment"
             column(CompanyLogoPosition; CompanyLogoPosition)
             {
             }
-            column(CompanyRegistrationNumber; CompanyInfo.GetRegistrationNumber())
+            column(CompanyRegistrationNumber; RegistrationNoMgt.GetCompanyRegistrationForReport(Header.GetCompanyRegistrationNumber(), CompanyInfo))
             {
             }
             column(CompanyRegistrationNumber_Lbl; CompanyInfo.GetRegistrationNumberLbl())
@@ -919,6 +920,7 @@ report 1308 "Standard Sales - Shipment"
         LanguageMgt: Codeunit Language;
         FormatAddr: Codeunit "Format Address";
         FormatDocument: Codeunit "Format Document";
+        RegistrationNoMgt: Codeunit "Registration No. Mgt.";
         SegManagement: Codeunit SegManagement;
         ItemTrackingDocMgt: Codeunit "Item Tracking Doc. Management";
         WorkDescriptionInstream: InStream;
@@ -1135,7 +1137,7 @@ report 1308 "Standard Sales - Shipment"
         FillNameValueTable(RightHeader, EMailLbl, CompanyInfo."E-Mail");
         FillNameValueTable(RightHeader, HomePageLbl, CompanyInfo."Home Page");
         FillNameValueTable(RightHeader, CompanyInfoPhoneNoLbl, CompanyInfo."Phone No.");
-        FillNameValueTable(RightHeader, CompanyInfo.GetRegistrationNumberLbl(), CompanyInfo.GetRegistrationNumber());
+        FillNameValueTable(RightHeader, CompanyInfo.GetRegistrationNumberLbl(), RegistrationNoMgt.GetCompanyRegistrationForReport(Header.GetCompanyRegistrationNumber(), CompanyInfo));
         FillNameValueTable(RightHeader, CompanyInfoBankNameLbl, CompanyBankAccount.Name);
         FillNameValueTable(RightHeader, CompanyInfoGiroNoLbl, CompanyInfo."Giro No.");
         FillNameValueTable(RightHeader, CompanyBankAccount.FieldCaption(IBAN), CompanyBankAccount.IBAN);

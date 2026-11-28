@@ -6787,6 +6787,7 @@ codeunit 90 "Purch.-Post"
         if not IsHandled then begin
             PurchRcptHeader.Init();
             PurchRcptHeader.TransferFields(PurchHeader, true, true);
+            PurchRcptHeader.InitCompanyRegistrationSnapshot();
             AssignPostedDocumentNo(PurchRcptHeader."No.", PurchHeader."Receiving No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
                 PurchRcptHeader."Order No. Series" := PurchHeader."No. Series";
@@ -6912,6 +6913,7 @@ codeunit 90 "Purch.-Post"
         if not IsHandled then begin
             ReturnShptHeader.Init();
             ReturnShptHeader.TransferFields(PurchHeader, true, true);
+            ReturnShptHeader.InitCompanyRegistrationSnapshot();
             AssignPostedDocumentNo(ReturnShptHeader."No.", PurchHeader."Return Shipment No.");
             if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
                 ReturnShptHeader."Return Order No. Series" := PurchHeader."No. Series";
@@ -7051,6 +7053,7 @@ codeunit 90 "Purch.-Post"
 
         PurchInvHeader.Init();
         PurchInvHeader.TransferFields(PurchHeader, true, true);
+        PurchInvHeader.InitCompanyRegistrationSnapshot();
 
         AssignPostedDocumentNo(PurchInvHeader."No.", PurchHeader."Posting No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::Order then begin
@@ -7108,6 +7111,7 @@ codeunit 90 "Purch.-Post"
 
         PurchCrMemoHdr.Init();
         PurchCrMemoHdr.TransferFields(PurchHeader, true, true);
+        PurchCrMemoHdr.InitCompanyRegistrationSnapshot();
         AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."No.");
         if PurchHeader."Document Type" = PurchHeader."Document Type"::"Return Order" then begin
             AssignPostedDocumentNo(PurchCrMemoHdr."No.", PurchHeader."Posting No.");
@@ -7149,6 +7153,7 @@ codeunit 90 "Purch.-Post"
         SalesShptHeader.Init();
         SalesOrderHeader.CalcFields("Work Description");
         SalesShptHeader.TransferFields(SalesOrderHeader, true, true);
+        SalesShptHeader.InitCompanyRegistrationSnapshot();
         AssignPostedDocumentNo(SalesShptHeader."No.", SalesOrderHeader."Shipping No.");
         SalesShptHeader."Order No." := SalesOrderHeader."No.";
         SalesShptHeader."Posting Date" := PurchHeader."Posting Date";

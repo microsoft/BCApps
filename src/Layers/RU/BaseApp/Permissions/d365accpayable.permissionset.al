@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Period;
+using Microsoft.Foundation.Registration;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Inventory.Analysis;
 using Microsoft.Inventory.Item;
@@ -132,6 +133,7 @@ permissionset 5289 "D365 ACC. PAYABLE"
                   tabledata "Sales Header" = RmD,
                   tabledata "Sales Invoice Line" = Rimd,
                   tabledata "Sales Line" = RIMD,
+                  tabledata "Registration No. Format" = IMD,
                   tabledata "VAT Registration No. Format" = IMD,
                   tabledata "VAT Setup" = RM,
                   tabledata Vendor = D,

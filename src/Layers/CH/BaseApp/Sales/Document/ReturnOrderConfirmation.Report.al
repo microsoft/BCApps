@@ -184,7 +184,7 @@ report 6631 "Return Order Confirmation"
                     column(CompanyInfoVATRegNo; CompanyInfo."VAT Registration No.")
                     {
                     }
-                    column(CompanyInfoRegNo; CompanyInfo."Registration No.")
+                    column(CompanyInfoRegNo; CompanyInfo.GetRegistrationNumber())
                     {
                     }
                     column(CompanyInfoGiroNo; CompanyInfo."Giro No.")

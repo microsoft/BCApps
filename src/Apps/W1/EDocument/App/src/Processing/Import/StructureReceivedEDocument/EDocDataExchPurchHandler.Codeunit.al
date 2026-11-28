@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Attachment;
+using Microsoft.Foundation.Registration;
 using System.IO;
 using System.Text;
 using System.Utilities;
@@ -125,10 +126,12 @@ codeunit 6407 "E-Doc. DataExch. Purch Handler" implements IStructuredFormatReade
     local procedure BridgeToStagingTables(EDocument: Record "E-Document"; DataExch: Record "Data Exch.")
     var
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
     begin
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
 
         MapIntermediateToHeader(DataExch, EDocumentPurchaseHeader);
+        EDocumentImportHelper.ApplyIncomingTaxIdentity(DataExch, EDocumentPurchaseHeader);
         PostProcessHeader(EDocumentPurchaseHeader);
         EDocumentPurchaseHeader.Modify();
 
@@ -152,6 +155,8 @@ codeunit 6407 "E-Doc. DataExch. Purch Handler" implements IStructuredFormatReade
         RecordRef: RecordRef;
         FieldRef: FieldRef;
         FieldValue: Text;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        RegistrationNoFeature: Codeunit "Registration No. Feature";
     begin
         IntermediateDataImport.SetRange("Data Exch. No.", DataExch."Entry No.");
         IntermediateDataImport.SetRange("Table ID", Database::"E-Document Purchase Header");
@@ -163,9 +168,17 @@ codeunit 6407 "E-Doc. DataExch. Purch Handler" implements IStructuredFormatReade
         repeat
             if RecordRef.FieldExist(IntermediateDataImport."Field ID") then begin
                 FieldRef := RecordRef.Field(IntermediateDataImport."Field ID");
-                FieldValue := CopyStr(IntermediateDataImport.GetValue(), 1, GetFieldMaxLength(FieldRef));
-                if FieldValue <> '' then
-                    AssignFieldValue(FieldRef, FieldValue);
+                if not EDocumentImportHelper.IsIncomingLegalIdentityField(Database::"E-Document Purchase Header", FieldRef.Number) or RegistrationNoFeature.IsEnabled() then begin
+                    FieldValue := IntermediateDataImport.GetValue();
+                    if EDocumentImportHelper.IsIncomingLegalIdentityField(Database::"E-Document Purchase Header", FieldRef.Number) or
+                       (RegistrationNoFeature.IsEnabled() and
+                        (FieldRef.Number in [EDocumentPurchaseHeader.FieldNo("Vendor GLN"), EDocumentPurchaseHeader.FieldNo("Customer GLN")]))
+                    then
+                        EDocumentImportHelper.CheckLegalIdentifierLength(FieldValue, FieldRef.Length);
+                    FieldValue := CopyStr(FieldValue, 1, GetFieldMaxLength(FieldRef));
+                    if FieldValue <> '' then
+                        AssignFieldValue(FieldRef, FieldValue);
+                end;
             end;
         until IntermediateDataImport.Next() = 0;
         RecordRef.SetTable(EDocumentPurchaseHeader);
