@@ -35,6 +35,106 @@
 
     [Test]
     [Scope('OnPrem')]
+    procedure VendorTotalMatchedAmountsRespectAgreementFilter()
+    var
+        Vendor: Record Vendor;
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseLineInvoice: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        // [SCENARIO 658521] Both sides of a match must contribute to the agreement-filtered vendor total.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        PurchaseLineOrder."Document Type" := PurchaseLineOrder."Document Type"::Order;
+        PurchaseLineOrder."Document No." := LibraryUtility.GenerateRandomCode(PurchaseLineOrder.FieldNo("Document No."), Database::"Purchase Line");
+        PurchaseLineOrder."Pay-to Vendor No." := Vendor."No.";
+        PurchaseLineOrder."Agreement No." := 'B';
+        PurchaseLineOrder.Quantity := 10;
+        PurchaseLineOrder."Quantity (Base)" := 10;
+        PurchaseLineOrder."Outstanding Qty. (Base)" := 10;
+        PurchaseLineOrder."Outstanding Amount (LCY)" := 100;
+        PurchaseLineOrder.Insert();
+        PurchaseLineInvoice := PurchaseLineOrder;
+        PurchaseLineInvoice."Document Type" := PurchaseLineInvoice."Document Type"::Invoice;
+        PurchaseLineInvoice.Insert();
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineOrder.SystemId;
+        MatchedOrderLine."Qty. to Invoice" := 10;
+        MatchedOrderLine."Qty. to Invoice (Base)" := 10;
+        MatchedOrderLine.Insert();
+
+        Vendor.SetRange("Agreement Filter", 'A');
+        Assert.AreEqual(0, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+        Vendor.SetRange("Agreement Filter", 'B');
+        Assert.AreEqual(100, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+        Vendor.SetFilter("Agreement Filter", 'A|B');
+        Assert.AreEqual(100, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+
+        PurchaseLineInvoice."Agreement No." := 'A';
+        PurchaseLineInvoice.Modify();
+        Vendor.SetRange("Agreement Filter", 'B');
+        Assert.AreEqual(100, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+        Vendor.SetRange("Agreement Filter", 'A');
+        Assert.AreEqual(100, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+        Vendor.SetRange("Agreement Filter");
+        Assert.AreEqual(100, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure VendorTotalPrepaymentsRespectAgreementFilter()
+    var
+        Vendor: Record Vendor;
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 658521] An invoiced prepayment under agreement B cannot reduce the total for agreement A.
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        PurchaseLine."Document Type" := PurchaseLine."Document Type"::Order;
+        PurchaseLine."Document No." := LibraryUtility.GenerateRandomCode(PurchaseLine.FieldNo("Document No."), Database::"Purchase Line");
+        PurchaseLine."Pay-to Vendor No." := Vendor."No.";
+        PurchaseLine."Agreement No." := 'B';
+        PurchaseLine."Outstanding Amount (LCY)" := 100;
+        PurchaseLine."Prepmt. Amount Inv. (LCY)" := 16;
+        PurchaseLine."Prepmt. VAT Amount Inv. (LCY)" := 4;
+        PurchaseLine.Insert();
+
+        Vendor.SetRange("Agreement Filter", 'A');
+        Assert.AreEqual(0, Vendor.GetInvoicedPrepmtAmountLCY(), FieldValueIncorrectErr);
+        VerifyAgreementFilteredVendorTotal(Vendor, 0);
+        Vendor.SetRange("Agreement Filter", 'B');
+        Assert.AreEqual(20, Vendor.GetInvoicedPrepmtAmountLCY(), FieldValueIncorrectErr);
+        VerifyAgreementFilteredVendorTotal(Vendor, 80);
+        Vendor.SetFilter("Agreement Filter", 'A|B');
+        Assert.AreEqual(20, Vendor.GetInvoicedPrepmtAmountLCY(), FieldValueIncorrectErr);
+        VerifyAgreementFilteredVendorTotal(Vendor, 80);
+        Vendor.SetRange("Agreement Filter");
+        VerifyAgreementFilteredVendorTotal(Vendor, 80);
+    end;
+
+    local procedure VerifyAgreementFilteredVendorTotal(var SourceVendor: Record Vendor; ExpectedAmountLCY: Decimal)
+    var
+        Vendor: Record Vendor;
+        VendorList: TestPage "Vendor List";
+        VendorStatistics: TestPage "Vendor Statistics";
+    begin
+        Vendor.Copy(SourceVendor);
+        Assert.AreEqual(ExpectedAmountLCY, Vendor.GetTotalAmountLCY(), FieldValueIncorrectErr);
+        Vendor.SetRange("No.", Vendor."No.");
+        VendorStatistics.Trap();
+        Page.Run(Page::"Vendor Statistics", Vendor);
+        VendorStatistics.GetTotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        VendorStatistics.Close();
+        Vendor.Copy(SourceVendor);
+        Vendor.SetRange("No.", Vendor."No.");
+        VendorList.Trap();
+        Page.Run(Page::"Vendor List", Vendor);
+        VendorList.VendorStatisticsFactBox.TotalAmountLCY.AssertEquals(ExpectedAmountLCY);
+        VendorList.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure NoAgreementSalesOrder()
     var
         SalesHeader: Record "Sales Header";
@@ -1658,4 +1758,3 @@
         // Message Handler.
     end;
 }
-

@@ -785,6 +785,7 @@ codeunit 134389 "ERM Customer Statistics"
         // [THEN] Customer's Available Credit = 250
         Assert.AreEqual(-ReturnAmountLCY, Customer.GetTotalAmountLCY(), '');
         Assert.AreEqual(CreditLimitLCY + ReturnAmountLCY, Customer.CalcAvailableCredit(), '');
+        VerifyCustomerFactBoxComponents(Customer, 0, ReturnAmountLCY, -ReturnAmountLCY);
     end;
 
     [Test]
@@ -990,6 +991,36 @@ codeunit 134389 "ERM Customer Statistics"
 
         // [THEN] Check Customer Card Statistics Total is Equal To SalesLine."Amount Including VAT" and Not Multiply.
         Assert.AreEqual(SalesLine."Amount Including VAT", Customer.GetTotalAmountLCY(), CustomerCardFactboxTotalErr);
+        VerifyCustomerFactBoxComponents(Customer, SalesLine."Amount Including VAT", 0, SalesLine."Amount Including VAT");
+    end;
+
+    local procedure VerifyCustomerFactBoxComponents(Customer: Record Customer; ExpectedShipmentAmountLCY: Decimal; ExpectedReturnAmountLCY: Decimal; ExpectedTotalAmountLCY: Decimal)
+    var
+        CalculateCustomerStats: Codeunit "Calculate Customer Stats.";
+        CustomerStatisticsFactBox: TestPage "Customer Statistics FactBox";
+        Parameters: Dictionary of [Text, Text];
+        Results: Dictionary of [Text, Text];
+        TotalAmountLCY: Decimal;
+        InvoicedShipmentAmountLCY: Decimal;
+        ReturnRcdNotInvAmountLCY: Decimal;
+        InvoicedPrepmtAmountLCY: Decimal;
+    begin
+        Parameters.Add(CalculateCustomerStats.GetCustomerNoLabel(), Customer."No.");
+        CalculateCustomerStats.CalculateFieldValues(Parameters, Results);
+        Evaluate(TotalAmountLCY, Results.Get(CalculateCustomerStats.GetTotalAmountLCYLabel()));
+        Evaluate(InvoicedShipmentAmountLCY, Results.Get(CalculateCustomerStats.GetInvoicedShipmentAmountLCYLabel()));
+        Evaluate(ReturnRcdNotInvAmountLCY, Results.Get(CalculateCustomerStats.GetReturnRcdNotInvAmountLCYLabel()));
+        Evaluate(InvoicedPrepmtAmountLCY, Results.Get(CalculateCustomerStats.GetInvoicedPrepmtAmountLCYLabel()));
+        Assert.AreEqual(ExpectedTotalAmountLCY, TotalAmountLCY, CustomerCardFactboxTotalErr);
+        Assert.AreEqual(ExpectedShipmentAmountLCY, InvoicedShipmentAmountLCY, CustomerCardFactboxTotalErr);
+        Assert.AreEqual(ExpectedReturnAmountLCY, ReturnRcdNotInvAmountLCY, CustomerCardFactboxTotalErr);
+        Assert.AreEqual(Customer.GetInvoicedPrepmtAmountLCY(), InvoicedPrepmtAmountLCY, CustomerCardFactboxTotalErr);
+
+        CustomerStatisticsFactBox.OpenView();
+        CustomerStatisticsFactBox.GoToRecord(Customer);
+        Assert.IsTrue(CustomerStatisticsFactBox.InvoicedShipmentAmountLCY.Visible(), FieldIsNotHiddenErr);
+        Assert.IsTrue(CustomerStatisticsFactBox.ReturnRcdNotInvAmountLCY.Visible(), FieldIsNotHiddenErr);
+        CustomerStatisticsFactBox.Close();
     end;
 
     [Test]

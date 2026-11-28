@@ -1007,6 +1007,7 @@ codeunit 130512 "Library - Purchase"
         NoSeries: Codeunit "No. Series";
         NoSeriesCode: Code[20];
     begin
+        SetCheckTotalOnPurchaseDocument(PurchaseHeader, true, false, false);
         NoSeriesCode := PurchaseHeader."Prepayment No. Series";
         if PurchaseHeader."Prepayment No." = '' then
             DocumentNo := NoSeries.PeekNextNo(NoSeriesCode, LibraryUtility.GetNextNoSeriesPurchaseDate(NoSeriesCode))

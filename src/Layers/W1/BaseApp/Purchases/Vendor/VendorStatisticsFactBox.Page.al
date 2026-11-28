@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Receivables;
 
@@ -84,6 +85,33 @@ page 9094 "Vendor Statistics FactBox"
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the sum of the vendor''s outstanding purchase invoices in LCY.';
             }
+            field(MatchedOrderAmountLCY; MatchedOrderAmountLCY)
+            {
+                ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
+                Caption = 'Matched Order Amount (LCY)';
+                Editable = false;
+                ToolTip = 'Specifies the purchase order amount already included in outstanding purchase invoices. This amount is subtracted when calculating Total (LCY) to avoid counting the same purchase twice.';
+            }
+            field(GetInvoicedPrepmtAmountLCY; InvoicedPrepmtAmountLCY)
+            {
+                ApplicationArea = Prepayments;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
+                Caption = 'Invoiced Prepayment Amount (LCY)';
+                ToolTip = 'Specifies your invoiced prepayments to the vendor. This amount is subtracted when calculating Total (LCY).';
+            }
+            field(ReturnShpdNotInvAmountLCY; ReturnShpdNotInvAmountLCY)
+            {
+                AccessByPermission = TableData "Purchase Line" = R;
+                ApplicationArea = Basic, Suite;
+                AutoFormatType = 1;
+                AutoFormatExpression = '';
+                Caption = 'Return Shpd. Not Invd. (LCY)';
+                Editable = false;
+                ToolTip = 'Specifies the amount for purchase returns shipped but not yet invoiced. This amount is subtracted when calculating Total (LCY).';
+            }
             field(TotalAmountLCY; TotalAmountLCY)
             {
                 ApplicationArea = Basic, Suite;
@@ -111,14 +139,6 @@ page 9094 "Vendor Statistics FactBox"
                     Rec.CopyFilter("Currency Filter", DtldVendLedgEntry."Currency Code");
                     VendLedgEntry.DrillDownOnOverdueEntries(DtldVendLedgEntry);
                 end;
-            }
-            field(GetInvoicedPrepmtAmountLCY; InvoicedPrepmtAmountLCY)
-            {
-                ApplicationArea = Prepayments;
-                AutoFormatType = 1;
-                AutoFormatExpression = '';
-                Caption = 'Invoiced Prepayment Amount (LCY)';
-                ToolTip = 'Specifies your payments to the vendor, based on invoiced prepayments.';
             }
             field("Payments (LCY)"; Rec."Payments (LCY)")
             {
@@ -191,8 +211,6 @@ page 9094 "Vendor Statistics FactBox"
         VendorNo: Code[20];
         VendorNoFilter: Text;
     begin
-        TotalAmountLCY := Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" + Rec."Outstanding Invoices (LCY)";
-
         // Get the vendor number and set the current vendor number
         Rec.FilterGroup(4);
         VendorNoFilter := Rec.GetFilter("No.");
@@ -200,6 +218,13 @@ page 9094 "Vendor Statistics FactBox"
             Rec.FilterGroup(0);
             VendorNoFilter := Rec.GetFilter("No.");
         end;
+
+        MatchedOrderAmountLCY := Rec.GetMatchedOrderAmountLCY();
+        ReturnShpdNotInvAmountLCY := Rec.GetReturnShpdNotInvAmountLCY();
+        TotalAmountLCY :=
+            Rec."Balance (LCY)" + Rec."Outstanding Orders (LCY)" + Rec."Amt. Rcd. Not Invoiced (LCY)" +
+            Rec."Outstanding Invoices (LCY)" - Rec.GetInvoicedPrepmtAmountLCY() - MatchedOrderAmountLCY -
+            ReturnShpdNotInvAmountLCY;
 
         VendorNo := CopyStr(VendorNoFilter, 1, MaxStrLen(VendorNo));
         if VendorNo <> CurrVendorNo then begin
@@ -221,6 +246,8 @@ page 9094 "Vendor Statistics FactBox"
 #pragma warning restore AA0470
         TaskIdCalculateCue: Integer;
         CurrVendorNo: Code[20];
+        MatchedOrderAmountLCY: Decimal;
+        ReturnShpdNotInvAmountLCY: Decimal;
         LinkedCustomerNo: Code[20];
         BalanceAsCustomerEnabled: Boolean;
 
