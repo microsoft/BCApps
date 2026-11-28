@@ -959,6 +959,9 @@ table 8052 "Customer Subscription Contract"
         {
             Clustered = true;
         }
+        key(SellTo; "Sell-to Customer No.")
+        {
+        }
     }
 
     fieldgroups

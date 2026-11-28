@@ -324,6 +324,9 @@ table 8073 "Subscription Line Archive"
         key(SK1; "Subscription Header No.", "Original Entry No.")
         {
         }
+        key(Contract; "Subscription Contract No.")
+        {
+        }
     }
 
     internal procedure CopyFromServiceCommitment(ServiceCommitment: Record "Subscription Line")
