@@ -659,7 +659,7 @@ page 5907 "Service Item Worksheet Subform"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec.Type := xRec.Type;
+        Rec.InitType();
         Clear(ShortcutDimCode);
         Rec.Validate("Service Item Line No.", ServItemLineNo);
     end;
