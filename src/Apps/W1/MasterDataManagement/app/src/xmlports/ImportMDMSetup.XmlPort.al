@@ -176,6 +176,7 @@ xmlport 7231 ImportMDMSetup
                     TableFilterOutStr: OutStream;
                     IntegrationTableFilterOutStr: OutStream;
                 begin
+                    CheckNotSystemTables();
                     integrationTableMapping."Table Caption" := MasterDataMgtSetupDefault.GetTableCaption(integrationTableMapping."Table ID");
                     integrationTableMapping."Table Filter".CreateOutStream(TableFilterOutStr);
                     integrationTableMapping."Integration Table Filter".CreateOutStream(IntegrationTableFilterOutStr);
@@ -209,6 +210,7 @@ xmlport 7231 ImportMDMSetup
                     TableFilterOutStr: OutStream;
                     IntegrationTableFilterOutStr: OutStream;
                 begin
+                    CheckNotSystemTables();
                     integrationTableMapping."Table Filter".CreateOutStream(TableFilterOutStr);
                     integrationTableMapping."Integration Table Filter".CreateOutStream(IntegrationTableFilterOutStr);
                     TableFilterOutStr.WriteText(tableFilterText);
@@ -218,5 +220,16 @@ xmlport 7231 ImportMDMSetup
             }
         }
     }
+
+    // An imported file is untrusted input: a crafted file must not add a system table to the synchronization. Only that
+    // check applies here; an exported setup can legitimately contain tables that Add Table doesn't offer.
+    local procedure CheckNotSystemTables()
+    var
+        MasterDataMgtSetupDefault: Codeunit "Master Data Mgt. Setup Default";
+    begin
+        MasterDataMgtSetupDefault.CheckNotSystemTable(integrationTableMapping."Table ID");
+        if integrationTableMapping."Integration Table ID" <> integrationTableMapping."Table ID" then
+            MasterDataMgtSetupDefault.CheckNotSystemTable(integrationTableMapping."Integration Table ID");
+    end;
 }
 

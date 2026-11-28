@@ -19,7 +19,6 @@ codeunit 148020 "IRS 1099 FIRE Tests"
         LibraryIRSReportingPeriod: Codeunit "Library IRS Reporting Period";
         LibraryIRS1099FormBox: Codeunit "Library IRS 1099 Form Box";
         LibraryFileMgtHandler: Codeunit "Library - File Mgt Handler";
-        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibraryUTUtility: Codeunit "Library UT Utility";
         LibraryTextFileValidation: Codeunit "Library - Text File Validation";
@@ -49,7 +48,7 @@ codeunit 148020 "IRS 1099 FIRE Tests"
         FormBoxNo := 'MISC-02';
         LibraryIRS1099FormBox.CreateSpecificFormBoxInReportingPeriod(StartingDate, EndingDate, FormNo, FormBoxNo);
         // [GIVEN] Vendor with adjustment amount 100 for period "X"
-        VendNo := LibraryPurchase.CreateVendorNo();
+        VendNo := LibraryIRS1099FormBox.CreateVendorNoForNonPosting();
         AdjustmentAmount := LibraryRandom.RandDecInRange(10, 100, 2);
         LibraryIRS1099FormBox.AddAdjustmentAmountForVendor(StartingDate, EndingDate, VendNo, FormNo, FormBoxNo, AdjustmentAmount);
 
@@ -70,6 +69,8 @@ codeunit 148020 "IRS 1099 FIRE Tests"
     local procedure Initialize()
     begin
         clear(TempBlob);
+        LibraryVariableStorage.Clear();
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
         LibraryTestInitialize.OnTestInitialize(Codeunit::"IRS 1099 FIRE Tests");
         if IsInitialized then
             exit;

@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using System.Utilities;
+
 table 10047 "Transmission Log IRIS"
 {
     DataClassification = CustomerContent;
@@ -90,6 +92,66 @@ table 10047 "Transmission Log IRIS"
             ToolTip = 'Specifies the date and time when the acknowledgement was received from IRS.';
             Editable = false;
         }
+        field(50; "XML Schema Version"; Text[30])
+        {
+            Caption = 'XML Schema Version';
+            ToolTip = 'Specifies the schema version in the actual transmission XML, not the current configuration.';
+            Editable = false;
+        }
+        field(51; "Schema Source"; Text[30])
+        {
+            Caption = 'Schema Source';
+            ToolTip = 'Specifies the configuration source used when this transmission was generated, such as ReportingPeriod for a reporting-period override or KeyVault for the Azure Key Vault setting.';
+            Editable = false;
+        }
+        field(52; "XML Test Code"; Text[10])
+        {
+            Caption = 'XML Test Code';
+            ToolTip = 'Specifies the test or production code in the actual XML. This diagnostic value does not select destinations for status requests.';
+            Editable = false;
+        }
+        field(53; "Software ID"; Text[30])
+        {
+            Caption = 'Software ID';
+            ToolTip = 'Specifies the Software ID recorded in the transmission XML.';
+            Editable = false;
+        }
+        field(54; "BC Environment"; Text[30])
+        {
+            Caption = 'BC Environment';
+            ToolTip = 'Specifies the Business Central environment when this attempt started. This diagnostic value does not select destinations for status requests.';
+            Editable = false;
+        }
+        field(70; "Previous State Recorded"; Boolean)
+        {
+            Caption = 'Previous State Recorded';
+            Editable = false;
+        }
+        field(71; "Previous Receipt ID"; Text[100])
+        {
+            Caption = 'Previous Receipt ID';
+            Editable = false;
+        }
+        field(72; "Previous Original Receipt ID"; Text[100])
+        {
+            Caption = 'Previous Original Receipt ID';
+            Editable = false;
+        }
+        field(73; "Previous Transmission Type"; Enum "Transmission Type IRIS")
+        {
+            Caption = 'Previous Transmission Type';
+            Editable = false;
+        }
+        field(74; "Previous Transmission Status"; Enum "Transmission Status IRIS")
+        {
+            Caption = 'Previous Transmission Status';
+            Editable = false;
+        }
+        field(75; "Previous Receipt Was Manual"; Boolean)
+        {
+            Caption = 'Previous Receipt Was Manual';
+            Editable = false;
+        }
     }
 
     keys
@@ -97,6 +159,9 @@ table 10047 "Transmission Log IRIS"
         key(PK; "Line ID")
         {
             Clustered = true;
+        }
+        key(TransmissionDocument; "Transmission Document ID", "Line ID")
+        {
         }
     }
 
@@ -112,5 +177,29 @@ table 10047 "Transmission Log IRIS"
         Rec.Reset();
         Rec.SetRange("Receipt ID", ReceiptID);
         exit(Rec.FindLast());
+    end;
+
+    internal procedure SetTransmissionContextInfo(var TransmissionContent: Codeunit "Temp Blob"; Source: Text)
+    var
+        Document: XmlDocument;
+        PayloadStream: InStream;
+    begin
+        "Schema Source" := CopyStr(Source, 1, MaxStrLen("Schema Source"));
+        TransmissionContent.CreateInStream(PayloadStream, TextEncoding::UTF8);
+        if not XmlDocument.ReadFrom(PayloadStream, Document) then
+            exit;
+        "XML Schema Version" := CopyStr(GetManifestValue(Document, 'SchemaVersionNum'), 1, MaxStrLen("XML Schema Version"));
+        "XML Test Code" := CopyStr(GetManifestValue(Document, 'TestCd'), 1, MaxStrLen("XML Test Code"));
+        "Software ID" := CopyStr(GetManifestValue(Document, 'SoftwareId'), 1, MaxStrLen("Software ID"));
+    end;
+
+    local procedure GetManifestValue(Document: XmlDocument; ElementName: Text): Text
+    var
+        Node: XmlNode;
+    begin
+        if Document.SelectSingleNode(
+            '/*[local-name()="IRTransmission"]/*[local-name()="IRTransmissionManifest"]/*[local-name()="' + ElementName + '"]', Node)
+        then
+            exit(Node.AsXmlElement().InnerText());
     end;
 }

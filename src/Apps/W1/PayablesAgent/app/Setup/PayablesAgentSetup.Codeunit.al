@@ -12,7 +12,6 @@ using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocumentConnector.Microsoft365;
-using Microsoft.Purchases.History;
 using System.Agents;
 using System.AI;
 using System.Azure.Identity;
@@ -364,7 +363,6 @@ codeunit 3307 "Payables Agent Setup"
     internal procedure CanShowAgentActions(): Boolean
     var
         Agent: Record Agent;
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         AgentUtilities: Codeunit "Agent Utilities";
         CopilotCapability: Codeunit "Copilot Capability";
     begin
@@ -374,7 +372,7 @@ codeunit 3307 "Payables Agent Setup"
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
 
-        if not PayablesAgentSetup.GetAgent(Agent) then
+        if not TryGetStoredAgent(Agent) then
             exit(AllowCreateNewAgent());
 
         // Payables Agent is created. It has to be enabled and user has to have permissions to use it in order to show the agent actions.
@@ -416,7 +414,6 @@ codeunit 3307 "Payables Agent Setup"
     internal procedure AllowCreateNewAgent(): Boolean
     var
         Agent: Record Agent;
-        PayablesAgentSetup: Codeunit "Payables Agent Setup";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         AgentUtilities: Codeunit "Agent Utilities";
         CopilotCapability: Codeunit "Copilot Capability";
@@ -427,7 +424,7 @@ codeunit 3307 "Payables Agent Setup"
         if not CopilotCapability.IsCapabilityActive("Copilot Capability"::"Payables Agent") then
             exit(false);
 
-        if PayablesAgentSetup.GetAgent(Agent, false) then
+        if TryGetStoredAgent(Agent) then
             exit(false);
 
         // No payables agent exists
@@ -438,6 +435,16 @@ codeunit 3307 "Payables Agent Setup"
             exit(false);
 
         exit(HasUserCreatedPostedPurchInvoice());
+    end;
+
+    local procedure TryGetStoredAgent(var Agent: Record Agent): Boolean
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        Clear(Agent);
+        if not PayablesAgentSetup.GetSetup(false) then
+            exit(false);
+        exit(Agent.Get(PayablesAgentSetup."User Security Id"));
     end;
 
     internal procedure AgentUserName(): Code[50]
@@ -617,14 +624,19 @@ codeunit 3307 "Payables Agent Setup"
     /// <returns>true if the user has created a purchase invoice in the past 30 days, false otherwise.</returns>
     internal procedure HasUserCreatedPostedPurchInvoice(): Boolean
     var
-        PurchaseInvHeader: Record "Purch. Inv. Header";
+        PARecentPurchInvCreators: Query "PA Recent Purch. Inv. Creators";
+        CurrentUserSecurityId: Guid;
         Days30Ago: Date;
     begin
         Days30Ago := CalcDate('<-30D>', Today());
+        CurrentUserSecurityId := UserSecurityId();
 
-        PurchaseInvHeader.SetRange(SystemCreatedAt, CreateDateTime(Days30Ago, 0T), CurrentDateTime());
-        PurchaseInvHeader.SetRange(SystemCreatedBy, UserSecurityId());
-        exit(not PurchaseInvHeader.IsEmpty());
+        PARecentPurchInvCreators.SetFilter(PostingDate, '>=%1', Days30Ago);
+        PARecentPurchInvCreators.Open();
+        while PARecentPurchInvCreators.Read() do
+            if PARecentPurchInvCreators.SystemCreatedBy = CurrentUserSecurityId then
+                exit(true);
+        exit(false);
     end;
 
     /// <summary>

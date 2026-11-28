@@ -54,7 +54,7 @@ page 10072 "IRS 1099 Vendor Overview"
                 }
                 field(Amount; Rec.Amount)
                 {
-                    Tooltip = 'Specifies the total amount of all transactions for the vendor, form number and form box number in the selected reporting period.';
+                    Tooltip = 'Specifies the amount calculated from applied payments and refunds posted in the selected reporting period. Invoice posting dates can belong to earlier periods. Adjustments and manual changes on form documents aren''t included.';
 
                     trigger OnDrillDown()
                     begin
