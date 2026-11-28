@@ -318,41 +318,38 @@ table 11021 "Sales VAT Advance Notif."
     local procedure ExportXMLDocument(XmlDoc: XmlDocument)
     var
         SalesVATAdvNotif2: Record "Sales VAT Advance Notif.";
-        FileManagement: Codeunit "File Management";
+        TempBlob: Codeunit "Temp Blob";
         XmlElem: XmlElement;
         XmlOutStream: OutStream;
         XmlInStream: InStream;
-        FileOutStream: OutStream;
-        XmlFile: File;
-        FileName: Text;
+        ExportOutStream: OutStream;
+        ExportInStream: InStream;
         TextLine: Text;
     begin
-        FileName := FileManagement.ServerTempFileName('xml');
-
         XmlDoc.GetRoot(XmlElem);
         SalesVATAdvNotif2."XML Submission Document".CreateOutStream(XmlOutStream);
         XmlDoc.WriteTo(XmlOutStream);
         SalesVATAdvNotif2."XML Submission Document".CreateInStream(XmlInStream);
-        XmlFile.Create(FileName);
-        XmlFile.CreateOutStream(FileOutStream);
+        TempBlob.CreateOutStream(ExportOutStream, TextEncoding::MSDos);
         while not XmlInStream.EOS() do begin
             XmlInStream.ReadText(TextLine);
-            FileOutStream.WriteText(TextLine);
+            ExportOutStream.WriteText(TextLine);
         end;
-        XmlFile.Close();
 
-        ExportXMLFile(FileName);
+        TempBlob.CreateInStream(ExportInStream);
+        ExportXMLFile(ExportInStream);
     end;
 
-    local procedure ExportXMLFile(SourceFile: Text)
+    local procedure ExportXMLFile(SourceStream: InStream)
     var
+        FileManagement: Codeunit "File Management";
         FileName: Text;
     begin
         ElecVATDeclSetup.Get();
 
         FileName := StrSubstNo(XMLFileNameTxt, ElecVATDeclSetup."XML File Default Name", Description);
 
-        Download(SourceFile, '', ElecVATDeclSetup."Sales VAT Adv. Notif. Path", XmlFilterTxt, FileName);
+        FileManagement.DownloadFromStreamHandler(SourceStream, '', ElecVATDeclSetup."Sales VAT Adv. Notif. Path", XmlFilterTxt, FileName);
     end;
 
     procedure CheckDate(StartDate2: Date)
