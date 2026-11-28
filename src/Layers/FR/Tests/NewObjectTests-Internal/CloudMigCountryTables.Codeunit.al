@@ -5,8 +5,13 @@ codeunit 135161 "Cloud Mig Country Tables"
 #if not CLEAN28
         ListOfTablesToMigrate.Add(Database::"Bank Account Buffer");
 #endif
+#if not CLEAN30
         ListOfTablesToMigrate.Add(Database::"FR Acc. Schedule Line");
         ListOfTablesToMigrate.Add(Database::"FR Acc. Schedule Name");
+#else
+        ListOfTablesToMigrate.Add(10826);
+        ListOfTablesToMigrate.Add(10827);
+#endif
 #if not CLEAN28        
         ListOfTablesToMigrate.Add(Database::"Payment Address");
         ListOfTablesToMigrate.Add(Database::"Payment Class");

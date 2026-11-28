@@ -1,0 +1,84 @@
+{
+  "id": "c189ffd4-396c-42f4-a828-b4d5974b6a29",
+  "name": "Reports FR Tests",
+  "publisher": "Microsoft",
+  "version": "29.1.0.0",
+  "brief": "Tests for the Reports FR extension.",
+  "description": "Tests for the Reports FR extension.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://learn.microsoft.com/en-us/dynamics365/business-central/finance-how-setup-use-service-declaration",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "platform": "29.0.0.0",
+  "application": "29.1.0.0",
+  "dependencies": [
+    {
+      "id": "c1f311f2-7c93-43a0-af8a-213e383947f2",
+      "name": "Reports FR Test Library",
+      "publisher": "Microsoft",
+      "version": "29.1.0.0"
+    },
+    {
+      "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
+      "name": "Permissions Mock",
+      "publisher": "Microsoft",
+      "version": "29.1.0.0"
+    },
+    {
+      "id": "87990153-0e35-4e5d-ba61-2e93077d1699",
+      "name": "Review General Ledger Entries",
+      "publisher": "Microsoft",
+      "version": "29.1.0.0"
+    },
+    {
+      "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
+      "name": "System Application Test Library",
+      "publisher": "Microsoft",
+      "version": "29.1.0.0"
+    },
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "29.1.0.0"
+    },
+    {
+      "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
+      "publisher": "Microsoft",
+      "name": "Library Variable Storage",
+      "version": "29.1.0.0"
+    },
+    {
+      "id": "6f93dbc5-c674-430e-b5f4-232449d55c20",
+      "publisher": "Microsoft",
+      "name": "Reports FR",
+      "version": "29.1.0.0"
+    }
+  ],
+  "idRanges": [
+    {
+      "from": 144044,
+      "to": 144044
+    },
+    {
+      "from": 144050,
+      "to": 144053
+    },
+    {
+      "from": 148010,
+      "to": 148014
+    }
+  ],
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2141039",
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}

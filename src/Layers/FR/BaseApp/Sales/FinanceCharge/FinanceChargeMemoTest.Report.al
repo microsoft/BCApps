@@ -725,7 +725,7 @@ report 123 "Finance Charge Memo - Test"
 
     rendering
     {
-#if not CLEAN28
+#if not CLEAN29
         layout(RDLCLayout)
         {
             Type = RDLC;
@@ -850,4 +850,3 @@ report 123 "Finance Charge Memo - Test"
         ShowDim := NewShowDim;
     end;
 }
-
