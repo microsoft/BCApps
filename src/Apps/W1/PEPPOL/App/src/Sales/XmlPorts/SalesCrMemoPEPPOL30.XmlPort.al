@@ -199,9 +199,10 @@ xmlport 37200 "Sales Cr.Memo - PEPPOL30"
                 var
                     PEPPOLDocumentInfoProvider: Interface "PEPPOL Document Info Provider";
                 begin
+                    SalesCrMemoHeader.TransferFields(SalesHeader);
                     PEPPOLDocumentInfoProvider := GetFormat();
                     PEPPOLDocumentInfoProvider.GetCrMemoBillingReferenceInfo(
-                    SalesCrMemoHeader,
+                      SalesCrMemoHeader,
                       InvoiceDocRefID,
                       InvoiceDocRefIssueDate);
 
