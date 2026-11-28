@@ -18,7 +18,7 @@ page 2027 "Image Analysis Blacklist"
         {
             repeater(GroupName)
             {
-                field(ItemCode; TagName)
+                field(ItemCode; Rec.TagName)
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
