@@ -2923,6 +2923,144 @@ codeunit 134331 "ERM Purchase Payables"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure UnrealizedGainLossClearedWithLCYPaymentAndMultiplePostingGroups()
+    begin
+        // [FEATURE] [Purchase] [AI test]
+        // [SCENARIO 647653] Applying an LCY payment across vendor posting groups clears the revalued payables account.
+        VerifyUnrealizedGainLossWithLCYPayment(80, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure UnrealizedGainClearedWithMultiplePostingGroups()
+    begin
+        // [FEATURE] [Purchase] [AI test]
+        // [SCENARIO 647653] An unrealized gain is reversed on the original payables account when applying an LCY payment.
+        VerifyUnrealizedGainLossWithLCYPayment(70, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure UnrealizedGainLossRestoredWhenUnapplyingMultiplePostingGroups()
+    begin
+        // [FEATURE] [Purchase] [AI test]
+        // [SCENARIO 647653] Unapplying restores the revalued payables balances and reapplying clears both accounts again.
+        VerifyUnrealizedGainLossWithLCYPayment(80, true);
+    end;
+
+    local procedure VerifyUnrealizedGainLossWithLCYPayment(AdjustmentRelationalRateAmount: Integer; UnapplyAndReapply: Boolean)
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: array[3] of Record "Currency Exchange Rate";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        VATPostingSetup: Record "VAT Posting Setup";
+        Vendor: Record Vendor;
+        VendorPostingGroup: array[2] of Record "Vendor Posting Group";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
+        PostingDate: array[3] of Date;
+        BalanceBeforeApplication: array[2] of Decimal;
+        ActualAmount: array[2] of Decimal;
+        PaymentDocNo: Code[20];
+        UnrealizedAmountErr: Label 'The invoice must have an unrealized gain or loss of 5 LCY before application.', Locked = true;
+        RevaluedBalanceErr: Label 'The invoice payables balance must reflect the adjustment exchange rate.', Locked = true;
+        PaymentBalanceErr: Label 'The payment must debit the alternative payables account by 90 LCY.', Locked = true;
+        UnappliedBalanceErr: Label 'Unapplying must restore the balance of payables account %1.', Comment = '%1 = G/L account number', Locked = true;
+    begin
+        Initialize();
+        SetJournalTemplNameMandatoryFalse();
+        GeneratePostingDate(PostingDate);
+        CreateCurrencyWithExchangeRates(Currency, CurrencyExchangeRate, PostingDate);
+        CurrencyExchangeRate[2].Validate("Relational Exch. Rate Amount", AdjustmentRelationalRateAmount);
+        CurrencyExchangeRate[2].Validate("Relational Adjmt Exch Rate Amt", AdjustmentRelationalRateAmount);
+        CurrencyExchangeRate[2].Modify(true);
+
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        LibraryPurchase.CreateVendorPostingGroup(VendorPostingGroup[1]);
+        SetPurchAllowMultiplePostingGroups(true);
+        CreateVendorWithAllowMultiplePostingGroups(
+            Vendor, VendorPostingGroup[1].Code, Currency.Code, VATPostingSetup."VAT Bus. Posting Group");
+        CreateVendorPostingGroupWithCopy(VendorPostingGroup);
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[1].Code, 1, 10), CopyStr(VendorPostingGroup[2].Code, 1, 10));
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[2].Code, 1, 10), CopyStr(VendorPostingGroup[1].Code, 1, 10));
+        Item.Get(LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
+
+        // [GIVEN] An invoice for 100 FCY, initially posted at 75 LCY and subsequently revalued.
+        CreatePurchaseInvoice(PurchaseHeader, PurchaseLine, PostingDate[3], Item."No.", Vendor."No.");
+        PurchaseLine.Validate(Quantity, 1);
+        PurchaseLine.Validate("Direct Unit Cost", 100);
+        PurchaseLine.Modify(true);
+        PurchInvHeader.Get(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+        LibraryERM.RunExchRateAdjustment(
+            Currency.Code, PostingDate[3], PostingDate[1], AdjustExchRateDefaultDescTxt,
+            PostingDate[2], CopyStr(LibraryRandom.RandText(10), 1, MaxStrLen(GenJournalLine."Document No.")), false);
+
+        LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Invoice, PurchInvHeader."No.");
+        DetailedVendorLedgEntry.SetRange("Vendor Ledger Entry No.", VendorLedgerEntry."Entry No.");
+        DetailedVendorLedgEntry.SetFilter(
+            "Entry Type", '%1|%2', DetailedVendorLedgEntry."Entry Type"::"Unrealized Gain",
+            DetailedVendorLedgEntry."Entry Type"::"Unrealized Loss");
+        DetailedVendorLedgEntry.CalcSums("Amount (LCY)");
+        Assert.AreEqual(5, Abs(DetailedVendorLedgEntry."Amount (LCY)"), UnrealizedAmountErr);
+
+        // [GIVEN] A payment of 90 LCY on the alternative posting group at the current exchange rate.
+        CreateGeneralJournalBatch(GenJournalBatch, true);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Vendor, Vendor."No.",
+            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), 90);
+        GenJournalLine.Validate("Posting Date", PostingDate[1]);
+        GenJournalLine.Validate("Currency Code", '');
+        GenJournalLine.Validate("Posting Group", VendorPostingGroup[2].Code);
+        GenJournalLine.Modify(true);
+        PaymentDocNo := GenJournalLine."Document No.";
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        GetGLEntryBalance(VendorPostingGroup[1]."Payables Account", BalanceBeforeApplication[1]);
+        GetGLEntryBalance(VendorPostingGroup[2]."Payables Account", BalanceBeforeApplication[2]);
+        Assert.AreEqual(-AdjustmentRelationalRateAmount, BalanceBeforeApplication[1], RevaluedBalanceErr);
+        Assert.AreEqual(90, BalanceBeforeApplication[2], PaymentBalanceErr);
+
+        // [WHEN] The payment is applied to the invoice.
+        ApplyPostVendPayment2Invoices(PaymentDocNo, PurchInvHeader."No.");
+
+        // [THEN] Both payables accounts are cleared and the invoice is fully applied.
+        VerifyGLEntryForAccount(VendorPostingGroup, ActualAmount);
+        VendorLedgerEntry.Get(VendorLedgerEntry."Entry No.");
+        VendorLedgerEntry.CalcFields("Remaining Amount");
+        VendorLedgerEntry.TestField("Remaining Amount", 0);
+
+        if UnapplyAndReapply then begin
+            // [WHEN] The payment application is unapplied.
+            LibraryERM.FindVendorLedgerEntry(VendorLedgerEntry, VendorLedgerEntry."Document Type"::Payment, PaymentDocNo);
+            LibraryERM.UnapplyVendorLedgerEntry(VendorLedgerEntry);
+
+            // [THEN] Each payables account returns to its balance before application.
+            GetGLEntryBalance(VendorPostingGroup[1]."Payables Account", ActualAmount[1]);
+            GetGLEntryBalance(VendorPostingGroup[2]."Payables Account", ActualAmount[2]);
+            Assert.AreEqual(BalanceBeforeApplication[1], ActualAmount[1], StrSubstNo(UnappliedBalanceErr, VendorPostingGroup[1]."Payables Account"));
+            Assert.AreEqual(BalanceBeforeApplication[2], ActualAmount[2], StrSubstNo(UnappliedBalanceErr, VendorPostingGroup[2]."Payables Account"));
+
+            // [WHEN] The payment is applied again.
+            ApplyPostVendPayment2Invoices(PaymentDocNo, PurchInvHeader."No.");
+
+            // [THEN] Both payables accounts are cleared again.
+            VerifyGLEntryForAccount(VendorPostingGroup, ActualAmount);
+        end;
+    end;
+
+    [Test]
     procedure PurchaseInvoiceAmountExclVATWithInheritFromParentAllocationAccount()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -3130,8 +3268,10 @@ codeunit 134331 "ERM Purchase Payables"
         CreateVendorPostingGroupWithCopy(VendorPostingGroup);
 
         // [GIVEN] Create Alternative Vendor Posting Group.
-        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[1].Code, VendorPostingGroup[2].Code);
-        LibraryPurchase.CreateAltVendorPostingGroup(VendorPostingGroup[2].Code, VendorPostingGroup[1].Code);
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[1].Code, 1, 10), CopyStr(VendorPostingGroup[2].Code, 1, 10));
+        LibraryPurchase.CreateAltVendorPostingGroup(
+            CopyStr(VendorPostingGroup[2].Code, 1, 10), CopyStr(VendorPostingGroup[1].Code, 1, 10));
 
         // [GIVEN] Create GLAccount.
         GLAccount.Get(LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, GenPostingType::Purchase));
