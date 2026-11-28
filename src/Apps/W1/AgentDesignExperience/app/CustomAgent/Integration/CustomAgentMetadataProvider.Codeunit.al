@@ -40,6 +40,20 @@ codeunit 4358 "Custom Agent Metadata Provider" implements IAgentMetadata, IAgent
         exit(CustomAgentSetupRecord."Initials");
     end;
 
+    procedure GetDescription(AgentUserId: Guid): Text
+    var
+        CustomAgentSetupRecord: Record "Custom Agent Setup";
+    begin
+        if IsNullGuid(AgentUserId) then
+            exit('');
+
+        CustomAgentSetupRecord.SetLoadFields(Description);
+        if not CustomAgentSetupRecord.Get(AgentUserId) then
+            exit('');
+
+        exit(CustomAgentSetupRecord.Description);
+    end;
+
     procedure GetFirstTimeSetupPageId(): Integer
     begin
         exit(Page::"Custom Agents Wizard");
