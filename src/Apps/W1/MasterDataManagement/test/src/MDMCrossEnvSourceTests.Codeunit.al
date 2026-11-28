@@ -9,6 +9,8 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Assert: Codeunit Assert;
         LibrarySales: Codeunit "Library - Sales";
         LibraryRandom: Codeunit "Library - Random";
+        TableNotAvailableMsg: Label 'Table %1 should be available through the source API', Locked = true, Comment = '%1 = table ID';
+        TableNotReadableMsg: Label 'Table %1 should be readable through the source API', Locked = true, Comment = '%1 = table ID';
 
     [Test]
     procedure GetCapabilitiesReturnsVersionAndFeatures()
@@ -108,7 +110,9 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         Response.ReadFrom(SourceApi.GetRecords(Database::Item, FieldIdsArray(Item.FieldNo(Description)), '{}', 10, ''));
 
         // [THEN] the source reports the missing read permission and returns no records
-        Assert.IsTrue(GetBoolean(Response, 'tableAvailable'), 'The table exists on the source');
+        // tableAvailable:false is deliberate: subsidiaries that don't know readPermission stop with an error instead of
+        // reading the empty page as "no changes" and silently skipping the table.
+        Assert.IsFalse(GetBoolean(Response, 'tableAvailable'), 'An unreadable table must be reported as not available for subsidiaries that predate readPermission');
         Assert.IsFalse(GetBoolean(Response, 'readPermission'), 'The missing read permission should be reported');
         Assert.AreEqual(0, RecordCount(Response), 'No records should be returned for an unreadable table');
     end;
@@ -277,6 +281,129 @@ codeunit 139931 "MDM Cross-Env Source Tests"
         // [THEN] the table is reported unavailable and no records are returned
         Assert.IsFalse(GetBoolean(Response, 'tableAvailable'), 'Tenant Media must not be served as a top-level table');
         Assert.AreEqual(0, RecordCount(Response), 'A blocked table must return no records');
+    end;
+
+    [Test]
+    procedure SourceApiRefusesSystemTables()
+    var
+        User: Record User;
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+        Entry: JsonObject;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Security]
+        // [SCENARIO 660382] The source API refuses system tables (ID 2000000000 and above) even when the caller can read
+        //                   them, because some system tables are readable without an explicit permission.
+        ApproveSourceConsent();
+        // [GIVEN] a readable system table that has records
+        Assert.IsTrue(User.ReadPermission(), 'Precondition: the test session can read the User table');
+
+        // [WHEN] records are requested from the system table
+        Response.ReadFrom(SourceApi.GetRecords(Database::User, FieldIdsArray(User.FieldNo("User Name")), '{}', 10, ''));
+
+        // [THEN] the table is reported unavailable and no records are returned
+        Assert.IsFalse(GetBoolean(Response, 'tableAvailable'), 'A system table must not be served');
+        Assert.AreEqual(0, RecordCount(Response), 'A system table must return no records');
+
+        // [WHEN] change detection probes the system table
+        Clear(Response);
+        Response.ReadFrom(SourceApi.LastModifiedAtPerTable(TableIdsArray(Database::User)));
+
+        // [THEN] the table is reported unavailable, without a timestamp
+        GetTableEntry(Response, 0, Entry);
+        Assert.IsFalse(GetBoolean(Entry, 'tableAvailable'), 'A system table must not be probed');
+        Assert.IsFalse(Entry.Contains('lastModifiedAt'), 'No timestamp should be returned for a system table');
+    end;
+
+    [Test]
+    procedure RegisteredAppReadsDefaultTablesOnlyThroughSourceApi()
+    var
+        Customer: Record Customer;
+        PermissionsMock: Codeunit "Permissions Mock";
+        SourceApi: Codeunit "MDM Cross-Env Source API";
+        Response: JsonObject;
+        DefaultTableIds: List of [Integer];
+        TableId: Integer;
+    begin
+        // [FEATURE] [Master Data Management] [Cross-Environment] [Permissions]
+        // [SCENARIO 660384] With only the permission set that the source admin assigns to the registered app, the app reads
+        //                   every default synchronization table through the source API (indirect read), but can't read
+        //                   those tables directly through other endpoints. Also catches drift between the permission set
+        //                   and the source API's Permissions property.
+        ApproveSourceConsent();
+        LibrarySales.CreateCustomer(Customer);
+        GetDefaultSynchronizationTableIds(DefaultTableIds);
+
+        // [GIVEN] the session has only the permission set the source admin assigns to the registered app
+        // Don't call PermissionsMock.Stop(): the test runner toggles the mock around every test.
+        PermissionsMock.Set('MDM Cross-Env Read');
+
+        // [THEN] the default tables aren't readable directly
+        Assert.IsFalse(Customer.ReadPermission(), 'The permission set must not grant direct read on Customer');
+
+        // [THEN] every default table is readable through the source API
+        foreach TableId in DefaultTableIds do begin
+            Clear(Response);
+            Response.ReadFrom(SourceApi.GetRecords(TableId, '[]', '{}', 1, ''));
+            Assert.IsTrue(GetBoolean(Response, 'tableAvailable'), StrSubstNo(TableNotAvailableMsg, TableId));
+            Assert.IsFalse(Response.Contains('readPermission'), StrSubstNo(TableNotReadableMsg, TableId));
+        end;
+
+        // [THEN] the source API serves the data, including for change detection
+        Clear(Response);
+        Response.ReadFrom(SourceApi.GetRecords(Database::Customer, FieldIdsArray(Customer.FieldNo(Name)), SystemIdsSelector(Customer.SystemId), 100, ''));
+        Assert.AreEqual(1, RecordCount(Response), 'The customer should be served through the source API');
+        Clear(Response);
+        Response.ReadFrom(SourceApi.LastModifiedAtPerTable(TableIdsArray(Database::Customer)));
+        Assert.IsTrue(TableEntryHasTimestamp(Response, 0), 'Change detection should read Customer through the source API');
+    end;
+
+    // The tables synchronized by the default configuration; the permission set and the source API's Permissions
+    // property both cover exactly these.
+    local procedure GetDefaultSynchronizationTableIds(var TableIds: List of [Integer])
+    begin
+        TableIds.Add(Database::"Salesperson/Purchaser");
+        TableIds.Add(Database::Customer);
+        TableIds.Add(Database::Vendor);
+        TableIds.Add(Database::Contact);
+        TableIds.Add(Database::"Business Relation");
+        TableIds.Add(Database::"Contact Business Relation");
+        TableIds.Add(Database::"Country/Region");
+        TableIds.Add(Database::"Post Code");
+        TableIds.Add(Database::Currency);
+        TableIds.Add(Database::"Currency Exchange Rate");
+        TableIds.Add(Database::"Payment Terms");
+        TableIds.Add(Database::"Shipment Method");
+        TableIds.Add(Database::"Shipping Agent");
+        TableIds.Add(Database::"Sales & Receivables Setup");
+        TableIds.Add(Database::"Purchases & Payables Setup");
+        TableIds.Add(Database::"Marketing Setup");
+        TableIds.Add(Database::"No. Series");
+        TableIds.Add(Database::"No. Series Line");
+        TableIds.Add(Database::"G/L Account");
+        TableIds.Add(Database::Dimension);
+        TableIds.Add(Database::"Dimension Value");
+        TableIds.Add(Database::"Gen. Business Posting Group");
+        TableIds.Add(Database::"Gen. Product Posting Group");
+        TableIds.Add(Database::"Customer Posting Group");
+        TableIds.Add(Database::"Vendor Posting Group");
+        TableIds.Add(Database::"VAT Business Posting Group");
+        TableIds.Add(Database::"VAT Product Posting Group");
+        TableIds.Add(Database::"VAT Posting Setup");
+        TableIds.Add(Database::"Tax Area");
+        TableIds.Add(Database::"Tax Group");
+        TableIds.Add(Database::"Tax Jurisdiction");
+    end;
+
+    local procedure TableEntryHasTimestamp(var Response: JsonObject; Index: Integer): Boolean
+    var
+        Entry: JsonObject;
+        Token: JsonToken;
+    begin
+        GetTableEntry(Response, Index, Entry);
+        if not Entry.Get('lastModifiedAt', Token) then
+            exit(false);
+        exit(Token.AsValue().AsText() <> '');
     end;
 
     [Test]

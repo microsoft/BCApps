@@ -22,7 +22,7 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
         NotIndexedErr: Label 'Table %1 on the source has too many same-timestamp changes to synchronize without an index. Add a key on SystemModifiedAt and SystemId to that table on the source environment.', Comment = '%1 = table caption';
         FieldsUnavailableErr: Label 'One or more fields set up for synchronization do not exist on table %1 on the source environment.', Comment = '%1 = table caption';
         SourceConsentRequiredErr: Label 'The source environment has not approved sharing its master data with this environment. Ask an administrator of the source environment to approve the Master Data Management cross-environment privacy notice.';
-        SourceReadPermissionErr: Label 'The Microsoft Entra application used for cross-environment master data synchronization can''t read table %1 (ID %2) in the source environment. Ask an administrator of the source environment to grant it read permission to this table, for example by adding the table to a permission set that is assigned to the application on the Microsoft Entra Applications page.', Comment = '%1 = table caption, %2 = table ID';
+        SourceReadPermissionErr: Label 'The Microsoft Entra application used for cross-environment master data synchronization can''t read table %1 (ID %2) in the source environment. Ask an administrator of the source environment to grant the application direct read permission (R) to this table, by adding the table to a permission set that is assigned to the application on the Microsoft Entra Applications page. The ''Master Data Mgt. - Cross Environment'' permission set covers only the tables in the default synchronization setup.', Comment = '%1 = table caption, %2 = table ID';
         SourceProbeFailedErr: Label 'Could not read the change probe from the source environment for table %1.', Comment = '%1 = table caption';
         OpenSynchTablesActionTxt: Label 'Open Synchronization Tables';
         RecordsFeatureTok: Label 'records', Locked = true;
@@ -210,11 +210,12 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogConsentRequired(IntegrationTableId);
             Error(SourceConsentError());
         end;
+        // readPermission goes first: the source also reports an unreadable table as not available (see GetRecords).
+        if not SourceResponse.ReadPermission(Response) then
+            RaiseSourceReadPermissionError(IntegrationTableId);
         // An unavailable table yields no records array; treat as no matching records for the review.
         if not SourceResponse.TableAvailable(Response) then
             exit(false);
-        if not SourceResponse.ReadPermission(Response) then
-            RaiseSourceReadPermissionError(IntegrationTableId);
         // An unindexed source past the change cap returns indexed:false with an empty page; like the unfiltered probe
         // we can't prove emptiness cheaply, so assume records may exist rather than under-reporting to the review.
         if not SourceResponse.Indexed(Response) then
@@ -446,12 +447,14 @@ codeunit 7249 "MDM Cross-Env Data Source" implements "IMDM Data Source"
             LogConsentRequired(IntegrationTableId);
             Error(SourceConsentError());
         end;
+        // readPermission goes first: the source also reports an unreadable table as not available (see GetRecords), and
+        // the permission message names the fix.
+        if not SourceResponse.ReadPermission(Response) then
+            RaiseSourceReadPermissionError(IntegrationTableId);
         if not SourceResponse.TableAvailable(Response) then begin
             LogParseFailure(IntegrationTableId, TableUnavailableReasonTok);
             Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(TableUnavailableErr, TableCaption(IntegrationTableId))));
         end;
-        if not SourceResponse.ReadPermission(Response) then
-            RaiseSourceReadPermissionError(IntegrationTableId);
         if not SourceResponse.Indexed(Response) then begin
             LogParseFailure(IntegrationTableId, NotIndexedReasonTok);
             Error(SynchTablesNavigationError(IntegrationTableId, StrSubstNo(NotIndexedErr, TableCaption(IntegrationTableId))));

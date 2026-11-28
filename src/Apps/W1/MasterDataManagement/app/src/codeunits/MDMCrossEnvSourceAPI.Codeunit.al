@@ -1,5 +1,23 @@
 namespace Microsoft.Integration.MDM;
 
+using Microsoft.CRM.BusinessRelation;
+using Microsoft.CRM.Contact;
+using Microsoft.CRM.Setup;
+using Microsoft.CRM.Team;
+using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Foundation.Shipping;
+using Microsoft.Purchases.Setup;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.Environment;
 using System.Text;
 using System.Utilities;
@@ -7,12 +25,48 @@ using System.Utilities;
 /// <summary>
 /// Source-side generic API, published as an ODataV4 web service. The cross-environment implementation of
 /// "IMDM Data Source" (running in a subsidiary) calls these unbound actions to read source master data.
-/// Runs under the CALLER's permission set with NO permission elevation, so a read-only, table-scoped
-/// permission set assigned to the caller's Entra app is the effective access boundary.
+/// Runs under the CALLER's permission set. The Permissions property below only makes the caller's INDIRECT read (r)
+/// on the default synchronized tables usable through this codeunit; it grants nothing the caller doesn't hold. So the
+/// "MDM Cross-Env Read" permission set grants indirect read, and the registered app can read those tables only through
+/// this API, not through other endpoints. Tables outside the default set need direct read (R) in the caller's
+/// permission set, because the Permissions property can't be extended.
 /// </summary>
 codeunit 7241 "MDM Cross-Env Source API"
 {
     Access = Public;
+    // Keep in sync with the indirect read grants in permission set "MDM Cross-Env Read".
+    Permissions = tabledata "Salesperson/Purchaser" = r,
+                  tabledata Customer = r,
+                  tabledata Vendor = r,
+                  tabledata Contact = r,
+                  tabledata "Business Relation" = r,
+                  tabledata "Contact Business Relation" = r,
+                  tabledata "Country/Region" = r,
+                  tabledata "Post Code" = r,
+                  tabledata Currency = r,
+                  tabledata "Currency Exchange Rate" = r,
+                  tabledata "Payment Terms" = r,
+                  tabledata "Shipment Method" = r,
+                  tabledata "Shipping Agent" = r,
+                  tabledata "Sales & Receivables Setup" = r,
+                  tabledata "Purchases & Payables Setup" = r,
+                  tabledata "Marketing Setup" = r,
+                  tabledata "No. Series" = r,
+                  tabledata "No. Series Line" = r,
+                  tabledata "G/L Account" = r,
+                  tabledata Dimension = r,
+                  tabledata "Dimension Value" = r,
+                  tabledata "Gen. Business Posting Group" = r,
+                  tabledata "Gen. Product Posting Group" = r,
+                  tabledata "Customer Posting Group" = r,
+                  tabledata "Vendor Posting Group" = r,
+                  tabledata "VAT Business Posting Group" = r,
+                  tabledata "VAT Product Posting Group" = r,
+                  tabledata "VAT Posting Setup" = r,
+                  tabledata "Tax Area" = r,
+                  tabledata "Tax Group" = r,
+                  tabledata "Tax Jurisdiction" = r,
+                  tabledata "Tenant Media" = r;
 
     var
         SortByChangeFeedKeyTok: Label 'SORTING(Field%1,Field%2)', Locked = true;
@@ -46,7 +100,8 @@ codeunit 7241 "MDM Cross-Env Source API"
     /// numbers. Selector is either a change-feed cursor { modifiedAt, systemId } or a targeted
     /// { systemIds } list. Response carries records, hasMore and (cursor mode) nextCursor. The table read
     /// runs under the CALLER's permission set, so table-level access is enforced by permissions, not here; a table
-    /// the caller can't read is reported as readPermission:false (no records) so the subsidiary can name the fix.
+    /// the caller can't read is reported as readPermission:false and tableAvailable:false (no records), so the subsidiary
+    /// can name the fix and older subsidiaries still stop with an error.
     /// </summary>
     /// <param name="TableId">The source table ID to read.</param>
     /// <param name="FieldIds">A JSON array of the field numbers to project.</param>
@@ -81,11 +136,14 @@ codeunit 7241 "MDM Cross-Env Source API"
             exit(WriteResponse(Response, false, Records, false));
         if not TryOpenTable(TableId, RecRef) then
             exit(WriteResponse(Response, false, Records, false));
-        Response.Add('tableAvailable', true);
+        // An unreadable table is also reported as not available. Subsidiaries that know readPermission name the fix;
+        // older subsidiaries don't, and would otherwise read the empty page as "no changes" and silently stop
+        // synchronizing the table. tableAvailable:false makes them stop with an error instead.
         if not CanRead(TableId) then begin
             Response.Add('readPermission', false);
-            exit(WriteResponse(Response, true, Records, false));
+            exit(WriteResponse(Response, false, Records, false));
         end;
+        Response.Add('tableAvailable', true);
 
         // Missing field => HALT that table's sync (no partial records); subsidiary logs a synch error.
         // Fields that exist but are media/blob/flow are skipped silently (media sync is deferred).
@@ -181,8 +239,6 @@ codeunit 7241 "MDM Cross-Env Source API"
         exit(ProbeRecRef.ReadPermission());
     end;
 
-    // Media/infrastructure tables are only reachable inline (BuildMediaValue, tied to a record's media field). Never
-    // serve them as a top-level read, or a caller holding the Tenant Media read grant could enumerate every blob.
     // The environment serving its data must have consented. If not, return a structured signal (not an error) so the
     // subsidiary surfaces a clear, actionable message instead of a raw HTTP failure.
     local procedure IsSourceConsented(): Boolean
@@ -202,9 +258,21 @@ codeunit 7241 "MDM Cross-Env Source API"
         exit(ResultText);
     end;
 
+    // System tables (ID 2000000000 and above) are never synchronized: no default or supported mapping uses one, and
+    // some of them are readable without an explicit permission, so the caller's permission set can't keep them out.
+    // The privacy notice tables are read directly in code. Media/infrastructure tables are only reachable inline
+    // (BuildMediaValue, tied to a record's media field); never serve them as a top-level read, or a caller holding the
+    // Tenant Media read grant could enumerate every blob.
     local procedure IsBlockedSourceTable(TableId: Integer): Boolean
     begin
+        if TableId >= SystemTableIdStart() then
+            exit(true);
         exit(TableId in [Database::"Tenant Media", Database::"Tenant Media Set", Database::"Tenant Media Thumbnails"]);
+    end;
+
+    local procedure SystemTableIdStart(): Integer
+    begin
+        exit(2000000000);
     end;
 
     // Applies the mapping's row filter server-side (parity with same-env, which filters the source record directly).

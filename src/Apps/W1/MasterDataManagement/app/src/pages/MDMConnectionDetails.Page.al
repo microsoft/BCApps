@@ -48,7 +48,11 @@ page 7232 "MDM Connection Details"
                         ToolTip = 'Specifies the name of the source Business Central environment.';
 
                         trigger OnValidate()
+                        var
+                            MasterDataManagementSetup: Record "Master Data Management Setup";
                         begin
+                            if SourceEnvironmentName <> '' then
+                                MasterDataManagementSetup.CheckSourceEnvironmentName(SourceEnvironmentName);
                             SetControls();
                         end;
                     }
@@ -335,15 +339,12 @@ page 7232 "MDM Connection Details"
     local procedure SaveConfiguration()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
-        HttpSourceTransport: Codeunit "MDM Http Source Transport";
     begin
         if not MasterDataManagementSetup.Get() then begin
             MasterDataManagementSetup.Init();
             MasterDataManagementSetup.Insert();
         end;
         MasterDataManagementSetup.Validate("Source Environment Name", SourceEnvironmentName);
-        // Same-tenant, same-ring: derive the source web-service URL from the environment name instead of asking for it.
-        MasterDataManagementSetup."Source Environment URL" := CopyStr(HttpSourceTransport.BuildSourceApiBaseUrl(SourceEnvironmentName), 1, MaxStrLen(MasterDataManagementSetup."Source Environment URL"));
         MasterDataManagementSetup."Source Company Name" := SourceCompanyName;
         MasterDataManagementSetup."Source OAuth Client Id" := OAuth2ClientId;
         // Storing one credential type removes the other, so the connection never holds both a secret and a certificate.
