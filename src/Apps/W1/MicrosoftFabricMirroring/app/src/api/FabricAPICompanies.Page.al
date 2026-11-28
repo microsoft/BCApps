@@ -54,4 +54,13 @@ page 48503 "Fabric API Companies"
         ActionContext.AddEntityKey(TenantFabricCompanies.FieldNo(SystemId), TenantFabricCompanies.SystemId);
         ActionContext.SetResultCode(WebServiceActionResultCode::Created);
     end;
+
+    [ServiceEnabled]
+    [Caption('Remove a company from Fabric mirroring')]
+    [Scope('Cloud')]
+    procedure RemoveCompany(var ActionContext: WebServiceActionContext)
+    begin
+        Rec.Delete(true);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Deleted);
+    end;
 }

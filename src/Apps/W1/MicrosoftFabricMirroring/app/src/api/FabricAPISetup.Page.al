@@ -141,6 +141,38 @@ page 48507 "Fabric API Setup"
         FabricConfigPkgMgt.ImportPackageFromApi(PackageJson, ActionContext);
     end;
 
+    [ServiceEnabled]
+    [Caption('Add a table to Fabric mirroring')]
+    [Scope('Cloud')]
+    procedure AddTable(NewTableId: Integer; var ActionContext: WebServiceActionContext)
+    var
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.AddTable(NewTableId);
+        TenantFabricTables.Get(NewTableId);
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Tables");
+        ActionContext.AddEntityKey(TenantFabricTables.FieldNo(SystemId), TenantFabricTables.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
+    [ServiceEnabled]
+    [Caption('Add a company to Fabric mirroring')]
+    [Scope('Cloud')]
+    procedure AddCompany(NewCompanyName: Text[30]; var ActionContext: WebServiceActionContext)
+    var
+        TenantFabricCompanies: Record "Tenant Fabric Companies";
+        FabricPlatformMgt: Codeunit "Fabric Platform Mgt";
+    begin
+        FabricPlatformMgt.AddCompany(NewCompanyName);
+        TenantFabricCompanies.Get(NewCompanyName);
+        ActionContext.SetObjectType(ObjectType::Page);
+        ActionContext.SetObjectId(Page::"Fabric API Companies");
+        ActionContext.AddEntityKey(TenantFabricCompanies.FieldNo(SystemId), TenantFabricCompanies.SystemId);
+        ActionContext.SetResultCode(WebServiceActionResultCode::Created);
+    end;
+
     local procedure SetActionResponse(var ActionContext: WebServiceActionContext)
     begin
         ActionContext.SetObjectType(ObjectType::Page);
