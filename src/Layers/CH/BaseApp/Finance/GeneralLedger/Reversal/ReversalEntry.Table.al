@@ -340,7 +340,7 @@ table 179 "Reversal Entry"
             Caption = 'Source Currency VAT Amount';
             DataClassification = CustomerContent;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA27
         field(3010536; "Amount (FCY)"; Decimal)
         {
             Caption = 'Amount (FCY)';

@@ -138,6 +138,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(36; "Use Forecast on Variants"; Boolean)
         {
             Caption = 'Use forecast on variants';
@@ -146,6 +148,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(37; "Use Forecast on Locations"; Boolean)
         {
             Caption = 'Use forecast on locations';
@@ -154,6 +158,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(38; "Combined MPS/MRP Calculation"; Boolean)
         {
             AccessByPermission = TableData "Planning Component" = R;
@@ -180,6 +186,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(41; "Default Dampener %"; Decimal)
         {
             AutoFormatType = 0;
@@ -191,6 +199,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(42; "Default Safety Lead Time"; DateFormula)
         {
             Caption = 'Default Safety Lead Time';
@@ -199,6 +209,8 @@ table 99000765 "Manufacturing Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '30.0';
         }
+#endif
+#if not CLEANSCHEMA30
         field(43; "Blank Overflow Level"; Option)
         {
             Caption = 'Blank Overflow Level';

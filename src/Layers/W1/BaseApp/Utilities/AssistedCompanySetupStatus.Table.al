@@ -34,7 +34,7 @@ table 1802 "Assisted Company Setup Status"
                 OnEnabled("Company Name", Enabled);
             end;
         }
-#if not CLEANSCHEMA26
+#if not CLEANSCHEMA25
 #pragma warning disable AS0072, AS0115
         field(3; "Package Imported"; Boolean)
         {

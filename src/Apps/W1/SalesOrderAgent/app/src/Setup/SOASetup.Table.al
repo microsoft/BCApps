@@ -25,7 +25,7 @@ table 4325 "SOA Setup"
             DataClassification = SystemMetadata;
             AutoIncrement = true;
         }
-#if not CLEANSCHEMA28
+#if not CLEANSCHEMA31
         field(2; "Agent User Security ID"; Guid)
         {
             DataClassification = SystemMetadata;
@@ -37,8 +37,8 @@ table 4325 "SOA Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '31.0';
 #endif
-#endif
         }
+#endif
         field(3; "Email Account ID"; Guid)
         {
             DataClassification = SystemMetadata;
