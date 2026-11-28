@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.History;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
@@ -24,6 +25,7 @@ codeunit 10983 "Export Factur-X Document"
         FeatureNameTok: Label 'E-document Factur-X FR Format', Locked = true;
         StartEventNameTok: Label 'E-document Factur-X FR export started', Locked = true;
         EndEventNameTok: Label 'E-document Factur-X FR export completed', Locked = true;
+        SelfBillingReportRequiredErr: Label 'The selected self-billing report must attach factur-x.xml to the PDF. Select the Self Billing Invoice or Purchase - Credit Memo report, as appropriate, or extend the selected report with the Factur-X rendering integration.';
 
     trigger OnRun()
     begin
@@ -31,12 +33,23 @@ codeunit 10983 "Export Factur-X Document"
     end;
 
     procedure ExportDocument(var RecordExportBuffer: Record "Record Export Buffer")
+    begin
+        ExportDocument(RecordExportBuffer, '');
+    end;
+
+    procedure ExportDocument(var RecordExportBuffer: Record "Record Export Buffer"; EDocumentServiceCode: Code[20])
     var
         FRFacturXReportIntegration: Codeunit "Factur-X Report Integration";
+        HasXMLAttachment: Boolean;
     begin
+        FRFacturXReportIntegration.Initialize(EDocumentServiceCode);
         BindSubscription(FRFacturXReportIntegration);
         ExportSalesDocument(RecordExportBuffer);
+        HasXMLAttachment := FRFacturXReportIntegration.HasXMLAttachment();
         UnbindSubscription(FRFacturXReportIntegration);
+        if RecordExportBuffer.RecordID.TableNo() in [Database::"Purch. Inv. Header", Database::"Purch. Cr. Memo Hdr."] then
+            if not HasXMLAttachment or not RecordExportBuffer."File Content".HasValue() then
+                Error(SelfBillingReportRequiredErr);
     end;
 
     procedure IsFacturXFRPrintProcess() Result: Boolean
@@ -63,6 +76,56 @@ codeunit 10983 "Export Factur-X Document"
         SourceDocumentLines.GetTable(SalesInvoiceLine);
 
         CIIXMLBuilder.CreateInvoiceXml(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
+        AddXMLAttachmentToRenderingPayload(TempBlob, RenderingPayload);
+    end;
+
+    procedure CreateAndAddXMLAttachmentToRenderingPayload(var PurchInvHeader: Record "Purch. Inv. Header"; var RenderingPayload: JsonObject)
+    var
+        EDocument: Record "E-Document";
+        PurchInvLine: Record "Purch. Inv. Line";
+        CIIXMLBuilder: Codeunit "CII XML Builder";
+        TempBlob: Codeunit "Temp Blob";
+        SourceDocumentHeader: RecordRef;
+        SourceDocumentLines: RecordRef;
+        EDocumentServiceCode: Code[20];
+    begin
+        PurchInvHeader.TestField("Self-Billing Invoice", true);
+        PurchInvHeader.CalcFields(Amount, "Amount Including VAT");
+        InitEDocument(EDocument, PurchInvHeader."No.", PurchInvHeader."Document Date",
+            PurchInvHeader."Currency Code", PurchInvHeader.Amount, PurchInvHeader."Amount Including VAT");
+        EDocument."Document Type" := EDocument."Document Type"::"Self-Billed Purchase Invoice";
+        OnGetFacturXServiceCode(EDocumentServiceCode);
+
+        SourceDocumentHeader.GetTable(PurchInvHeader);
+        PurchInvLine.SetRange("Document No.", PurchInvHeader."No.");
+        SourceDocumentLines.GetTable(PurchInvLine);
+        CIIXMLBuilder.CreateInvoiceXml(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, EDocumentServiceCode);
+        AddXMLAttachmentToRenderingPayload(TempBlob, RenderingPayload);
+    end;
+
+    procedure CreateAndAddXMLAttachmentToRenderingPayload(var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var RenderingPayload: JsonObject)
+    var
+        EDocument: Record "E-Document";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
+        PurchInvHeader: Record "Purch. Inv. Header";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        CIIXMLBuilder: Codeunit "CII XML Builder";
+        TempBlob: Codeunit "Temp Blob";
+        SourceDocumentHeader: RecordRef;
+        SourceDocumentLines: RecordRef;
+        EDocumentServiceCode: Code[20];
+    begin
+        SourceDocumentHeader.GetTable(PurchCrMemoHeader);
+        FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+        PurchCrMemoHeader.CalcFields(Amount, "Amount Including VAT");
+        InitEDocument(EDocument, PurchCrMemoHeader."No.", PurchCrMemoHeader."Document Date",
+            PurchCrMemoHeader."Currency Code", PurchCrMemoHeader.Amount, PurchCrMemoHeader."Amount Including VAT");
+        EDocument."Document Type" := EDocument."Document Type"::"Self-Billed Purch. Cr. Memo";
+        OnGetFacturXServiceCode(EDocumentServiceCode);
+
+        PurchCrMemoLine.SetRange("Document No.", PurchCrMemoHeader."No.");
+        SourceDocumentLines.GetTable(PurchCrMemoLine);
+        CIIXMLBuilder.CreateCreditMemoXml(EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob, EDocumentServiceCode);
         AddXMLAttachmentToRenderingPayload(TempBlob, RenderingPayload);
     end;
 
@@ -177,6 +240,9 @@ codeunit 10983 "Export Factur-X Document"
 
     procedure ExportSalesDocument(var RecordExportBuffer: Record "Record Export Buffer")
     var
+        PurchInvHeader: Record "Purch. Inv. Header";
+        PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
+        ReportSelections: Record "Report Selections";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesCrMemoHeader: Record "Sales Cr.Memo Header";
         ServiceInvoiceHeader: Record "Service Invoice Header";
@@ -184,12 +250,31 @@ codeunit 10983 "Export Factur-X Document"
         IssuedReminderHeader: Record "Issued Reminder Header";
         IssuedFinChargeMemoHeader: Record "Issued Fin. Charge Memo Header";
         TempBlob: Codeunit "Temp Blob";
+        FREDocHelpers: Codeunit "EDoc. Helpers";
+        SourceDocumentHeader: RecordRef;
         FileOutStream: OutStream;
         FileInStream: InStream;
     begin
         FeatureTelemetry.LogUsage('0000EXD', FeatureNameTok, StartEventNameTok);
 
         case RecordExportBuffer.RecordID.TableNo of
+            Database::"Purch. Inv. Header":
+                begin
+                    PurchInvHeader.Get(RecordExportBuffer.RecordID);
+                    PurchInvHeader.TestField("Self-Billing Invoice", true);
+                    PurchInvHeader.SetRecFilter();
+                    ReportSelections.GetPdfReportForVend(TempBlob, Enum::"Report Selection Usage"::"P.Self Billing Invoice",
+                        PurchInvHeader, PurchInvHeader."Pay-to Vendor No.");
+                end;
+            Database::"Purch. Cr. Memo Hdr.":
+                begin
+                    PurchCrMemoHeader.Get(RecordExportBuffer.RecordID);
+                    SourceDocumentHeader.GetTable(PurchCrMemoHeader);
+                    FREDocHelpers.GetSelfBillingInvoiceReference(SourceDocumentHeader, PurchInvHeader);
+                    PurchCrMemoHeader.SetRecFilter();
+                    ReportSelections.GetPdfReportForVend(TempBlob, Enum::"Report Selection Usage"::"P.Cr.Memo",
+                        PurchCrMemoHeader, PurchCrMemoHeader."Pay-to Vendor No.");
+                end;
             Database::"Sales Invoice Header":
                 begin
                     SalesInvoiceHeader.Get(RecordExportBuffer.RecordID);
@@ -376,6 +461,17 @@ codeunit 10983 "Export Factur-X Document"
         PDFDocument.AddAttachment(Name, DataType, MimeType, XmlInStream, Description, true);
 
         RenderingPayload := PDFDocument.ToJson(RenderingPayload);
+        OnAfterAddXMLAttachmentToRenderingPayload();
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnGetFacturXServiceCode(var EDocumentServiceCode: Code[20])
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnAfterAddXMLAttachmentToRenderingPayload()
+    begin
     end;
 
     [InternalEvent(false)]
