@@ -3,6 +3,8 @@
     This script checks the preprocessor symbols in an AL file.
 
 .DESCRIPTION
+    Uses the native text reader to select lines containing '#', retaining original
+    line numbers. All '#' lines, including inline occurrences, use the same checks.
     This script checks the preprocessor symbols in an AL file for the following:
     - Ensures there is no space after the '#' character.
     - Ensures preprocessor symbols have uppercase stems.
@@ -46,6 +48,11 @@ function Test-PreprocessorSymbols {
         return $null
     }
 
+    $matchingLines = Select-String -LiteralPath $filePath -Pattern '#' -SimpleMatch -ErrorAction Stop
+    if ($null -eq $matchingLines) {
+        return $null
+    }
+
     # Define the regex pattern for disallowing a space after #
     $noSpaceAfterHashPattern = "^#\s"
     $lowercasePattern = "^#(if|elseif|else\b|endif)"
@@ -70,18 +77,14 @@ function Test-PreprocessorSymbols {
     $symbolPattern += "#else\b"
     $symbolPattern += "#endif"
 
-    # Read the content of the file
-    $content = Get-Content -Path $filePath
-
     # Initialize lists to store any invalid preprocessor symbols with line numbers
     $invalidLowercaseSymbols = @()
     $invalidPatternSymbols = @()
     $invalidStemSymbols = @()
 
-    # Iterate through each line in the file content with line numbers
-    for ($i = 0; $i -lt $content.Count; $i++) {
-        $line = $content[$i]
-        $lineNumber = $i + 1
+    foreach ($match in $matchingLines) {
+        $line = $match.Line
+        $lineNumber = $match.LineNumber
 
         # Check for space after #
         if ($line -cmatch $noSpaceAfterHashPattern) {

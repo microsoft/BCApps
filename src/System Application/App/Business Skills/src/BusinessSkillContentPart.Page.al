@@ -11,7 +11,7 @@ namespace System.AI.BusinessSkills;
 /// </summary>
 page 4163 "Business Skill Content Part"
 {
-    PageType = CardPart;
+    PageType = ListPart;
     Extensible = false;
     ApplicationArea = All;
     Caption = 'Business Skill Content';

@@ -25,7 +25,7 @@ page 4161 "Business Skill Card"
     Permissions = tabledata User = r;
     DataCaptionExpression = Rec.Title;
     AboutTitle = 'Maintain a business skill';
-    AboutText = 'Maintain one canonical skill. New skills are inactive until activated with a title and instructions.';
+    AboutText = 'Create or edit a business skill. Specify its name, description, and instructions.';
 
     layout
     {
@@ -36,24 +36,35 @@ page 4161 "Business Skill Card"
                 Caption = 'General';
                 Editable = CanMaintainSkill;
 
-                field("Title"; Rec."Title")
+                group(NameAndDescription)
                 {
-                    Editable = CanMaintainSkill;
+                    ShowCaption = false;
+                    InstructionalText = 'Copilot and agents use the name and description to find matching skills.';
 
-                    trigger OnValidate()
-                    begin
-                        InitializeSkillContentEditor();
-                    end;
-                }
-                field(Description; Rec.Description)
-                {
-                    MultiLine = true;
-                    Editable = CanMaintainSkill;
+                    field("Title"; Rec."Title")
+                    {
+                        Caption = 'Name';
+                        Editable = CanMaintainSkill;
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies a clear, descriptive name for the skill.';
 
-                    trigger OnValidate()
-                    begin
-                        InitializeSkillContentEditor();
-                    end;
+                        trigger OnValidate()
+                        begin
+                            InitializeSkillContentEditor();
+                        end;
+                    }
+                    field(Description; Rec.Description)
+                    {
+                        MultiLine = true;
+                        Editable = CanMaintainSkill;
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies what the skill does and when to use it.';
+
+                        trigger OnValidate()
+                        begin
+                            InitializeSkillContentEditor();
+                        end;
+                    }
                 }
                 field("Status"; Rec."Status")
                 {
@@ -63,6 +74,7 @@ page 4161 "Business Skill Card"
                 }
                 field("Read-Only"; Rec."Read-Only")
                 {
+                    Importance = Additional;
                     Editable = false;
                 }
                 field(Version; Rec.Version)
@@ -94,6 +106,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Set the skill to Active, making it visible to the Business Skill Service.';
                 Image = Approve;
                 Enabled = CanMaintainSkill;
+                Visible = HasSavedSkill and IsInactive;
 
                 trigger OnAction()
                 begin
@@ -106,6 +119,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Stop including this skill in discovery without deleting its content.';
                 Image = Cancel;
                 Enabled = CanMaintainSkill;
+                Visible = not IsInactive;
 
                 trigger OnAction()
                 var
@@ -125,6 +139,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Export this skill to an XML file.';
                 Image = Export;
                 Enabled = CanExport;
+                Visible = CanExport;
 
                 trigger OnAction()
                 var
@@ -141,6 +156,7 @@ page 4161 "Business Skill Card"
                 ToolTip = 'Create an editable manual copy with a new skill ID and the current content, starting at version v1.0.';
                 Image = Copy;
                 Enabled = HasSavedSkill;
+                Visible = HasSavedSkill;
 
                 trigger OnAction()
                 var

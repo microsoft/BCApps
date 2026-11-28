@@ -3,7 +3,8 @@ name: Submit Stability Job On Official Branches
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 * * *" # Run at 00:00 UTC every day
+    - cron: "0 0 * * 1" # Run all supported branches at 00:00 UTC on Monday
+    - cron: "0 0 * * 0,2-6" # Run main and .x branches at 00:00 UTC Tuesday through Sunday
 
 permissions: read-all
 
@@ -15,11 +16,23 @@ jobs:
     outputs:
       officialBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
     steps:
+      - name: Select branch scope
+        id: branchScope
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+        shell: bash
+        run: |
+          if [[ "$SCHEDULE" == "0 0 * * 0,2-6" ]]; then
+            echo 'include=["main", "releases/*.x"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'include=["main", "releases/*"]' >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Get Official Branches
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@main
         with:
-          include: "['main', 'releases/*']"
+          include: ${{ steps.branchScope.outputs.include }}
 
   SubmitStabilityJobs:
     name: "[${{ matrix.branch }}] Submit Stability Job"

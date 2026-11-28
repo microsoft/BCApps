@@ -42,7 +42,7 @@ codeunit 130051 "Business Skill Builder Test"
         // [GIVEN] A fresh builder with overridden content and an explicit version.
         Initialize();
         Builder.Initialize('TEST', 'Initial title', SecretStrSubstNo('Initial instructions'))
-            .SetDisplayName('New skill')
+            .SetName('New skill')
             .SetDescription('Search description')
             .SetContent(SecretStrSubstNo('Instructions'))
             .SetContentVersion('v1');
@@ -258,7 +258,7 @@ codeunit 130051 "Business Skill Builder Test"
         Initialize();
         asserterror Builder.Create();
         Assert.ExpectedError('Initialize');
-        asserterror Builder.SetDisplayName('Title');
+        asserterror Builder.SetName('Title');
         Assert.ExpectedError('Initialize');
 
         // [WHEN] Initializing and consuming the builder.

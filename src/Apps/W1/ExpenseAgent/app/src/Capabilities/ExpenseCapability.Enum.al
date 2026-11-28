@@ -123,10 +123,26 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
+    /// Interim approvers can be assigned when Allow Interim Approvers is enabled in Expense Agent Setup.
+    /// </summary>
+    value(12; InterimApprover)
+    {
+        Caption = 'Interim Approver', Locked = true;
+    }
+
+    /// <summary>
+    /// Approval actions return an explicit outcome, independently of interim approver setup.
+    /// </summary>
+    value(13; ApprovalsWithOutcome)
+    {
+        Caption = 'Approvals With Outcome', Locked = true;
+    }
+
+    /// <summary>
     /// Submitters can assign or change the interim approver on their expense reports. Reported enabled only when the agent and
     /// "Can Overwrite Interim Approver" are enabled in the Expense Agent Setup; otherwise the interim approver comes from the Expense Approval Setup and is read-only.
     /// </summary>
-    value(12; InterimApproverOverwrite)
+    value(14; InterimApproverOverwrite)
     {
         Caption = 'Interim Approver Overwrite', Locked = true;
     }

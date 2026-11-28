@@ -7,6 +7,8 @@ namespace Microsoft.Agent.PayablesAgent;
 
 using System.Agents;
 using System.Email;
+using System.Environment;
+using System.Environment.Configuration;
 
 // Applies configuration and version-specific mailbox monitoring together; editable proposals may be invalid until applied.
 codeunit 3343 "PA Setup"
@@ -62,15 +64,36 @@ codeunit 3343 "PA Setup"
 
     // A read-only lookup: neither the stored setup nor this editable proposal is changed.
     internal procedure TryFindAgent(var Agent: Record Agent): Boolean
+    begin
+        if TryGetStoredAgent(Agent) then
+            exit(true);
+        Agent.SetRange("User Name", AgentUserName());
+        if not Agent.FindFirst() then
+            exit(false);
+        if CanAgentAccessCurrentCompany(Agent."User Security ID") then
+            exit(true);
+        Clear(Agent);
+        exit(false);
+    end;
+
+    local procedure CanAgentAccessCurrentCompany(AgentUserSecurityId: Guid): Boolean
+    var
+        TempCompany: Record Company temporary;
+        UserSettings: Codeunit "User Settings";
+    begin
+        UserSettings.GetAllowedCompaniesForUser(AgentUserSecurityId, TempCompany);
+        TempCompany.SetRange(Name, CompanyName());
+        exit(not TempCompany.IsEmpty());
+    end;
+
+    internal procedure TryGetStoredAgent(var Agent: Record Agent): Boolean
     var
         StoredSetup: Record "Payables Agent Setup";
     begin
         Clear(Agent);
-        if StoredSetup.TryGetSetup() then
-            if Agent.Get(StoredSetup."User Security Id") then
-                exit(true);
-        Agent.SetRange("User Name", AgentUserName());
-        exit(Agent.FindFirst());
+        if not StoredSetup.TryGetSetup() then
+            exit(false);
+        exit(Agent.Get(StoredSetup."User Security Id"));
     end;
 
     // Explicitly repairs the persisted agent association without overwriting an editable proposal.
@@ -90,12 +113,9 @@ codeunit 3343 "PA Setup"
 
     internal procedure IsStoredAgentEnabled(): Boolean
     var
-        StoredSetup: Record "Payables Agent Setup";
         Agent: Record Agent;
     begin
-        if not StoredSetup.TryGetSetup() then
-            exit(false);
-        if not Agent.Get(StoredSetup."User Security Id") then
+        if not TryGetStoredAgent(Agent) then
             exit(false);
         exit(Agent.State = Agent.State::Enabled);
     end;

@@ -1751,6 +1751,85 @@ codeunit 139020 "Test Job Queue SNAP"
         UnbindSubscription(IsolatedLibraryJobQueue);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RescheduleAsWaitingAppliesJobTimeoutToTask()
+    var
+        JobQueueCategory: Record "Job Queue Category";
+        RunningJobQueueEntry: Record "Job Queue Entry";
+        JobQueueEntry: Record "Job Queue Entry";
+        ScheduledTask: Record "Scheduled Task";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
+    begin
+        // [SCENARIO 659837] The task created when an entry is rescheduled as Waiting is cancelled at the entry's Job Timeout
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+
+        // [GIVEN] Job Queue Entry "A" in process and Job Queue Entry "B" ready in the same category, "B" has Job Timeout = 3 minutes
+        CreateJobQueueCategory(JobQueueCategory);
+        CreateRecurringJobQueueEntryWithStatus(RunningJobQueueEntry, RunningJobQueueEntry.Status::"In Process", JobQueueCategory.Code);
+        CreateRecurringJobQueueEntryWithStatus(JobQueueEntry, JobQueueEntry.Status::Ready, JobQueueCategory.Code);
+        JobQueueEntry."Job Timeout" := 3 * 60 * 1000;
+        JobQueueEntry.Modify();
+
+        // [WHEN] The dispatcher runs "B"
+        JobQueueDispatcher.MockTaskScheduler();
+        JobQueueDispatcher.Run(JobQueueEntry);
+
+        // [THEN] "B" is Waiting and the task that will run it has a timeout of 3 minutes
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        JobQueueEntry.TestField(Status, JobQueueEntry.Status::Waiting);
+        Assert.IsTrue(ScheduledTask.Get(JobQueueEntry."System Task ID"), 'The waiting entry must be scheduled.');
+        Assert.AreEqual(JobQueueEntry."Job Timeout", ScheduledTask.Timeout, 'The task of the waiting entry must have the entry''s Job Timeout.');
+
+        DeleteJobQueueEntryAndTask(JobQueueEntry);
+        RunningJobQueueEntry.Get(RunningJobQueueEntry.ID);
+        DeleteJobQueueEntryAndTask(RunningJobQueueEntry);
+        UnbindSubscription(IsolatedLibraryJobQueue);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RescheduleForStartingEndingTimeAppliesJobTimeoutToTask()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+        ScheduledTask: Record "Scheduled Task";
+        IsolatedLibraryJobQueue: Codeunit "Library - Job Queue";
+    begin
+        // [SCENARIO 659837] The task created when an entry is rescheduled for its Starting/Ending Time is cancelled at the entry's Job Timeout
+        BindSubscription(IsolatedLibraryJobQueue);
+        IsolatedLibraryJobQueue.SetDoNotHandleCodeunitJobQueueEnqueueEvent(true);
+
+        // [GIVEN] Ready recurring Job Queue Entry with Job Timeout = 3 minutes, which may only run between 23:59:59 and 00:00:01
+        InitializeRecurringJobQueueEntry(JobQueueEntry, 60);
+        JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
+        JobQueueEntry."Object ID to Run" := Codeunit::"Workflow Create Payment Line"; // exits without any action when there is no record to handle
+        JobQueueEntry.Status := JobQueueEntry.Status::Ready;
+        JobQueueEntry."Starting Time" := 235959T;
+        JobQueueEntry."Ending Time" := 000001T;
+        JobQueueEntry."Job Timeout" := 3 * 60 * 1000;
+        JobQueueEntry.Insert();
+
+        // [WHEN] The dispatcher runs the entry outside its Starting/Ending Time
+        IsolatedLibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
+
+        // [THEN] The entry is rescheduled and the task that will run it has a timeout of 3 minutes
+        JobQueueEntry.Get(JobQueueEntry.ID);
+        JobQueueEntry.TestField(Status, JobQueueEntry.Status::Ready);
+        Assert.IsTrue(ScheduledTask.Get(JobQueueEntry."System Task ID"), 'The rescheduled entry must be scheduled.');
+        Assert.AreEqual(JobQueueEntry."Job Timeout", ScheduledTask.Timeout, 'The task of the rescheduled entry must have the entry''s Job Timeout.');
+
+        DeleteJobQueueEntryAndTask(JobQueueEntry);
+        UnbindSubscription(IsolatedLibraryJobQueue);
+    end;
+
+    local procedure DeleteJobQueueEntryAndTask(var JobQueueEntry: Record "Job Queue Entry")
+    begin
+        if not IsNullGuid(JobQueueEntry."System Task ID") then
+            TaskScheduler.CancelTask(JobQueueEntry."System Task ID");
+        JobQueueEntry.Delete();
+    end;
+
     local procedure CreateNotReadyScheduledTask(): Guid
     begin
         exit(TaskScheduler.CreateTask(Codeunit::"Job Queue Dispatcher", 0, false, CompanyName(), CurrentDateTime() + 60 * 60 * 1000));

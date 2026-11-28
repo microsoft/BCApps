@@ -855,7 +855,6 @@ table 472 "Job Queue Entry"
     var
         TaskGUID: Guid;
         IsHandled: Boolean;
-        JobTimeout: Duration;
     begin
         CheckRequiredPermissions();
         IsHandled := false;
@@ -865,21 +864,27 @@ table 472 "Job Queue Entry"
         if not IsNullGuid(TaskGUID) then
             exit(TaskGUID);
 
-        if Rec."Job Timeout" <> 0 then
-            JobTimeout := Rec."Job Timeout"
-        else
-            JobTimeout := DefaultJobTimeout();
-
         exit(
           TASKSCHEDULER.CreateTask(
             CODEUNIT::"Job Queue Dispatcher",
             CODEUNIT::"Job Queue Error Handler",
-            true, CurrentCompany(), "Earliest Start Date/Time", RecordId(), JobTimeout));
+            true, CurrentCompany(), "Earliest Start Date/Time", RecordId(), GetJobTimeout()));
     end;
 
     procedure DefaultJobTimeout(): Duration
     begin
         exit(12 * 60 * 60 * 1000); // 12 hours
+    end;
+
+    /// <summary>
+    /// Gets the timeout to apply to the scheduled task that runs this entry.
+    /// </summary>
+    /// <returns>The entry's Job Timeout, or the default job timeout if it is not set.</returns>
+    internal procedure GetJobTimeout(): Duration
+    begin
+        if Rec."Job Timeout" <> 0 then
+            exit(Rec."Job Timeout");
+        exit(DefaultJobTimeout());
     end;
 
     local procedure Reschedule()

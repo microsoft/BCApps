@@ -3791,8 +3791,13 @@ codeunit 136102 "Service Contracts"
             ServiceContractHeader."Dimension Set ID", GlobalDimensionValue."Dimension Code", GlobalDimensionValue.Code));
         ServiceContractHeader.Modify(true);
         SignServContractDoc.SignContract(ServiceContractHeader);
+        ServiceContractHeader.Find();
+        ServiceContractHeader.TestField(Status, ServiceContractHeader.Status::Signed);
+        ServiceContractLine.Find();
+        ServiceContractLine.TestField("Contract Status", ServiceContractLine."Contract Status"::Signed);
 
         // [When] Create Service Order from Service Contract.
+        ServiceContractHeader.SetRecFilter();
         CreateServiceContractOrder(ServiceContractHeader);
 
         // [Then] Verify Dimension on Service Order for Service Header and Service Item Line.

@@ -385,6 +385,14 @@ table 6930 "Expense Agent Setup"
             Caption = 'Only Shortest Route';
             ToolTip = 'Specifies whether only the shortest route is shown for mileage expenses. When enabled, alternative routes are not displayed on the map and only the shortest route is used for distance calculation.';
         }
+        field(43; "Partial Day Rounding Precision"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Partial Day Rounding Precision';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            ToolTip = 'Specifies the rounding precision applied to the calculated partial-day per diem amount, for example 0.01, 0.10, or 1. Amounts are rounded to the nearest increment. If the field is empty, the partial-day amount is not rounded.';
+        }
         field(52; "User Security ID"; Guid)
         {
             Access = Internal;
@@ -795,6 +803,13 @@ table 6930 "Expense Agent Setup"
             Caption = 'Require Corporate Card';
             DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether a corporate card must be selected for credit-card expenses before release or posting. This also applies to existing unposted expenses and expense reports.';
+        }
+        field(129; "Allow Interim Approvers"; Boolean)
+        {
+            Caption = 'Allow interim approvers';
+            DataClassification = SystemMetadata;
+            InitValue = true;
+            ToolTip = 'Specifies whether expense submitters can assign interim approvers to expense reports.';
         }
         field(150; "Use Canary Endpoint"; Boolean)
         {

@@ -16,6 +16,7 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.IO;
 using System.TestLibraries.Utilities;
+using System.Utilities;
 
 codeunit 148111 "SAF-T XML Tests 1.4"
 {
@@ -34,6 +35,82 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         IsInitialized: Boolean;
         GenerateSAFTFileImmediatelyQst: Label 'Since you did not schedule the SAF-T file generation, it will be generated immediately which can take a while. Do you want to continue?';
         TaxInformationXPathLbl: Label '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:TaxInformation', Locked = true;
+        Mapping13NotDoneErr: Label 'One or more G/L accounts do not have a mapping setup. Open the SAF-T Mapping Setup page for the selected mapping range and map each G/L account either to the category code and mapping number.';
+
+    [Test]
+    [HandlerFunctions('MappingErrorPageHandler')]
+    procedure ZeroNetChangeAccountWithoutCategoryBlocksExport()
+    begin
+        // [SCENARIO] An account with offsetting entries still requires a category for SAF-T 1.4.
+        VerifyZeroNetChangeAccountMappingError(true);
+    end;
+
+    [Test]
+    [HandlerFunctions('MappingErrorPageHandler')]
+    procedure ZeroNetChangeAccountWithoutMappingNoBlocksExport()
+    begin
+        // [SCENARIO] An account with offsetting entries still requires a mapping number for SAF-T 1.4.
+        VerifyZeroNetChangeAccountMappingError(false);
+    end;
+
+    [Test]
+    procedure MappingEntryExistenceRespectsDateFilters()
+    begin
+        // [SCENARIO] Mapping preparation and refresh use the same account-type, incoming-balance and closing-date filters.
+        Initialize();
+        VerifyMappingEntryExistence(true, false, 20241231D, false);
+        VerifyMappingEntryExistence(true, true, 20241231D, false);
+        VerifyMappingEntryExistence(false, false, 20241231D, false);
+        VerifyMappingEntryExistence(false, true, 20241231D, true);
+        VerifyMappingEntryExistence(true, false, 20250101D, true);
+        VerifyMappingEntryExistence(false, true, 20250101D, true);
+        VerifyMappingEntryExistence(true, true, 20251231D, true);
+        VerifyMappingEntryExistence(false, false, 20251231D, true);
+        VerifyMappingEntryExistence(true, false, ClosingDate(20251231D), false);
+        VerifyMappingEntryExistence(true, true, ClosingDate(20251231D), false);
+        VerifyMappingEntryExistence(false, false, ClosingDate(20251231D), false);
+        VerifyMappingEntryExistence(false, true, ClosingDate(20251231D), true);
+        VerifyMappingEntryExistence(true, true, 20260101D, false);
+        VerifyMappingEntryExistence(false, true, 20260101D, false);
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure CustomerCurrencyAmountsUseLCYPerFCYExchangeRate()
+    begin
+        // [SCENARIO 659500] Customer currency amounts use LCY per FCY for both the receivables and balancing lines.
+
+        // [GIVEN] SAF-T is initialized and immediate file generation will be confirmed.
+        Initialize();
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+
+        // [WHEN] The helper creates and exports a customer foreign-currency transaction.
+        // [THEN] The helper verifies 1,000 FCY and an exchange rate of 8 LCY per FCY on both transaction lines.
+        SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.40", true);
+
+        // [THEN] All expected confirmation prompts have been handled.
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure VendorCurrencyAmountsUseLCYPerFCYExchangeRate()
+    begin
+        // [SCENARIO 659500] Vendor currency amounts use LCY per FCY for both the payables and balancing lines.
+
+        // [GIVEN] SAF-T is initialized and immediate file generation will be confirmed.
+        Initialize();
+        LibraryVariableStorage.Enqueue(GenerateSAFTFileImmediatelyQst);
+
+        // [WHEN] The helper creates and exports a vendor foreign-currency transaction.
+        // [THEN] The helper verifies 1,000 FCY and an exchange rate of 8 LCY per FCY on both transaction lines.
+        SAFTTestHelper.VerifyCustomerVendorCurrencyAmounts(Enum::"SAF-T Version"::"1.40", false);
+
+        // [THEN] All expected confirmation prompts have been handled.
+        LibraryVariableStorage.AssertEmpty();
+    end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
@@ -110,13 +187,18 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     [Test]
     [TransactionModel(TransactionModel::AutoCommit)]
     [HandlerFunctions('ConfirmYesHandler')]
-    procedure NOKSourceCurrencyDoesNotExportNOKTaxAmount()
+    procedure LCYSourceCurrencyDoesNotExportNOKTaxAmount()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
-        // [SCENARIO] A tax amount already denominated in NOK does not require a separate NOK tax amount.
-        // [GIVEN] A purchase VAT entry with NOK as its source currency and a source tax amount with 18 decimal places.
+        // [SCENARIO] A tax amount already denominated in LCY does not require a separate NOK tax amount.
+        // [GIVEN] A purchase VAT entry with LCY as its source currency and a source tax amount with 18 decimal places.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("LCY Code");
+
         // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
         // [THEN] DebitTaxAmount retains the source currency amount without a separate DebitNOKTaxAmount node.
-        VerifySourceCurrencyTaxAmount('NOK');
+        VerifySourceCurrencyTaxAmount(GeneralLedgerSetup."LCY Code");
     end;
 
     [Test]
@@ -135,6 +217,124 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
         // [THEN] DebitTaxAmount retains all source currency decimals and DebitNOKTaxAmount matches the VAT entry.
         VerifySourceCurrencyTaxAmount(Currency.Code);
+    end;
+
+    local procedure CreateZeroNetChangeAccount(var SAFTExportHeader: Record "SAF-T Export Header"; var GLAccount: Record "G/L Account"; var UnusedGLAccount: Record "G/L Account")
+    var
+        SAFTMappingRange: Record "SAF-T Mapping Range";
+        SAFTMappingCategory: Record "SAF-T Mapping Category";
+        SAFTMapping: Record "SAF-T Mapping";
+        SAFTGLAccountMapping: Record "SAF-T G/L Account Mapping";
+        SAFTMappingHelper: Codeunit "SAF-T Mapping Helper";
+        TransactionNo: Integer;
+        DocumentNo: Code[20];
+        StartingDate: Date;
+    begin
+        Initialize();
+        SAFTTestHelper.SetupMasterData(1, false);
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateGLAccount(UnusedGLAccount);
+        StartingDate := SAFTTestHelper.GetWorkDateInYearWithNoGLEntries();
+        SAFTTestHelper.InsertSAFTMappingRange(
+            SAFTMappingRange, "SAF-T Mapping Type"::"Four Digit Standard Account", StartingDate, CalcDate('<CY>', StartingDate));
+
+        // Mapping-validation tests do not need to import shared Tenant Media resources.
+        SAFTMappingCategory."Mapping Type" := SAFTMappingRange."Mapping Type";
+        SAFTMappingCategory."No." := LibraryUtility.GenerateGUID();
+        SAFTMappingCategory.Insert(true);
+        SAFTMapping."Mapping Type" := SAFTMappingCategory."Mapping Type";
+        SAFTMapping."Category No." := SAFTMappingCategory."No.";
+        SAFTMapping."No." := '1000';
+        SAFTMapping.Insert(true);
+        SAFTMappingHelper.Run(SAFTMappingRange);
+        SAFTGLAccountMapping.SetRange("Mapping Range Code", SAFTMappingRange.Code);
+        SAFTGLAccountMapping.FindSet();
+        repeat
+            SAFTGLAccountMapping.Validate("Category No.", SAFTMapping."Category No.");
+            SAFTGLAccountMapping.Validate("No.", SAFTMapping."No.");
+            SAFTGLAccountMapping.Modify(true);
+        until SAFTGLAccountMapping.Next() = 0;
+        SAFTMappingHelper.MapRestSourceCodesToAssortedJournals();
+        SAFTTestHelper.IncludesNoSourceCodeToTheFirstSAFTSourceCode();
+        SAFTTestHelper.CreateSAFTExportHeader(SAFTExportHeader, SAFTMappingRange.Code, "SAF-T Version"::"1.40");
+        SAFTExportHeader.Validate("Split By Month", false);
+        SAFTExportHeader.Modify(true);
+        TransactionNo := GetNextTransactionNo();
+        DocumentNo := LibraryUtility.GenerateGUID();
+        SAFTTestHelper.MockGLEntry(
+            SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '', 0, '', '', 100, 0);
+        SAFTTestHelper.MockGLEntry(
+            SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '', 0, '', '', 0, -100);
+        GLAccount.SetRange("Date Filter", SAFTExportHeader."Starting Date", SAFTExportHeader."Ending Date");
+        GLAccount.CalcFields("Net Change");
+        GLAccount.TestField("Net Change", 0);
+    end;
+
+    local procedure ClearAccountMapping(MappingRangeCode: Code[20]; GLAccountNo: Code[20]; ClearCategory: Boolean)
+    var
+        SAFTGLAccountMapping: Record "SAF-T G/L Account Mapping";
+    begin
+        SAFTGLAccountMapping.Get(MappingRangeCode, GLAccountNo);
+        if ClearCategory then
+            SAFTGLAccountMapping.Validate("Category No.", '')
+        else
+            SAFTGLAccountMapping.Validate("No.", '');
+        SAFTGLAccountMapping.Modify(true);
+    end;
+
+    local procedure VerifyZeroNetChangeAccountMappingError(ClearCategory: Boolean)
+    var
+        SAFTExportHeader: Record "SAF-T Export Header";
+        GLAccount: Record "G/L Account";
+        UnusedGLAccount: Record "G/L Account";
+    begin
+        // [GIVEN] An account with offsetting entries has an incomplete mapping.
+        CreateZeroNetChangeAccount(SAFTExportHeader, GLAccount, UnusedGLAccount);
+        ClearAccountMapping(SAFTExportHeader."Mapping Range Code", GLAccount."No.", ClearCategory);
+        LibraryVariableStorage.Enqueue(Mapping13NotDoneErr);
+
+        // [WHEN] SAF-T 1.4 export is requested.
+        SAFTTestHelper.RunSAFTExport(SAFTExportHeader);
+
+        // [THEN] The missing mapping is reported instead of ignoring the account's entries.
+        SAFTExportHeader.Get(SAFTExportHeader.ID);
+        Assert.AreNotEqual(SAFTExportHeader.Status::Completed, SAFTExportHeader.Status, 'Export must not complete without mapping.');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure VerifyMappingEntryExistence(IncomeStatement: Boolean; IncludeIncomingBalance: Boolean; PostingDate: Date; ExpectedExists: Boolean)
+    var
+        GLAccount: Record "G/L Account";
+        GLEntry: Record "G/L Entry";
+        SAFTMappingRange: Record "SAF-T Mapping Range";
+        SAFTGLAccountMapping: Record "SAF-T G/L Account Mapping";
+        SAFTMappingHelper: Codeunit "SAF-T Mapping Helper";
+    begin
+        LibraryERM.CreateGLAccount(GLAccount);
+        if IncomeStatement then
+            GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Income Statement")
+        else
+            GLAccount.Validate("Income/Balance", GLAccount."Income/Balance"::"Balance Sheet");
+        GLAccount.Modify(true);
+        SAFTTestHelper.MockGLEntryNoVAT(PostingDate, GLAccount."No.", GetNextTransactionNo(), 0, 0, '', '', 0, 0);
+        SAFTTestHelper.InsertSAFTMappingRange(SAFTMappingRange, "SAF-T Mapping Type"::"Four Digit Standard Account", 20250101D, 20251231D);
+        SAFTMappingRange.Validate("Include Incoming Balance", IncludeIncomingBalance);
+        SAFTMappingRange.Modify(true);
+
+        SAFTMappingHelper.Run(SAFTMappingRange);
+        SAFTGLAccountMapping.Get(SAFTMappingRange.Code, GLAccount."No.");
+        SAFTGLAccountMapping.TestField("G/L Entries Exists", ExpectedExists);
+        SAFTGLAccountMapping."G/L Entries Exists" := not ExpectedExists;
+        SAFTGLAccountMapping.Modify(true);
+        SAFTMappingHelper.UpdateGLEntriesExistStateForGLAccMapping(SAFTMappingRange.Code);
+        SAFTGLAccountMapping.Find();
+        SAFTGLAccountMapping.TestField("G/L Entries Exists", ExpectedExists);
+
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
+        GLEntry.DeleteAll(true);
+        SAFTMappingHelper.UpdateGLEntriesExistStateForGLAccMapping(SAFTMappingRange.Code);
+        SAFTGLAccountMapping.Find();
+        SAFTGLAccountMapping.TestField("G/L Entries Exists", false);
     end;
 
     local procedure Initialize()
@@ -192,6 +392,8 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         Currency: Record Currency;
         TempXMLBuffer: Record "XML Buffer" temporary;
         TempAmountXMLBuffer: Record "XML Buffer" temporary;
+        DebitAmount: Decimal;
+        CreditAmount: Decimal;
         EntryNo: Integer;
         TransactionNo: Integer;
         Sign: Integer;
@@ -208,19 +410,23 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         DocumentNo := LibraryUtility.GenerateGUID();
         Sign := IsDebit ? 1 : -1;
         AmountNode := IsDebit ? 'DebitAmount' : 'CreditAmount';
+        if IsDebit then
+            DebitAmount := 0.1
+        else
+            CreditAmount := -0.1;
         EntryNo := SAFTTestHelper.MockGLEntry(
             SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '',
             GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", '',
-            IsDebit ? 100 : 0, IsDebit ? 0 : -100);
+            DebitAmount, CreditAmount);
         SAFTTestHelper.MockCustLedgEntry(
             EntryNo, SAFTExportHeader."Ending Date", Customer."No.", TransactionNo, Currency.Code,
-            Sign * 0.000123456789012345, Sign * 0.000123456789012345, Sign * 100,
-            0.000123456789012345, "Gen. Journal Document Type"::Invoice);
+            Sign * 0.123456789012345678, Sign * 0.123456789012345678, Sign * 0.1,
+            1.23456789012345678, "Gen. Journal Document Type"::Invoice);
         // A different entry number exercises conversion rather than the stored ledger amount.
         SAFTTestHelper.MockGLEntry(
             SAFTExportHeader."Ending Date", DocumentNo, GLAccount."No.", TransactionNo, 0, '', '',
             GLEntry."Source Type"::Customer.AsInteger(), Customer."No.", '',
-            IsDebit ? 1 : 0, IsDebit ? 0 : -1);
+            2 * DebitAmount, 2 * CreditAmount);
 
         // [WHEN] The entries are exported to SAF-T 1.4.
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
@@ -231,10 +437,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
                 '/n1:AuditFile/n1:GeneralLedgerEntries/n1:Journal/n1:Transaction/n1:Line/n1:' + AmountNode),
             'Currency amount nodes were not exported.');
         Assert.RecordCount(TempXMLBuffer, 2);
-        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '100', '0.000123456789012345', '0.000123456789012345');
+        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '0.1', '0.123456789012345678', '0.810000007290000072');
         TempXMLBuffer.Next();
-        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '1',
-            Format(Round(1 / 0.000123456789012345, 0.000000000000000001), 0, 9), '0.000123456789012345');
+        VerifyAmountChildren(TempAmountXMLBuffer, TempXMLBuffer, Currency.Code, '0.2',
+            '0.246913578024691356', '0.810000007290000072');
     end;
 
     local procedure VerifyAmountChildren(var TempChildren: Record "XML Buffer" temporary; var TempParent: Record "XML Buffer" temporary; CurrencyCode: Code[10]; Amount: Text; CurrencyAmount: Text; ExchangeRate: Text)
@@ -338,8 +544,10 @@ codeunit 148111 "SAF-T XML Tests 1.4"
         // [WHEN] The linked G/L entry is exported to SAF-T 1.4.
         ExportEntries(TempXMLBuffer, SAFTExportHeader, GeneralLedgerSetup."LCY Code");
 
-        // [THEN] The source tax amount retains its precision and a separate NOK amount is present only for a non-NOK source currency.
-        VerifyTaxStructure(TempXMLBuffer, VATEntry, true, SourceCurrencyCode <> 'NOK', SourceCurrencyCode, 0.000123456789012345);
+        // [THEN] The source tax amount retains its precision and a separate NOK amount is present only for a foreign source currency.
+        VerifyTaxStructure(
+            TempXMLBuffer, VATEntry, true, SourceCurrencyCode <> GeneralLedgerSetup."LCY Code",
+            SourceCurrencyCode, 0.000123456789012345);
         AssertSingleValue(TempXMLBuffer, TaxInformationXPathLbl + '/n1:DebitTaxAmount/n1:CurrencyAmount', '0.000123456789012345');
     end;
 
@@ -405,5 +613,12 @@ codeunit 148111 "SAF-T XML Tests 1.4"
     begin
         Assert.AreEqual(LibraryVariableStorage.DequeueText(), Question, 'Unexpected confirmation.');
         Reply := true;
+    end;
+
+    [PageHandler]
+    procedure MappingErrorPageHandler(var ErrorMessages: TestPage "Error Messages")
+    begin
+        ErrorMessages.Description.AssertEquals(LibraryVariableStorage.DequeueText());
+        Assert.IsFalse(ErrorMessages.Next(), 'Unexpected additional mapping error.');
     end;
 }

@@ -20,7 +20,7 @@ table 137 "Inc. Doc. Attachment Overview"
             Caption = 'Incoming Document Entry No.';
             TableRelation = "Incoming Document";
         }
-        field(2; "Line No."; Integer)
+        field(2; "Line No."; BigInteger)
         {
             Caption = 'Line No.';
             InitValue = 0;

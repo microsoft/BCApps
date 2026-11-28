@@ -28,6 +28,9 @@ page 6973 "Expense Subcategories"
                 field("Posting Description"; Rec."Posting Description")
                 {
                 }
+                field("Posting Group"; Rec."Posting Group")
+                {
+                }
                 field("Expense Description Mandatory"; Rec."Expense Description Mandatory")
                 {
                 }

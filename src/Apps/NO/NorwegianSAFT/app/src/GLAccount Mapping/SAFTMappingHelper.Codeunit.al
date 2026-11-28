@@ -6,6 +6,7 @@ namespace Microsoft.Finance.AuditFileExport;
 
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Utilities;
@@ -169,7 +170,7 @@ codeunit 10672 "SAF-T Mapping Helper"
             SAFTGLAccountMapping."Mapping Type" := SAFTMappingRange."Mapping Type";
             SAFTGLAccountMapping."G/L Account No." := GLAccount."No.";
             SAFTGLAccountMapping."G/L Entries Exists" :=
-                GLAccNetChangeIsNotZero(GLAccount, SAFTMappingRange."Starting Date", SAFTMappingRange."Ending Date",
+                GLAccHasEntriesInPeriod(GLAccount, SAFTMappingRange."Starting Date", SAFTMappingRange."Ending Date",
                 SAFTMappingRange."Include Incoming Balance");
             if not SAFTGLAccountMapping.find() then
                 SAFTGLAccountMapping.insert();
@@ -211,17 +212,19 @@ codeunit 10672 "SAF-T Mapping Helper"
     begin
         if not GLAccount.Get(GLAccNo) then
             exit(false);
-        exit(GLAccNetChangeIsNotZero(GLAccount, StartingDate, EndingDate, IncludeIncomingBalance));
+        exit(GLAccHasEntriesInPeriod(GLAccount, StartingDate, EndingDate, IncludeIncomingBalance));
     end;
 
-    local procedure GLAccNetChangeIsNotZero(GLAccount: Record "G/L Account"; StartingDate: Date; EndingDate: Date; IncludeIncomingBalance: Boolean): Boolean
+    local procedure GLAccHasEntriesInPeriod(GLAccount: Record "G/L Account"; StartingDate: Date; EndingDate: Date; IncludeIncomingBalance: Boolean): Boolean
+    var
+        GLEntry: Record "G/L Entry";
     begin
+        GLEntry.SetRange("G/L Account No.", GLAccount."No.");
         if (GLAccount."Income/Balance" = GLAccount."Income/Balance"::"Income Statement") or (not IncludeIncomingBalance) then
-            GLAccount.SetRange("Date Filter", StartingDate, EndingDate)
+            GLEntry.SetRange("Posting Date", StartingDate, EndingDate)
         else
-            GLAccount.SetRange("Date Filter", 0D, ClosingDate(EndingDate));
-        GLAccount.CalcFields("Net Change");
-        exit(GLAccount."Net Change" <> 0);
+            GLEntry.SetRange("Posting Date", 0D, ClosingDate(EndingDate));
+        exit(not GLEntry.IsEmpty());
     end;
 
     procedure UpdateMasterDataWithNoSeries()

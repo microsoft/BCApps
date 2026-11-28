@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.Agents;
+
 codeunit 6901 "Expense Report Approval Mgmt"
 {
     Access = Internal;
@@ -27,6 +29,8 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ApproverMustBeEnabledInExpenseUserErr: Label '%1 must be enabled to approve or reject expense reports in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         UserIdForApprovalMustNotBeBlankInExpenseUserErr: Label '%1 must not be blank in %2.', Comment = '%1 = Field Caption, %2 = Table Caption';
         InterimApproverAgentRequiredErr: Label 'An interim approver can only be assigned when the agent is enabled in %1.', Comment = '%1 = Expense Agent Setup table caption';
+        InterimApproverNotAllowedErr: Label 'An interim approver cannot be assigned because %1 is turned off in %2.', Comment = '%1 = Allow Interim Approvers field caption, %2 = Expense Agent Setup table caption';
+        OpenExpenseAgentSetupLbl: Label 'Configure Expense Agent';
         InterimApproverOverwriteNotAllowedErr: Label 'You cannot assign an interim approver because %1 is turned off in %2. The interim approver is assigned from the %3.', Comment = '%1 = Can Overwrite Interim Approver field caption, %2 = Expense Agent Setup table caption, %3 = Expense Approval Setup table caption';
         InterimApproverStatusErr: Label 'You can only assign an interim approver while the expense report is %1 or %2.', Comment = '%1 = Released status caption, %2 = Pending Approval status caption';
         InterimApproverRequiredErr: Label 'Select an interim approver from the available approvers.';
@@ -120,6 +124,7 @@ codeunit 6901 "Expense Report Approval Mgmt"
         ExpenseReportHeader.TestApprovalStatus();
         ExpenseReportHeader.UpdateApproverID();
         SetApproverBasedOnApprovalLimit(ExpenseReportHeader);
+        ClearInterimApproverOnDisabledResubmission(ExpenseReportHeader, IsResubmission);
         InterimApproverAssignedOnSubmit := AssignInterimApproverFromSetup(ExpenseReportHeader);
         CheckAndAssignAlternateApproval(ExpenseReportHeader);
         RouteToInterimIfAssigned(ExpenseReportHeader);
@@ -266,7 +271,23 @@ codeunit 6901 "Expense Report Approval Mgmt"
     end;
 
     internal procedure AssignInterimApprover(var ExpenseReportHeader: Record "Expense Report Header"; NewApproverExpenseUserNo: Code[20]; ActorExpenseUserNo: Code[20])
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        AgentSystemPermissions: Codeunit "Agent System Permissions";
+        InterimApproverErrorInfo: ErrorInfo;
     begin
+        ExpenseAgentSetup.GetRecordOnce();
+        if not ExpenseAgentSetup."Allow Interim Approvers" then begin
+            InterimApproverErrorInfo.Message := StrSubstNo(InterimApproverNotAllowedErr, ExpenseAgentSetup.FieldCaption("Allow Interim Approvers"), ExpenseAgentSetup.TableCaption());
+            InterimApproverErrorInfo.DataClassification := DataClassification::SystemMetadata;
+            InterimApproverErrorInfo.ErrorType := ErrorType::Client;
+            if AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then begin
+                InterimApproverErrorInfo.PageNo := Page::"Expense Agent Setup Wizard";
+                InterimApproverErrorInfo.AddNavigationAction(OpenExpenseAgentSetupLbl);
+            end;
+            Error(InterimApproverErrorInfo);
+        end;
+
         AssignInterimApprover(ExpenseReportHeader, NewApproverExpenseUserNo, ActorExpenseUserNo, Enum::"Expense Activity Actor Role"::Submitter);
     end;
 
@@ -588,6 +609,21 @@ codeunit 6901 "Expense Report Approval Mgmt"
                 Enum::"Expense Activity Event Type"::AlternateApproverAssigned,
                 ActorRole,
                 LogComment);
+    end;
+
+    local procedure ClearInterimApproverOnDisabledResubmission(var ExpenseReportHeader: Record "Expense Report Header"; IsResubmission: Boolean)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        if not IsResubmission then
+            exit;
+
+        ExpenseAgentSetup.GetRecordOnce();
+        if ExpenseAgentSetup."Allow Interim Approvers" then
+            exit;
+
+        Clear(ExpenseReportHeader."Interim Approver No.");
+        Clear(ExpenseReportHeader."Primary Interim Approver No.");
     end;
 
     local procedure SetInterimApproverInExpenseReport(var ExpenseReportHeader: Record "Expense Report Header"; InterimApprover: Record "Expense User")

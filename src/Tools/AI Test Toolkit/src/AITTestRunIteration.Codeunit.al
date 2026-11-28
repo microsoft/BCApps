@@ -45,6 +45,7 @@ codeunit 149042 "AIT Test Run Iteration"
         SetAITTestSuite(ActiveAITTestSuite);
 
         RunAITTestMethodLine(Rec, ActiveAITTestSuite);
+        ClearSuiteContext();
     end;
 
     local procedure InitializeAITTestMethodLineForRun(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
@@ -127,6 +128,12 @@ codeunit 149042 "AIT Test Run Iteration"
     internal procedure GetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
     begin
         CurrAITTestSuite := GlobalAITTestSuite;
+    end;
+
+    procedure ClearSuiteContext()
+    begin
+        Clear(ActiveAITTestSuite);
+        Clear(GlobalAITTestSuite);
     end;
 
     procedure AddToNoOfLogEntriesExecuted()
