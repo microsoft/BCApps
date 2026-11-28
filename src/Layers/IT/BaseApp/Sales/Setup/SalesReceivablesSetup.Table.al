@@ -315,11 +315,9 @@ table 311 "Sales & Receivables Setup"
         /// <summary>
         /// Specifies the position where the company logo appears on printed sales documents such as invoices and orders.
         /// </summary>
-        field(31; "Logo Position on Documents"; Option)
+        field(31; "Logo Position on Documents"; Enum "Logo Position on Documents")
         {
             Caption = 'Logo Position on Documents';
-            OptionCaption = 'No Logo,Left,Center,Right';
-            OptionMembers = "No Logo",Left,Center,Right;
             ToolTip = 'Specifies the position of your company logo on business letters and documents.';
         }
         /// <summary>

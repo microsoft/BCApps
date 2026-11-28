@@ -189,7 +189,7 @@ codeunit 141036 "UT VAT For SEA"
         OnAfterGetRecordSalesTaxInvoice(SalesReceivablesSetup."Logo Position on Documents"::Center);
     end;
 
-    local procedure OnAfterGetRecordSalesTaxInvoice(LogoPositionOnDocuments: Option)
+    local procedure OnAfterGetRecordSalesTaxInvoice(LogoPositionOnDocuments: Enum "Logo Position on Documents")
     var
         SalesTaxInvoiceHeader: Record "Sales Tax Invoice Header";
     begin
@@ -335,7 +335,7 @@ codeunit 141036 "UT VAT For SEA"
         OnAfterGetRecordSalesTaxCrMemoHeader(SalesReceivablesSetup."Logo Position on Documents"::Left);
     end;
 
-    local procedure OnAfterGetRecordSalesTaxCrMemoHeader(LogoPositionOnDocuments: Option)
+    local procedure OnAfterGetRecordSalesTaxCrMemoHeader(LogoPositionOnDocuments: Enum "Logo Position on Documents")
     var
         SalesTaxCrMemoHeader: Record "Sales Tax Cr.Memo Header";
     begin
@@ -896,7 +896,7 @@ codeunit 141036 "UT VAT For SEA"
         REPORT.Run(ReportID);
     end;
 
-    local procedure UpdateSalesReceivablesSetup(LogoPositionOnDocuments: Option)
+    local procedure UpdateSalesReceivablesSetup(LogoPositionOnDocuments: Enum "Logo Position on Documents")
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
@@ -981,4 +981,3 @@ codeunit 141036 "UT VAT For SEA"
         SalesTaxInvoice.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 }
-
