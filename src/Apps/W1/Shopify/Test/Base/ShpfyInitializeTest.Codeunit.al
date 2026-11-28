@@ -16,6 +16,7 @@ using Microsoft.Foundation.NoSeries;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
 
 /// <summary>
@@ -58,6 +59,10 @@ codeunit 139561 "Shpfy Initialize Test"
                 exit(Shop);
 
         Code := CopyStr(Any.AlphabeticText(MaxStrLen(Code)), 1, MaxStrLen(Code));
+        PostingGroupCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(PostingGroupCode));
+        CreateGenBusPostingGroup(PostingGroupCode);
+        CreateGenProdPostingGroup(PostingGroupCode);
+        CreateVATPostingSetup(PostingGroupCode, PostingGroupCode);
 
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup,
            VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandDecInDecimalRange(10, 25, 0));
@@ -70,7 +75,6 @@ codeunit 139561 "Shpfy Initialize Test"
         Shop.Code := Code;
         Shop."Shopify URL" := StrSubstNo(UrlTxt, Any.AlphabeticText(20));
         Shop.Enabled := true;
-        PostingGroupCode := CopyStr(Any.AlphabeticText(10), 1, MaxStrLen(PostingGroupCode));
         CustomerTemplateCode := CreateCustomerTemplate(PostingGroupCode);
         ItemTemplateCode := CreateItemTemplate(PostingGroupCode);
         Shop."Customer Templ. Code" := CreateCustomerTemplate(PostingGroupCode);
@@ -96,6 +100,52 @@ codeunit 139561 "Shpfy Initialize Test"
             Commit();
         end;
         exit(Shop);
+    end;
+
+    internal procedure EnsureCustomerNoSeries()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        if not SalesReceivablesSetup.Get() then begin
+            SalesReceivablesSetup.Init();
+            SalesReceivablesSetup.Insert(false);
+        end;
+        if SalesReceivablesSetup."Customer Nos." = '' then begin
+            SalesReceivablesSetup."Customer Nos." := LibraryERM.CreateNoSeriesCode();
+            SalesReceivablesSetup.Modify(false);
+        end;
+    end;
+
+    internal procedure EnsureCountryRegion(ShopifyCountryCode: Code[2])
+    var
+        CountryRegion: Record "Country/Region";
+    begin
+        CountryRegion.SetRange("ISO Code", ShopifyCountryCode);
+        if CountryRegion.FindFirst() then
+            exit;
+
+        CountryRegion.Code := LibraryERM.CreateCountryRegion();
+        CountryRegion.Get(CountryRegion.Code);
+        CountryRegion."ISO Code" := ShopifyCountryCode;
+        CountryRegion.Modify(false);
+    end;
+
+    internal procedure SetShopifyCustomerTemplate(ShopCode: Code[20]; CountryCode: Code[20]; CustomerTemplateCode: Code[20]; CompanyTemplateCode: Code[20])
+    var
+        ShopifyCustomerTemplate: Record "Shpfy Customer Template";
+    begin
+        if ShopifyCustomerTemplate.Get(ShopCode, CountryCode) then begin
+            ShopifyCustomerTemplate."Customer Templ. Code" := CustomerTemplateCode;
+            ShopifyCustomerTemplate."Company Templ. Code" := CompanyTemplateCode;
+            ShopifyCustomerTemplate.Modify(false);
+        end else begin
+            ShopifyCustomerTemplate.Init();
+            ShopifyCustomerTemplate."Shop Code" := ShopCode;
+            ShopifyCustomerTemplate."Country/Region Code" := CountryCode;
+            ShopifyCustomerTemplate."Customer Templ. Code" := CustomerTemplateCode;
+            ShopifyCustomerTemplate."Company Templ. Code" := CompanyTemplateCode;
+            ShopifyCustomerTemplate.Insert(false);
+        end;
     end;
 
     local procedure CreateDummyCustomer(CurrentTemplateCode: Code[20])
@@ -357,7 +407,6 @@ codeunit 139561 "Shpfy Initialize Test"
             VatPostingSetup."VAT %" := 10;
             VatPostingSetup.Insert();
         end;
-
         if not GeneralPostingSetup.Get(GenBusinessPostingGroup, GenProductPostingGroup) then begin
             Clear(GeneralPostingSetup);
             GeneralPostingSetup."Gen. Bus. Posting Group" := GenBusinessPostingGroup;
