@@ -34,6 +34,7 @@ codeunit 137020 "SCM Planning"
         SalesHeaderMustNotBeFoundErr: Label 'Sales Header must not be found.';
         ActionMessageShouldBeNewErr: Label 'Action Message should be New';
         PlannedQtyShouldNotExceedSafetyStockErr: Label 'Planned quantity should not exceed safety stock quantity.';
+        ChangedDemandMustBePlannedErr: Label 'Changed demand must generate a planning action message.';
         ReorderQtyMustBePositiveErr: Label 'must be greater than 0 when %1 is %2', Comment = '%1 = Reordering Policy field caption, %2 = Reordering Policy value';
 
     local procedure GlobalSetup()
@@ -5245,41 +5246,143 @@ codeunit 137020 "SCM Planning"
     [Scope('OnPrem')]
     procedure RegenPlanAfterCarryOutShouldNotReplanOrderPolicyMultiLevelBOM()
     var
-        ComponentItem: Record Item;
-        SubBOMItem: Record Item;
         MainItem: Record Item;
+        SubBOMItem: Record Item;
+        SalesLine: array[4] of Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CreateOrderPolicyPlanAndCarryOut('<10D>', MainItem, SubBOMItem, SalesLine);
+
+        CalculateOrderPolicyPlan(MainItem, SubBOMItem);
+
+        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+        FilterRequisitionLine(RequisitionLine, SubBOMItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        Clear(SubBOMItem."Dampener Period");
+        SubBOMItem.Modify(true);
+        CalculateOrderPolicyPlan(MainItem, SubBOMItem);
+
+        Assert.RecordIsEmpty(RequisitionLine);
+        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegenPlanAfterCarryOutWithoutDampenerDoesNotReplanOrderPolicy()
+    var
+        MainItem: Record Item;
+        SubBOMItem: Record Item;
+        SalesLine: array[4] of Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CreateOrderPolicyPlanAndCarryOut('', MainItem, SubBOMItem, SalesLine);
+
+        CalculateOrderPolicyPlan(MainItem, SubBOMItem);
+
+        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+        FilterRequisitionLine(RequisitionLine, SubBOMItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegenPlanAfterCarryOutReplansChangedOrderPolicyQuantity()
+    var
+        MainItem: Record Item;
+        SubBOMItem: Record Item;
+        SalesLine: array[4] of Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CreateOrderPolicyPlanAndCarryOut('<10D>', MainItem, SubBOMItem, SalesLine);
+        SalesLine[4].Validate(Quantity, 30);
+        SalesLine[4].Modify(true);
+
+        CalculateOrderPolicyPlan(MainItem, SubBOMItem);
+
+        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        RequisitionLine.SetRange(Quantity, 30);
+        Assert.IsFalse(RequisitionLine.IsEmpty(), ChangedDemandMustBePlannedErr);
+        RequisitionLine.SetRange(Quantity);
+        FilterRequisitionLine(RequisitionLine, SubBOMItem."No.");
+        Assert.IsFalse(RequisitionLine.IsEmpty(), ChangedDemandMustBePlannedErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegenPlanAfterCarryOutReplansChangedOrderPolicyShipmentDate()
+    var
+        MainItem: Record Item;
+        SubBOMItem: Record Item;
+        SalesLine: array[4] of Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CreateOrderPolicyPlanAndCarryOut('<10D>', MainItem, SubBOMItem, SalesLine);
+        SalesLine[4].Validate("Shipment Date", CalcDate('<14D>', SalesLine[4]."Shipment Date"));
+        SalesLine[4].Modify(true);
+
+        CalculateOrderPolicyPlan(MainItem, SubBOMItem);
+
+        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        RequisitionLine.SetRange("Due Date", SalesLine[4]."Shipment Date");
+        Assert.IsFalse(RequisitionLine.IsEmpty(), ChangedDemandMustBePlannedErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegenPlanAfterCarryOutReplansRedistributedOrderPolicyQuantity()
+    var
+        MainItem: Record Item;
+        SubBOMItem: Record Item;
+        SalesLine: array[4] of Record "Sales Line";
+        RequisitionLine: Record "Requisition Line";
+    begin
+        CreateOrderPolicyPlanAndCarryOut('<10D>', MainItem, SubBOMItem, SalesLine);
+        SalesLine[1].Validate(Quantity, 15);
+        SalesLine[1].Modify(true);
+        SalesLine[2].Validate(Quantity, 10);
+        SalesLine[2].Modify(true);
+
+        CalculateOrderPolicyPlan(MainItem, SubBOMItem);
+
+        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        Assert.RecordCount(RequisitionLine, 2);
+        RequisitionLine.SetRange(Quantity, 15);
+        Assert.RecordCount(RequisitionLine, 1);
+        RequisitionLine.SetRange(Quantity, 10);
+        Assert.RecordCount(RequisitionLine, 1);
+    end;
+
+    local procedure CreateOrderPolicyPlanAndCarryOut(DampenerPeriodText: Text[30]; var MainItem: Record Item; var SubBOMItem: Record Item; var SalesLine: array[4] of Record "Sales Line")
+    var
+        ComponentItem: Record Item;
         SubBOMHeader: Record "Production BOM Header";
         MainBOMHeader: Record "Production BOM Header";
         SalesHeader: Record "Sales Header";
-        SalesLine: Record "Sales Line";
         RequisitionLine: Record "Requisition Line";
+        ProdOrderLine: Record "Prod. Order Line";
         DampenerPeriod: DateFormula;
         ShipmentDate1: Date;
         ShipmentDate2: Date;
     begin
-        // [FEATURE] [AI TEST]
-        // [SCENARIO 611978] Regenerative plan should not create new lines after carry out action message for multi-level BOM with Order reordering policy
         Initialize();
 
-        // [GIVEN] Set up dates: Shipment dates 2 years in future to avoid conflicts
-        ShipmentDate1 := CalcDate('<+2Y>', WorkDate());
-        ShipmentDate2 := CalcDate('<+2Y+1D>', WorkDate());
+        ShipmentDate1 := CalcDate('<2Y+2D>', WorkDate());
+        ShipmentDate2 := CalcDate('<1D>', ShipmentDate1);
 
-        // [GIVEN] Item (Component): Replenishment System = Purchase
         LibraryInventory.CreateItem(ComponentItem);
         ComponentItem.Validate("Replenishment System", ComponentItem."Replenishment System"::Purchase);
-        ComponentItem.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
         ComponentItem.Modify(true);
 
-        // [GIVEN] Item (Sub BOM): Replenishment System = Prod. Order, Reordering Policy = Order, Dampener Period = 10D Production BOM with Component Item, Quantity per = 1
-        LibraryInventory.CreateItem(SubBOMItem);
-        SubBOMItem.Validate("Replenishment System", SubBOMItem."Replenishment System"::"Prod. Order");
+        ItemSetup(SubBOMItem, SubBOMItem."Replenishment System"::"Prod. Order", '<1D>');
         SubBOMItem.Validate("Reordering Policy", SubBOMItem."Reordering Policy"::Order);
-        Evaluate(DampenerPeriod, '<10D>');
+        Evaluate(DampenerPeriod, DampenerPeriodText);
         SubBOMItem.Validate("Dampener Period", DampenerPeriod);
         SubBOMItem.Modify(true);
 
-        // [GIVEN]  Create Production BOM for Sub BOM Item with Component Item
         LibraryManufacturing.CreateProductionBOMHeader(SubBOMHeader, SubBOMItem."Base Unit of Measure");
         CreateProductionBOMLineWithItem(SubBOMHeader, ComponentItem."No.", 1);
         SubBOMHeader.Validate(Status, SubBOMHeader.Status::Certified);
@@ -5288,13 +5391,11 @@ codeunit 137020 "SCM Planning"
         SubBOMItem.Validate("Production BOM No.", SubBOMHeader."No.");
         SubBOMItem.Modify(true);
 
-        // [GIVEN] Item (Main): Replenishment System = Prod. Order, Reordering Policy = Order Production BOM with Sub BOM Item, Quantity per = 1
-        LibraryInventory.CreateItem(MainItem);
-        MainItem.Validate("Replenishment System", MainItem."Replenishment System"::"Prod. Order");
+        ItemSetup(MainItem, MainItem."Replenishment System"::"Prod. Order", '<1D>');
         MainItem.Validate("Reordering Policy", MainItem."Reordering Policy"::Order);
+        Evaluate(MainItem."Dampener Period", '<0D>');
         MainItem.Modify(true);
 
-        // [GIVEN]  Create Production BOM for Main Item with Sub BOM Item
         LibraryManufacturing.CreateProductionBOMHeader(MainBOMHeader, MainItem."Base Unit of Measure");
         CreateProductionBOMLineWithItem(MainBOMHeader, SubBOMItem."No.", 1);
         MainBOMHeader.Validate(Status, MainBOMHeader.Status::Certified);
@@ -5303,38 +5404,63 @@ codeunit 137020 "SCM Planning"
         MainItem.Validate("Production BOM No.", MainBOMHeader."No.");
         MainItem.Modify(true);
 
-        // [GIVEN] Positive adjustment: Component Item, Quantity = 10
         UpdateItemInventory(ComponentItem."No.", 10);
 
-        // [GIVEN] Sales Order with 4 lines for Main Item:
         LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
-        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(10, 2), ShipmentDate1);
-        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(15, 2), ShipmentDate1);
-        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(20, 2), ShipmentDate2);
-        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine, MainItem."No.", LibraryRandom.RandIntInRange(25, 2), ShipmentDate2);
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine[1], MainItem."No.", 10, ShipmentDate1);
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine[2], MainItem."No.", 15, ShipmentDate1);
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine[3], MainItem."No.", 20, ShipmentDate2);
+        CreateSalesLineWithShipmentDate(SalesHeader, SalesLine[4], MainItem."No.", 25, ShipmentDate2);
 
-        // [GIVEN] Calculate Regenerative Plan - expect 8 lines (4 for Main, 4 for Sub BOM)
-        LibraryPlanning.CalcRegenPlanForPlanWksh(MainItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
-        LibraryPlanning.CalcRegenPlanForPlanWksh(SubBOMItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
-        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
+        CalculateOrderPolicyPlan(MainItem, SubBOMItem);
+        VerifyInitialOrderPolicyPlan(MainItem."No.");
+        VerifyInitialOrderPolicyPlan(SubBOMItem."No.");
 
-        // [GIVEN] Carry Out Action Message for all items
-        AcceptAndCarryOutActionMessageForItem(MainItem."No.");
-        AcceptAndCarryOutActionMessageForItem(SubBOMItem."No.");
-        AcceptAndCarryOutActionMessageForItem(ComponentItem."No.");
-
-        // [WHEN] Calculate Regenerative Plan again
-        LibraryPlanning.CalcRegenPlanForPlanWksh(MainItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
-        LibraryPlanning.CalcRegenPlanForPlanWksh(SubBOMItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
-        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, WorkDate(), CalcDate('<+3Y>', WorkDate()));
-
-        // [THEN] No planning lines for Main Item should be created - demand is already matched with supply
-        FilterRequisitionLine(RequisitionLine, MainItem."No.");
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetFilter("No.", '%1|%2', MainItem."No.", SubBOMItem."No.");
+        RequisitionLine.ModifyAll("Accept Action Message", true, true);
+        RequisitionLine.FindFirst();
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
         Assert.RecordIsEmpty(RequisitionLine);
 
-        // [THEN] No planning lines for Sub BOM Item should be created - demand is already matched with supply
-        FilterRequisitionLine(RequisitionLine, SubBOMItem."No.");
-        Assert.RecordIsEmpty(RequisitionLine);
+        ProdOrderLine.SetRange(Status, ProdOrderLine.Status::"Firm Planned");
+        ProdOrderLine.SetRange("Item No.", MainItem."No.");
+        Assert.RecordCount(ProdOrderLine, 4);
+        ProdOrderLine.SetRange("Item No.", SubBOMItem."No.");
+        Assert.RecordCount(ProdOrderLine, 4);
+    end;
+
+    local procedure CalculateOrderPolicyPlan(MainItem: Record Item; SubBOMItem: Record Item)
+    var
+        Item: Record Item;
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        CalculatePlanPlanWksh: Report "Calculate Plan - Plan. Wksh.";
+    begin
+        LibraryPlanning.SelectRequisitionWkshName(RequisitionWkshName, RequisitionWkshName."Template Type"::Planning);
+        Commit();
+        CalculatePlanPlanWksh.InitializeRequest(
+            CalcDate('<2Y>', WorkDate()), CalcDate('<2Y+1M>', WorkDate()), false, true, true, '', 0D, false);
+        CalculatePlanPlanWksh.SetTemplAndWorksheet(RequisitionWkshName."Worksheet Template Name", RequisitionWkshName.Name, true);
+        Item.SetFilter("No.", '%1|%2', MainItem."No.", SubBOMItem."No.");
+        CalculatePlanPlanWksh.SetTableView(Item);
+        CalculatePlanPlanWksh.UseRequestPage(false);
+        CalculatePlanPlanWksh.RunModal();
+    end;
+
+    local procedure VerifyInitialOrderPolicyPlan(ItemNo: Code[20])
+    var
+        RequisitionLine: Record "Requisition Line";
+        ExpectedQuantity: Integer;
+    begin
+        FilterRequisitionLine(RequisitionLine, ItemNo);
+        Assert.RecordCount(RequisitionLine, 4);
+        RequisitionLine.SetRange("Action Message", RequisitionLine."Action Message"::New);
+        RequisitionLine.SetRange("Ref. Order Type", RequisitionLine."Ref. Order Type"::"Prod. Order");
+        Assert.RecordCount(RequisitionLine, 4);
+        for ExpectedQuantity := 2 to 5 do begin
+            RequisitionLine.SetRange(Quantity, ExpectedQuantity * 5);
+            Assert.RecordCount(RequisitionLine, 1);
+        end;
     end;
 
     [Test]
@@ -5811,21 +5937,6 @@ codeunit 137020 "SCM Planning"
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;
 
-    local procedure AcceptAndCarryOutActionMessageForItem(ItemNo: Code[20])
-    var
-        ReqLine: Record "Requisition Line";
-    begin
-        FilterRequisitionLine(ReqLine, ItemNo);
-        if ReqLine.FindSet() then
-            repeat
-                ReqLine.Validate("Accept Action Message", true);
-                ReqLine.Modify(true);
-            until ReqLine.Next() = 0;
-
-        if ReqLine.FindFirst() then
-            LibraryPlanning.CarryOutActionMsgPlanWksh(ReqLine);
-    end;
-
     local procedure FilterRequisitionLine(var RequisitionLine: Record "Requisition Line"; ItemNo: Code[20])
     begin
         RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
@@ -5882,4 +5993,3 @@ codeunit 137020 "SCM Planning"
         PlanningErrorLog.OK().Invoke();
     end;
 }
-

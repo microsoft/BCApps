@@ -4630,6 +4630,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
         ToInventoryUntrackedQty: Decimal;
         FromInventoryUntrackedQty: Decimal;
     begin
+        if (SKU."Replenishment System" = SKU."Replenishment System"::"Prod. Order") and
+           (SKU."Reordering Policy" = SKU."Reordering Policy"::Order)
+        then
+            exit(OrderDemandMatchedSupply(FromInventoryProfile, ToInventoryProfile));
+
         xToInventoryProfile.CopyFilters(FromInventoryProfile);
         xFromInventoryProfile.CopyFilters(ToInventoryProfile);
         FromInventoryProfile.SetRange(FromInventoryProfile."Attribute Priority", 1, 7);
@@ -4667,6 +4672,62 @@ codeunit 99000854 "Inventory Profile Offsetting"
             exit(true);
 
         exit(false);
+    end;
+
+    local procedure OrderDemandMatchedSupply(FromInventoryProfile: Record "Inventory Profile"; ToInventoryProfile: Record "Inventory Profile"): Boolean
+    var
+        TempFromInventoryProfile: Record "Inventory Profile" temporary;
+        TempFromGroupInventoryProfile: Record "Inventory Profile" temporary;
+        TempToGroupInventoryProfile: Record "Inventory Profile" temporary;
+        FromUntrackedQty: Decimal;
+    begin
+        TempFromInventoryProfile.Copy(FromInventoryProfile, true);
+        TempFromGroupInventoryProfile.Copy(FromInventoryProfile, true);
+        TempToGroupInventoryProfile.Copy(ToInventoryProfile, true);
+        if TempFromInventoryProfile.FindSet() then
+            repeat
+                if TempFromInventoryProfile."Untracked Quantity" <> 0 then begin
+                    if (TempFromInventoryProfile."Untracked Quantity" < 0) or
+                       (TempFromInventoryProfile.Binding <> TempFromInventoryProfile.Binding::"Order-to-Order") or
+                       (TempFromInventoryProfile."Primary Order No." = '') or
+                       (TempFromInventoryProfile."Planning Level Code" <> 0) or
+                       (TempFromInventoryProfile."Action Message" <> TempFromInventoryProfile."Action Message"::" ")
+                    then
+                        exit(false);
+
+                    if TempFromInventoryProfile.IsSupply then begin
+                        if TempFromInventoryProfile."Source Type" <> 5406 then // Database::"Prod. Order Line"
+                            exit(false);
+                    end else
+                        if not (TempFromInventoryProfile."Source Type" in [Database::"Sales Line", 5407]) then // Database::"Prod. Order Component"
+                            exit(false);
+
+                    TempFromGroupInventoryProfile.CopyFilters(FromInventoryProfile);
+                    SetOrderToOrderMatchFilters(TempFromGroupInventoryProfile, TempFromInventoryProfile);
+                    TempFromGroupInventoryProfile.CalcSums("Untracked Quantity");
+                    FromUntrackedQty := TempFromGroupInventoryProfile."Untracked Quantity";
+
+                    TempToGroupInventoryProfile.CopyFilters(ToInventoryProfile);
+                    SetOrderToOrderMatchFilters(TempToGroupInventoryProfile, TempFromInventoryProfile);
+                    OnDemandMatchedSupplyOnAfterSetFiltersToInvProfile(TempToGroupInventoryProfile, TempFromInventoryProfile);
+                    TempToGroupInventoryProfile.CalcSums("Untracked Quantity");
+                    if FromUntrackedQty <> TempToGroupInventoryProfile."Untracked Quantity" then
+                        exit(false);
+                end;
+            until TempFromInventoryProfile.Next() = 0;
+
+        exit(true);
+    end;
+
+    local procedure SetOrderToOrderMatchFilters(var InventoryProfile: Record "Inventory Profile"; FromInventoryProfile: Record "Inventory Profile")
+    begin
+        InventoryProfile.SetRange(Binding, FromInventoryProfile.Binding);
+        InventoryProfile.SetRange("Primary Order Type", FromInventoryProfile."Primary Order Type");
+        InventoryProfile.SetRange("Primary Order Status", FromInventoryProfile."Primary Order Status");
+        InventoryProfile.SetRange("Primary Order No.", FromInventoryProfile."Primary Order No.");
+        InventoryProfile.SetRange("Primary Order Line", FromInventoryProfile."Primary Order Line");
+        InventoryProfile.SetRange("Due Date", FromInventoryProfile."Due Date");
+        InventoryProfile.SetTrackingFilter(FromInventoryProfile);
     end;
 
     local procedure ReservedForProdComponent(ReservationEntry: Record "Reservation Entry"): Boolean
