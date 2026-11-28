@@ -384,6 +384,7 @@ codeunit 12184 "Fattura Doc. Helper"
                     TempFatturaHeader."Document Type" := CustLedgerEntry."Document Type"::Invoice.AsInteger();
                     TempFatturaHeader."Posting Date" := SalesInvoiceHeader."Posting Date";
                     TempFatturaHeader."Document No." := SalesInvoiceHeader."No.";
+                    TempFatturaHeader."Company Bank Account Code" := SalesInvoiceHeader."Company Bank Account Code";
                     LineRecRef.Open(DATABASE::"Sales Invoice Line");
                 end;
             DATABASE::"Sales Cr.Memo Header":
@@ -395,6 +396,7 @@ codeunit 12184 "Fattura Doc. Helper"
                     TempFatturaHeader."Document Type" := CustLedgerEntry."Document Type"::"Credit Memo".AsInteger();
                     TempFatturaHeader."Posting Date" := SalesCrMemoHeader."Posting Date";
                     TempFatturaHeader."Document No." := SalesCrMemoHeader."No.";
+                    TempFatturaHeader."Company Bank Account Code" := SalesCrMemoHeader."Company Bank Account Code";
                     LineRecRef.Open(DATABASE::"Sales Cr.Memo Line");
                 end;
             else
