@@ -1203,6 +1203,13 @@ codeunit 1303 "Correct Posted Sales Invoice"
         SalesLine."Qty. Invoiced (Base)" -= CancelledQtyBase;
         SalesLine."Quantity Shipped" -= CancelledQuantity;
         SalesLine."Qty. Shipped (Base)" -= CancelledQtyBase;
+        if SalesLine.Type = SalesLine.Type::Item then begin
+            // Clear residual document quantity left by UOM conversion rounding once the base quantity is fully reversed.
+            if SalesLine."Qty. Invoiced (Base)" = 0 then
+                SalesLine."Quantity Invoiced" := 0;
+            if SalesLine."Qty. Shipped (Base)" = 0 then
+                SalesLine."Quantity Shipped" := 0;
+        end;
         SalesLine.InitOutstanding();
         SalesLine.InitQtyToShip();
         SalesLine.UpdateWithWarehouseShip();
