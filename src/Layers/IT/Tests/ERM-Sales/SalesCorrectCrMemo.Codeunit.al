@@ -1044,6 +1044,34 @@ codeunit 137026 "Sales Correct Cr. Memo"
             StrSubstNo(PostedSalesInvoiceNotCancelledErr, SalesInvoiceHeader."No."));
     end;
 
+    [Test]
+    procedure CanCancelSalesCrMemoWithoutDiscountPostingWhenSalesLineDiscAccountIsEmpty()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        // [SCENARIO 658550] Cassie can cancel a Posted Sales Credit Memo without line discounts when discount posting is disabled and the line discount account is empty.
+        Initialize();
+
+        // [GIVEN] Discount posting is disabled
+        LibrarySales.SetDiscountPosting(SalesReceivablesSetup."Discount Posting"::"No Discounts");
+
+        // [WHEN] Cancel the Sales Invoice by Credit Memo with Inventory item type.
+        CancelInvoiceByCreditMemoWithItemType(SalesCrMemoHeader, Item.Type::Inventory, GeneralPostingSetup);
+        CleanSalesLineDiscAccountOnGenPostingSetup(GeneralPostingSetup);
+        Commit();
+
+        // [THEN] no errors occur when Cancel the Sales Credit Memo without discount posting and with empty line discount account
+        CancelCrMemo(SalesCrMemoHeader);
+
+        LibrarySmallBusiness.FindSalesCorrectiveInvoice(SalesInvoiceHeader, SalesCrMemoHeader);
+
+        RestoreGenPostingSetup(GeneralPostingSetup);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1382,6 +1410,7 @@ codeunit 137026 "Sales Correct Cr. Memo"
     begin
         GeneralPostingSetup.Get(OldGeneralPostingSetup."Gen. Bus. Posting Group", OldGeneralPostingSetup."Gen. Prod. Posting Group");
         GeneralPostingSetup."COGS Account" := OldGeneralPostingSetup."COGS Account";
+        GeneralPostingSetup."Sales Line Disc. Account" := OldGeneralPostingSetup."Sales Line Disc. Account";
         GeneralPostingSetup.Modify();
     end;
 
@@ -1482,6 +1511,15 @@ codeunit 137026 "Sales Correct Cr. Memo"
         Assert.IsFalse(SalesInvLine.IsEmpty, InvRoundingLineDoesNotExistErr);
     end;
 
+    local procedure CleanSalesLineDiscAccountOnGenPostingSetup(var OldGeneralPostingSetup: Record "General Posting Setup")
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        GeneralPostingSetup.Copy(OldGeneralPostingSetup);
+        GeneralPostingSetup.Validate("Sales Line Disc. Account", '');
+        GeneralPostingSetup.Modify(true);
+    end;
+
     [ModalPageHandler]
     procedure ApplyCustomerEntriesModalPageHandler(var ApplyCustomerEntries: TestPage "Apply Customer Entries")
     begin
@@ -1495,4 +1533,3 @@ codeunit 137026 "Sales Correct Cr. Memo"
         Reply := true;
     end;
 }
-
