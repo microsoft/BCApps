@@ -521,6 +521,90 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     end;
 
     [Test]
+    procedure ExportXmlSalesCreditMemoBillingReference()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A credit memo exports the number and posting date of the invoice it applies to.
+        Initialize();
+
+        // [GIVEN] Customer "C" has a posted invoice and a posted credit memo referring to it.
+        Customer.Get(CreateCustomerWithAddressAndVATRegNo());
+        SalesInvoiceHeader.Get(CreatePostSalesDoc(Customer."No.", SalesHeader."Document Type"::Invoice));
+        SalesCrMemoHeader.Get(CreatePostSalesDoc(Customer."No.", SalesHeader."Document Type"::"Credit Memo"));
+        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::Invoice;
+        SalesCrMemoHeader."Applies-to Doc. No." := SalesInvoiceHeader."No.";
+        SalesCrMemoHeader.Modify();
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
+
+        // [WHEN] The credit memo is exported as PEPPOL BIS 3.0.
+        SalesCrMemoHeader.SetRecFilter();
+        PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
+
+        // [THEN] The billing reference contains the invoice number and posting date.
+        InitXPathXMLReaderForCreditNote(TempBlob);
+        VerifyCreditMemoBillingReference(SalesInvoiceHeader."No.", SalesInvoiceHeader."Posting Date");
+    end;
+
+    [Test]
+    procedure ExportXmlSalesCreditMemoWithoutBillingReference()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        Customer: Record Customer;
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A credit memo without an invoice to apply to does not export a billing reference.
+        Initialize();
+
+        // [GIVEN] Customer "C" has a posted credit memo without an invoice reference.
+        Customer.Get(CreateCustomerWithAddressAndVATRegNo());
+        SalesCrMemoHeader.Get(CreatePostSalesDoc(Customer."No.", SalesHeader."Document Type"::"Credit Memo"));
+        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::Invoice;
+        SalesCrMemoHeader."Applies-to Doc. No." := '';
+        SalesCrMemoHeader.Modify();
+        SetShipToAddressOnCreditMemo(SalesCrMemoHeader);
+
+        // [WHEN] The credit memo is exported as PEPPOL BIS 3.0.
+        SalesCrMemoHeader.SetRecFilter();
+        PEPPOLXMLExportToBlob(SalesCrMemoHeader, CreateBISElectronicDocumentFormatSalesCrMemo(), TempBlob);
+
+        // [THEN] The XML does not contain a billing reference.
+        InitXPathXMLReaderForCreditNote(TempBlob);
+        LibraryXPathXMLReader.VerifyNodeAbsence('cac:BillingReference');
+    end;
+
+    [Test]
+    procedure SalesCreditMemoBillingReferenceClearsPreviousValues()
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        PEPPOL30: Codeunit "PEPPOL30";
+        InvoiceDocRefID: Text;
+        InvoiceDocRefIssueDate: Text;
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] Resolving a sales credit memo without an invoice reference clears values from a previous lookup.
+        Initialize();
+
+        // [GIVEN] A credit memo buffer without an invoice reference and previously populated output values.
+        SalesCrMemoHeader."Applies-to Doc. Type" := SalesCrMemoHeader."Applies-to Doc. Type"::Invoice;
+        InvoiceDocRefID := 'PREVIOUS-INVOICE';
+        InvoiceDocRefIssueDate := Format(WorkDate(), 0, 9);
+
+        // [WHEN] The sales credit memo is passed to the sales overload.
+        PEPPOL30.GetCrMemoBillingReferenceInfo(SalesCrMemoHeader, InvoiceDocRefID, InvoiceDocRefIssueDate);
+
+        // [THEN] Neither the previous invoice number nor its date is retained.
+        VerifyEmptyCreditMemoBillingReference(InvoiceDocRefID, InvoiceDocRefIssueDate);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ExportXml_PEPPOL_BIS3_SalesCreditMemoGLN()
     var
@@ -940,6 +1024,37 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     end;
 
     [Test]
+    procedure ExportXmlServiceCreditMemoBillingReference()
+    var
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        // [FEATURE] [AI test 1.0]
+        // [SCENARIO] A service credit memo exports the number and posting date of the service invoice it applies to.
+        Initialize();
+
+        // [GIVEN] Customer "C" has a posted service invoice and a posted service credit memo referring to it.
+        CreatePostServiceInvoice(ServiceInvoiceHeader, '');
+        ServiceCrMemoHeader.SetRange(
+          "Pre-Assigned No.",
+          CreatePostServiceDoc(Enum::"Service Document Type"::"Credit Memo", '', ServiceInvoiceHeader."Customer No."));
+        ServiceCrMemoHeader.FindFirst();
+        ServiceCrMemoHeader."Applies-to Doc. Type" := ServiceCrMemoHeader."Applies-to Doc. Type"::Invoice;
+        ServiceCrMemoHeader."Applies-to Doc. No." := ServiceInvoiceHeader."No.";
+        ServiceCrMemoHeader.Modify();
+        SetShipToAddressOnCreditMemo(ServiceCrMemoHeader);
+
+        // [WHEN] The service credit memo is exported as PEPPOL BIS 3.0.
+        ServiceCrMemoHeader.SetRecFilter();
+        PEPPOLXMLExportToBlob(ServiceCrMemoHeader, CreateBISElectronicDocumentFormatServiceCrMemo(), TempBlob);
+
+        // [THEN] The billing reference contains the service invoice number and posting date.
+        InitXPathXMLReaderForCreditNote(TempBlob);
+        VerifyCreditMemoBillingReference(ServiceInvoiceHeader."No.", ServiceInvoiceHeader."Posting Date");
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ExportXml_PEPPOL_BIS3_ServiceCrMemo()
     var
@@ -968,6 +1083,8 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         LibraryXPathXMLReader.VerifyNodeValueByXPath('cac:AccountingCustomerParty//cbc:ID', Customer.GLN);
         LibraryXPathXMLReader.VerifyAttributeValue('cac:AccountingCustomerParty//cbc:ID', 'schemeID', GetGLNSchemeID());
         LibraryXPathXMLReader.VerifyNodeAbsence('//cac:OrderReference');
+        // [THEN] A service credit memo without an invoice reference does not export a billing reference.
+        LibraryXPathXMLReader.VerifyNodeAbsence('cac:BillingReference');
         // [THEN] <EndpointID> exported as '1234567890123' with GLN schema ID (TFS 340767)
         VerifyCustomerEndpoint(Customer.GLN, GetGLNSchemeID());
     end;
@@ -2041,15 +2158,18 @@ codeunit 139236 "PEPPOL BIS BillingTests"
     end;
 
     local procedure CreatePostServiceDoc(DocumentType: Enum "Service Document Type"; CurrencyCode: Code[10]): Code[20]
+    begin
+        exit(CreatePostServiceDoc(DocumentType, CurrencyCode, CreateCustomerWithAddressAndGLN()));
+    end;
+
+    local procedure CreatePostServiceDoc(DocumentType: Enum "Service Document Type"; CurrencyCode: Code[10]; CustomerNo: Code[20]): Code[20]
     var
         ServiceHeader: Record "Service Header";
         ServiceLine: Record "Service Line";
-        Customer: Record Customer;
     begin
         SetupServiceMgtSetupTemplates();
 
-        Customer.Get(CreateCustomerWithAddressAndGLN());
-        LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, Customer."No.");
+        LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, CustomerNo);
         ServiceHeader.Validate("Due Date", LibraryRandom.RandDate(10));
         ServiceHeader.Validate("E-Mail", 'sellto@example.com');
         ServiceHeader.Validate("Currency Code", CurrencyCode);
@@ -2452,6 +2572,20 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         LibraryXPathXMLReader.SetDefaultNamespaceUsage(false);
         LibraryXPathXMLReader.AddAdditionalNamespace('cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
         LibraryXPathXMLReader.AddAdditionalNamespace('cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+    end;
+
+    local procedure VerifyCreditMemoBillingReference(InvoiceNo: Code[20]; PostingDate: Date)
+    begin
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          'cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', InvoiceNo);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath(
+          'cac:BillingReference/cac:InvoiceDocumentReference/cbc:IssueDate', Format(PostingDate, 0, 9));
+    end;
+
+    local procedure VerifyEmptyCreditMemoBillingReference(InvoiceDocRefID: Text; InvoiceDocRefIssueDate: Text)
+    begin
+        Assert.AreEqual('', InvoiceDocRefID, 'An unlinked credit memo must not retain an invoice number.');
+        Assert.AreEqual('', InvoiceDocRefIssueDate, 'An unlinked credit memo must not retain an invoice date.');
     end;
 
     local procedure SetShipToAddressOnCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
