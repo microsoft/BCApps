@@ -16,6 +16,7 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
                 ApplicationArea = All;
                 AutoFormatType = 0;
                 Caption = 'Copilot Credits Consumed';
+                CaptionClass = '3,' + AgentTestContextImpl.GetCreditCaption();
                 ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for this eval line.';
                 Editable = false;
 
@@ -23,6 +24,13 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
                 begin
                     AgentTestContextImpl.OpenAgentConsumptionOverview(AgentTaskIDs);
                 end;
+            }
+            field(PricingPending; PricingPending)
+            {
+                ApplicationArea = All;
+                Caption = 'Pricing pending';
+                ToolTip = 'Specifies that AI pricing for one or more linked tasks is incomplete.';
+                Editable = false;
             }
             field("Agent Task Count"; AgentTaskCount)
             {
@@ -63,6 +71,7 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         CopilotCredits := AgentTestContextImpl.GetCopilotCredits(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
         AgentTaskIDs := AgentTestContextImpl.GetAgentTaskIDs(Rec."Test Suite Code", VersionFilter, '', Rec."Line No.");
         AgentTaskCount := AgentTestContextImpl.GetAgentTaskCount(AgentTaskIDs);
+        PricingPending := AgentTestContextImpl.IsPricingPendingForTasks(AgentTaskIDs);
     end;
 
     var
@@ -70,4 +79,5 @@ pageextension 149033 "Agent Test Method Lines" extends "AIT Test Method Lines"
         CopilotCredits: Decimal;
         AgentTaskIDs: Text;
         AgentTaskCount: Integer;
+        PricingPending: Boolean;
 }

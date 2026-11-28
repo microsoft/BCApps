@@ -22,6 +22,64 @@ codeunit 132683 "Copilot Test"
         QuotaLimitsMustBeNonNegativeErr: Label 'All trial quota limits must be non-negative.';
 
     [Test]
+    procedure MonetizationOverrideIsScoped()
+    var
+        Quota: Codeunit "Copilot Quota";
+        Mock: Codeunit "Copilot Test Library";
+    begin
+        LibraryAssert.IsFalse(Quota.IsNewMonetizationEnabled(), 'Legacy monetization must be the default.');
+        Mock.SetNewMonetizationEnabled(true);
+        BindSubscription(Mock);
+        LibraryAssert.IsTrue(Quota.IsNewMonetizationEnabled(), 'The bound test must be able to select V2.');
+        UnbindSubscription(Mock);
+        LibraryAssert.IsFalse(Quota.IsNewMonetizationEnabled(), 'Unbinding must restore V1 without persistent configuration.');
+    end;
+
+    [Test]
+    procedure V2QuotaDenialAndUnknownAmountsArePreserved()
+    var
+        Snapshot: Record "AI Consumption Quota" temporary;
+        Quota: Codeunit "Copilot Quota";
+        Mock: Codeunit "Copilot Test Library";
+        PrincipalId: Guid;
+        Results: Dictionary of [Text, Text];
+    begin
+        Mock.SetNewMonetizationEnabled(true);
+        Mock.SetAIConsumptionQuota(false, false, -1, -1);
+        BindSubscription(Mock);
+        LibraryAssert.IsFalse(Quota.CanConsume(), 'A denied V2 decision must not fall back to V1.');
+        PrincipalId := CreateGuid();
+        Quota.GetAIConsumptionQuota(PrincipalId, Snapshot);
+        LibraryAssert.AreEqual(PrincipalId, Mock.GetLastQuotaPrincipalId(), 'The billed principal must be forwarded.');
+        LibraryAssert.AreEqual(-1, Snapshot."AI Credit Limit", 'An unavailable limit must not become zero.');
+        LibraryAssert.AreEqual(-1, Snapshot."Consumed AI Credits", 'Unavailable usage must not become zero.');
+        Mock.GetQuotaResults(Results);
+        LibraryAssert.IsFalse(Results.ContainsKey('QuotaUsedPercentage'), 'Unknown usage must not be presented as a percentage.');
+        UnbindSubscription(Mock);
+    end;
+
+    [Test]
+    procedure V2QuotaBackgroundResultUsesMeasuredAmounts()
+    var
+        Quota: Codeunit "Copilot Quota";
+        Mock: Codeunit "Copilot Test Library";
+        Results: Dictionary of [Text, Text];
+        Percentage: Decimal;
+    begin
+        Mock.SetNewMonetizationEnabled(true);
+        Mock.SetAIConsumptionQuota(true, false, 100, 85);
+        BindSubscription(Mock);
+        LibraryAssert.IsTrue(Quota.CanConsume(), 'An allowed V2 decision must not inherit the legacy API decision.');
+        Mock.GetQuotaResults(Results);
+        Evaluate(Percentage, Results.Get('QuotaUsedPercentage'));
+        LibraryAssert.AreEqual(85, Percentage, 'Background quota warnings must use the V2 amounts.');
+        Mock.SetAIConsumptionQuota(true, true, -1, -1);
+        Mock.GetQuotaResults(Results);
+        LibraryAssert.IsFalse(Results.ContainsKey('QuotaUsedPercentage'), 'A paid source must not retain an earlier trial percentage.');
+        UnbindSubscription(Mock);
+    end;
+
+    [Test]
     procedure TestRegisterCapability()
     var
         CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";

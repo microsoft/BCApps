@@ -2018,6 +2018,10 @@ dotnet
         {
         }
 
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALAIConsumptionQuotaResult"; ALAIConsumptionQuotaResult)
+        {
+        }
+
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALMicrosoftLearnFunctions"; ALMicrosoftLearnFunctions)
         {
         }

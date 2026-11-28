@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
+using System.AI;
 using System.Telemetry;
 using System.TestTools.TestRunner;
 using System.Utilities;
@@ -195,11 +196,16 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITRunHistory: Record "AIT Run History";
         AITTestContext: Codeunit "AIT Test Context";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        CopilotQuota: Codeunit "Copilot Quota";
     begin
         AITRunHistory."Test Suite Code" := Code;
         AITRunHistory.Version := Version;
         AITRunHistory.Tag := Tag;
-        AITRunHistory."Copilot Credits" := AgentTestContextImpl.GetCopilotCredits(Code, Version, Tag, 0);
+        if CopilotQuota.IsNewMonetizationEnabled() then begin
+            AITRunHistory."AI Credits" := AgentTestContextImpl.GetCopilotCredits(Code, Version, Tag, 0);
+            AITRunHistory."AI Pricing Pending" := AgentTestContextImpl.IsPricingPendingForTasks(AgentTestContextImpl.GetAgentTaskIDs(Code, Version, Tag, 0));
+        end else
+            AITRunHistory."Copilot Credits" := AgentTestContextImpl.GetCopilotCredits(Code, Version, Tag, 0);
         AITRunHistory.Insert();
 
         AITTestContext.OnAfterRunComplete(Code, Version, Tag);

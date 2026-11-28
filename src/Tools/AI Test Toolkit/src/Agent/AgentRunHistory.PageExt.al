@@ -5,19 +5,22 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.AI;
+
 pageextension 149032 "Agent Run History" extends "AIT Run History"
 {
     layout
     {
         addafter("Tokens - By Version")
         {
-            field("Copilot Credits - By Version"; Rec."Copilot Credits")
+            field("Copilot Credits - By Version"; VersionCredits)
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
                 Visible = ViewBy = ViewBy::Version;
                 Caption = 'Copilot Credits Consumed';
-                ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks in the current version.';
+                CaptionClass = '3,' + AgentTestContextImpl.GetCreditCaption();
+                ToolTip = 'Specifies credits consumed by agent tasks in the current version, using the selected monetization generation.';
                 Editable = false;
 
                 trigger OnDrillDown()
@@ -26,6 +29,13 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
                 begin
                     AgentTestContextImpl.OpenAgentConsumptionOverview(Rec."Agent Task IDs");
                 end;
+            }
+            field("AI Pricing Pending - By Version"; Rec."AI Pricing Pending")
+            {
+                ApplicationArea = All;
+                Visible = (ViewBy = ViewBy::Version) and NewMonetization;
+                ToolTip = 'Specifies whether pricing is incomplete or task consumption could not be refreshed. Completed credits can increase later.';
+                Editable = false;
             }
             field("Agent Task Count - By Version"; AgentTaskCountByVersion)
             {
@@ -45,13 +55,14 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         }
         addafter("Tokens - By Tag")
         {
-            field("Copilot Credits - By Tag"; Rec."Copilot Credits - By Tag")
+            field("Copilot Credits - By Tag"; TagCredits)
             {
                 ApplicationArea = All;
                 AutoFormatType = 0;
                 Visible = ViewBy = ViewBy::Tag;
                 Caption = 'Copilot Credits Consumed';
-                ToolTip = 'Specifies the total Copilot Credits consumed by the Agent Tasks for the tag.';
+                CaptionClass = '3,' + AgentTestContextImpl.GetCreditCaption();
+                ToolTip = 'Specifies credits consumed by agent tasks for the tag, using the selected monetization generation.';
                 Editable = false;
 
                 trigger OnDrillDown()
@@ -60,6 +71,13 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
                 begin
                     AgentTestContextImpl.OpenAgentConsumptionOverview(Rec."Agent Task IDs - By Tag");
                 end;
+            }
+            field("AI Pricing Pending - By Tag"; Rec."AI Pricing Pending - By Tag")
+            {
+                ApplicationArea = All;
+                Visible = (ViewBy = ViewBy::Tag) and NewMonetization;
+                ToolTip = 'Specifies whether pricing is incomplete or task consumption could not be refreshed. Completed credits can increase later.';
+                Editable = false;
             }
             field("Agent Task Count - By Tag"; AgentTaskCountByTag)
             {
@@ -91,6 +109,13 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
 
     local procedure UpdateAgentTaskCounts()
     begin
+        VersionCredits := Rec."Copilot Credits";
+        TagCredits := Rec."Copilot Credits - By Tag";
+        NewMonetization := Quota.IsNewMonetizationEnabled();
+        if NewMonetization then begin
+            VersionCredits := Rec."AI Credits";
+            TagCredits := Rec."AI Credits - By Tag";
+        end;
         AgentTaskCountByVersion := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs");
         AgentTaskCountByTag := AgentTestContextImpl.GetAgentTaskCount(Rec."Agent Task IDs - By Tag");
     end;
@@ -99,6 +124,10 @@ pageextension 149032 "Agent Run History" extends "AIT Run History"
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AgentTaskCountByVersion: Integer;
         AgentTaskCountByTag: Integer;
+        Quota: Codeunit "Copilot Quota";
+        VersionCredits: Decimal;
+        TagCredits: Decimal;
+        NewMonetization: Boolean;
 
 }
 

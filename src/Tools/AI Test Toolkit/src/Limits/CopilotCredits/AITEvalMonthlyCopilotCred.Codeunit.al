@@ -5,15 +5,19 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.AI;
+
 codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Provider"
 {
     Access = Internal;
 
     procedure CheckBeforeRun(AITTestSuite: Record "AIT Test Suite")
     var
+        AgentTestConsumption: Codeunit "Agent Test Consumption";
         EnvironmentConsumed, CompanyConsumed : Decimal;
         EnvironmentLimit, CompanyLimit : Decimal;
     begin
+        AgentTestConsumption.ReconcileAIConsumption();
         if IsEnvironmentLimitReached(EnvironmentConsumed, EnvironmentLimit) then
             Error(EnvironmentCreditLimitExceededErr, EnvironmentLimit, EnvironmentConsumed);
 
@@ -35,10 +39,10 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         EnvironmentEnabled, CompanyEnabled : Boolean;
     begin
         EnvRecord.GetOrCreateEnvironmentLimits();
-        EnvironmentEnabled := EnvRecord."Enforcement Enabled";
+        EnvironmentEnabled := EnvRecord.IsEnforcementEnabled();
 
         CompanyRecord.GetOrCreateCompanyLimits();
-        CompanyEnabled := CompanyRecord."Enforcement Enabled";
+        CompanyEnabled := CompanyRecord.IsEnforcementEnabled();
 
         RecallAllNotifications();
 
@@ -66,16 +70,16 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         AgentTestConsumption: Codeunit "Agent Test Consumption";
     begin
         EnvironmentLimitRecord.GetOrCreateEnvironmentLimits();
-        MonthlyCreditLimit := EnvironmentLimitRecord."Monthly Credit Limit";
+        MonthlyCreditLimit := EnvironmentLimitRecord.GetCreditLimit();
 
-        if not EnvironmentLimitRecord."Enforcement Enabled" then
+        if not EnvironmentLimitRecord.IsEnforcementEnabled() then
             exit(false);
 
-        if EnvironmentLimitRecord."Monthly Credit Limit" < 0 then
+        if MonthlyCreditLimit < 0 then
             exit(false);
 
         CopilotCreditConsumed := AgentTestConsumption.GetCopilotCreditsForEnvironment(EnvironmentLimitRecord.GetPeriodStartDate());
-        exit(CopilotCreditConsumed >= EnvironmentLimitRecord."Monthly Credit Limit");
+        exit(CopilotCreditConsumed >= MonthlyCreditLimit);
     end;
 
     procedure IsCompanyLimitReached(var CopilotCreditConsumed: Decimal; var CompanyCreditLimit: Decimal): Boolean
@@ -84,16 +88,16 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
         AgentTestConsumption: Codeunit "Agent Test Consumption";
     begin
         CompanyLimitRecord.GetOrCreateCompanyLimits();
-        CompanyCreditLimit := CompanyLimitRecord."Monthly Credit Limit";
+        CompanyCreditLimit := CompanyLimitRecord.GetCreditLimit();
 
-        if not CompanyLimitRecord."Enforcement Enabled" then
+        if not CompanyLimitRecord.IsEnforcementEnabled() then
             exit(false);
 
-        if CompanyLimitRecord."Monthly Credit Limit" < 0 then
+        if CompanyCreditLimit < 0 then
             exit(false);
 
         CopilotCreditConsumed := AgentTestConsumption.GetCopilotCreditsForCurrentCompany(CompanyLimitRecord.GetPeriodStartDate());
-        exit(CopilotCreditConsumed >= CompanyLimitRecord."Monthly Credit Limit");
+        exit(CopilotCreditConsumed >= CompanyCreditLimit);
     end;
 
     procedure GetCreditUsagePercentage(TotalCreditsConsumed: Decimal; MonthlyCreditLimit: Decimal): Decimal
@@ -162,7 +166,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     local procedure SendEnvironmentCreditLimitNotification()
     var
         CreditLimitNotification: Notification;
-        EnvCreditLimitReachedMsg: Label 'The environment monthly Copilot credit limit for AI evaluations has been reached. New agent evaluations cannot be started until the limit is increased or the next month begins.';
+        EnvCreditLimitReachedMsg: Label 'The environment monthly credit limit for AI evaluations has been reached. New agent evaluations cannot be started until the limit is increased or the next month begins.';
     begin
         CreditLimitNotification.Id := GetEnvironmentCreditLimitNotificationId();
         CreditLimitNotification.Message := EnvCreditLimitReachedMsg;
@@ -179,7 +183,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     local procedure SendEnvironmentCreditWarningNotification(UsagePercentage: Decimal)
     var
         CreditWarningNotification: Notification;
-        EnvCreditWarningMsg: Label 'Warning: %1% of the environment monthly Copilot credits for AI evaluations have been consumed. Consider monitoring agent evaluations to avoid reaching the limit.', Comment = '%1 - Usage percentage';
+        EnvCreditWarningMsg: Label 'Warning: %1% of the environment monthly credits for AI evaluations have been consumed. Consider monitoring agent evaluations to avoid reaching the limit.', Comment = '%1 - Usage percentage';
     begin
         CreditWarningNotification.Id := GetEnvironmentCreditWarningNotificationId();
         CreditWarningNotification.Message := StrSubstNo(EnvCreditWarningMsg, UsagePercentage);
@@ -196,7 +200,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     local procedure SendCompanyCreditLimitNotification()
     var
         CreditLimitNotification: Notification;
-        CompanyCreditLimitReachedMsg: Label 'The company monthly Copilot credit limit for AI evaluations has been reached for company %1. New agent evaluations cannot be started in this company until the limit is increased or the next month begins.', Comment = '%1 - Company name';
+        CompanyCreditLimitReachedMsg: Label 'The company monthly credit limit for AI evaluations has been reached for company %1. New agent evaluations cannot be started in this company until the limit is increased or the next month begins.', Comment = '%1 - Company name';
     begin
         CreditLimitNotification.Id := GetCompanyCreditLimitNotificationId();
         CreditLimitNotification.Message := StrSubstNo(CompanyCreditLimitReachedMsg, CompanyName());
@@ -213,7 +217,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     local procedure SendCompanyCreditWarningNotification(UsagePercentage: Decimal)
     var
         CreditWarningNotification: Notification;
-        CompanyCreditWarningMsg: Label 'Warning: %1% of the company monthly Copilot credits for AI evaluations have been consumed in company %2. Consider monitoring agent evaluations to avoid reaching the limit.', Comment = '%1 - Usage percentage, %2 - Company name';
+        CompanyCreditWarningMsg: Label 'Warning: %1% of the company monthly credits for AI evaluations have been consumed in company %2. Consider monitoring agent evaluations to avoid reaching the limit.', Comment = '%1 - Usage percentage, %2 - Company name';
     begin
         CreditWarningNotification.Id := GetCompanyCreditWarningNotificationId();
         CreditWarningNotification.Message := StrSubstNo(CompanyCreditWarningMsg, UsagePercentage, CompanyName());
@@ -230,7 +234,7 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     local procedure SendEnforcementDisabledNotification()
     var
         EnforcementDisabledNotification: Notification;
-        EnforcementDisabledMsg: Label 'Copilot credit limits for AI evaluation are disabled. Enable enforcement on the Credit Limits page to set a spending cap when running AI evaluations.';
+        EnforcementDisabledMsg: Label 'Monthly credit limits for AI evaluation are disabled. Enable enforcement on the Credit Limits page to set a spending threshold when running AI evaluations.';
         DontShowAgainLbl: Label 'Don''t show again';
     begin
         if (IsolatedStorage.Contains(GetEnforcementDisabledNotificationStorageKey())) then
@@ -250,7 +254,11 @@ codeunit 149039 "AIT Eval Monthly Copilot Cred." implements "AIT Eval Limit Prov
     end;
 
     local procedure GetEnforcementDisabledNotificationStorageKey(): Text
+    var
+        Quota: Codeunit "Copilot Quota";
     begin
+        if Quota.IsNewMonetizationEnabled() then
+            exit('AI-' + CompanyName() + '-' + Format(UserSecurityId()) + '-' + GetEnforcementDisabledNotificationId());
         exit(CompanyName() + '-' + Format(UserSecurityId()) + '-' + GetEnforcementDisabledNotificationId());
     end;
 

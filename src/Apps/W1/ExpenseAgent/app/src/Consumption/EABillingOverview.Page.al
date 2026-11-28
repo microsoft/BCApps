@@ -17,7 +17,8 @@ page 7079 "EA Billing Overview"
     Caption = 'Expense Agent - Billing Overview';
     Editable = false;
     Permissions = tabledata "Expense Agent Env. Consumption" = r,
-                  tabledata "User AI Consumption Data" = r;
+                  tabledata "User AI Consumption Data" = r,
+                  tabledata "AI Consumption Log Entry" = r;
 
     layout
     {
@@ -25,8 +26,9 @@ page 7079 "EA Billing Overview"
         {
             repeater(GroupName)
             {
-                field(ConsumptionDateTime; Rec."Consumption DateTime")
+                field(ConsumptionDateTime; ConsumptionDateTime)
                 {
+                    Caption = 'Consumption DateTime';
                     ToolTip = 'Specifies the date and time when the consumption occurred.';
                 }
                 field(ExpenseUserNo; Rec."Expense User No.")
@@ -63,6 +65,13 @@ page 7079 "EA Billing Overview"
                         FullDescription: Text;
                         TextLine: Text;
                     begin
+                        if Rec."New Monetization" then begin
+                            Rec.CalcFields("AI Description");
+                            Rec."AI Description".CreateInStream(DescriptionInStream, TextEncoding::UTF8);
+                            DescriptionInStream.ReadText(FullDescription);
+                            Message(FullDescription);
+                            exit;
+                        end;
                         UserAIConsumptionData.SetCurrentKey("Unique Id");
                         UserAIConsumptionData.SetRange("Unique Id", Rec."Consumption Unique ID");
                         if UserAIConsumptionData.FindFirst() then begin
@@ -91,6 +100,15 @@ page 7079 "EA Billing Overview"
                     AutoFormatType = 0;
                     ToolTip = 'Specifies the number of Copilot credits consumed by this entry.';
                 }
+                field(AICredits; Rec."AI Credits")
+                {
+                    ToolTip = 'Specifies completed AI credits. These are separate from legacy Copilot credits.';
+                }
+                field(AIPricingPending; AIPricingPending)
+                {
+                    Caption = 'AI pricing pending';
+                    ToolTip = 'Specifies that the V2 entry is missing or its pricing is not completed.';
+                }
                 field(CSFeatureDisplayName; Rec."CS Feature Display Name")
                 {
                     Caption = 'Copilot Studio Feature Display Name';
@@ -105,8 +123,9 @@ page 7079 "EA Billing Overview"
                 {
                     ToolTip = 'Specifies whether this consumption entry has been processed for billing.';
                 }
-                field(CompanyName; Rec."Company Name")
+                field(CompanyName; ConsumptionCompany)
                 {
+                    Caption = 'Company Name';
                     ToolTip = 'Specifies the company in which this consumption entry was recorded.';
                 }
             }
@@ -118,6 +137,17 @@ page 7079 "EA Billing Overview"
         TaskShortName: Text[30];
         TaskLongName: Text;
     begin
+        Rec.CalcFields("Consumption DateTime", "Company Name", "AI Consumption DateTime", "AI Company Name", "AI Pricing Completed");
+        ConsumptionDateTime := Rec."Consumption DateTime";
+        ConsumptionCompany := Rec."Company Name";
+        AIPricingPending := false;
+        if Rec."New Monetization" then begin
+            ConsumptionDateTime := Rec."AI Consumption DateTime";
+            ConsumptionCompany := Rec."AI Company Name";
+            if ConsumptionCompany = '' then
+                ConsumptionCompany := Rec."AI Source Company";
+            AIPricingPending := not Rec."AI Pricing Completed";
+        end;
         SourceDisplayTxt := '';
         Rec.GetTaskDisplayName(TaskShortName, TaskLongName);
         SourceDisplayTxt := TaskLongName;
@@ -127,4 +157,7 @@ page 7079 "EA Billing Overview"
         ViewDescriptionLbl: Label 'View full description';
         NoDescriptionAvailableLbl: Label 'No description available.';
         SourceDisplayTxt: Text;
+        ConsumptionDateTime: DateTime;
+        ConsumptionCompany: Text[30];
+        AIPricingPending: Boolean;
 }

@@ -161,7 +161,7 @@ page 6968 "Expense User Cons. API"
         Session.LogMessage('0000W41', LogV2QuotaStartedTelemetryMsg,
             Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
 
-        exit(ExpenseConsumptionHandler.LogAIConsumption(AiConsumptionRequestJson,
+        exit(ExpenseConsumptionHandler.LogAIConsumption(AiConsumptionRequestJson, AgentConversationSessionId, AgentTurnInteractionId, ExpenseUserEntraId,
             ActionsSummary, ConsumptionSourceType, ConsumptionSourceSystemId, ConsumptionSourceOperationName, Rec."No."));
     end;
 

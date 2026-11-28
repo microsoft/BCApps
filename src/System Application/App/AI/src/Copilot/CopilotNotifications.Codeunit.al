@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System;
 using System.Privacy;
 
 codeunit 7757 "Copilot Notifications"
@@ -41,24 +40,36 @@ codeunit 7757 "Copilot Notifications"
 
     procedure CheckAIQuotaAndShowNotification()
     var
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
-        ALCopilotQuotaDetails: Dotnet ALCopilotQuotaDetails;
+        CopilotQuotaImpl: Codeunit "Copilot Quota Impl.";
+        Results: Dictionary of [Text, Text];
     begin
-        ALCopilotQuotaDetails := ALCopilotFunctions.GetCopilotQuotaDetails();
+        CopilotQuotaImpl.GetQuotaResults(Results);
+        ShowQuotaNotification(Results);
+    end;
 
-        if IsNull(ALCopilotQuotaDetails) then
-            exit;
+    procedure ShowQuotaNotification(Results: Dictionary of [Text, Text])
+    var
+        Value: Text;
+        CanConsume: Boolean;
+        BillingEnabled: Boolean;
+        Percentage: Decimal;
+    begin
+        if Results.Get('CanConsume', Value) then
+            if Evaluate(CanConsume, Value) then
+                if not CanConsume then begin
+                    ShowAIQuotaUsedUpNotification();
+                    exit;
+                end;
 
-        if not ALCopilotQuotaDetails.CanConsume() then begin
-            ShowAIQuotaUsedUpNotification();
-            exit;
-        end;
+        if Results.Get('HasSetupBilling', Value) then
+            if Evaluate(BillingEnabled, Value) then
+                if BillingEnabled then
+                    exit;
 
-        if ALCopilotQuotaDetails.HasSetupBilling() then
-            exit;
-
-        if ALCopilotQuotaDetails.QuotaUsedPercentage() >= 80.0 then
-            ShowAIQuotaNearlyUsedUpNotification();
+        if Results.Get('QuotaUsedPercentage', Value) then
+            if Evaluate(Percentage, Value) then
+                if Percentage >= 80 then
+                    ShowAIQuotaNearlyUsedUpNotification();
     end;
 
     procedure ShowPrivacyNoticeDisagreedNotification()

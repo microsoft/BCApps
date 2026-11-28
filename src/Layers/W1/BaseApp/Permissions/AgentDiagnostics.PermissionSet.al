@@ -13,5 +13,6 @@ permissionset 4306 "Agent - Diagnostics"
     Caption = 'Agent Diagnostics';
     IncludedPermissionSets = "D365 Agent";
     Permissions = tabledata "User AI Consumption Data" = R,
+                  tabledata "AI Consumption Log Entry" = r,
                   system "Troubleshoot All Agents" = X;
 }

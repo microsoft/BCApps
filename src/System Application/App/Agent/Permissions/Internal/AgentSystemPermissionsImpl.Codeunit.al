@@ -19,6 +19,8 @@ codeunit 4318 "Agent System Permissions Impl."
     var
         DummyUserAIConsumptionData: Record "User AI Consumption Data";
     begin
+        // Keep the existing diagnostics permission as the visibility marker for both generations.
+        // V2 ledger access is indirect through the task-authorized safe projection.
         exit(DummyUserAIConsumptionData.ReadPermission());
     end;
 
