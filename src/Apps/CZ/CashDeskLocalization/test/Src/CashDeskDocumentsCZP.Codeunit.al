@@ -1,3 +1,16 @@
+namespace Microsoft.Finance.CashDesk;
+
+using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Account;
+using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
+using Microsoft.FixedAssets.Ledger;
+using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Sales.Receivables;
+
 codeunit 148070 "Cash Desk Documents CZP"
 {
     Subtype = Test;
@@ -468,7 +481,7 @@ codeunit 148070 "Cash Desk Documents CZP"
     end;
 
     [Test]
-    [HandlerFunctions('YesConfirmHandler,CashDocumentStatisticsCZPModalPageHandler')]
+    [HandlerFunctions('YesConfirmHandler,CashDocumentStatisticsCZPPageHandler')]
     procedure TestDocumentRounding()
     var
         CashDocumentHeaderCZP: Record "Cash Document Header CZP";
@@ -642,8 +655,9 @@ codeunit 148070 "Cash Desk Documents CZP"
     begin
         Reply := true;
     end;
-    [ModalPageHandler]
-    procedure CashDocumentStatisticsCZPModalPageHandler(var CashDocStatisticsCZP: TestPage "Cash Doc. Statistics CZP")
+
+    [PageHandler]
+    procedure CashDocumentStatisticsCZPPageHandler(var CashDocStatisticsCZP: TestPage "Cash Doc. Statistics CZP")
     begin
     end;
 }
