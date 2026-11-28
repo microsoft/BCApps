@@ -70,6 +70,26 @@ table 10053 "Transmission Log Line IRIS"
             ToolTip = 'Specifies if the selected 1099 form was sent in a correction transmission with all amounts set to zero.';
             Editable = false;
         }
+        field(74; "Previous Document Status"; Enum "IRS 1099 Form Doc. Status")
+        {
+            Caption = 'Previous Document Status';
+            Editable = false;
+        }
+        field(75; "Previous Receipt ID"; Text[100])
+        {
+            Caption = 'Previous Receipt ID';
+            Editable = false;
+        }
+        field(76; "Previous Updated Not Sent"; Boolean)
+        {
+            Caption = 'Previous Updated Not Sent';
+            Editable = false;
+        }
+        field(77; "Previous Needs Correction"; Boolean)
+        {
+            Caption = 'Previous Needs Correction';
+            Editable = false;
+        }
     }
 
     keys

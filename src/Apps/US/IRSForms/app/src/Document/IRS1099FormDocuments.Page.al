@@ -25,7 +25,7 @@ page 10036 "IRS 1099 Form Documents"
                 field(ID; Rec.ID)
                 {
                     Tooltip = 'Specifies the unique identifier of the document.';
-                    Visible = false;
+                    Visible = DocumentIDVisible;
                 }
                 field("Period No."; Rec."Period No.")
                 {
@@ -279,11 +279,20 @@ page 10036 "IRS 1099 Form Documents"
 
     var
         PeriodIsVisible: Boolean;
+        DocumentIDVisible: Boolean;
         DeleteSelectedQst: Label 'Do you want to delete the selected IRS 1099 form documents?';
 
     trigger OnOpenPage()
     begin
         PeriodIsVisible := Rec.GetFilter("Period No.") = '';
+    end;
+
+    /// <summary>
+    /// Shows document IDs when selecting a source for copying supplemental lines.
+    /// </summary>
+    internal procedure SetSupplementalCopyLookup()
+    begin
+        DocumentIDVisible := true;
     end;
 
 }

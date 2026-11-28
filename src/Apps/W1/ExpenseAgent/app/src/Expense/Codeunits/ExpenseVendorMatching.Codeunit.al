@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
-using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Vendor;
 using System.Utilities;
 
@@ -176,14 +175,12 @@ codeunit 6931 "Expense Vendor Matching"
     local procedure TryAutoMatchToVendor(var Expense: Record Expense): Boolean
     var
         Vendor: Record Vendor;
-        ExpenseAgentSetup: Record "Expense Agent Setup";
         ExpenseVendor: Record "Expense Vendor";
-        NoSeriesManagement: Codeunit "No. Series";
     begin
         if Expense."Merchant VAT Registration No." <> '' then begin
             Vendor.SetRange("VAT Registration No.", Expense."Merchant VAT Registration No.");
             if Vendor.FindFirst() then begin
-                CreateMatchedExpenseVendor(Expense, Vendor, ExpenseAgentSetup, NoSeriesManagement, ExpenseVendor);
+                CreateMatchedExpenseVendor(Expense, Vendor, ExpenseVendor);
                 exit(true);
             end;
             Vendor.Reset();
@@ -192,7 +189,7 @@ codeunit 6931 "Expense Vendor Matching"
         if Expense."Merchant Name" <> '' then begin
             Vendor.SetRange(Name, CopyStr(Expense."Merchant Name", 1, MaxStrLen(Vendor.Name)));
             if Vendor.FindFirst() then begin
-                CreateMatchedExpenseVendor(Expense, Vendor, ExpenseAgentSetup, NoSeriesManagement, ExpenseVendor);
+                CreateMatchedExpenseVendor(Expense, Vendor, ExpenseVendor);
                 exit(true);
             end;
         end;
@@ -200,22 +197,18 @@ codeunit 6931 "Expense Vendor Matching"
         exit(false);
     end;
 
-    local procedure CreateMatchedExpenseVendor(var Expense: Record Expense; var Vendor: Record Vendor; var ExpenseAgentSetup: Record "Expense Agent Setup"; var NoSeriesManagement: Codeunit "No. Series"; var ExpenseVendor: Record "Expense Vendor")
+    local procedure CreateMatchedExpenseVendor(var Expense: Record Expense; var Vendor: Record Vendor; var ExpenseVendor: Record "Expense Vendor")
     begin
         // Reuse existing Expense Vendor if already created for this BC Vendor
         ExpenseVendor.SetRange("Vendor No.", Vendor."No.");
         if not ExpenseVendor.FindFirst() then begin
-            ExpenseAgentSetup.GetRecordOnce();
-            ExpenseAgentSetup.TestField("Expense Vendor Nos.");
             ExpenseVendor.Init();
-            ExpenseVendor."No." := NoSeriesManagement.GetNextNo(ExpenseAgentSetup."Expense Vendor Nos.", WorkDate(), true);
-            ExpenseVendor."No. Series" := ExpenseAgentSetup."Expense Vendor Nos.";
             ExpenseVendor.Name := CopyStr(Vendor.Name, 1, MaxStrLen(ExpenseVendor.Name));
             ExpenseVendor."Registration Number" := CopyStr(Expense."Merchant Registration No.", 1, MaxStrLen(ExpenseVendor."Registration Number"));
             ExpenseVendor."VAT Registration No." := CopyStr(Vendor."VAT Registration No.", 1, MaxStrLen(ExpenseVendor."VAT Registration No."));
             ExpenseVendor."Vendor No." := Vendor."No.";
             ExpenseVendor.Status := ExpenseVendor.Status::Matched;
-            ExpenseVendor.Insert();
+            ExpenseVendor.Insert(true);
         end;
         ExpenseVendor.Reset();
 
@@ -225,20 +218,13 @@ codeunit 6931 "Expense Vendor Matching"
     local procedure CreateExpenseVendorFromExpense(var Expense: Record Expense)
     var
         ExpenseVendor: Record "Expense Vendor";
-        ExpenseAgentSetup: Record "Expense Agent Setup";
-        NoSeriesManagement: Codeunit "No. Series";
     begin
-        ExpenseAgentSetup.GetRecordOnce();
-        ExpenseAgentSetup.TestField("Expense Vendor Nos.");
-
         ExpenseVendor.Init();
-        ExpenseVendor."No." := NoSeriesManagement.GetNextNo(ExpenseAgentSetup."Expense Vendor Nos.", WorkDate(), true);
-        ExpenseVendor."No. Series" := ExpenseAgentSetup."Expense Vendor Nos.";
         ExpenseVendor.Name := CopyStr(Expense."Merchant Name", 1, MaxStrLen(ExpenseVendor.Name));
         ExpenseVendor."Registration Number" := CopyStr(Expense."Merchant Registration No.", 1, MaxStrLen(ExpenseVendor."Registration Number"));
         ExpenseVendor."VAT Registration No." := CopyStr(Expense."Merchant VAT Registration No.", 1, MaxStrLen(ExpenseVendor."VAT Registration No."));
         ExpenseVendor.Status := ExpenseVendor.Status::Unmatched;
-        ExpenseVendor.Insert(false);
+        ExpenseVendor.Insert(true);
 
         LinkExpenseToExpenseVendor(Expense, ExpenseVendor."No.");
     end;

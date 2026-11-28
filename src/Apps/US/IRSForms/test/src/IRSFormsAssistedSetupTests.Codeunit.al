@@ -161,10 +161,8 @@ codeunit 148025 "IRS Forms Assisted Setup Tests"
     end;
 
     local procedure Initialize()
-    var
-        IRSReportingPeriod: Record "IRS Reporting Period";
     begin
-        IRSReportingPeriod.DeleteAll();
+        LibraryIRSReportingPeriod.RemoveAllReportingPeriodsWithRelatedData();
         if IsInitialized then
             exit;
         IsInitialized := true;

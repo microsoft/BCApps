@@ -10173,10 +10173,13 @@ table 39 "Purchase Line"
                 if not CalculateFullGST("Prepmt. Line Amount") then begin
                     IsHandled := false;
                     OnBeforeCalcPrepaymentLineAmount(Rec, Currency, IsHandled);
-                    if not IsHandled then begin
-                        "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
-                        "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
-                    end;
+                    if not IsHandled then
+                        if IsFullyPrepaidWithUnchangedAmount() then
+                            "Prepmt. Line Amount" := "Prepmt. Amt. Inv."
+                        else begin
+                            "Prepmt. Line Amount" := Round((OutstandingAmountExclTax) * "Prepayment %" / 100, Currency."Amount Rounding Precision");
+                            "Prepmt. Line Amount" := "Prepmt. Line Amount" + "Prepmt Amt Deducted";
+                        end;
                 end;
                 PrePaymentLineAmountEntered := false;
             end;
@@ -10185,7 +10188,7 @@ table 39 "Purchase Line"
             CheckPrepmtAmounts();
     end;
 
-    local procedure CalculateOutstandingAmountExclTax(): Decimal
+    procedure CalculateOutstandingAmountExclTax(): Decimal
     var
         OutstandingAmount: Decimal;
         QuantityNotInvoiced: Decimal;
@@ -11028,11 +11031,21 @@ table 39 "Purchase Line"
         if not ("Copied From Posted Doc." and IsCreditDocType()) then
             exit;
 
+        if "Return Shipment No." <> '' then
+            exit;
+
         if not IsNonInventoriableItem() then
             exit;
 
         if Abs("Quantity (Base)") > Abs(xPurchaseLine."Quantity (Base)") then
             FieldError(Quantity, StrSubstNo(CorrectiveCreditMemoQtyIncreaseErr, xPurchaseLine.Quantity));
+    end;
+
+    local procedure IsFullyPrepaidWithUnchangedAmount(): Boolean
+    begin
+        exit(
+          ("Prepayment %" = 100) and ("Prepmt. Amt. Inv." <> 0) and
+          ("Line Amount" - "Inv. Discount Amount" = "Prepmt. Amt. Inv."));
     end;
 
     [IntegrationEvent(false, false)]

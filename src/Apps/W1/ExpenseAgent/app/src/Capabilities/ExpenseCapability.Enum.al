@@ -97,6 +97,7 @@ enum 6984 "Expense Capability"
     {
         Caption = 'Travel Request', Locked = true;
     }
+
     /// <summary>
     /// Credit card feed APIs are supported by this backend, independently of provider setup or mandatory card selection.
     /// </summary>
@@ -106,10 +107,18 @@ enum 6984 "Expense Capability"
     }
 
     /// <summary>
+    /// No receipt declarations and category thresholds are enabled by company policy.
+    /// </summary>
+    value(10; NoReceipt)
+    {
+        Caption = 'No Receipt', Locked = true;
+    }
+
+    /// <summary>
     /// Submitters can assign or change the interim approver on their expense reports. Reported enabled only when the agent and
     /// "Can Overwrite Interim Approver" are enabled in the Expense Agent Setup; otherwise the interim approver comes from the Expense Approval Setup and is read-only.
     /// </summary>
-    value(12; InterimApproverOverwrite)
+    value(14; InterimApproverOverwrite)
     {
         Caption = 'Interim Approver Overwrite', Locked = true;
     }

@@ -381,6 +381,14 @@ table 6930 "Expense Agent Setup"
             Caption = 'Only Shortest Route';
             ToolTip = 'Specifies whether only the shortest route is shown for mileage expenses. When enabled, alternative routes are not displayed on the map and only the shortest route is used for distance calculation.';
         }
+        field(43; "Partial Day Rounding Precision"; Decimal)
+        {
+            AutoFormatType = 0;
+            Caption = 'Partial Day Rounding Precision';
+            DecimalPlaces = 0 : 5;
+            MinValue = 0;
+            ToolTip = 'Specifies the rounding precision applied to the calculated partial-day per diem amount, for example 0.01, 0.10, or 1. Amounts are rounded to the nearest increment. If the field is empty, the partial-day amount is not rounded.';
+        }
         field(52; "User Security ID"; Guid)
         {
             Access = Internal;
@@ -704,9 +712,13 @@ table 6930 "Expense Agent Setup"
         field(105; "VAT Rates Applied"; Boolean)
         {
             Caption = 'Default VAT Rates applied';
-            DataClassification = SystemMetadata;
             ToolTip = 'Specifies whether the default VAT rates have been applied.';
             Editable = false;
+        }
+        field(106; "Allow No Receipt"; Boolean)
+        {
+            Caption = 'Allow No Receipt';
+            ToolTip = 'Specifies whether users can replace a missing original receipt with a system-generated no receipt declaration.';
         }
         field(107; "Can Overwrite Interim Approver"; Boolean)
         {

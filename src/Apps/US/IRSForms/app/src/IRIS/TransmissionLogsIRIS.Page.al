@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Reporting;
 
+using System.IO;
+
 page 10065 "Transmission Logs IRIS"
 {
     PageType = List;
@@ -49,6 +51,30 @@ page 10065 "Transmission Logs IRIS"
                 }
                 field("Transmission Size"; Rec."Transmission Size")
                 {
+                }
+                field("XML Schema Version"; Rec."XML Schema Version")
+                {
+                }
+                field("Schema Source"; Rec."Schema Source")
+                {
+                    Visible = false;
+                }
+                field(Destination; DestinationText)
+                {
+                    Caption = 'Destination';
+                    ToolTip = 'Specifies the Test or Production destination recorded in this transmission''s XML, not the current configuration.';
+                }
+                field("XML Test Code"; Rec."XML Test Code")
+                {
+                    Visible = false;
+                }
+                field("Software ID"; Rec."Software ID")
+                {
+                    Visible = false;
+                }
+                field("BC Environment"; Rec."BC Environment")
+                {
+                    Visible = false;
                 }
                 field("Receipt ID"; Rec."Receipt ID")
                 {
@@ -103,7 +129,20 @@ page 10065 "Transmission Logs IRIS"
         }
     }
 
+    trigger OnAfterGetRecord()
+    begin
+        Clear(DestinationText);
+        case Rec."XML Test Code" of
+            'T':
+                DestinationText := HelperIRIS.GetDestinationName(true);
+            'P':
+                DestinationText := HelperIRIS.GetDestinationName(false);
+        end;
+    end;
+
     var
+        HelperIRIS: Codeunit "Helper IRIS";
+        DestinationText: Text;
         SaveFileDialogTxt: Label 'Save File As';
         TransmissionNoContentErr: Label 'The transmission does not have any content.';
         ResponseNoContentErr: Label 'The response is empty.';
@@ -115,6 +154,7 @@ page 10065 "Transmission Logs IRIS"
 
     local procedure DownloadTransmissionContent()
     var
+        FileManagement: Codeunit "File Management";
         FileInStream: InStream;
         FileName: Text;
     begin
@@ -123,11 +163,12 @@ page 10065 "Transmission Logs IRIS"
             Error(TransmissionNoContentErr);
         FileName := StrSubstNo(FileNameTxt, TransmissionContentTxt, Rec."Unique Transmission ID", 'xml');
         Rec."Transmission Content".CreateInStream(FileInStream, TextEncoding::UTF8);
-        DownloadFromStream(FileInStream, SaveFileDialogTxt, '', '', FileName);
+        FileManagement.DownloadFromStreamHandler(FileInStream, SaveFileDialogTxt, '', '', FileName);
     end;
 
     local procedure DownloadResponseContent()
     var
+        FileManagement: Codeunit "File Management";
         FileInStream: InStream;
         FileName: Text;
     begin
@@ -137,11 +178,12 @@ page 10065 "Transmission Logs IRIS"
 
         Rec."Acceptance Response Content".CreateInStream(FileInStream, TextEncoding::UTF8);
         FileName := StrSubstNo(FileNameTxt, ResponseContentTxt, Rec."Unique Transmission ID", GetFileExtension(FileInStream));
-        DownloadFromStream(FileInStream, SaveFileDialogTxt, '', '', FileName);
+        FileManagement.DownloadFromStreamHandler(FileInStream, SaveFileDialogTxt, '', '', FileName);
     end;
 
     local procedure DownloadAcknowledgementContent()
     var
+        FileManagement: Codeunit "File Management";
         FileInStream: InStream;
         FileName: Text;
     begin
@@ -151,7 +193,7 @@ page 10065 "Transmission Logs IRIS"
 
         Rec."Acknowledgement Content".CreateInStream(FileInStream, TextEncoding::UTF8);
         FileName := StrSubstNo(FileNameTxt, AcknowledgementContentTxt, Rec."Unique Transmission ID", GetFileExtension(FileInStream));
-        DownloadFromStream(FileInStream, SaveFileDialogTxt, '', '', FileName);
+        FileManagement.DownloadFromStreamHandler(FileInStream, SaveFileDialogTxt, '', '', FileName);
     end;
 
     local procedure GetFileExtension(var ContentInStream: InStream): Text

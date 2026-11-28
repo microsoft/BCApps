@@ -312,6 +312,7 @@ page 118 "General Ledger Setup"
                 {
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
+                    Visible = false;
                 }
             }
             group(Control1900309501)

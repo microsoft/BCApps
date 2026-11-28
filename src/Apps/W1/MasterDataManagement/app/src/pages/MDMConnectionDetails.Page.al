@@ -48,7 +48,11 @@ page 7232 "MDM Connection Details"
                         ToolTip = 'Specifies the name of the source Business Central environment.';
 
                         trigger OnValidate()
+                        var
+                            MasterDataManagementSetup: Record "Master Data Management Setup";
                         begin
+                            if SourceEnvironmentName <> '' then
+                                MasterDataManagementSetup.CheckSourceEnvironmentName(SourceEnvironmentName);
                             SetControls();
                         end;
                     }
@@ -256,6 +260,9 @@ page 7232 "MDM Connection Details"
                     MasterDataManagement: Codeunit "Master Data Management";
                 begin
                     SaveConfiguration();
+                    // Catch a mistyped environment or company, or a missing app registration, now - not as failing sync jobs.
+                    if not VerifyConnectionOnFinish() then
+                        exit;
                     // Completing the wizard saves a full cross-environment connection, which is a genuine setup of the
                     // feature; register Set up here so it is captured even when the user declines to enable right away.
                     FeatureTelemetry.LogUptake('0000VVS', MasterDataManagement.GetFeatureName(), Enum::"Feature Uptake Status"::"Set up");
@@ -302,6 +309,7 @@ page 7232 "MDM Connection Details"
         CertificateExpirationDate: DateTime;
         ConnectionOkMsg: Label 'Successfully connected to the source environment (contract version %1).', Comment = '%1 = wire contract version';
         ConnectionFailedErr: Label 'Could not connect to the source environment. Check the source environment, company, and credentials, then try again.';
+        ConnectionNotVerifiedQst: Label 'The connection to the source environment could not be verified:\\%1\\Do you want to finish anyway? Choose No to go back and correct the connection details.', Comment = '%1 = the reason the connection failed';
         EnableNowQst: Label 'Your cross-environment connection is saved. Do you want to enable data synchronization now?';
         SelectCertificateTxt: Label 'Select the certificate file';
         CertificateFileFilterTxt: Label 'Certificate Files (*.pfx, *.p12)|*.pfx;*.p12', Locked = true;
@@ -331,15 +339,12 @@ page 7232 "MDM Connection Details"
     local procedure SaveConfiguration()
     var
         MasterDataManagementSetup: Record "Master Data Management Setup";
-        HttpSourceTransport: Codeunit "MDM Http Source Transport";
     begin
         if not MasterDataManagementSetup.Get() then begin
             MasterDataManagementSetup.Init();
             MasterDataManagementSetup.Insert();
         end;
         MasterDataManagementSetup.Validate("Source Environment Name", SourceEnvironmentName);
-        // Same-tenant, same-ring: derive the source web-service URL from the environment name instead of asking for it.
-        MasterDataManagementSetup."Source Environment URL" := CopyStr(HttpSourceTransport.BuildSourceApiBaseUrl(SourceEnvironmentName), 1, MaxStrLen(MasterDataManagementSetup."Source Environment URL"));
         MasterDataManagementSetup."Source Company Name" := SourceCompanyName;
         MasterDataManagementSetup."Source OAuth Client Id" := OAuth2ClientId;
         // Storing one credential type removes the other, so the connection never holds both a secret and a certificate.
@@ -454,26 +459,54 @@ page 7232 "MDM Connection Details"
 
     [NonDebuggable]
     local procedure TestConnectionToSource()
-    var
-        SourceConnection: Codeunit "MDM Source Connection";
-        Transport: Interface "IMDM Source Transport";
-        Capabilities: JsonObject;
-        VersionToken: JsonToken;
-        VersionValue: Integer;
-        VersionText: Text;
     begin
         // Persist first so the transport reads the details entered in the wizard.
         SaveConfiguration();
         Commit();
+        Message(ConnectionOkMsg, CheckSourceConnection());
+    end;
+
+    // The details are already saved; on failure the user either keeps them or stays in the wizard to correct them.
+    // The wizard is only offered online, where the transport can reach a source, so the check always runs.
+    local procedure VerifyConnectionOnFinish(): Boolean
+    var
+        VersionText: Text;
+    begin
+        Commit(); // the transport reads the saved details
+        if TryCheckSourceConnection(VersionText) then
+            exit(true);
+        exit(Confirm(StrSubstNo(ConnectionNotVerifiedQst, GetLastErrorText()), false));
+    end;
+
+    [TryFunction]
+    local procedure TryCheckSourceConnection(var VersionText: Text)
+    begin
+        VersionText := CheckSourceConnection();
+    end;
+
+    // Returns the source's contract version; errors (with the transport's specific reason) if it can't be reached.
+    local procedure CheckSourceConnection() VersionText: Text
+    var
+        SourceConnection: Codeunit "MDM Source Connection";
+        SourceResponse: Codeunit "MDM Source Response";
+        CrossEnvDataSource: Codeunit "MDM Cross-Env Data Source";
+        Transport: Interface "IMDM Source Transport";
+        Capabilities: JsonObject;
+        VersionToken: JsonToken;
+        VersionValue: Integer;
+    begin
         Transport := SourceConnection.GetTransport();
         if not Capabilities.ReadFrom(Transport.GetCapabilities()) then
             Error(ConnectionFailedErr);
-        if Capabilities.Get('version', VersionToken) then begin
-            if not (VersionToken.IsValue() and Evaluate(VersionValue, VersionToken.AsValue().AsText())) then // malformed version is a broken capabilities contract, not user-actionable
-                Error(ConnectionFailedErr);
-            VersionText := Format(VersionValue);
-        end;
-        Message(ConnectionOkMsg, VersionText);
+        // Reachable, but the source hasn't approved sharing: report it now, with the same message the sync would show.
+        if SourceResponse.ConsentRequired(Capabilities) then
+            Error(CrossEnvDataSource.SourceConsentError());
+        // A missing or malformed version means the response isn't from the source API; never report it as a success.
+        if not Capabilities.Get('version', VersionToken) then
+            Error(ConnectionFailedErr);
+        if not (VersionToken.IsValue() and Evaluate(VersionValue, VersionToken.AsValue().AsText())) then
+            Error(ConnectionFailedErr);
+        VersionText := Format(VersionValue);
     end;
 
     local procedure NextStep()
