@@ -390,6 +390,120 @@ codeunit 139771 "SMTP API Test"
         LibraryAssert.IsTrue(SMTPMessageImpl.TryPrepareMessage(), 'TryPrepareMessage should succeed when SetBody (with inline images) is followed by AddAttachment.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestHtmlBodyWithInlineImageHasNoXmlDeclaration()
+    var
+        SMTPMessageImpl: Codeunit "SMTP Message Impl";
+        HtmlBody: Text;
+    begin
+        // [SCENARIO] Converting inline base64 images to content IDs must not add an XML declaration to the HTML body,
+        // because its encoding would contradict the charset of the HTML MIME part and email clients would decode the body incorrectly.
+
+        // [GIVEN] A generated HTML document (head with charset meta tag, table layout) containing an inline base64 image
+        HtmlBody := '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title>Purchase Order</title></head>';
+        HtmlBody += '<body><div><table><tr><td><p>Dear vendor,</p>' + GetInlineImageTag() + '</td></tr></table></div></body></html>';
+
+        // [WHEN] The HTML body is set
+        SMTPMessageImpl.SetBody(HtmlBody, true);
+
+        // [THEN] The image is converted to a content ID reference and the body starts with the html element, without XML declaration
+        HtmlBody := SMTPMessageImpl.GetHtmlBody();
+        LibraryAssert.IsFalse(HtmlBody.Contains('<?xml'), 'The HTML body must not contain an XML declaration.');
+        LibraryAssert.IsTrue(HtmlBody.StartsWith('<html'), 'The HTML body should start with the html element.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('cid:'), 'The inline image should be referenced by content ID.');
+        LibraryAssert.IsFalse(HtmlBody.Contains(';base64,'), 'The inline image should no longer be embedded as base64.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestHtmlBodyWithInlineImageKeepsNonAsciiText()
+    var
+        SMTPMessageImpl: Codeunit "SMTP Message Impl";
+        HtmlBody: Text;
+    begin
+        // [SCENARIO] Non-ASCII text in an HTML body is kept unchanged when inline base64 images are converted to content IDs.
+
+        // [GIVEN] An HTML body with German umlauts, sharp s and a registered sign, containing an inline base64 image
+        HtmlBody := '<html><body><p>Bitte senden Sie uns eine Auftragsbestätigung. Bei Rückfragen stehen wir zur Verfügung. Mit besten Grüßen ®</p>';
+        HtmlBody += GetInlineImageTag() + '</body></html>';
+
+        // [WHEN] The HTML body is set
+        SMTPMessageImpl.SetBody(HtmlBody, true);
+
+        // [THEN] The image is converted and all non-ASCII text is still present
+        HtmlBody := SMTPMessageImpl.GetHtmlBody();
+        LibraryAssert.IsTrue(HtmlBody.Contains('cid:'), 'The inline image should be referenced by content ID.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('Auftragsbestätigung'), 'The text "Auftragsbestätigung" should be kept.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('Rückfragen'), 'The text "Rückfragen" should be kept.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('Verfügung'), 'The text "Verfügung" should be kept.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('Grüßen'), 'The text "Grüßen" should be kept.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('®'), 'The registered sign should be kept.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestHtmlBodyWithInlineImageKeepsTopLevelComment()
+    var
+        SMTPMessageImpl: Codeunit "SMTP Message Impl";
+        HtmlBody: Text;
+    begin
+        // [SCENARIO] Only the XML declaration is removed after inline image conversion; other top-level nodes before the html element are kept.
+
+        // [GIVEN] An HTML body with a top-level comment before the html element, containing an inline base64 image
+        HtmlBody := '<!-- Generated document --><html><body>' + GetInlineImageTag() + '</body></html>';
+
+        // [WHEN] The HTML body is set
+        SMTPMessageImpl.SetBody(HtmlBody, true);
+
+        // [THEN] The image is converted, there is no XML declaration and the body still starts with the comment
+        HtmlBody := SMTPMessageImpl.GetHtmlBody();
+        LibraryAssert.IsFalse(HtmlBody.Contains('<?xml'), 'The HTML body must not contain an XML declaration.');
+        LibraryAssert.IsTrue(HtmlBody.StartsWith('<!-- Generated document -->'), 'The top-level comment should be kept at the start of the body.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('cid:'), 'The inline image should be referenced by content ID.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestHtmlBodyWithXmlDeclarationAndInlineImage()
+    var
+        SMTPMessageImpl: Codeunit "SMTP Message Impl";
+        HtmlBody: Text;
+    begin
+        // [SCENARIO] An XML declaration supplied with an HTML body containing inline base64 images is removed,
+        // because the serialized declaration would state UTF-16 instead of the charset of the HTML MIME part.
+
+        // [GIVEN] An HTML body starting with an XML declaration, containing an inline base64 image
+        HtmlBody := '<?xml version="1.0" encoding="utf-8"?>' + BuildHtmlWithInlineImages(1);
+
+        // [WHEN] The HTML body is set
+        SMTPMessageImpl.SetBody(HtmlBody, true);
+
+        // [THEN] The image is converted and the body contains no XML declaration
+        HtmlBody := SMTPMessageImpl.GetHtmlBody();
+        LibraryAssert.IsFalse(HtmlBody.Contains('<?xml'), 'The HTML body must not contain an XML declaration.');
+        LibraryAssert.IsTrue(HtmlBody.Contains('cid:'), 'The inline image should be referenced by content ID.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestHtmlBodyWithoutImagesUnchanged()
+    var
+        SMTPMessageImpl: Codeunit "SMTP Message Impl";
+        HtmlBody: Text;
+    begin
+        // [SCENARIO] An HTML body without images is not re-serialized and stays exactly as supplied.
+
+        // [GIVEN] An HTML body without images
+        HtmlBody := '<html><body><p>Hello</p></body></html>';
+
+        // [WHEN] The HTML body is set
+        SMTPMessageImpl.SetBody(HtmlBody, true);
+
+        // [THEN] The HTML body is unchanged
+        LibraryAssert.AreEqual(HtmlBody, SMTPMessageImpl.GetHtmlBody(), 'An HTML body without images should not be changed.');
+    end;
+
     // ---- helpers ----
 
     local procedure AssertSucceeds(Result: Boolean; Message: Text)
@@ -437,19 +551,24 @@ codeunit 139771 "SMTP API Test"
     local procedure BuildHtmlWithInlineImages(Count: Integer): Text
     var
         Html: TextBuilder;
-        Base64PngTok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=', Locked = true;
         i: Integer;
     begin
         Html.Append('<html><body>');
         for i := 1 to Count do begin
             Html.Append('<p>Image ');
             Html.Append(Format(i));
-            Html.Append('</p><img src="data:image/png;base64,');
-            Html.Append(Base64PngTok);
-            Html.Append('" />');
+            Html.Append('</p>');
+            Html.Append(GetInlineImageTag());
         end;
         Html.Append('</body></html>');
         exit(Html.ToText());
+    end;
+
+    local procedure GetInlineImageTag(): Text
+    var
+        Base64PngTok: Label 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII=', Locked = true;
+    begin
+        exit('<img src="data:image/png;base64,' + Base64PngTok + '" />');
     end;
 
 }
