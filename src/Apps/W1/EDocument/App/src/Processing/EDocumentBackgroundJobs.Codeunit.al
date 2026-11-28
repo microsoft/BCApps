@@ -57,7 +57,7 @@ codeunit 6133 "E-Document Background Jobs"
 
     procedure TryScheduleMessageSend(EDocumentMessage: Record "E-Document Message"): Boolean
     begin
-        exit(TryScheduleEDocumentJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage.RecordId(), 0));
+        exit(TryScheduleMessageJob(Codeunit::"E-Doc. Message Send Job", EDocumentMessage));
     end;
 
     procedure ScheduleMessageResponse(EDocumentMessage: Record "E-Document Message")
@@ -67,7 +67,16 @@ codeunit 6133 "E-Document Background Jobs"
 
     procedure TryScheduleMessageResponse(EDocumentMessage: Record "E-Document Message"): Boolean
     begin
-        exit(TryScheduleEDocumentJob(Codeunit::"E-Doc. Message Response Job", EDocumentMessage.RecordId(), 300000));
+        exit(TryScheduleMessageJob(Codeunit::"E-Doc. Message Response Job", EDocumentMessage));
+    end;
+
+    local procedure TryScheduleMessageJob(CodeunitId: Integer; EDocumentMessage: Record "E-Document Message"): Boolean
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        JobQueueEntry."Object ID to Run" := CodeunitId;
+        JobQueueEntry."Record ID to Process" := EDocumentMessage.RecordId();
+        exit(Codeunit.Run(Codeunit::"E-Doc. Message Schedule Runner", JobQueueEntry));
     end;
 
     procedure ScheduleGetResponseJob()
@@ -207,6 +216,7 @@ codeunit 6133 "E-Document Background Jobs"
     begin
         PrepareEDocumentJob(JobQueueEntry, CodeunitId, JobRecordId, EarliestStartDateTime);
         Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
+        LogScheduledJob(JobQueueEntry);
         exit(JobQueueEntry.ID);
     end;
 
@@ -215,13 +225,13 @@ codeunit 6133 "E-Document Background Jobs"
         JobQueueEntry: Record "Job Queue Entry";
     begin
         PrepareEDocumentJob(JobQueueEntry, CodeunitId, JobRecordId, EarliestStartDateTime);
-        exit(Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry));
+        if not Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
+            exit(false);
+        LogScheduledJob(JobQueueEntry);
+        exit(true);
     end;
 
     local procedure PrepareEDocumentJob(var JobQueueEntry: Record "Job Queue Entry"; CodeunitId: Integer; JobRecordId: RecordId; EarliestStartDateTime: Integer)
-    var
-        Telemetry: Codeunit Telemetry;
-        TelemetryDimensions: Dictionary of [Text, Text];
     begin
         OnBeforeScheduleEDocumentJob(CodeunitId, JobRecordId);
         JobQueueEntry.Init();
@@ -232,13 +242,19 @@ codeunit 6133 "E-Document Background Jobs"
         JobQueueEntry."Job Queue Category Code" := JobQueueCategoryTok;
         JobQueueEntry."No. of Attempts to Run" := 0;
         JobQueueEntry."Earliest Start Date/Time" := CurrentDateTime + EarliestStartDateTime;
+    end;
 
+    local procedure LogScheduledJob(JobQueueEntry: Record "Job Queue Entry")
+    var
+        EDocumentLog: Codeunit "E-Document Log";
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
         TelemetryDimensions.Add('Job Queue Id', JobQueueEntry.ID);
-        TelemetryDimensions.Add('Codeunit Id', Format(CodeunitId));
-        TelemetryDimensions.Add('Record Id', Format(JobRecordId));
+        TelemetryDimensions.Add('Codeunit Id', Format(JobQueueEntry."Object ID to Run"));
+        TelemetryDimensions.Add('Record Id', Format(JobQueueEntry."Record ID to Process"));
         TelemetryDimensions.Add('User Session ID', Format(JobQueueEntry."User Session ID"));
         TelemetryDimensions.Add('Earliest Start Date/Time', Format(JobQueueEntry."Earliest Start Date/Time"));
-        Telemetry.LogMessage('0000LC6', EDocumentJobTelemetryLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
+        EDocumentLog.LogTelemetry('0000LC6', EDocumentJobTelemetryLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, TelemetryDimensions);
     end;
 
     [InternalEvent(false, false)]
