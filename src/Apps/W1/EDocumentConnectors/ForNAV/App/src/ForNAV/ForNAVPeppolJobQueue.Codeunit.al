@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.ForNAV;
 
-using System.Security.User;
 using System.Threading;
 
 codeunit 6412 "ForNAV Peppol Job Queue"
@@ -21,10 +20,12 @@ codeunit 6412 "ForNAV Peppol Job Queue"
         JobQueueEntry: Record "Job Queue Entry";
         Enqueue: Codeunit "Job Queue - Enqueue";
     begin
+        if not JobQueueEntry.WritePermission() then
+            exit;
+
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetRange("Job Queue Category Code", Setup.GetForNAVCode());
-        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::"On Hold");
-        JobQueueEntry.SetFilter(Status, '', JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Ready, JobQueueEntry.Status::Waiting, JobQueueEntry.Status::Error);
+        JobQueueEntry.SetFilter(Status, '%1|%2|%3|%4', JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Ready, JobQueueEntry.Status::Waiting, JobQueueEntry.Status::Error);
         if JobQueueEntry.FindSet() then
             repeat
                 case JobQueueEntry.Status of
@@ -48,6 +49,9 @@ codeunit 6412 "ForNAV Peppol Job Queue"
         JobQueueCategory: Record "Job Queue Category";
         JobQueueDescriptionLbl: Label 'ForNAV Job Queue';
     begin
+        if not JobQueueCategory.WritePermission() then
+            exit;
+
         if JobQueueCategory.Get(Setup.GetForNAVCode()) then
             exit;
 
@@ -63,6 +67,9 @@ codeunit 6412 "ForNAV Peppol Job Queue"
         Enqueue: Codeunit "Job Queue - Enqueue";
         JobQueueDescriptionLbl: Label 'Used by ForNAV to process incoming e-documents';
     begin
+        if not JobQueueEntry.WritePermission() then
+            exit;
+
         JobQueueEntry.SetRange("Job Queue Category Code", Setup.GetForNAVCode());
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"ForNAV Peppol Job Queue");
@@ -85,15 +92,5 @@ codeunit 6412 "ForNAV Peppol Job Queue"
 
         JobQueueEntry."No. of Minutes between Runs" := 30;
         Enqueue.Run(JobQueueEntry);
-    end;
-
-    procedure ProcessEntriesIfSuper()
-    var
-        UserPermissions: Codeunit "User Permissions";
-    begin
-        if UserPermissions.IsSuper(UserSecurityId()) then begin
-            ProcessEntries();
-            SelectLatestVersion();
-        end;
     end;
 }

@@ -48,10 +48,15 @@ page 6411 "ForNAV Peppol Oauth API"
                 {
                     ApplicationArea = All;
                 }
+#if not CLEAN30
                 field(endpoint; Endpoint)
                 {
                     ApplicationArea = All;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'No longer used. This field will be removed in a future version.';
+                    ObsoleteTag = '30.0';
                 }
+#endif
                 field(hash; Hash)
                 {
                     ApplicationArea = All;
@@ -66,7 +71,10 @@ page 6411 "ForNAV Peppol Oauth API"
         TenantId: Text;
         Hash: Text;
         SecretValidTo: DateTime;
+#if not CLEAN30
+        [Obsolete('No longer used. This field will be removed in a future version.', '30.0')]
         Endpoint: Text[20];
+#endif
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
@@ -82,12 +90,11 @@ page 6411 "ForNAV Peppol Oauth API"
     begin
         Setup.FindFirst();
         PeppolCrypto.TestHash(Hash, Rec."Client Id", ClientSecret);
-        Setup.Validate("Client Id", Rec."Client Id");
+        PeppolOauth.ValidateClientID(Rec."Client Id");
         PeppolOauth.ValidateSecret(ClientSecret);
         PeppolOauth.ValidateSecretValidTo(SecretValidTo);
         PeppolOauth.ValidateForNAVTenantID(TenantId);
         PeppolOauth.ValidateScope(Scope);
-        PeppolOauth.ValidateEndpoint(Endpoint, false);
         Setup.Modify(true);
     end;
 }

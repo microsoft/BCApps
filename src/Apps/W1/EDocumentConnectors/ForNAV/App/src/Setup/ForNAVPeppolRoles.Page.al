@@ -1,3 +1,4 @@
+#if not CLEAN30
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +14,9 @@ page 6412 "ForNAV Peppol Roles"
     DeleteAllowed = false;
     ModifyAllowed = false;
     Extensible = false;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Roles are no longer stored; role-based access is not used.';
+    ObsoleteTag = '30.0';
 
     layout
     {
@@ -28,3 +32,4 @@ page 6412 "ForNAV Peppol Roles"
         }
     }
 }
+#endif
