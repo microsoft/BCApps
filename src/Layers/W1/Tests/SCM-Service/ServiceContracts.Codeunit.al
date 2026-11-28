@@ -962,6 +962,45 @@ codeunit 136102 "Service Contracts"
     end;
 
     [Test]
+    [HandlerFunctions('SignContractConfirmHandler,ServContrctTemplateListHandler,MsgHandler')]
+    [Scope('OnPrem')]
+    procedure ContractPriceIncreaseTextEmptyDescription()
+    var
+        ServiceContractHeader: Record "Service Contract Header";
+        ServiceContractLine: Record "Service Contract Line";
+        StandardText: Record "Standard Text";
+        ServiceLine: Record "Service Line";
+        ExtendedText: Text;
+    begin
+        // [SCENARIO] Create Service Invoice transfers Price Inv. Increase Code text when Standard Text Description is empty.
+        // [SCENARIO] Extended text linked to the Standard Text is still transferred.
+
+        // 1. Setup: Create Standard Text with empty Description and Extended Text; create and sign Service Contract.
+        Initialize();
+        LibrarySales.CreateStandardTextWithExtendedText(StandardText, ExtendedText);
+        StandardText.Description := '';
+        StandardText.Modify();
+        CreateServiceContractHeader(ServiceContractHeader, StandardText.Code);
+        CreateServiceContractLine(ServiceContractLine, ServiceContractHeader);
+        ModifyServiceContractHeader(ServiceContractHeader, ServiceContractHeader."Service Period");
+        SignServContractDoc.SignContract(ServiceContractHeader);
+
+        // 2. Exercise: Create Service Invoice.
+        CreateServiceInvoice(ServiceContractHeader);
+
+        // 3. Verify: Invoice created; blank increase text line and extended text line are present.
+        VerifyValuesOnContractHeader(ServiceContractHeader);
+
+        FindServiceLine(ServiceLine, ServiceContractHeader."Contract No.");
+        ServiceLine.SetRange(Type, ServiceLine.Type::" ");
+        ServiceLine.SetRange(Description, '');
+        Assert.IsTrue(not ServiceLine.IsEmpty(), UnknownErr);
+
+        ServiceLine.SetRange(Description, CopyStr(ExtendedText, 1, MaxStrLen(ServiceLine.Description)));
+        Assert.IsTrue(not ServiceLine.IsEmpty(), UnknownErr);
+    end;
+
+    [Test]
     [HandlerFunctions('SignContractConfirmHandler,ServContrctTemplateListHandler')]
     [Scope('OnPrem')]
     procedure LineDiscountServiceInvoice()

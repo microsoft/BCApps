@@ -738,16 +738,14 @@ codeunit 5940 ServContractManagement
                     ServLine."No." := ServContractHeader."Price Inv. Increase Code";
                     ServLine."Contract No." := ContractNo;
                     ServLine.Description := StdText.Description;
-                    if ServLine.Description <> '' then begin
-                        ServLineNo := ServLineNo + 10000;
-                        ServLine."Line No." := ServLineNo;
-                        ServLine.Insert();
-                        if ServiceTransferExtText.ServCheckIfAnyExtText(ServLine, true) then
-                            ServiceTransferExtText.InsertServExtText(ServLine);
-                        ServLine."No." := '';
-                        OnBeforeLastServLineModify(ServLine);
-                        ServLine.Modify();
-                    end;
+                    ServLineNo := ServLineNo + 10000;
+                    ServLine."Line No." := ServLineNo;
+                    ServLine.Insert();
+                    if ServiceTransferExtText.ServCheckIfAnyExtText(ServLine, true) then
+                        ServiceTransferExtText.InsertServExtText(ServLine);
+                    ServLine."No." := '';
+                    OnBeforeLastServLineModify(ServLine);
+                    ServLine.Modify();
                 end;
     end;
 
