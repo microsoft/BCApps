@@ -9,6 +9,7 @@ using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
@@ -535,6 +536,31 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         Assert.AreEqual(TransferLine."Qty. to Ship (Base)", 0, 'Transfer Line should have 0 in Qty. to Ship (Base) for WIP Item');
         Assert.AreEqual(TransferLine."Qty. to Receive (Base)", 0, 'Transfer Line should have 0 in Qty. to Receive (Base) for WIP Item');
         Assert.AreEqual(TransferLine."Outstanding Qty. (Base)", 0, 'Transfer Line should have 0 in Outstanding Qty. (Base) for WIP Item');
+    end;
+
+    [Test]
+    procedure OnwardWIPShipmentAndReceiptUsesSourceWorkCenter()
+    begin
+        // [SCENARIO 660222] An onward WIP shipment identifies the source operation's work center.
+        Initialize();
+        VerifyOnwardWIPWorkCenters(false, "Direct Transfer Posting Type"::"Shipment and Receipt");
+    end;
+
+    [Test]
+    [HandlerFunctions('BinMessageHandler')]
+    procedure OnwardWIPDirectTransferUsesSourceWorkCenter()
+    begin
+        // [SCENARIO 660222] Direct WIP transfers retain both source and destination work centers.
+        Initialize();
+        VerifyOnwardWIPWorkCenters(false, "Direct Transfer Posting Type"::"Direct Transfer");
+    end;
+
+    [Test]
+    procedure OnwardWIPInTransitUsesDestinationWorkCenter()
+    begin
+        // [SCENARIO 660222] In-transit entries retain the destination work center while the source shipment uses its own.
+        Initialize();
+        VerifyOnwardWIPWorkCenters(true, "Direct Transfer Posting Type"::"Shipment and Receipt");
     end;
 
     [Test]
@@ -1285,6 +1311,140 @@ codeunit 149910 "Subc. WIP Transfer Post Test"
         if LotNo <> '' then
             LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, '', Quantity);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
+    local procedure VerifyOnwardWIPWorkCenters(UseInTransit: Boolean; DirectTransferPosting: Enum "Direct Transfer Posting Type")
+    var
+        Item: Record Item;
+        Location: array[3] of Record Location;
+        InTransitLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRoutingLine: array[2] of Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        TransferLine: Record "Transfer Line";
+        Vendor: Record Vendor;
+        WIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+        WorkCenter: array[2] of Record "Work Center";
+        Index: Integer;
+    begin
+        // [GIVEN] Two subcontracting work centers whose vendors have distinct subcontracting locations
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+
+        // [GIVEN] A certified routing with a WIP-transfer operation at each subcontractor
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        for Index := 1 to 2 do begin
+            LibraryManufacturing.CreateRoutingLine(
+                RoutingHeader, RoutingLine, '', Format(Index * 10), RoutingLine.Type::"Work Center", WorkCenter[Index]."No.");
+            RoutingLine."Transfer WIP Item" := true;
+            RoutingLine.Modify(true);
+            Vendor.Get(WorkCenter[Index]."Subcontractor No.");
+            Location[Index + 1].Get(Vendor."Subc. Location Code");
+        end;
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        // [GIVEN] A released production order refreshed from that routing
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        Item.Validate("Routing No.", RoutingHeader."No.");
+        Item.Modify(true);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[1]);
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 10, Location[1].Code);
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        for Index := 1 to 2 do
+            ProdOrderRoutingLine[Index].Get(
+                ProductionOrder.Status, ProductionOrder."No.", ProdOrderLine."Routing Reference No.", ProdOrderLine."Routing No.", Format(Index * 10));
+
+        // [GIVEN] Ten pieces have been received at the first subcontractor, without a previous operation
+        CreateAndPostRoutingWIPTransfer(
+            TransferLine, Item, ProdOrderLine, ProdOrderRoutingLine[1], '',
+            Location[1].Code, Location[2].Code, '', "Direct Transfer Posting Type"::"Shipment and Receipt", 10);
+        WIPLedgerEntry.SetRange("Prod. Order No.", ProductionOrder."No.");
+        WIPLedgerEntry.SetRange("Location Code", Location[2].Code);
+        Assert.RecordCount(WIPLedgerEntry, 1);
+        WIPLedgerEntry.FindFirst();
+        WIPLedgerEntry.TestField("Operation No.", ProdOrderRoutingLine[1]."Operation No.");
+        WIPLedgerEntry.TestField("Work Center No.", ProdOrderRoutingLine[1]."Work Center No.");
+        WIPLedgerEntry.TestField("Quantity (Base)", 10);
+
+        // [WHEN] Five pieces move onward to the second subcontractor
+        if UseInTransit then
+            LibraryWarehouse.CreateInTransitLocation(InTransitLocation);
+        CreateAndPostRoutingWIPTransfer(
+            TransferLine, Item, ProdOrderLine, ProdOrderRoutingLine[2], ProdOrderRoutingLine[1]."Operation No.",
+            Location[2].Code, Location[3].Code, InTransitLocation.Code, DirectTransferPosting, 5);
+
+        // [THEN] The source-negative entry identifies the source work center and leaves five pieces there
+        Assert.RecordCount(WIPLedgerEntry, 2);
+        WIPLedgerEntry.FindLast();
+        WIPLedgerEntry.TestField("Entry Type", "WIP Ledger Entry Type"::"Negative Adjustment");
+        WIPLedgerEntry.TestField("Operation No.", ProdOrderRoutingLine[1]."Operation No.");
+        WIPLedgerEntry.TestField("Work Center No.", ProdOrderRoutingLine[1]."Work Center No.");
+        WIPLedgerEntry.TestField("Quantity (Base)", -5);
+        WIPLedgerEntry.TestField("In Transit", false);
+        WIPLedgerEntry.CalcSums("Quantity (Base)");
+        Assert.AreEqual(5, WIPLedgerEntry."Quantity (Base)", 'Five pieces must remain at the source subcontractor.');
+
+        // [THEN] The destination-positive entry still identifies the destination operation and work center
+        WIPLedgerEntry.SetRange("Location Code", Location[3].Code);
+        Assert.RecordCount(WIPLedgerEntry, 1);
+        WIPLedgerEntry.FindFirst();
+        WIPLedgerEntry.TestField("Operation No.", ProdOrderRoutingLine[2]."Operation No.");
+        WIPLedgerEntry.TestField("Work Center No.", ProdOrderRoutingLine[2]."Work Center No.");
+        WIPLedgerEntry.TestField("Quantity (Base)", 5);
+        WIPLedgerEntry.TestField("In Transit", false);
+
+        if UseInTransit then begin
+            WIPLedgerEntry.SetRange("Location Code", InTransitLocation.Code);
+            Assert.RecordCount(WIPLedgerEntry, 2);
+            WIPLedgerEntry.FindSet();
+            repeat
+                WIPLedgerEntry.TestField("Operation No.", ProdOrderRoutingLine[2]."Operation No.");
+                WIPLedgerEntry.TestField("Work Center No.", ProdOrderRoutingLine[2]."Work Center No.");
+                WIPLedgerEntry.TestField("In Transit", true);
+            until WIPLedgerEntry.Next() = 0;
+            WIPLedgerEntry.CalcSums("Quantity (Base)");
+            Assert.AreEqual(0, WIPLedgerEntry."Quantity (Base)", 'No WIP must remain in transit.');
+        end;
+    end;
+
+    local procedure CreateAndPostRoutingWIPTransfer(var TransferLine: Record "Transfer Line"; Item: Record Item; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; PreviousOperationNo: Code[10]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; InTransitCode: Code[10]; DirectTransferPosting: Enum "Direct Transfer Posting Type"; Quantity: Decimal)
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferRoute: Record "Transfer Route";
+    begin
+        if InTransitCode = '' then begin
+            // Direct transfer must be set before lines are created; otherwise line validation requires an in-transit code.
+            LibraryWarehouse.CreateTransferRoute(TransferRoute, FromLocationCode, ToLocationCode);
+            LibraryWarehouse.CreateTransferHeader(TransferHeader, FromLocationCode, ToLocationCode, '');
+            TransferHeader.Validate("Direct Transfer", true);
+            TransferHeader.Validate("Direct Transfer Posting", DirectTransferPosting);
+            TransferHeader.Modify(true);
+            LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Quantity);
+            TransferLine.Validate("Transfer WIP Item", true);
+            TransferLine.Modify();
+        end else
+            SubcWarehouseLibrary.CreateTransferOrderWithWIPItemFlagWithoutRoutingReference(
+                TransferHeader, TransferLine, FromLocationCode, ToLocationCode, InTransitCode, Item, Quantity);
+        TransferLine."Subc. Prod. Order No." := ProdOrderLine."Prod. Order No.";
+        TransferLine."Subc. Prod. Order Line No." := ProdOrderLine."Line No.";
+        TransferLine."Subc. Routing No." := ProdOrderRoutingLine."Routing No.";
+        TransferLine."Subc. Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
+        TransferLine."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
+        TransferLine."Subc. Work Center No." := ProdOrderRoutingLine."Work Center No.";
+        TransferLine."Prev. Operation No." := PreviousOperationNo;
+        TransferLine.Modify();
+
+        if (InTransitCode = '') and (DirectTransferPosting = DirectTransferPosting::"Direct Transfer") then
+            Codeunit.Run(Codeunit::"TransferOrder-Post Transfer", TransferHeader)
+        else
+            LibraryWarehouse.PostTransferOrder(TransferHeader, true, true);
     end;
 
     local procedure SetTransferWIPItemOnRoutingLine(RoutingNo: Code[20]; WorkCenterNo: Code[20]; TransferWIPItem: Boolean)
