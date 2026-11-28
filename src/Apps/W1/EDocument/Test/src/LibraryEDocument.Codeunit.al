@@ -10,7 +10,8 @@ codeunit 139629 "Library - E-Document"
     EventSubscriberInstance = Manual;
     Permissions = tabledata "E-Document Service" = rimd,
                     tabledata "E-Doc. Service Supported Type" = rimd,
-                    tabledata "E-Doc. Mapping" = rimd;
+                    tabledata "E-Doc. Mapping" = rimd,
+                    tabledata "Job Queue Entry" = rd;
 
     var
         StandardItem: Record Item;
@@ -27,6 +28,7 @@ codeunit 139629 "Library - E-Document"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryFinChargeMemo: Codeunit "Library - Finance Charge Memo";
         LibraryInventory: Codeunit "Library - Inventory";
+        EDocumentJobQueueCategoryTok: Label 'EDocument', Locked = true;
 
     procedure SetupStandardVAT()
     begin
@@ -284,6 +286,17 @@ codeunit 139629 "Library - E-Document"
     begin
         JobQueueEntry.FindJobQueueEntry(JobQueueEntry."Object Type to Run"::Codeunit, Codeunit::"E-Document Import Job");
         LibraryJobQueue.RunJobQueueDispatcher(JobQueueEntry);
+    end;
+
+    procedure DeleteInProcessEDocumentJobQueueEntries()
+    var
+        JobQueueEntry: Record "Job Queue Entry";
+    begin
+        // A job left In Process in the EDocument category (e.g. the recurring payment occurrence dispatcher interrupted by a
+        // service restart while the task scheduler is disabled) makes the Job Queue Dispatcher park every E-Document job as Waiting.
+        JobQueueEntry.SetRange("Job Queue Category Code", EDocumentJobQueueCategoryTok);
+        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::"In Process");
+        JobQueueEntry.DeleteAll(false);
     end;
 
     procedure CreateInboundEDocument(var EDocument: Record "E-Document"; EDocService: Record "E-Document Service")

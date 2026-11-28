@@ -412,6 +412,7 @@ codeunit 148221 "Integration Tests"
     begin
         Test.CreateMockServiceDocumentId();
         LibraryPermission.SetOutsideO365Scope();
+        LibraryEDocument.DeleteInProcessEDocumentJobQueueEntries();
 
         GeneralLedgerSetup.GetRecordOnce();
         GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
