@@ -52,6 +52,8 @@ table 6932 "Expense Approval Setup"
             trigger OnValidate()
             begin
                 Rec.TestField("Expense User No.");
+                if (Rec."Approver No." <> '') and (Rec."Approver No." = Rec."Exp. Rep. Interim Approver No.") then
+                    Error(InterimApproverConflictErr, Rec.FieldCaption("Exp. Rep. Interim Approver No."), Rec.FieldCaption("Approver No."));
             end;
         }
         field(4; "Expense User Name"; Text[100])
@@ -70,6 +72,26 @@ table 6932 "Expense Approval Setup"
             CalcFormula = lookup("Expense User".Name where("No." = field("Approver No.")));
             Editable = false;
         }
+        field(6; "Exp. Rep. Interim Approver No."; Code[20])
+        {
+            Caption = 'Expense Report Interim Approver No.';
+            ToolTip = 'Specifies the expense user who must approve the expense user''s expense reports before they are routed to the final approver. The interim approver is automatically assigned to the expense report.';
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+
+            trigger OnValidate()
+            begin
+                if Rec."Exp. Rep. Interim Approver No." <> '' then
+                    CheckExpRepInterimApprover();
+            end;
+        }
+        field(7; "Exp. Rep. Interim Appr. Name"; Text[100])
+        {
+            Caption = 'Expense Report Interim Approver Name';
+            ToolTip = 'Specifies the name of the interim approver for expense reports.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Exp. Rep. Interim Approver No.")));
+            Editable = false;
+        }
     }
 
     keys
@@ -81,7 +103,22 @@ table 6932 "Expense Approval Setup"
         key(ApproverNo; "Approver No.")
         {
         }
+        key(InterimApproverNo; "Exp. Rep. Interim Approver No.")
+        {
+        }
     }
+
+    var
+        InterimApproverConflictErr: Label '%1 cannot be the same as %2.', Comment = '%1 = Interim Approver field caption, %2 = conflicting field caption';
+
+    local procedure CheckExpRepInterimApprover()
+    begin
+        Rec.TestField("Expense User No.");
+        if Rec."Exp. Rep. Interim Approver No." = Rec."Expense User No." then
+            Error(InterimApproverConflictErr, Rec.FieldCaption("Exp. Rep. Interim Approver No."), Rec.FieldCaption("Expense User No."));
+        if Rec."Exp. Rep. Interim Approver No." = Rec."Approver No." then
+            Error(InterimApproverConflictErr, Rec.FieldCaption("Exp. Rep. Interim Approver No."), Rec.FieldCaption("Approver No."));
+    end;
 
     local procedure SetTeamManagerAsApprover(ExpenseTeamCode: Code[20])
     var

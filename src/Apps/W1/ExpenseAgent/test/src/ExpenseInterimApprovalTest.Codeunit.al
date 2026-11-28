@@ -52,6 +52,10 @@ codeunit 148346 "Expense Interim Approval Test"
         ApproverApprovalLimitErr: Label 'Expense report %1 exceeds the %2 for approver %3.', Comment = '%1 = Expense report number, %2 = Approval Limit field caption, %3 = Expense User number';
         NotAuthorizedToRecallExpReportErr: Label 'Only the original submitter or a user with %1 can recall a submitted expense report.', Comment = '%1 = Unlimited Approval field caption';
         ExpenseUserConfiguredForDifferentUserErr: Label '%1 must be %2 to select this %3 %4.', Comment = '%1 = Field Caption, %2 = User Id, %3 = Table Caption, %4 = Field Value';
+        InterimApproverOverwriteNotAllowedErr: Label 'You cannot assign an interim approver because %1 is turned off in %2. The interim approver is assigned from the %3.', Comment = '%1 = Can Overwrite Interim Approver field caption, %2 = Expense Agent Setup table caption, %3 = Expense Approval Setup table caption';
+        ApprovalSetupInterimApproverConflictErr: Label '%1 cannot be the same as %2.', Comment = '%1 = Interim Approver field caption, %2 = conflicting field caption';
+        InterimApproverRemoveQst: Label 'Expense user %1 was an interim approver for some users. These users will now have no interim approver. Continue?', Comment = '%1 = Expense User No.';
+        InterimAlternateAssignedCommentTxt: Label 'Interim approver set to %1 (%2) as alternate for %3 (%4).', Comment = '%1 = Alternate interim approver No., %2 = Alternate interim approver name, %3 = Primary interim approver No., %4 = Primary interim approver name';
 
     [Test]
     [HandlerFunctions('ExpensesModalPageHandler')]
@@ -2458,6 +2462,599 @@ codeunit 148346 "Expense Interim Approval Test"
         Assert.ExpectedErrorCode('Dialog');
     end;
 
+    [Test]
+    procedure InterimApproverPrepopulatedFromApprovalSetup()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 638116] The interim approver from the Expense Approval Setup is prepopulated on a new expense report.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and the submitter has interim approver "I" in the Expense Approval Setup.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+
+        // [WHEN] An expense report is created for the submitter.
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Submitter."No.", '', '');
+
+        // [THEN] The interim approver is "I" and the final approver is the submitter's approver.
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+        ExpenseReportHeader.TestField("Final Approver No.", FinalApprover."No.");
+    end;
+
+    [Test]
+    procedure InterimApproverNotPrepopulatedWhenAgentDisabled()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 638116] The interim approver from the Expense Approval Setup is not prepopulated when the agent is disabled.
+        Initialize();
+
+        // [GIVEN] The submitter has interim approver "I" in the Expense Approval Setup, and the agent is disabled.
+        EnableAgent(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+        EnableAgent(false);
+
+        // [WHEN] An expense report is created for the submitter.
+        LibraryExpense.CreateExpenseReport(ExpenseReportHeader, Submitter."No.", '', '');
+
+        // [THEN] No interim approver is set.
+        VerifyInterimApprover(ExpenseReportHeader, '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitRoutesThroughInterimApproverFromApprovalSetup()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 638116] A report whose interim approver comes from the Expense Approval Setup is approved sequentially by the interim and final approvers.
+        Initialize();
+
+        // [GIVEN] Agent is enabled, overwriting is not allowed, and the submitter has interim approver "I" and final approver "F".
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+
+        // [WHEN] The submitter submits an expense report.
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+
+        // [THEN] The report is Pending Approval with "I" as the active approver and "F" as the final approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+
+        // [WHEN] "I" approves.
+        ExpenseReportHeader.PerformManualApproved(InterimApprover."No.", true);
+
+        // [THEN] The report is Interim Approved and routed to "F".
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::"Interim Approved");
+        VerifyActiveApprover(ExpenseReportHeader, FinalApprover);
+
+        // [WHEN] "F" approves.
+        ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+
+        // [THEN] The report is Approved.
+        VerifyStatus(ExpenseReportHeader, ExpenseReportHeader.Status::Approved);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure FinalApproverCannotApproveBeforeInterimApproverFromApprovalSetup()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 638116] The final approver cannot approve before the interim approver from the Expense Approval Setup has approved.
+        Initialize();
+
+        // [GIVEN] A submitted report whose interim approver "I" comes from the Expense Approval Setup.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+
+        // [WHEN] The final approver "F" tries to approve.
+        asserterror ExpenseReportHeader.PerformManualApproved(FinalApprover."No.", true);
+
+        // [THEN] An error states that the report is awaiting "I".
+        Assert.ExpectedError(StrSubstNo(ActorNotActiveApproverErr, InterimApprover."No."));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverBlockedWhenOverwriteNotAllowed()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        OtherApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        // [SCENARIO 638116] The submitter cannot assign an interim approver when Can Overwrite Interim Approver is turned off.
+        Initialize();
+
+        // [GIVEN] Agent is enabled, overwriting is not allowed, and the submitter has interim approver "I" in the Expense Approval Setup.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(OtherApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+
+        // [GIVEN] A released expense report.
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+
+        // Preserve the report when the expected validation error rolls back its transaction.
+        Commit();
+
+        // [WHEN] The submitter assigns another approver "O" as interim approver.
+        asserterror ExpenseReportHeader.AssignInterimApprover(OtherApprover."No.", Submitter."No.");
+
+        // [THEN] An error is raised and the interim approver stays "I".
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverOverwriteNotAllowedErr,
+                ExpenseAgentSetup.FieldCaption("Can Overwrite Interim Approver"),
+                ExpenseAgentSetup.TableCaption(),
+                ExpenseApprovalSetup.TableCaption()));
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure AssignInterimApproverWithoutApprovalSetupBlockedWhenOverwriteNotAllowed()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        // [SCENARIO 638116] Without overwriting allowed, the submitter cannot assign an interim approver even when none is configured in the Expense Approval Setup.
+        Initialize();
+
+        // [GIVEN] Agent is enabled, overwriting is not allowed, and no interim approver is configured for the submitter.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+
+        // [WHEN] The submitter assigns interim approver "I".
+        asserterror ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [THEN] An error is raised.
+        Assert.ExpectedError(
+            StrSubstNo(
+                InterimApproverOverwriteNotAllowedErr,
+                ExpenseAgentSetup.FieldCaption("Can Overwrite Interim Approver"),
+                ExpenseAgentSetup.TableCaption(),
+                ExpenseApprovalSetup.TableCaption()));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitterCanOverwriteInterimApproverWhenAllowed()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        OtherApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 638116] With overwriting allowed, the submitter's interim approver replaces the one from the Expense Approval Setup and is kept on submission.
+        Initialize();
+
+        // [GIVEN] Agent is enabled, overwriting is allowed, and the submitter has interim approver "I" in the Expense Approval Setup.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(OtherApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+
+        // [GIVEN] A released expense report prepopulated with "I".
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+
+        // [WHEN] The submitter assigns another approver "O" as interim approver and submits the report.
+        ExpenseReportHeader.AssignInterimApprover(OtherApprover."No.", Submitter."No.");
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] The report is Pending Approval with "O" as interim and active approver.
+        VerifyApprovalRouting(ExpenseReportHeader, OtherApprover, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, OtherApprover."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitAssignsInterimApproverConfiguredAfterReportCreation()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 638116] An interim approver added to the Expense Approval Setup after the report was created is assigned on submission.
+        Initialize();
+
+        // [GIVEN] Agent is enabled and a released report created before an interim approver was configured.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        VerifyInterimApprover(ExpenseReportHeader, '');
+
+        // [GIVEN] Interim approver "I" is configured for the submitter.
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+
+        // [WHEN] The report is submitted.
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] "I" is the interim and active approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitAppliesChangedInterimApproverWhenOverwriteNotAllowed()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        NewInterimApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+    begin
+        // [SCENARIO 638116] Without overwriting allowed, submission applies the current interim approver from the Expense Approval Setup.
+        Initialize();
+
+        // [GIVEN] Agent is enabled, overwriting is not allowed, and a released report prepopulated with interim approver "I".
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateApproverExpenseUser(NewInterimApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+
+        // [GIVEN] The interim approver in the Expense Approval Setup is changed to "N".
+        SetInterimApproverInApprovalSetup(Submitter."No.", NewInterimApprover."No.");
+
+        // [WHEN] The report is submitted.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] "N" is the interim and active approver.
+        VerifyApprovalRouting(ExpenseReportHeader, NewInterimApprover, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, NewInterimApprover."No.");
+    end;
+
+    [Test]
+    procedure ApprovalSetupInterimApproverCannotBeApprover()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        // [SCENARIO 638116] The interim approver in the Expense Approval Setup cannot be the same as the approver.
+        Initialize();
+
+        // [GIVEN] An Expense Approval Setup for a submitter with approver "F".
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        ExpenseApprovalSetup.Get(Submitter."No.");
+
+        // [WHEN] The interim approver is set to "F".
+        asserterror ExpenseApprovalSetup.Validate("Exp. Rep. Interim Approver No.", FinalApprover."No.");
+
+        // [THEN] A conflict error is raised.
+        Assert.ExpectedError(
+            StrSubstNo(ApprovalSetupInterimApproverConflictErr, ExpenseApprovalSetup.FieldCaption("Exp. Rep. Interim Approver No."), ExpenseApprovalSetup.FieldCaption("Approver No.")));
+    end;
+
+    [Test]
+    procedure ApprovalSetupInterimApproverCannotBeExpenseUser()
+    var
+        Approver: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        // [SCENARIO 638116] The interim approver in the Expense Approval Setup cannot be the expense user.
+        Initialize();
+
+        // [GIVEN] An Expense Approval Setup for approver-capable expense user "A" with approver "F".
+        CreateApproverExpenseUser(Approver);
+        CreateApproverExpenseUser(FinalApprover);
+        if ExpenseApprovalSetup.Get(Approver."No.") then begin
+            ExpenseApprovalSetup.Validate("Approver No.", FinalApprover."No.");
+            ExpenseApprovalSetup.Modify(true);
+        end else
+            LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, Approver."No.", FinalApprover."No.");
+
+        // [WHEN] The interim approver of "A" is set to "A".
+        asserterror ExpenseApprovalSetup.Validate("Exp. Rep. Interim Approver No.", Approver."No.");
+
+        // [THEN] A conflict error is raised.
+        Assert.ExpectedError(
+            StrSubstNo(ApprovalSetupInterimApproverConflictErr, ExpenseApprovalSetup.FieldCaption("Exp. Rep. Interim Approver No."), ExpenseApprovalSetup.FieldCaption("Expense User No.")));
+    end;
+
+    [Test]
+    [HandlerFunctions('InterimApproverRemoveConfirmHandler')]
+    procedure RemovingCanApproveClearsInterimApproverInApprovalSetup()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        // [SCENARIO 638116] Removing approval rights from an interim approver clears it from the Expense Approval Setup.
+        Initialize();
+
+        // [GIVEN] The submitter has interim approver "I" in the Expense Approval Setup.
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+
+        // [WHEN] "Can Approve" is turned off for "I" and the removal is confirmed.
+        LibraryVariableStorage.Enqueue(StrSubstNo(InterimApproverRemoveQst, InterimApprover."No."));
+        InterimApprover.Validate("Can Approve", false);
+        InterimApprover.Modify(true);
+
+        // [THEN] The submitter no longer has an interim approver.
+        ExpenseApprovalSetup.Get(Submitter."No.");
+        ExpenseApprovalSetup.TestField("Exp. Rep. Interim Approver No.", '');
+        ExpenseApprovalSetup.TestField("Approver No.", FinalApprover."No.");
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitAppliesAlternateForInterimApproverFromApprovalSetup()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        InterimAlternate: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalWorkDate: Date;
+    begin
+        // [SCENARIO 638116] On submission, an active alternate replaces the interim approver prefilled from the Expense Approval Setup, also when overwriting is allowed.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] Agent is enabled, overwriting is allowed, and the submitter has interim approver "I" in the Expense Approval Setup.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+
+        // [GIVEN] A released report prefilled with "I".
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+
+        // [GIVEN] Active alternate coverage "A" for "I".
+        CreateApproverExpenseUser(InterimAlternate);
+        CreateAlternateApproverCoverage(InterimApprover."No.", InterimAlternate."No.", WorkDate(), WorkDate());
+
+        // [WHEN] The report is submitted.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] "A" is the interim and active approver, and "I" is kept as the primary interim approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimAlternate, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, InterimAlternate."No.");
+        ExpenseReportHeader.TestField("Primary Interim Approver No.", InterimApprover."No.");
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitAppliesAlternateForInterimApproverFromApprovalSetupWithoutOverwrite()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        InterimAlternate: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalWorkDate: Date;
+    begin
+        // [SCENARIO 638116] Without overwriting allowed, an active alternate replaces the interim approver from the Expense Approval Setup on submission.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] Agent is enabled, overwriting is not allowed, the submitter has interim approver "I", and "I" has active alternate coverage "A".
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+        CreateApproverExpenseUser(InterimAlternate);
+        CreateAlternateApproverCoverage(InterimApprover."No.", InterimAlternate."No.", WorkDate(), WorkDate());
+
+        // [WHEN] The submitter submits an expense report.
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+
+        // [THEN] "A" is the interim and active approver, and "I" is kept as the primary interim approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimAlternate, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, InterimAlternate."No.");
+        ExpenseReportHeader.TestField("Primary Interim Approver No.", InterimApprover."No.");
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure ProcessingReportAssignsInterimAlternateWhenOverwriteNotAllowed()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        InterimAlternate: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        OriginalWorkDate: Date;
+    begin
+        // [SCENARIO 638116] The delegation report assigns an active alternate for the interim approver even when submitters cannot overwrite the interim approver.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] Agent is enabled, overwriting is not allowed, and a report pending interim approval by "I" from the Expense Approval Setup.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(false);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        SetInterimApproverInApprovalSetup(Submitter."No.", InterimApprover."No.");
+        CreateSubmittedExpenseReport(Submitter, ExpenseReportHeader);
+        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, FinalApprover);
+
+        // [GIVEN] Alternate coverage "A" for "I" starts after submission.
+        CreateApproverExpenseUser(InterimAlternate);
+        CreateAlternateApproverCoverage(InterimApprover."No.", InterimAlternate."No.", WorkDate(), WorkDate());
+
+        // [WHEN] The delegation report runs for the report.
+        RunDelegationReport(ExpenseReportHeader."No.");
+
+        // [THEN] "A" is the interim and active approver, and "I" is kept as the primary interim approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimAlternate, FinalApprover);
+        VerifyInterimApprover(ExpenseReportHeader, InterimAlternate."No.");
+        ExpenseReportHeader.TestField("Primary Interim Approver No.", InterimApprover."No.");
+        WorkDate(OriginalWorkDate);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitClearsManualInterimApproverThatBecameFinalApprover()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        // [SCENARIO 638116] An interim approver that is the final approver at submission is cleared, and the report goes directly to the final approver.
+        Initialize();
+
+        // [GIVEN] Agent is enabled, overwriting is allowed, and the submitter assigns interim approver "I" to a released report.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+        VerifyInterimApprover(ExpenseReportHeader, InterimApprover."No.");
+
+        // [GIVEN] "I" becomes the submitter's approver in the Expense Approval Setup.
+        ExpenseApprovalSetup.Get(Submitter."No.");
+        ExpenseApprovalSetup.Validate("Approver No.", InterimApprover."No.");
+        ExpenseApprovalSetup.Modify(true);
+
+        // [WHEN] The report is submitted.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] No interim approver is set and "I" is the final and active approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimApprover, InterimApprover);
+        VerifyInterimApprover(ExpenseReportHeader, '');
+        ExpenseReportHeader.TestField("Primary Interim Approver No.", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ReplyFromQueueConfirmHandler')]
+    procedure DecliningInterimApproverRemovalKeepsApproverReferences()
+    var
+        Submitter: Record "Expense User";
+        OtherSubmitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        // [SCENARIO 638116] Declining the interim approver removal leaves both approver and interim approver references unchanged.
+        Initialize();
+
+        // [GIVEN] "F" is the approver of submitter "S1" and the interim approver of submitter "S2".
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateSubmitterExpenseUser(OtherSubmitter);
+        LibraryExpense.CreateExpenseApprovalSetup(ExpenseApprovalSetup, OtherSubmitter."No.", InterimApprover."No.");
+        SetInterimApproverInApprovalSetup(OtherSubmitter."No.", FinalApprover."No.");
+
+        // [WHEN] The approver reassignment for "F" is confirmed, but the interim approver removal is declined.
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(false);
+        Assert.IsFalse(FinalApprover.ConfirmApproverReassignment(), 'Declining the interim approver removal must cancel the reassignment.');
+
+        // [THEN] "F" is still the approver of "S1" and the interim approver of "S2".
+        ExpenseApprovalSetup.Get(Submitter."No.");
+        ExpenseApprovalSetup.TestField("Approver No.", FinalApprover."No.");
+        ExpenseApprovalSetup.Get(OtherSubmitter."No.");
+        ExpenseApprovalSetup.TestField("Exp. Rep. Interim Approver No.", FinalApprover."No.");
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ExpensesModalPageHandler')]
+    procedure SubmitLogsAlternateForSubmitterInterimApprover()
+    var
+        Submitter: Record "Expense User";
+        InterimApprover: Record "Expense User";
+        InterimAlternate: Record "Expense User";
+        FinalApprover: Record "Expense User";
+        ExpenseReportHeader: Record "Expense Report Header";
+        ExpenseActivityLogEntry: Record "Expense Activity Log Entry";
+        OriginalWorkDate: Date;
+    begin
+        // [SCENARIO 638116] When the submitter's interim approver is replaced by an active alternate on submission, the log names the alternate and the covered approver.
+        Initialize();
+        OriginalWorkDate := WorkDate();
+        WorkDate(Today());
+
+        // [GIVEN] Agent is enabled, overwriting is allowed, and the submitter assigns interim approver "I" to a released report.
+        EnableAgent(true);
+        SetCanOverwriteInterimApprover(true);
+        CreateInterimApprovalSetup(Submitter, InterimApprover, FinalApprover);
+        CreateAndReleaseExpenseReport(Submitter, ExpenseReportHeader);
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.AssignInterimApprover(InterimApprover."No.", Submitter."No.");
+
+        // [GIVEN] Alternate coverage "A" for "I" starts after the assignment.
+        CreateApproverExpenseUser(InterimAlternate);
+        CreateAlternateApproverCoverage(InterimApprover."No.", InterimAlternate."No.", WorkDate(), WorkDate());
+
+        // [WHEN] The report is submitted.
+        ExpenseReportHeader.Get(ExpenseReportHeader."No.");
+        ExpenseReportHeader.PerformManualPendingApproval(Submitter."No.");
+
+        // [THEN] "A" is the interim and active approver, and "I" is kept as the primary interim approver.
+        VerifyApprovalRouting(ExpenseReportHeader, InterimAlternate, FinalApprover);
+        ExpenseReportHeader.TestField("Primary Interim Approver No.", InterimApprover."No.");
+
+        // [THEN] The system logs that "A" was assigned as alternate for "I".
+        ExpenseActivityLogEntry.SetRange("Subject System ID", ExpenseReportHeader.SystemId);
+        ExpenseActivityLogEntry.SetRange("Event Type", Enum::"Expense Activity Event Type"::InterimApproverAssigned);
+        ExpenseActivityLogEntry.FindLast();
+        ExpenseActivityLogEntry.TestField("Actor Role", Enum::"Expense Activity Actor Role"::Administrator);
+        ExpenseActivityLogEntry.TestField(
+            Comment,
+            StrSubstNo(InterimAlternateAssignedCommentTxt, InterimAlternate."No.", InterimAlternate.Name, InterimApprover."No.", InterimApprover.Name));
+        WorkDate(OriginalWorkDate);
+    end;
+
     local procedure Initialize()
     var
         UserSetup: Record "User Setup";
@@ -2477,6 +3074,8 @@ codeunit 148346 "Expense Interim Approval Test"
         LibraryExpense.CleanUpBeforeTesting();
         LibraryExpense.CleanTransactionalData();
         LibraryExpense.UpdateEnableApprovalWorkflowInAgentSetup(false);
+        // Most scenarios assign the interim approver manually, which requires overwriting to be allowed.
+        SetCanOverwriteInterimApprover(true);
         LibraryWorkflow.DisableAllWorkflows();
         UserSetup.DeleteAll();
         // Remove test-created users to stay within the CI license user cap; keep the current session user.
@@ -2686,6 +3285,24 @@ codeunit 148346 "Expense Interim Approval Test"
         ExpenseAgentSetup.Modify(true);
     end;
 
+    local procedure SetCanOverwriteInterimApprover(CanOverwrite: Boolean)
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+    begin
+        ExpenseAgentSetup.GetRecordOnce();
+        ExpenseAgentSetup.Validate("Can Overwrite Interim Approver", CanOverwrite);
+        ExpenseAgentSetup.Modify(true);
+    end;
+
+    local procedure SetInterimApproverInApprovalSetup(ExpenseUserNo: Code[20]; InterimApproverNo: Code[20])
+    var
+        ExpenseApprovalSetup: Record "Expense Approval Setup";
+    begin
+        ExpenseApprovalSetup.Get(ExpenseUserNo);
+        ExpenseApprovalSetup.Validate("Exp. Rep. Interim Approver No.", InterimApproverNo);
+        ExpenseApprovalSetup.Modify(true);
+    end;
+
     local procedure CreateAndUpdateUserWithEmail(UserName: Code[50]; UserEmail: Text[80])
     var
         User: Record User;
@@ -2792,5 +3409,18 @@ codeunit 148346 "Expense Interim Approval Test"
     begin
         Assert.ExpectedMessage('Do you want to approve submitted Expense Report?', Question);
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure InterimApproverRemoveConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage(LibraryVariableStorage.DequeueText(), Question);
+        Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ReplyFromQueueConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 }

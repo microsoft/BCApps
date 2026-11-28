@@ -41,6 +41,14 @@ page 6939 "Expense Approval Setup"
                 {
                     Editable = false;
                 }
+                field("Exp. Rep. Interim Approver No."; Rec."Exp. Rep. Interim Approver No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field(ExpRepInterimApproverName; Rec."Exp. Rep. Interim Appr. Name")
+                {
+                    Editable = false;
+                }
             }
         }
     }

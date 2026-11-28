@@ -55,6 +55,8 @@ table 6906 "Expense Report Header"
             TableRelation = "Expense User"."No.";
 
             trigger OnValidate()
+            var
+                ExpenseReportApprovalMgmt: Codeunit "Expense Report Approval Mgmt";
             begin
                 TestStatusOpen();
 
@@ -73,7 +75,7 @@ table 6906 "Expense Report Header"
                     Rec.Validate("Approver Expense User ID", '');
                     Rec.Validate("Spend Request No.", '');
                     Rec."Final Approver No." := GetFinalApproverNo(Rec."Expense User No.");
-                    Rec."Interim Approver No." := '';
+                    Rec."Interim Approver No." := ExpenseReportApprovalMgmt.GetInterimApproverNoFromSetup(Rec);
                     Rec."Alternate Approver No." := '';
                     Rec."Primary Final Approver No." := '';
                     Rec."Primary Interim Approver No." := '';
@@ -537,7 +539,7 @@ table 6906 "Expense Report Header"
         field(70; "Interim Approver No."; Code[20])
         {
             Caption = 'Interim Approver No.';
-            ToolTip = 'Specifies an optional interim approver who must approve before the final approver.';
+            ToolTip = 'Specifies an optional interim approver who must approve before the final approver. Prepopulated from the expense user''s interim approver in the Expense Approval Setup.';
             DataClassification = EndUserIdentifiableInformation;
             Editable = false;
             TableRelation = "Expense User"."No." where("Can Approve" = const(true));

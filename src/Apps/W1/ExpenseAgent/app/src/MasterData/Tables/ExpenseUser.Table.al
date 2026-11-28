@@ -175,6 +175,22 @@ table 6923 "Expense User"
             CalcFormula = lookup("Expense User".Name where("No." = field("Approver No.")));
             Editable = false;
         }
+        field(25; "Exp. Rep. Interim Approver No."; Code[20])
+        {
+            Caption = 'Expense Report Interim Approver No.';
+            ToolTip = 'Specifies the number of the expense user who must approve this user''s expense reports before the final approver.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense Approval Setup"."Exp. Rep. Interim Approver No." where("Expense User No." = field("No.")));
+            Editable = false;
+        }
+        field(26; "Exp. Rep. Interim Appr. Name"; Text[100])
+        {
+            Caption = 'Expense Report Interim Approver Name';
+            ToolTip = 'Specifies the name of the expense user who must approve this user''s expense reports before the final approver.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Exp. Rep. Interim Approver No.")));
+            Editable = false;
+        }
         field(53; "No. Series"; Code[20])
         {
             Caption = 'No. Series';
@@ -272,6 +288,7 @@ table 6923 "Expense User"
         SkipOverwriteFromEmployee: Boolean;
         ApproverReassignToDefaultQst: Label 'Expense user %1 was an approver for some users. These users will now be assigned the default approver. Continue?', Comment = '%1 = Expense User No.';
         ApproverRemoveQst: Label 'Expense user %1 was an approver for some users. These users will now have no approver. Continue?', Comment = '%1 = Expense User No.';
+        InterimApproverRemoveQst: Label 'Expense user %1 was an interim approver for some users. These users will now have no interim approver. Continue?', Comment = '%1 = Expense User No.';
         CannotRemoveDefaultApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is the default approver. Change the default approver in %2 first.', Comment = '%1 = Expense User No., %2 = Expense Agent Setup table caption';
         CannotRemovePendingApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is an interim or final approver for expense report %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Expense Report No.';
         ConfirmOverwriteExpenseUserInformationQst: Label 'Do you want to overwrite the employee Name and E-Mail on Expense User from Employee information of %1?', Comment = '%1 - Employee No.';
@@ -411,36 +428,57 @@ table 6923 "Expense User"
         ExpenseApprovalSetup.SetRange("Approver No.", Rec."No.");
         if not ExpenseApprovalSetup.IsEmpty() then
             Error(ExpenseApprovalSetupErr, Rec."No.", ExpenseApprovalSetup.TableCaption());
+
+        ExpenseApprovalSetup.SetRange("Approver No.");
+        ExpenseApprovalSetup.SetRange("Exp. Rep. Interim Approver No.", Rec."No.");
+        if not ExpenseApprovalSetup.IsEmpty() then
+            Error(ExpenseApprovalSetupErr, Rec."No.", ExpenseApprovalSetup.TableCaption());
     end;
 
     /// <summary>
     /// Reassigns or removes approver references before the user's approval role is removed
     /// (via delete or by clearing "Can Approve"). Errors if the user is the default approver,
     /// otherwise confirms with the user and reassigns to the default approver, or removes the
-    /// approver when no default is configured. Must be called outside the write transaction
-    /// (e.g. from the page's OnDeleteRecord trigger).
+    /// approver when no default is configured. Interim approver references are removed after confirmation.
+    /// All confirmations are collected before any change is written, so declining leaves the data unchanged.
+    /// Must be called outside the write transaction (e.g. from the page's OnDeleteRecord trigger).
     /// </summary>
     /// <returns>True if the user confirmed and reassignment succeeded, or if there is nothing to reassign. False if the user declined.</returns>
     internal procedure ConfirmApproverReassignment(): Boolean
     var
         ExpenseApprovalSetup: Record "Expense Approval Setup";
+        ReassignApprover: Boolean;
+        RemoveInterimApprover: Boolean;
     begin
         CheckExpenseUserIsDefaultApprover();
+        ExpenseAgentSetup.Get();
 
         ExpenseApprovalSetup.SetRange("Approver No.", Rec."No.");
-        if ExpenseApprovalSetup.IsEmpty() then
-            exit(true);
+        ReassignApprover := not ExpenseApprovalSetup.IsEmpty();
+        if ReassignApprover then
+            if ExpenseAgentSetup."Default Approver No." <> '' then begin
+                if not Confirm(ApproverReassignToDefaultQst, false, Rec."No.") then
+                    exit(false);
+            end else
+                if not Confirm(ApproverRemoveQst, false, Rec."No.") then
+                    exit(false);
 
-        ExpenseAgentSetup.Get();
-        if ExpenseAgentSetup."Default Approver No." <> '' then begin
-            if not Confirm(ApproverReassignToDefaultQst, false, Rec."No.") then
+        ExpenseApprovalSetup.Reset();
+        ExpenseApprovalSetup.SetRange("Exp. Rep. Interim Approver No.", Rec."No.");
+        RemoveInterimApprover := not ExpenseApprovalSetup.IsEmpty();
+        if RemoveInterimApprover then
+            if not Confirm(StrSubstNo(InterimApproverRemoveQst, Rec."No."), false) then
                 exit(false);
-            AssignDefaultApprover();
-        end else begin
-            if not Confirm(ApproverRemoveQst, false, Rec."No.") then
-                exit(false);
-            RemoveApprover();
-        end;
+
+        if ReassignApprover then
+            if ExpenseAgentSetup."Default Approver No." <> '' then
+                AssignDefaultApprover()
+            else
+                RemoveApprover();
+
+        if RemoveInterimApprover then
+            ExpenseApprovalSetup.ModifyAll("Exp. Rep. Interim Approver No.", '');
+
         exit(true);
     end;
 

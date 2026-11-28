@@ -137,6 +137,13 @@ page 6949 "Expense User"
                     end;
 
                 }
+                field(ExpRepInterimApproverName; Rec."Exp. Rep. Interim Appr. Name")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    DrillDown = false;
+                    ToolTip = 'Specifies the name of the interim approver who must approve this expense user''s expense reports before the final approver.';
+                }
                 field("Alternate Approver Name"; AlternateApproverName)
                 {
                     ApplicationArea = Basic, Suite;

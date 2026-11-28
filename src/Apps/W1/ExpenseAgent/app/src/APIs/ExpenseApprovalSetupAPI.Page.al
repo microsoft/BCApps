@@ -54,6 +54,14 @@ page 6955 "Expense Approval Setup API"
                 {
                     Caption = 'Approver System Id';
                 }
+                field(expenseReportInterimApproverNumber; Rec."Exp. Rep. Interim Approver No.")
+                {
+                    Caption = 'Expense Report Interim Approver Number';
+                }
+                field(expenseReportInterimApproverSystemId; ExpReportInterimApproverSystemId)
+                {
+                    Caption = 'Expense Report Interim Approver System Id';
+                }
             }
         }
     }
@@ -61,6 +69,7 @@ page 6955 "Expense Approval Setup API"
     var
         ExpenseUserSystemId: Guid;
         ApproverSystemId: Guid;
+        ExpReportInterimApproverSystemId: Guid;
 
     trigger OnInit()
     var
@@ -75,5 +84,6 @@ page 6955 "Expense Approval Setup API"
     begin
         ExpenseUserSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Expense User No.");
         ApproverSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Approver No.");
+        ExpReportInterimApproverSystemId := ExpenseUser.GetSystemIdByExpenseUserNo(Rec."Exp. Rep. Interim Approver No.");
     end;
 }
