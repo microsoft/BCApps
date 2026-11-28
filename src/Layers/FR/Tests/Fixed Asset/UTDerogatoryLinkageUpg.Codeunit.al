@@ -1771,7 +1771,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         CounterpartReversalFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
         UpgradeDerogatoryLinkage: Codeunit "Upgrade Derogatory Linkage";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 617319] A primary automatic derogatory adjustment links and reverses its historical counterpart
@@ -1841,7 +1841,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     var
         ReversingFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 617319] A marked automatic depreciation source cannot silently skip an ambiguous counterpart
@@ -1863,7 +1863,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
     var
         ReversingFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 617319] A marked automatic Custom 1 source cannot silently skip an ambiguous counterpart
@@ -1886,7 +1886,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         ReversingFALedgerEntry: Record "FA Ledger Entry";
         DuplicateFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 617319] A marked automatic depreciation source reverses its now-unique historical counterpart
@@ -1911,7 +1911,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         ReversingFALedgerEntry: Record "FA Ledger Entry";
         DuplicateFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 617319] A marked automatic Custom 1 source reverses its now-unique historical counterpart
@@ -1939,7 +1939,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         UnrelatedDepreciationBook: Record "Depreciation Book";
         UnrelatedFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
         FALedgerEntryCount: Integer;
     begin
         // [FEATURE] [AI test 1.0]
@@ -1982,7 +1982,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         ReversingFALedgerEntry: Record "FA Ledger Entry";
         CompetingFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 617319] Two sources sharing one candidate remain ambiguous during reversal
@@ -2011,7 +2011,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         ReversingFALedgerEntry: Record "FA Ledger Entry";
         DuplicateFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         // [FEATURE] [AI test 1.0]
         // [SCENARIO 617319] Multiple equally valid candidates stop legacy reversal
@@ -3240,7 +3240,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FAJournalLine: Record "FA Journal Line";
         FALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewFAEntryNo: Integer;
+        NewFAEntryNo: BigInteger;
     begin
         DisableAcceleratedDepreciationFeature();
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
@@ -3419,7 +3419,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         ReversingFALedgerEntry: Record "FA Ledger Entry";
         CounterpartReversalFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewCounterpartEntryNo: Integer;
+        NewCounterpartEntryNo: BigInteger;
     begin
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
@@ -3513,7 +3513,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         FALedgerEntry: Record "FA Ledger Entry";
         SourceCodeSetup: Record "Source Code Setup";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewFAEntryNo: Integer;
+        NewFAEntryNo: BigInteger;
     begin
         DisableAcceleratedDepreciationFeature();
         ClearMigrationTags();
@@ -3582,7 +3582,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         ReversingMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         CounterpartReversalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewCounterpartEntryNo: Integer;
+        NewCounterpartEntryNo: BigInteger;
     begin
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
@@ -3782,7 +3782,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         SourceFALedgerEntry: Record "FA Ledger Entry";
         ReversalFALedgerEntry: Record "FA Ledger Entry";
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewFAEntryNo: Integer;
+        NewFAEntryNo: BigInteger;
     begin
         EnableCentralRoutingIfRequired();
         CreateCentralRoutingSetup(DepreciationBook, TaxDepreciationBook, FixedAsset, FAPostingGroup);
@@ -3909,7 +3909,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         Assert.RecordIsEmpty(MaintenanceLedgerEntry);
     end;
 
-    local procedure VerifyAutomaticFAHistoricalReversal(NewEntryNo: Integer; ReversingFALedgerEntry: Record "FA Ledger Entry")
+    local procedure VerifyAutomaticFAHistoricalReversal(NewEntryNo: BigInteger; ReversingFALedgerEntry: Record "FA Ledger Entry")
     var
         CounterpartFALedgerEntry: Record "FA Ledger Entry";
         CounterpartReversalFALedgerEntry: Record "FA Ledger Entry";
@@ -4022,7 +4022,7 @@ codeunit 144047 "UT Derogatory Linkage Upg."
         Maintenance: Record Maintenance;
         OtherMaintenance: Record Maintenance;
         FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry";
-        NewEntryNo: Integer;
+        NewEntryNo: BigInteger;
     begin
         CreateHistoricalFAFixture(SourceFALedgerEntry, CounterpartFALedgerEntry, ReversingFALedgerEntry);
         LibraryFixedAsset.CreateMaintenance(Maintenance);

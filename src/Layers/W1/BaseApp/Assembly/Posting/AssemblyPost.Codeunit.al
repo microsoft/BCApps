@@ -640,10 +640,23 @@ codeunit 900 "Assembly-Post"
     var
         ItemJnlLine: Record "Item Journal Line";
         AssemblyLineReserve: Codeunit "Assembly Line-Reserve";
+#if not CLEAN30
+        LegacyResult: Integer;
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
+#if not CLEAN30
+        LegacyResult := 0;
         OnBeforePostItemConsumptionProcedure(
+            AssemblyHeader, AssemblyLine, PostingNoSeries, QtyToConsume, QtyToConsumeBase, ItemJnlPostLine,
+            WhseJnlRegisterLine, DocumentNo, IsCorrection, ApplyToEntryNo, LegacyResult, IsHandled);
+        Result := LegacyResult;
+        if IsHandled then
+            exit;
+#endif
+
+        OnBeforePostItemConsumptionProcedureV2(
             AssemblyHeader, AssemblyLine, PostingNoSeries, QtyToConsume, QtyToConsumeBase, ItemJnlPostLine,
             WhseJnlRegisterLine, DocumentNo, IsCorrection, ApplyToEntryNo, Result, IsHandled);
         if IsHandled then
@@ -1831,8 +1844,16 @@ codeunit 900 "Assembly-Post"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Use OnBeforePostItemConsumptionProcedureV2 instead.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemConsumptionProcedure(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger; var Result: Integer; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostItemConsumptionProcedureV2(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostingNoSeries: Code[20]; QtyToConsume: Decimal; QtyToConsumeBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; DocumentNo: Code[20]; IsCorrection: Boolean; ApplyToEntryNo: BigInteger; var Result: BigInteger; var IsHandled: Boolean)
     begin
     end;
 

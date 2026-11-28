@@ -1676,6 +1676,9 @@ codeunit 90 "Purch.-Post"
         TempWhseTrackingSpecification: Record "Tracking Specification" temporary;
         TempTrackingSpecificationChargeAssmt: Record "Tracking Specification" temporary;
         TempReservationEntry: Record "Reservation Entry" temporary;
+#if not CLEAN30
+        LegacyResult: Integer;
+#endif
         PostWhseJnlLine: Boolean;
         CheckApplToItemEntry: Boolean;
         PostJobConsumptionBeforePurch: Boolean;
@@ -1687,7 +1690,17 @@ codeunit 90 "Purch.-Post"
         ClearRemAmt(PurchHeader);
 
         IsHandled := false;
+#if not CLEAN30
+        LegacyResult := 0;
         OnBeforePostItemJnlLine(
+          PurchHeader, PurchLine, QtyToBeReceived, QtyToBeReceivedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
+          ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, SuppressCommit, IsHandled, ItemJnlPostLine, LegacyResult, WhseRcptHeader);
+        Result := LegacyResult;
+        if IsHandled then
+            exit(Result);
+#endif
+
+        OnBeforePostItemJnlLineV2(
           PurchHeader, PurchLine, QtyToBeReceived, QtyToBeReceivedBase, QtyToBeInvoiced, QtyToBeInvoicedBase,
           ItemLedgShptEntryNo, ItemChargeNo, TrackingSpecification, SuppressCommit, IsHandled, ItemJnlPostLine, Result, WhseRcptHeader);
         if IsHandled then
@@ -4946,10 +4959,21 @@ codeunit 90 "Purch.-Post"
     local procedure InsertRcptEntryRelation(var PurchRcptLine: Record "Purch. Rcpt. Line") Result: BigInteger
     var
         ItemEntryRelation: Record "Item Entry Relation";
+#if not CLEAN30
+        LegacyResult: Integer;
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeInsertRcptEntryRelation(xPurchLine, PurchRcptLine, TempHandlingSpecification, TempTrackingSpecificationInv, ItemLedgShptEntryNo, Result, IsHandled);
+#if not CLEAN30
+        LegacyResult := 0;
+        OnBeforeInsertRcptEntryRelation(xPurchLine, PurchRcptLine, TempHandlingSpecification, TempTrackingSpecificationInv, ItemLedgShptEntryNo, LegacyResult, IsHandled);
+        Result := LegacyResult;
+        if IsHandled then
+            exit(Result);
+#endif
+
+        OnBeforeInsertRcptEntryRelationV2(xPurchLine, PurchRcptLine, TempHandlingSpecification, TempTrackingSpecificationInv, ItemLedgShptEntryNo, Result, IsHandled);
         if IsHandled then
             exit(Result);
 
@@ -10496,8 +10520,16 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Use OnBeforeInsertRcptEntryRelationV2 instead.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertRcptEntryRelation(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary; TempTrackingSpecificationInv: Record "Tracking Specification" temporary; ItemLedgShptEntryNo: BigInteger; var Result: Integer; var IsHandled: Boolean)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertRcptEntryRelationV2(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary; TempTrackingSpecificationInv: Record "Tracking Specification" temporary; ItemLedgShptEntryNo: BigInteger; var Result: BigInteger; var IsHandled: Boolean)
     begin
     end;
 
@@ -10678,8 +10710,16 @@ codeunit 90 "Purch.-Post"
 
 
 
+#if not CLEAN30
+    [Obsolete('Use OnBeforePostItemJnlLineV2 instead.', '30.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var QtyToBeReceived: Decimal; var QtyToBeReceivedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; CommitIsSupressed: Boolean; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: Integer; var WarehouseReceiptHeader: Record "Warehouse Receipt Header")
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforePostItemJnlLineV2(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var QtyToBeReceived: Decimal; var QtyToBeReceivedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: BigInteger; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; CommitIsSupressed: Boolean; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: BigInteger; var WarehouseReceiptHeader: Record "Warehouse Receipt Header")
     begin
     end;
 

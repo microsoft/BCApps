@@ -19,7 +19,7 @@ table 7428 "EA Corp Card Trans"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
             AutoIncrement = true;

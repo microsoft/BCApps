@@ -549,7 +549,7 @@ report 94 "Close Income Statement"
         NoOfAccounts: Integer;
         ThisAccountNo: Integer;
         EntryNo: BigInteger;
-        GroupEntryNos: Dictionary of [Text, Integer];
+        GroupEntryNos: Dictionary of [Text, BigInteger];
         EntryNoDimensionIds: Dictionary of [Text, Integer];
         ProcessedGLEntryGroups: Dictionary of [Text, Boolean];
 #pragma warning disable AA0074
@@ -850,7 +850,7 @@ report 94 "Close Income Statement"
         exit(true);
     end;
 
-    local procedure GetEntryNo(DimensionBufferID: Integer; BusinessUnitCode: Code[20]; SourceCurrencyCode: Code[10]): Integer
+    local procedure GetEntryNo(DimensionBufferID: Integer; BusinessUnitCode: Code[20]; SourceCurrencyCode: Code[10]): BigInteger
     var
         GroupKey: Text;
         AssignedEntryNo: BigInteger;

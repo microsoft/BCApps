@@ -347,7 +347,7 @@ codeunit 8063 "Sales Documents"
         OnAfterSkipInsertingSalesInvoiceLineIfServiceCommitmentItemsExist(SalesHeader, SalesLine, IsHandled);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostItemJnlLine, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostItemJnlLineV2, '', false, false)]
     local procedure CacheSalesLineContextFromSalesPost(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
         GlobalSalesHeader := SalesHeader;

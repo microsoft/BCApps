@@ -26,7 +26,7 @@ table 6912 "Expense Ledger Entry"
 
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Entry No."; BigInteger)
         {
             Caption = 'Entry No.';
         }
@@ -176,7 +176,7 @@ table 6912 "Expense Ledger Entry"
             Caption = 'Reason Code';
             TableRelation = "Reason Code";
         }
-        field(53; "Transaction No."; Integer)
+        field(53; "Transaction No."; BigInteger)
         {
             Caption = 'Transaction No.';
         }
@@ -200,13 +200,13 @@ table 6912 "Expense Ledger Entry"
         {
             Caption = 'Reversed';
         }
-        field(88; "Reversed by Entry No."; Integer)
+        field(88; "Reversed by Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed by Entry No.';
             TableRelation = "Expense Ledger Entry";
         }
-        field(89; "Reversed Entry No."; Integer)
+        field(89; "Reversed Entry No."; BigInteger)
         {
             BlankZero = true;
             Caption = 'Reversed Entry No.';
@@ -366,7 +366,7 @@ table 6912 "Expense Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Expense Ledger Entry", 'r')]
-    internal procedure GetNextEntryNo(): Integer
+    internal procedure GetNextEntryNo(): BigInteger
     var
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin

@@ -501,7 +501,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             NewGLEntryNo, FAEntryType, FAEntryNo, NewFAEntryNo, TransactionNo, DerogatorySourceEntryNo, true);
     end;
 
-    local procedure InsertReverseEntryWithLink(NewGLEntryNo: Integer; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: Integer; var NewFAEntryNo: Integer; TransactionNo: Integer; DerogatorySourceEntryNo: Integer; ReverseAutomaticSalvage: Boolean)
+    local procedure InsertReverseEntryWithLink(NewGLEntryNo: BigInteger; FAEntryType: Option " ","Fixed Asset",Maintenance; FAEntryNo: BigInteger; var NewFAEntryNo: BigInteger; TransactionNo: Integer; DerogatorySourceEntryNo: Integer; ReverseAutomaticSalvage: Boolean)
     var
         SourceCodeSetup: Record "Source Code Setup";
         FALedgEntry3: Record "FA Ledger Entry";
@@ -751,7 +751,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         AutomaticSalvageFALedgerEntry: Record "FA Ledger Entry";
         OriginalAcquisitionFALedgerEntry: Record "FA Ledger Entry";
         OriginalSalvageFALedgerEntry: Record "FA Ledger Entry";
-        NewAutomaticSalvageEntryNo: Integer;
+        NewAutomaticSalvageEntryNo: BigInteger;
     begin
         AutomaticSalvageFALedgerEntry.SetLoadFields(
             "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Automatic Entry", "Transaction No.",
@@ -811,7 +811,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         OriginalFALedgerEntry: Record "FA Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
-        NewDerogatoryEntryNo: Integer;
+        NewDerogatoryEntryNo: BigInteger;
     begin
         if ReversingFALedgerEntry."Derogatory Source Entry No." <> 0 then
             exit;
@@ -860,7 +860,7 @@ codeunit 5600 "FA Insert Ledger Entry"
         OriginalMaintenanceLedgerEntry: Record "Maintenance Ledger Entry";
         DerogatoryPostingMgt: Codeunit "Derogatory Posting Mgt.";
         DerogatoryDepreciationBookCode: Code[10];
-        NewDerogatoryEntryNo: Integer;
+        NewDerogatoryEntryNo: BigInteger;
     begin
         if ReversingMaintenanceLedgerEntry."Derogatory Source Entry No." <> 0 then
             exit;
