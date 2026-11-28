@@ -20,9 +20,7 @@ codeunit 20352 "Connectivity App Definitions"
     begin
         RegisterAppBankingNL();
         RegisterAppSwissSalaryBanking();
-        RegisterContiniaPaymentManagementNL();
-        RegisterContiniaPaymentManagementDK();
-        RegisterContiniaPaymentManagementNO();
+        RegisterContiniaBanking();
         RegisterIQBanking();
         RegisterWiseBanking();
         RegisterIdynDirectBanking();
@@ -90,88 +88,70 @@ codeunit 20352 "Connectivity App Definitions"
         RegisterApp(AppId, AppName, AppPublisher, AppDescription, AppProviderSupportURL, AppSourceURL, AppApprovedFor, AppWorksOn, "Connectivity Apps Category"::Banking);
     end;
 
-    local procedure RegisterContiniaPaymentManagementNL()
+    local procedure RegisterContiniaBanking()
     var
-        AppId: Text[250];
-        AppName: Text[1024];
-        AppPublisher: Text[250];
-        AppDescription: Text[2048];
-        AppProviderSupportURL: Text[250];
-        AppSourceURL: Text[250];
-        AppWorksOn: Text;
-        AppApprovedFor: Text;
+        AppDescriptionLbl: Label 'Continia Banking streamlines and secures your payment and reconciliation processes, automating your payment workflows directly within Business Central. Send payments and direct debit files, import statement files, and receive real-time status updates and exchange rates through a secure, direct bank integration - without having to log into your online bank. Start a free trial by downloading the app, or visit the Continia website for more information.', Locked = true, MaxLength = 2048;
+        AppDescriptionDANLbl: Label 'Continia Banking strømliner og sikrer dine betalings- og afstemningsprocesser og automatiserer dine betalingsworkflows direkte i Business Central. Send betalings- og direkte debiteringsfiler, importer kontoudtogsfiler, og modtag statusopdateringer og valutakurser i realtid via en sikker, direkte bankintegration – uden at skulle logge ind i din netbank. Start en gratis prøveperiode ved at downloade appen, eller besøg Continia''s hjemmeside for mere information.', Locked = true, MaxLength = 2048;
+        AppDescriptionDEULbl: Label 'Continia Banking optimiert und sichert Ihre Zahlungs- und Abstimmungsprozesse und automatisiert Ihre Zahlungsabläufe direkt in Business Central. Versenden Sie Zahlungs- und Lastschriftdateien, importieren Sie Kontoauszugsdateien und erhalten Sie Statusaktualisierungen sowie Wechselkurse in Echtzeit über eine sichere, direkte Bankintegration – ohne sich bei Ihrem Online-Banking anmelden zu müssen. Starten Sie eine kostenlose Testversion, indem Sie die App herunterladen, oder besuchen Sie die Continia Homepage für weitere Informationen.', Locked = true, MaxLength = 2048;
+        AppDescriptionNLDLbl: Label 'Continia Banking stroomlijnt en beveiligt uw betalings- en reconciliatieprocessen, door uw betalingsprocessen rechtstreeks binnen Business Central te automatiseren. Verstuur betalingen en incassobestanden, importeer bankafschriften en ontvang realtime statusupdates en wisselkoersen via een veilige, directe bankintegratie - zonder online in te loggen bij uw bank. Start een gratis proefperiode door de app te downloaden, of bezoek de Continia-website voor meer informatie.', Locked = true, MaxLength = 2048;
+        AppDescriptionNORLbl: Label 'Continia Banking utfører betalingene og avstemmingsprosessene dine enklere og sikrere, og automatiserer betalingsflyten direkte i Business Central. Send betalinger og direkte betalingsfiler, importer kontoutdrag, motta sanntidsoppdateringer og valutakurser gjennom en trygg direkte bankintegrasjon – uten å måtte logge inn i nettbanken din. Start en gratis prøveperiode ved å laste ned appen, eller besøk Continia sin nettside for mer informasjon.', Locked = true, MaxLength = 2048;
+        AppDescriptionSVELbl: Label 'Continia Banking effektiviserar och säkrar dina betalnings- och avstämningsprocesser genom att automatisera dina betalningsflöden direkt i Business Central. Skicka betalningar, autogirofiler, importera kontoutdragsfiler, få statusuppdateringar och växelkurser i realtid via en säker, direkt bankintegration, utan att behöva logga in på din internetbank. Starta en kostnadsfri provperiod genom att ladda ner appen, eller besök Continia-webbplatsen för mer information.', Locked = true, MaxLength = 2048;
     begin
         /***************************************************
-            Add app 'Continia Payment Management (NL)' to NL
+            Add app 'Continia Banking' to AT, CH, DE, DK, FI, GB, NL, NO, SE
+
+            Continia publishes one AppSource offer per localization, all sharing the
+            same publisher, support URL and English description. Each line passes
+            the localization code, the code Continia uses in the AppSource product name
+            and offer id, the English description, and a translated description with the
+            language ids it applies to - pass '' and '' when no translation exists.
         ***************************************************/
 
-        AppId := 'ec587884-e9e3-48ac-97ca-3f2bdd40bb2e';
-        AppName := 'Continia Payment Management (NL)';
-        AppPublisher := 'Continia Software';
-        AppDescription := 'Connect your online bank to Business Central. With Continia Payment Management, you can pay your vendors, match customer payments, and reconcile statements directly from Business Central - fully integrated and secure without having to log into your online bank. Payment Management offers direct integration to most banks in the Netherlands, such as: ABN-Amro, ING, Rabobank, ASN Bank, Bunq, Knab, RegioBank, SNS, Triodos Bank. Start a free trial by downloading the app, or visit the Continia website for more information.';
-        AppProviderSupportURL := 'https://www.continia.com/inspiration/solution-usage/connect-your-banks-to-business-central/';
-        AppSourceUrl := 'https://marketplace.microsoft.com/en-us/product/dynamics-365-business-central/PUBID.continia365%7CAID.continia-payment-management-365-nl%7CPAPPID.ec587884-e9e3-48ac-97ca-3f2bdd40bb2e';
-        AppApprovedFor := 'NL';
-        AppWorksOn := 'NL';
-
-        AddDescriptionTranslation(AppId, 'Verbind uw online bank met Business Central. Met Continia Payment Management kunt u uw leveranciers betalen, betalingen van klanten matchen en afschriften direct vanuit Business Central reconciliëren - volledig geïntegreerd en veilig, zonder dat u hoeft in te loggen bij uw online bank. Payment Management biedt directe integratie met de meeste banken in Nederland, zoals: ABN-Amro, ING, Rabobank, ASN Bank, Bunq, Knab, RegioBank, SNS, Triodos Bank. Begin uw gratis proefperiode door de app te downloaden, of bezoek de Continia-website voor meer informatie.', 1043);
-        RegisterApp(AppId, AppName, AppPublisher, AppDescription, AppProviderSupportURL, AppSourceURL, AppApprovedFor, AppWorksOn, "Connectivity Apps Category"::Banking);
+        RegisterContiniaBankingApp('5028cc6e-2288-4894-84a0-5934504a660c', 'AT', 'AT', AppDescriptionLbl, AppDescriptionDEULbl, '1031,3079');
+        RegisterContiniaBankingApp('99f643c2-bf89-4fe2-bb3a-e2a380635faf', 'CH', 'CH', AppDescriptionLbl, AppDescriptionDEULbl, '1031,2055');
+        RegisterContiniaBankingApp('009dc3e3-3080-4e48-92fc-1bc7a0ef4caa', 'DE', 'DE', AppDescriptionLbl, AppDescriptionDEULbl, '1031');
+        RegisterContiniaBankingApp('62235b56-656d-4e85-989b-fd47130bf4e5', 'DK', 'DK', AppDescriptionLbl, AppDescriptionDANLbl, '1030');
+        RegisterContiniaBankingApp('fb89b25e-b8be-4d31-b509-a29de965f12b', 'FI', 'FI', AppDescriptionLbl, '', '');
+        RegisterContiniaBankingApp('4b595a5f-4e4f-49fb-9d25-b052a309f9c5', 'GB', 'UK', AppDescriptionLbl, '', '');
+        RegisterContiniaBankingApp('f2303be5-5ecd-44db-b4e8-b1be22af4a53', 'NL', 'NL', AppDescriptionLbl, AppDescriptionNLDLbl, '1043');
+        RegisterContiniaBankingApp('e7b8a6d4-3c4e-4f8b-9a6e-8d3b8a6d4f8b', 'NO', 'NO', AppDescriptionLbl, AppDescriptionNORLbl, '1044');
+        RegisterContiniaBankingApp('ffec28be-01ad-4e63-bcee-bed076b3aecc', 'SE', 'SE', AppDescriptionLbl, AppDescriptionSVELbl, '1053');
     end;
 
-    local procedure RegisterContiniaPaymentManagementDK()
+    local procedure RegisterContiniaBankingApp(AppIdText: Text[250]; AppLocalization: Text; AppProductCode: Text; AppDescription: Text[2048]; AppTranslatedDescription: Text[2048]; TranslationLanguageIds: Text)
     var
-        AppId: Text[250];
+        LanguageIdList: List of [Text];
         AppName: Text[1024];
-        AppPublisher: Text[250];
-        AppDescription: Text[2048];
-        AppProviderSupportURL: Text[250];
-        AppSourceURL: Text[250];
-        AppWorksOn: Text;
-        AppApprovedFor: Text;
+        AppSourceUrl: Text[250];
+        LanguageIdText: Text;
+        LanguageId: Integer;
     begin
-        /***************************************************
-            Add app 'Continia Payment Management (DK)' to DK
-        ***************************************************/
+        // AppLocalization is the country/region the app is approved for and the localization it works on.
+        // AppProductCode is the code Continia uses in the AppSource product name and offer id. It matches the
+        // localization code except for GB, which AppSource lists as UK.
+        AppName := CopyStr('Continia Banking (' + AppProductCode + ')', 1, MaxStrLen(AppName));
+        AppSourceUrl := CopyStr('https://marketplace.microsoft.com/en-us/product/dynamics-365-business-central/PUBID.continia365%7CAID.continia-banking-' + LowerCase(AppProductCode) + '%7CPAPPID.' + AppIdText, 1, MaxStrLen(AppSourceUrl));
 
-        AppId := '1dafd1ac-6218-4a6e-9bd7-3dec0f14a072';
-        AppName := 'Continia Payment Management (DK)';
-        AppPublisher := 'Continia Software';
-        AppDescription := 'Connect your online bank to Business Central. With Continia Payment Management, you can pay your vendors, match customer payments, and reconcile statements directly from Business Central - fully integrated and secure without having to log into your online bank. Payment Management offers direct integration to most banks in Denmark, such as: Danske Bank, Nordea, Sydbank, Handelsbanken, SparNord, Jyske Bank, SEB, Arbejdernes Landsbank, All Savings banks. Start a free trial by downloading the app, or visit the Continia website for more information.';
-        AppProviderSupportURL := 'https://www.continia.com/inspiration/solution-usage/connect-your-banks-to-business-central/';
-        AppSourceUrl := 'https://marketplace.microsoft.com/en-us/product/dynamics-365-business-central/PUBID.continia365%7CAID.c7577a9d-eec1-44cd-85f9-800529a2f90d%7CPAPPID.1dafd1ac-6218-4a6e-9bd7-3dec0f14a072';
-        AppApprovedFor := 'DK';
-        AppWorksOn := 'DK';
+        // AddDescriptionTranslation resolves a primary language id to every locale based on it, so the German
+        // apps pass de-AT and de-CH explicitly as well. An id that is not a primary language id of its own
+        // resolves to no rows, which makes the extra ids safe however the platform groups them.
+        LanguageIdList := TranslationLanguageIds.Split(',');
+        foreach LanguageIdText in LanguageIdList do
+            if LanguageIdText <> '' then begin
+                Evaluate(LanguageId, LanguageIdText);
+                AddDescriptionTranslation(AppIdText, AppTranslatedDescription, LanguageId);
+            end;
 
-        AddDescriptionTranslation(AppId, 'Tilslut din netbank til Business Central. Med Continia Payment Management kan du betale dine leverandører, matche kundebetalinger og afstemme kontoudtog direkte fra Business Central - fuldt integreret og sikkert uden at skulle logge ind på din netbank. Payment Management tilbyder direkte integration til alle banker i Danmark, såsom: Danske Bank, Nordea, Sydbank, Handelsbanken, SparNord, Jyske Bank, SEB, Arbejdernes Landsbank, Alle sparekasser. Start din gratis prøveperiode ved at downloade appen, eller besøg Continias hjemmeside for mere information.', 1030);
-        RegisterApp(AppId, AppName, AppPublisher, AppDescription, AppProviderSupportURL, AppSourceURL, AppApprovedFor, AppWorksOn, "Connectivity Apps Category"::Banking);
-    end;
-
-    local procedure RegisterContiniaPaymentManagementNO()
-    var
-        AppId: Text[250];
-        AppName: Text[1024];
-        AppPublisher: Text[250];
-        AppDescription: Text[2048];
-        AppProviderSupportURL: Text[250];
-        AppSourceURL: Text[250];
-        AppWorksOn: Text;
-        AppApprovedFor: Text;
-    begin
-        /***************************************************
-            Add app 'Continia Payment Management (NO)' to NO
-        ***************************************************/
-
-        AppId := '9f6c9dd2-64ac-488c-85bc-9bd05a0b42a3';
-        AppName := 'Continia Payment Management (NO)';
-        AppPublisher := 'Continia Software';
-        AppDescription := 'Connect your online bank to Business Central. With Continia Payment Management, you can pay your vendors, match customer payments, and reconcile statements directly from Business Central - fully integrated and secure without having to log into your online bank. Payment Management offers direct integration to most banks in Norway, such as: DNB, Handelsbanken, Nordea, SpareBank 1, Sparebanken Vest, Danske Bank. Start a free trial by downloading the app, or visit the Continia website for more information.';
-        AppProviderSupportURL := 'https://www.continia.com/inspiration/solution-usage/connect-your-banks-to-business-central/';
-        AppSourceUrl := 'https://marketplace.microsoft.com/en-us/product/dynamics-365-business-central/PUBID.continia365%7CAID.continia-payment-management-365-no%7CPAPPID.9f6c9dd2-64ac-488c-85bc-9bd05a0b42a3';
-        AppApprovedFor := 'NO';
-        AppWorksOn := 'NO';
-
-        AddDescriptionTranslation(AppId, 'Nettbanken din kan kobles til Business Central. Med Continia Payment Management kan du betale dine leverandører, matche kundebetalinger og avstemme kontoutskrifter direkte fra Business Central – fullt integrert og sikkert uten å måtte logge på nettbanken din. Payment Management har integrasjon til følgende banker i Norge: DNB, Handelsbanken, Nordea, SpareBank 1, Sparebanken Vest, Danske Bank. Last ned appen og start din gratis prøveversjon, eller besøk nettsiden vår for mer informasjon.', 1044);
-        RegisterApp(AppId, AppName, AppPublisher, AppDescription, AppProviderSupportURL, AppSourceURL, AppApprovedFor, AppWorksOn, "Connectivity Apps Category"::Banking);
+        RegisterApp(
+            AppIdText,
+            AppName,
+            'Continia Software',
+            AppDescription,
+            'https://docs.continia.com/en-us/continia-banking/',
+            AppSourceUrl,
+            AppLocalization,
+            AppLocalization,
+            "Connectivity Apps Category"::Banking);
     end;
 
     local procedure RegisterIQBanking()
