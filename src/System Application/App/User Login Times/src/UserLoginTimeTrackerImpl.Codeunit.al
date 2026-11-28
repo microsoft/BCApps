@@ -64,6 +64,17 @@ codeunit 9013 "User Login Time Tracker Impl."
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"User Login", 'r')]
+    procedure GetLastLoginDateTime(UserSecurityId: Guid): DateTime
+    var
+        UserLogin: Record "User Login";
+    begin
+        if UserLogin.Get(UserSecurityId) then
+            exit(UserLogin."Last Login Date");
+
+        exit(0DT);
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"User Login", 'r')]
     procedure GetPenultimateLoginDateTime(UserSecurityId: Guid): DateTime
     var
         UserLogin: Record "User Login";
