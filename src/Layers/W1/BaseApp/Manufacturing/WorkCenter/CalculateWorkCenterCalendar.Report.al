@@ -29,6 +29,7 @@ report 99001046 "Calculate Work Center Calendar"
                 Calendar.SetRange("Capacity Type", Calendar."Capacity Type"::"Work Center");
                 Calendar.SetRange("No.", "No.");
                 Calendar.SetRange(Date, StartingDate, EndingDate);
+                OnBeforeDeleteWorkCenterCalendarEntries(Calendar, "Work Center");
                 Calendar.DeleteAll();
 
                 OnAfterDeleteWorkCenterCalendarEntries("Work Center", StartingDate, EndingDate);
@@ -165,8 +166,6 @@ report 99001046 "Calculate Work Center Calendar"
         TempCalendar: Record "Calendar Entry" temporary;
         CalendarMgt: Codeunit "Shop Calendar Management";
         Window: Dialog;
-        StartingDate: Date;
-        EndingDate: Date;
         LastTime: Time;
 
 #pragma warning disable AA0074
@@ -178,14 +177,30 @@ report 99001046 "Calculate Work Center Calendar"
         Text005: Label 'You must fill in the ending date field.';
 #pragma warning restore AA0074
 
+    protected var
+        StartingDate: Date;
+        EndingDate: Date;
+
     procedure InitializeRequest(NewStartingDate: Date; NewEndingDate: Date)
     begin
+        OnBeforeInitializeRequest(NewStartingDate, NewEndingDate);
+
         StartingDate := NewStartingDate;
         EndingDate := NewEndingDate;
     end;
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteWorkCenterCalendarEntries(var WorkCenter: Record "Work Center"; StartingDate: Date; EndingDate: Date)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeDeleteWorkCenterCalendarEntries(var Calendar: Record "Calendar Entry"; var WorkCenter: Record "Work Center")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInitializeRequest(var NewStartingDate: Date;var NewEndingDate: Date)
     begin
     end;
 
