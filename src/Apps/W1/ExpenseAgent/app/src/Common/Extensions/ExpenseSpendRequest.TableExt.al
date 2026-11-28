@@ -237,6 +237,52 @@ tableextension 6908 "Expense Spend Request" extends "Spend Request"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(6922; "Approver Expense User No."; Code[20])
+        {
+            Caption = 'Approver Expense User No.';
+            ToolTip = 'Specifies the expense user who must approve or reject the submitted travel request. The approver is assigned from the approval setup, the approval limits, and active alternate approvers.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No.";
+        }
+        field(6923; "Approver Expense User Name"; Text[100])
+        {
+            Caption = 'Approver Expense User Name';
+            ToolTip = 'Specifies the name of the expense user who must approve or reject the submitted travel request.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Approver Expense User No.")));
+            Editable = false;
+        }
+        field(6924; "Alternate Approver No."; Code[20])
+        {
+            Caption = 'Alternate Approver No.';
+            ToolTip = 'Specifies the alternate approver who approves the travel request on behalf of the primary approver.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+        field(6925; "Alternate Approver Name"; Text[100])
+        {
+            Caption = 'Alternate Approver Name';
+            ToolTip = 'Specifies the name of the alternate approver assigned to the travel request.';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Expense User".Name where("No." = field("Alternate Approver No.")));
+            Editable = false;
+        }
+        field(6926; "Primary Approver No."; Code[20])
+        {
+            Caption = 'Primary Approver No.';
+            ToolTip = 'Specifies the approver that the travel request returns to when the alternate approver coverage ends.';
+            DataClassification = EndUserIdentifiableInformation;
+            Editable = false;
+            TableRelation = "Expense User"."No." where("Can Approve" = const(true));
+        }
+    }
+    keys
+    {
+        key(ApproverExpenseUserNo; "Approver Expense User No.")
+        {
+        }
     }
     trigger OnAfterInsert()
     begin

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
 using System.Security.AccessControl;
@@ -21,6 +22,7 @@ table 6923 "Expense User"
     LookupPageId = "Expense Users";
     DrillDownPageId = "Expense User";
     ReplicateData = false;
+    Permissions = tabledata "Spend Request" = r;
 
     fields
     {
@@ -276,6 +278,7 @@ table 6923 "Expense User"
         ApproverRemoveQst: Label 'Expense user %1 was an approver for some users. These users will now have no approver. Continue?', Comment = '%1 = Expense User No.';
         CannotRemoveDefaultApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is the default approver. Change the default approver in %2 first.', Comment = '%1 = Expense User No., %2 = Expense Agent Setup table caption';
         CannotRemovePendingApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is an interim or final approver for expense report %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Expense Report No.';
+        CannotRemovePendingTravelApproverErr: Label 'You cannot remove approval rights from expense user %1 because this user is the approver for travel request %2 that is pending approval. Complete or reassign the pending approval first.', Comment = '%1 = Expense User No., %2 = Travel Request No.';
         ConfirmOverwriteExpenseUserInformationQst: Label 'Do you want to overwrite the employee Name and E-Mail on Expense User from Employee information of %1?', Comment = '%1 - Employee No.';
         ExistingExpenseTeamManagerErr: Label 'There is already a Team Manager (%1) for Expense Team %2.', Comment = '%1 - Expense User No. %2 -Expense Team Code';
         ExpenseApprovalSetupErr: Label 'You cannot remove approval rights from expense user %1. This expense user is currently configured as an approver in the %2.', Comment = '%1 - Expense User No., %2 - Table Caption';
@@ -867,6 +870,7 @@ table 6923 "Expense User"
     local procedure CheckNoPendingApprovals()
     var
         ExpenseReportHeader: Record "Expense Report Header";
+        SpendRequest: Record "Spend Request";
     begin
         ExpenseReportHeader.SetFilter(Status, '%1|%2', ExpenseReportHeader.Status::"Pending Approval", ExpenseReportHeader.Status::"Interim Approved");
         ExpenseReportHeader.SetRange("Interim Approver No.", Rec."No.");
@@ -877,5 +881,12 @@ table 6923 "Expense User"
         ExpenseReportHeader.SetRange("Final Approver No.", Rec."No.");
         if ExpenseReportHeader.FindFirst() then
             Error(CannotRemovePendingApproverErr, Rec."No.", ExpenseReportHeader."No.");
+
+        SpendRequest.SetRange("Document Type", SpendRequest."Document Type"::"Travel Request");
+        SpendRequest.SetRange(Status, SpendRequest.Status::Released);
+        SpendRequest.SetRange("Approver Expense User No.", Rec."No.");
+        SpendRequest.SetLoadFields("No.");
+        if SpendRequest.FindFirst() then
+            Error(CannotRemovePendingTravelApproverErr, Rec."No.", SpendRequest."No.");
     end;
 }
