@@ -34,7 +34,7 @@ table 1255 "Direct Debit Collection Buffer"
         /// <summary>
         /// Customer ledger entry that this collection entry applies to.
         /// </summary>
-        field(4; "Applies-to Entry No."; Integer)
+        field(4; "Applies-to Entry No."; BigInteger)
         {
             Caption = 'Applies-to Entry No.';
         }

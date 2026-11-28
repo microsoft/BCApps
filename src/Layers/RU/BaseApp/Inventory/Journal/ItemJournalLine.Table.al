@@ -269,7 +269,8 @@ table 83 "Item Journal Line"
         {
             Caption = 'Source No.';
             Editable = false;
-            TableRelation = if ("Source Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor
             else
@@ -349,7 +350,8 @@ table 83 "Item Journal Line"
         {
             Caption = 'Source Posting Group';
             Editable = false;
-            TableRelation = if ("Source Type" = const(Customer)) "Customer Posting Group"
+            TableRelation =
+            if ("Source Type" = const(Customer)) "Customer Posting Group"
             else
             if ("Source Type" = const(Vendor)) "Vendor Posting Group"
             else
@@ -581,7 +583,7 @@ table 83 "Item Journal Line"
             Editable = false;
             TableRelation = "Source Code";
         }
-        field(29; "Applies-to Entry"; Integer)
+        field(29; "Applies-to Entry"; BigInteger)
         {
             Caption = 'Applies-to Entry';
             ToolTip = 'Specifies if the quantity on the journal line must be applied to an already-posted entry. In that case, enter the entry number that the quantity will be applied to.';
@@ -662,7 +664,7 @@ table 83 "Item Journal Line"
                 end;
             end;
         }
-        field(32; "Item Shpt. Entry No."; Integer)
+        field(32; "Item Shpt. Entry No."; BigInteger)
         {
             Caption = 'Item Shpt. Entry No.';
             Editable = false;
@@ -1137,7 +1139,8 @@ table 83 "Item Journal Line"
         {
             Caption = 'Bin Code';
             ToolTip = 'Specifies the bin where the items are picked or put away.';
-            TableRelation = if ("Entry Type" = filter(Purchase | "Positive Adjmt." | Output),
+            TableRelation =
+            if ("Entry Type" = filter(Purchase | "Positive Adjmt." | Output),
                                 Quantity = filter(>= 0)) Bin.Code where("Location Code" = field("Location Code"),
                                                                       "Item Filter" = field("Item No."),
                                                                       "Variant Filter" = field("Variant Code"))
@@ -1506,7 +1509,7 @@ table 83 "Item Journal Line"
             Caption = 'Partial Revaluation';
             Editable = false;
         }
-        field(5807; "Applies-from Entry"; Integer)
+        field(5807; "Applies-from Entry"; BigInteger)
         {
             Caption = 'Applies-from Entry';
             ToolTip = 'Specifies the number of the outbound item ledger entry, whose cost is forwarded to the inbound item ledger entry.';
@@ -1608,14 +1611,15 @@ table 83 "Item Journal Line"
         {
             Caption = 'Adjustment';
         }
-        field(5819; "Applies-to Value Entry"; Integer)
+        field(5819; "Applies-to Value Entry"; BigInteger)
         {
             Caption = 'Applies-to Value Entry';
         }
         field(5820; "Invoice-to Source No."; Code[20])
         {
             Caption = 'Invoice-to Source No.';
-            TableRelation = if ("Source Type" = const(Customer)) Customer
+            TableRelation =
+            if ("Source Type" = const(Customer)) Customer
             else
             if ("Source Type" = const(Vendor)) Vendor;
         }
@@ -1635,7 +1639,8 @@ table 83 "Item Journal Line"
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
-            TableRelation = if (Type = const(Resource)) Resource;
+            TableRelation =
+            if (Type = const(Resource)) Resource;
 
             trigger OnValidate()
             var
@@ -1665,7 +1670,8 @@ table 83 "Item Journal Line"
         {
             Caption = 'Cap. Unit of Measure Code';
             ToolTip = 'Specifies the unit of measure code for the capacity usage.';
-            TableRelation = if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
+            TableRelation =
+            if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
             else
             Microsoft.Manufacturing.Capacity."Capacity Unit of Measure";
 
@@ -1803,7 +1809,7 @@ table 83 "Item Journal Line"
             Caption = 'FA No.';
             TableRelation = "Fixed Asset";
         }
-        field(12451; "FA Entry No."; Integer)
+        field(12451; "FA Entry No."; BigInteger)
         {
             Caption = 'FA Entry No.';
             TableRelation = "FA Ledger Entry" where("Entry No." = field("FA Entry No."));

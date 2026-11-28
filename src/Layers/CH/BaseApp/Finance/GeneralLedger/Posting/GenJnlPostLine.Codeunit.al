@@ -2894,7 +2894,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NonDedReverseChargeVATBasePmtDisc: Decimal;
         NonDedReverseChargeVATBasePmtDiscACY: Decimal;
         LastConnectionNo: Integer;
-        VATEntryModifier: Integer;
+        VATEntryModifier: BigInteger;
     begin
         if OldCVLedgEntryBuf."Original Amt. (LCY)" = 0 then
             exit;
@@ -3256,7 +3256,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GenJnlLine."Posting Date", GenJnlLine."Source Currency Code", AmountLCY, SrcCurrencyFactor), LocalAmountRoundingPrecision));
     end;
 
-    local procedure InsertPmtDiscVATForVATEntry(GenJnlLine: Record "Gen. Journal Line"; var TempVATEntry: Record "VAT Entry" temporary; VATEntry2: Record "VAT Entry"; VATEntryModifier: Integer; VATAmount: Decimal; VATAmountAddCurr: Decimal; VATBase: Decimal; VATBaseAddCurr: Decimal; NonDedVATAmount: Decimal; NonDedVATAmountAddCurr: Decimal; NonDedVATBase: Decimal; NonDedVATBaseAddCurr: Decimal; PmtDiscFactorLCY: Decimal; PmtDiscFactorAddCurr: Decimal)
+    local procedure InsertPmtDiscVATForVATEntry(GenJnlLine: Record "Gen. Journal Line"; var TempVATEntry: Record "VAT Entry" temporary; VATEntry2: Record "VAT Entry"; VATEntryModifier: BigInteger; VATAmount: Decimal; VATAmountAddCurr: Decimal; VATBase: Decimal; VATBaseAddCurr: Decimal; NonDedVATAmount: Decimal; NonDedVATAmountAddCurr: Decimal; NonDedVATBase: Decimal; NonDedVATBaseAddCurr: Decimal; PmtDiscFactorLCY: Decimal; PmtDiscFactorAddCurr: Decimal)
     var
         ApplnCurrency: Record Currency;
         TempVATEntryNo: BigInteger;

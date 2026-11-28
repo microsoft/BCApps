@@ -18,8 +18,10 @@ codeunit 101899 "Create Demo Data from Config"
         DemoDataSetup: Record "Demo Data Setup";
     begin
         SetupDemonstrationData(DemoDataSetup);
+        SeedEntryTables();
         CODEUNIT.Run(CODEUNIT::"Create Demonstration Data");
         CleanUp();
+        UnSeedEntryTables();
     end;
 
     local procedure CreateDemoDataLogToFile(LogFileName: Text) Success: Boolean;
@@ -124,6 +126,62 @@ codeunit 101899 "Create Demo Data from Config"
             DemoDataSetup."Adjust for Payment Discount" := false;
             DemoDataSetup.Modify();
         end;
+    end;
+
+    local procedure SeedEntryTables()
+    var
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        DetailedCustledgEntry: Record "Detailed Cust. Ledg. Entry";
+        DetailedVendledgEntry: Record "Detailed Vendor Ledg. Entry";
+    begin
+        InitEntryTableValues(GLEntry."Entry No.", GLEntry."Posting Date");
+        if GLEntry.Insert() then;
+        InitEntryTableValues(VATEntry."Entry No.", VATEntry."Posting Date");
+        VATEntry."VAT Bus. Posting Group" := CopyStr(Format(CreateGuid(), 2), 1, MaxStrLen(VATEntry."VAT Bus. Posting Group")); // to avoid the 'isempty' check in VATPosting Setup
+        VATEntry."VAT Prod. Posting Group" := CopyStr(Format(CreateGuid(), 2), 1, MaxStrLen(VATEntry."VAT Bus. Posting Group"));
+        if VATEntry.Insert() then;
+        InitEntryTableValues(ItemLedgerEntry."Entry No.", ItemLedgerEntry."Posting Date");
+        if ItemLedgerEntry.Insert() then;
+        InitEntryTableValues(ValueEntry."Entry No.", ValueEntry."Posting Date");
+        if ValueEntry.Insert() then;
+        InitEntryTableValues(DetailedCustledgEntry."Entry No.", DetailedCustledgEntry."Posting Date");
+        if DetailedCustledgEntry.Insert() then;
+        InitEntryTableValues(DetailedVendledgEntry."Entry No.", DetailedVendledgEntry."Posting Date");
+        if DetailedVendledgEntry.Insert() then;
+    end;
+
+    local procedure InitEntryTableValues(var EntryNo: BigInteger; var PostingDate: Date)
+    begin
+        EntryNo := 5000000000000L;
+        PostingDate := Today();
+    end;
+
+    local procedure UnSeedEntryTables()
+    var
+        GLEntry: Record "G/L Entry";
+        VATEntry: Record "VAT Entry";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ValueEntry: Record "Value Entry";
+        DetailedCustledgEntry: Record "Detailed Cust. Ledg. Entry";
+        DetailedVendledgEntry: Record "Detailed Vendor Ledg. Entry";
+        Seed: BigInteger;
+    begin
+        Seed := 5000000000000L;
+        if GLEntry.Get(Seed) then
+            if GLEntry.Delete() then;
+        if VATEntry.Get(Seed) then
+            if VATEntry.Delete() then;
+        if ItemLedgerEntry.Get(Seed) then
+            if ItemLedgerEntry.Delete() then;
+        if ValueEntry.Get(Seed) then
+            if ValueEntry.Delete() then;
+        if DetailedCustledgEntry.Get(Seed) then
+            if DetailedCustledgEntry.Delete() then;
+        if DetailedVendledgEntry.Get(Seed) then
+            if DetailedVendledgEntry.Delete() then;
     end;
 }
 

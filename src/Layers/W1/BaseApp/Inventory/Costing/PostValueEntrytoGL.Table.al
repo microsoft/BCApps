@@ -112,8 +112,8 @@ table 5811 "Post Value Entry to G/L"
     var
         SelectionFilterManagement: Codeunit SelectionFilterManagement;
         ValueEntryNoFilter: TextBuilder;
-        FromValueEntryNo: Integer;
-        ToValueEntryNo: Integer;
+        FromValueEntryNo: BigInteger;
+        ToValueEntryNo: BigInteger;
         NoOfFilterParameters: Integer;
         MaxNoOfFilterParameters: Integer;
     begin
@@ -139,7 +139,7 @@ table 5811 "Post Value Entry to G/L"
         ValueEntryNoFilters.Add(ValueEntryNoFilter.ToText());
     end;
 
-    local procedure AddRangeToValueEntryNoFilter(var ValueEntryNoFilters: List of [Text]; var ValueEntryNoFilter: TextBuilder; var NoOfFilterParameters: Integer; MaxNoOfFilterParameters: Integer; FromValueEntryNo: Integer; ToValueEntryNo: Integer)
+    local procedure AddRangeToValueEntryNoFilter(var ValueEntryNoFilters: List of [Text]; var ValueEntryNoFilter: TextBuilder; var NoOfFilterParameters: Integer; MaxNoOfFilterParameters: Integer; FromValueEntryNo: BigInteger; ToValueEntryNo: BigInteger)
     var
         NoOfRangeParameters: Integer;
     begin

@@ -14,28 +14,28 @@ codeunit 18248 "GST Bank Charge Session Mgt."
 
     var
         TempGenJournalLine: Record "Gen. Journal Line" temporary;
-        TransactionNo: Integer;
-        NextEntryNo: Integer;
+        TransactionNo: BigInteger;
+        NextEntryNo: BigInteger;
         BankChargeAmount: Decimal;
         GSTBankChargesPostingStarted: Boolean;
         BankChargeSign: Integer;
 
-    procedure SetTransactionNo(TransNo: Integer)
+    procedure SetTransactionNo(TransNo: BigInteger)
     begin
         TransactionNo := TransNo;
     end;
 
-    procedure SetNextEntryNo(EntryNo: Integer)
+    procedure SetNextEntryNo(EntryNo: BigInteger)
     begin
         NextEntryNo := EntryNo;
     end;
 
-    procedure GetTranxactionNo(): Integer
+    procedure GetTranxactionNo(): BigInteger
     begin
         exit(TransactionNo);
     end;
 
-    procedure GETEntryNo(): Integer
+    procedure GETEntryNo(): BigInteger
     begin
         exit(NextEntryNo);
     end;

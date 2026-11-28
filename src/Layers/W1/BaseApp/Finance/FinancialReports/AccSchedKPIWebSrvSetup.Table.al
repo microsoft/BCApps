@@ -127,7 +127,7 @@ table 135 "Acc. Sched. KPI Web Srv. Setup"
         /// <summary>
         /// Entry number of the last G/L entry processed in the most recent KPI data update.
         /// </summary>
-        field(9; "Last G/L Entry Included"; Integer)
+        field(9; "Last G/L Entry Included"; BigInteger)
         {
             Caption = 'Last G/L Entry Included';
             DataClassification = SystemMetadata;

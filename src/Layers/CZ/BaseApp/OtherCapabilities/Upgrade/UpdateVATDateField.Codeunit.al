@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Upgrade;
-
+ 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.Reminder;

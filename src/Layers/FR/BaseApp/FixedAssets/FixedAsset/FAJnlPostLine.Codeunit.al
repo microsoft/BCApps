@@ -48,12 +48,12 @@ codeunit 5632 "FA Jnl.-Post Line"
         AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
 #endif
         CurrentPostingRole: Enum "Derogatory Posting Role";
-        CurrentDerogatorySourceEntryNo: Integer;
-        SourceUntilDateCustom1EntryNo: Integer;
-        SourceUntilDateDepreciationEntryNo: Integer;
-        SourceAcqCostCustom1EntryNo: Integer;
-        SourceAcqCostDepreciationEntryNo: Integer;
-        SourceSalvageEntryNo: Integer;
+        CurrentDerogatorySourceEntryNo: BigInteger;
+        SourceUntilDateCustom1EntryNo: BigInteger;
+        SourceUntilDateDepreciationEntryNo: BigInteger;
+        SourceAcqCostCustom1EntryNo: BigInteger;
+        SourceAcqCostDepreciationEntryNo: BigInteger;
+        SourceSalvageEntryNo: BigInteger;
         FANo: Code[20];
         BudgetNo: Code[20];
         DeprBookCode: Code[10];
@@ -82,7 +82,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         FAJnlPostLineWithContext(FAJnlLine, CheckLine, CurrentPostingRole::Source, 0);
     end;
 
-    local procedure FAJnlPostLineWithContext(FAJnlLine: Record "FA Journal Line"; CheckLine: Boolean; PostingRole: Enum "Derogatory Posting Role"; DerogatorySourceEntryNo: Integer)
+    local procedure FAJnlPostLineWithContext(FAJnlLine: Record "FA Journal Line"; CheckLine: Boolean; PostingRole: Enum "Derogatory Posting Role"; DerogatorySourceEntryNo: BigInteger)
     var
         IsHandled: Boolean;
     begin
@@ -144,8 +144,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    [Scope('OnPrem')]
-    procedure GenJnlPostLineContinue(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: Integer; NextGLEntryNo: Integer; GLRegisterNo: Integer)
+    procedure GenJnlPostLineContinue(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: BigInteger; NextGLEntryNo: BigInteger; GLRegisterNo: BigInteger)
     begin
         CurrentPostingRole := CurrentPostingRole::Source;
         CurrentDerogatorySourceEntryNo := 0;
@@ -165,7 +164,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         FANo := GenJnlLine."Account No.";
         BudgetNo := GenJnlLine."Budgeted FA No.";
         DeprBookCode := GenJnlLine."Depreciation Book Code";
-        FAPostingType := "FA Journal Line FA Posting Type".FromInteger(GenJnlLine."FA Posting Type".AsInteger() - 1);
+        FAPostingType := Enum::"FA Journal Line FA Posting Type".FromInteger(GenJnlLine."FA Posting Type".AsInteger() - 1);
         FAPostingDate := GenJnlLine."FA Posting Date";
         Amount2 := FAAmount;
         SalvageValue := GenJnlLine.ConvertAmtFCYToLCYForSourceCurrency(GenJnlLine."Salvage Value");
@@ -259,11 +258,10 @@ codeunit 5632 "FA Jnl.-Post Line"
         OnAfterPostFixedAsset(FA, FALedgEntry);
     end;
 
-    [Scope('OnPrem')]
-    procedure InsertBalAcc(var FALedgEntry: Record "FA Ledger Entry")
+    procedure InsertBalAcc(var FALedgerEntry: Record "FA Ledger Entry")
     begin
         FAInsertLedgEntry.SetOrgGenJnlLine(true);
-        FAInsertLedgEntry.InsertBalAcc(FALedgEntry);
+        FAInsertLedgEntry.InsertBalAcc(FALedgerEntry);
         FAInsertLedgEntry.SetOrgGenJnlLine(false);
     end;
 
@@ -294,7 +292,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     local procedure PostDerogatoryCounterpart(SourceFAJournalLine: Record "FA Journal Line")
     var
         DerogatoryFAJournalLine: Record "FA Journal Line";
-        SourceEntryNo: Integer;
+        SourceEntryNo: BigInteger;
     begin
 #if not CLEAN30
         // The centralized policy relies on the new "Derogatory Calc." book relationship; only apply it once the
@@ -320,7 +318,7 @@ codeunit 5632 "FA Jnl.-Post Line"
     local procedure PostDerogatoryCounterpart(SourceGenJournalLine: Record "Gen. Journal Line")
     var
         DerogatoryFAJournalLine: Record "FA Journal Line";
-        SourceEntryNo: Integer;
+        SourceEntryNo: BigInteger;
     begin
 #if not CLEAN30
         if not AcceleratedDeprFeature.IsEnabled() then
@@ -345,7 +343,7 @@ codeunit 5632 "FA Jnl.-Post Line"
 
     local procedure PostDisposalEntry(var FALedgEntry: Record "FA Ledger Entry")
     var
-        MaxDisposalNo: Integer;
+        MaxDisposalNo: BigInteger;
         SalesEntryNo: BigInteger;
         DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal;
         OldDisposalMethod: Option " ",Net,Gross;
@@ -395,7 +393,7 @@ codeunit 5632 "FA Jnl.-Post Line"
 
         if DisposalType = DisposalType::FirstDisposal then begin
             CalculateDisposal.CalcGainLoss(FANo, DeprBookCode, EntryAmounts, true);
-            for i := 1 to 15 do
+            for i := 1 to ArrayLen(EntryAmounts) do
                 if EntryAmounts[i] <> 0 then begin
                     FALedgEntry."FA Posting Category" := CalculateDisposal.SetFALedgerPostingCategory(i);
                     FALedgEntry."FA Posting Type" := "FA Ledger Entry FA Posting Type".FromInteger(CalculateDisposal.SetFAPostingType(i));
@@ -518,7 +516,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"): Integer
+    local procedure GetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"): BigInteger
     begin
         case Type of
             Type::UntilDate:
@@ -538,7 +536,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: Integer)
+    local procedure SetSourceAutomaticEntryNo(Type: Option UntilDate,AcqCost; PostingType: Enum "FA Ledger Entry FA Posting Type"; EntryNo: BigInteger)
     begin
         case Type of
             Type::UntilDate:
@@ -821,15 +819,17 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
-    [Scope('OnPrem')]
-    procedure GetNextMatchingFALedgEntry(SourceFAJournalLine: Record "FA Journal Line"; FromEntryNo: Integer; DeprBookCode: Code[10]): Integer
+    procedure GetNextMatchingFALedgEntry(SourceFAJournalLine: Record "FA Journal Line"; FromEntryNo: BigInteger; DepreciationBookCode: Code[10]): BigInteger
     var
         FALedgerEntry: Record "FA Ledger Entry";
     begin
+        FALedgerEntry.SetLoadFields("Entry No.");
         FALedgerEntry.SetCurrentKey("Entry No.");
         FALedgerEntry.SetFilter("Entry No.", '>%1', FromEntryNo);
-        FALedgerEntry.SetRange("Depreciation Book Code", DeprBookCode);
+        FALedgerEntry.SetRange("Depreciation Book Code", DepreciationBookCode);
+#pragma warning disable AA0210
         FALedgerEntry.SetRange(Amount, -SourceFAJournalLine.Amount);
+#pragma warning restore AA0210
         FALedgerEntry.SetRange("FA Posting Type", SourceFAJournalLine.ConvertToLedgEntry(SourceFAJournalLine));
         FALedgerEntry.SetRange("FA No.", SourceFAJournalLine."FA No.");
         FALedgerEntry.SetRange("FA Posting Date", SourceFAJournalLine."FA Posting Date");

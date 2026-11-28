@@ -141,7 +141,8 @@ table 210 "Job Journal Line"
         {
             Caption = 'No.';
             ToolTip = 'Specifies the number of the involved entry or record, according to the specified number series.';
-            TableRelation = if (Type = const(Resource)) Resource
+            TableRelation =
+            if (Type = const(Resource)) Resource
             else
             if (Type = const(Item)) Item where(Blocked = const(false))
             else
@@ -306,7 +307,8 @@ table 210 "Job Journal Line"
         {
             Caption = 'Unit of Measure Code';
             ToolTip = 'Specifies how each unit of the item or resource is measured, such as in pieces or hours. By default, the value in the Base Unit of Measure field on the item or resource card is inserted.';
-            TableRelation = if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
+            TableRelation =
+            if (Type = const(Item)) "Item Unit of Measure".Code where("Item No." = field("No."))
             else
             if (Type = const(Resource)) "Resource Unit of Measure".Code where("Resource No." = field("No."))
             else
@@ -419,7 +421,8 @@ table 210 "Job Journal Line"
         {
             Caption = 'Posting Group';
             Editable = false;
-            TableRelation = if (Type = const(Item)) "Inventory Posting Group";
+            TableRelation =
+            if (Type = const(Item)) "Inventory Posting Group";
         }
         field(31; "Shortcut Dimension 1 Code"; Code[20])
         {
@@ -496,7 +499,7 @@ table 210 "Job Journal Line"
                     UpdateAllAmounts();
             end;
         }
-        field(37; "Applies-to Entry"; Integer)
+        field(37; "Applies-to Entry"; BigInteger)
         {
             AccessByPermission = TableData Item = R;
             Caption = 'Applies-to Entry';
@@ -773,7 +776,7 @@ table 210 "Job Journal Line"
                     Error(Text006, FieldCaption("Line Type"), FieldCaption("Job Planning Line No."));
             end;
         }
-        field(1004; "Applies-from Entry"; Integer)
+        field(1004; "Applies-from Entry"; BigInteger)
         {
             Caption = 'Applies-from Entry';
             ToolTip = 'Specifies the number of the item ledger entry that the journal line costs have been applied from. This should be done when you reverse the usage of an item in a project and you want to return the item to inventory at the same cost as before it was used in the project.';
@@ -939,7 +942,8 @@ table 210 "Job Journal Line"
         {
             BlankZero = true;
             Caption = 'Ledger Entry No.';
-            TableRelation = if ("Ledger Entry Type" = const(Resource)) "Res. Ledger Entry"
+            TableRelation =
+            if ("Ledger Entry Type" = const(Resource)) "Res. Ledger Entry"
             else
             if ("Ledger Entry Type" = const(Item)) "Item Ledger Entry"
             else
@@ -1055,7 +1059,8 @@ table 210 "Job Journal Line"
         {
             Caption = 'Variant Code';
             ToolTip = 'Specifies the variant of the item on the line.';
-            TableRelation = if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
+            TableRelation =
+            if (Type = const(Item)) "Item Variant".Code where("Item No." = field("No."), Blocked = const(false));
 
             trigger OnValidate()
             var

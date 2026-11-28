@@ -193,7 +193,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustLedgEntry: Record "Cust. Ledger Entry";
         VendLedgEntry: Record "Vendor Ledger Entry";
         Doc: Record "Cartera Doc.";
-        LastTempTransNo: Integer;
+        LastTempTransNo: BigInteger;
         DocAmountLCY: Decimal;
         DiscDocAmountLCY: Decimal;
         CollDocAmountLCY: Decimal;
@@ -213,7 +213,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustLedgEntryInserted2: Boolean;
         VendLedgEntryInserted2: Boolean;
         DocPost: Codeunit "Document-Post";
-        NextEntryNo2: Integer;
+        NextEntryNo2: BigInteger;
         Text1100000: Label 'Unrealized VAT Type must be "Percentage" in VAT Posting Setup.';
         Text1100001: Label 'Invoice No. %1 does not exist';
         GenJnlLineNotFoundErr: Label 'Check that all the entries with the same %2 and a %3 and \%4 associated have a Customer/Vendor associated, check that all the lines with the same \%2 have not more than one Customer/Vendor associated, check that all the lines with same \%2 have in the field %1 the same value: Invoice, Credit Memo or Finance Charge Memo.', Comment = 'Field captions: %1 = "Document Type", %2 = "Document No.", %3 = "VAT Bus. Posting Group", %4 = "VAT Prod. Posting Group"';
@@ -2991,7 +2991,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NonDedReverseChargeVATBasePmtDisc: Decimal;
         NonDedReverseChargeVATBasePmtDiscACY: Decimal;
         LastConnectionNo: Integer;
-        VATEntryModifier: Integer;
+        VATEntryModifier: BigInteger;
     begin
         if OldCVLedgEntryBuf."Original Amt. (LCY)" = 0 then
             exit;
@@ -3352,7 +3352,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 GenJnlLine."Posting Date", GenJnlLine."Source Currency Code", AmountLCY, SrcCurrencyFactor), LocalAmountRoundingPrecision));
     end;
 
-    local procedure InsertPmtDiscVATForVATEntry(GenJnlLine: Record "Gen. Journal Line"; var TempVATEntry: Record "VAT Entry" temporary; VATEntry2: Record "VAT Entry"; VATEntryModifier: Integer; VATAmount: Decimal; VATAmountAddCurr: Decimal; VATBase: Decimal; VATBaseAddCurr: Decimal; NonDedVATAmount: Decimal; NonDedVATAmountAddCurr: Decimal; NonDedVATBase: Decimal; NonDedVATBaseAddCurr: Decimal; PmtDiscFactorLCY: Decimal; PmtDiscFactorAddCurr: Decimal)
+    local procedure InsertPmtDiscVATForVATEntry(GenJnlLine: Record "Gen. Journal Line"; var TempVATEntry: Record "VAT Entry" temporary; VATEntry2: Record "VAT Entry"; VATEntryModifier: BigInteger; VATAmount: Decimal; VATAmountAddCurr: Decimal; VATBase: Decimal; VATBaseAddCurr: Decimal; NonDedVATAmount: Decimal; NonDedVATAmountAddCurr: Decimal; NonDedVATBase: Decimal; NonDedVATBaseAddCurr: Decimal; PmtDiscFactorLCY: Decimal; PmtDiscFactorAddCurr: Decimal)
     var
         TempVATEntryNo: BigInteger;
     begin
@@ -8648,7 +8648,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit;
     end;
 
-    local procedure PostReceivableDocs(GenJnlLine: Record "Gen. Journal Line"; CustPostingGr: Record "Customer Posting Group"; var SaveEntryNo: Integer)
+    local procedure PostReceivableDocs(GenJnlLine: Record "Gen. Journal Line"; CustPostingGr: Record "Customer Posting Group"; var SaveEntryNo: BigInteger)
     var
         DocAmountAddCurr: Decimal;
         GLAccNo: Code[20];
@@ -8976,7 +8976,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [Scope('OnPrem')]
-    procedure UpdateCustLedgEntryStats(CustLedgEntryNo: Integer)
+    procedure UpdateCustLedgEntryStats(CustLedgEntryNo: BigInteger)
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
     begin
@@ -8989,7 +8989,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [Scope('OnPrem')]
-    procedure UpdateVendLedgEntryStats(VendLedgEntryNo: Integer)
+    procedure UpdateVendLedgEntryStats(VendLedgEntryNo: BigInteger)
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
     begin
@@ -9002,7 +9002,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [Scope('OnPrem')]
-    procedure UpdateEmplLedgEntryStats(EmplLedgEntryNo: Integer)
+    procedure UpdateEmplLedgEntryStats(EmplLedgEntryNo: BigInteger)
     var
         EmplLedgEntry: Record "Employee Ledger Entry";
     begin
@@ -10119,7 +10119,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(CheckCustLegderEntryCreateBills(DtldCustLedgEntry."Cust. Ledger Entry No."));
     end;
 
-    local procedure CheckCustLegderEntryCreateBills(EntryNo: Integer): Boolean
+    local procedure CheckCustLegderEntryCreateBills(EntryNo: BigInteger): Boolean
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
@@ -10152,7 +10152,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(CheckVendLegderEntryCreateBills(DtldVendorLedgEntry."Vendor Ledger Entry No."));
     end;
 
-    local procedure CheckVendLegderEntryCreateBills(EntryNo: Integer): Boolean
+    local procedure CheckVendLegderEntryCreateBills(EntryNo: BigInteger): Boolean
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
     begin

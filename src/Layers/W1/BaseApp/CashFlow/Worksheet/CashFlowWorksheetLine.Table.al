@@ -121,7 +121,7 @@ table 846 "Cash Flow Worksheet Line"
             AutoFormatExpression = '';
             Caption = 'Payment Discount';
         }
-        field(15; "Associated Entry No."; Integer)
+        field(15; "Associated Entry No."; BigInteger)
         {
             Caption = 'Associated Entry No.';
         }
