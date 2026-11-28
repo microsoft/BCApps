@@ -1,6 +1,7 @@
 namespace Microsoft.FabricExport;
 
 using System.Fabric;
+using System.Reflection;
 using System.Utilities;
 
 codeunit 140011 "Test FAB Config Package"
@@ -768,49 +769,67 @@ codeunit 140011 "Test FAB Config Package"
     end;
 
     [Test]
-    procedure EnsureMsStdPackageRegistersBuiltInPackage()
+    procedure RegisterBuiltInDomainPackages()
     var
         FabricInstall: Codeunit "Fabric Install";
     begin
-        //[SCENARIO] Install/upgrade registers the built-in MS-STD configuration package
+        //[SCENARIO] Register built-in domain packages on install/upgrade
         //[GIVEN] Initialize
         Initialize();
         //[GIVEN] Lower permissions
         LibraryLowerPermissions.SetOutsideO365Scope();
         LibraryLowerPermissions.AddPermissionSet('Fabric Exp Admin');
 
-        //[WHEN] The built-in package is (re)registered, as happens on install/upgrade
-        FabricInstall.EnsureMsStdPackage();
+        //[WHEN] Register built-in domain packages
+        FabricInstall.EnsureMicrosoftPackages();
 
-        //[THEN] The package header and its full curated table set are registered
-        VerifyMsStdPackageRegistered();
+        //[THEN] Nine inactive domain packages are registered without selecting tables
+        VerifyMicrosoftPackagesRegistered();
     end;
 
-    local procedure VerifyMsStdPackageRegistered()
+    local procedure VerifyMicrosoftPackagesRegistered()
     var
         Pkg: Record "Fabric Config Package";
-        PackageLine: Record "Fabric Config Package Line";
+        TenantFabricTables: Record "Tenant Fabric Tables";
+        FabricTableClaim: Record "Fabric Table Claim";
     begin
-        Assert.IsTrue(Pkg.Get('MS-STD'), 'Expected the MS-STD package header to exist.');
-        Assert.AreEqual('Microsoft Standard', Pkg.Description, 'Expected the package description to match.');
-        Assert.AreEqual('1.0', Pkg.Version, 'Expected the package version to match.');
+        Assert.AreEqual(9, Pkg.Count(), 'Expected nine built-in domain packages.');
+        Assert.IsFalse(Pkg.Get('MS-STD'), 'Expected no legacy MS-STD package on fresh registration.');
+        Assert.IsTrue(TenantFabricTables.IsEmpty(), 'Expected registration not to select tables.');
+        Assert.IsTrue(FabricTableClaim.IsEmpty(), 'Expected registration not to add table claims.');
 
-        // Catches an accidental addition/removal in the hard-coded table list.
-        PackageLine.SetRange("Package Code", 'MS-STD');
-        Assert.AreEqual(256, PackageLine.Count(), 'Expected the full curated MS-STD table set to be registered.');
-
-        VerifyPackageLineExists(PackageLine, 18);   // Customer
-        VerifyPackageLineExists(PackageLine, 27);   // Item
-        VerifyPackageLineExists(PackageLine, 79);   // Company Information
-        VerifyPackageLineExists(PackageLine, 91);   // User Setup
-        VerifyPackageLineExists(PackageLine, 5050);  // Contact
+        VerifyMicrosoftPackageRegistered('MS-FIN', 'Microsoft Finance', 15);
+        VerifyMicrosoftPackageRegistered('MS-INV', 'Microsoft Inventory', 27);
+        VerifyMicrosoftPackageRegistered('MS-INV-VAL', 'Microsoft Inventory Valuation', 5802);
+        VerifyMicrosoftPackageRegistered('MS-MFG', 'Microsoft Manufacturing', 5405);
+        VerifyMicrosoftPackageRegistered('MS-PROJ', 'Microsoft Projects', 167);
+        VerifyMicrosoftPackageRegistered('MS-PUR', 'Microsoft Purchase', 38);
+        VerifyMicrosoftPackageRegistered('MS-SALES', 'Microsoft Sales', 36);
+        VerifyMicrosoftPackageRegistered('MS-SUB-BILL', 'Microsoft Subscription Billing', 8052);
+        VerifyMicrosoftPackageRegistered('MS-SUST', 'Microsoft Sustainability', 6210);
     end;
 
-    local procedure VerifyPackageLineExists(var PackageLine: Record "Fabric Config Package Line"; TableId: Integer)
+    local procedure VerifyMicrosoftPackageRegistered(PackageCode: Code[20]; ExpectedDescription: Text[100]; TableId: Integer)
     var
-        ExpectedTableLbl: Label 'Expected table %1 to be part of the MS-STD package.', Locked = true;
+        Pkg: Record "Fabric Config Package";
+        ExpectedPackageLbl: Label 'Expected package %1 to be registered.', Locked = true;
     begin
-        Assert.IsTrue(PackageLine.Get('MS-STD', TableId), StrSubstNo(ExpectedTableLbl, TableId));
+        Assert.IsTrue(Pkg.Get(PackageCode), StrSubstNo(ExpectedPackageLbl, PackageCode));
+        Assert.AreEqual(ExpectedDescription, Pkg.Description, 'Expected the package description to match.');
+        Assert.AreEqual('1.0', Pkg.Version, 'Expected the package version to match.');
+        Assert.IsFalse(Pkg.Active, 'Expected the registered package to be inactive.');
+        VerifyPackageLineMatchesInstalledTable(PackageCode, TableId);
+    end;
+
+    local procedure VerifyPackageLineMatchesInstalledTable(PackageCode: Code[20]; TableId: Integer)
+    var
+        PackageLine: Record "Fabric Config Package Line";
+        AllObj: Record AllObjWithCaption;
+        TableInstalled: Boolean;
+        ExpectedTableLbl: Label 'Expected table %1 presence in package %2 to match its installed state (%3).', Comment = '%1 = table ID, %2 = package code, %3 = installed state', Locked = true;
+    begin
+        TableInstalled := AllObj.Get(AllObj."Object Type"::Table, TableId);
+        Assert.AreEqual(TableInstalled, PackageLine.Get(PackageCode, TableId), StrSubstNo(ExpectedTableLbl, TableId, PackageCode, TableInstalled));
     end;
 
     #region Handlers
