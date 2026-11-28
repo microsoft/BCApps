@@ -340,6 +340,8 @@ codeunit 20504 "Subc. Transfer Management"
 
     internal procedure CheckSubcPurchLineCanBeDeleted(PurchaseLine: Record "Purchase Line")
     begin
+        if PurchaseLine."Document Type" <> PurchaseLine."Document Type"::Order then
+            exit;
         if not PurchaseLine."Transfer WIP Item" then
             exit;
 

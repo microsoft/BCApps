@@ -21,6 +21,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Warehouse.Structure;
 using System.TestLibraries.Utilities;
@@ -1097,6 +1098,63 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
             'The Subc. Order FlowField must be true for a subcontracting purchase order');
     end;
 
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure DeleteSeparateInvoiceFromSubcReceiptWithWIPAtSubcontractor()
+    var
+        InvoiceHeader: Record "Purchase Header";
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        WIPQtyBase: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO] An unposted separate invoice created from a subcontracting receipt can be deleted while WIP remains at the subcontractor
+        Initialize();
+
+        // [GIVEN] Create Subcontracting purchase order with Transfer WIP Item for released production order.
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", LibraryRandom.RandIntInRange(2, 10));
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] Components and WIP item of the production order are transferred to the subcontractor location.
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine, false);
+        PostDirectTransferOrder(TransferHeader);
+        WIPQtyBase := CalcWIPQtyBaseAtSubcontractor(PurchaseLine);
+        Assert.AreNotEqual(0, WIPQtyBase, 'WIP must remain at the subcontractor location.');
+
+        // [GIVEN] Purchase order is posted as Receive only, creating receipt.
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        SubSetupLibrary.EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] Separate purchase invoice is populated from the receipt with Get Receipt Lines.
+#pragma warning disable AA0210
+        PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
+#pragma warning restore AA0210
+        PurchRcptLine.FindFirst();
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, PurchaseHeader."Buy-from Vendor No.");
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        // [WHEN] Purchase invoice is deleted.
+        InvoiceHeader.Get(InvoiceHeader."Document Type", InvoiceHeader."No.");
+        InvoiceHeader.Delete(true);
+
+        // [THEN] Purchase invoice is deleted while purchase order, receipt and the WIP at the subcontractor remain unchanged.
+        VerifySubcDocumentsAndWIPUnchangedAfterInvoiceDeletion(InvoiceHeader, PurchaseLine, PurchRcptLine, WIPQtyBase);
+    end;
+
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin
@@ -1238,7 +1296,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         PurchaseLine.SetCurrentKey("Prod. Order No.", "Prod. Order Line No.", "Routing No.", "Operation No.");
         PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
         PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-#pragma warning disable AA0210              
+#pragma warning disable AA0210
         PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
         PurchaseLine.SetRange("Transfer WIP Item", true);
 #pragma warning restore AA0210
@@ -1366,6 +1424,40 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
 
         RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
         RoutingHeader.Modify(true);
+    end;
+
+    local procedure CalcWIPQtyBaseAtSubcontractor(PurchaseLine: Record "Purchase Line"): Decimal
+    var
+        SubcWIPLedgerEntry: Record "Subcontractor WIP Ledger Entry";
+    begin
+        SubcWIPLedgerEntry.SetCurrentKey("Prod. Order No.", "Prod. Order Status", "Prod. Order Line No.", "Routing Reference No.", "Routing No.", "Operation No.", "Location Code");
+        SubcWIPLedgerEntry.SetRange("Prod. Order No.", PurchaseLine."Prod. Order No.");
+        SubcWIPLedgerEntry.SetRange("Prod. Order Status", "Production Order Status"::Released);
+        SubcWIPLedgerEntry.SetRange("Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        SubcWIPLedgerEntry.SetRange("Routing Reference No.", PurchaseLine."Routing Reference No.");
+        SubcWIPLedgerEntry.SetRange("Routing No.", PurchaseLine."Routing No.");
+        SubcWIPLedgerEntry.SetRange("Operation No.", PurchaseLine."Operation No.");
+        SubcWIPLedgerEntry.SetRange("In Transit", false);
+        SubcWIPLedgerEntry.CalcSums("Quantity (Base)");
+        exit(SubcWIPLedgerEntry."Quantity (Base)");
+    end;
+
+    local procedure VerifySubcDocumentsAndWIPUnchangedAfterInvoiceDeletion(InvoiceHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; ExpectedWIPQtyBase: Decimal)
+    var
+        InvoiceLine: Record "Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        Assert.IsFalse(InvoiceHeader.Get(InvoiceHeader."Document Type", InvoiceHeader."No."), 'The purchase invoice must be deleted.');
+        InvoiceLine.SetRange("Document Type", InvoiceHeader."Document Type");
+        InvoiceLine.SetRange("Document No.", InvoiceHeader."No.");
+        Assert.RecordIsEmpty(InvoiceLine);
+
+        Assert.IsTrue(PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No."), 'The subcontracting purchase order must not be deleted.');
+
+        PurchRcptLine.Get(PurchRcptLine."Document No.", PurchRcptLine."Line No.");
+        Assert.AreEqual(PurchRcptLine.Quantity, PurchRcptLine."Qty. Rcd. Not Invoiced", 'The subcontracting receipt must remain uninvoiced.');
+
+        Assert.AreEqual(ExpectedWIPQtyBase, CalcWIPQtyBaseAtSubcontractor(PurchaseLine), 'The WIP quantity at the subcontractor must not change.');
     end;
 
 }
