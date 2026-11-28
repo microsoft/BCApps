@@ -1,0 +1,71 @@
+{
+  "id": "5f3d528c-581f-44c3-bfea-72d4fa6640cf",
+  "name": "Expense Withholding Tax Tests",
+  "publisher": "Microsoft",
+  "version": "29.2.0.0",
+  "brief": "Tests for Microsoft Expense Withholding Tax app.",
+  "description": "Tests for Microsoft Expense Withholding Tax app.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2139719",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2139719",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "./ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "66efe10c-8033-403b-a86d-77c0887178ba",
+      "name": "Expense Agent",
+      "publisher": "Microsoft",
+      "version": "29.2.0.0"
+    },
+    {
+      "id": "090f6a41-ff8d-4322-ac4b-2f9bcf297e8a",
+      "name": "Expense Agent Tests",
+      "publisher": "Microsoft",
+      "version": "29.2.0.0"
+    },
+    {
+      "id": "4cb44e6c-9a37-4d4e-b45f-1b3054ddc59a",
+      "name": "Expense Withholding Tax",
+      "publisher": "Microsoft",
+      "version": "29.2.0.0"
+    },
+    {
+      "id": "c31ee575-3fc7-4388-98ee-d75aa2fc5f87",
+      "name": "Withholding Tax",
+      "publisher": "Microsoft",
+      "version": "29.2.0.0"
+    },
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "29.2.0.0"
+    },
+    {
+      "id": "9856ae4f-d1a7-46ef-89bb-6ef056398228",
+      "name": "System Application Test Library",
+      "publisher": "Microsoft",
+      "version": "29.2.0.0"
+    }
+  ],
+  "internalsVisibleTo": [],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "application": "29.2.0.0",
+  "idRanges": [
+    {
+      "from": 148370,
+      "to": 148379
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "TranslationFile"
+  ],
+  "target": "OnPrem"
+}
