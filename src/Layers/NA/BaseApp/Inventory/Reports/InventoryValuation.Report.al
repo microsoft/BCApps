@@ -351,7 +351,10 @@ report 10139 "Inventory Valuation"
         ValueEntry.SetLoadFields("Item Ledger Entry No.", "Posting Date", "Cost Amount (Expected)", "Cost Amount (Actual)", "Cost Amount (Expected) (ACY)", "Cost Amount (Actual) (ACY)");
         ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
         ValueEntry.SetRange("Posting Date", 0D, EndDate);
+#if not CLEAN30
         OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(ValueEntry, Item);
+#endif
+        OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(ValueEntry, Item);
 
         if ShowACY then begin
             ValueEntry.CalcSums("Cost Amount (Actual) (ACY)", "Cost Amount (Expected) (ACY)");
@@ -444,8 +447,16 @@ report 10139 "Inventory Valuation"
     begin
     end;
 
+#if not CLEAN30
+    [Obsolete('Use OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters instead.', '30.0')]
     [IntegrationEvent(true, false)]
     local procedure OnAdjustItemLedgEntryToAsOfDateOnAfterValueEntrySetFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
+    begin
+    end;
+#endif
+
+    [IntegrationEvent(true, false)]
+    local procedure OnItemOnAfterGetRecordOnAfterValueEntrySetInitialFilters(var ValueEntry: Record "Value Entry"; Item: Record Item)
     begin
     end;
 }
